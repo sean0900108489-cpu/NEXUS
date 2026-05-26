@@ -1,0 +1,504 @@
+@config "../../tailwind.config.ts";
+@import "tailwindcss";
+
+:root,
+[data-theme="cyberpunk"] {
+  color-scheme: dark;
+  --bg-base: #030712;
+  --bg-elevated: #08111a;
+  --bg-workspace: #020617;
+  --panel-bg: rgb(8 16 22 / 0.78);
+  --panel-muted: rgb(255 255 255 / 0.04);
+  --border-subtle: rgb(226 232 240 / 0.12);
+  --border-glow: rgb(34 211 238 / 0.42);
+  --text-main: #f8fafc;
+  --text-soft: #cbd5e1;
+  --text-muted: #64748b;
+  --theme-primary: #67e8f9;
+  --theme-primary-strong: #22d3ee;
+  --theme-secondary: #f0abfc;
+  --theme-success: #6ee7b7;
+  --theme-warning: #fcd34d;
+  --theme-danger: #fda4af;
+  --shadow-panel: 0 24px 80px rgb(0 0 0 / 0.38), inset 0 1px 0 rgb(255 255 255 / 0.05);
+  --shadow-glow: 0 0 32px rgb(34 211 238 / 0.18);
+  --radius-base: 4px;
+  --backdrop-blur: 8px;
+  --border-width: 1px;
+  --icon-weight: 2px;
+  --font-main: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --surface-radius: var(--radius-base);
+  --glass-blur: var(--backdrop-blur);
+  --scanline-opacity: 0.22;
+  --workspace-grid-primary: rgb(34 211 238 / 0.12);
+  --workspace-grid-secondary: rgb(244 114 182 / 0.11);
+  --workspace-wash: linear-gradient(135deg, rgb(20 184 166 / 0.08), rgb(245 158 11 / 0.05));
+  --shell-surface:
+    linear-gradient(135deg, rgb(4 12 16 / 0.98), rgb(19 11 27 / 0.97) 42%, rgb(8 17 15 / 0.98)),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.035) 0 1px, transparent 1px 88px),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.028) 0 1px, transparent 1px 72px);
+  --asset-background-image: url("https://cdn.example.com/nexus/bg-cyberpunk.webp");
+}
+
+[data-theme="apple"] {
+  color-scheme: light;
+  --bg-base: #f5f5f7;
+  --bg-elevated: #ffffff;
+  --bg-workspace: #fbfbfd;
+  --panel-bg: rgb(255 255 255 / 0.82);
+  --panel-muted: rgb(15 23 42 / 0.045);
+  --border-subtle: rgb(60 60 67 / 0.16);
+  --border-glow: rgb(0 122 255 / 0.28);
+  --text-main: #1d1d1f;
+  --text-soft: #3a3a3c;
+  --text-muted: #86868b;
+  --theme-primary: #007aff;
+  --theme-primary-strong: #0057d8;
+  --theme-secondary: #8e8e93;
+  --theme-success: #34c759;
+  --theme-warning: #ff9f0a;
+  --theme-danger: #ff3b30;
+  --shadow-panel: 0 18px 48px rgb(0 0 0 / 0.09), inset 0 1px 0 rgb(255 255 255 / 0.72);
+  --shadow-glow: 0 16px 38px rgb(0 0 0 / 0.08);
+  --radius-base: 8px;
+  --backdrop-blur: 22px;
+  --border-width: 1px;
+  --icon-weight: 1.75px;
+  --font-main: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --surface-radius: var(--radius-base);
+  --glass-blur: var(--backdrop-blur);
+  --scanline-opacity: 0.04;
+  --workspace-grid-primary: rgb(0 122 255 / 0.08);
+  --workspace-grid-secondary: rgb(60 60 67 / 0.055);
+  --workspace-wash: linear-gradient(135deg, rgb(255 255 255 / 0.68), rgb(242 242 247 / 0.84));
+  --shell-surface:
+    linear-gradient(135deg, rgb(245 245 247 / 0.98), rgb(255 255 255 / 0.98)),
+    repeating-linear-gradient(90deg, rgb(60 60 67 / 0.045) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(0deg, rgb(60 60 67 / 0.035) 0 1px, transparent 1px 84px);
+  --asset-background-image: url("https://cdn.example.com/nexus/bg-apple.webp");
+}
+
+[data-theme="tesla"] {
+  color-scheme: dark;
+  --bg-base: #050505;
+  --bg-elevated: #0b0b0d;
+  --bg-workspace: #030303;
+  --panel-bg: rgb(12 12 14 / 0.88);
+  --panel-muted: rgb(255 255 255 / 0.035);
+  --border-subtle: rgb(255 255 255 / 0.14);
+  --border-glow: rgb(232 33 39 / 0.52);
+  --text-main: #f5f5f5;
+  --text-soft: #d1d5db;
+  --text-muted: #737373;
+  --theme-primary: #e82127;
+  --theme-primary-strong: #ff383f;
+  --theme-secondary: #a3a3a3;
+  --theme-success: #9ca3af;
+  --theme-warning: #f59e0b;
+  --theme-danger: #ff383f;
+  --shadow-panel: 0 18px 54px rgb(0 0 0 / 0.58);
+  --shadow-glow: 0 0 0 transparent;
+  --radius-base: 0px;
+  --backdrop-blur: 8px;
+  --border-width: 1px;
+  --icon-weight: 2px;
+  --font-main: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --surface-radius: var(--radius-base);
+  --glass-blur: var(--backdrop-blur);
+  --scanline-opacity: 0.1;
+  --workspace-grid-primary: rgb(232 33 39 / 0.11);
+  --workspace-grid-secondary: rgb(255 255 255 / 0.05);
+  --workspace-wash: linear-gradient(135deg, rgb(232 33 39 / 0.035), rgb(255 255 255 / 0.02));
+  --shell-surface:
+    linear-gradient(135deg, rgb(0 0 0 / 0.98), rgb(13 13 15 / 0.98)),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.028) 0 1px, transparent 1px 92px),
+    repeating-linear-gradient(0deg, rgb(232 33 39 / 0.032) 0 1px, transparent 1px 78px);
+  --asset-background-image: url("https://cdn.example.com/nexus/bg-tesla.webp");
+}
+
+[data-theme="terminal"] {
+  color-scheme: dark;
+  --bg-base: #000807;
+  --bg-elevated: #00110f;
+  --bg-workspace: #000302;
+  --panel-bg: rgb(0 18 15 / 0.64);
+  --panel-muted: rgb(0 255 204 / 0.055);
+  --border-subtle: rgb(0 255 204 / 0.2);
+  --border-glow: rgb(0 255 204 / 0.62);
+  --text-main: #e6fff9;
+  --text-soft: #9fffea;
+  --text-muted: #4fa898;
+  --theme-primary: #00ffcc;
+  --theme-primary-strong: #5cffdf;
+  --theme-secondary: #7dd3fc;
+  --theme-success: #86efac;
+  --theme-warning: #fde68a;
+  --theme-danger: #fb7185;
+  --shadow-panel:
+    0 28px 82px rgb(0 0 0 / 0.62),
+    0 0 32px rgb(0 255 204 / 0.16),
+    inset 0 0 0 1px rgb(0 255 204 / 0.14);
+  --shadow-glow: 0 0 30px rgb(0 255 204 / 0.2);
+  --radius-base: 0px;
+  --backdrop-blur: 26px;
+  --border-width: 1px;
+  --icon-weight: 2px;
+  --font-main: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --surface-radius: var(--radius-base);
+  --glass-blur: var(--backdrop-blur);
+  --scanline-opacity: 0.3;
+  --workspace-grid-primary: rgb(0 255 204 / 0.16);
+  --workspace-grid-secondary: rgb(125 211 252 / 0.08);
+  --workspace-wash:
+    linear-gradient(135deg, rgb(0 255 204 / 0.06), rgb(125 211 252 / 0.035)),
+    radial-gradient(circle at 50% 50%, rgb(0 255 204 / 0.05), transparent 56%);
+  --shell-surface:
+    linear-gradient(135deg, rgb(0 8 7 / 0.97), rgb(0 16 14 / 0.94) 48%, rgb(0 4 3 / 0.98)),
+    repeating-linear-gradient(90deg, rgb(0 255 204 / 0.07) 0 1px, transparent 1px 72px),
+    repeating-linear-gradient(0deg, rgb(125 211 252 / 0.045) 0 1px, transparent 1px 60px);
+  --asset-background-image: url("https://xxx.com/bg.webp");
+}
+
+@theme inline {
+  --color-background: var(--bg-base);
+  --color-foreground: var(--text-main);
+  --color-primary: var(--theme-primary);
+  --color-panel: var(--panel-bg);
+  --color-panel-muted: var(--panel-muted);
+  --color-border: var(--border-subtle);
+  --color-glow: var(--border-glow);
+  --color-muted: var(--text-muted);
+  --color-soft: var(--text-soft);
+  --color-danger: var(--theme-danger);
+  --color-success: var(--theme-success);
+  --color-warning: var(--theme-warning);
+  --color-white: var(--text-main);
+  --color-black: var(--bg-base);
+  --color-slate-950: var(--bg-elevated);
+  --color-slate-900: var(--bg-elevated);
+  --color-slate-800: color-mix(in srgb, var(--bg-elevated) 82%, var(--text-main) 18%);
+  --color-slate-700: color-mix(in srgb, var(--bg-elevated) 68%, var(--text-main) 32%);
+  --color-slate-600: color-mix(in srgb, var(--text-muted) 76%, var(--bg-base) 24%);
+  --color-slate-500: var(--text-muted);
+  --color-slate-400: var(--text-soft);
+  --color-slate-300: var(--text-soft);
+  --color-slate-200: color-mix(in srgb, var(--text-main) 88%, var(--text-soft) 12%);
+  --color-slate-100: var(--text-main);
+  --color-cyan-50: var(--text-main);
+  --color-cyan-100: var(--theme-primary);
+  --color-cyan-200: var(--theme-primary);
+  --color-cyan-300: var(--theme-primary-strong);
+  --color-fuchsia-100: var(--theme-secondary);
+  --color-fuchsia-200: var(--theme-secondary);
+  --color-fuchsia-300: var(--theme-secondary);
+  --color-emerald-100: var(--theme-success);
+  --color-emerald-200: var(--theme-success);
+  --color-emerald-300: var(--theme-success);
+  --color-amber-100: var(--theme-warning);
+  --color-amber-200: var(--theme-warning);
+  --color-amber-300: var(--theme-warning);
+  --color-rose-100: var(--theme-danger);
+  --color-rose-200: var(--theme-danger);
+  --color-rose-300: var(--theme-danger);
+  --color-red-500: var(--theme-danger);
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+}
+
+html {
+  background: var(--bg-base);
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-main);
+  font-family: var(--font-main);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--theme-primary-strong) 32%, transparent);
+  color: var(--text-main);
+}
+
+.nexus-shell {
+  background: var(--shell-surface), var(--asset-background-image);
+  background-position: center;
+  background-size: auto, auto, auto, cover;
+  color: var(--text-main);
+}
+
+.nexus-workspace {
+  background-color: color-mix(in srgb, var(--bg-workspace) 82%, transparent);
+  background-image:
+    linear-gradient(var(--workspace-grid-primary) 1px, transparent 1px),
+    linear-gradient(90deg, var(--workspace-grid-secondary) 1px, transparent 1px),
+    var(--workspace-wash);
+  background-size: 44px 44px, 44px 44px, 100% 100%;
+}
+
+.nexus-scanline {
+  position: relative;
+}
+
+.nexus-scanline::after {
+  background: repeating-linear-gradient(
+    0deg,
+    color-mix(in srgb, var(--text-main) 12%, transparent) 0,
+    color-mix(in srgb, var(--text-main) 12%, transparent) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  content: "";
+  inset: 0;
+  opacity: var(--scanline-opacity);
+  pointer-events: none;
+  position: absolute;
+}
+
+.nexus-panel {
+  background: var(--panel-bg);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--surface-radius);
+  box-shadow: var(--shadow-panel);
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+.nexus-glass {
+  background: color-mix(in srgb, var(--panel-bg) 82%, transparent);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--surface-radius);
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+svg.lucide {
+  stroke-width: var(--icon-weight);
+}
+
+.nexus-drag-handle {
+  cursor: grab;
+}
+
+.nexus-drag-handle:active {
+  cursor: grabbing;
+}
+
+.cyber-scroll {
+  scrollbar-color: color-mix(in srgb, var(--theme-primary-strong) 55%, transparent)
+    color-mix(in srgb, var(--bg-elevated) 65%, transparent);
+  scrollbar-width: thin;
+}
+
+.cyber-scroll::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.cyber-scroll::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--bg-elevated) 65%, transparent);
+}
+
+.cyber-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--theme-primary-strong), var(--theme-secondary));
+  border-radius: 999px;
+}
+
+.react-flow {
+  background: transparent;
+  color: var(--text-soft);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.react-flow__pane {
+  cursor: grab;
+}
+
+.react-flow__pane:active {
+  cursor: grabbing;
+}
+
+.react-flow__handle {
+  box-shadow: 0 0 18px color-mix(in srgb, var(--theme-primary-strong) 45%, transparent);
+}
+
+.react-flow__edge-path {
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--theme-primary-strong) 45%, transparent));
+}
+
+.nexus-flow-edge.react-flow__edge-path,
+.react-flow__edge.animated .react-flow__edge-path {
+  animation: nexus-edge-flow 0.8s linear infinite;
+  stroke-dasharray: 8 7;
+}
+
+.nexus-flow-edge-selected.react-flow__edge-path {
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--theme-danger) 68%, transparent));
+  stroke: var(--theme-danger) !important;
+  stroke-width: 2.6;
+}
+
+.nexus-flow-edge-hit {
+  cursor: pointer;
+  pointer-events: stroke;
+}
+
+.nexus-edge-delete {
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.nexus-edge-delete circle {
+  fill: color-mix(in srgb, var(--bg-base) 92%, transparent);
+  stroke: color-mix(in srgb, var(--theme-primary-strong) 55%, transparent);
+  stroke-width: 1.4;
+}
+
+.nexus-edge-delete text {
+  fill: var(--theme-primary);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9px;
+  pointer-events: none;
+}
+
+.nexus-edge-delete:focus-visible circle,
+.nexus-edge-delete:hover circle {
+  fill: color-mix(in srgb, var(--theme-danger) 28%, transparent);
+  stroke: color-mix(in srgb, var(--theme-danger) 85%, transparent);
+}
+
+.nexus-edge-delete:focus-visible text,
+.nexus-edge-delete:hover text {
+  fill: var(--text-main);
+}
+
+.nexus-agent-node {
+  border-radius: var(--surface-radius);
+  border-width: var(--border-width);
+  position: relative;
+  box-shadow:
+    0 18px 60px color-mix(in srgb, var(--bg-base) 46%, transparent),
+    0 0 34px color-mix(in srgb, var(--agent-accent) 14%, transparent);
+}
+
+[data-theme="terminal"] .nexus-agent-node {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--agent-accent) 10%, transparent), transparent 46%),
+    color-mix(in srgb, var(--bg-base) 72%, transparent) !important;
+  border-style: solid;
+  outline: 1px solid color-mix(in srgb, var(--agent-accent) 34%, transparent);
+  outline-offset: -5px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--theme-primary) 24%, transparent),
+    0 0 26px color-mix(in srgb, var(--agent-accent) 22%, transparent);
+}
+
+[data-theme="terminal"] .nexus-agent-node::before,
+[data-theme="terminal"] .nexus-agent-node::after {
+  border-color: color-mix(in srgb, var(--agent-accent) 72%, transparent);
+  border-style: solid;
+  content: "";
+  height: 16px;
+  pointer-events: none;
+  position: absolute;
+  width: 16px;
+}
+
+[data-theme="terminal"] .nexus-agent-node::before {
+  border-width: 1px 0 0 1px;
+  left: 4px;
+  top: 4px;
+}
+
+[data-theme="terminal"] .nexus-agent-node::after {
+  border-width: 0 1px 1px 0;
+  bottom: 4px;
+  right: 4px;
+}
+
+[data-theme="terminal"] .nexus-message-bubble {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--theme-primary) 12%, transparent), transparent 62%),
+    color-mix(in srgb, var(--bg-base) 62%, transparent) !important;
+  border-color: color-mix(in srgb, var(--theme-primary) 28%, transparent) !important;
+  border-left: max(2px, var(--border-width)) solid var(--theme-primary);
+  border-radius: var(--surface-radius);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-primary) 7%, transparent);
+  position: relative;
+}
+
+[data-theme="terminal"] .nexus-message-bubble p::before {
+  color: var(--theme-primary);
+  content: "> ";
+  font-family: var(--font-geist-mono), monospace;
+}
+
+.nexus-agent-node-active {
+  animation: nexus-node-pulse 1.45s ease-in-out infinite;
+}
+
+.react-flow__controls,
+.react-flow__minimap {
+  background: color-mix(in srgb, var(--bg-base) 86%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--theme-primary-strong) 26%, transparent);
+  border-radius: 0;
+  box-shadow:
+    0 18px 50px color-mix(in srgb, var(--bg-base) 40%, transparent),
+    var(--shadow-glow);
+  backdrop-filter: blur(14px);
+}
+
+.react-flow__controls-button {
+  background: transparent !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  color: var(--theme-primary) !important;
+}
+
+.react-flow__controls-button:hover {
+  background: color-mix(in srgb, var(--theme-primary-strong) 14%, transparent) !important;
+}
+
+.react-flow__controls-button svg {
+  fill: var(--theme-primary);
+}
+
+.react-flow__minimap {
+  overflow: hidden;
+}
+
+.react-flow__minimap-mask {
+  fill: color-mix(in srgb, var(--bg-base) 72%, transparent);
+}
+
+@keyframes nexus-edge-flow {
+  to {
+    stroke-dashoffset: -15;
+  }
+}
+
+@keyframes nexus-node-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 18px 60px color-mix(in srgb, var(--bg-base) 46%, transparent),
+      0 0 24px color-mix(in srgb, var(--agent-accent) 18%, transparent);
+  }
+
+  50% {
+    box-shadow:
+      0 18px 60px color-mix(in srgb, var(--bg-base) 50%, transparent),
+      0 0 48px color-mix(in srgb, var(--agent-accent) 45%, transparent);
+  }
+}

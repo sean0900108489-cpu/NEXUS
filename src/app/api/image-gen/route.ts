@@ -1,0 +1,80 @@
+import {
+  DalleImageAdapter,
+  MockImageAdapter,
+  normalizeImageBaseUrl,
+} from "@/lib/adapters/image-adapter";
+
+export const runtime = "nodejs";
+
+type ImageGenerationPayload = {
+  agent?: {
+    accent?: unknown;
+    callsign?: unknown;
+  };
+  model?: unknown;
+  prompt?: unknown;
+  toolName?: unknown;
+};
+
+function getBearerToken(header: string | null) {
+  if (!header) {
+    return "";
+  }
+
+  const [scheme, token] = header.split(/\s+/, 2);
+
+  return scheme?.toLowerCase() === "bearer" ? token?.trim() ?? "" : "";
+}
+
+function getString(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+export async function POST(request: Request) {
+  let payload: ImageGenerationPayload;
+
+  try {
+    payload = (await request.json()) as ImageGenerationPayload;
+  } catch {
+    return Response.json({ error: "Invalid image generation payload." }, { status: 400 });
+  }
+
+  const prompt = getString(payload.prompt, "");
+
+  if (!prompt) {
+    return Response.json({ error: "Image prompt is required." }, { status: 400 });
+  }
+
+  const apiKey = getBearerToken(request.headers.get("authorization"));
+  const baseUrl = normalizeImageBaseUrl(request.headers.get("x-openai-base-url") ?? undefined);
+  const agent = {
+    accent: getString(payload.agent?.accent, "#a78bfa"),
+    callsign: getString(payload.agent?.callsign, "IMAGE"),
+    model: getString(payload.model, "dall-e-3"),
+  };
+  const toolName = getString(payload.toolName, "Image Adapter");
+
+  try {
+    const adapter = apiKey
+      ? new DalleImageAdapter({
+          agent,
+          apiKey,
+          baseUrl,
+          model: agent.model,
+          prompt,
+          toolName,
+        })
+      : new MockImageAdapter({
+          agent,
+          prompt,
+          toolName,
+        });
+    const result = await adapter.execute();
+
+    return Response.json(result);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "Image generation failed.";
+
+    return Response.json({ error: detail }, { status: 502 });
+  }
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getEmbeddableUrl } from "@/lib/embed-url";
+import { getEmbeddableUrl, getIframeBlockReason } from "@/lib/embed-url";
 
 describe("getEmbeddableUrl", () => {
   it("converts YouTube watch URLs to embed URLs", () => {
@@ -65,5 +65,19 @@ describe("getEmbeddableUrl", () => {
       "https://developer.mozilla.org/en-US/",
     );
     expect(getEmbeddableUrl("not a url")).toBe("not a url");
+  });
+});
+
+describe("getIframeBlockReason", () => {
+  it("flags Gemini as external-only because it denies iframe embeds", () => {
+    expect(getIframeBlockReason("https://gemini.google.com/app")).toContain(
+      "Gemini blocks",
+    );
+  });
+
+  it("does not flag embeddable media URLs", () => {
+    expect(getIframeBlockReason("https://www.youtube.com/watch?v=dQw4w9WgXcQ")).toBe(
+      null,
+    );
   });
 });

@@ -56,6 +56,28 @@ function getGoogleEmbeddableUrl(url: URL) {
   return null;
 }
 
+export function getIframeBlockReason(inputUrl: string): string | null {
+  if (!inputUrl) {
+    return null;
+  }
+
+  try {
+    const host = new URL(inputUrl).hostname.toLowerCase();
+
+    if (host === "gemini.google.com" || host === "bard.google.com") {
+      return "Gemini blocks third-party iframe embedding. Open it in a secure browser tab.";
+    }
+
+    if (host === "accounts.google.com") {
+      return "Google Account sign-in cannot run inside a third-party iframe.";
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function getEmbeddableUrl(inputUrl: string): string {
   if (!inputUrl) {
     return "";

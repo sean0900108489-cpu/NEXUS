@@ -83,7 +83,7 @@ import { hasToolExecutor } from "@/lib/tool-executors";
 import { fetchWithBackoff, isAbortLikeError } from "@/lib/stream-retry";
 import { supabaseStateSyncManager } from "@/lib/state-sync";
 import { getNexusSupabaseClient } from "@/lib/supabase/client";
-import { getEmbeddableUrl } from "@/lib/embed-url";
+import { getEmbeddableUrl, getIframeBlockReason } from "@/lib/embed-url";
 import { buildMockPredictiveIntelSuggestions } from "@/lib/predictive-intel";
 import {
   CUSTOM_POWER_CHAT_MODEL_IDS,
@@ -3170,6 +3170,9 @@ function SandboxCanvas({
   const embeddablePreviewUrl = externalPreviewUrl
     ? getEmbeddableUrl(externalPreviewUrl)
     : "";
+  const iframeBlockReason = externalPreviewUrl
+    ? getIframeBlockReason(externalPreviewUrl)
+    : null;
   const openExternalPreview = useCallback(() => {
     if (!externalPreviewUrl) {
       return;
@@ -3444,22 +3447,46 @@ function SandboxCanvas({
                 </div>
               ) : null}
             </form>
-            <iframe
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
-              allowFullScreen
-              key={embeddablePreviewUrl || "srcdoc"}
-              className="min-h-0 flex-1 border-0 bg-white"
-              referrerPolicy="strict-origin-when-cross-origin"
-              sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-              src={embeddablePreviewUrl || undefined}
-              srcDoc={embeddablePreviewUrl ? undefined : code}
-              style={{ pointerEvents: resizing ? "none" : "auto" }}
-              title={
-                externalPreviewUrl
-                  ? `${agent.callsign} external sandbox preview`
-                  : `${agent.callsign} live UI sandbox preview`
-              }
-            />
+            {iframeBlockReason ? (
+              <div className="grid min-h-0 flex-1 place-items-center bg-black/45 p-6">
+                <div className="max-w-md border border-amber-300/30 bg-slate-950/88 p-5 text-center shadow-[0_0_36px_rgba(251,191,36,0.12)]">
+                  <div className="mx-auto mb-4 grid h-11 w-11 place-items-center border border-amber-300/35 bg-amber-300/10 text-amber-100">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-100">
+                    External-Only Surface
+                  </div>
+                  <p className="mt-3 text-xs leading-5 text-slate-400">
+                    {iframeBlockReason}
+                  </p>
+                  <button
+                    className="mt-5 inline-flex items-center justify-center gap-2 border border-amber-300/40 bg-amber-300/10 px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-amber-100 transition hover:border-amber-200/75 hover:bg-amber-300/20"
+                    onClick={openExternalPreview}
+                    type="button"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Open Secure Tab
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <iframe
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
+                allowFullScreen
+                key={embeddablePreviewUrl || "srcdoc"}
+                className="min-h-0 flex-1 border-0 bg-white"
+                referrerPolicy="strict-origin-when-cross-origin"
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                src={embeddablePreviewUrl || undefined}
+                srcDoc={embeddablePreviewUrl ? undefined : code}
+                style={{ pointerEvents: resizing ? "none" : "auto" }}
+                title={
+                  externalPreviewUrl
+                    ? `${agent.callsign} external sandbox preview`
+                    : `${agent.callsign} live UI sandbox preview`
+                }
+              />
+            )}
           </>
         )}
       </section>

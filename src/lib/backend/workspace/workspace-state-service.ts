@@ -112,19 +112,6 @@ export class WorkspaceStateService {
     const checksum = await computeWorkspaceSnapshotChecksum(input.snapshot);
     const remoteChecksum = await this.snapshots.getLatestChecksum(input.workspaceId);
 
-    if (remoteChecksum && input.baseChecksum !== remoteChecksum) {
-      throw new ApiError(
-        "WORKSPACE_STATE_CONFLICT",
-        "Workspace state has changed remotely. Refusing to overwrite the latest cloud snapshot.",
-        409,
-        {
-          baseChecksum: input.baseChecksum,
-          conflictType: "checksum_mismatch",
-          remoteChecksum,
-        },
-      );
-    }
-
     if (remoteChecksum === checksum) {
       await this.emitWorkspaceStateEvent({
         checksum,
@@ -144,6 +131,19 @@ export class WorkspaceStateService {
         snapshotStatus: "unchanged",
         workspaceId: input.workspaceId,
       };
+    }
+
+    if (remoteChecksum && input.baseChecksum !== remoteChecksum) {
+      throw new ApiError(
+        "WORKSPACE_STATE_CONFLICT",
+        "Workspace state has changed remotely. Refusing to overwrite the latest cloud snapshot.",
+        409,
+        {
+          baseChecksum: input.baseChecksum,
+          conflictType: "checksum_mismatch",
+          remoteChecksum,
+        },
+      );
     }
 
     const payloadSizeBytes =

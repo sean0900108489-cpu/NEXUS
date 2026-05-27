@@ -847,7 +847,10 @@ function withWorkflowRuntimeLite(
     runtimeLite: ReturnType<typeof normalizeWorkflowRuntimeLiteState>,
   ) => ReturnType<typeof normalizeWorkflowRuntimeLiteState>,
 ) {
-  const runtimeLite = normalizeWorkflowRuntimeLiteState(workspace.graph.runtimeLite);
+  const runtimeLite = normalizeWorkflowRuntimeLiteState(
+    workspace.graph.runtimeLite,
+    { resetInterrupted: false },
+  );
 
   return {
     ...workspace,
@@ -923,7 +926,11 @@ function normalizeAgentModelCatalog(agent: NexusAgent): NexusAgent {
   };
 }
 
-function syncPanels(workspace: NexusWorkspace) {
+function syncPanels(
+  workspace: NexusWorkspace,
+  options: { resetInterrupted?: boolean } = {},
+) {
+  const resetInterrupted = options.resetInterrupted ?? false;
   const knownAgentIds = new Set(workspace.agents.map((agent) => agent.id));
   const existingGraphNodes = new Map(
     workspace.graph?.nodes
@@ -956,6 +963,9 @@ function syncPanels(workspace: NexusWorkspace) {
         workspace.graph?.edges?.filter(
           (edge) => knownAgentIds.has(edge.sourceAgentId) && knownAgentIds.has(edge.targetAgentId),
         ) ?? [],
+      runtimeLite: normalizeWorkflowRuntimeLiteState(workspace.graph?.runtimeLite, {
+        resetInterrupted,
+      }),
     },
   };
 
@@ -1138,7 +1148,7 @@ function normalizeWorkspaces(workspaces: NexusWorkspace[] | undefined) {
         ),
       },
     }))
-    .map(syncPanels);
+    .map((workspace) => syncPanels(workspace, { resetInterrupted: true }));
 }
 
 function prepareWorkspacesForLocalPersistence(workspaces: NexusWorkspace[]) {
@@ -1679,7 +1689,9 @@ export const useNexusStore = create<NexusStore>()(
         set({
           activeWorkspaceId: restoredWorkspace.id,
           workspaces: state.workspaces.map((candidate) =>
-            candidate.id === workspace.id ? syncPanels(restoredWorkspace) : candidate,
+            candidate.id === workspace.id
+              ? syncPanels(restoredWorkspace, { resetInterrupted: true })
+              : candidate,
           ),
           selectedAgentId:
             restoredWorkspace.selectedAgentId ?? restoredWorkspace.agents[0]?.id,
@@ -2631,15 +2643,18 @@ export const useNexusStore = create<NexusStore>()(
         const workspace = getActiveWorkspace(state);
         const runtimeLite = normalizeWorkflowRuntimeLiteState(
           workspace.graph.runtimeLite ?? createEmptyWorkflowRuntimeLiteState(),
+          { resetInterrupted: false },
         );
         const id = createWorkflowRuntimeId("wf_node");
-        const offset = runtimeLite.nodes.length * 36;
+        const previousNode = runtimeLite.nodes.at(-1);
         const node = createWorkflowRuntimeNode({
           id,
-          position: {
-            x: 120 + (offset % 320),
-            y: 96 + (offset % 220),
-          },
+          position: previousNode
+            ? {
+                x: previousNode.position.x + 360,
+                y: previousNode.position.y,
+              }
+            : { x: 120, y: 96 },
           type,
         });
 

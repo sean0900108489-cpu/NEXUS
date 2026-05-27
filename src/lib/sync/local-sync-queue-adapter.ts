@@ -1,4 +1,4 @@
-import { createStore, get as idbGet, set as idbSet } from "idb-keyval";
+import { get as idbGet, set as idbSet, type UseStore } from "idb-keyval";
 
 import { nexusApiClient, NexusApiError } from "@/lib/api/nexus-api-client";
 import {
@@ -15,8 +15,9 @@ import { getNexusSupabaseClient } from "@/lib/supabase/client";
 
 export const LOCAL_SYNC_QUEUE_MAX_PAYLOAD_BYTES = 128 * 1024;
 const LOCAL_SYNC_QUEUE_KEY = "nexus-local-sync-queue-v4";
-const LOCAL_SYNC_QUEUE_DB = "nexus-ai-ops";
-const LOCAL_SYNC_QUEUE_STORE = "sync-queue";
+export const LOCAL_SYNC_QUEUE_DB = "nexus-ai-ops-sync-queue";
+export const LOCAL_SYNC_QUEUE_DB_VERSION = 2;
+export const LOCAL_SYNC_QUEUE_STORE = "sync-queue";
 const DEFAULT_FLUSH_DELAY_MS = 750;
 
 type LocalSyncQueueAdapterOptions = {
@@ -41,10 +42,15 @@ type QueueStatusProjection = {
 };
 
 const memoryStorage = new Map<string, LocalSyncQueueOperation[]>();
-const queueStore =
+let queueStore: UseStore | undefined =
   typeof indexedDB === "undefined"
     ? undefined
-    : createStore(LOCAL_SYNC_QUEUE_DB, LOCAL_SYNC_QUEUE_STORE);
+    : createVersionedQueueStore(
+        LOCAL_SYNC_QUEUE_DB,
+        LOCAL_SYNC_QUEUE_STORE,
+        LOCAL_SYNC_QUEUE_DB_VERSION,
+      );
+let queueStoreRepairPromise: Promise<void> | undefined;
 
 export class LocalSyncQueueAdapter {
   private drainPromise?: Promise<void>;
@@ -81,6 +87,8 @@ export class LocalSyncQueueAdapter {
       updatedAt: now,
     };
     const queue = await this.readQueue();
+    const compactTerminal =
+      input.entityType === "workspace" && input.operationType === "snapshot";
     const compactedQueue = input.compactKey
       ? queue.map((candidate) =>
           candidate.compactKey === input.compactKey &&
@@ -88,7 +96,8 @@ export class LocalSyncQueueAdapter {
           candidate.entityType === input.entityType &&
           candidate.entityId === input.entityId &&
           candidate.operationType === input.operationType &&
-          !["synced", "failed", "conflicted", "compacted"].includes(candidate.status)
+          !["synced", "compacted"].includes(candidate.status) &&
+          (compactTerminal || !["failed", "conflicted"].includes(candidate.status))
             ? {
                 ...candidate,
                 status: "compacted" as const,
@@ -143,6 +152,23 @@ export class LocalSyncQueueAdapter {
 
   async clear() {
     await this.writeQueue([]);
+  }
+
+  async compactWorkspaceSnapshotIssues(workspaceId: string) {
+    const queue = await this.readQueue();
+    const now = new Date().toISOString();
+
+    await this.writeQueue(
+      queue.map((operation) =>
+        isWorkspaceSnapshotIssue(operation, workspaceId)
+          ? {
+              ...operation,
+              status: "compacted" as const,
+              updatedAt: now,
+            }
+          : operation,
+      ),
+    );
   }
 
   async getStatus(): Promise<QueueStatusProjection> {
@@ -240,6 +266,17 @@ export class LocalSyncQueueAdapter {
         lastErrorMessage: response.operation.lastErrorMessage ?? undefined,
         status: localStatus,
       });
+
+      if (
+        localStatus === "synced" &&
+        operation.entityType === "workspace" &&
+        operation.operationType === "snapshot"
+      ) {
+        await this.compactSupersededWorkspaceSnapshotIssues(
+          operation.workspaceId,
+          operation.clientMutationId,
+        );
+      }
     } catch (error) {
       await this.patchOperation(clientMutationId, {
         lastErrorCode: error instanceof NexusApiError ? error.code : "SYNC_BACKEND_UNAVAILABLE",
@@ -273,13 +310,43 @@ export class LocalSyncQueueAdapter {
     );
   }
 
+  private async compactSupersededWorkspaceSnapshotIssues(
+    workspaceId: string,
+    activeClientMutationId: string,
+  ) {
+    const queue = await this.readQueue();
+    const now = new Date().toISOString();
+
+    await this.writeQueue(
+      queue.map((operation) =>
+        operation.clientMutationId !== activeClientMutationId &&
+        isWorkspaceSnapshotIssue(operation, workspaceId)
+          ? {
+              ...operation,
+              status: "compacted" as const,
+              updatedAt: now,
+            }
+          : operation,
+      ),
+    );
+  }
+
   private async readQueue() {
     if (!queueStore) {
       return memoryStorage.get(LOCAL_SYNC_QUEUE_KEY) ?? [];
     }
 
-    return ((await idbGet(LOCAL_SYNC_QUEUE_KEY, queueStore)) ??
-      []) as LocalSyncQueueOperation[];
+    try {
+      return ((await idbGet(LOCAL_SYNC_QUEUE_KEY, queueStore)) ??
+        []) as LocalSyncQueueOperation[];
+    } catch (error) {
+      if (isMissingQueueStoreError(error)) {
+        await repairLocalSyncQueueStore(error);
+        return [];
+      }
+
+      throw error;
+    }
   }
 
   private async writeQueue(queue: LocalSyncQueueOperation[]) {
@@ -288,7 +355,31 @@ export class LocalSyncQueueAdapter {
       return;
     }
 
-    await idbSet(LOCAL_SYNC_QUEUE_KEY, queue, queueStore);
+    try {
+      await idbSet(LOCAL_SYNC_QUEUE_KEY, queue, queueStore);
+    } catch (error) {
+      if (!isMissingQueueStoreError(error)) {
+        throw error;
+      }
+
+      await repairLocalSyncQueueStore(error);
+
+      if (!queueStore) {
+        memoryStorage.set(LOCAL_SYNC_QUEUE_KEY, queue);
+        return;
+      }
+
+      try {
+        await idbSet(LOCAL_SYNC_QUEUE_KEY, queue, queueStore);
+      } catch (retryError) {
+        console.warn(
+          "[Local Sync Queue] IndexedDB migration repair retry failed; falling back to in-memory queue for this session.",
+          formatLocalSyncQueueError(retryError),
+        );
+        queueStore = undefined;
+        memoryStorage.set(LOCAL_SYNC_QUEUE_KEY, queue);
+      }
+    }
   }
 }
 
@@ -341,6 +432,18 @@ function sanitizeLocalQueueError(message: string) {
   return message.replace(/[\u0000-\u001F\u007F]/g, "").slice(0, 180);
 }
 
+function isWorkspaceSnapshotIssue(
+  operation: LocalSyncQueueOperation,
+  workspaceId: string,
+) {
+  return (
+    operation.workspaceId === workspaceId &&
+    operation.entityType === "workspace" &&
+    operation.operationType === "snapshot" &&
+    ["failed", "conflicted"].includes(operation.status)
+  );
+}
+
 function createClientMutationId() {
   const random =
     typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -357,6 +460,174 @@ async function resolveLocalQueueUserId() {
     return data.user?.id ?? "local-owner";
   } catch {
     return "local-owner";
+  }
+}
+
+function createVersionedQueueStore(
+  dbName: string,
+  storeName: string,
+  version: number,
+): UseStore {
+  let dbPromise: Promise<IDBDatabase> | undefined;
+
+  const getDb = () => {
+    if (dbPromise) {
+      return dbPromise;
+    }
+
+    const request = indexedDB.open(dbName, version);
+
+    request.onupgradeneeded = () => {
+      const db = request.result;
+
+      if (!db.objectStoreNames.contains(storeName)) {
+        db.createObjectStore(storeName);
+      }
+    };
+
+    dbPromise = promisifyIndexedDbOpenRequest(request);
+    dbPromise.then(
+      (db) => {
+        db.onclose = () => {
+          dbPromise = undefined;
+        };
+        db.onversionchange = () => {
+          db.close();
+          dbPromise = undefined;
+        };
+      },
+      () => {
+        dbPromise = undefined;
+      },
+    );
+
+    return dbPromise;
+  };
+
+  return async (txMode, callback) => {
+    const db = await getDb();
+
+    if (!db.objectStoreNames.contains(storeName)) {
+      throw new DOMException(
+        `Object store ${storeName} is missing from ${dbName}.`,
+        "NotFoundError",
+      );
+    }
+
+    return callback(db.transaction(storeName, txMode).objectStore(storeName));
+  };
+}
+
+async function repairLocalSyncQueueStore(error: unknown) {
+  if (typeof indexedDB === "undefined") {
+    queueStore = undefined;
+    return;
+  }
+
+  if (queueStoreRepairPromise) {
+    return queueStoreRepairPromise;
+  }
+
+  queueStoreRepairPromise = deleteLocalSyncQueueDb(error).finally(() => {
+    queueStoreRepairPromise = undefined;
+  });
+
+  return queueStoreRepairPromise;
+}
+
+async function deleteLocalSyncQueueDb(error: unknown) {
+  console.warn(
+    "[Local Sync Queue] IndexedDB migration repair: queue object store missing. Resetting local sync queue only; workspace data is untouched.",
+    formatLocalSyncQueueError(error),
+  );
+
+  queueStore = undefined;
+  memoryStorage.set(LOCAL_SYNC_QUEUE_KEY, []);
+  let deleted = false;
+
+  try {
+    await new Promise<void>((resolve) => {
+      const request = indexedDB.deleteDatabase(LOCAL_SYNC_QUEUE_DB);
+
+      request.onblocked = () => {
+        console.warn(
+          "[Local Sync Queue] IndexedDB migration repair is blocked by another open connection; falling back to in-memory queue for this session.",
+        );
+        resolve();
+      };
+      request.onerror = () => {
+        console.warn(
+          "[Local Sync Queue] IndexedDB migration repair could not delete the queue DB; falling back to in-memory queue for this session.",
+          formatLocalSyncQueueError(request.error),
+        );
+        resolve();
+      };
+      request.onsuccess = () => {
+        deleted = true;
+        resolve();
+      };
+    });
+  } finally {
+    queueStore = deleted
+      ? createVersionedQueueStore(
+          LOCAL_SYNC_QUEUE_DB,
+          LOCAL_SYNC_QUEUE_STORE,
+          LOCAL_SYNC_QUEUE_DB_VERSION,
+        )
+      : undefined;
+  }
+}
+
+function isMissingQueueStoreError(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const candidate = error as { message?: unknown; name?: unknown };
+  const name = typeof candidate.name === "string" ? candidate.name : "";
+  const message = typeof candidate.message === "string" ? candidate.message : "";
+
+  return (
+    name === "NotFoundError" ||
+    /object store|specified object stores|sync-queue/i.test(message)
+  );
+}
+
+function promisifyIndexedDbOpenRequest(request: IDBOpenDBRequest) {
+  return new Promise<IDBDatabase>((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+    request.onblocked = () =>
+      reject(
+        new DOMException(
+          "IndexedDB open request was blocked by another connection.",
+          "AbortError",
+        ),
+      );
+  });
+}
+
+function formatLocalSyncQueueError(error: unknown) {
+  if (error instanceof Error) {
+    return {
+      cause: error.cause,
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    };
+  }
+
+  try {
+    return {
+      json: JSON.stringify(error),
+      message: String(error),
+      name: typeof error,
+    };
+  } catch {
+    return {
+      message: String(error),
+      name: typeof error,
+    };
   }
 }
 

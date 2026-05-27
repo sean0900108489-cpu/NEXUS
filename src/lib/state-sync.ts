@@ -16,11 +16,12 @@ import type {
   PromptRevisionRecord,
   StateSyncResult,
   StateSyncStatus,
+  WorkspaceStateGetResponse,
   WorkspaceStatePutRequest,
   WorkflowTemplateBlueprintData,
   WorkflowTemplateRecord,
 } from "@/lib/nexus-types";
-import { nexusApiClient } from "@/lib/api/nexus-api-client";
+import { nexusApiClient, NexusApiError } from "@/lib/api/nexus-api-client";
 import {
   calculateWorkspaceSnapshotPayloadSizeBytes,
   computeWorkspaceSnapshotChecksum,
@@ -87,7 +88,60 @@ function mapWorkflowTemplate(row: Workflow_Templates): WorkflowTemplateRecord {
 }
 
 function logSupabaseSyncError(error: unknown) {
-  console.error("[Supabase Sync Error]:", error);
+  console.error("[Supabase Sync Error]:", formatSyncError(error));
+}
+
+function formatSyncError(error: unknown) {
+  if (error instanceof Error) {
+    return {
+      cause: serializeErrorCause(error.cause),
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    };
+  }
+
+  if (error && typeof error === "object") {
+    const record = error as Record<string, unknown>;
+
+    return {
+      cause: serializeErrorCause(record.cause),
+      json: stringifyErrorFallback(error),
+      message: typeof record.message === "string" ? record.message : undefined,
+      name: typeof record.name === "string" ? record.name : "Object",
+      stack: typeof record.stack === "string" ? record.stack : undefined,
+    };
+  }
+
+  return {
+    json: stringifyErrorFallback(error),
+    message: String(error),
+    name: typeof error,
+  };
+}
+
+function serializeErrorCause(cause: unknown): unknown {
+  if (cause instanceof Error) {
+    return {
+      message: cause.message,
+      name: cause.name,
+      stack: cause.stack,
+    };
+  }
+
+  if (cause && typeof cause === "object") {
+    return stringifyErrorFallback(cause);
+  }
+
+  return cause;
+}
+
+function stringifyErrorFallback(value: unknown) {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
 }
 
 function createClientMutationId() {
@@ -97,6 +151,16 @@ function createClientMutationId() {
       : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
   return `mutation_workspace_state_${random}`;
+}
+
+async function resolveStateSyncUserId() {
+  try {
+    const { data } = await getNexusSupabaseClient().auth.getUser();
+
+    return data.user?.id ?? "local-owner";
+  } catch {
+    return "local-owner";
+  }
 }
 
 type TransactionLogger = (entry: ITransactionLog) => void;
@@ -737,7 +801,7 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     snapshot: ActiveUiStateSnapshot,
   ): Promise<StateSyncResult> {
     try {
-      const baseChecksum = this.lastCloudSnapshotChecksums.get(snapshot.id) ?? null;
+      const baseChecksum = await this.resolveWorkspaceBaseChecksum(snapshot.id);
       const payload = serializeActiveUiStateSnapshot(snapshot, baseChecksum);
       const payloadSizeBytes = calculateWorkspaceSnapshotPayloadSizeBytes(payload);
 
@@ -756,6 +820,7 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
       const checksum = await computeWorkspaceSnapshotChecksum(payload);
 
       if (baseChecksum === checksum) {
+        await localSyncQueueAdapter.compactWorkspaceSnapshotIssues(snapshot.id);
         return synced();
       }
 
@@ -837,6 +902,52 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     await this.flushWorkspaceSnapshotSync();
 
     return synced();
+  }
+
+  private async resolveWorkspaceBaseChecksum(workspaceId: string) {
+    const cached = this.lastCloudSnapshotChecksums.get(workspaceId);
+
+    if (cached) {
+      return cached;
+    }
+
+    const remoteChecksum = await this.fetchRemoteWorkspaceChecksum(workspaceId);
+
+    if (remoteChecksum) {
+      this.lastCloudSnapshotChecksums.set(workspaceId, remoteChecksum);
+    }
+
+    return remoteChecksum;
+  }
+
+  private async fetchRemoteWorkspaceChecksum(workspaceId: string) {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    try {
+      const userId = await resolveStateSyncUserId();
+      const response = await nexusApiClient.get<WorkspaceStateGetResponse>(
+        `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/state`,
+        {
+          userId,
+          workspaceId,
+        },
+      );
+
+      return response.checksum;
+    } catch (error) {
+      if (
+        error instanceof NexusApiError &&
+        ["WORKSPACE_STATE_NOT_FOUND", "PERMISSION_DENIED", "WORKSPACE_ACCESS_DENIED"].includes(error.code)
+      ) {
+        return null;
+      }
+
+      logSupabaseSyncError(error);
+
+      return null;
+    }
   }
 
   private async flushWorkspaceSnapshotSync() {

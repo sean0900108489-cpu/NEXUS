@@ -839,9 +839,13 @@ export function NexusOps() {
 
   useEffect(() => {
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
-      const key = event.key.toLowerCase();
+      const key = typeof event.key === "string" ? event.key.toLowerCase() : "";
 
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      if (!key) {
+        return;
+      }
+
+      if ((event.metaKey || event.ctrlKey) && key === "k") {
         event.preventDefault();
         setPaletteOpen((current) => !current);
       }
@@ -863,7 +867,7 @@ export function NexusOps() {
         setNotice("Undo applied");
       }
 
-      if (event.key === "Escape") {
+      if (key === "escape") {
         setPaletteOpen(false);
         setSettingsOpen(false);
       }

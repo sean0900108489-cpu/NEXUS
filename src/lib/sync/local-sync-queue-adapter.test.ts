@@ -24,6 +24,33 @@ function makeOperation(index = 1) {
   } as const;
 }
 
+function makeWorkspaceSnapshotOperation(index = 1) {
+  const clientMutationId = `snapshot-${index}`;
+
+  return {
+    compactKey: "workspace:workspace-local-queue:snapshot",
+    entityId: "workspace-local-queue",
+    entityType: "workspace",
+    operationType: "snapshot",
+    payload: {
+      baseChecksum: null,
+      clientMutationId,
+      schemaVersion: 1,
+      snapshot: {
+        index,
+        registryVersion: "nexus-registry-v1",
+        schemaVersion: 1,
+        workspace: {
+          id: "workspace-local-queue",
+          name: "Local Queue",
+        },
+      },
+      snapshotType: "active",
+    },
+    workspaceId: "workspace-local-queue",
+  } as const;
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
 });
@@ -118,6 +145,49 @@ describe("LocalSyncQueueAdapter", () => {
         y: 49,
       },
     });
+  });
+
+  it("compacts superseded conflicted workspace snapshots", async () => {
+    const adapter = makeAdapter();
+    await adapter.clear();
+    const operation = await adapter.enqueue(makeWorkspaceSnapshotOperation(1));
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      Response.json({
+        data: {
+          deduplicated: false,
+          operation: {
+            attemptCount: 1,
+            createdAt: "2026-05-27T00:00:00.000Z",
+            entityId: operation.entityId,
+            entityType: operation.entityType,
+            id: operation.clientMutationId,
+            maxAttempts: 5,
+            operationType: operation.operationType,
+            payloadHash: operation.payloadHash,
+            status: "conflicted",
+            updatedAt: "2026-05-27T00:00:00.000Z",
+            workspaceId: operation.workspaceId,
+          },
+        },
+        error: null,
+        meta: {
+          requestId: "req-local",
+          traceId: "trace-local",
+        },
+        ok: true,
+      }),
+    );
+
+    await adapter.flush();
+    await adapter.enqueue(makeWorkspaceSnapshotOperation(2));
+    const operations = await adapter.getOperations();
+
+    expect(
+      operations.find(
+        (candidate) => candidate.clientMutationId === operation.clientMutationId,
+      )?.status,
+    ).toBe("compacted");
+    expect((await adapter.getStatus()).conflicted).toBe(0);
   });
 
   it("marks failed operations and supports manual retry", async () => {

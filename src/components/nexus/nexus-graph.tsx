@@ -726,9 +726,11 @@ export function NexusGraph({
 
   useEffect(() => {
     function deleteSelectedEdges(event: KeyboardEvent) {
+      const key = typeof event.key === "string" ? event.key : "";
+
       if (
         !selectedEdgeIds.length ||
-        (event.key !== "Backspace" && event.key !== "Delete")
+        (key !== "Backspace" && key !== "Delete")
       ) {
         return;
       }

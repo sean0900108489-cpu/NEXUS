@@ -38,7 +38,7 @@ export function serializeActiveUiStateSnapshot(
 export async function computeWorkspaceSnapshotChecksum(
   payload: WorkspaceCloudSnapshotPayload | Record<string, unknown>,
 ): Promise<string> {
-  const canonical = stableStringify(payload);
+  const canonical = JSON.stringify(stabilizeSnapshotForChecksum(payload));
   const bytes = new TextEncoder().encode(canonical);
   const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
   const hex = Array.from(new Uint8Array(digest))
@@ -56,6 +56,20 @@ export function calculateWorkspaceSnapshotPayloadSizeBytes(
 
 export function stableStringify(value: unknown): string {
   return JSON.stringify(stabilize(value));
+}
+
+function stabilizeSnapshotForChecksum(value: unknown) {
+  const stabilized = stabilize(value);
+
+  if (isRecord(stabilized) && isWorkspaceSnapshotPayloadRecord(stabilized)) {
+    const checksumPayload = { ...stabilized };
+
+    delete checksumPayload.lastKnownChecksum;
+
+    return checksumPayload;
+  }
+
+  return stabilized;
 }
 
 function serializeAgent(agent: ActiveUiStateSnapshot["agents"][number]): WorkspaceCloudSnapshotAgent {
@@ -136,4 +150,17 @@ function stabilize(value: unknown): unknown {
     .filter(([, nextValue]) => nextValue !== undefined);
 
   return Object.fromEntries(entries);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function isWorkspaceSnapshotPayloadRecord(value: Record<string, unknown>) {
+  return (
+    "lastKnownChecksum" in value &&
+    "registryVersion" in value &&
+    "schemaVersion" in value &&
+    "workspace" in value
+  );
 }

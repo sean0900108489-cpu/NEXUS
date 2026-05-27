@@ -106,6 +106,17 @@ describe("WorkspaceSnapshotSerializer", () => {
 
     expect(first).toBe(second);
   });
+
+  it("keeps sync metadata out of workspace content checksums", async () => {
+    const workspace = makeWorkspace();
+    const payload = serializeActiveUiStateSnapshot(workspace, null);
+    const checksum = await computeWorkspaceSnapshotChecksum(payload);
+    const metadataOnlyChange = serializeActiveUiStateSnapshot(workspace, checksum);
+
+    await expect(computeWorkspaceSnapshotChecksum(metadataOnlyChange)).resolves.toBe(
+      checksum,
+    );
+  });
 });
 
 describe("WorkspaceSnapshotValidator", () => {
@@ -190,6 +201,18 @@ describe("WorkspaceStateService", () => {
 
     expect(saved.snapshotStatus).toBe("saved");
     expect(unchanged.snapshotStatus).toBe("unchanged");
+    await expect(
+      service.saveState({
+        baseChecksum: null,
+        clientMutationId: "mutation-2b",
+        schemaVersion: 1,
+        snapshot: payload,
+        userId: "user-owner",
+        workspaceId: payload.workspace.id,
+      }),
+    ).resolves.toMatchObject({
+      snapshotStatus: "unchanged",
+    });
     await expect(
       service.saveState({
         baseChecksum: "sha256:stale",

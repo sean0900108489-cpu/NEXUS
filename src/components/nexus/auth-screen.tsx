@@ -10,6 +10,9 @@ type AuthScreenProps = {
   checked: boolean;
 };
 
+const AUTH_PROMPT_MESSAGE = "Authenticate to unlock NEXUS // AI OPS.";
+const CHECKING_SESSION_MESSAGE = "Checking session...";
+
 export function AuthScreen({ checked }: AuthScreenProps) {
   const login = useNexusStore((state) => state.login);
   const [email, setEmail] = useState("");
@@ -17,8 +20,10 @@ export function AuthScreen({ checked }: AuthScreenProps) {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(
-    checked ? "Authenticate to unlock NEXUS // AI OPS." : "Checking session...",
+    checked ? AUTH_PROMPT_MESSAGE : CHECKING_SESSION_MESSAGE,
   );
+  const displayMessage =
+    checked && message === CHECKING_SESSION_MESSAGE ? AUTH_PROMPT_MESSAGE : message;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -128,15 +133,13 @@ export function AuthScreen({ checked }: AuthScreenProps) {
         </form>
 
         <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
-          <p className="text-xs leading-5 text-slate-500">{message}</p>
+          <p className="text-xs leading-5 text-slate-500">{displayMessage}</p>
           <button
             className="shrink-0 font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100 hover:text-white"
             onClick={() => {
               setMode((current) => (current === "login" ? "signup" : "login"));
               setMessage(
-                mode === "login"
-                  ? "Create an operator account."
-                  : "Authenticate to unlock NEXUS // AI OPS.",
+                mode === "login" ? "Create an operator account." : AUTH_PROMPT_MESSAGE,
               );
             }}
             type="button"

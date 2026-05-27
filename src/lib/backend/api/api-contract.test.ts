@@ -313,6 +313,36 @@ describe("streaming contract", () => {
     expect(events.at(-1)).toMatchObject({ type: "done" });
   });
 
+  it("returns typed stream preparation errors instead of a generic 400", async () => {
+    const response = await streamPost(
+      new Request("http://localhost/api/v1/agents/agent-a/stream", {
+        body: JSON.stringify({
+          ...streamPayload,
+          workspaceId: "workspace-a",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          "X-Request-Id": "req-stream-auth",
+          "X-Trace-Id": "trace-stream-auth",
+          "X-Workspace-Id": "workspace-a",
+        },
+        method: "POST",
+      }),
+      { params: Promise.resolve({ agentId: "agent-a" }) },
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(401);
+    expect(json).toMatchObject({
+      error: {
+        code: "AUTH_REQUIRED",
+        message: "Authentication is required.",
+        retryable: false,
+      },
+      type: "error",
+    });
+  });
+
   it("keeps legacy stream route available through a shared wrapper", async () => {
     const response = await legacyStreamPost(
       new Request("http://localhost/api/agent-stream", {

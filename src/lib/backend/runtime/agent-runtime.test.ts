@@ -168,6 +168,42 @@ describe("AgentRuntimeService", () => {
     ).rejects.toMatchObject({ code: "PERMISSION_DENIED" });
   });
 
+  it("can skip workspace permission checks for internal workflow streams", async () => {
+    const repository = new InMemoryAgentRuntimeRepository();
+    const service = new AgentRuntimeService({ repository });
+
+    await expect(
+      service.prepareStreamTask(
+        {
+          agentId: "agent-a",
+          model: "gpt-4o-mini",
+          provider: "openai-compatible",
+          workspaceId: "workspace-runtime",
+        },
+        {
+          userId: "local-viewer",
+        },
+      ),
+    ).rejects.toMatchObject({ code: "PERMISSION_DENIED" });
+
+    const result = await service.prepareStreamTask(
+      {
+        agentId: "agent-a",
+        model: "gpt-4o-mini",
+        provider: "openai-compatible",
+        workspaceId: "workspace-runtime",
+      },
+      {
+        userId: "local-viewer",
+      },
+      {
+        skipPermissionCheck: true,
+      },
+    );
+
+    expect(result.task.status).toBe("streaming");
+  });
+
   it("records only milestone events and sanitizes event payload secrets", async () => {
     const repository = new InMemoryAgentRuntimeRepository();
     const service = new AgentRuntimeService({ repository });

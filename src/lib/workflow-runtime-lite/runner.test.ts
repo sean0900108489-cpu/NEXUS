@@ -167,7 +167,8 @@ describe("Workflow Runtime Spine Lite", () => {
 
     expect(run.status).toBe("failed");
     expect(state.get("llm")?.status).toBe("failed");
-    expect(state.get("output")?.status).toBe("idle");
+    expect(state.get("output")?.status).toBe("failed");
+    expect(state.get("output")?.error).toContain("upstream node llm failed");
   });
 
   it("resets running state to failed_interrupted during hydration", () => {

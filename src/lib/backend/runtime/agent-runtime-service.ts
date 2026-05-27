@@ -180,6 +180,7 @@ export class AgentRuntimeService {
   async prepareStreamTask(
     input: StreamTaskInput,
     context: AgentRuntimeContext = {},
+    options: Pick<CreateTaskOptions, "skipPermissionCheck"> = {},
   ) {
     const userId = context.userId?.trim();
 
@@ -187,13 +188,15 @@ export class AgentRuntimeService {
       throw new ApiError("AUTH_REQUIRED", "Authentication is required.", 401);
     }
 
-    await this.assertEditorPermission({
-      action: "workspace.update",
-      agentId: input.agentId,
-      context,
-      userId,
-      workspaceId: input.workspaceId,
-    });
+    if (!options.skipPermissionCheck) {
+      await this.assertEditorPermission({
+        action: "workspace.update",
+        agentId: input.agentId,
+        context,
+        userId,
+        workspaceId: input.workspaceId,
+      });
+    }
 
     let task: AgentTaskRecord;
     let session: AgentRuntimeSessionRecord | null = null;

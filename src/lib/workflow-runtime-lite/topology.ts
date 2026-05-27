@@ -187,7 +187,7 @@ function topologicalSort(
   );
   const queue = nodes
     .filter((node) => (remainingIncoming.get(node.id) ?? 0) === 0)
-    .sort((a, b) => a.id.localeCompare(b.id));
+    .sort(compareWorkflowRuntimeNodes);
   const sorted: WorkflowNodeInstance[] = [];
 
   while (queue.length) {
@@ -208,13 +208,24 @@ function topologicalSort(
 
         if (nextNode) {
           queue.push(nextNode);
-          queue.sort((a, b) => a.id.localeCompare(b.id));
+          queue.sort(compareWorkflowRuntimeNodes);
         }
       }
     }
   }
 
   return sorted.length === nodes.length ? sorted : undefined;
+}
+
+function compareWorkflowRuntimeNodes(
+  a: WorkflowNodeInstance,
+  b: WorkflowNodeInstance,
+) {
+  return (
+    a.position.x - b.position.x ||
+    a.position.y - b.position.y ||
+    a.id.localeCompare(b.id)
+  );
 }
 
 function hasDirectedCycle(

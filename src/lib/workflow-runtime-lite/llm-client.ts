@@ -39,6 +39,7 @@ type WorkflowStreamEvent =
   | {
       type: "done";
     };
+type WorkflowStreamError = Extract<WorkflowStreamEvent, { type: "error" }>["error"];
 
 export function resolveWorkflowRuntimeExecutionAgent(
   workspace: NexusWorkspace,
@@ -132,11 +133,10 @@ export async function executeWorkflowRuntimeLlm({
     "Content-Type": "application/json",
     "X-Workspace-Id": workspace.id,
   });
-  const userId = authVault.user?.id;
+  const userId = authVault.user?.id?.trim() || "local-owner";
 
-  if (userId) {
-    headers.set("X-User-Id", userId);
-  }
+  headers.set("X-User-Id", userId);
+  headers.set("X-Nexus-Workflow-Runtime", "lite");
 
   if (apiKey) {
     headers.set("Authorization", `Bearer ${apiKey}`);
@@ -154,7 +154,7 @@ export async function executeWorkflowRuntimeLlm({
   );
 
   if (!response.ok) {
-    throw new Error(`Workflow LLM stream failed with ${response.status}.`);
+    throw new Error(await readWorkflowHttpError(response));
   }
 
   const stream = await readWorkflowStream(response);
@@ -242,7 +242,7 @@ async function readWorkflowStream(response: Response) {
       }
 
       if (event.type === "error") {
-        throw new Error(event.error?.message ?? "Workflow LLM stream failed.");
+        throw new Error(formatWorkflowStreamError(event.error));
       }
     }
   }
@@ -253,4 +253,56 @@ async function readWorkflowStream(response: Response) {
     text: text || "No signal returned.",
     traceId,
   };
+}
+
+async function readWorkflowHttpError(response: Response) {
+  const fallback = `Workflow LLM stream failed with HTTP ${response.status}.`;
+
+  try {
+    const payload = (await response.clone().json()) as unknown;
+
+    if (isRecord(payload)) {
+      const rawError = payload.error;
+
+      if (isRecord(rawError)) {
+        const code = typeof rawError.code === "string" ? rawError.code : undefined;
+        const message =
+          typeof rawError.message === "string" && rawError.message.trim()
+            ? rawError.message.trim()
+            : undefined;
+
+        if (message && code) {
+          return `${message} (${code}, HTTP ${response.status}).`;
+        }
+
+        if (message) {
+          return `${message} (HTTP ${response.status}).`;
+        }
+      }
+    }
+  } catch {
+    // Fall back to text below.
+  }
+
+  try {
+    const text = (await response.text()).trim();
+
+    if (text) {
+      return `${fallback} ${text.slice(0, 240)}`;
+    }
+  } catch {
+    // Fall through to the generic message.
+  }
+
+  return fallback;
+}
+
+function formatWorkflowStreamError(error: WorkflowStreamError) {
+  const message = error?.message?.trim() || "Workflow LLM stream failed.";
+
+  return error?.code ? `${message} (${error.code}).` : message;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }

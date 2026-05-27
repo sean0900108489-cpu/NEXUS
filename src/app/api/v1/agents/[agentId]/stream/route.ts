@@ -3,6 +3,10 @@ import {
   createAgentStreamResponse,
   createStreamId,
 } from "@/lib/backend/api/agent-stream-service";
+import {
+  getApiErrorDescriptor,
+  toApiError,
+} from "@/lib/backend/api/api-errors";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -50,17 +54,20 @@ export async function POST(
     });
 
     return response;
-  } catch {
+  } catch (error) {
+    const apiError = toApiError(error);
+    const descriptor = getApiErrorDescriptor(apiError.code);
+
     await emitBackendEvent({
       name: "api.v1.stream.open",
       payload: {
-        errorCode: "VALIDATION_FAILED",
+        errorCode: apiError.code,
         latencyMs: Date.now() - startedAt,
         method: "POST",
-        retryable: false,
+        retryable: descriptor.retryable,
         route: "/api/v1/agents/[agentId]/stream",
         source: "api",
-        statusCode: 400,
+        statusCode: apiError.statusCode,
         workspaceId,
       },
       status: "failed",
@@ -70,6 +77,7 @@ export async function POST(
         resourceType: "agent",
         source: "api",
         traceId,
+        userId: request.headers.get("X-User-Id") ?? undefined,
         workspaceId,
       },
     });
@@ -77,13 +85,14 @@ export async function POST(
     return Response.json(
       {
         error: {
-          code: "VALIDATION_FAILED",
-          message: "Invalid stream request.",
-          retryable: false,
+          code: apiError.code,
+          details: apiError.details,
+          message: apiError.message || descriptor.message,
+          retryable: descriptor.retryable,
         },
         type: "error",
       },
-      { status: 400 },
+      { status: apiError.statusCode },
     );
   }
 }

@@ -84,6 +84,8 @@ export async function createAgentStreamResponse({
   const baseUrl = getCompatibleBaseUrl(
     request.headers.get("x-openai-base-url") || process.env.OPENAI_BASE_URL,
   );
+  const isWorkflowRuntimeLite =
+    request.headers.get("X-Nexus-Workflow-Runtime")?.toLowerCase() === "lite";
 
   if (eventShape === "legacy") {
     return createLegacyAgentStreamResponse({
@@ -105,6 +107,7 @@ export async function createAgentStreamResponse({
       agentId,
       metadata: {
         messageCount: payload.messages.length,
+        workflowRuntime: isWorkflowRuntimeLite ? "lite" : undefined,
       },
       model: payload.model?.trim() || payload.agent.model,
       outputMessageId: payload.outputMessageId,
@@ -117,6 +120,9 @@ export async function createAgentStreamResponse({
       requestId,
       traceId,
       userId,
+    },
+    {
+      skipPermissionCheck: isWorkflowRuntimeLite && Boolean(apiKey),
     },
   );
   const providerAdapter = new OpenAICompatibleAdapter();

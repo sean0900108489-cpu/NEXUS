@@ -101,17 +101,26 @@ export async function runWorkflowRuntimeLite({
       };
 
       run = upsertNodeExecution(run, failedExecution);
+      onNodePatch?.(node.id, {
+        error: message,
+        inputSnapshot: null,
+        status: "failed",
+      });
+      run = markBlockedDownstreamNodes({
+        completedAt,
+        failedNodeId: node.id,
+        onNodePatch,
+        reason: `Skipped because upstream node ${node.id} failed.`,
+        run,
+        runId,
+        runtimeLite,
+      });
       run = {
         ...run,
         completedAt,
         error: `Node ${node.id} failed: ${message}`,
         status: "failed",
       };
-      onNodePatch?.(node.id, {
-        error: message,
-        inputSnapshot: null,
-        status: "failed",
-      });
       onRunUpdate?.(run);
 
       return run;
@@ -191,17 +200,26 @@ export async function runWorkflowRuntimeLite({
       };
 
       run = upsertNodeExecution(run, failedExecution);
+      onNodePatch?.(node.id, {
+        error: message,
+        inputSnapshot: cloneContextPacket(packet),
+        status: "failed",
+      });
+      run = markBlockedDownstreamNodes({
+        completedAt,
+        failedNodeId: node.id,
+        onNodePatch,
+        reason: `Skipped because upstream node ${node.id} failed.`,
+        run,
+        runId,
+        runtimeLite,
+      });
       run = {
         ...run,
         completedAt,
         error: `Node ${node.id} failed: ${message}`,
         status: "failed",
       };
-      onNodePatch?.(node.id, {
-        error: message,
-        inputSnapshot: cloneContextPacket(packet),
-        status: "failed",
-      });
       onRunUpdate?.(run);
 
       return run;
@@ -306,4 +324,86 @@ function upsertNodeExecution(run: WorkflowRun, execution: NodeExecution) {
       index === existingIndex ? execution : candidate,
     ),
   };
+}
+
+function markBlockedDownstreamNodes({
+  completedAt,
+  failedNodeId,
+  onNodePatch,
+  reason,
+  run,
+  runId,
+  runtimeLite,
+}: {
+  completedAt: string;
+  failedNodeId: string;
+  onNodePatch?: (nodeId: string, patch: WorkflowRuntimeNodePatch) => void;
+  reason: string;
+  run: WorkflowRun;
+  runId: string;
+  runtimeLite: WorkflowRuntimeLiteState;
+}) {
+  const executedNodeIds = new Set(
+    run.nodeExecutions.map((execution) => execution.nodeId),
+  );
+  const downstreamNodeIds = collectDownstreamNodeIds(
+    failedNodeId,
+    runtimeLite.edges,
+  );
+  let nextRun = run;
+
+  for (const nodeId of downstreamNodeIds) {
+    if (executedNodeIds.has(nodeId)) {
+      continue;
+    }
+
+    nextRun = upsertNodeExecution(nextRun, {
+      completedAt,
+      error: reason,
+      inputSnapshot: null,
+      latencyMs: null,
+      nodeId,
+      outputSnapshot: null,
+      runId,
+      startedAt: completedAt,
+      status: "failed",
+    });
+    onNodePatch?.(nodeId, {
+      error: reason,
+      inputSnapshot: null,
+      outputSnapshot: null,
+      status: "failed",
+    });
+  }
+
+  return nextRun;
+}
+
+function collectDownstreamNodeIds(
+  sourceNodeId: string,
+  edges: WorkflowRuntimeEdge[],
+) {
+  const outgoing = new Map<string, string[]>();
+
+  for (const edge of edges) {
+    const targets = outgoing.get(edge.source) ?? [];
+    targets.push(edge.target);
+    outgoing.set(edge.source, targets);
+  }
+
+  const downstream = new Set<string>();
+  const stack = [...(outgoing.get(sourceNodeId) ?? [])];
+
+  while (stack.length) {
+    const nodeId = stack.pop();
+
+    if (!nodeId || downstream.has(nodeId)) {
+      continue;
+    }
+
+    downstream.add(nodeId);
+    stack.push(...(outgoing.get(nodeId) ?? []));
+  }
+
+  return downstream;
 }

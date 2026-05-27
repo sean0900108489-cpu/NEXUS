@@ -93,7 +93,10 @@ import { hasToolExecutor } from "@/lib/tool-executors";
 import { fetchWithBackoff, isAbortLikeError } from "@/lib/stream-retry";
 import { supabaseStateSyncManager } from "@/lib/state-sync";
 import { localSyncQueueAdapter, type QueueStatusProjection } from "@/lib/sync/local-sync-queue-adapter";
-import { getNexusSupabaseClient } from "@/lib/supabase/client";
+import {
+  ensureNexusSupabaseClientConfigured,
+  getNexusSupabaseClient,
+} from "@/lib/supabase/client";
 import { getEmbeddableUrl, getIframeBlockReason } from "@/lib/embed-url";
 import { buildMockPredictiveIntelSuggestions } from "@/lib/predictive-intel";
 import {
@@ -778,40 +781,50 @@ export function NexusOps() {
 
   useEffect(() => {
     let mounted = true;
+    let unsubscribe: (() => void) | undefined;
 
-    try {
-      const supabase = getNexusSupabaseClient();
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    void ensureNexusSupabaseClientConfigured()
+      .then(() => {
         if (!mounted) {
           return;
         }
 
-        syncSupabaseSessionUser(session?.user ?? null);
-      });
-
-      void supabase.auth
-        .getSession()
-        .then(({ data: sessionData }) => {
+        const supabase = getNexusSupabaseClient();
+        const { data } = supabase.auth.onAuthStateChange((_event, session) => {
           if (!mounted) {
             return;
           }
 
-          syncSupabaseSessionUser(sessionData.session?.user ?? null);
-        })
-        .catch(() => undefined)
-        .finally(() => {
-          if (mounted) {
-            setAuthChecked(true);
-          }
+          syncSupabaseSessionUser(session?.user ?? null);
         });
+        unsubscribe = () => data.subscription.unsubscribe();
 
-      return () => {
-        mounted = false;
-        data.subscription.unsubscribe();
-      };
-    } catch {
-      window.setTimeout(() => setAuthChecked(true), 0);
-    }
+        return supabase.auth
+          .getSession()
+          .then(({ data: sessionData }) => {
+            if (!mounted) {
+              return;
+            }
+
+            syncSupabaseSessionUser(sessionData.session?.user ?? null);
+          })
+          .catch(() => undefined)
+          .finally(() => {
+            if (mounted) {
+              setAuthChecked(true);
+            }
+          });
+      })
+      .catch(() => {
+        if (mounted) {
+          window.setTimeout(() => setAuthChecked(true), 0);
+        }
+      });
+
+    return () => {
+      mounted = false;
+      unsubscribe?.();
+    };
   }, []);
 
   useEffect(() => {

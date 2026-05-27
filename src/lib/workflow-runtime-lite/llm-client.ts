@@ -68,11 +68,12 @@ export function createWorkflowRuntimeLlmCall({
   executionAgent: NexusAgent;
   workspace: NexusWorkspace;
 }): WorkflowRuntimeLlmCall {
-  return async ({ node, prompt, runId, upstream }) =>
+  return async ({ node, onToken, prompt, runId, upstream }) =>
     executeWorkflowRuntimeLlm({
       authVault,
       executionAgent,
       node,
+      onToken,
       prompt,
       runId,
       upstream,
@@ -84,6 +85,7 @@ export async function executeWorkflowRuntimeLlm({
   authVault,
   executionAgent,
   node,
+  onToken,
   prompt,
   runId,
   upstream,
@@ -92,6 +94,7 @@ export async function executeWorkflowRuntimeLlm({
   authVault: IAuthVault;
   executionAgent: NexusAgent;
   node: WorkflowNodeInstance<"model.llm">;
+  onToken?: (delta: string, text: string) => void;
   prompt: string;
   runId: string;
   upstream: ContextPacket;
@@ -157,7 +160,7 @@ export async function executeWorkflowRuntimeLlm({
     throw new Error(await readWorkflowHttpError(response));
   }
 
-  const stream = await readWorkflowStream(response);
+  const stream = await readWorkflowStream(response, { onToken });
 
   return {
     metadata: {
@@ -196,7 +199,14 @@ export function buildWorkflowRuntimePrompt({
   ].join("\n");
 }
 
-async function readWorkflowStream(response: Response) {
+async function readWorkflowStream(
+  response: Response,
+  {
+    onToken,
+  }: {
+    onToken?: (delta: string, text: string) => void;
+  } = {},
+) {
   if (!response.body) {
     throw new Error("Workflow LLM stream body missing.");
   }
@@ -238,7 +248,12 @@ async function readWorkflowStream(response: Response) {
       }
 
       if (event.type === "token") {
-        text += event.delta ?? event.token ?? "";
+        const delta = event.delta ?? event.token ?? "";
+
+        if (delta) {
+          text += delta;
+          onToken?.(delta, text);
+        }
       }
 
       if (event.type === "error") {

@@ -13,8 +13,8 @@ import type {
 
 import {
   WORKFLOW_RUNTIME_LITE_VERSION,
+  WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS,
   WORKFLOW_RUNTIME_MAX_METADATA_STRING_CHARS,
-  WORKFLOW_RUNTIME_MAX_PACKET_TEXT_CHARS,
   WORKFLOW_RUNTIME_MAX_RUNS,
 } from "./constants";
 import {
@@ -65,20 +65,18 @@ export function createContextPacket({
   runId: string;
   sourceNodeId: string;
 }): ContextPacket {
-  const raw = limitText(rawText);
-  const display = limitText(displayText ?? rawText);
-  const truncated = raw.truncated || display.truncated;
+  const display = limitDisplayText(displayText ?? rawText);
 
   return {
     id: createWorkflowRuntimeId("packet"),
     createdAt: new Date().toISOString(),
     displayText: display.value,
     metadata: sanitizePacketMetadata(metadata ?? {}),
-    rawText: raw.value,
+    rawText,
     runId,
     sourceNodeId,
-    tokenEstimate: estimateTokens(raw.value),
-    ...(truncated ? { truncated: true } : {}),
+    tokenEstimate: estimateTokens(rawText),
+    ...(display.truncated ? { truncated: true } : {}),
   };
 }
 
@@ -208,7 +206,7 @@ function normalizeNodeData(
     return {
       ...inputDefaults,
       label: typeof value.label === "string" ? value.label : inputDefaults.label,
-      text: typeof value.text === "string" ? limitText(value.text).value : inputDefaults.text,
+      text: typeof value.text === "string" ? limitConfigText(value.text) : inputDefaults.text,
     };
   }
 
@@ -222,7 +220,7 @@ function normalizeNodeData(
         ? value.model.trim()
         : modelDefaults.model,
       prompt: typeof value.prompt === "string"
-        ? limitText(value.prompt).value
+        ? limitConfigText(value.prompt)
         : modelDefaults.prompt,
       provider: typeof value.provider === "string" ? value.provider : modelDefaults.provider,
     };
@@ -361,9 +359,8 @@ function normalizeContextPacket(value: unknown): ContextPacket | null {
     return null;
   }
 
-  const raw = limitText(value.rawText);
-  const display = limitText(value.displayText);
-  const truncated = Boolean(value.truncated) || raw.truncated || display.truncated;
+  const display = limitDisplayText(value.displayText);
+  const truncated = Boolean(value.truncated) || display.truncated;
 
   return {
     createdAt: value.createdAt,
@@ -372,13 +369,13 @@ function normalizeContextPacket(value: unknown): ContextPacket | null {
     metadata: sanitizePacketMetadata(
       isRecord(value.metadata) ? value.metadata : {},
     ),
-    rawText: raw.value,
+    rawText: value.rawText,
     runId: value.runId,
     sourceNodeId: value.sourceNodeId,
     tokenEstimate:
       typeof value.tokenEstimate === "number"
         ? value.tokenEstimate
-        : estimateTokens(raw.value),
+        : estimateTokens(value.rawText),
     ...(truncated ? { truncated: true } : {}),
   };
 }
@@ -420,15 +417,21 @@ function normalizeRunStatus(
     : "failed";
 }
 
-function limitText(value: string) {
-  if (value.length <= WORKFLOW_RUNTIME_MAX_PACKET_TEXT_CHARS) {
+function limitDisplayText(value: string) {
+  if (value.length <= WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS) {
     return { truncated: false, value };
   }
 
   return {
     truncated: true,
-    value: value.slice(0, WORKFLOW_RUNTIME_MAX_PACKET_TEXT_CHARS),
+    value: value.slice(0, WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS),
   };
+}
+
+function limitConfigText(value: string) {
+  return value.length <= WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS
+    ? value
+    : value.slice(0, WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS);
 }
 
 function estimateTokens(value: string) {

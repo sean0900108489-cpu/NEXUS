@@ -166,6 +166,22 @@ export async function runWorkflowRuntimeLite({
         callLlm,
         inputPacket: packet,
         node: node as never,
+        onPartialOutput: (partialPacket) => {
+          const outputSnapshot = cloneContextPacket(partialPacket);
+
+          run = upsertNodeExecution(run, {
+            ...runningExecution,
+            latencyMs: Date.now() - latencyStart,
+            outputSnapshot,
+            status: "running",
+          });
+          onNodePatch?.(node.id, {
+            error: null,
+            outputSnapshot,
+            status: "running",
+          });
+          onRunUpdate?.(run);
+        },
         runId,
         workflowId,
       });

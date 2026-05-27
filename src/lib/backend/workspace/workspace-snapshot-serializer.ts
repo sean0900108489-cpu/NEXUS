@@ -1,10 +1,13 @@
 import type {
   ActiveUiStateSnapshot,
   AgentTool,
+  ContextPacket,
   WorkspaceCloudMessageRef,
   WorkspaceCloudSnapshotAgent,
   WorkspaceCloudSnapshotPayload,
+  WorkspaceGraph,
 } from "@/lib/nexus-types";
+import { WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS } from "@/lib/workflow-runtime-lite/constants";
 
 export const WORKSPACE_CLOUD_SNAPSHOT_SCHEMA_VERSION = 1;
 export const MAX_WORKSPACE_SNAPSHOT_BYTES = 512 * 1024;
@@ -23,7 +26,7 @@ export function serializeActiveUiStateSnapshot(
       activeAgentId: snapshot.activeAgentId,
       agents: snapshot.agents.map(serializeAgent),
       createdAt: snapshot.createdAt,
-      graph: snapshot.graph,
+      graph: serializeGraphForCloud(snapshot.graph),
       id: snapshot.id,
       name: snapshot.name,
       panels: snapshot.panels,
@@ -33,6 +36,61 @@ export function serializeActiveUiStateSnapshot(
       updatedAt: snapshot.updatedAt,
     },
   };
+}
+
+function serializeGraphForCloud(graph: WorkspaceGraph): WorkspaceGraph {
+  if (!graph.runtimeLite) {
+    return graph;
+  }
+
+  return {
+    ...graph,
+    runtimeLite: {
+      ...graph.runtimeLite,
+      nodes: graph.runtimeLite.nodes.map((node) => ({
+        ...node,
+        inputSnapshot: compactContextPacket(node.inputSnapshot),
+        outputSnapshot: compactContextPacket(node.outputSnapshot),
+      })),
+      runs: graph.runtimeLite.runs.map((run) => ({
+        ...run,
+        nodeExecutions: run.nodeExecutions.map((execution) => ({
+          ...execution,
+          inputSnapshot: compactContextPacket(execution.inputSnapshot),
+          outputSnapshot: compactContextPacket(execution.outputSnapshot),
+        })),
+      })),
+    },
+  };
+}
+
+function compactContextPacket(
+  packet: ContextPacket | null | undefined,
+): ContextPacket | null | undefined {
+  if (!packet) {
+    return packet;
+  }
+
+  const rawText = compactText(packet.rawText);
+  const displayText = compactText(packet.displayText);
+  const truncated =
+    Boolean(packet.truncated) ||
+    rawText.length < packet.rawText.length ||
+    displayText.length < packet.displayText.length;
+
+  return {
+    ...packet,
+    displayText,
+    rawText,
+    tokenEstimate: Math.max(1, Math.ceil(packet.rawText.length / 4)),
+    ...(truncated ? { truncated: true } : {}),
+  };
+}
+
+function compactText(value: string) {
+  return value.length <= WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS
+    ? value
+    : value.slice(0, WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS);
 }
 
 export async function computeWorkspaceSnapshotChecksum(

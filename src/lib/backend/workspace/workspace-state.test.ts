@@ -5,6 +5,11 @@ import { describe, expect, it } from "vitest";
 import { PUT as putWorkspaceState, GET as getWorkspaceState } from "@/app/api/v1/workspaces/[workspaceId]/state/route";
 import { createDefaultWorkspace } from "@/lib/nexus-defaults";
 import type { WorkspaceCloudSnapshotPayload } from "@/lib/nexus-types";
+import { WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS } from "@/lib/workflow-runtime-lite/constants";
+import {
+  createContextPacket,
+  createWorkflowRuntimeNode,
+} from "@/lib/workflow-runtime-lite/state";
 
 import {
   computeWorkspaceSnapshotChecksum,
@@ -94,6 +99,63 @@ describe("WorkspaceSnapshotSerializer", () => {
       ]),
     );
     await expect(computeWorkspaceSnapshotChecksum(payload)).resolves.toMatch(/^sha256:/);
+  });
+
+  it("keeps cloud snapshots bounded while local workflow output stays complete", () => {
+    const workspace = makeWorkspace();
+    const longText = "z".repeat(WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS + 900);
+    const packet = createContextPacket({
+      rawText: longText,
+      runId: "run-long",
+      sourceNodeId: "llm-long",
+    });
+    const llmNode = {
+      ...createWorkflowRuntimeNode({
+        id: "llm-long",
+        position: { x: 120, y: 120 },
+        type: "model.llm",
+      }),
+      outputSnapshot: packet,
+      status: "success" as const,
+    };
+
+    workspace.graph.runtimeLite = {
+      edges: [],
+      lastError: null,
+      lastRunId: "run-long",
+      nodes: [llmNode],
+      runs: [
+        {
+          completedAt: "2026-05-27T00:02:00.000Z",
+          error: null,
+          nodeExecutions: [
+            {
+              completedAt: "2026-05-27T00:02:00.000Z",
+              nodeId: "llm-long",
+              outputSnapshot: packet,
+              runId: "run-long",
+              startedAt: "2026-05-27T00:01:00.000Z",
+              status: "success",
+            },
+          ],
+          runId: "run-long",
+          startedAt: "2026-05-27T00:01:00.000Z",
+          status: "success",
+          workflowId: workspace.id,
+        },
+      ],
+      version: 1,
+    };
+
+    const payload = serializeActiveUiStateSnapshot(workspace);
+    const cloudPacket =
+      payload.workspace.graph.runtimeLite?.nodes[0]?.outputSnapshot;
+
+    expect(packet.rawText).toBe(longText);
+    expect(cloudPacket?.rawText).toHaveLength(
+      WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS,
+    );
+    expect(cloudPacket?.truncated).toBe(true);
   });
 
   it("computes deterministic checksums and detects unchanged payloads", async () => {

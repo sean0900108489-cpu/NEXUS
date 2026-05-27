@@ -1341,7 +1341,7 @@ export function NexusOps() {
       )
       ?.graph.runtimeLite?.nodes.find((node) => node.id === nodeId);
     const packet = runtimeNode?.outputSnapshot;
-    const text = packet?.displayText || packet?.rawText || "";
+    const text = packet?.rawText || packet?.displayText || "";
 
     if (!text) {
       setNotice("Output node is still empty");

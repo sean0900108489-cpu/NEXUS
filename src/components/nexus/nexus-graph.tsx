@@ -182,6 +182,7 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
   const { node, onCopyOutput, onUpdateNodeData } = data;
   const definition = getWorkflowRuntimeNodeDefinition(node.type);
   const packet = node.outputSnapshot ?? null;
+  const outputText = packet?.rawText || packet?.displayText || "";
   const statusClass = getRuntimeStatusClass(node.status);
 
   return (
@@ -247,7 +248,7 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
             <button
               aria-label="Copy output"
               className="nodrag grid h-7 w-7 place-items-center border border-cyan-300/30 bg-cyan-300/10 text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
-              disabled={!packet?.displayText && !packet?.rawText}
+              disabled={!outputText}
               onClick={() => onCopyOutput(node.id)}
               title="Copy output"
               type="button"
@@ -256,7 +257,7 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
             </button>
           </div>
           <div className="min-h-28 max-h-44 overflow-y-auto whitespace-pre-wrap border border-white/10 bg-black/35 px-3 py-2 text-xs leading-5 text-slate-200">
-            {packet?.displayText || packet?.rawText || (
+            {outputText || (
               <span className="text-slate-600">Waiting for upstream context...</span>
             )}
           </div>
@@ -329,6 +330,13 @@ function ModelRuntimeEditor({
     data: Partial<WorkflowRuntimeNodeData>,
   ) => void;
 }) {
+  const outputText = node.outputSnapshot?.rawText || node.outputSnapshot?.displayText || "";
+  const showLiveOutput =
+    Boolean(outputText) ||
+    node.status === "running" ||
+    node.status === "success" ||
+    node.status === "failed_interrupted";
+
   return (
     <div className="grid gap-2">
       <label className="grid gap-2">
@@ -363,6 +371,32 @@ function ModelRuntimeEditor({
           ))}
         </select>
       </label>
+      {showLiveOutput ? (
+        <div className="grid gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+              Live output
+            </span>
+            {node.outputSnapshot?.tokenEstimate ? (
+              <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-cyan-100/80">
+                {node.outputSnapshot.tokenEstimate} tok
+              </span>
+            ) : null}
+          </div>
+          <div
+            className={cx(
+              "nodrag min-h-20 max-h-40 overflow-y-auto whitespace-pre-wrap border px-3 py-2 text-xs leading-5 text-slate-200",
+              node.status === "running"
+                ? "border-cyan-300/30 bg-cyan-300/5"
+                : "border-white/10 bg-black/35",
+            )}
+          >
+            {outputText || (
+              <span className="text-slate-600">Waiting for first token...</span>
+            )}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import type {
   WorkflowRuntimeNodeType,
 } from "@/lib/nexus-types";
 
+import { WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS } from "./constants";
 import { executeOutputText } from "./executors";
 import { runWorkflowRuntimeLite } from "./runner";
 import {
@@ -120,6 +121,43 @@ describe("Workflow Runtime Spine Lite", () => {
     expect(state.get("output")?.outputSnapshot?.rawText).toContain("merge<-");
   });
 
+  it("streams partial LLM output into the running node", async () => {
+    const input = node("input.text", "input", { text: "Alpha" });
+    const llm = node("model.llm", "llm", { prompt: "A" });
+    const output = node("output.text", "output");
+    const runtime = runtimeLite(
+      [input, llm, output],
+      [edge(input, llm), edge(llm, output)],
+    );
+    const state = patchableNodes(runtime.nodes);
+    const livePatches: string[] = [];
+
+    const run = await runWorkflowRuntimeLite({
+      callLlm: vi.fn(async ({ onToken }) => {
+        onToken?.("partial", "partial");
+        onToken?.(" final", "partial final");
+
+        return {
+          text: "partial final",
+        };
+      }),
+      onNodePatch: (nodeId, patch) => {
+        state.patch(nodeId, patch);
+
+        if (nodeId === "llm" && patch.outputSnapshot?.rawText) {
+          livePatches.push(patch.outputSnapshot.rawText);
+        }
+      },
+      runtimeLite: runtime,
+      workflowId: "workspace-test",
+    });
+
+    expect(run.status).toBe("success");
+    expect(livePatches).toContain("partial");
+    expect(livePatches).toContain("partial final");
+    expect(state.get("output")?.outputSnapshot?.rawText).toBe("partial final");
+  });
+
   it("rejects disconnected nodes before execution", () => {
     const input = node("input.text", "input");
     const llmA = node("model.llm", "llm-a");
@@ -221,6 +259,19 @@ describe("Workflow Runtime Spine Lite", () => {
     });
 
     expect(result).toBe(packet);
+  });
+
+  it("keeps complete raw packet text while compacting display text", () => {
+    const longText = "x".repeat(WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS + 1200);
+    const packet = createContextPacket({
+      rawText: longText,
+      runId: "run-a",
+      sourceNodeId: "llm-a",
+    });
+
+    expect(packet.rawText).toBe(longText);
+    expect(packet.displayText).toHaveLength(WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS);
+    expect(packet.truncated).toBe(true);
   });
 });
 

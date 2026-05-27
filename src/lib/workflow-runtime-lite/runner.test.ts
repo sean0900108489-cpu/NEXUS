@@ -80,31 +80,57 @@ describe("Workflow Runtime Spine Lite", () => {
     );
   });
 
-  it("rejects branches before execution", () => {
+  it("runs fan-out and fan-in workflows in topological order", async () => {
+    const input = node("input.text", "input");
+    const llmA = node("model.llm", "llm-a");
+    const llmB = node("model.llm", "llm-b");
+    const merge = node("model.llm", "merge");
+    const output = node("output.text", "output");
+    const runtime = runtimeLite(
+      [input, llmA, llmB, merge, output],
+      [
+        edge(input, llmA),
+        edge(input, llmB),
+        edge(llmA, merge),
+        edge(llmB, merge),
+        edge(merge, output),
+      ],
+    );
+    const state = patchableNodes(runtime.nodes);
+    const upstreamSeen: string[] = [];
+
+    const run = await runWorkflowRuntimeLite({
+      callLlm: vi.fn(async ({ node, upstream }) => {
+        upstreamSeen.push(`${node.id}:${upstream.rawText}`);
+        return {
+          text: `${node.id}<-${upstream.rawText}`,
+        };
+      }),
+      onNodePatch: state.patch,
+      runtimeLite: runtime,
+      workflowId: "workspace-test",
+    });
+
+    expect(run.status).toBe("success");
+    expect(upstreamSeen[0]).toBe("llm-a:");
+    expect(upstreamSeen[1]).toBe("llm-b:");
+    expect(upstreamSeen[2]).toContain("merge:[Upstream 1]");
+    expect(upstreamSeen[2]).toContain("llm-a<-");
+    expect(upstreamSeen[2]).toContain("llm-b<-");
+    expect(state.get("output")?.outputSnapshot?.rawText).toContain("merge<-");
+  });
+
+  it("rejects disconnected nodes before execution", () => {
     const input = node("input.text", "input");
     const llmA = node("model.llm", "llm-a");
     const llmB = node("model.llm", "llm-b");
     const result = validateWorkflowRuntimeLiteTopology({
-      edges: [edge(input, llmA), edge(input, llmB)],
+      edges: [edge(input, llmA)],
       nodes: [input, llmA, llmB],
     });
 
     expect(result.ok).toBe(false);
-    expect(result.ok ? "" : result.error).toContain("分支");
-  });
-
-  it("rejects merges before execution", () => {
-    const input = node("input.text", "input");
-    const llmA = node("model.llm", "llm-a");
-    const llmB = node("model.llm", "llm-b");
-    const output = node("output.text", "output");
-    const result = validateWorkflowRuntimeLiteTopology({
-      edges: [edge(input, llmA), edge(llmA, output), edge(llmB, output)],
-      nodes: [input, llmA, llmB, output],
-    });
-
-    expect(result.ok).toBe(false);
-    expect(result.ok ? "" : result.error).toContain("merge");
+    expect(result.ok ? "" : result.error).toContain("沒有上游輸入");
   });
 
   it("rejects cycles before execution", () => {

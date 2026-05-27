@@ -2,6 +2,7 @@ import type {
   ContextPacket,
   NodeExecution,
   WorkflowNodeInstance,
+  WorkflowRuntimeEdge,
   WorkflowRun,
   WorkflowRuntimeLiteState,
 } from "@/lib/nexus-types";
@@ -10,7 +11,11 @@ import {
   type WorkflowRuntimeLlmCall,
   workflowRuntimeExecutorMap,
 } from "./executors";
-import { cloneContextPacket, createWorkflowRuntimeId } from "./state";
+import {
+  cloneContextPacket,
+  createContextPacket,
+  createWorkflowRuntimeId,
+} from "./state";
 import { validateWorkflowRuntimeLiteTopology } from "./topology";
 
 export type WorkflowRuntimeNodePatch = Partial<
@@ -66,9 +71,52 @@ export async function runWorkflowRuntimeLite({
 
   onRunUpdate?.(run);
 
-  let packet: ContextPacket | null = null;
+  const incomingEdgesByTarget = groupIncomingEdges(runtimeLite.edges);
+  const outputPacketsByNodeId = new Map<string, ContextPacket>();
 
   for (const node of validation.path) {
+    let packet: ContextPacket | null = null;
+
+    try {
+      packet = createNodeInputPacket({
+        incomingEdges: incomingEdgesByTarget.get(node.id) ?? [],
+        node,
+        outputPacketsByNodeId,
+        runId,
+      });
+    } catch (error) {
+      const completedAt = new Date().toISOString();
+      const message =
+        error instanceof Error ? error.message : "Workflow node input assembly failed.";
+      const failedExecution: NodeExecution = {
+        completedAt,
+        error: message,
+        inputSnapshot: null,
+        latencyMs: null,
+        nodeId: node.id,
+        outputSnapshot: null,
+        runId,
+        startedAt: completedAt,
+        status: "failed",
+      };
+
+      run = upsertNodeExecution(run, failedExecution);
+      run = {
+        ...run,
+        completedAt,
+        error: `Node ${node.id} failed: ${message}`,
+        status: "failed",
+      };
+      onNodePatch?.(node.id, {
+        error: message,
+        inputSnapshot: null,
+        status: "failed",
+      });
+      onRunUpdate?.(run);
+
+      return run;
+    }
+
     const queuedExecution: NodeExecution = {
       error: null,
       inputSnapshot: cloneContextPacket(packet),
@@ -129,7 +177,7 @@ export async function runWorkflowRuntimeLite({
         status: "success",
       });
       onRunUpdate?.(run);
-      packet = outputPacket;
+      outputPacketsByNodeId.set(node.id, outputPacket);
     } catch (error) {
       const completedAt = new Date().toISOString();
       const message =
@@ -168,6 +216,76 @@ export async function runWorkflowRuntimeLite({
   onRunUpdate?.(run);
 
   return run;
+}
+
+function groupIncomingEdges(edges: WorkflowRuntimeEdge[]) {
+  const incoming = new Map<string, WorkflowRuntimeEdge[]>();
+
+  for (const edge of edges) {
+    const group = incoming.get(edge.target) ?? [];
+    group.push(edge);
+    incoming.set(edge.target, group);
+  }
+
+  return incoming;
+}
+
+function createNodeInputPacket({
+  incomingEdges,
+  node,
+  outputPacketsByNodeId,
+  runId,
+}: {
+  incomingEdges: WorkflowRuntimeEdge[];
+  node: WorkflowNodeInstance;
+  outputPacketsByNodeId: Map<string, ContextPacket>;
+  runId: string;
+}) {
+  if (!incomingEdges.length) {
+    return null;
+  }
+
+  const upstreamPackets = incomingEdges.map((edge) => {
+    const packet = outputPacketsByNodeId.get(edge.source);
+
+    if (!packet) {
+      throw new Error(`Missing upstream output from node ${edge.source}.`);
+    }
+
+    return packet;
+  });
+
+  if (upstreamPackets.length === 1) {
+    return cloneContextPacket(upstreamPackets[0]);
+  }
+
+  return createContextPacket({
+    displayText: upstreamPackets
+      .map((packet, index) =>
+        [`Upstream ${index + 1} (${packet.sourceNodeId})`, packet.displayText].join(
+          "\n",
+        ),
+      )
+      .join("\n\n"),
+    metadata: {
+      nodeType: "merge.context",
+      upstreamPacketIds: upstreamPackets.map((packet) => packet.id),
+      upstreamSourceNodeIds: upstreamPackets.map((packet) => packet.sourceNodeId),
+    },
+    rawText: upstreamPackets
+      .map((packet, index) =>
+        [
+          `[Upstream ${index + 1}]`,
+          `sourceNodeId: ${packet.sourceNodeId}`,
+          `packetId: ${packet.id}`,
+          "",
+          packet.rawText,
+        ].join("\n"),
+      )
+      .join("\n\n"),
+    runId,
+    sourceNodeId: node.id,
+  });
 }
 
 function upsertNodeExecution(run: WorkflowRun, execution: NodeExecution) {

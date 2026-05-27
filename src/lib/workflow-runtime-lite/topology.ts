@@ -59,65 +59,45 @@ export function validateWorkflowRuntimeLiteTopology({
     };
   }
 
-  const incoming = countEdges(edges, "target");
-  const outgoing = countEdges(edges, "source");
-
-  for (const node of nodes) {
-    const outgoingCount = outgoing.get(node.id) ?? 0;
-    const incomingCount = incoming.get(node.id) ?? 0;
-
-    if (outgoingCount > 1) {
-      return {
-        error: `目前 Lite Runner 尚未支援分支：節點 ${node.id} 有 ${outgoingCount} 條輸出。`,
-        ok: false,
-      };
-    }
-
-    if (incomingCount > 1) {
-      return {
-        error: `目前 Lite Runner 尚未支援 merge：節點 ${node.id} 有 ${incomingCount} 條輸入。`,
-        ok: false,
-      };
-    }
-  }
+  const incoming = collectEdges(edges, "target");
+  const outgoing = collectEdges(edges, "source");
 
   const startNode = inputNodes[0];
 
-  if ((incoming.get(startNode.id) ?? 0) > 0) {
+  if ((incoming.get(startNode.id)?.length ?? 0) > 0) {
     return {
       error: "input.text 不能有上游輸入。",
       ok: false,
     };
   }
 
-  const path: WorkflowNodeInstance[] = [];
-  const visited = new Set<string>();
-  let current: WorkflowNodeInstance | undefined = startNode;
-
-  while (current) {
-    if (visited.has(current.id)) {
-      return {
-        error: "目前 Lite Runner 尚未支援迴圈。",
-        ok: false,
-      };
-    }
-
-    visited.add(current.id);
-    path.push(current);
-
-    const edge = edges.find((candidate) => candidate.source === current?.id);
-
-    if (!edge) {
-      current = undefined;
+  for (const node of nodes) {
+    if (node.id === startNode.id) {
       continue;
     }
 
-    current = nodeById.get(edge.target);
+    if ((incoming.get(node.id)?.length ?? 0) === 0) {
+      return {
+        error: `節點 ${node.id} 沒有上游輸入，無法執行。`,
+        ok: false,
+      };
+    }
   }
 
-  if (visited.size !== nodes.length) {
+  const reachable = collectReachableNodeIds(startNode.id, outgoing);
+
+  if (reachable.size !== nodes.length) {
     return {
-      error: "目前 Lite Runner 只支援單一路徑，圖上存在未連接到起始 input.text 的節點。",
+      error: "圖上存在未連接到起始 input.text 的節點。",
+      ok: false,
+    };
+  }
+
+  const path = topologicalSort(nodes, incoming, outgoing);
+
+  if (!path) {
+    return {
+      error: "目前 Lite Runner 尚未支援迴圈。",
       ok: false,
     };
   }
@@ -158,17 +138,83 @@ function validateHandles({
   return undefined;
 }
 
-function countEdges(
+function collectEdges(
   edges: WorkflowRuntimeEdge[],
   field: "source" | "target",
 ) {
-  const counts = new Map<string, number>();
+  const grouped = new Map<string, WorkflowRuntimeEdge[]>();
 
   for (const edge of edges) {
-    counts.set(edge[field], (counts.get(edge[field]) ?? 0) + 1);
+    const group = grouped.get(edge[field]) ?? [];
+    group.push(edge);
+    grouped.set(edge[field], group);
   }
 
-  return counts;
+  return grouped;
+}
+
+function collectReachableNodeIds(
+  startNodeId: string,
+  outgoing: Map<string, WorkflowRuntimeEdge[]>,
+) {
+  const reachable = new Set<string>();
+  const stack = [startNodeId];
+
+  while (stack.length) {
+    const nodeId = stack.pop();
+
+    if (!nodeId || reachable.has(nodeId)) {
+      continue;
+    }
+
+    reachable.add(nodeId);
+
+    for (const edge of outgoing.get(nodeId) ?? []) {
+      stack.push(edge.target);
+    }
+  }
+
+  return reachable;
+}
+
+function topologicalSort(
+  nodes: WorkflowNodeInstance[],
+  incoming: Map<string, WorkflowRuntimeEdge[]>,
+  outgoing: Map<string, WorkflowRuntimeEdge[]>,
+) {
+  const remainingIncoming = new Map(
+    nodes.map((node) => [node.id, incoming.get(node.id)?.length ?? 0]),
+  );
+  const queue = nodes
+    .filter((node) => (remainingIncoming.get(node.id) ?? 0) === 0)
+    .sort((a, b) => a.id.localeCompare(b.id));
+  const sorted: WorkflowNodeInstance[] = [];
+
+  while (queue.length) {
+    const node = queue.shift();
+
+    if (!node) {
+      continue;
+    }
+
+    sorted.push(node);
+
+    for (const edge of outgoing.get(node.id) ?? []) {
+      const nextIncoming = (remainingIncoming.get(edge.target) ?? 0) - 1;
+      remainingIncoming.set(edge.target, nextIncoming);
+
+      if (nextIncoming === 0) {
+        const nextNode = nodes.find((candidate) => candidate.id === edge.target);
+
+        if (nextNode) {
+          queue.push(nextNode);
+          queue.sort((a, b) => a.id.localeCompare(b.id));
+        }
+      }
+    }
+  }
+
+  return sorted.length === nodes.length ? sorted : undefined;
 }
 
 function hasDirectedCycle(

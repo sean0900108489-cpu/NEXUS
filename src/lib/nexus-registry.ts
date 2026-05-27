@@ -312,6 +312,24 @@ export const GRAPH_NODE_REGISTRY: Record<
     ownerLayer: "L3",
     description: "Current visual node backed by a Nexus agent.",
   },
+  "input.text": {
+    type: "input.text",
+    state: "implemented",
+    ownerLayer: "L3",
+    description: "Workflow Runtime Lite text input node that creates a ContextPacket.",
+  },
+  "model.llm": {
+    type: "model.llm",
+    state: "implemented",
+    ownerLayer: "L3",
+    description: "Workflow Runtime Lite LLM node backed by the existing provider boundary.",
+  },
+  "output.text": {
+    type: "output.text",
+    state: "implemented",
+    ownerLayer: "L3",
+    description: "Workflow Runtime Lite text output node with ContextPacket pass-through.",
+  },
   "tool-node": {
     type: "tool-node",
     state: "not-implemented",

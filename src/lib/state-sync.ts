@@ -1,7 +1,9 @@
 import type {
   ActiveUiStateSnapshot,
   AgentMessage,
-  ArtifactVaultRecord,
+  ArtifactCreateResponse,
+  ArtifactListResponse,
+  CreateArtifactRequest,
   HistoricalArtifactRecord,
   HistoricalDataPage,
   HistoricalDataQuery,
@@ -14,23 +16,27 @@ import type {
   PromptRevisionRecord,
   StateSyncResult,
   StateSyncStatus,
+  WorkspaceStatePutRequest,
   WorkflowTemplateBlueprintData,
   WorkflowTemplateRecord,
 } from "@/lib/nexus-types";
+import { nexusApiClient } from "@/lib/api/nexus-api-client";
+import {
+  calculateWorkspaceSnapshotPayloadSizeBytes,
+  computeWorkspaceSnapshotChecksum,
+  MAX_WORKSPACE_SNAPSHOT_BYTES,
+  serializeActiveUiStateSnapshot,
+  WORKSPACE_CLOUD_SNAPSHOT_SCHEMA_VERSION,
+  WORKSPACE_SNAPSHOT_DEBOUNCE_MS,
+} from "@/lib/backend/workspace/workspace-snapshot-serializer";
+import { localSyncQueueAdapter } from "@/lib/sync/local-sync-queue-adapter";
 import { getNexusSupabaseClient } from "@/lib/supabase/client";
 import type {
-  ArtifactInsert,
-  Artifacts,
-  MessageInsert,
-  NotebookUpsert,
   Notebooks,
-  PromptRevisionInsert,
-  PromptUpsert,
   Prompt_Revisions,
   Prompts,
   WorkflowTemplateInsert,
   Workflow_Templates,
-  WorkspaceUpsert,
 } from "@/lib/supabase/database.types";
 
 /**
@@ -61,6 +67,15 @@ function failed(error: unknown): StateSyncResult {
   };
 }
 
+function emptyArtifactList(workspaceId: string): ArtifactListResponse {
+  return {
+    artifacts: [],
+    hasMore: false,
+    nextCursor: null,
+    workspaceId,
+  };
+}
+
 function mapWorkflowTemplate(row: Workflow_Templates): WorkflowTemplateRecord {
   return {
     id: row.id,
@@ -75,7 +90,24 @@ function logSupabaseSyncError(error: unknown) {
   console.error("[Supabase Sync Error]:", error);
 }
 
+function createClientMutationId() {
+  const random =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  return `mutation_workspace_state_${random}`;
+}
+
 type TransactionLogger = (entry: ITransactionLog) => void;
+
+type PendingWorkspaceSnapshotSync = {
+  body: WorkspaceStatePutRequest;
+  checksum: string;
+  idempotencyKey: string;
+  payloadSizeBytes: number;
+  workspaceId: string;
+};
 
 function makeTransactionLog({
   action,
@@ -95,17 +127,6 @@ function makeTransactionLog({
     status: result.ok ? "success" : "error",
     timestamp: result.syncedAt,
     details: result.ok ? details : `${details}: ${result.error ?? "Unknown sync error."}`,
-  };
-}
-
-function mapArtifact(row: Artifacts): ArtifactVaultRecord {
-  return {
-    id: row.id,
-    workspaceId: row.workspace_id,
-    sourceMessageId: row.source_message_id,
-    contentUrl: row.content_url,
-    type: row.type,
-    createdAt: row.created_at,
   };
 }
 
@@ -133,6 +154,7 @@ function mapPromptRevision(row: Prompt_Revisions): PromptRevisionRecord {
 function mapNotebook(row: Notebooks): NotebookRecord {
   return {
     id: row.id,
+    workspace_id: row.workspace_id,
     title: row.title,
     content: row.content,
     created_at: row.created_at,
@@ -215,13 +237,19 @@ export class MockStateSyncManager implements IStateSyncManager {
   async saveArtifact(
     workspaceId: string,
     sourceMessageId: string | null,
-    contentUrl: string,
+    content: string,
     type: string,
+    options?: {
+      sourceAgentId?: string | null;
+      title?: string;
+      userId?: string;
+    },
   ): Promise<StateSyncResult> {
     void workspaceId;
     void sourceMessageId;
-    void contentUrl;
+    void content;
     void type;
+    void options;
     this.status = "syncing";
     const result = synced();
     this.status = "idle";
@@ -229,8 +257,8 @@ export class MockStateSyncManager implements IStateSyncManager {
     return result;
   }
 
-  async fetchArtifacts(): Promise<ArtifactVaultRecord[]> {
-    return [];
+  async fetchArtifacts(workspaceId = "__global__"): Promise<ArtifactListResponse> {
+    return emptyArtifactList(workspaceId);
   }
 
   async fetchPrompts(workspaceId: string): Promise<PromptRecord[]> {
@@ -243,8 +271,9 @@ export class MockStateSyncManager implements IStateSyncManager {
     void prompt;
   }
 
-  async deletePrompt(id: string): Promise<void> {
+  async deletePrompt(id: string, workspaceId?: string): Promise<void> {
     void id;
+    void workspaceId;
   }
 
   async fetchPromptRevisions(promptId: string): Promise<PromptRevisionRecord[]> {
@@ -257,12 +286,14 @@ export class MockStateSyncManager implements IStateSyncManager {
     return [];
   }
 
-  async upsertNotebook(notebook: NotebookRecord): Promise<void> {
+  async upsertNotebook(notebook: NotebookRecord, workspaceId?: string): Promise<void> {
     void notebook;
+    void workspaceId;
   }
 
-  async deleteNotebook(id: string): Promise<void> {
+  async deleteNotebook(id: string, workspaceId?: string): Promise<void> {
     void id;
+    void workspaceId;
   }
 
   async syncActiveUiState(snapshot: ActiveUiStateSnapshot): Promise<StateSyncResult> {
@@ -308,6 +339,9 @@ export class MockStateSyncManager implements IStateSyncManager {
 export class SupabaseStateSyncManager implements IStateSyncManager {
   private status: StateSyncStatus = "idle";
   private transactionLogger?: TransactionLogger;
+  private workspaceSnapshotSyncTimeout?: ReturnType<typeof setTimeout>;
+  private pendingWorkspaceSnapshotSync?: PendingWorkspaceSnapshotSync;
+  private readonly lastCloudSnapshotChecksums = new Map<string, string>();
 
   getStatus(): StateSyncStatus {
     return this.status;
@@ -327,30 +361,33 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     workspaceId: string,
     name: string,
   ): Promise<StateSyncResult> {
-    this.status = "syncing";
+    this.status = "queued";
 
     try {
-      const payload: WorkspaceUpsert = {
-        id: workspaceId,
-        name,
-      };
-      const { error } = await getNexusSupabaseClient()
-        .from("workspaces")
-        .upsert(payload, { onConflict: "id" });
-
+      await localSyncQueueAdapter.enqueue({
+        compactKey: `workspace:${workspaceId}:upsert`,
+        entityId: workspaceId,
+        entityType: "workspace",
+        operationType: "upsert",
+        payload: {
+          id: workspaceId,
+          name,
+        },
+        workspaceId,
+      });
       this.status = "idle";
 
       return this.finalizeTransaction(
-        "supabase.upsertWorkspace",
-        `Workspace ${workspaceId} (${name}) upserted.`,
-        error ? failed(error) : synced(),
+        "sync.queue.workspace",
+        `Workspace ${workspaceId} (${name}) queued for durable sync.`,
+        synced(),
       );
     } catch (error) {
       this.status = "idle";
 
       return this.finalizeTransaction(
-        "supabase.upsertWorkspace",
-        `Workspace ${workspaceId} (${name}) upsert failed.`,
+        "sync.queue.workspace",
+        `Workspace ${workspaceId} (${name}) queue failed.`,
         failed(error),
       );
     }
@@ -361,32 +398,33 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     agentId: string,
     message: AgentMessage,
   ): Promise<StateSyncResult> {
-    this.status = "syncing";
+    this.status = "queued";
 
     try {
-      const payload: MessageInsert = {
-        agent_id: agentId,
-        content: message.content,
-        type: message.role,
-        workspace_id: workspaceId,
-      };
-      const { error } = await getNexusSupabaseClient()
-        .from("messages")
-        .insert(payload);
-
+      await localSyncQueueAdapter.enqueue({
+        entityId: message.id,
+        entityType: "message",
+        operationType: "create",
+        payload: {
+          agentId,
+          message,
+          workspaceId,
+        },
+        workspaceId,
+      });
       this.status = "idle";
 
       return this.finalizeTransaction(
-        "supabase.insertMessage",
-        `Message ${message.id} synced for agent ${agentId} in workspace ${workspaceId}.`,
-        error ? failed(error) : synced(),
+        "sync.queue.message",
+        `Message ${message.id} queued for agent ${agentId} in workspace ${workspaceId}.`,
+        synced(),
       );
     } catch (error) {
       this.status = "idle";
 
       return this.finalizeTransaction(
-        "supabase.insertMessage",
-        `Message ${message.id} sync failed for agent ${agentId}.`,
+        "sync.queue.message",
+        `Message ${message.id} queue failed for agent ${agentId}.`,
         failed(error),
       );
     }
@@ -465,61 +503,79 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
   async saveArtifact(
     workspaceId: string,
     sourceMessageId: string | null,
-    contentUrl: string,
+    content: string,
     type: string,
+    options?: {
+      sourceAgentId?: string | null;
+      title?: string;
+      userId?: string;
+    },
   ): Promise<StateSyncResult> {
     this.status = "syncing";
 
     try {
-      const payload: ArtifactInsert = {
-        content_url: contentUrl,
-        source_message_id: sourceMessageId,
+      const request: CreateArtifactRequest = {
+        contentText: content,
+        mimeType: type === "sandbox" ? "text/html" : "text/plain",
+        sourceAgentId: options?.sourceAgentId ?? null,
+        sourceMessageId,
+        title: options?.title,
         type,
-        workspace_id: workspaceId,
+        workspaceId,
       };
-      const { error } = await getNexusSupabaseClient()
-        .from("artifacts")
-        .insert(payload);
 
+      await nexusApiClient.post<ArtifactCreateResponse, CreateArtifactRequest>(
+        "/api/v1/artifacts",
+        request,
+        {
+          idempotencyKey: createClientMutationId(),
+          userId: options?.userId ?? "local-owner",
+          workspaceId,
+        },
+      );
       this.status = "idle";
 
       return this.finalizeTransaction(
-        "supabase.saveArtifact",
+        "artifact.create",
         `Artifact ${type} saved for workspace ${workspaceId}.`,
-        error ? failed(error) : synced(),
+        synced(),
       );
     } catch (error) {
       this.status = "idle";
 
       return this.finalizeTransaction(
-        "supabase.saveArtifact",
+        "artifact.create",
         `Artifact ${type} save failed for workspace ${workspaceId}.`,
         failed(error),
       );
     }
   }
 
-  async fetchArtifacts(): Promise<ArtifactVaultRecord[]> {
+  async fetchArtifacts(
+    workspaceId = "__global__",
+    userId = "local-owner",
+  ): Promise<ArtifactListResponse> {
     this.status = "syncing";
 
     try {
-      const { data, error } = await getNexusSupabaseClient()
-        .from("artifacts")
-        .select("id,workspace_id,source_message_id,content_url,type,created_at")
-        .order("created_at", { ascending: false });
-
+      const params = new URLSearchParams({
+        workspaceId,
+      });
+      const response = await nexusApiClient.get<ArtifactListResponse>(
+        `/api/v1/artifacts?${params.toString()}`,
+        {
+          userId,
+          workspaceId,
+        },
+      );
       this.status = "idle";
 
-      if (error) {
-        return [];
-      }
-
-      return (data ?? []).map((row) => mapArtifact(row as Artifacts));
+      return response;
     } catch (error) {
       void error;
       this.status = "idle";
 
-      return [];
+      return emptyArtifactList(workspaceId);
     }
   }
 
@@ -550,58 +606,17 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
   }
 
   async upsertPrompt(prompt: PromptRecord): Promise<void> {
-    this.status = "syncing";
+    this.status = "queued";
 
     try {
-      const client = getNexusSupabaseClient();
-      const { data: existingRows, error: existingError } = await client
-        .from("prompts")
-        .select("content")
-        .eq("id", prompt.id)
-        .limit(1);
-
-      if (existingError) {
-        logSupabaseSyncError(existingError);
-      }
-
-      const previousContent = (existingRows?.[0] as Pick<Prompts, "content"> | undefined)
-        ?.content;
-      const payload: PromptUpsert = {
-        content: prompt.content,
-        created_at: prompt.created_at,
-        id: prompt.id,
-        title: prompt.title,
-        updated_at: prompt.updated_at,
-        workspace_id: prompt.workspace_id,
-      };
-      const { error } = await client
-        .from("prompts")
-        .upsert(payload, { onConflict: "id" });
-
-      if (error) {
-        logSupabaseSyncError(error);
-        this.status = "idle";
-        return;
-      }
-
-      if (
-        typeof previousContent === "string" &&
-        previousContent !== prompt.content
-      ) {
-        const revision: PromptRevisionInsert = {
-          new_content: prompt.content,
-          previous_content: previousContent,
-          prompt_id: prompt.id,
-        };
-        const { error: revisionError } = await client
-          .from("prompt_revisions")
-          .insert(revision);
-
-        if (revisionError) {
-          logSupabaseSyncError(revisionError);
-        }
-      }
-
+      await localSyncQueueAdapter.enqueue({
+        compactKey: `prompt:${prompt.workspace_id}:${prompt.id}:upsert`,
+        entityId: prompt.id,
+        entityType: "prompt",
+        operationType: "upsert",
+        payload: { ...prompt },
+        workspaceId: prompt.workspace_id,
+      });
       this.status = "idle";
     } catch (error) {
       logSupabaseSyncError(error);
@@ -609,26 +624,17 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     }
   }
 
-  async deletePrompt(id: string): Promise<void> {
-    this.status = "syncing";
+  async deletePrompt(id: string, workspaceId = "__global__"): Promise<void> {
+    this.status = "queued";
 
     try {
-      const client = getNexusSupabaseClient();
-      const { error: revisionError } = await client
-        .from("prompt_revisions")
-        .delete()
-        .eq("prompt_id", id);
-
-      if (revisionError) {
-        logSupabaseSyncError(revisionError);
-      }
-
-      const { error } = await client.from("prompts").delete().eq("id", id);
-
-      if (error) {
-        logSupabaseSyncError(error);
-      }
-
+      await localSyncQueueAdapter.enqueue({
+        entityId: id,
+        entityType: "prompt",
+        operationType: "delete",
+        payload: { id, workspaceId },
+        workspaceId,
+      });
       this.status = "idle";
     } catch (error) {
       logSupabaseSyncError(error);
@@ -668,7 +674,7 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     try {
       const { data, error } = await getNexusSupabaseClient()
         .from("notebooks")
-        .select("id,title,content,created_at,updated_at")
+        .select("id,workspace_id,title,content,created_at,updated_at")
         .order("updated_at", { ascending: false });
 
       this.status = "idle";
@@ -687,26 +693,21 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     }
   }
 
-  async upsertNotebook(notebook: NotebookRecord): Promise<void> {
-    this.status = "syncing";
+  async upsertNotebook(notebook: NotebookRecord, workspaceId = notebook.workspace_id ?? "__global__"): Promise<void> {
+    this.status = "queued";
 
     try {
-      const now = new Date().toISOString();
-      const payload: NotebookUpsert = {
-        content: notebook.content,
-        created_at: notebook.created_at ?? now,
-        id: notebook.id,
-        title: notebook.title,
-        updated_at: notebook.updated_at ?? now,
-      };
-      const { error } = await getNexusSupabaseClient()
-        .from("notebooks")
-        .upsert(payload, { onConflict: "id" });
-
-      if (error) {
-        logSupabaseSyncError(error);
-      }
-
+      await localSyncQueueAdapter.enqueue({
+        compactKey: `notebook:${workspaceId}:${notebook.id}:upsert`,
+        entityId: notebook.id,
+        entityType: "notebook",
+        operationType: "upsert",
+        payload: {
+          ...notebook,
+          workspace_id: workspaceId,
+        },
+        workspaceId,
+      });
       this.status = "idle";
     } catch (error) {
       logSupabaseSyncError(error);
@@ -714,19 +715,17 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     }
   }
 
-  async deleteNotebook(id: string): Promise<void> {
-    this.status = "syncing";
+  async deleteNotebook(id: string, workspaceId = "__global__"): Promise<void> {
+    this.status = "queued";
 
     try {
-      const { error } = await getNexusSupabaseClient()
-        .from("notebooks")
-        .delete()
-        .eq("id", id);
-
-      if (error) {
-        logSupabaseSyncError(error);
-      }
-
+      await localSyncQueueAdapter.enqueue({
+        entityId: id,
+        entityType: "notebook",
+        operationType: "delete",
+        payload: { id, workspaceId },
+        workspaceId,
+      });
       this.status = "idle";
     } catch (error) {
       logSupabaseSyncError(error);
@@ -737,15 +736,93 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
   async syncActiveUiState(
     snapshot: ActiveUiStateSnapshot,
   ): Promise<StateSyncResult> {
-    return this.upsertWorkspace(snapshot.id, snapshot.name);
+    try {
+      const baseChecksum = this.lastCloudSnapshotChecksums.get(snapshot.id) ?? null;
+      const payload = serializeActiveUiStateSnapshot(snapshot, baseChecksum);
+      const payloadSizeBytes = calculateWorkspaceSnapshotPayloadSizeBytes(payload);
+
+      if (payloadSizeBytes > MAX_WORKSPACE_SNAPSHOT_BYTES) {
+        return this.finalizeTransaction(
+          "workspace.snapshot.skip",
+          `Workspace ${snapshot.id} snapshot exceeded the V3 payload size cap.`,
+          failed(
+            new Error(
+              `Workspace snapshot exceeds ${MAX_WORKSPACE_SNAPSHOT_BYTES} bytes.`,
+            ),
+          ),
+        );
+      }
+
+      const checksum = await computeWorkspaceSnapshotChecksum(payload);
+
+      if (baseChecksum === checksum) {
+        return synced();
+      }
+
+      const clientMutationId = createClientMutationId();
+      this.pendingWorkspaceSnapshotSync = {
+        body: {
+          baseChecksum,
+          clientMutationId,
+          schemaVersion: WORKSPACE_CLOUD_SNAPSHOT_SCHEMA_VERSION,
+          snapshot: payload,
+          snapshotType: "active",
+        },
+        checksum,
+        idempotencyKey: clientMutationId,
+        payloadSizeBytes,
+        workspaceId: snapshot.id,
+      };
+
+      if (this.workspaceSnapshotSyncTimeout) {
+        clearTimeout(this.workspaceSnapshotSyncTimeout);
+      }
+
+      this.status = "queued";
+      this.workspaceSnapshotSyncTimeout = setTimeout(() => {
+        void this.flushWorkspaceSnapshotSync();
+      }, WORKSPACE_SNAPSHOT_DEBOUNCE_MS);
+
+      return synced();
+    } catch (error) {
+      return failed(error);
+    }
   }
 
   async syncHistoricalMessage(
     record: HistoricalMessageRecord,
   ): Promise<StateSyncResult> {
-    void record;
+    this.status = "queued";
 
-    return synced();
+    try {
+      await localSyncQueueAdapter.enqueue({
+        compactKey: `message:${record.workspaceId}:${record.message.id}:historical`,
+        entityId: record.message.id,
+        entityType: "message",
+        operationType: "upsert",
+        payload: {
+          agentId: record.agentId,
+          message: record.message,
+          workspaceId: record.workspaceId,
+        },
+        workspaceId: record.workspaceId,
+      });
+      this.status = "idle";
+
+      return this.finalizeTransaction(
+        "sync.queue.historical_message",
+        `Historical message ${record.message.id} queued for durable sync.`,
+        synced(),
+      );
+    } catch (error) {
+      this.status = "idle";
+
+      return this.finalizeTransaction(
+        "sync.queue.historical_message",
+        `Historical message ${record.message.id} queue failed.`,
+        failed(error),
+      );
+    }
   }
 
   async syncHistoricalArtifact(
@@ -757,7 +834,53 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
   }
 
   async flush(): Promise<StateSyncResult> {
+    await this.flushWorkspaceSnapshotSync();
+
     return synced();
+  }
+
+  private async flushWorkspaceSnapshotSync() {
+    const pending = this.pendingWorkspaceSnapshotSync;
+
+    if (!pending) {
+      return;
+    }
+
+    this.pendingWorkspaceSnapshotSync = undefined;
+
+    if (this.workspaceSnapshotSyncTimeout) {
+      clearTimeout(this.workspaceSnapshotSyncTimeout);
+      this.workspaceSnapshotSyncTimeout = undefined;
+    }
+
+    this.status = "syncing";
+
+    try {
+      await localSyncQueueAdapter.enqueue({
+        clientMutationId: pending.idempotencyKey,
+        compactKey: `workspace:${pending.workspaceId}:snapshot`,
+        entityId: pending.workspaceId,
+        entityType: "workspace",
+        operationType: "snapshot",
+        payload: pending.body,
+        workspaceId: pending.workspaceId,
+      });
+      this.lastCloudSnapshotChecksums.set(pending.workspaceId, pending.checksum);
+      this.status = "idle";
+      this.finalizeTransaction(
+        "workspace.snapshot.sync",
+        `Workspace ${pending.workspaceId} snapshot queued (${pending.payloadSizeBytes} bytes).`,
+        synced(),
+      );
+    } catch (error) {
+      logSupabaseSyncError(error);
+      this.status = "idle";
+      this.finalizeTransaction(
+        "workspace.snapshot.sync",
+        `Workspace ${pending.workspaceId} snapshot sync failed.`,
+        failed(error),
+      );
+    }
   }
 }
 

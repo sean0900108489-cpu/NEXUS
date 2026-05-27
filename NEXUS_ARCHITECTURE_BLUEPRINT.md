@@ -2,6 +2,7 @@
 *(Auto-generated via Macro Scan)*
 
 Generated: 2026-05-27  
+Updated: 2026-05-27 - post-deployment Supabase/Vercel auth environment correction.  
 Scope: read-only macro scan of the current NEXUS // AI OPS architecture before Infinite Canvas / tldraw expansion.  
 Primary files scanned:
 
@@ -16,9 +17,11 @@ Primary files scanned:
 Supplemental files scanned for flow completeness:
 
 - `src/components/nexus/AgentBranchModal.tsx`
+- `src/components/nexus/auth-screen.tsx`
 - `src/components/nexus/nexus-graph.tsx`
 - `src/components/nexus/DatapadWindow.tsx`
 - `src/lib/adapters/memory-compression-adapter.ts`
+- `src/lib/supabase/client.ts`
 - `src/lib/nexus-defaults.ts`
 - `src/lib/tool-executors.ts`
 - `src/app/globals.css`
@@ -868,6 +871,52 @@ Transaction logging:
 - `supabaseStateSyncManager.setTransactionLogger` pushes transaction logs into store `transactionHistory`.
 - Logs are capped to 100 entries.
 
+### 3.6 Auth Runtime & Deployment Env Contract
+
+Auth entrypoint:
+
+- UI component: `src/components/nexus/auth-screen.tsx`
+- Supabase client factory: `src/lib/supabase/client.ts`
+- Session owner: `NexusOps` in `src/components/nexus/nexus-ops.tsx`
+- Store state: `authVault.user`, `authVault.isLocked`, `authVault.globalApiKey`, `authVault.globalBaseUrl`
+
+Runtime flow:
+
+1. `NexusOps` calls `getNexusSupabaseClient()`.
+2. It subscribes to `supabase.auth.onAuthStateChange`.
+3. It calls `supabase.auth.getSession()`.
+4. `syncSupabaseSessionUser(session?.user ?? null)` mirrors the authenticated user into `authVault.user`.
+5. `authChecked` becomes `true` after session lookup completes.
+6. If no user is present, `AuthScreen` remains mounted and renders the login/sign-up gate.
+
+Auth screen message invariant:
+
+- Initial status is `"Checking session..."` while `authChecked` is false.
+- Once `checked` is true and no custom auth result message has replaced the initial status, `AuthScreen` derives the visible message as `"Authenticate to unlock NEXUS // AI OPS."`.
+- Do not rely on an effect that synchronously calls `setState` only to mirror `checked`; React lint rejects that pattern.
+- Form submit status messages, Supabase error messages, and sign-up confirmation messages remain stored in component state.
+
+Required public Supabase environment variables:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+Deployment contract:
+
+- Local development may read these from ignored `.env.local`.
+- Production Vercel deployments must define both variables in the Vercel project environment before build.
+- These are intentionally `NEXT_PUBLIC_*` values and become visible in the browser bundle; do not place service-role keys, private tokens, OpenAI keys, Vercel tokens, or any other secret behind a `NEXT_PUBLIC_` prefix.
+- The Supabase service-role key must never be used in this frontend client.
+- Missing variables make `getNexusSupabaseClient()` throw: `"Supabase client is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."`
+- Because these values are baked into the Next.js client bundle at build time, adding or changing them in Vercel requires a new production deployment.
+
+Operational deployment notes:
+
+- Stable production alias observed after correction: `https://nexus-swart-ten.vercel.app`
+- Immutable deployment URLs, such as `https://nexus-gflj7w651-sean-s-projects10.vercel.app`, do not receive later env or code fixes.
+- For user-facing online testing, prefer the stable production alias or the latest production deployment URL.
+- Vercel project env var inspection should report only variable names and encrypted/present status, never values.
+
 ---
 
 ## 4. The Agent Forking & Compression Engine
@@ -1369,6 +1418,7 @@ Stable operating cores:
 - `NexusAgent` and `NexusWorkspace` schemas.
 - Zustand local-first active workbench.
 - IndexedDB persistence with legacy localStorage fallback.
+- Supabase Auth login gate with Vercel production env contract.
 - Agent floating windows and z-index focus behavior.
 - React Flow graph projection from `WorkspaceGraph`.
 - Chat streaming with mock/live mode.
@@ -1618,6 +1668,8 @@ Before changing NEXUS architecture:
 8. Keep local interaction non-blocking when cloud sync fails.
 9. Add migration/normalization if persisted state shape changes.
 10. Do not duplicate source-of-truth maps for models, capabilities, tool slots, graph node types, or compression profiles.
+11. For online auth or Supabase changes, confirm `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` exist in the target Vercel environment and redeploy after any env change.
+12. Never commit `.env*`, `.vercel/`, service-role keys, private API keys, or token values; report env status by variable name only.
 
 High-risk files for architectural edits:
 
@@ -1625,7 +1677,9 @@ High-risk files for architectural edits:
 - `src/lib/nexus-registry.ts`
 - `src/store/nexus-store.ts`
 - `src/lib/state-sync.ts`
+- `src/lib/supabase/client.ts`
 - `src/components/nexus/nexus-ops.tsx`
+- `src/components/nexus/auth-screen.tsx`
 - `src/components/nexus/nexus-graph.tsx`
 - `src/lib/supabase/database.types.ts`
 

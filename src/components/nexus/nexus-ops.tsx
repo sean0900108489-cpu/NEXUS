@@ -65,10 +65,14 @@ import type {
   AgentCapabilityType,
   AgentCreationCapabilityType,
   AgentMediaArtifact,
+  ArtifactGetResponse,
   ArtifactVaultRecord,
+  HistoricalMessageRecord,
   MediaAgentCapabilityType,
   AgentMessage,
   AgentStreamRequest,
+  AgentTaskCreateRequest,
+  AgentTaskCreateResponse,
   AgentTemplate,
   IAuthVault,
   NexusAgent,
@@ -76,15 +80,19 @@ import type {
   NotebookRecord,
   PromptRecord,
   StreamMode,
+  SystemEventListResponse,
+  SystemEventRecord,
   WorkflowTemplateRecord,
   WorkspaceBranchingSettings,
   WorkspaceThemeConfig,
   WorkspaceViewMode,
 } from "@/lib/nexus-types";
+import { nexusApiClient } from "@/lib/api/nexus-api-client";
 import { parseWorkspaceSnapshot } from "@/lib/workspace-kernel";
 import { hasToolExecutor } from "@/lib/tool-executors";
 import { fetchWithBackoff, isAbortLikeError } from "@/lib/stream-retry";
 import { supabaseStateSyncManager } from "@/lib/state-sync";
+import { localSyncQueueAdapter, type QueueStatusProjection } from "@/lib/sync/local-sync-queue-adapter";
 import { getNexusSupabaseClient } from "@/lib/supabase/client";
 import { getEmbeddableUrl, getIframeBlockReason } from "@/lib/embed-url";
 import { buildMockPredictiveIntelSuggestions } from "@/lib/predictive-intel";
@@ -119,6 +127,13 @@ const SANDBOX_MAX_SPLIT = 80;
 const SANDBOX_COLLAPSED_WIDTH = 46;
 
 type LegoThemeKey = keyof WorkspaceThemeConfig;
+type AgentHistoricalPage = {
+  error?: string;
+  hasMore: boolean;
+  items: HistoricalMessageRecord[];
+  loading?: boolean;
+  nextCursor?: string;
+};
 
 const LEGO_THEME_DEFAULTS: Required<WorkspaceThemeConfig> = {
   radius: "4px",
@@ -172,8 +187,15 @@ type WorkspaceSize = {
 };
 
 type ClientStreamEvent =
-  | { type: "meta"; mode: "mock" | "openai"; detail: string }
-  | { type: "token"; token: string }
+  | {
+      type: "meta";
+      mode?: "mock" | "openai";
+      detail?: string;
+      taskId?: string;
+      sessionId?: string | null;
+      traceId?: string;
+    }
+  | { type: "token"; token?: string; delta?: string }
   | { type: "done" };
 
 type PaletteCommand = {
@@ -442,7 +464,7 @@ async function readStreamEvents(
       try {
         onEvent(JSON.parse(line.replace(/^data:\s*/, "")) as ClientStreamEvent);
       } catch {
-        onEvent({ type: "meta", mode: "mock", detail: "Malformed stream event." });
+        onEvent({ type: "meta", detail: "Malformed stream event.", mode: "mock" });
       }
     }
   }
@@ -522,11 +544,29 @@ function artifactPreview(value: string) {
   return `${compact.slice(0, 117)}...`;
 }
 
+function traceSeverityClass(severity: SystemEventRecord["severity"]) {
+  if (severity === "critical" || severity === "error") {
+    return "text-rose-200";
+  }
+
+  if (severity === "warn") {
+    return "text-amber-200";
+  }
+
+  if (severity === "debug") {
+    return "text-slate-500";
+  }
+
+  return "text-cyan-100";
+}
+
 export function NexusOps() {
   const { resolvedTheme, setTheme, theme } = useTheme();
   const workspaceRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const abortControllersRef = useRef<Map<string, AbortController>>(new Map());
+  const abortControllersRef = useRef<
+    Map<string, { controller: AbortController; taskId?: string; workspaceId?: string }>
+  >(new Map());
   const workflowAgentSnapshotsRef = useRef<Map<string, WorkflowAgentSnapshot>>(
     new Map(),
   );
@@ -562,7 +602,7 @@ export function NexusOps() {
   const viewMode = useNexusStore((state) => state.viewMode);
   const isVaultManagerOpen = useNexusStore((state) => state.isVaultManagerOpen);
   const authVault = useNexusStore((state) => state.authVault);
-  const artifactVault = useNexusStore((state) => state.artifactVault);
+  const artifactVaultCache = useNexusStore((state) => state.artifactVault);
   const promptsCache = useNexusStore((state) => state.promptsCache);
   const notebooksCache = useNexusStore((state) => state.notebooksCache);
   const openNotebookIds = useNexusStore((state) => state.openNotebookIds);
@@ -623,7 +663,29 @@ export function NexusOps() {
   );
   const connectGraphAgents = useNexusStore((state) => state.connectGraphAgents);
   const removeGraphEdges = useNexusStore((state) => state.removeGraphEdges);
+  const addWorkflowRuntimeNode = useNexusStore(
+    (state) => state.addWorkflowRuntimeNode,
+  );
+  const updateWorkflowRuntimeNodeData = useNexusStore(
+    (state) => state.updateWorkflowRuntimeNodeData,
+  );
+  const updateWorkflowRuntimeNodePosition = useNexusStore(
+    (state) => state.updateWorkflowRuntimeNodePosition,
+  );
+  const connectWorkflowRuntimeNodes = useNexusStore(
+    (state) => state.connectWorkflowRuntimeNodes,
+  );
+  const removeWorkflowRuntimeEdges = useNexusStore(
+    (state) => state.removeWorkflowRuntimeEdges,
+  );
+  const runWorkflowRuntimeLiteFlow = useNexusStore(
+    (state) => state.runWorkflowRuntimeLiteFlow,
+  );
   const runTool = useNexusStore((state) => state.runTool);
+  const historicalMessages = useNexusStore((state) => state.historicalMessages);
+  const fetchHistoricalMessages = useNexusStore(
+    (state) => state.fetchHistoricalMessages,
+  );
 
   const workspace =
     workspaces.find((candidate) => candidate.id === activeWorkspaceId) ?? workspaces[0];
@@ -632,6 +694,13 @@ export function NexusOps() {
   const branchingSettings = workspace?.settings.branchingSettings;
   const activeAgentId = workspace?.activeAgentId;
   const agents = workspace?.agents ?? EMPTY_AGENTS;
+  const artifactVault = useMemo(
+    () =>
+      artifactVaultCache.ids
+        .map((id) => artifactVaultCache.byId[id])
+        .filter((artifact): artifact is ArtifactVaultRecord => Boolean(artifact)),
+    [artifactVaultCache],
+  );
   const effectiveStreamMode = useMemo(
     () => resolveAgentsStreamMode(authVault),
     [authVault],
@@ -643,14 +712,42 @@ export function NexusOps() {
     agents.find((agent) => agent.id === selectedAgentId) ?? agents[0];
   const activeAgent =
     agents.find((agent) => agent.id === activeAgentId) ?? selectedAgent;
+  const workflowRunning = Boolean(
+    workspace?.graph.runtimeLite?.runs.some((run) => run.status === "running"),
+  );
   const branchAgent = agents.find((agent) => agent.id === branchAgentId);
   const activeTheme = themeMounted
     ? normalizeTheme(theme ?? resolvedTheme)
     : "cyberpunk";
+  const [syncQueueStatus, setSyncQueueStatus] = useState<QueueStatusProjection>({
+    conflicted: 0,
+    failed: 0,
+    pending: 0,
+    syncing: 0,
+  });
 
   useEffect(() => {
     materializeDefaultWorkspace();
   }, [materializeDefaultWorkspace]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const refresh = () => {
+      void localSyncQueueAdapter.getStatus().then((status) => {
+        if (mounted) {
+          setSyncQueueStatus(status);
+        }
+      });
+    };
+    const intervalId = window.setInterval(refresh, 2000);
+    refresh();
+
+    return () => {
+      mounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -812,6 +909,29 @@ export function NexusOps() {
     }
   }, [fetchArtifactsFromCloud]);
 
+  const retryFailedSyncOperation = useCallback(() => {
+    void localSyncQueueAdapter
+      .getOperations()
+      .then((operations) =>
+        operations.find((operation) =>
+          ["failed", "conflicted"].includes(operation.status),
+        ),
+      )
+      .then((operation) => {
+        if (!operation) {
+          return undefined;
+        }
+
+        return localSyncQueueAdapter.retry(operation.clientMutationId);
+      })
+      .then(() => {
+        setNotice("Sync retry queued.");
+      })
+      .catch(() => {
+        setNotice("Sync retry could not be queued.");
+      });
+  }, []);
+
   useEffect(() => {
     if (!settingsOpen) {
       return;
@@ -916,16 +1036,32 @@ export function NexusOps() {
     }, 900);
   }, [saveArtifactToCloud]);
 
+  const artifactRequestUserId = authVault.user?.id ?? "local-owner";
   const handleCopyArtifact = useCallback((artifact: ArtifactVaultRecord) => {
     void (async () => {
       try {
-        await navigator.clipboard.writeText(artifact.contentUrl);
+        const response = await nexusApiClient.get<ArtifactGetResponse>(
+          `/api/v1/artifacts/${encodeURIComponent(artifact.id)}?workspaceId=${encodeURIComponent(artifact.workspaceId)}`,
+          {
+            userId: artifactRequestUserId,
+            workspaceId: artifact.workspaceId,
+          },
+        );
+        const payload =
+          response.artifact.contentText ??
+          response.artifact.contentUrl ??
+          artifact.previewText ??
+          artifact.contentUrl ??
+          artifact.contentHash ??
+          "";
+
+        await navigator.clipboard.writeText(payload);
         setNotice("Artifact payload copied");
       } catch {
         setNotice("Clipboard unavailable for artifact payload");
       }
     })();
-  }, []);
+  }, [artifactRequestUserId]);
 
   const handleSend = useCallback(async (agentId: string, content: string) => {
     const trimmed = content.trim();
@@ -949,6 +1085,7 @@ export function NexusOps() {
       agent?.model?.trim() ||
       workspace?.settings.model?.trim() ||
       "gpt-4o-mini";
+    const userId = state.authVault.user?.id;
 
     if (!agent || agent.status === "streaming" || agent.status === "thinking") {
       return;
@@ -967,9 +1104,47 @@ export function NexusOps() {
       createdAt: new Date().toISOString(),
       streaming: true,
     };
+
+    let taskResponse: AgentTaskCreateResponse;
+
+    try {
+      taskResponse = await nexusApiClient.post<
+        AgentTaskCreateResponse,
+        AgentTaskCreateRequest
+      >(
+        `/api/v1/agents/${agentId}/tasks`,
+        {
+          inputMessageId: userMessage.id,
+          metadata: {
+            messageCount: agent.messages.length + 1,
+          },
+          model,
+          outputMessageId: assistantMessage.id,
+          provider: agent.provider,
+          taskType: "chat",
+          workspaceId: workspace.id,
+        },
+        {
+          idempotencyKey: `task_${userMessage.id}`,
+          userId,
+          workspaceId: workspace.id,
+        },
+      );
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "Unable to create agent task.";
+
+      setNotice(`${agent.callsign} task rejected: ${detail}`);
+      useNexusStore.getState().setAgentStatus(agentId, "error");
+      return;
+    }
+
     const request: AgentStreamRequest = {
       globalApiKey: safeKey,
       model,
+      outputMessageId: assistantMessage.id,
+      sessionId: taskResponse.session.id,
+      taskId: taskResponse.task.id,
+      workspaceId: workspace.id,
       agent: {
         identity: agent.identity,
         callsign: agent.callsign,
@@ -1005,12 +1180,21 @@ export function NexusOps() {
     let streamFailed = false;
     let streamInterrupted = false;
     const controller = new AbortController();
-    abortControllersRef.current.set(agentId, controller);
+    abortControllersRef.current.set(agentId, {
+      controller,
+      taskId: taskResponse.task.id,
+      workspaceId: workspace.id,
+    });
 
     try {
       const headers = new Headers({
         "Content-Type": "application/json",
+        "X-Workspace-Id": workspace.id,
       });
+
+      if (userId) {
+        headers.set("X-User-Id", userId);
+      }
 
       if (safeKey) {
         headers.set("Authorization", `Bearer ${safeKey}`);
@@ -1018,7 +1202,7 @@ export function NexusOps() {
       headers.set("x-openai-base-url", safeBaseUrl);
 
       const response = await fetchWithBackoff(
-        "/api/agent-stream",
+        `/api/v1/agents/${agentId}/stream`,
         {
           method: "POST",
           headers,
@@ -1042,20 +1226,28 @@ export function NexusOps() {
 
       await readStreamEvents(response, (event) => {
         if (event.type === "token") {
+          const delta = event.delta ?? event.token ?? "";
+
+          if (!delta) {
+            return;
+          }
+
           if (!firstTokenReceived) {
             firstTokenReceived = true;
             useNexusStore.getState().setAgentStatus(agentId, "streaming");
           }
 
-          received += event.token;
+          received += delta;
           useNexusStore
             .getState()
-            .appendToMessage(agentId, assistantMessage.id, event.token);
+            .appendToMessage(agentId, assistantMessage.id, delta);
         }
 
         if (event.type === "meta") {
-          setNotice(event.detail);
-          useNexusStore.getState().setStreamMode(event.mode === "openai" ? "live" : "mock");
+          setNotice(event.detail ?? `${agent.callsign} task ${event.taskId ?? taskResponse.task.id} streaming`);
+          if (event.mode) {
+            useNexusStore.getState().setStreamMode(event.mode === "openai" ? "live" : "mock");
+          }
         }
       });
     } catch (error) {
@@ -1094,6 +1286,56 @@ export function NexusOps() {
       if (!streamFailed) {
         setNotice(`${agent.callsign} stream closed`);
       }
+    }
+  }, []);
+
+  const handleRunWorkflowRuntimeLite = useCallback(async () => {
+    setNotice("Workflow Runtime Lite started");
+
+    try {
+      const run = await runWorkflowRuntimeLiteFlow();
+
+      if (!run) {
+        setNotice("Workflow Runtime Lite could not start");
+        return;
+      }
+
+      if (run.status === "success") {
+        setNotice(`Workflow Runtime Lite completed: ${run.runId}`);
+        return;
+      }
+
+      setNotice(run.error ?? "Workflow Runtime Lite failed");
+    } catch (error) {
+      setNotice(
+        error instanceof Error
+          ? `Workflow Runtime Lite failed: ${error.message}`
+          : "Workflow Runtime Lite failed",
+      );
+    }
+  }, [runWorkflowRuntimeLiteFlow]);
+
+  const handleCopyWorkflowOutput = useCallback(async (nodeId: string) => {
+    const runtimeNode = useNexusStore
+      .getState()
+      .workspaces.find(
+        (candidate) =>
+          candidate.id === useNexusStore.getState().activeWorkspaceId,
+      )
+      ?.graph.runtimeLite?.nodes.find((node) => node.id === nodeId);
+    const packet = runtimeNode?.outputSnapshot;
+    const text = packet?.displayText || packet?.rawText || "";
+
+    if (!text) {
+      setNotice("Output node is still empty");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setNotice("Output copied");
+    } catch {
+      setNotice("Clipboard unavailable for output");
     }
   }, []);
 
@@ -1168,7 +1410,22 @@ export function NexusOps() {
   }, []);
 
   const handleStop = useCallback((agentId: string) => {
-    abortControllersRef.current.get(agentId)?.abort();
+    const active = abortControllersRef.current.get(agentId);
+
+    active?.controller.abort();
+    if (active?.taskId && active.workspaceId) {
+      void nexusApiClient.post(
+        `/api/v1/agents/${agentId}/tasks/${active.taskId}/cancel`,
+        {
+          workspaceId: active.workspaceId,
+        },
+        {
+          idempotencyKey: `cancel_${active.taskId}`,
+          userId: useNexusStore.getState().authVault.user?.id,
+          workspaceId: active.workspaceId,
+        },
+      ).catch(() => undefined);
+    }
     setNotice("Stream stop requested");
   }, []);
 
@@ -1499,8 +1756,10 @@ export function NexusOps() {
           focusAgent(id);
           setNotice("Agent spawned");
         }}
+        onSyncRetry={retryFailedSyncOperation}
         settingsOpen={settingsOpen}
         streamMode={effectiveStreamMode}
+        syncStatus={syncQueueStatus}
         viewMode={viewMode}
         onSetViewMode={setViewMode}
         workspaceName={workspaceName}
@@ -1579,6 +1838,10 @@ export function NexusOps() {
                     onUpdateSandboxCode={updateSandboxCode}
                     onUpdateSandboxUrl={updateSandboxUrl}
                     onUpdateLayout={updateLayout}
+                    historicalPage={
+                      historicalMessages[`${activeWorkspaceId}::${agent.id}`]
+                    }
+                    onLoadHistory={fetchHistoricalMessages}
                     selected={agent.id === selectedAgent?.id}
                     workspaceId={activeWorkspaceId}
                   />
@@ -1591,7 +1854,13 @@ export function NexusOps() {
             <NexusGraph
               agents={agents}
               graph={workspace?.graph ?? EMPTY_GRAPH}
+              onAddWorkflowNode={(type) => {
+                addWorkflowRuntimeNode(type);
+                setNotice(`${type} node added`);
+              }}
               onConnectAgents={connectGraphAgents}
+              onConnectWorkflowNodes={connectWorkflowRuntimeNodes}
+              onCopyWorkflowOutput={handleCopyWorkflowOutput}
               onFocusAgent={selectAgent}
               onOpenAgent={(agentId) => {
                 setViewMode("panels");
@@ -1599,7 +1868,14 @@ export function NexusOps() {
               }}
               onRemoveAgent={removeAgent}
               onRemoveEdges={removeGraphEdges}
+              onRemoveWorkflowEdges={removeWorkflowRuntimeEdges}
+              onRunWorkflow={() => {
+                void handleRunWorkflowRuntimeLite();
+              }}
+              onUpdateWorkflowNodeData={updateWorkflowRuntimeNodeData}
+              onUpdateWorkflowNodePosition={updateWorkflowRuntimeNodePosition}
               onUpdateNodePosition={updateGraphNodePosition}
+              workflowRunning={workflowRunning}
             />
           )}
 
@@ -1688,6 +1964,7 @@ export function NexusOps() {
         artifactError={artifactError}
         artifacts={artifactVault}
         artifactsLoading={artifactsLoading}
+        workspaceId={workspace?.id ?? activeWorkspaceId}
         macroError={macroError}
         macros={macros}
         macrosLoading={macrosLoading}
@@ -1806,9 +2083,11 @@ function TopBar({
   onSaveMacro,
   onRenameWorkspace,
   onSwitchWorkspace,
+  onSyncRetry,
   onToggleSettings,
   settingsOpen,
   streamMode,
+  syncStatus,
   viewMode,
   onSetViewMode,
 }: {
@@ -1825,9 +2104,11 @@ function TopBar({
   onSaveMacro: () => void;
   onRenameWorkspace: (name: string) => void;
   onSwitchWorkspace: (workspaceId: string) => void;
+  onSyncRetry: () => void;
   onToggleSettings: () => void;
   settingsOpen: boolean;
   streamMode: StreamMode;
+  syncStatus: QueueStatusProjection;
   viewMode: WorkspaceViewMode;
   onSetViewMode: (mode: WorkspaceViewMode) => void;
 }) {
@@ -2066,7 +2347,45 @@ function TopBar({
           )}
         </AnimatePresence>
       </div>
+      <div className="ml-auto flex min-w-0 items-center gap-2">
+        <SyncBadge status={syncStatus} onRetry={onSyncRetry} />
+      </div>
     </header>
+  );
+}
+
+function SyncBadge({
+  onRetry,
+  status,
+}: {
+  onRetry: () => void;
+  status: QueueStatusProjection;
+}) {
+  const hasIssue = status.failed > 0 || status.conflicted > 0;
+  const active = status.pending > 0 || status.syncing > 0;
+  const label = hasIssue
+    ? `${status.failed + status.conflicted} sync issue`
+    : active
+      ? `${status.pending + status.syncing} syncing`
+      : "Synced";
+
+  return (
+    <button
+      aria-label={hasIssue ? "Retry failed sync operation" : "Sync status"}
+      className={cx(
+        "inline-flex h-8 items-center gap-2 border px-2 font-mono text-[9px] uppercase tracking-[0.14em] transition",
+        hasIssue
+          ? "border-rose-300/45 bg-rose-300/12 text-rose-100 hover:bg-rose-300/20"
+          : active
+            ? "border-amber-300/35 bg-amber-300/10 text-amber-100"
+            : "border-emerald-300/25 bg-emerald-300/[0.06] text-emerald-100",
+      )}
+      onClick={hasIssue ? onRetry : undefined}
+      type="button"
+    >
+      {hasIssue ? <RefreshCcw className="h-3.5 w-3.5" /> : <RadioTower className="h-3.5 w-3.5" />}
+      <span className="hidden sm:inline">{label}</span>
+    </button>
   );
 }
 
@@ -2211,6 +2530,7 @@ function AgentSettingsSidebar({
   artifactError,
   artifacts,
   artifactsLoading,
+  workspaceId,
   macroError,
   macros,
   macrosLoading,
@@ -2245,6 +2565,7 @@ function AgentSettingsSidebar({
   artifactError?: string;
   artifacts: ArtifactVaultRecord[];
   artifactsLoading: boolean;
+  workspaceId: string;
   macroError?: string;
   macros: WorkflowTemplateRecord[];
   macrosLoading: boolean;
@@ -2278,6 +2599,12 @@ function AgentSettingsSidebar({
   const [vaultBaseUrlDraft, setVaultBaseUrlDraft] = useState(
     authVault.globalBaseUrl ?? DEFAULT_BASE_URL,
   );
+  const [traceEvents, setTraceEvents] = useState<SystemEventRecord[]>([]);
+  const [traceEventsCursor, setTraceEventsCursor] = useState<string | null>(null);
+  const [traceEventsHasMore, setTraceEventsHasMore] = useState(false);
+  const [traceEventsLoading, setTraceEventsLoading] = useState(false);
+  const [traceEventsError, setTraceEventsError] = useState<string | undefined>();
+  const traceViewerUserId = authVault.user?.id ?? "local-owner";
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -2299,6 +2626,42 @@ function AgentSettingsSidebar({
 
     return () => window.clearTimeout(timeoutId);
   }, [authVault.globalBaseUrl]);
+
+  const loadTraceEvents = useCallback(async (mode: "next" | "reset" = "reset") => {
+    setTraceEventsLoading(true);
+    setTraceEventsError(undefined);
+
+    try {
+      const params = new URLSearchParams({
+        limit: "20",
+        workspaceId,
+      });
+
+      if (mode === "next" && traceEventsCursor) {
+        params.set("cursor", traceEventsCursor);
+      }
+
+      const response = await nexusApiClient.get<SystemEventListResponse>(
+        `/api/v1/observability/events?${params.toString()}`,
+        {
+          userId: traceViewerUserId,
+          workspaceId,
+        },
+      );
+
+      setTraceEvents((current) =>
+        mode === "next" ? [...current, ...response.events] : response.events,
+      );
+      setTraceEventsCursor(response.nextCursor ?? null);
+      setTraceEventsHasMore(response.hasMore);
+    } catch (error) {
+      setTraceEventsError(
+        error instanceof Error ? error.message : "Trace events unavailable.",
+      );
+    } finally {
+      setTraceEventsLoading(false);
+    }
+  }, [traceEventsCursor, traceViewerUserId, workspaceId]);
 
   return (
     <AnimatePresence>
@@ -2777,7 +3140,13 @@ function AgentSettingsSidebar({
                           </span>
                         </div>
                         <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-400">
-                          {artifactPreview(artifact.contentUrl)}
+                          {artifactPreview(
+                            artifact.previewText ??
+                              artifact.contentUrl ??
+                              artifact.contentHash ??
+                              artifact.title ??
+                              "",
+                          )}
                         </p>
                       </div>
                       <button
@@ -2791,6 +3160,74 @@ function AgentSettingsSidebar({
                   </article>
                 ))}
               </div>
+            </section>
+
+            <section className="mt-5 border border-cyan-300/25 bg-cyan-300/[0.045] p-3">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
+                    Trace Viewer
+                  </div>
+                  <div className="mt-1 text-[11px] text-slate-500">
+                    Latest workspace events
+                  </div>
+                </div>
+                <button
+                  className="border border-cyan-300/35 bg-cyan-300/10 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+                  disabled={traceEventsLoading}
+                  onClick={() => void loadTraceEvents("reset")}
+                  type="button"
+                >
+                  Refresh
+                </button>
+              </div>
+
+              {traceEventsError ? (
+                <div className="mb-2 border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-[11px] text-amber-100">
+                  {traceEventsError}
+                </div>
+              ) : null}
+
+              <div className="grid gap-2">
+                {!traceEvents.length && !traceEventsLoading ? (
+                  <div className="border border-white/10 bg-black/25 px-3 py-3 text-xs text-slate-500">
+                    No trace events loaded.
+                  </div>
+                ) : null}
+
+                {traceEvents.map((event) => (
+                  <article
+                    key={event.id}
+                    className="border border-white/10 bg-black/25 px-3 py-2"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`font-mono text-[9px] uppercase tracking-[0.14em] ${traceSeverityClass(event.severity)}`}>
+                        {event.severity}
+                      </span>
+                      <span className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        {formatTime(event.createdAt)}
+                      </span>
+                    </div>
+                    <div className="mt-1 truncate font-mono text-[10px] text-slate-300">
+                      {event.source} / {event.eventType}
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-slate-500">
+                      {event.message ?? event.resourceType ?? event.traceId}
+                    </p>
+                  </article>
+                ))}
+              </div>
+
+              {traceEventsHasMore ? (
+                <button
+                  className="mt-3 w-full border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-300 transition hover:border-cyan-300/35 hover:bg-cyan-300/10 disabled:opacity-40"
+                  disabled={traceEventsLoading}
+                  onClick={() => void loadTraceEvents("next")}
+                  type="button"
+                >
+                  Load More
+                </button>
+              ) : null}
             </section>
 
             <section className="mt-5 border border-fuchsia-300/35 bg-fuchsia-300/[0.055] p-3 shadow-[0_0_34px_rgba(217,70,239,0.12)]">
@@ -3185,6 +3622,8 @@ function AgentWindow({
   onOpenVaultManager,
   onSaveArtifact,
   promptsCache,
+  historicalPage,
+  onLoadHistory,
   onSend,
   onStop,
   onUpdateSandboxCode,
@@ -3214,6 +3653,8 @@ function AgentWindow({
   onOpenVaultManager: () => void;
   onSaveArtifact: (agentId: string, content: string) => void;
   promptsCache: PromptRecord[];
+  historicalPage?: AgentHistoricalPage;
+  onLoadHistory: (agentId: string) => Promise<void>;
   onSend: (agentId: string, content: string) => Promise<void>;
   onStop: (agentId: string) => void;
   onUpdateSandboxCode: (agentId: string, sandboxCode: string) => void;
@@ -3226,6 +3667,17 @@ function AgentWindow({
   const capabilityType = getCapabilityType(agent);
   const isMediaAgent = isMediaCapability(capabilityType);
   const isSandboxAgent = isSandboxCapability(capabilityType);
+  const renderedMessages = useMemo(() => {
+    const activeIds = new Set(agent.messages.map((message) => message.id));
+    const historical = (historicalPage?.items ?? [])
+      .filter((record) => !activeIds.has(record.message.id))
+      .sort((left, right) =>
+        left.message.createdAt.localeCompare(right.message.createdAt),
+      )
+      .map((record) => record.message);
+
+    return [...historical, ...agent.messages];
+  }, [agent.messages, historicalPage?.items]);
 
   useEffect(() => {
     bodyRef.current?.scrollTo({
@@ -3358,7 +3810,25 @@ function AgentWindow({
                   className="cyber-scroll min-h-0 flex-1 overflow-y-auto p-3"
                 >
                   <div className="grid gap-3">
-                    {agent.messages.map((message) => (
+                    {(historicalPage?.hasMore ?? true) ? (
+                      <div className="flex justify-center">
+                        <button
+                          className="inline-flex items-center gap-2 border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-slate-300 transition hover:border-cyan-300/40 hover:text-cyan-100 disabled:opacity-45"
+                          disabled={Boolean(historicalPage?.loading)}
+                          onClick={() => void onLoadHistory(agent.id)}
+                          type="button"
+                        >
+                          <Archive className="h-3.5 w-3.5" />
+                          {historicalPage?.loading ? "Loading" : "Load history"}
+                        </button>
+                      </div>
+                    ) : null}
+                    {historicalPage?.error ? (
+                      <div className="border border-rose-300/20 bg-rose-500/10 px-3 py-2 text-xs text-rose-100">
+                        {historicalPage.error}
+                      </div>
+                    ) : null}
+                    {renderedMessages.map((message) => (
                       <MessageBubble key={message.id} message={message} />
                     ))}
                   </div>

@@ -20,18 +20,39 @@ import {
   getDefaultGraphPosition,
   makeId,
 } from "@/lib/nexus-defaults";
+import { NexusApiError, nexusApiClient } from "@/lib/api/nexus-api-client";
+import { HistoricalDataFetcher } from "@/lib/backend/history/historical-data-fetcher";
 import { supabaseStateSyncManager } from "@/lib/state-sync";
 import { getNexusSupabaseClient } from "@/lib/supabase/client";
 import { createWorkspaceSnapshot, sanitizeWorkspace, validateWorkspaceSnapshot } from "@/lib/workspace-kernel";
-import { type ToolExecutorInput, toolExecutors } from "@/lib/tool-executors";
+import type { ToolExecutorInput } from "@/lib/tool-executors";
 import { LlmMemoryCompressor } from "@/lib/adapters/memory-compression-adapter";
+import {
+  createWorkflowRuntimeLlmCall,
+  resolveWorkflowRuntimeExecutionAgent,
+} from "@/lib/workflow-runtime-lite/llm-client";
+import {
+  createEmptyWorkflowRuntimeLiteState,
+  createWorkflowRuntimeId,
+  createWorkflowRuntimeNode,
+  limitWorkflowRuns,
+  normalizeWorkflowRuntimeLiteState,
+} from "@/lib/workflow-runtime-lite/state";
+import {
+  runWorkflowRuntimeLite,
+  type WorkflowRuntimeNodePatch,
+} from "@/lib/workflow-runtime-lite/runner";
 import type {
+  ActiveUiStateSnapshot,
   AgentBranchingStatus,
   AgentCreationCapabilityType,
   AgentLayout,
   AgentMessage,
   AgentStatus,
+  ArtifactVaultCache,
   ArtifactVaultRecord,
+  HistoricalDataPage,
+  HistoricalMessageRecord,
   IAgentBranchMetadata,
   IAuthVault,
   IMemoryCompressionConfig,
@@ -41,6 +62,16 @@ import type {
   NexusWorkspace,
   PromptRecord,
   StreamMode,
+  ToolRunCancelResponse,
+  ToolRunConfirmResponse,
+  ToolRunRequest,
+  ToolRunResponse,
+  ToolStatus,
+  WorkflowNodeInstance,
+  WorkflowRun,
+  WorkflowRuntimeEdge,
+  WorkflowRuntimeNodeData,
+  WorkflowRuntimeNodeType,
   WorkflowTemplateAgentBlueprint,
   WorkflowTemplateBlueprintData,
   WorkflowTemplateRecord,
@@ -59,6 +90,11 @@ type WorkspaceBounds = {
 type WorkspaceIdentity = Pick<NexusWorkspace, "id" | "name">;
 type WorkspaceThemeConfigUpdate = Partial<WorkspaceThemeConfig>;
 type WorkspaceBranchingSettingsUpdate = Partial<WorkspaceBranchingSettings>;
+type HistoricalMessageCacheEntry = HistoricalDataPage<HistoricalMessageRecord> & {
+  error?: string;
+  fetchedAt?: string;
+  loading: boolean;
+};
 
 const PERSIST_STORAGE_NAME = "nexus-ai-ops-workspace";
 const LEGACY_LOCAL_STORAGE_KEYS = ["nexus-workspace-storage", PERSIST_STORAGE_NAME] as const;
@@ -68,6 +104,15 @@ const indexedDbStore =
     : createStore("nexus-ai-ops", "workspace-state");
 let initialStorageReadFinished = false;
 let themeConfigSyncTimeout: ReturnType<typeof setTimeout> | undefined;
+const HISTORY_FETCH_DEBOUNCE_MS = 350;
+const historicalDataFetcher = new HistoricalDataFetcher();
+const historyFetchDebounces = new Map<
+  string,
+  {
+    resolve: (shouldRun: boolean) => void;
+    timeout: ReturnType<typeof setTimeout>;
+  }
+>();
 
 const DEFAULT_AUTH_VAULT: IAuthVault = {
   user: null,
@@ -98,6 +143,106 @@ function normalizeAuthVault(value: unknown): IAuthVault {
   };
 }
 
+const EMPTY_ARTIFACT_VAULT_CACHE: ArtifactVaultCache = {
+  byId: {},
+  hasMore: false,
+  ids: [],
+  nextCursor: null,
+};
+
+function createArtifactVaultCache(
+  artifacts: ArtifactVaultRecord[],
+  options: Pick<ArtifactVaultCache, "hasMore" | "nextCursor"> = {
+    hasMore: false,
+    nextCursor: null,
+  },
+): ArtifactVaultCache {
+  const byId: Record<string, ArtifactVaultRecord> = {};
+  const ids: string[] = [];
+
+  for (const artifact of artifacts) {
+    byId[artifact.id] = artifact;
+    ids.push(artifact.id);
+  }
+
+  return {
+    byId,
+    fetchedAt: new Date().toISOString(),
+    hasMore: options.hasMore,
+    ids,
+    nextCursor: options.nextCursor ?? null,
+  };
+}
+
+function getHistoricalMessageCacheKey(workspaceId: string, agentId: string) {
+  return `${workspaceId}::${agentId}`;
+}
+
+function waitForHistoryFetchDebounce(key: string) {
+  return new Promise<boolean>((resolve) => {
+    const existing = historyFetchDebounces.get(key);
+
+    if (existing) {
+      clearTimeout(existing.timeout);
+      existing.resolve(false);
+    }
+
+    const timeout = setTimeout(() => {
+      historyFetchDebounces.delete(key);
+      resolve(true);
+    }, HISTORY_FETCH_DEBOUNCE_MS);
+
+    historyFetchDebounces.set(key, { resolve, timeout });
+  });
+}
+
+function normalizeArtifactVaultCache(value: unknown): ArtifactVaultCache {
+  if (Array.isArray(value)) {
+    return createArtifactVaultCache(value.filter(isArtifactVaultRecord));
+  }
+
+  if (!value || typeof value !== "object") {
+    return EMPTY_ARTIFACT_VAULT_CACHE;
+  }
+
+  const candidate = value as Partial<ArtifactVaultCache>;
+  const byId = isArtifactVaultRecordMap(candidate.byId) ? candidate.byId : {};
+  const ids = Array.isArray(candidate.ids)
+    ? candidate.ids.filter((id) => typeof id === "string" && Boolean(byId[id]))
+    : Object.keys(byId);
+
+  return {
+    byId,
+    fetchedAt: typeof candidate.fetchedAt === "string" ? candidate.fetchedAt : undefined,
+    hasMore: Boolean(candidate.hasMore),
+    ids,
+    nextCursor: typeof candidate.nextCursor === "string" ? candidate.nextCursor : null,
+  };
+}
+
+function isArtifactVaultRecord(value: unknown): value is ArtifactVaultRecord {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<ArtifactVaultRecord>;
+
+  return (
+    typeof candidate.id === "string" &&
+    typeof candidate.workspaceId === "string" &&
+    typeof candidate.type === "string" &&
+    typeof candidate.createdAt === "string"
+  );
+}
+
+function isArtifactVaultRecordMap(value: unknown): value is Record<string, ArtifactVaultRecord> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+
+  return Object.values(value).every(isArtifactVaultRecord);
+}
+
 type NexusStore = {
   activeWorkspaceId: string;
   workspaces: NexusWorkspace[];
@@ -107,7 +252,8 @@ type NexusStore = {
   viewMode: WorkspaceViewMode;
   isVaultManagerOpen: boolean;
   authVault: IAuthVault;
-  artifactVault: ArtifactVaultRecord[];
+  artifactVault: ArtifactVaultCache;
+  historicalMessages: Record<string, HistoricalMessageCacheEntry>;
   promptsCache: PromptRecord[];
   notebooksCache: NotebookRecord[];
   openNotebookIds: string[];
@@ -153,6 +299,7 @@ type NexusStore = {
   updateSandboxUrl: (agentId: string, sandboxUrl: string) => void;
   saveArtifactToCloud: (agentId: string, content: string, type: string) => void;
   fetchArtifactsFromCloud: () => Promise<ArtifactVaultRecord[]>;
+  fetchHistoricalMessages: (agentId: string) => Promise<void>;
   setPromptsCache: (prompts: PromptRecord[]) => void;
   addPromptToCache: (prompt: PromptRecord) => void;
   updatePrompt: (id: string, newTitle: string, newContent: string) => void;
@@ -185,6 +332,18 @@ type NexusStore = {
   updateGraphNodePosition: (agentId: string, position: { x: number; y: number }) => void;
   connectGraphAgents: (edge: WorkspaceGraphEdge) => void;
   removeGraphEdges: (edgeIds: string[]) => void;
+  addWorkflowRuntimeNode: (type: WorkflowRuntimeNodeType) => string;
+  updateWorkflowRuntimeNodeData: (
+    nodeId: string,
+    data: Partial<WorkflowRuntimeNodeData>,
+  ) => void;
+  updateWorkflowRuntimeNodePosition: (
+    nodeId: string,
+    position: { x: number; y: number },
+  ) => void;
+  connectWorkflowRuntimeNodes: (edge: WorkflowRuntimeEdge) => void;
+  removeWorkflowRuntimeEdges: (edgeIds: string[]) => void;
+  runWorkflowRuntimeLiteFlow: () => Promise<WorkflowRun | undefined>;
   updateAgentTelemetry: (agentId: string, generatedCharacters: number) => void;
   clearAgentMessages: (agentId: string) => void;
   runTool: (agentId: string, toolId: string, input?: ToolExecutorInput) => Promise<void>;
@@ -532,14 +691,48 @@ function getActiveWorkspace(state: Pick<NexusStore, "activeWorkspaceId" | "works
   );
 }
 
+function createActiveUiStateSnapshot(
+  workspace: NexusWorkspace,
+): ActiveUiStateSnapshot {
+  return {
+    activeAgentId: workspace.activeAgentId,
+    agents: workspace.agents,
+    createdAt: workspace.createdAt,
+    graph: workspace.graph,
+    id: workspace.id,
+    name: workspace.name,
+    panels: workspace.panels,
+    selectedAgentId: workspace.selectedAgentId,
+    settings: workspace.settings,
+    themeConfig: workspace.themeConfig,
+    updatedAt: workspace.updatedAt,
+  };
+}
+
 function queueWorkspaceCloudSync(workspace?: Pick<NexusWorkspace, "id" | "name">) {
   if (!workspace) {
     return;
   }
 
-  void supabaseStateSyncManager
-    .upsertWorkspace(workspace.id, workspace.name)
-    .catch(() => undefined);
+  const fullWorkspace =
+    isFullWorkspace(workspace)
+      ? workspace
+      : useNexusStore.getState().workspaces.find((candidate) => candidate.id === workspace.id);
+
+  if (fullWorkspace) {
+    void supabaseStateSyncManager
+      .syncActiveUiState(createActiveUiStateSnapshot(fullWorkspace))
+      .catch(() => undefined);
+    return;
+  }
+
+  void supabaseStateSyncManager.upsertWorkspace(workspace.id, workspace.name).catch(() => undefined);
+}
+
+function isFullWorkspace(
+  workspace: Pick<NexusWorkspace, "id" | "name">,
+): workspace is NexusWorkspace {
+  return "agents" in workspace && Array.isArray(workspace.agents);
 }
 
 function queueThemeConfigCloudSync(workspace?: Pick<NexusWorkspace, "id" | "name">) {
@@ -646,6 +839,53 @@ function withAgent(
       agent.id === agentId ? { ...updater(agent), updatedAt } : agent,
     ),
   };
+}
+
+function withWorkflowRuntimeLite(
+  workspace: NexusWorkspace,
+  updater: (
+    runtimeLite: ReturnType<typeof normalizeWorkflowRuntimeLiteState>,
+  ) => ReturnType<typeof normalizeWorkflowRuntimeLiteState>,
+) {
+  const runtimeLite = normalizeWorkflowRuntimeLiteState(workspace.graph.runtimeLite);
+
+  return {
+    ...workspace,
+    graph: {
+      ...workspace.graph,
+      runtimeLite: updater(runtimeLite),
+    },
+  };
+}
+
+function patchWorkflowRuntimeNode(
+  node: WorkflowNodeInstance,
+  patch: WorkflowRuntimeNodePatch,
+): WorkflowNodeInstance {
+  return {
+    ...node,
+    ...patch,
+  } as WorkflowNodeInstance;
+}
+
+function resetWorkflowRuntimeNodeForRun(
+  node: WorkflowNodeInstance,
+): WorkflowNodeInstance {
+  return {
+    ...node,
+    error: null,
+    inputSnapshot: null,
+    outputSnapshot: null,
+    status: "idle",
+  };
+}
+
+function upsertWorkflowRun(runs: WorkflowRun[], run: WorkflowRun) {
+  const nextRuns = runs.some((candidate) => candidate.runId === run.runId)
+    ? runs.map((candidate) => (candidate.runId === run.runId ? run : candidate))
+    : [run, ...runs];
+
+  return limitWorkflowRuns(nextRuns);
 }
 
 function resolveStreamMode(_workspace: NexusWorkspace | undefined, authVault?: IAuthVault): StreamMode {
@@ -937,7 +1177,8 @@ export const useNexusStore = create<NexusStore>()(
       viewMode: "panels",
       isVaultManagerOpen: false,
       authVault: DEFAULT_AUTH_VAULT,
-      artifactVault: [],
+      artifactVault: EMPTY_ARTIFACT_VAULT_CACHE,
+      historicalMessages: {},
       promptsCache: [],
       notebooksCache: [],
       openNotebookIds: [],
@@ -1213,6 +1454,7 @@ export const useNexusStore = create<NexusStore>()(
           if (normalizedConfig.mode === "summary") {
             const compressionResult = await LlmMemoryCompressor.compress(
               {
+                agentId: sourceSnapshot.id,
                 identity: sourceSnapshot.identity,
                 mission: sourceSnapshot.mission,
                 contextNotes: sourceSnapshot.contextNotes,
@@ -1741,38 +1983,155 @@ export const useNexusStore = create<NexusStore>()(
         const state = get();
         const workspace = getActiveWorkspace(state);
         const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
-        const contentUrl = content.trim();
+        const contentText = content.trim();
 
-        if (!workspace || !contentUrl) {
+        if (!workspace || !contentText) {
           return;
         }
 
-        const now = new Date().toISOString();
         const sourceMessageId = agent?.messages.at(-1)?.id ?? makeId("artifact-source");
-        const artifact: ArtifactVaultRecord = {
-          id: makeId("artifact"),
-          workspaceId: workspace.id,
-          sourceMessageId,
-          contentUrl,
-          type,
-          createdAt: now,
-        };
-
-        set((current) => ({
-          artifactVault: [artifact, ...current.artifactVault].slice(0, 80),
-        }));
+        const userId = state.authVault.user?.id ?? "local-owner";
 
         void supabaseStateSyncManager
-          .saveArtifact(workspace.id, sourceMessageId, contentUrl, type)
+          .saveArtifact(workspace.id, sourceMessageId, contentText, type, {
+            sourceAgentId: agentId,
+            title: agent?.callsign ? `${agent.callsign} ${type}` : undefined,
+            userId,
+          })
+          .then((result) => {
+            if (!result.ok) {
+              return undefined;
+            }
+
+            return supabaseStateSyncManager.fetchArtifacts(workspace.id, userId);
+          })
+          .then((response) => {
+            if (!response) {
+              return;
+            }
+
+            set({
+              artifactVault: createArtifactVaultCache(response.artifacts, {
+                hasMore: response.hasMore,
+                nextCursor: response.nextCursor,
+              }),
+            });
+          })
           .catch(() => undefined);
       },
 
       fetchArtifactsFromCloud: async () => {
-        const artifacts = await supabaseStateSyncManager.fetchArtifacts();
+        const state = get();
+        const workspace = getActiveWorkspace(state);
+        const workspaceId = workspace?.id ?? ACTIVE_WORKSPACE_ID;
+        const userId = state.authVault.user?.id ?? "local-owner";
+        const response = await supabaseStateSyncManager.fetchArtifacts(workspaceId, userId);
+        const artifacts = response.artifacts;
 
-        set({ artifactVault: artifacts });
+        set({
+          artifactVault: createArtifactVaultCache(artifacts, {
+            hasMore: response.hasMore,
+            nextCursor: response.nextCursor,
+          }),
+        });
 
         return artifacts;
+      },
+
+      fetchHistoricalMessages: async (agentId) => {
+        const state = get();
+        const workspace = getActiveWorkspace(state);
+        const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
+
+        if (!workspace || !agent) {
+          return;
+        }
+
+        const cacheKey = getHistoricalMessageCacheKey(workspace.id, agentId);
+        const shouldRun = await waitForHistoryFetchDebounce(cacheKey);
+
+        if (!shouldRun) {
+          return;
+        }
+
+        const beforeFetch = get();
+        const existing = beforeFetch.historicalMessages[cacheKey];
+
+        if (existing?.loading) {
+          return;
+        }
+
+        set({
+          historicalMessages: {
+            ...beforeFetch.historicalMessages,
+            [cacheKey]: {
+              hasMore: existing?.hasMore ?? true,
+              items: existing?.items ?? [],
+              loading: true,
+              nextCursor: existing?.nextCursor,
+            },
+          },
+        });
+
+        try {
+          const latest = get();
+          const latestWorkspace = getActiveWorkspace(latest);
+          const latestAgent = latestWorkspace?.agents.find((candidate) => candidate.id === agentId);
+          const current = latest.historicalMessages[cacheKey];
+          const page = await historicalDataFetcher.fetchHistoricalMessages({
+            agentId,
+            cursor: current?.nextCursor,
+            limit: 50,
+            userId: latest.authVault.user?.id ?? "local-owner",
+            workspaceId: workspace.id,
+          });
+          const activeIds = new Set(
+            latestAgent?.messages.map((message) => message.id) ?? [],
+          );
+          const byId = new Map<string, HistoricalMessageRecord>();
+
+          for (const item of [...(current?.items ?? []), ...page.items]) {
+            if (!activeIds.has(item.message.id)) {
+              byId.set(item.message.id, item);
+            }
+          }
+
+          const items = [...byId.values()].sort((left, right) =>
+            right.message.createdAt.localeCompare(left.message.createdAt),
+          );
+
+          set((currentState) => ({
+            historicalMessages: {
+              ...currentState.historicalMessages,
+              [cacheKey]: {
+                fetchedAt: new Date().toISOString(),
+                hasMore: page.hasMore,
+                items,
+                loading: false,
+                nextCursor: page.nextCursor,
+              },
+            },
+          }));
+        } catch (error) {
+          const message =
+            error instanceof NexusApiError || error instanceof Error
+              ? error.message
+              : "History could not be loaded.";
+
+          set((currentState) => ({
+            historicalMessages: {
+              ...currentState.historicalMessages,
+              [cacheKey]: {
+                ...(currentState.historicalMessages[cacheKey] ?? {
+                  hasMore: true,
+                  items: [],
+                }),
+                error: message,
+                loading: false,
+              },
+            },
+          }));
+        }
       },
 
       setPromptsCache: (prompts) => {
@@ -1828,10 +2187,11 @@ export const useNexusStore = create<NexusStore>()(
       },
 
       deletePrompt: (id) => {
+        const prompt = get().promptsCache.find((candidate) => candidate.id === id);
         set((state) => ({
           promptsCache: state.promptsCache.filter((prompt) => prompt.id !== id),
         }));
-        void supabaseStateSyncManager.deletePrompt(id).catch((error) => {
+        void supabaseStateSyncManager.deletePrompt(id, prompt?.workspace_id).catch((error) => {
           console.error("[Prompt Vault Sync Error]:", error);
         });
       },
@@ -1861,6 +2221,7 @@ export const useNexusStore = create<NexusStore>()(
         const now = new Date().toISOString();
         const notebook: NotebookRecord = {
           id: makeId("notebook"),
+          workspace_id: getActiveWorkspace(get())?.id,
           title: "Untitled Datapad",
           content: "",
           created_at: now,
@@ -1873,7 +2234,7 @@ export const useNexusStore = create<NexusStore>()(
             new Set([...state.openNotebookIds, notebook.id]),
           ),
         }));
-        void supabaseStateSyncManager.upsertNotebook(notebook).catch((error) => {
+        void supabaseStateSyncManager.upsertNotebook(notebook, notebook.workspace_id ?? undefined).catch((error) => {
           console.error("[Datapad Sync Error]:", error);
         });
 
@@ -1890,6 +2251,7 @@ export const useNexusStore = create<NexusStore>()(
 
         const updatedNotebook: NotebookRecord = {
           ...notebook,
+          workspace_id: notebook.workspace_id ?? getActiveWorkspace(state)?.id,
           title: title.trim() || "Untitled Datapad",
           content,
           updated_at: new Date().toISOString(),
@@ -1902,13 +2264,14 @@ export const useNexusStore = create<NexusStore>()(
           ]),
         }));
         void supabaseStateSyncManager
-          .upsertNotebook(updatedNotebook)
+          .upsertNotebook(updatedNotebook, updatedNotebook.workspace_id ?? undefined)
           .catch((error) => {
             console.error("[Datapad Sync Error]:", error);
           });
       },
 
       deleteNotebook: (id) => {
+        const notebook = get().notebooksCache.find((candidate) => candidate.id === id);
         set((state) => ({
           notebooksCache: state.notebooksCache.filter(
             (notebook) => notebook.id !== id,
@@ -1917,7 +2280,7 @@ export const useNexusStore = create<NexusStore>()(
             (candidate) => candidate !== id,
           ),
         }));
-        void supabaseStateSyncManager.deleteNotebook(id).catch((error) => {
+        void supabaseStateSyncManager.deleteNotebook(id, notebook?.workspace_id ?? getActiveWorkspace(get())?.id).catch((error) => {
           console.error("[Datapad Sync Error]:", error);
         });
       },
@@ -2263,6 +2626,216 @@ export const useNexusStore = create<NexusStore>()(
         }));
       },
 
+      addWorkflowRuntimeNode: (type) => {
+        const state = get();
+        const workspace = getActiveWorkspace(state);
+        const runtimeLite = normalizeWorkflowRuntimeLiteState(
+          workspace.graph.runtimeLite ?? createEmptyWorkflowRuntimeLiteState(),
+        );
+        const id = createWorkflowRuntimeId("wf_node");
+        const offset = runtimeLite.nodes.length * 36;
+        const node = createWorkflowRuntimeNode({
+          id,
+          position: {
+            x: 120 + (offset % 320),
+            y: 96 + (offset % 220),
+          },
+          type,
+        });
+
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+              ...runtimeLite,
+              lastError: null,
+              nodes: [...runtimeLite.nodes, node],
+            })),
+          ),
+          selectedAgentId: state.selectedAgentId,
+        }));
+
+        return id;
+      },
+
+      updateWorkflowRuntimeNodeData: (nodeId, data) => {
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+              ...runtimeLite,
+              nodes: runtimeLite.nodes.map((node) =>
+                node.id === nodeId
+                  ? ({
+                      ...node,
+                      data: {
+                        ...node.data,
+                        ...data,
+                      },
+                    } as WorkflowNodeInstance)
+                  : node,
+              ),
+            })),
+          ),
+        }));
+      },
+
+      updateWorkflowRuntimeNodePosition: (nodeId, position) => {
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+              ...runtimeLite,
+              nodes: runtimeLite.nodes.map((node) =>
+                node.id === nodeId
+                  ? {
+                      ...node,
+                      position,
+                    }
+                  : node,
+              ),
+            })),
+          ),
+        }));
+      },
+
+      connectWorkflowRuntimeNodes: (edge) => {
+        if (edge.source === edge.target) {
+          return;
+        }
+
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withWorkflowRuntimeLite(workspace, (runtimeLite) => {
+              const duplicate = runtimeLite.edges.some(
+                (candidate) =>
+                  candidate.source === edge.source &&
+                  candidate.target === edge.target &&
+                  candidate.sourceHandle === edge.sourceHandle &&
+                  candidate.targetHandle === edge.targetHandle,
+              );
+
+              if (duplicate) {
+                return runtimeLite;
+              }
+
+              return {
+                ...runtimeLite,
+                edges: [
+                  ...runtimeLite.edges,
+                  {
+                    ...edge,
+                    animated: edge.animated ?? true,
+                  },
+                ],
+                lastError: null,
+              };
+            }),
+          ),
+        }));
+      },
+
+      removeWorkflowRuntimeEdges: (edgeIds) => {
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+              ...runtimeLite,
+              edges: runtimeLite.edges.filter((edge) => !edgeIds.includes(edge.id)),
+            })),
+          ),
+        }));
+      },
+
+      runWorkflowRuntimeLiteFlow: async () => {
+        const state = get();
+        const workspace = getActiveWorkspace(state);
+        const runtimeLite = normalizeWorkflowRuntimeLiteState(
+          workspace.graph.runtimeLite ?? createEmptyWorkflowRuntimeLiteState(),
+        );
+        const executionAgent = resolveWorkflowRuntimeExecutionAgent(workspace);
+        const runId = createWorkflowRuntimeId("run");
+
+        if (!executionAgent) {
+          const failedRun: WorkflowRun = {
+            completedAt: new Date().toISOString(),
+            error: "Workflow Runtime Lite requires an existing NEXUS agent for LLM execution.",
+            nodeExecutions: [],
+            runId,
+            startedAt: new Date().toISOString(),
+            status: "failed",
+            workflowId: workspace.id,
+          };
+
+          set((state) => ({
+            workspaces: withActiveWorkspace(state, (workspace) =>
+              withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+                ...runtimeLite,
+                lastError: failedRun.error,
+                lastRunId: failedRun.runId,
+                runs: upsertWorkflowRun(runtimeLite.runs, failedRun),
+              })),
+            ),
+          }));
+
+          return failedRun;
+        }
+
+        const preparedRuntimeLite = {
+          ...runtimeLite,
+          lastError: null,
+          lastRunId: runId,
+          nodes: runtimeLite.nodes.map(resetWorkflowRuntimeNodeForRun),
+        };
+
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) => ({
+            ...workspace,
+            graph: {
+              ...workspace.graph,
+              runtimeLite: preparedRuntimeLite,
+            },
+          })),
+        }));
+
+        const patchNode = (nodeId: string, patch: WorkflowRuntimeNodePatch) => {
+          set((state) => ({
+            workspaces: withActiveWorkspace(state, (workspace) =>
+              withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+                ...runtimeLite,
+                nodes: runtimeLite.nodes.map((node) =>
+                  node.id === nodeId ? patchWorkflowRuntimeNode(node, patch) : node,
+                ),
+              })),
+            ),
+          }));
+        };
+        const updateRun = (run: WorkflowRun) => {
+          set((state) => ({
+            workspaces: withActiveWorkspace(state, (workspace) =>
+              withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+                ...runtimeLite,
+                lastError: run.status === "failed" ? run.error ?? null : null,
+                lastRunId: run.runId,
+                runs: upsertWorkflowRun(runtimeLite.runs, run),
+              })),
+            ),
+          }));
+        };
+        const run = await runWorkflowRuntimeLite({
+          callLlm: createWorkflowRuntimeLlmCall({
+            authVault: get().authVault,
+            executionAgent,
+            workspace,
+          }),
+          onNodePatch: patchNode,
+          onRunUpdate: updateRun,
+          runId,
+          runtimeLite: preparedRuntimeLite,
+          workflowId: workspace.id,
+        });
+
+        queueWorkspaceCloudSync(getActiveWorkspace(get()));
+
+        return run;
+      },
+
       updateAgentTelemetry: (agentId, generatedCharacters) => {
         set((state) => ({
           workspaces: withActiveWorkspace(state, (workspace) =>
@@ -2305,9 +2878,8 @@ export const useNexusStore = create<NexusStore>()(
         const workspace = getActiveWorkspace(state);
         const agent = workspace.agents.find((candidate) => candidate.id === agentId);
         const tool = agent?.tools.find((candidate) => candidate.id === toolId);
-        const executor = tool?.executorId ? toolExecutors[tool.executorId] : undefined;
 
-        if (!agent || !tool || !executor) {
+        if (!agent || !tool?.executorId) {
           return;
         }
 
@@ -2328,42 +2900,91 @@ export const useNexusStore = create<NexusStore>()(
           const safeApiKey =
             state.authVault.globalApiKey?.replace(/[^\x20-\x7E]/g, "").trim() ||
             undefined;
-          const result = await executor.run(agent, tool, {
-            ...input,
-            apiKey: safeApiKey,
-          });
-          const toolMessage: AgentMessage = {
-            id: makeId("message"),
-            role: "tool",
-            content: result.content,
-            createdAt: new Date().toISOString(),
-            media: result.media,
+          const request: ToolRunRequest = {
+            agentId,
+            input: input ? sanitizeToolInput(input) : undefined,
+            workspaceId: workspace.id,
           };
+          const response = await nexusApiClient.post<ToolRunResponse, ToolRunRequest>(
+            `/api/v1/tools/${encodeURIComponent(tool.executorId)}/run`,
+            request,
+            {
+              headers: safeApiKey
+                ? {
+                    Authorization: `Bearer ${safeApiKey}`,
+                  }
+                : undefined,
+              idempotencyKey: makeId("tool_mutation"),
+              userId: state.authVault.user?.id ?? "local-owner",
+              workspaceId: workspace.id,
+            },
+          );
+          const finalResponse =
+            response.confirmationRequired && response.toolRun.status === "awaiting_confirmation"
+              ? await resolveToolConfirmation({
+                  apiKey: safeApiKey,
+                  toolName: tool.name,
+                  toolRunId: response.toolRun.id,
+                  userId: state.authVault.user?.id ?? "local-owner",
+                  workspaceId: workspace.id,
+                })
+              : response;
+          const resultContent = getToolRunContent(finalResponse);
+          const projectedStatus = mapToolRunStatus(finalResponse.toolRun.status);
+          const toolMessage: AgentMessage | undefined =
+            resultContent && finalResponse.toolRun.status === "succeeded"
+              ? {
+                  content: resultContent,
+                  createdAt: new Date().toISOString(),
+                  id: makeId("message"),
+                  role: "tool",
+                }
+              : undefined;
 
           set((current) => ({
             workspaces: withActiveWorkspace(current, (activeWorkspace) =>
               withAgent(activeWorkspace, agentId, (currentAgent) => ({
                 ...currentAgent,
-                messages: [...currentAgent.messages, toolMessage],
-                tools: currentAgent.tools.map((currentTool) =>
-                  currentTool.id === toolId
-                    ? { ...currentTool, status: "done", result: result.content }
-                    : currentTool,
-                ),
+                messages: toolMessage
+                  ? [...currentAgent.messages, toolMessage]
+                  : currentAgent.messages,
                 telemetry: {
                   ...currentAgent.telemetry,
-                  toolRuns: currentAgent.telemetry.toolRuns + 1,
+                  errors:
+                    projectedStatus === "error"
+                      ? currentAgent.telemetry.errors + 1
+                      : currentAgent.telemetry.errors,
+                  toolRuns:
+                    finalResponse.toolRun.status === "succeeded"
+                      ? currentAgent.telemetry.toolRuns + 1
+                      : currentAgent.telemetry.toolRuns,
                 },
+                tools: currentAgent.tools.map((currentTool) =>
+                  currentTool.id === toolId
+                    ? {
+                        ...currentTool,
+                        error: finalResponse.toolRun.errorMessage ?? undefined,
+                        result: resultContent,
+                        status: projectedStatus,
+                      }
+                    : currentTool,
+                ),
               })),
             ),
           }));
-          queueMessageCloudSync({
-            agentId,
-            message: toolMessage,
-            workspaceId: workspace.id,
-          });
+
+          if (toolMessage) {
+            queueMessageCloudSync({
+              agentId,
+              message: toolMessage,
+              workspaceId: workspace.id,
+            });
+          }
         } catch (error) {
-          const detail = error instanceof Error ? error.message : "Tool executor failed.";
+          const detail =
+            error instanceof NexusApiError || error instanceof Error
+              ? error.message
+              : "Tool executor failed.";
           set((current) => ({
             workspaces: withActiveWorkspace(current, (activeWorkspace) =>
               withAgent(activeWorkspace, agentId, (currentAgent) => ({
@@ -2394,6 +3015,7 @@ export const useNexusStore = create<NexusStore>()(
           streamMode: "mock",
           viewMode: "panels",
           isVaultManagerOpen: false,
+          historicalMessages: {},
           promptsCache: [],
           branchingStatus: "idle",
           lastSavedAt: new Date().toISOString(),
@@ -2428,6 +3050,8 @@ export const useNexusStore = create<NexusStore>()(
             viewMode: "panels",
             isVaultManagerOpen: false,
             authVault: DEFAULT_AUTH_VAULT,
+            artifactVault: EMPTY_ARTIFACT_VAULT_CACHE,
+            historicalMessages: {},
             promptsCache: [],
             notebooksCache: [],
             openNotebookIds: [],
@@ -2464,6 +3088,8 @@ export const useNexusStore = create<NexusStore>()(
               : "mock",
             viewMode: value.viewMode ?? activeWorkspace?.settings.viewMode ?? "panels",
             isVaultManagerOpen: false,
+            artifactVault: normalizeArtifactVaultCache(value.artifactVault),
+            historicalMessages: {},
             promptsCache: [],
             notebooksCache: sortNotebooks(value.notebooksCache ?? []),
             openNotebookIds: value.openNotebookIds ?? [],
@@ -2481,6 +3107,8 @@ export const useNexusStore = create<NexusStore>()(
           viewMode: "panels",
           isVaultManagerOpen: false,
           authVault: DEFAULT_AUTH_VAULT,
+          artifactVault: EMPTY_ARTIFACT_VAULT_CACHE,
+          historicalMessages: {},
           promptsCache: [],
           notebooksCache: [],
           openNotebookIds: [],
@@ -2490,6 +3118,7 @@ export const useNexusStore = create<NexusStore>()(
       },
       partialize: (state) => ({
         activeWorkspaceId: state.activeWorkspaceId,
+        artifactVault: state.artifactVault,
         authVault: state.authVault,
         notebooksCache: state.notebooksCache,
         openNotebookIds: state.openNotebookIds,
@@ -2505,6 +3134,126 @@ export const useNexusStore = create<NexusStore>()(
     },
   ),
 );
+
+async function resolveToolConfirmation({
+  apiKey,
+  toolName,
+  toolRunId,
+  userId,
+  workspaceId,
+}: {
+  apiKey?: string;
+  toolName: string;
+  toolRunId: string;
+  userId: string;
+  workspaceId: string;
+}): Promise<ToolRunResponse> {
+  const shouldConfirm =
+    typeof window !== "undefined" &&
+    window.confirm(`Confirm high-risk tool execution: ${toolName}?`);
+  const headers = apiKey
+    ? {
+        Authorization: `Bearer ${apiKey}`,
+      }
+    : undefined;
+
+  if (!shouldConfirm) {
+    const cancelled = await nexusApiClient.post<
+      ToolRunCancelResponse,
+      { workspaceId: string }
+    >(
+      `/api/v1/tool-runs/${encodeURIComponent(toolRunId)}/cancel`,
+      {
+        workspaceId,
+      },
+      {
+        idempotencyKey: makeId("tool_cancel"),
+        userId,
+        workspaceId,
+      },
+    );
+
+    return {
+      confirmationRequired: false,
+      materializationStatus: "not_requested",
+      toolRun: cancelled.toolRun,
+    };
+  }
+
+  return nexusApiClient.post<ToolRunConfirmResponse, { workspaceId: string }>(
+    `/api/v1/tool-runs/${encodeURIComponent(toolRunId)}/confirm`,
+    {
+      workspaceId,
+    },
+    {
+      headers,
+      idempotencyKey: makeId("tool_confirm"),
+      userId,
+      workspaceId,
+    },
+  );
+}
+
+function sanitizeToolInput(input: ToolExecutorInput): Record<string, unknown> {
+  const sanitized: Record<string, unknown> = {};
+
+  if (typeof input.prompt === "string" && input.prompt.trim()) {
+    sanitized.prompt = input.prompt;
+  }
+
+  if (typeof input.path === "string" && input.path.trim()) {
+    sanitized.path = input.path;
+  }
+
+  if (typeof input.url === "string" && input.url.trim()) {
+    sanitized.url = input.url;
+  }
+
+  return sanitized;
+}
+
+function getToolRunContent(response: ToolRunResponse) {
+  const output = response.toolRun.outputRedacted;
+  const content = output && typeof output.content === "string" ? output.content : "";
+  const materializationNote =
+    response.materializationStatus === "TOOL_MATERIALIZATION_NOT_AVAILABLE"
+      ? "\n\nTOOL_MATERIALIZATION_NOT_AVAILABLE"
+      : "";
+
+  if (content) {
+    return `${content}${materializationNote}`;
+  }
+
+  if (response.toolRun.status === "awaiting_confirmation") {
+    return "Tool run is awaiting high-risk confirmation.";
+  }
+
+  if (response.toolRun.status === "cancelled") {
+    return "Tool run was cancelled.";
+  }
+
+  return response.toolRun.errorMessage ?? undefined;
+}
+
+function mapToolRunStatus(status: ToolRunResponse["toolRun"]["status"]): ToolStatus {
+  if (status === "succeeded" || status === "materialized") {
+    return "done";
+  }
+
+  if (status === "running") {
+    return "running";
+  }
+
+  if (status === "awaiting_confirmation" || status === "created") {
+    return "queued";
+  }
+
+  if (status === "cancelled") {
+    return "available";
+  }
+
+  return "error";
+}
 
 supabaseStateSyncManager.setTransactionLogger((entry) => {
   useNexusStore.getState().recordTransaction(entry);

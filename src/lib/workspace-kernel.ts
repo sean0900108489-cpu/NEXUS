@@ -20,6 +20,7 @@ import type {
   WorkspaceBranchingSettings,
   WorkspaceThemeConfig,
 } from "@/lib/nexus-types";
+import { normalizeWorkflowRuntimeLiteState } from "@/lib/workflow-runtime-lite/state";
 
 type ValidationResult =
   | { ok: true; workspace: NexusWorkspace }
@@ -299,6 +300,7 @@ export function validateWorkspaceSnapshot(value: unknown): ValidationResult {
       graph: {
         nodes: graph.nodes,
         edges: graph.edges,
+        runtimeLite: normalizeWorkflowRuntimeLiteState(graph.runtimeLite),
       },
     }),
   };
@@ -429,6 +431,7 @@ export function sanitizeWorkspace(workspace: NexusWorkspace): NexusWorkspace {
       sanitized.graph?.edges?.filter(
         (edge) => knownAgentIds.has(edge.sourceAgentId) && knownAgentIds.has(edge.targetAgentId),
       ) ?? [],
+    runtimeLite: normalizeWorkflowRuntimeLiteState(sanitized.graph?.runtimeLite),
   };
 
   sanitized.settings = {

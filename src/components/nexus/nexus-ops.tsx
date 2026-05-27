@@ -57,6 +57,7 @@ import type { RndDragCallback, RndResizeCallback } from "react-rnd";
 import {
   DEFAULT_BASE_URL,
   DEFAULT_SANDBOX_CODE,
+  DEFAULT_WORKSPACE_BRANCHING_SETTINGS,
   agentTemplates,
   makeId,
 } from "@/lib/nexus-defaults";
@@ -72,9 +73,11 @@ import type {
   IAuthVault,
   NexusAgent,
   NexusWorkspace,
+  NotebookRecord,
   PromptRecord,
   StreamMode,
   WorkflowTemplateRecord,
+  WorkspaceBranchingSettings,
   WorkspaceThemeConfig,
   WorkspaceViewMode,
 } from "@/lib/nexus-types";
@@ -99,7 +102,9 @@ import {
 } from "@/lib/workflow-engine";
 import { useNexusStore } from "@/store/nexus-store";
 import { DynamicIcon } from "@/components/nexus/dynamic-icon";
+import { AgentBranchModal } from "@/components/nexus/AgentBranchModal";
 import { AuthScreen } from "@/components/nexus/auth-screen";
+import { DatapadWindow } from "@/components/nexus/DatapadWindow";
 import { NexusGraph } from "@/components/nexus/nexus-graph";
 import { PromptVaultManager } from "@/components/nexus/PromptVaultManager";
 
@@ -121,6 +126,7 @@ const LEGO_THEME_DEFAULTS: Required<WorkspaceThemeConfig> = {
   borderWidth: "1px",
   iconWeight: "2px",
   fontFamily: "var(--font-geist-sans), Arial, Helvetica, sans-serif",
+  chatOpacity: "88%",
 };
 
 const LEGO_THEME_VARIABLES: Record<LegoThemeKey, string> = {
@@ -129,6 +135,7 @@ const LEGO_THEME_VARIABLES: Record<LegoThemeKey, string> = {
   borderWidth: "--border-width",
   iconWeight: "--icon-weight",
   fontFamily: "--font-main",
+  chatOpacity: "--chat-panel-opacity",
 };
 
 const typographyOptions = [
@@ -271,6 +278,8 @@ function readLegoThemeConfigFromDom(
     fontFamily: normalizeTypographyValue(
       config?.fontFamily || fromDom("fontFamily") || LEGO_THEME_DEFAULTS.fontFamily,
     ),
+    chatOpacity:
+      config?.chatOpacity || fromDom("chatOpacity") || LEGO_THEME_DEFAULTS.chatOpacity,
   };
 }
 
@@ -543,6 +552,7 @@ export function NexusOps() {
   const [macroComposerOpen, setMacroComposerOpen] = useState(false);
   const [macroName, setMacroName] = useState("");
   const [macroDescription, setMacroDescription] = useState("");
+  const [branchAgentId, setBranchAgentId] = useState<string | null>(null);
   const [themeMounted, setThemeMounted] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
@@ -554,6 +564,8 @@ export function NexusOps() {
   const authVault = useNexusStore((state) => state.authVault);
   const artifactVault = useNexusStore((state) => state.artifactVault);
   const promptsCache = useNexusStore((state) => state.promptsCache);
+  const notebooksCache = useNexusStore((state) => state.notebooksCache);
+  const openNotebookIds = useNexusStore((state) => state.openNotebookIds);
   const materializeDefaultWorkspace = useNexusStore(
     (state) => state.materializeDefaultWorkspace,
   );
@@ -587,6 +599,9 @@ export function NexusOps() {
   const setStreamMode = useNexusStore((state) => state.setStreamMode);
   const setViewMode = useNexusStore((state) => state.setViewMode);
   const openVaultManager = useNexusStore((state) => state.openVaultManager);
+  const setNotebooksCache = useNexusStore((state) => state.setNotebooksCache);
+  const toggleNotebookOpen = useNexusStore((state) => state.toggleNotebookOpen);
+  const createNotebook = useNexusStore((state) => state.createNotebook);
   const logout = useNexusStore((state) => state.logout);
   const setGlobalApiKey = useNexusStore((state) => state.setGlobalApiKey);
   const setGlobalBaseUrl = useNexusStore((state) => state.setGlobalBaseUrl);
@@ -594,6 +609,9 @@ export function NexusOps() {
   const unlockVault = useNexusStore((state) => state.unlockVault);
   const deleteApiKey = useNexusStore((state) => state.deleteApiKey);
   const updateThemeConfig = useNexusStore((state) => state.updateThemeConfig);
+  const updateBranchingSettings = useNexusStore(
+    (state) => state.updateBranchingSettings,
+  );
   const updateSandboxCode = useNexusStore((state) => state.updateSandboxCode);
   const updateSandboxUrl = useNexusStore((state) => state.updateSandboxUrl);
   const saveArtifactToCloud = useNexusStore((state) => state.saveArtifactToCloud);
@@ -611,6 +629,7 @@ export function NexusOps() {
     workspaces.find((candidate) => candidate.id === activeWorkspaceId) ?? workspaces[0];
   const workspaceName = workspace?.name ?? "NEXUS // AI OPS";
   const themeConfig = workspace?.themeConfig;
+  const branchingSettings = workspace?.settings.branchingSettings;
   const activeAgentId = workspace?.activeAgentId;
   const agents = workspace?.agents ?? EMPTY_AGENTS;
   const effectiveStreamMode = useMemo(
@@ -624,6 +643,7 @@ export function NexusOps() {
     agents.find((agent) => agent.id === selectedAgentId) ?? agents[0];
   const activeAgent =
     agents.find((agent) => agent.id === activeAgentId) ?? selectedAgent;
+  const branchAgent = agents.find((agent) => agent.id === branchAgentId);
   const activeTheme = themeMounted
     ? normalizeTheme(theme ?? resolvedTheme)
     : "cyberpunk";
@@ -631,6 +651,23 @@ export function NexusOps() {
   useEffect(() => {
     materializeDefaultWorkspace();
   }, [materializeDefaultWorkspace]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    void supabaseStateSyncManager
+      .fetchNotebooks()
+      .then((notebooks) => {
+        if (mounted) {
+          setNotebooksCache(notebooks);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      mounted = false;
+    };
+  }, [setNotebooksCache]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => setThemeMounted(true), 0);
@@ -1082,7 +1119,7 @@ export function NexusOps() {
       state.authVault.globalBaseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
       DEFAULT_BASE_URL;
 
-    if (!agent || !lastAssistantMessage || !safeKey) {
+    if (!agent || !lastAssistantMessage) {
       return fallback;
     }
 
@@ -1091,14 +1128,18 @@ export function NexusOps() {
         "Content-Type": "application/json",
       });
 
-      headers.set("Authorization", `Bearer ${safeKey}`);
+      if (safeKey) {
+        headers.set("Authorization", `Bearer ${safeKey}`);
+      }
+
       headers.set("x-openai-base-url", safeBaseUrl);
 
       const response = await fetch("/api/predictive-intel", {
         method: "POST",
         headers,
         body: JSON.stringify({
-          model: agent.model || workspace?.settings.model || "gpt-4o-mini",
+          apiKey: safeKey || undefined,
+          lastMessage: lastAssistantMessage,
           agent: {
             callsign: agent.callsign,
             capabilityType: getCapabilityType(agent),
@@ -1469,7 +1510,7 @@ export function NexusOps() {
       <section className="flex min-h-0 flex-1 gap-2 p-2">
         <motion.aside
           animate={{ width: leftDockOpen ? 266 : 44 }}
-          className="relative hidden min-h-0 shrink-0 overflow-hidden xl:block"
+          className="relative hidden h-full min-h-0 shrink-0 overflow-hidden xl:block"
           transition={{ duration: 0.2, ease: "easeOut" }}
         >
           <SidebarToggleButton
@@ -1483,7 +1524,7 @@ export function NexusOps() {
               <motion.div
                 key="left-expanded"
                 animate={{ opacity: 1, x: 0 }}
-                className="h-full"
+                className="h-full min-h-0"
                 exit={{ opacity: 0, x: -12 }}
                 initial={{ opacity: 0, x: -12 }}
                 transition={{ duration: 0.16 }}
@@ -1510,7 +1551,7 @@ export function NexusOps() {
 
         <section
           ref={workspaceRef}
-          className="nexus-workspace nexus-scanline relative min-h-0 min-w-0 flex-1 overflow-hidden border border-white/10 bg-slate-950/80 shadow-2xl"
+          className="nexus-workspace nexus-scanline relative z-0 isolate min-h-0 min-w-0 flex-1 overflow-hidden border border-white/10 bg-slate-950/80 shadow-2xl"
         >
           {viewMode === "panels" ? (
             <>
@@ -1527,6 +1568,7 @@ export function NexusOps() {
                     onGeneratePredictiveIntel={handlePredictiveIntel}
                     onGenerateMedia={handleMediaGenerate}
                     onOpenVaultManager={openVaultManager}
+                    onOpenBranchInterface={setBranchAgentId}
                     promptsCache={promptsCache}
                     onSend={handleSend}
                     onStop={handleStop}
@@ -1560,11 +1602,17 @@ export function NexusOps() {
               onUpdateNodePosition={updateGraphNodePosition}
             />
           )}
+
+          <AnimatePresence>
+            {openNotebookIds.map((notebookId) => (
+              <DatapadWindow key={notebookId} notebookId={notebookId} />
+            ))}
+          </AnimatePresence>
         </section>
 
         <motion.aside
           animate={{ width: rightIntelOpen ? 306 : 44 }}
-          className="relative hidden min-h-0 shrink-0 overflow-hidden xl:block"
+          className="relative z-[80] hidden h-full min-h-0 shrink-0 overflow-hidden xl:block"
           transition={{ duration: 0.2, ease: "easeOut" }}
         >
           <SidebarToggleButton
@@ -1578,7 +1626,7 @@ export function NexusOps() {
               <motion.div
                 key="right-expanded"
                 animate={{ opacity: 1, x: 0 }}
-                className="h-full"
+                className="h-full min-h-0"
                 exit={{ opacity: 0, x: 12 }}
                 initial={{ opacity: 0, x: 12 }}
                 transition={{ duration: 0.16 }}
@@ -1618,6 +1666,22 @@ export function NexusOps() {
         {isVaultManagerOpen && <PromptVaultManager />}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {branchAgent ? (
+          <AgentBranchModal
+            agent={branchAgent}
+            defaultRetentionRatio={
+              branchingSettings?.defaultRetentionRatio
+            }
+            onBranchComplete={(newAgentId) => {
+              focusAgent(newAgentId);
+              setNotice("[BRANCH SECURED] New agent deployed to canvas.");
+            }}
+            onClose={() => setBranchAgentId(null)}
+          />
+        ) : null}
+      </AnimatePresence>
+
       <AgentSettingsSidebar
         agents={agents}
         authVault={authVault}
@@ -1627,6 +1691,9 @@ export function NexusOps() {
         macroError={macroError}
         macros={macros}
         macrosLoading={macrosLoading}
+        notebooks={notebooksCache}
+        openNotebookIds={openNotebookIds}
+        branchingSettings={branchingSettings}
         onAddAgent={(type) => {
           const id = spawnAgent(undefined, type);
           focusAgent(id);
@@ -1634,9 +1701,15 @@ export function NexusOps() {
         }}
         onClose={() => setSettingsOpen(false)}
         onCopyArtifact={handleCopyArtifact}
+        onCreateNotebook={() => {
+          const id = createNotebook();
+          setNotice("Global datapad created");
+          return id;
+        }}
         onRefreshArtifacts={refreshArtifacts}
         onRefreshMacros={refreshMacros}
         onSpawnMacro={handleSpawnMacro}
+        onToggleNotebook={toggleNotebookOpen}
         onDeleteApiKey={deleteApiKey}
         onLockVault={lockVault}
         onLogout={logout}
@@ -1644,6 +1717,7 @@ export function NexusOps() {
         onSetGlobalBaseUrl={setGlobalBaseUrl}
         onUnlockVault={unlockVault}
         onUpdateThemeConfig={updateThemeConfig}
+        onUpdateBranchingSettings={updateBranchingSettings}
         activeTheme={activeTheme}
         onSetTheme={handleThemeChange}
         onUpdateAgentModel={updateAgentModel}
@@ -2140,11 +2214,15 @@ function AgentSettingsSidebar({
   macroError,
   macros,
   macrosLoading,
+  notebooks,
+  openNotebookIds,
+  branchingSettings,
   streamMode,
   themeConfig,
   onAddAgent,
   onClose,
   onCopyArtifact,
+  onCreateNotebook,
   onDeleteApiKey,
   onLockVault,
   onLogout,
@@ -2153,7 +2231,9 @@ function AgentSettingsSidebar({
   onSetGlobalApiKey,
   onSetGlobalBaseUrl,
   onSpawnMacro,
+  onToggleNotebook,
   onUnlockVault,
+  onUpdateBranchingSettings,
   onUpdateThemeConfig,
   onUpdateAgentModel,
   onSetTheme,
@@ -2168,11 +2248,15 @@ function AgentSettingsSidebar({
   macroError?: string;
   macros: WorkflowTemplateRecord[];
   macrosLoading: boolean;
+  notebooks: NotebookRecord[];
+  openNotebookIds: string[];
+  branchingSettings?: WorkspaceBranchingSettings;
   streamMode: StreamMode;
   themeConfig?: WorkspaceThemeConfig;
   onAddAgent: (type: AgentCreationCapabilityType) => void;
   onClose: () => void;
   onCopyArtifact: (artifact: ArtifactVaultRecord) => void;
+  onCreateNotebook: () => string;
   onDeleteApiKey: () => void;
   onLockVault: () => void;
   onLogout: () => void;
@@ -2181,7 +2265,9 @@ function AgentSettingsSidebar({
   onSetGlobalApiKey: (key: string) => void;
   onSetGlobalBaseUrl: (baseUrl: string) => void;
   onSpawnMacro: (macro: WorkflowTemplateRecord) => void;
+  onToggleNotebook: (id: string) => void;
   onUnlockVault: () => void;
+  onUpdateBranchingSettings: (settings: Partial<WorkspaceBranchingSettings>) => void;
   onUpdateThemeConfig: (config: Partial<WorkspaceThemeConfig>) => void;
   onUpdateAgentModel: (agentId: string, model: string) => void;
   onSetTheme: (theme: NexusTheme) => void;
@@ -2274,6 +2360,82 @@ function AgentSettingsSidebar({
               onCommitThemeConfig={onUpdateThemeConfig}
               themeConfig={themeConfig}
             />
+
+            <section className="mb-4 border border-fuchsia-300/25 bg-fuchsia-300/[0.045] p-3 shadow-[0_0_28px_rgba(217,70,239,0.08)]">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fuchsia-100">
+                    🧬 Branching & Memory Compression
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    Global defaults for summary branch extraction
+                  </div>
+                </div>
+                <span className="border border-fuchsia-300/30 bg-fuchsia-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-fuchsia-100">
+                  {branchingSettings?.defaultRetentionRatio ??
+                    DEFAULT_WORKSPACE_BRANCHING_SETTINGS.defaultRetentionRatio}
+                  %
+                </span>
+              </div>
+
+              <label className="grid gap-2">
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
+                  Default Summary Retention Ratio
+                </span>
+                <input
+                  className="accent-fuchsia-300"
+                  max={100}
+                  min={5}
+                  onChange={(event) =>
+                    onUpdateBranchingSettings({
+                      defaultRetentionRatio: Number(event.target.value),
+                    })
+                  }
+                  type="range"
+                  value={
+                    branchingSettings?.defaultRetentionRatio ??
+                    DEFAULT_WORKSPACE_BRANCHING_SETTINGS.defaultRetentionRatio
+                  }
+                />
+                <span className="text-xs leading-5 text-slate-400">
+                  New summary branches start by retaining the most important{" "}
+                  {branchingSettings?.defaultRetentionRatio ??
+                    DEFAULT_WORKSPACE_BRANCHING_SETTINGS.defaultRetentionRatio}
+                  % of source memory.
+                </span>
+              </label>
+
+              <div className="mt-3 border border-dashed border-fuchsia-300/20 bg-black/25 p-3 opacity-60">
+                <div className="flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
+                  Future Default Weights
+                  <span className="border border-amber-300/25 px-2 py-0.5 text-[8px] text-amber-100">
+                    Reserved
+                  </span>
+                </div>
+                <div className="mt-2 grid gap-1.5 text-[11px] text-slate-500">
+                  <div className="flex items-center justify-between gap-3">
+                    <span>Architecture</span>
+                    <span className="h-px flex-1 bg-white/10" />
+                    <span>Locked</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span>Semantic Meaning</span>
+                    <span className="h-px flex-1 bg-white/10" />
+                    <span>Locked</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span>UI/UX Intent</span>
+                    <span className="h-px flex-1 bg-white/10" />
+                    <span>Locked</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span>Task Continuity</span>
+                    <span className="h-px flex-1 bg-white/10" />
+                    <span>Locked</span>
+                  </div>
+                </div>
+              </div>
+            </section>
 
             <section className="mb-4 border border-cyan-300/25 bg-cyan-300/[0.045] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]">
               <div className="mb-3 flex items-start justify-between gap-3">
@@ -2506,6 +2668,60 @@ function AgentSettingsSidebar({
               </div>
             </section>
 
+            <section className="mb-4 border border-emerald-300/30 bg-emerald-300/[0.045] p-3 shadow-[0_0_28px_rgba(16,185,129,0.09)]">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-100">
+                    📓 Global Datapads
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    Cross-workspace notebooks for durable operator context
+                  </div>
+                </div>
+                <button
+                  className="border border-emerald-300/40 bg-emerald-300/10 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-100 transition hover:bg-emerald-300/20"
+                  onClick={onCreateNotebook}
+                  type="button"
+                >
+                  ➕ New Datapad
+                </button>
+              </div>
+
+              {notebooks.length ? (
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {notebooks.map((notebook) => {
+                    const active = openNotebookIds.includes(notebook.id);
+
+                    return (
+                      <button
+                        key={notebook.id}
+                        className={cx(
+                          "min-h-20 border p-2 text-left transition",
+                          active
+                            ? "border-emerald-300/60 bg-emerald-300/12 shadow-[0_0_22px_rgba(16,185,129,0.14)]"
+                            : "border-white/10 bg-black/25 hover:border-emerald-300/35 hover:bg-emerald-300/10",
+                        )}
+                        onClick={() => onToggleNotebook(notebook.id)}
+                        type="button"
+                      >
+                        <span className="block line-clamp-2 font-mono text-[10px] uppercase tracking-[0.13em] text-emerald-50">
+                          {notebook.title || "Untitled Datapad"}
+                        </span>
+                        <span className="mt-2 block line-clamp-2 text-[11px] leading-4 text-slate-500">
+                          {notebook.content.trim() || "Empty global notebook"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="border border-dashed border-emerald-300/20 bg-black/20 px-3 py-4 text-xs leading-5 text-slate-500">
+                  No global datapads yet. Create one to keep notes available across
+                  every workspace.
+                </div>
+              )}
+            </section>
+
             <section className="mt-5 border border-emerald-300/35 bg-emerald-300/[0.05] p-3 shadow-[0_0_34px_rgba(16,185,129,0.1)]">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
@@ -2704,14 +2920,19 @@ function LegoThemeEngineControls({
     max,
     min,
     step = 1,
+    unit = "px",
   }: {
     key: Exclude<LegoThemeKey, "fontFamily">;
     label: string;
     max: number;
     min: number;
     step?: number;
+    unit?: "px" | "%";
   }) => {
     const value = cssNumber(localConfig[key], cssNumber(LEGO_THEME_DEFAULTS[key], min));
+    const updateValue = (nextValue: string) => {
+      updateTransientThemeConfig(key, `${nextValue}${unit}`);
+    };
 
     return (
       <label className="block border border-white/10 bg-black/20 p-3">
@@ -2723,8 +2944,8 @@ function LegoThemeEngineControls({
           className="mt-3 w-full accent-cyan-300"
           max={max}
           min={min}
-          onChange={(event) =>
-            updateTransientThemeConfig(key, `${event.currentTarget.value}px`)
+          onInput={(event) =>
+            updateValue(event.currentTarget.value)
           }
           onKeyUp={commitThemeConfig}
           onMouseUp={commitThemeConfig}
@@ -2755,6 +2976,25 @@ function LegoThemeEngineControls({
         </span>
       </div>
 
+      <div className="mb-3 border border-cyan-300/25 bg-black/25 p-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] backdrop-blur">
+        <div className="mb-2 flex items-center justify-between gap-2 font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
+          <span className="flex items-center gap-2 text-cyan-100">
+            <DynamicIcon className="h-3.5 w-3.5" name="Sparkles" />
+            Live Token Preview
+          </span>
+          <span>
+            {localConfig.radius} / {localConfig.blur}
+          </span>
+        </div>
+        <button
+          className="flex w-full items-center justify-between border border-cyan-300/35 bg-cyan-300/10 px-3 py-2 text-left font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,0.12)] transition hover:bg-cyan-300/15"
+          type="button"
+        >
+          <span>Geometry + Glass Sample</span>
+          <DynamicIcon className="h-4 w-4" name="ScanLine" />
+        </button>
+      </div>
+
       <div className="grid gap-2">
         {rangeControl({
           key: "radius",
@@ -2773,6 +3013,13 @@ function LegoThemeEngineControls({
           label: "Border Width",
           min: 0,
           max: 4,
+        })}
+        {rangeControl({
+          key: "chatOpacity",
+          label: "Chat Opacity",
+          min: 35,
+          max: 100,
+          unit: "%",
         })}
         {rangeControl({
           key: "iconWeight",
@@ -2827,7 +3074,7 @@ function LeftDock({
   onRestore: (agentId: string) => void;
 }) {
   return (
-    <aside className="nexus-panel hidden min-h-0 flex-col overflow-hidden xl:flex">
+    <aside className="nexus-panel hidden h-full min-h-0 flex-col overflow-hidden xl:flex">
       <div className="border-b border-white/10 p-4">
         <div className="flex items-center justify-between">
           <h2 className="font-mono text-xs uppercase tracking-[0.22em] text-slate-300">
@@ -2868,7 +3115,7 @@ function LeftDock({
         </div>
       </div>
 
-      <div className="cyber-scroll min-h-0 flex-1 overflow-y-auto p-4">
+      <div className="cyber-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-mono text-xs uppercase tracking-[0.22em] text-slate-300">
             Operators
@@ -2934,6 +3181,7 @@ function AgentWindow({
   onClear,
   onGeneratePredictiveIntel,
   onGenerateMedia,
+  onOpenBranchInterface,
   onOpenVaultManager,
   onSaveArtifact,
   promptsCache,
@@ -2962,6 +3210,7 @@ function AgentWindow({
   onClear: (agentId: string) => void;
   onGeneratePredictiveIntel: (agentId: string) => Promise<string[]>;
   onGenerateMedia: (agentId: string, content: string) => Promise<void>;
+  onOpenBranchInterface: (agentId: string) => void;
   onOpenVaultManager: () => void;
   onSaveArtifact: (agentId: string, content: string) => void;
   promptsCache: PromptRecord[];
@@ -3046,10 +3295,15 @@ function AgentWindow({
     >
       <motion.section
         animate={{ opacity: 1, scale: 1 }}
-        className="relative flex h-full min-h-0 flex-col overflow-visible border-2 bg-slate-950/88 shadow-[0_22px_70px_rgba(0,0,0,0.45)]"
+        className="nexus-agent-window relative flex h-full min-h-0 flex-col overflow-visible border-2 bg-slate-950/88 shadow-[0_22px_70px_rgba(0,0,0,0.45)]"
         exit={{ opacity: 0, scale: 0.96 }}
         initial={{ opacity: 0, scale: 0.96 }}
         style={{
+          WebkitBackdropFilter: "blur(var(--glass-blur))",
+          backdropFilter: "blur(var(--glass-blur))",
+          background:
+            "color-mix(in srgb, var(--bg-elevated) var(--chat-panel-opacity), transparent)",
+          borderRadius: "var(--surface-radius)",
           borderColor: selected ? `${agent.accent}f2` : `${agent.accent}99`,
           boxShadow: selected
             ? `0 0 34px ${agent.accent}28, 0 22px 70px rgba(0,0,0,0.45)`
@@ -3062,6 +3316,8 @@ function AgentWindow({
           className="nexus-drag-handle h-2 shrink-0 cursor-move"
           style={{
             background: `linear-gradient(90deg, ${agent.accent}, ${agent.accent}55, transparent)`,
+            borderTopLeftRadius: "var(--surface-radius)",
+            borderTopRightRadius: "var(--surface-radius)",
           }}
         />
 
@@ -3076,6 +3332,7 @@ function AgentWindow({
           onGeneratePredictiveIntel={() => onGeneratePredictiveIntel(agent.id)}
           onMinimize={() => onMinimize(agent.id)}
           onNewReply={startNewReply}
+          onOpenBranchInterface={() => onOpenBranchInterface(agent.id)}
           onOpenVaultManager={onOpenVaultManager}
           onStop={() => onStop(agent.id)}
           onToggleMaximize={() => onToggleMaximize(agent.id)}
@@ -3476,7 +3733,7 @@ function SandboxCanvas({
                 key={embeddablePreviewUrl || "srcdoc"}
                 className="min-h-0 flex-1 border-0 bg-white"
                 referrerPolicy="strict-origin-when-cross-origin"
-                sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-presentation"
                 src={embeddablePreviewUrl || undefined}
                 srcDoc={embeddablePreviewUrl ? undefined : code}
                 style={{ pointerEvents: resizing ? "none" : "auto" }}
@@ -3543,6 +3800,7 @@ function AgentActionToolbar({
   onDuplicate,
   onFillPrompt,
   onGeneratePredictiveIntel,
+  onOpenBranchInterface,
   onMinimize,
   onNewReply,
   onOpenVaultManager,
@@ -3559,6 +3817,7 @@ function AgentActionToolbar({
   onDuplicate: () => void;
   onFillPrompt: (value: string) => void;
   onGeneratePredictiveIntel: () => Promise<string[]>;
+  onOpenBranchInterface: () => void;
   onMinimize: () => void;
   onNewReply: () => void;
   onOpenVaultManager: () => void;
@@ -3684,6 +3943,9 @@ function AgentActionToolbar({
             </ToolbarIconButton>
             <ToolbarIconButton label="Duplicate" onClick={onDuplicate}>
               <Layers3 className="h-3.5 w-3.5" />
+            </ToolbarIconButton>
+            <ToolbarIconButton label="Branch agent" onClick={onOpenBranchInterface}>
+              <GitBranch className="h-3.5 w-3.5" />
             </ToolbarIconButton>
             <ToolbarIconButton label="Delete" onClick={onClose} tone="danger">
               <X className="h-3.5 w-3.5" />
@@ -4085,7 +4347,7 @@ function RightIntel({
   onRunTool: (agentId: string, toolId: string) => Promise<void>;
 }) {
   return (
-    <aside className="nexus-panel hidden min-h-0 flex-col overflow-hidden xl:flex">
+    <aside className="nexus-panel hidden h-full min-h-0 flex-col overflow-hidden xl:flex">
       <div className="border-b border-white/10 p-4">
         <div className="flex items-center justify-between">
           <h2 className="font-mono text-xs uppercase tracking-[0.22em] text-slate-300">
@@ -4118,7 +4380,7 @@ function RightIntel({
         )}
       </div>
 
-      <div className="cyber-scroll min-h-0 flex-1 overflow-y-auto p-4">
+      <div className="cyber-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">

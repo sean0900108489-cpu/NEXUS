@@ -117,6 +117,17 @@ export type PromptRevisionInsert = Pick<
 > &
   Partial<Pick<Prompt_Revisions, "created_at" | "id">>;
 
+export interface Notebooks {
+  id: string;
+  title: string;
+  content: string;
+  created_at: DatabaseTimestamp;
+  updated_at: DatabaseTimestamp;
+}
+
+export type NotebookUpsert = Pick<Notebooks, "content" | "id" | "title"> &
+  Partial<Pick<Notebooks, "created_at" | "updated_at">>;
+
 type Insertable<T> = T;
 type Updatable<T> = Partial<T>;
 type SupabaseRecord<T> = T & Record<string, unknown>;
@@ -141,6 +152,7 @@ export type Database = {
         Prompt_Revisions,
         PromptRevisionInsert
       >;
+      notebooks: TableDefinition<Notebooks, NotebookUpsert>;
       workflow_templates: TableDefinition<
         Workflow_Templates,
         WorkflowTemplateInsert

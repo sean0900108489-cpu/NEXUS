@@ -9,6 +9,7 @@ import type {
   IAsyncDataFetcher,
   IStateSyncManager,
   ITransactionLog,
+  NotebookRecord,
   PromptRecord,
   PromptRevisionRecord,
   StateSyncResult,
@@ -21,6 +22,8 @@ import type {
   ArtifactInsert,
   Artifacts,
   MessageInsert,
+  NotebookUpsert,
+  Notebooks,
   PromptRevisionInsert,
   PromptUpsert,
   Prompt_Revisions,
@@ -124,6 +127,16 @@ function mapPromptRevision(row: Prompt_Revisions): PromptRevisionRecord {
     previous_content: row.previous_content,
     new_content: row.new_content,
     created_at: row.created_at,
+  };
+}
+
+function mapNotebook(row: Notebooks): NotebookRecord {
+  return {
+    id: row.id,
+    title: row.title,
+    content: row.content,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
   };
 }
 
@@ -238,6 +251,18 @@ export class MockStateSyncManager implements IStateSyncManager {
     void promptId;
 
     return [];
+  }
+
+  async fetchNotebooks(): Promise<NotebookRecord[]> {
+    return [];
+  }
+
+  async upsertNotebook(notebook: NotebookRecord): Promise<void> {
+    void notebook;
+  }
+
+  async deleteNotebook(id: string): Promise<void> {
+    void id;
   }
 
   async syncActiveUiState(snapshot: ActiveUiStateSnapshot): Promise<StateSyncResult> {
@@ -634,6 +659,78 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
       this.status = "idle";
 
       return [];
+    }
+  }
+
+  async fetchNotebooks(): Promise<NotebookRecord[]> {
+    this.status = "syncing";
+
+    try {
+      const { data, error } = await getNexusSupabaseClient()
+        .from("notebooks")
+        .select("id,title,content,created_at,updated_at")
+        .order("updated_at", { ascending: false });
+
+      this.status = "idle";
+
+      if (error) {
+        logSupabaseSyncError(error);
+        return [];
+      }
+
+      return (data ?? []).map((row) => mapNotebook(row as Notebooks));
+    } catch (error) {
+      logSupabaseSyncError(error);
+      this.status = "idle";
+
+      return [];
+    }
+  }
+
+  async upsertNotebook(notebook: NotebookRecord): Promise<void> {
+    this.status = "syncing";
+
+    try {
+      const now = new Date().toISOString();
+      const payload: NotebookUpsert = {
+        content: notebook.content,
+        created_at: notebook.created_at ?? now,
+        id: notebook.id,
+        title: notebook.title,
+        updated_at: notebook.updated_at ?? now,
+      };
+      const { error } = await getNexusSupabaseClient()
+        .from("notebooks")
+        .upsert(payload, { onConflict: "id" });
+
+      if (error) {
+        logSupabaseSyncError(error);
+      }
+
+      this.status = "idle";
+    } catch (error) {
+      logSupabaseSyncError(error);
+      this.status = "idle";
+    }
+  }
+
+  async deleteNotebook(id: string): Promise<void> {
+    this.status = "syncing";
+
+    try {
+      const { error } = await getNexusSupabaseClient()
+        .from("notebooks")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        logSupabaseSyncError(error);
+      }
+
+      this.status = "idle";
+    } catch (error) {
+      logSupabaseSyncError(error);
+      this.status = "idle";
     }
   }
 

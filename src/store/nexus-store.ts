@@ -9,6 +9,7 @@ import {
   ACTIVE_WORKSPACE_ID,
   DEFAULT_CHAT_SUPPORTED_MODELS,
   DEFAULT_BASE_URL,
+  DEFAULT_WORKSPACE_BRANCHING_SETTINGS,
   agentTemplates,
   createAgentFromTemplate,
   createDefaultWorkspace,
@@ -23,14 +24,19 @@ import { supabaseStateSyncManager } from "@/lib/state-sync";
 import { getNexusSupabaseClient } from "@/lib/supabase/client";
 import { createWorkspaceSnapshot, sanitizeWorkspace, validateWorkspaceSnapshot } from "@/lib/workspace-kernel";
 import { type ToolExecutorInput, toolExecutors } from "@/lib/tool-executors";
+import { LlmMemoryCompressor } from "@/lib/adapters/memory-compression-adapter";
 import type {
+  AgentBranchingStatus,
   AgentCreationCapabilityType,
   AgentLayout,
   AgentMessage,
   AgentStatus,
   ArtifactVaultRecord,
+  IAgentBranchMetadata,
   IAuthVault,
+  IMemoryCompressionConfig,
   ITransactionLog,
+  NotebookRecord,
   NexusAgent,
   NexusWorkspace,
   PromptRecord,
@@ -38,6 +44,7 @@ import type {
   WorkflowTemplateAgentBlueprint,
   WorkflowTemplateBlueprintData,
   WorkflowTemplateRecord,
+  WorkspaceBranchingSettings,
   WorkspaceGraphEdge,
   WorkspaceThemeConfig,
   WorkspaceSnapshot,
@@ -51,6 +58,7 @@ type WorkspaceBounds = {
 
 type WorkspaceIdentity = Pick<NexusWorkspace, "id" | "name">;
 type WorkspaceThemeConfigUpdate = Partial<WorkspaceThemeConfig>;
+type WorkspaceBranchingSettingsUpdate = Partial<WorkspaceBranchingSettings>;
 
 const PERSIST_STORAGE_NAME = "nexus-ai-ops-workspace";
 const LEGACY_LOCAL_STORAGE_KEYS = ["nexus-workspace-storage", PERSIST_STORAGE_NAME] as const;
@@ -101,7 +109,10 @@ type NexusStore = {
   authVault: IAuthVault;
   artifactVault: ArtifactVaultRecord[];
   promptsCache: PromptRecord[];
+  notebooksCache: NotebookRecord[];
+  openNotebookIds: string[];
   transactionHistory: ITransactionLog[];
+  branchingStatus: AgentBranchingStatus;
   lastSavedAt?: string;
   lastImportError?: string;
   materializeDefaultWorkspace: () => void;
@@ -112,6 +123,10 @@ type NexusStore = {
   exportActiveWorkspace: () => WorkspaceSnapshot;
   importWorkspace: (snapshot: unknown) => void;
   spawnAgent: (templateId?: string, capabilityType?: AgentCreationCapabilityType) => string;
+  branchAgent: (
+    sourceAgentId: string,
+    config: IMemoryCompressionConfig,
+  ) => Promise<string | null>;
   saveCurrentCanvasAsMacro: (name: string, description: string) => void;
   instantiateMacro: (template: WorkflowTemplateRecord) => string[];
   spawnMacro: (blueprintData: WorkflowTemplateBlueprintData) => string[];
@@ -133,6 +148,7 @@ type NexusStore = {
   unlockVault: () => void;
   deleteApiKey: () => void;
   updateThemeConfig: (config: WorkspaceThemeConfigUpdate) => void;
+  updateBranchingSettings: (settings: WorkspaceBranchingSettingsUpdate) => void;
   updateSandboxCode: (agentId: string, sandboxCode: string) => void;
   updateSandboxUrl: (agentId: string, sandboxUrl: string) => void;
   saveArtifactToCloud: (agentId: string, content: string, type: string) => void;
@@ -141,6 +157,11 @@ type NexusStore = {
   addPromptToCache: (prompt: PromptRecord) => void;
   updatePrompt: (id: string, newTitle: string, newContent: string) => void;
   deletePrompt: (id: string) => void;
+  setNotebooksCache: (notebooks: NotebookRecord[]) => void;
+  toggleNotebookOpen: (id: string) => void;
+  createNotebook: () => string;
+  updateNotebook: (id: string, title: string, content: string) => void;
+  deleteNotebook: (id: string) => void;
   updateMemoryBlock: (agentId: string, memoryId: string, content: string) => void;
   minimizeAgent: (agentId: string) => void;
   restoreAgent: (agentId: string) => void;
@@ -213,6 +234,7 @@ function temporalWorkspaceSignature(workspace: NexusWorkspace) {
     selectedAgentId: workspace.selectedAgentId,
     settings: {
       autosave: workspace.settings.autosave,
+      branchingSettings: workspace.settings.branchingSettings,
       model: workspace.settings.model,
       provider: workspace.settings.provider,
       viewMode: workspace.settings.viewMode,
@@ -359,6 +381,52 @@ function getNextWorkspaceName(workspaces: NexusWorkspace[]) {
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function clampBranchingRetentionRatio(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.min(100, Math.max(5, Math.round(value)))
+    : DEFAULT_WORKSPACE_BRANCHING_SETTINGS.defaultRetentionRatio;
+}
+
+function normalizeBranchingSettings(
+  value?: WorkspaceBranchingSettingsUpdate,
+): WorkspaceBranchingSettings {
+  return {
+    ...DEFAULT_WORKSPACE_BRANCHING_SETTINGS,
+    ...value,
+    defaultRetentionRatio: clampBranchingRetentionRatio(
+      value?.defaultRetentionRatio,
+    ),
+  };
+}
+
+function createBranchAgentId() {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : makeId("agent");
+}
+
+function createForkCallsign(callsign: string) {
+  return `${callsign.replace(/-FORK(?:-\d+)?$/i, "")}-FORK`;
+}
+
+function createBranchMetadata({
+  config,
+  sourceAgent,
+  timestamp,
+}: {
+  config: IMemoryCompressionConfig;
+  sourceAgent: NexusAgent;
+  timestamp: string;
+}): IAgentBranchMetadata {
+  return {
+    sourceAgentId: sourceAgent.id,
+    sourceAgentCallsign: sourceAgent.callsign,
+    mode: config.mode,
+    createdAt: timestamp,
+    compressionConfig: clone(config),
+  };
 }
 
 function createCheckpointFromWorkspace(
@@ -520,6 +588,24 @@ function queuePromptsCacheRefresh(workspaceId?: string) {
       if (state.activeWorkspaceId === workspaceId) {
         state.setPromptsCache(prompts);
       }
+    })
+    .catch(() => undefined);
+}
+
+function sortNotebooks(notebooks: NotebookRecord[]) {
+  return [...notebooks].sort((left, right) => {
+    const leftDate = left.updated_at ?? left.created_at ?? "";
+    const rightDate = right.updated_at ?? right.created_at ?? "";
+
+    return rightDate.localeCompare(leftDate);
+  });
+}
+
+function queueNotebooksCacheRefresh() {
+  void supabaseStateSyncManager
+    .fetchNotebooks()
+    .then((notebooks) => {
+      useNexusStore.getState().setNotebooksCache(notebooks);
     })
     .catch(() => undefined);
 }
@@ -805,6 +891,12 @@ function normalizeWorkspaces(workspaces: NexusWorkspace[] | undefined) {
     .map((workspace) => ({
       ...workspace,
       agents: workspace.agents.map(normalizeAgentModelCatalog),
+      settings: {
+        ...workspace.settings,
+        branchingSettings: normalizeBranchingSettings(
+          workspace.settings.branchingSettings,
+        ),
+      },
     }))
     .map(syncPanels);
 }
@@ -826,6 +918,7 @@ function logHydratedMemoryState(state: NexusStore | undefined) {
   console.log("Memory State Loaded:", {
     activeWorkspaceId: state.activeWorkspaceId,
     globalApiKeyLoaded: Boolean(state.authVault.globalApiKey?.trim()),
+    notebooksLoaded: state.notebooksCache.length,
     storage: indexedDbStore ? "indexedDB:idb-keyval" : "localStorage:fallback",
     userLoaded: Boolean(state.authVault.user),
     workspacesLoaded: state.workspaces.length,
@@ -846,7 +939,10 @@ export const useNexusStore = create<NexusStore>()(
       authVault: DEFAULT_AUTH_VAULT,
       artifactVault: [],
       promptsCache: [],
+      notebooksCache: [],
+      openNotebookIds: [],
       transactionHistory: [],
+      branchingStatus: "idle",
 
       materializeDefaultWorkspace: () => {
         const now = new Date().toISOString();
@@ -864,6 +960,7 @@ export const useNexusStore = create<NexusStore>()(
         }));
         queueWorkspaceCloudSync(workspace);
         queuePromptsCacheRefresh(workspace?.id);
+        queueNotebooksCacheRefresh();
       },
 
       saveWorkspaceSnapshot: () => {
@@ -1014,6 +1111,221 @@ export const useNexusStore = create<NexusStore>()(
         });
 
         return id;
+      },
+
+      branchAgent: async (sourceAgentId, config) => {
+        const state = get();
+        const workspace = getActiveWorkspace(state);
+        const sourceAgent = workspace.agents.find((agent) => agent.id === sourceAgentId);
+
+        if (!sourceAgent) {
+          set({ branchingStatus: "error" });
+          return null;
+        }
+
+        const sourceWorkspaceId = workspace.id;
+        const sourceSnapshot = clone(sourceAgent);
+        const sourceGraphNode = workspace.graph.nodes.find(
+          (node) => node.agentId === sourceAgentId,
+        );
+        const normalizedConfig: IMemoryCompressionConfig = {
+          ...config,
+          retentionRatio: Math.min(100, Math.max(5, config.retentionRatio)),
+          compressorModelId: config.compressorModelId || sourceAgent.model,
+        };
+        const id = createBranchAgentId();
+        const timestamp = new Date().toISOString();
+
+        set({
+          branchingStatus:
+            normalizedConfig.mode === "summary" ? "compressing" : "creating",
+        });
+
+        try {
+          const buildBranchedAgent = ({
+            branchMetadata,
+            contextNotes,
+            memory,
+            messages,
+            zIndex,
+          }: {
+            branchMetadata: IAgentBranchMetadata;
+            contextNotes: NexusAgent["contextNotes"];
+            memory: NexusAgent["memory"];
+            messages: NexusAgent["messages"];
+            zIndex: number;
+          }): NexusAgent =>
+            normalizeAgentModelCatalog({
+              ...sourceSnapshot,
+              id,
+              callsign: createForkCallsign(sourceSnapshot.callsign),
+              identity: `${sourceSnapshot.identity} Fork`,
+              status: "idle",
+              memory,
+              contextNotes,
+              messages,
+              tools: sourceSnapshot.tools.map((tool, index) => ({
+                ...tool,
+                id: `${id}-tool-${index}`,
+                lastRunAt: undefined,
+                result: undefined,
+                error: undefined,
+              })),
+              layout: {
+                ...sourceSnapshot.layout,
+                x: sourceSnapshot.layout.x + 36,
+                y: sourceSnapshot.layout.y + 36,
+                zIndex,
+              },
+              previousLayout: undefined,
+              minimized: false,
+              maximized: false,
+              createdAt: timestamp,
+              updatedAt: timestamp,
+              branchMetadata,
+            });
+
+          let branchMetadata = createBranchMetadata({
+            config: normalizedConfig,
+            sourceAgent,
+            timestamp,
+          });
+          let branchMessages: NexusAgent["messages"] = sourceSnapshot.messages.map(
+            (message, index) => ({
+              ...message,
+              id: `${id}-message-${index}`,
+              streaming: false,
+            }),
+          );
+          let branchContextNotes: NexusAgent["contextNotes"] =
+            sourceSnapshot.contextNotes.map((note, index) => ({
+              ...note,
+              id: `${id}-context-${index}`,
+            }));
+          let branchMemory: NexusAgent["memory"] = sourceSnapshot.memory.map(
+            (block, index) => ({
+              ...block,
+              id: `${id}-memory-${index}`,
+              updatedAt: timestamp,
+            }),
+          );
+
+          if (normalizedConfig.mode === "summary") {
+            const compressionResult = await LlmMemoryCompressor.compress(
+              {
+                identity: sourceSnapshot.identity,
+                mission: sourceSnapshot.mission,
+                contextNotes: sourceSnapshot.contextNotes,
+                memory: sourceSnapshot.memory,
+                messages: sourceSnapshot.messages
+                  .filter((message) => !message.streaming)
+                  .map((message) => ({
+                    role: message.role,
+                    content: message.content,
+                    createdAt: message.createdAt,
+                  })),
+              },
+              normalizedConfig,
+            );
+
+            set({ branchingStatus: "creating" });
+
+            branchMetadata = {
+              ...branchMetadata,
+              retainedRatio: compressionResult.retainedRatio,
+              compressionSummary: compressionResult.compressionSummary,
+            };
+            branchMessages = [
+              {
+                id: `${id}-summary-system`,
+                role: "system",
+                content: `This agent is a summary branch of ${sourceSnapshot.callsign}. Retained ~${compressionResult.retainedRatio}% of high-value memory.`,
+                createdAt: timestamp,
+              },
+            ];
+            branchContextNotes = compressionResult.contextNotes.map((note, index) => ({
+              ...note,
+              id: `${id}-compressed-context-${index}`,
+            }));
+            branchMemory = [
+              {
+                id: `${id}-compressed-memory`,
+                label: "Compressed Branch Memory",
+                content: compressionResult.compressionSummary,
+                intensity: compressionResult.retainedRatio,
+                updatedAt: timestamp,
+              },
+            ];
+          }
+
+          const latestState = get();
+          const targetWorkspace =
+            latestState.workspaces.find(
+              (candidate) => candidate.id === sourceWorkspaceId,
+            ) ?? workspace;
+          const nextZIndex = latestState.nextZIndex + 1;
+          const branchedAgent = buildBranchedAgent({
+            branchMetadata,
+            contextNotes: branchContextNotes,
+            memory: branchMemory,
+            messages: branchMessages,
+            zIndex: nextZIndex,
+          });
+          const latestSourceGraphNode =
+            targetWorkspace.graph.nodes.find((node) => node.agentId === sourceAgentId) ??
+            sourceGraphNode;
+          const fallbackPosition = getDefaultGraphPosition(targetWorkspace.agents.length);
+          const branchGraphNode = {
+            agentId: id,
+            x: (latestSourceGraphNode?.x ?? fallbackPosition.x) + 350,
+            y: (latestSourceGraphNode?.y ?? fallbackPosition.y) + 150,
+            nodeType: latestSourceGraphNode?.nodeType,
+          };
+          const branchGraphEdge: WorkspaceGraphEdge = {
+            id: makeId("edge"),
+            sourceAgentId,
+            targetAgentId: id,
+            animated: true,
+            edgeKind: "branch",
+            branchMode: normalizedConfig.mode,
+            label:
+              normalizedConfig.mode === "summary"
+                ? "COMPRESSED BRANCH"
+                : "FULL BRANCH",
+            style: {
+              stroke: "var(--color-primary)",
+              strokeDasharray: "5,5",
+              opacity: 0.6,
+            },
+          };
+
+          set((current) => ({
+            activeWorkspaceId: sourceWorkspaceId,
+            workspaces: current.workspaces.map((candidate) =>
+              candidate.id === sourceWorkspaceId
+                ? syncPanels({
+                    ...candidate,
+                    agents: [...candidate.agents, branchedAgent],
+                    graph: {
+                      nodes: [...candidate.graph.nodes, branchGraphNode],
+                      edges: [...candidate.graph.edges, branchGraphEdge],
+                    },
+                    activeAgentId: id,
+                    selectedAgentId: id,
+                    updatedAt: new Date().toISOString(),
+                  })
+                : candidate,
+            ),
+            selectedAgentId: id,
+            nextZIndex,
+            branchingStatus: "done",
+          }));
+
+          return id;
+        } catch {
+          set({ branchingStatus: "error" });
+          return null;
+        }
       },
 
       saveCurrentCanvasAsMacro: (name, description) => {
@@ -1510,14 +1822,104 @@ export const useNexusStore = create<NexusStore>()(
             ...current.promptsCache.filter((candidate) => candidate.id !== id),
           ].sort((left, right) => right.updated_at.localeCompare(left.updated_at)),
         }));
-        void supabaseStateSyncManager.upsertPrompt(nextPrompt).catch(() => undefined);
+        void supabaseStateSyncManager.upsertPrompt(nextPrompt).catch((error) => {
+          console.error("[Prompt Vault Sync Error]:", error);
+        });
       },
 
       deletePrompt: (id) => {
         set((state) => ({
           promptsCache: state.promptsCache.filter((prompt) => prompt.id !== id),
         }));
-        void supabaseStateSyncManager.deletePrompt(id).catch(() => undefined);
+        void supabaseStateSyncManager.deletePrompt(id).catch((error) => {
+          console.error("[Prompt Vault Sync Error]:", error);
+        });
+      },
+
+      setNotebooksCache: (notebooks) => {
+        set((state) => {
+          const notebookIds = new Set(notebooks.map((notebook) => notebook.id));
+
+          return {
+            notebooksCache: sortNotebooks(notebooks),
+            openNotebookIds: state.openNotebookIds.filter((id) =>
+              notebookIds.has(id),
+            ),
+          };
+        });
+      },
+
+      toggleNotebookOpen: (id) => {
+        set((state) => ({
+          openNotebookIds: state.openNotebookIds.includes(id)
+            ? state.openNotebookIds.filter((candidate) => candidate !== id)
+            : [...state.openNotebookIds, id],
+        }));
+      },
+
+      createNotebook: () => {
+        const now = new Date().toISOString();
+        const notebook: NotebookRecord = {
+          id: makeId("notebook"),
+          title: "Untitled Datapad",
+          content: "",
+          created_at: now,
+          updated_at: now,
+        };
+
+        set((state) => ({
+          notebooksCache: sortNotebooks([notebook, ...state.notebooksCache]),
+          openNotebookIds: Array.from(
+            new Set([...state.openNotebookIds, notebook.id]),
+          ),
+        }));
+        void supabaseStateSyncManager.upsertNotebook(notebook).catch((error) => {
+          console.error("[Datapad Sync Error]:", error);
+        });
+
+        return notebook.id;
+      },
+
+      updateNotebook: (id, title, content) => {
+        const state = get();
+        const notebook = state.notebooksCache.find((candidate) => candidate.id === id);
+
+        if (!notebook) {
+          return;
+        }
+
+        const updatedNotebook: NotebookRecord = {
+          ...notebook,
+          title: title.trim() || "Untitled Datapad",
+          content,
+          updated_at: new Date().toISOString(),
+        };
+
+        set((current) => ({
+          notebooksCache: sortNotebooks([
+            updatedNotebook,
+            ...current.notebooksCache.filter((candidate) => candidate.id !== id),
+          ]),
+        }));
+        void supabaseStateSyncManager
+          .upsertNotebook(updatedNotebook)
+          .catch((error) => {
+            console.error("[Datapad Sync Error]:", error);
+          });
+      },
+
+      deleteNotebook: (id) => {
+        set((state) => ({
+          notebooksCache: state.notebooksCache.filter(
+            (notebook) => notebook.id !== id,
+          ),
+          openNotebookIds: state.openNotebookIds.filter(
+            (candidate) => candidate !== id,
+          ),
+        }));
+        void supabaseStateSyncManager.deleteNotebook(id).catch((error) => {
+          console.error("[Datapad Sync Error]:", error);
+        });
       },
 
       updateThemeConfig: (config) => {
@@ -1534,6 +1936,21 @@ export const useNexusStore = create<NexusStore>()(
           })),
         });
         queueThemeConfigCloudSync(workspace);
+      },
+
+      updateBranchingSettings: (settings) => {
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) => ({
+            ...workspace,
+            settings: {
+              ...workspace.settings,
+              branchingSettings: normalizeBranchingSettings({
+                ...workspace.settings.branchingSettings,
+                ...settings,
+              }),
+            },
+          })),
+        }));
       },
 
       updateMemoryBlock: (agentId, memoryId, content) => {
@@ -1978,6 +2395,7 @@ export const useNexusStore = create<NexusStore>()(
           viewMode: "panels",
           isVaultManagerOpen: false,
           promptsCache: [],
+          branchingStatus: "idle",
           lastSavedAt: new Date().toISOString(),
           lastImportError: undefined,
         });
@@ -1994,7 +2412,7 @@ export const useNexusStore = create<NexusStore>()(
     {
       name: PERSIST_STORAGE_NAME,
       storage: createJSONStorage(() => indexedDbStateStorage),
-      version: 9,
+      version: 10,
       onRehydrateStorage: () => (state) => {
         state?.materializeDefaultWorkspace();
         logHydratedMemoryState(state);
@@ -2011,7 +2429,10 @@ export const useNexusStore = create<NexusStore>()(
             isVaultManagerOpen: false,
             authVault: DEFAULT_AUTH_VAULT,
             promptsCache: [],
+            notebooksCache: [],
+            openNotebookIds: [],
             transactionHistory: [],
+            branchingStatus: "idle",
           };
         }
 
@@ -2044,7 +2465,10 @@ export const useNexusStore = create<NexusStore>()(
             viewMode: value.viewMode ?? activeWorkspace?.settings.viewMode ?? "panels",
             isVaultManagerOpen: false,
             promptsCache: [],
+            notebooksCache: sortNotebooks(value.notebooksCache ?? []),
+            openNotebookIds: value.openNotebookIds ?? [],
             transactionHistory: (value.transactionHistory ?? []).slice(0, 100),
+            branchingStatus: "idle",
           };
         }
 
@@ -2058,12 +2482,17 @@ export const useNexusStore = create<NexusStore>()(
           isVaultManagerOpen: false,
           authVault: DEFAULT_AUTH_VAULT,
           promptsCache: [],
+          notebooksCache: [],
+          openNotebookIds: [],
           transactionHistory: [],
+          branchingStatus: "idle",
         };
       },
       partialize: (state) => ({
         activeWorkspaceId: state.activeWorkspaceId,
         authVault: state.authVault,
+        notebooksCache: state.notebooksCache,
+        openNotebookIds: state.openNotebookIds,
         workspaces: prepareWorkspacesForLocalPersistence(state.workspaces),
         selectedAgentId: state.selectedAgentId,
         nextZIndex: state.nextZIndex,

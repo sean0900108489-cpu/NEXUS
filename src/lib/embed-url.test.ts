@@ -80,4 +80,16 @@ describe("getIframeBlockReason", () => {
       null,
     );
   });
+
+  it("flags full YouTube pages that cannot run inside an iframe", () => {
+    expect(getIframeBlockReason("https://www.youtube.com/")).toContain(
+      "YouTube blocks",
+    );
+    expect(
+      getIframeBlockReason("https://www.youtube.com/results?search_query=nexus"),
+    ).toContain("YouTube blocks");
+    expect(getIframeBlockReason("https://www.youtube.com/@OpenAI")).toContain(
+      "YouTube blocks",
+    );
+  });
 });

@@ -1,14 +1,20 @@
-import {
-  buildMockPredictiveIntelSuggestions,
-  normalizePredictiveIntelSuggestions,
-} from "@/lib/predictive-intel";
+import { normalizePredictiveIntelSuggestions } from "@/lib/predictive-intel";
 
 export const runtime = "edge";
 export const maxDuration = 60;
 
 const DEFAULT_BASE_URL = "https://api.openai.com/v1";
+const FALLBACK_SUGGESTIONS = [
+  "Explain further.",
+  "Summarize this.",
+  "What are the next steps?",
+] as const;
+const SYSTEM_PROMPT =
+  "You are a tactical UI assistant for NEXUS // AI OPS. Based on the last assistant message, generate exactly 3 short, actionable follow-up questions or commands. Return ONLY a valid JSON array of 3 strings. Do not include markdown, code blocks, or explanations.";
 
 type PredictiveIntelRequest = {
+  apiKey?: string;
+  lastMessage?: string;
   model?: string;
   agent?: {
     callsign?: string;
@@ -19,6 +25,10 @@ type PredictiveIntelRequest = {
   lastAssistantMessage?: string;
 };
 
+function sanitizeHeaderValue(value: string | null | undefined) {
+  return value?.replace(/[^\x20-\x7E]/g, "").trim() ?? "";
+}
+
 function getBearerToken(header: string | null) {
   if (!header) {
     return "";
@@ -27,7 +37,7 @@ function getBearerToken(header: string | null) {
   const [scheme, token] = header.split(/\s+/, 2);
 
   return scheme?.toLowerCase() === "bearer"
-    ? token?.replace(/[^\x20-\x7E]/g, "").trim() ?? ""
+    ? sanitizeHeaderValue(token)
     : "";
 }
 
@@ -66,15 +76,21 @@ function parseSuggestions(content: string) {
 }
 
 export async function POST(request: Request) {
-  const payload = (await request.json()) as PredictiveIntelRequest;
-  const fallback = buildMockPredictiveIntelSuggestions({
-    agent: payload.agent,
-    lastAssistantMessage: payload.lastAssistantMessage,
-  });
-  const apiKey = getBearerToken(request.headers.get("authorization"));
+  let payload: PredictiveIntelRequest;
+
+  try {
+    payload = (await request.json()) as PredictiveIntelRequest;
+  } catch {
+    payload = {};
+  }
+
+  const lastMessage = (payload.lastMessage ?? payload.lastAssistantMessage ?? "").trim();
+  const apiKey =
+    getBearerToken(request.headers.get("authorization")) ||
+    sanitizeHeaderValue(payload.apiKey);
 
   if (!apiKey) {
-    return Response.json({ mode: "mock", suggestions: fallback });
+    return Response.json({ mode: "mock", suggestions: [...FALLBACK_SUGGESTIONS] });
   }
 
   const baseUrl = getCompatibleBaseUrl(
@@ -95,16 +111,11 @@ export async function POST(request: Request) {
         messages: [
           {
             role: "system",
-            content:
-              "You are a tactical UI assistant for NEXUS // AI OPS.\nBased on the last assistant message and current agent context, generate exactly 3 short, actionable follow-up questions or commands.\nReturn ONLY a valid JSON array of 3 strings.\nDo not include markdown.\nDo not include explanations.",
+            content: SYSTEM_PROMPT,
           },
           {
             role: "user",
-            content: JSON.stringify({
-              agent: payload.agent,
-              currentTime: new Date().toISOString(),
-              lastAssistantMessage: payload.lastAssistantMessage ?? "",
-            }),
+            content: lastMessage,
           },
         ],
       }),
@@ -112,7 +123,7 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      return Response.json({ mode: "mock", suggestions: fallback });
+      return Response.json({ mode: "mock", suggestions: [...FALLBACK_SUGGESTIONS] });
     }
 
     const data = (await response.json()) as {
@@ -123,9 +134,10 @@ export async function POST(request: Request) {
 
     return Response.json({
       mode: suggestions.length === 3 ? "openai" : "mock",
-      suggestions: suggestions.length === 3 ? suggestions : fallback,
+      suggestions:
+        suggestions.length === 3 ? suggestions : [...FALLBACK_SUGGESTIONS],
     });
   } catch {
-    return Response.json({ mode: "mock", suggestions: fallback });
+    return Response.json({ mode: "mock", suggestions: [...FALLBACK_SUGGESTIONS] });
   }
 }

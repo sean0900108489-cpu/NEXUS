@@ -27,6 +27,7 @@
   --border-width: 1px;
   --icon-weight: 2px;
   --font-main: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --chat-panel-opacity: 88%;
   --surface-radius: var(--radius-base);
   --glass-blur: var(--backdrop-blur);
   --scanline-opacity: 0.22;
@@ -65,6 +66,7 @@
   --border-width: 1px;
   --icon-weight: 1.75px;
   --font-main: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --chat-panel-opacity: 82%;
   --surface-radius: var(--radius-base);
   --glass-blur: var(--backdrop-blur);
   --scanline-opacity: 0.04;
@@ -103,6 +105,7 @@
   --border-width: 1px;
   --icon-weight: 2px;
   --font-main: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --chat-panel-opacity: 90%;
   --surface-radius: var(--radius-base);
   --glass-blur: var(--backdrop-blur);
   --scanline-opacity: 0.1;
@@ -144,6 +147,7 @@
   --border-width: 1px;
   --icon-weight: 2px;
   --font-main: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --chat-panel-opacity: 72%;
   --surface-radius: var(--radius-base);
   --glass-blur: var(--backdrop-blur);
   --scanline-opacity: 0.3;
@@ -284,6 +288,113 @@ button {
   backdrop-filter: blur(var(--glass-blur));
 }
 
+.nexus-shell,
+.nexus-shell .font-mono,
+.nexus-shell .font-sans {
+  font-family: var(--font-main) !important;
+}
+
+.nexus-shell :where(
+    button,
+    input,
+    textarea,
+    select,
+    .nexus-panel,
+    .nexus-glass,
+    .nexus-agent-window,
+    .nexus-workspace,
+    .nexus-agent-node,
+    .nexus-message-bubble,
+    .react-flow__controls,
+    .react-flow__controls-button,
+    .react-flow__minimap,
+    .react-flow__handle
+  ) {
+  border-radius: var(--surface-radius);
+  transition-duration: 140ms;
+  transition-property:
+    background-color,
+    border-color,
+    border-radius,
+    border-width,
+    box-shadow,
+    color,
+    font-family,
+    opacity,
+    backdrop-filter,
+    -webkit-backdrop-filter;
+  transition-timing-function: ease;
+}
+
+.nexus-shell :where(
+    button,
+    input,
+    textarea,
+    select,
+    .nexus-panel,
+    .nexus-glass,
+    .nexus-agent-window,
+    .nexus-agent-node,
+    .nexus-message-bubble,
+    .react-flow__controls,
+    .react-flow__controls-button,
+    .react-flow__minimap,
+    .react-flow__handle
+  ) {
+  border-width: var(--border-width);
+}
+
+.nexus-shell :where(
+    .backdrop-blur,
+    .backdrop-blur-sm,
+    .backdrop-blur-md,
+    .backdrop-blur-lg,
+    .backdrop-blur-xl,
+    .backdrop-blur-2xl,
+    .nexus-panel,
+    .nexus-glass,
+    .nexus-agent-window,
+    .react-flow__controls,
+    .react-flow__minimap
+  ) {
+  -webkit-backdrop-filter: blur(var(--glass-blur)) !important;
+  backdrop-filter: blur(var(--glass-blur)) !important;
+}
+
+.nexus-shell input[type="range"] {
+  accent-color: var(--theme-primary-strong);
+}
+
+.nexus-shell input[type="range"]::-webkit-slider-runnable-track {
+  border-radius: var(--surface-radius);
+}
+
+.nexus-shell input[type="range"]::-webkit-slider-thumb {
+  border: var(--border-width) solid var(--theme-primary);
+  border-radius: var(--surface-radius);
+}
+
+.nexus-shell input[type="range"]::-moz-range-track,
+.nexus-shell input[type="range"]::-moz-range-thumb {
+  border-radius: var(--surface-radius);
+}
+
+.nexus-agent-window {
+  background-color: color-mix(
+    in srgb,
+    var(--bg-elevated) var(--chat-panel-opacity),
+    transparent
+  ) !important;
+  border-radius: var(--surface-radius);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+.nexus-agent-window > .nexus-drag-handle {
+  border-top-left-radius: var(--surface-radius);
+  border-top-right-radius: var(--surface-radius);
+}
+
 svg.lucide {
   stroke-width: var(--icon-weight);
 }
@@ -319,7 +430,7 @@ svg.lucide {
 .react-flow {
   background: transparent;
   color: var(--text-soft);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-main);
 }
 
 .react-flow__pane {

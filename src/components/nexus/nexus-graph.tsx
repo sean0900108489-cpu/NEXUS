@@ -33,6 +33,7 @@ type AgentNodeData = {
   onOpenAgent: (agentId: string) => void;
 };
 type AgentEdgeData = {
+  label?: string;
   onRemoveEdge: (edgeId: string) => void;
   onSelectEdge: (edgeId: string) => void;
   selected: boolean;
@@ -197,6 +198,36 @@ function BlueprintEdge({
         stroke="transparent"
         strokeWidth={36}
       />
+      {data?.label ? (
+        <g
+          aria-hidden="true"
+          className="nexus-edge-label"
+          pointerEvents="none"
+          transform={`translate(${labelX}, ${labelY - 22})`}
+        >
+          <rect
+            fill="rgba(2,6,23,0.82)"
+            height="18"
+            rx="0"
+            stroke="rgba(34,211,238,0.22)"
+            width={Math.max(86, data.label.length * 7.4)}
+            x={-Math.max(86, data.label.length * 7.4) / 2}
+            y="-11"
+          />
+          <text
+            dy="2"
+            style={{
+              fill: "var(--text-main)",
+              fontFamily: "monospace",
+              fontSize: 9,
+              letterSpacing: "0.14em",
+            }}
+            textAnchor="middle"
+          >
+            {data.label}
+          </text>
+        </g>
+      ) : null}
       <g
         aria-label="Delete edge"
         className="nexus-edge-delete nodrag nopan"
@@ -294,18 +325,22 @@ export function NexusGraph({
           sourceHandle: "output",
           targetHandle: "input",
           type: "blueprint",
-          animated: true,
+          animated: edge.animated ?? true,
+          label: edge.label,
           selected: selectedEdgeIds.includes(edge.id),
           markerEnd: {
             type: MarkerType.ArrowClosed,
-            color: "#22d3ee",
+            color: edge.style?.stroke ?? "#22d3ee",
           },
           style: {
-            stroke: "#22d3ee",
-            strokeWidth: 1.8,
+            stroke: edge.style?.stroke ?? "#22d3ee",
+            strokeDasharray: edge.style?.strokeDasharray,
+            strokeWidth: edge.style?.strokeWidth ?? 1.8,
+            opacity: edge.style?.opacity,
           },
           interactionWidth: 32,
           data: {
+            label: edge.label,
             onRemoveEdge: (edgeId: string) => onRemoveEdges([edgeId]),
             onSelectEdge: (edgeId: string) => setSelectedEdgeIds([edgeId]),
             selected: selectedEdgeIds.includes(edge.id),

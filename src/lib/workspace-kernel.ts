@@ -1,5 +1,6 @@
 import {
   DEFAULT_SANDBOX_CODE,
+  DEFAULT_WORKSPACE_BRANCHING_SETTINGS,
   WORKSPACE_SCHEMA_VERSION,
   cloneWorkspace,
   getDefaultCapabilities,
@@ -16,6 +17,7 @@ import type {
   WorkspaceGraphNode,
   WorkspacePanel,
   WorkspaceSnapshot,
+  WorkspaceBranchingSettings,
   WorkspaceThemeConfig,
 } from "@/lib/nexus-types";
 
@@ -180,7 +182,28 @@ function sanitizeThemeConfig(value: unknown): WorkspaceThemeConfig | undefined {
     next.fontFamily = value.fontFamily;
   }
 
+  if (typeof value.chatOpacity === "string") {
+    next.chatOpacity = value.chatOpacity;
+  }
+
   return Object.keys(next).length ? next : undefined;
+}
+
+function clampRetentionRatio(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.min(100, Math.max(5, Math.round(value)))
+    : DEFAULT_WORKSPACE_BRANCHING_SETTINGS.defaultRetentionRatio;
+}
+
+function sanitizeBranchingSettings(value: unknown): WorkspaceBranchingSettings {
+  if (!isObject(value)) {
+    return { ...DEFAULT_WORKSPACE_BRANCHING_SETTINGS };
+  }
+
+  return {
+    ...DEFAULT_WORKSPACE_BRANCHING_SETTINGS,
+    defaultRetentionRatio: clampRetentionRatio(value.defaultRetentionRatio),
+  };
 }
 
 function sanitizeCheckpoints(value: unknown): NexusWorkspace["checkpoints"] {
@@ -411,6 +434,9 @@ export function sanitizeWorkspace(workspace: NexusWorkspace): NexusWorkspace {
   sanitized.settings = {
     ...sanitized.settings,
     viewMode: sanitized.settings.viewMode ?? "panels",
+    branchingSettings: sanitizeBranchingSettings(
+      sanitized.settings.branchingSettings,
+    ),
   };
   sanitized.themeConfig = sanitizeThemeConfig(sanitized.themeConfig);
   sanitized.checkpoints = sanitizeCheckpoints(sanitized.checkpoints);

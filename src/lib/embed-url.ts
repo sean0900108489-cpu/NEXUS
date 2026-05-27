@@ -56,13 +56,53 @@ function getGoogleEmbeddableUrl(url: URL) {
   return null;
 }
 
+function isYouTubeHost(host: string) {
+  return (
+    host === "youtube.com" ||
+    host.endsWith(".youtube.com") ||
+    host === "youtu.be" ||
+    host.endsWith(".youtu.be")
+  );
+}
+
+function getYouTubeEmbeddableUrl(url: URL) {
+  const host = url.hostname.toLowerCase();
+  let videoId = "";
+  const playlistId = url.searchParams.get("list") ?? "";
+
+  if (host.includes("youtu.be")) {
+    videoId = url.pathname.split("/").filter(Boolean)[0] ?? "";
+  } else if (url.searchParams.has("v")) {
+    videoId = url.searchParams.get("v") ?? "";
+  } else if (url.pathname.startsWith("/embed/")) {
+    return url.toString();
+  } else if (url.pathname.startsWith("/shorts/")) {
+    videoId = url.pathname.split("/shorts/")[1]?.split("/")[0] ?? "";
+  } else if (url.pathname.startsWith("/live/")) {
+    videoId = url.pathname.split("/live/")[1]?.split("/")[0] ?? "";
+  }
+
+  if (!videoId && playlistId) {
+    return `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(
+      playlistId,
+    )}`;
+  }
+
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+}
+
 export function getIframeBlockReason(inputUrl: string): string | null {
   if (!inputUrl) {
     return null;
   }
 
   try {
-    const host = new URL(inputUrl).hostname.toLowerCase();
+    const url = new URL(inputUrl);
+    const host = url.hostname.toLowerCase();
+
+    if (isYouTubeHost(host) && !getYouTubeEmbeddableUrl(url)) {
+      return "YouTube blocks full-site browsing inside third-party iframes. Paste a video, Shorts, live, or playlist URL to watch here, or open YouTube in a secure browser tab.";
+    }
 
     if (host === "gemini.google.com" || host === "bard.google.com") {
       return "Gemini blocks third-party iframe embedding. Open it in a secure browser tab.";
@@ -92,29 +132,8 @@ export function getEmbeddableUrl(inputUrl: string): string {
       return googleUrl;
     }
 
-    if (host.includes("youtube.com") || host.includes("youtu.be")) {
-      let videoId = "";
-      const playlistId = url.searchParams.get("list") ?? "";
-
-      if (host.includes("youtu.be")) {
-        videoId = url.pathname.split("/").filter(Boolean)[0] ?? "";
-      } else if (url.searchParams.has("v")) {
-        videoId = url.searchParams.get("v") ?? "";
-      } else if (url.pathname.startsWith("/embed/")) {
-        return inputUrl;
-      } else if (url.pathname.startsWith("/shorts/")) {
-        videoId = url.pathname.split("/shorts/")[1]?.split("/")[0] ?? "";
-      } else if (url.pathname.startsWith("/live/")) {
-        videoId = url.pathname.split("/live/")[1]?.split("/")[0] ?? "";
-      }
-
-      if (!videoId && playlistId) {
-        return `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(
-          playlistId,
-        )}`;
-      }
-
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : inputUrl;
+    if (isYouTubeHost(host)) {
+      return getYouTubeEmbeddableUrl(url) ?? inputUrl;
     }
 
     if (host.includes("twitch.tv")) {

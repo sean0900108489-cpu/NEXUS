@@ -53,6 +53,14 @@ export interface NexusModelOption {
   description?: string;
 }
 
+export interface MemoryCompressionProfile {
+  id: string;
+  label: string;
+  description: string;
+  fixedSystemPrompt: string;
+  defaultRetentionRatio: number;
+}
+
 /**
  * @rule SCAN FIRST: Before implementing a new tool, capability, graph node,
  * provider adapter, or handoff behavior, check this registry for an existing
@@ -203,6 +211,26 @@ export function getModelOption(modelId: string) {
 export function getModelOptionsForCapability(capability: AgentCapabilityType) {
   return NEXUS_MODEL_CATALOG.filter((model) => model.capability === capability);
 }
+
+/**
+ * @rule SCAN FIRST: Memory compression profiles live here. Before adding agent
+ * forking, context summarization, or branch compression behavior, reuse this
+ * registry and its fixed prompts instead of creating one-off prompt strings.
+ */
+export const MEMORY_COMPRESSION_PROFILE_REGISTRY: Record<
+  string,
+  MemoryCompressionProfile
+> = {
+  "default-context-compressor": {
+    id: "default-context-compressor",
+    label: "Default Context Compressor",
+    description:
+      "Preserves system architecture, constraints, decisions, unresolved bugs, and task continuity while removing filler.",
+    fixedSystemPrompt:
+      "You are a context essence compressor for NEXUS // AI OPS. Compress the source agent memory into a concise, reusable branch context. Preserve architecture decisions, interface contracts, registry rules, design intent, security constraints, unresolved bugs, verification results, and next actions. Preserve UI/UX intent exactly when present. Discard filler, repeated chat texture, stale speculation, and low-signal wording. Do not invent facts. Return structured context suitable for initializing a forked agent.",
+    defaultRetentionRatio: 30,
+  },
+};
 
 /**
  * @rule SCAN FIRST: Capability slots are the canonical list of agent kinds.

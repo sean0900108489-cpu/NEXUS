@@ -6,6 +6,7 @@ import type {
   AgentTemplate,
   NexusAgent,
   NexusWorkspace,
+  WorkspaceBranchingSettings,
   WorkspaceGraphNode,
 } from "@/lib/nexus-types";
 import { DEFAULT_CHAT_MODEL_IDS } from "@/lib/nexus-registry";
@@ -14,6 +15,9 @@ export const WORKSPACE_SCHEMA_VERSION = 1;
 export const ACTIVE_WORKSPACE_ID = "workspace-nexus-ops";
 export const DEFAULT_BASE_URL = "https://api.openai.com/v1";
 export const DEFAULT_CHAT_SUPPORTED_MODELS = [...DEFAULT_CHAT_MODEL_IDS];
+export const DEFAULT_WORKSPACE_BRANCHING_SETTINGS: WorkspaceBranchingSettings = {
+  defaultRetentionRatio: 30,
+};
 
 export const DEFAULT_CAPABILITIES: Record<AgentCapabilityType, AgentCapabilities> = {
   chat: {
@@ -606,6 +610,7 @@ export function createDefaultWorkspace(
       streamMode: "mock",
       viewMode: "panels",
       autosave: true,
+      branchingSettings: { ...DEFAULT_WORKSPACE_BRANCHING_SETTINGS },
     },
     createdAt: timestamp,
     updatedAt: timestamp,

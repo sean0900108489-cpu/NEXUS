@@ -100,6 +100,45 @@ export type AgentCapabilities = {
   supportedModels: string[];
 };
 
+export type AgentBranchMode = "full" | "summary";
+
+export type AgentBranchingStatus = "idle" | "compressing" | "creating" | "done" | "error";
+
+export interface IMemoryCompressionWeights {
+  contextArchitecture?: number;
+  semanticMeaning?: number;
+  taskContinuity?: number;
+  uiUxIntent?: number;
+}
+
+export interface IMemoryCompressionConfig {
+  mode: AgentBranchMode;
+  retentionRatio: number;
+  compressorModelId: string;
+  customFocusPrompt?: string;
+  advancedWeights?: IMemoryCompressionWeights;
+  compressorProfileId?: string;
+}
+
+export interface IAgentBranchMetadata {
+  sourceAgentId: string;
+  sourceAgentCallsign: string;
+  mode: AgentBranchMode;
+  createdAt: string;
+  compressionConfig?: IMemoryCompressionConfig;
+  retainedRatio?: number;
+  compressionSummary?: string;
+}
+
+export interface ICompressedMemoryResult {
+  retainedRatio: number;
+  compressionSummary: string;
+  contextNotes: AgentContextNote[];
+  architectureNotes?: string[];
+  keyDecisions?: string[];
+  unresolvedBugs?: string[];
+}
+
 export type NexusAgent = {
   id: string;
   callsign: string;
@@ -125,6 +164,7 @@ export type NexusAgent = {
   createdAt: string;
   updatedAt: string;
   telemetry: AgentTelemetry;
+  branchMetadata?: IAgentBranchMetadata;
 };
 
 export type WorkspacePanel = {
@@ -193,6 +233,16 @@ export type WorkspaceGraphEdge = {
   id: string;
   sourceAgentId: string;
   targetAgentId: string;
+  animated?: boolean;
+  label?: string;
+  edgeKind?: "manual" | "branch";
+  branchMode?: AgentBranchMode;
+  style?: {
+    stroke?: string;
+    strokeWidth?: number;
+    strokeDasharray?: string;
+    opacity?: number;
+  };
 };
 
 export interface IWorkflowEdge {
@@ -252,6 +302,12 @@ export type WorkspaceThemeConfig = {
   borderWidth?: string;
   iconWeight?: string;
   fontFamily?: string;
+  chatOpacity?: string;
+};
+
+export type WorkspaceBranchingSettings = {
+  defaultRetentionRatio: number;
+  futureDefaultWeights?: IMemoryCompressionWeights;
 };
 
 export type WorkspaceSettings = {
@@ -260,6 +316,7 @@ export type WorkspaceSettings = {
   streamMode: StreamMode;
   viewMode: WorkspaceViewMode;
   autosave: boolean;
+  branchingSettings: WorkspaceBranchingSettings;
 };
 
 export interface IAuthVault {
@@ -421,6 +478,14 @@ export interface PromptRevisionMetadata {
   updatedAt: string;
 }
 
+export interface NotebookRecord {
+  id: string;
+  title: string;
+  content: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export type ActiveUiStateSnapshot = Pick<
   NexusWorkspace,
   | "activeAgentId"
@@ -488,6 +553,9 @@ export interface IStateSyncManager {
   upsertPrompt(prompt: PromptRecord): Promise<void>;
   deletePrompt(id: string): Promise<void>;
   fetchPromptRevisions(promptId: string): Promise<PromptRevisionRecord[]>;
+  fetchNotebooks(): Promise<NotebookRecord[]>;
+  upsertNotebook(notebook: NotebookRecord): Promise<void>;
+  deleteNotebook(id: string): Promise<void>;
   syncActiveUiState(snapshot: ActiveUiStateSnapshot): Promise<StateSyncResult>;
   syncHistoricalMessage(record: HistoricalMessageRecord): Promise<StateSyncResult>;
   syncHistoricalArtifact(record: HistoricalArtifactRecord): Promise<StateSyncResult>;

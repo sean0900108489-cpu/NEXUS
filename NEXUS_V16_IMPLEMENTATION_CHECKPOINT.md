@@ -3253,7 +3253,8 @@ Current worktree replay:
 - Active worktree verification passed:
   focused regression suite 8 files / 99 tests, `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check`.
 - Supabase branch security advisor was rechecked after replay: 0 security lints.
-- Supabase branch remains active/healthy under branch ref `mzvuvaslrcbxgrezpnjs`; production project `xjuglddxwnikvcwxfbzg` remains read-only.
+- The original disposable verification branch `mzvuvaslrcbxgrezpnjs` was later deleted after production verification completed.
+- Production project `xjuglddxwnikvcwxfbzg` is no longer read-only: V16 production migrations were applied in the later rollout pass below.
 
 Release recommendation:
 
@@ -3397,3 +3398,11 @@ Preview blocker:
 
 - The preview confirms the app builds and routes deploy, but server health is still degraded because Vercel env is missing `SUPABASE_SERVICE_ROLE_KEY`.
 - Production deploy/promotion remains intentionally blocked until the server-only Supabase service-role env is configured.
+
+## Supabase Branch Cleanup
+
+Updated: 2026-05-29 04:42:00 AEST
+
+- Deleted disposable branch `v16-production-rollout-dryrun-20260529` (`40d7e9ac-1a17-4382-bab5-85ff54b657d3`, ref `vmlxdrcuykvhvtbcpfur`).
+- Deleted disposable branch `v16-release-verification-20260529` (`0dce3bbb-e890-4785-9b06-3568ac2604bd`, ref `mzvuvaslrcbxgrezpnjs`).
+- Confirmed Supabase branch list now only shows `main` for production project `xjuglddxwnikvcwxfbzg`.

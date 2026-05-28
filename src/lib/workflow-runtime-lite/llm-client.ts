@@ -7,6 +7,11 @@ import type {
   WorkflowNodeInstance,
 } from "@/lib/nexus-types";
 import { DEFAULT_BASE_URL } from "@/lib/nexus-defaults";
+import {
+  getProviderIdForModel,
+  getProviderOption,
+  normalizeAgentModelSettings,
+} from "@/lib/nexus-registry";
 import { fetchWithBackoff } from "@/lib/stream-retry";
 
 import type { WorkflowRuntimeLlmCall } from "./executors";
@@ -100,25 +105,40 @@ export async function executeWorkflowRuntimeLlm({
   upstream: ContextPacket;
   workspace: NexusWorkspace;
 }) {
-  const apiKey = authVault.globalApiKey?.replace(/[^\x20-\x7E]/g, "").trim() ?? "";
-  const baseUrl =
-    authVault.globalBaseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
-    DEFAULT_BASE_URL;
   const model = node.data.model?.trim() || executionAgent.model;
   const provider = node.data.provider?.trim() || executionAgent.provider;
+  const modelSettings = normalizeAgentModelSettings(
+    model,
+    node.data.modelSettings ?? executionAgent.modelSettings,
+  );
+  const providerId = getProviderIdForModel(model, provider);
+  const providerOption = getProviderOption(providerId);
+  const providerCredential = authVault.providerCredentials?.[providerId];
+  const apiKey =
+    providerCredential?.apiKey?.replace(/[^\x20-\x7E]/g, "").trim() ||
+    authVault.globalApiKey?.replace(/[^\x20-\x7E]/g, "").trim() ||
+    "";
+  const baseUrl =
+    providerCredential?.baseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
+    authVault.globalBaseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
+    providerOption?.defaultBaseUrl ||
+    DEFAULT_BASE_URL;
   const outputMessageId = `${runId}:${node.id}:output`;
   const request: AgentStreamRequest = {
     model,
+    modelSettings,
+    reasoningEffort: modelSettings.reasoningEffort,
     outputMessageId,
     workspaceId: workspace.id,
     agent: {
       callsign: executionAgent.callsign,
       contextNotes: executionAgent.contextNotes,
+      executionPrompt: executionAgent.executionPrompt,
       identity: executionAgent.identity,
       memory: executionAgent.memory,
       mission: executionAgent.mission,
       model,
-      provider,
+      provider: providerId,
       title: executionAgent.title,
     },
     messages: [
@@ -145,7 +165,8 @@ export async function executeWorkflowRuntimeLlm({
     headers.set("Authorization", `Bearer ${apiKey}`);
   }
 
-  headers.set("x-openai-base-url", baseUrl);
+  headers.set("x-nexus-base-url", baseUrl);
+  headers.set("x-nexus-provider-id", providerId);
 
   const response = await fetchWithBackoff(
     `/api/v1/agents/${encodeURIComponent(executionAgent.id)}/stream`,
@@ -166,7 +187,7 @@ export async function executeWorkflowRuntimeLlm({
     metadata: {
       agentId: executionAgent.id,
       model,
-      provider,
+      provider: providerId,
       runId,
       sessionId: stream.sessionId ?? undefined,
       taskId: stream.taskId ?? undefined,

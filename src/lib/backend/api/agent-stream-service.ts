@@ -5,9 +5,10 @@ import { getApiErrorDescriptor, type ApiErrorCode } from "./api-errors";
 import { getBearerToken } from "./memory-compress-service";
 import { createAgentRuntimeService } from "../runtime/agent-runtime-service";
 import {
+  buildOpenAICompatibleChatBody,
   getCompatibleBaseUrl,
-  getRuntimeString,
   OpenAICompatibleAdapter,
+  getRuntimeString,
 } from "../runtime/provider-adapter";
 
 export type AgentStreamEvent =
@@ -24,6 +25,10 @@ export type AgentStreamEvent =
       type: "token";
       delta: string;
       token?: string;
+    }
+  | {
+      type: "reasoning";
+      delta: string;
     }
   | {
       type: "done";
@@ -78,19 +83,22 @@ export async function createAgentStreamResponse({
   workspaceId,
 }: AgentStreamResponseOptions) {
   const payload = (await request.json()) as AgentStreamRequest;
-  const apiKey =
-    getRuntimeString(payload.globalApiKey) ||
-    getBearerToken(request.headers.get("authorization"));
-  const baseUrl = getCompatibleBaseUrl(
-    request.headers.get("x-openai-base-url") || process.env.OPENAI_BASE_URL,
-  );
+  const apiKey = getBearerToken(request.headers.get("authorization"));
+  const rawBaseUrl =
+    request.headers.get("x-nexus-base-url") ||
+    request.headers.get("x-openai-base-url") ||
+    process.env.OPENAI_BASE_URL ||
+    undefined;
+  const legacyBaseUrl = getCompatibleBaseUrl(rawBaseUrl);
+  const requestedProvider =
+    getRuntimeString(request.headers.get("x-nexus-provider-id")) || payload.agent.provider;
   const isWorkflowRuntimeLite =
     request.headers.get("X-Nexus-Workflow-Runtime")?.toLowerCase() === "lite";
 
   if (eventShape === "legacy") {
     return createLegacyAgentStreamResponse({
       apiKey,
-      baseUrl,
+      baseUrl: legacyBaseUrl,
       eventShape,
       payload,
       request,
@@ -132,10 +140,10 @@ export async function createAgentStreamResponse({
   try {
     providerStream = await providerAdapter.createChatStream({
       apiKey,
-      baseUrl,
+      baseUrl: rawBaseUrl,
       model: streamModel,
       payload,
-      provider: payload.agent.provider,
+      provider: requestedProvider,
       signal: request.signal,
       userId,
       workspaceId: resolvedWorkspaceId,
@@ -158,7 +166,7 @@ export async function createAgentStreamResponse({
       {
         message: descriptor.message,
         model: streamModel,
-        provider: payload.agent.provider,
+        provider: requestedProvider,
         retryable: descriptor.retryable,
       },
     );
@@ -209,7 +217,7 @@ export async function createAgentStreamResponse({
           controller.enqueue(encodeComment("keep-alive"));
         }, 15000);
 
-        for await (const delta of providerStream.stream) {
+        for await (const chunk of providerStream.stream) {
           if (request.signal.aborted) {
             return;
           }
@@ -222,9 +230,17 @@ export async function createAgentStreamResponse({
             });
           }
 
+          if (chunk.type === "reasoning") {
+            emit({
+              delta: chunk.delta,
+              type: "reasoning",
+            });
+            continue;
+          }
+
           emit({
-            delta,
-            token: delta,
+            delta: chunk.delta,
+            token: chunk.delta,
             type: "token",
           });
         }
@@ -462,6 +478,7 @@ function encodeComment(comment: string) {
 }
 
 function buildSystemPrompt(payload: AgentStreamRequest) {
+  const executionPrompt = payload.agent.executionPrompt?.trim();
   const memory = payload.agent.memory
     .map((block) => `- ${block.label}: ${block.content}`)
     .join("\n");
@@ -470,9 +487,12 @@ function buildSystemPrompt(payload: AgentStreamRequest) {
     .join("\n");
 
   return [
-    `You are ${payload.agent.identity}, callsign ${payload.agent.callsign}.`,
-    `Title: ${payload.agent.title}.`,
-    `Mission: ${payload.agent.mission}.`,
+    payload.agent.identity
+      ? `You are ${payload.agent.identity}, callsign ${payload.agent.callsign}.`
+      : `Callsign: ${payload.agent.callsign}.`,
+    payload.agent.title ? `Title: ${payload.agent.title}.` : "",
+    payload.agent.mission ? `Mission: ${payload.agent.mission}.` : "",
+    executionPrompt ? `Execution prompt:\n${executionPrompt}` : "",
     "Operate like an independent AI workstation inside NEXUS // AI OPS.",
     "Be concise, tactical, and specific. Prefer operator-ready output.",
     memory ? `Memory:\n${memory}` : "",
@@ -532,12 +552,6 @@ function mapAgentMessageForLlm(message: AgentStreamRequest["messages"][number]):
   };
 }
 
-function supportsTemperature(model: string) {
-  const normalized = model.toLowerCase();
-
-  return !normalized.startsWith("o") && !normalized.startsWith("gpt-5");
-}
-
 async function streamMock(
   controller: ReadableStreamDefaultController<Uint8Array>,
   payload: AgentStreamRequest,
@@ -583,12 +597,12 @@ async function streamOpenAI(
   ]);
   const fetchChatCompletion = (nextModel: string) =>
     fetch(`${baseUrl}/chat/completions`, {
-      body: JSON.stringify({
+      body: JSON.stringify(buildOpenAICompatibleChatBody({
         messages,
         model: nextModel,
-        stream: true,
-        ...(supportsTemperature(nextModel) ? { temperature: 0.65 } : {}),
-      }),
+        modelSettings: payload.modelSettings,
+        reasoningEffort: payload.modelSettings?.reasoningEffort ?? payload.reasoningEffort,
+      })),
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
@@ -671,10 +685,14 @@ async function streamOpenAIResponse(
       }
 
       const chunk = JSON.parse(raw) as {
-        choices?: { delta?: { content?: string } }[];
+        choices?: { delta?: { content?: string; reasoning_content?: string } }[];
       };
+      const reasoning = chunk.choices?.[0]?.delta?.reasoning_content;
       const token = chunk.choices?.[0]?.delta?.content;
 
+      if (reasoning && eventShape === "v1") {
+        controller.enqueue(encodeEvent({ delta: reasoning, type: "reasoning" }));
+      }
       if (token) {
         controller.enqueue(encodeEvent({ token, type: "token" }));
       }

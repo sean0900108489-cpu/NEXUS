@@ -1,6 +1,12 @@
 import type { AgentStreamRequest } from "@/lib/nexus-types";
 import { buildMockReply } from "@/lib/mock-stream";
-import { NEXUS_MODEL_CATALOG } from "@/lib/nexus-registry";
+import {
+  NEXUS_MODEL_CATALOG,
+  getModelCapabilityProfile,
+  getProviderOption,
+  mapReasoningDetailForModel,
+  mapReasoningEffortForModel,
+} from "@/lib/nexus-registry";
 
 import { ApiError } from "../api/api-errors";
 import { FeatureFlagService } from "../deployment/feature-flag-service";
@@ -9,12 +15,18 @@ import { EnvironmentValidator } from "../deployment/environment-validator";
 export type ProviderStreamInput = {
   payload: AgentStreamRequest;
   apiKey?: string;
-  baseUrl: string;
+  baseUrl?: string;
   provider?: string;
   model: string;
   workspaceId?: string;
   userId?: string;
   signal: AbortSignal;
+  allowMockFallback?: boolean;
+};
+
+export type ProviderStreamDelta = {
+  type: "content" | "reasoning";
+  delta: string;
 };
 
 export type ProviderStreamResult = {
@@ -22,7 +34,7 @@ export type ProviderStreamResult = {
   model: string;
   fallbackUsed: boolean;
   fallbackReasonCode?: string;
-  stream: AsyncIterable<string>;
+  stream: AsyncIterable<ProviderStreamDelta>;
 };
 
 export interface ProviderAdapter {
@@ -41,8 +53,10 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 
   async createChatStream(input: ProviderStreamInput): Promise<ProviderStreamResult> {
     const model = normalizeModel(input.model);
-    const baseUrl = getCompatibleBaseUrl(input.baseUrl);
-    const provider = input.provider || "openai-compatible";
+    const capability = getModelCapabilityProfile(model);
+    const provider = capability?.providerId || input.provider || "openai-compatible";
+    const providerOption = getProviderOption(provider);
+    const baseUrl = getCompatibleBaseUrl(input.baseUrl, providerOption?.defaultBaseUrl);
     const environmentValidator =
       this.dependencies.environmentValidator ?? new EnvironmentValidator();
     const environment = environmentValidator.getEnvironment();
@@ -50,12 +64,13 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
     const featureFlagService =
       this.dependencies.featureFlagService ?? new FeatureFlagService();
     const fallbackEnabled =
-      runtime !== "live" ||
-      environment === "local" ||
-      (await featureFlagService.isEnabled("agent.provider_mock_fallback_enabled", {
-        userId: input.userId,
-        workspaceId: input.workspaceId,
-      }));
+      input.allowMockFallback !== false &&
+      (runtime !== "live" ||
+        environment === "local" ||
+        (await featureFlagService.isEnabled("agent.provider_mock_fallback_enabled", {
+          userId: input.userId,
+          workspaceId: input.workspaceId,
+        })));
 
     if (!input.apiKey) {
       if (!fallbackEnabled) {
@@ -106,6 +121,7 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 
   private async openOpenAIResponse(input: ProviderStreamInput) {
     const fetcher = this.dependencies.fetcher ?? fetch;
+    const capability = getModelCapabilityProfile(input.model);
     const messages = injectTemporalAnchor([
       {
         content: buildSystemPrompt(input.payload),
@@ -113,13 +129,46 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
       },
       ...input.payload.messages.map(mapAgentMessageForLlm),
     ]);
-    const response = await fetcher(`${input.baseUrl}/chat/completions`, {
-      body: JSON.stringify({
+
+    if (capability?.apiFamily === "responses") {
+      const body = buildOpenAIResponsesBody({
         messages,
         model: input.model,
-        stream: true,
-        ...(supportsTemperature(input.model) ? { temperature: 0.65 } : {}),
-      }),
+        modelSettings: input.payload.modelSettings,
+        reasoningEffort:
+          input.payload.modelSettings?.reasoningEffort ?? input.payload.reasoningEffort,
+      });
+
+      const response = await fetcher(`${input.baseUrl}/responses`, {
+        body: JSON.stringify(body),
+        headers: {
+          Authorization: `Bearer ${input.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        signal: input.signal,
+      });
+
+      if (!response.ok || !response.body) {
+        throw new ApiError(
+          response.status === 429 ? "PROVIDER_RATE_LIMITED" : "PROVIDER_TIMEOUT",
+          `Provider request failed with status ${response.status}.`,
+          response.status === 429 ? 429 : 504,
+        );
+      }
+
+      return response;
+    }
+
+    const body = buildOpenAICompatibleChatBody({
+      messages,
+      model: input.model,
+      modelSettings: input.payload.modelSettings,
+      reasoningEffort:
+        input.payload.modelSettings?.reasoningEffort ?? input.payload.reasoningEffort,
+    });
+    const response = await fetcher(`${input.baseUrl}/chat/completions`, {
+      body: JSON.stringify(body),
       headers: {
         Authorization: `Bearer ${input.apiKey}`,
         "Content-Type": "application/json",
@@ -140,19 +189,22 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
   }
 }
 
-export function getCompatibleBaseUrl(value: string | null | undefined) {
-  const candidate = value?.replace(/[^\x20-\x7E]/g, "").trim() || DEFAULT_BASE_URL;
+export function getCompatibleBaseUrl(
+  value: string | null | undefined,
+  fallback = DEFAULT_BASE_URL,
+) {
+  const candidate = value?.replace(/[^\x20-\x7E]/g, "").trim() || fallback;
 
   try {
     const url = new URL(candidate);
 
     if (url.protocol !== "https:" && url.protocol !== "http:") {
-      return DEFAULT_BASE_URL;
+      return fallback;
     }
 
     return url.toString().replace(/\/$/, "");
   } catch {
-    return DEFAULT_BASE_URL;
+    return fallback;
   }
 }
 
@@ -179,18 +231,21 @@ function normalizeModel(model: string) {
   return candidate;
 }
 
-async function* createMockTokenStream(payload: AgentStreamRequest, signal: AbortSignal) {
+async function* createMockTokenStream(
+  payload: AgentStreamRequest,
+  signal: AbortSignal,
+): AsyncIterable<ProviderStreamDelta> {
   for (const token of buildMockReply(payload).split(/(\s+)/)) {
     if (signal.aborted) {
       return;
     }
 
-    yield token;
+    yield { type: "content", delta: token };
     await wait(18);
   }
 }
 
-async function* decodeOpenAIStream(response: Response) {
+async function* decodeOpenAIStream(response: Response): AsyncIterable<ProviderStreamDelta> {
   if (!response.body) {
     throw new ApiError("PROVIDER_TIMEOUT", "Provider returned an empty stream.", 504);
   }
@@ -224,18 +279,33 @@ async function* decodeOpenAIStream(response: Response) {
       }
 
       const chunk = JSON.parse(raw) as {
-        choices?: { delta?: { content?: string } }[];
+        choices?: { delta?: { content?: string; reasoning_content?: string } }[];
+        delta?: string;
+        type?: string;
       };
-      const token = chunk.choices?.[0]?.delta?.content;
+      const eventType = chunk.type;
+      const reasoning =
+        chunk.choices?.[0]?.delta?.reasoning_content ||
+        (eventType === "response.reasoning_summary_text.delta" ||
+        eventType === "response.reasoning_text.delta"
+          ? chunk.delta
+          : undefined);
+      const token =
+        chunk.choices?.[0]?.delta?.content ||
+        (eventType === "response.output_text.delta" ? chunk.delta : undefined);
 
+      if (reasoning) {
+        yield { type: "reasoning", delta: reasoning };
+      }
       if (token) {
-        yield token;
+        yield { type: "content", delta: token };
       }
     }
   }
 }
 
 function buildSystemPrompt(payload: AgentStreamRequest) {
+  const executionPrompt = payload.agent.executionPrompt?.trim();
   const memory = payload.agent.memory
     .map((block) => `- ${block.label}: ${block.content}`)
     .join("\n");
@@ -244,9 +314,12 @@ function buildSystemPrompt(payload: AgentStreamRequest) {
     .join("\n");
 
   return [
-    `You are ${payload.agent.identity}, callsign ${payload.agent.callsign}.`,
-    `Title: ${payload.agent.title}.`,
-    `Mission: ${payload.agent.mission}.`,
+    payload.agent.identity
+      ? `You are ${payload.agent.identity}, callsign ${payload.agent.callsign}.`
+      : `Callsign: ${payload.agent.callsign}.`,
+    payload.agent.title ? `Title: ${payload.agent.title}.` : "",
+    payload.agent.mission ? `Mission: ${payload.agent.mission}.` : "",
+    executionPrompt ? `Execution prompt:\n${executionPrompt}` : "",
     "Operate like an independent AI workstation inside NEXUS // AI OPS.",
     "Be concise, tactical, and specific. Prefer operator-ready output.",
     memory ? `Memory:\n${memory}` : "",
@@ -302,10 +375,101 @@ function mapAgentMessageForLlm(message: AgentStreamRequest["messages"][number]) 
   };
 }
 
-function supportsTemperature(model: string) {
-  const normalized = model.toLowerCase();
+export function buildOpenAICompatibleChatBody({
+  messages,
+  model,
+  reasoningEffort,
+  modelSettings,
+  stream = true,
+  temperature,
+}: {
+  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
+  model: string;
+  modelSettings?: AgentStreamRequest["modelSettings"];
+  reasoningEffort?: AgentStreamRequest["reasoningEffort"];
+  stream?: boolean;
+  temperature?: number;
+}) {
+  const capability = getModelCapabilityProfile(model);
+  const thinking = capability?.thinking;
+  const thinkingEnabled = Boolean(thinking?.supported && thinking.defaultEnabled);
+  const body: Record<string, unknown> = {
+    messages,
+    model,
+    stream,
+  };
 
-  return !normalized.startsWith("o") && !normalized.startsWith("gpt-5");
+  if (thinkingEnabled) {
+    if (thinking?.requestToggleParam === "thinking") {
+      body.thinking = { type: "enabled" };
+    }
+
+    if (thinking?.requestReasoningEffortParam === "reasoning_effort") {
+      body.reasoning_effort = mapReasoningEffortForModel(
+        model,
+        modelSettings?.reasoningEffort ?? reasoningEffort,
+      );
+    }
+
+    return body;
+  }
+
+  if (capability?.supportsTemperature) {
+    body.temperature =
+      modelSettings?.temperature ?? temperature ?? capability.defaultTemperature ?? 0.65;
+  }
+
+  return body;
+}
+
+export function buildOpenAIResponsesBody({
+  messages,
+  model,
+  modelSettings,
+  reasoningEffort,
+  stream = true,
+}: {
+  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
+  model: string;
+  modelSettings?: AgentStreamRequest["modelSettings"];
+  reasoningEffort?: AgentStreamRequest["reasoningEffort"];
+  stream?: boolean;
+}) {
+  const systemMessages = messages.filter((message) => message.role === "system");
+  const inputMessages = messages.filter((message) => message.role !== "system");
+  const capability = getModelCapabilityProfile(model);
+  const body: Record<string, unknown> = {
+    input: inputMessages.map((message) => ({
+      content: message.content,
+      role: message.role,
+    })),
+    instructions: systemMessages.map((message) => message.content).join("\n\n"),
+    model,
+    stream,
+  };
+  const effort = mapReasoningEffortForModel(
+    model,
+    modelSettings?.reasoningEffort ?? reasoningEffort,
+  );
+  const summary = mapReasoningDetailForModel(model, modelSettings?.reasoningDetail);
+
+  if (effort || summary) {
+    body.reasoning = {
+      ...(effort ? { effort } : {}),
+      ...(summary ? { summary } : {}),
+    };
+  }
+
+  if (capability?.verbosity.supported) {
+    body.text = {
+      verbosity:
+        modelSettings?.verbosity ??
+        capability.verbosity.defaultVerbosity ??
+        capability.verbosity.supportedVerbosity[0],
+    };
+  }
+
+  return body;
 }
 
 function sanitizeProviderError(error: unknown) {

@@ -277,6 +277,7 @@ describe("streaming contract", () => {
       identity: "test agent",
       memory: [],
       mission: "test stream",
+      executionPrompt: "",
       model: "gpt-4o-mini",
       provider: "mock",
       title: "Test Agent",

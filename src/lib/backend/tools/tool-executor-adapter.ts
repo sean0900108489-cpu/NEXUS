@@ -167,6 +167,7 @@ function makeRuntimeAgent(input: ToolExecutorAdapterInput): NexusAgent {
     createdAt: now,
     id: input.agentId ?? "tool-runtime-agent",
     identity: "NEXUS V7 tool runtime adapter",
+    executionPrompt: "",
     layout: {
       height: 320,
       width: 420,
@@ -180,6 +181,8 @@ function makeRuntimeAgent(input: ToolExecutorAdapterInput): NexusAgent {
     minimized: false,
     mission: `Execute ${input.resolution.registryToolId} for ${input.workspaceId}.`,
     model: "tool-runtime",
+    modelSettings: {},
+    profileLocked: false,
     provider: "tool-runtime",
     status: "thinking",
     telemetry: {

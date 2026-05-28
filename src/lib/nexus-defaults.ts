@@ -4,12 +4,17 @@ import type {
   MediaAgentCapabilityType,
   AgentLayout,
   AgentTemplate,
+  AgentTemplateProfile,
+  AgentTemplateProfileUpdate,
   NexusAgent,
   NexusWorkspace,
   WorkspaceBranchingSettings,
   WorkspaceGraphNode,
 } from "@/lib/nexus-types";
-import { DEFAULT_CHAT_MODEL_IDS } from "@/lib/nexus-registry";
+import {
+  DEFAULT_CHAT_MODEL_IDS,
+  normalizeAgentModelSettings,
+} from "@/lib/nexus-registry";
 
 export const WORKSPACE_SCHEMA_VERSION = 1;
 export const ACTIVE_WORKSPACE_ID = "workspace-nexus-ops";
@@ -91,199 +96,117 @@ export function getDefaultCapabilities(type: AgentCapabilityType) {
 
 export const agentTemplates: AgentTemplate[] = [
   {
-    id: "architect",
-    callsign: "ARCHITECT",
-    title: "System Architect",
-    identity: "Orion",
-    avatar: "OR",
+    id: "nexus-1",
+    callsign: "Nexus_1",
+    title: "Custom Agent",
+    identity: "",
+    avatar: "N1",
     accent: "#22d3ee",
-    mission:
-      "Map product intent into execution plans, technical architecture, and platform-grade interfaces.",
+    mission: "",
+    executionPrompt: "",
+    profileLocked: false,
     provider: "openai",
-    model: "gpt-5.5-pro-2026-04-23",
+    model: "gpt-5.5",
+    modelSettings: normalizeAgentModelSettings("gpt-5.5"),
     capabilities: getDefaultCapabilities("chat"),
-    memory: [
-      {
-        label: "Architecture bias",
-        content: "Favor modular boundaries, durable state, and clear upgrade paths.",
-        intensity: 86,
-      },
-      {
-        label: "Workspace doctrine",
-        content: "Every agent owns context, memory, mission, model, and tool surface.",
-        intensity: 74,
-      },
-    ],
-    contextNotes: [
-      {
-        title: "North star",
-        value: "Command center over chatbot.",
-        source: "mission",
-      },
-      {
-        title: "Platform vector",
-        value: "Prepare for workflows, collaboration, node graphs, and tools.",
-        source: "workspace",
-      },
-    ],
-    tools: [
-      {
-        name: "Spec Synth",
-        scope: "Planning",
-        status: "planned",
-      },
-      {
-        name: "Schema Forge",
-        scope: "Systems",
-        status: "planned",
-      },
-      {
-        name: "Project Scanner",
-        scope: "Local FS",
-        status: "available",
-        executorId: "real-file-scanner",
-      },
-      {
-        name: "Review Mesh",
-        scope: "Quality",
-        status: "available",
-        executorId: "mock.review-mesh",
-      },
-    ],
+    memory: [],
+    contextNotes: [],
+    tools: [],
   },
   {
-    id: "operator",
-    callsign: "OPERATOR",
-    title: "Code Operator",
-    identity: "Vega",
-    avatar: "VG",
+    id: "nuxus-2",
+    callsign: "Nuxus_2",
+    title: "Custom Agent",
+    identity: "",
+    avatar: "N2",
     accent: "#f472b6",
-    mission:
-      "Turn complex AI workflows into fast, legible, high-control operator experiences.",
+    mission: "",
+    executionPrompt: "",
+    profileLocked: false,
     provider: "openai",
-    model: "gpt-5.5-2026-04-23",
+    model: "gpt-5.5",
+    modelSettings: normalizeAgentModelSettings("gpt-5.5"),
     capabilities: getDefaultCapabilities("chat"),
-    memory: [
-      {
-        label: "Interface taste",
-        content: "Dense, scannable, tactile, and alive without becoming decorative.",
-        intensity: 82,
-      },
-      {
-        label: "Interaction model",
-        content: "Workstations can move, resize, collapse, and command their own streams.",
-        intensity: 78,
-      },
-    ],
-    contextNotes: [
-      {
-        title: "Surface",
-        value: "Multi-window operational IDE.",
-        source: "workspace",
-      },
-      {
-        title: "Control layer",
-        value: "Command palette, export/import, local persistence.",
-        source: "tool",
-      },
-    ],
-    tools: [
-      { name: "Flow Lens", scope: "UX", status: "planned" },
-      { name: "Layout Radar", scope: "Interface", status: "planned" },
-      { name: "Motion Rail", scope: "Transitions", status: "planned" },
-    ],
+    memory: [],
+    contextNotes: [],
+    tools: [],
   },
   {
-    id: "sentinel",
-    callsign: "SENTINEL",
-    title: "Debug Sentinel",
-    identity: "Cypher",
-    avatar: "CY",
+    id: "nuxus-3",
+    callsign: "Nuxus_3",
+    title: "Custom Agent",
+    identity: "",
+    avatar: "N3",
     accent: "#f59e0b",
-    mission:
-      "Watch the operating field for brittle states, missing constraints, and unsafe deployment assumptions.",
+    mission: "",
+    executionPrompt: "",
+    profileLocked: false,
     provider: "openai",
-    model: "gpt-5.5-2026-04-23",
+    model: "gpt-5.5",
+    modelSettings: normalizeAgentModelSettings("gpt-5.5"),
     capabilities: getDefaultCapabilities("chat"),
-    memory: [
-      {
-        label: "Guardrail stack",
-        content: "Keep secrets server-side, recover from missing API keys, and fail with signal.",
-        intensity: 91,
-      },
-      {
-        label: "Ops habit",
-        content: "Prefer observable state, importable snapshots, and clean fallback paths.",
-        intensity: 76,
-      },
-    ],
-    contextNotes: [
-      {
-        title: "Runtime",
-        value: "Mock stream by design when the server has no OPENAI_API_KEY.",
-        source: "tool",
-      },
-      {
-        title: "Continuity",
-        value: "Workspace materializes into persisted local state on first load.",
-        source: "memory",
-      },
-    ],
-    tools: [
-      { name: "Key Vault", scope: "Secrets", status: "planned" },
-      { name: "Stream Probe", scope: "Networking", status: "planned" },
-      { name: "Export Gate", scope: "Persistence", status: "planned" },
-    ],
+    memory: [],
+    contextNotes: [],
+    tools: [],
   },
   {
-    id: "archivist",
-    callsign: "ARCHIVIST",
-    title: "Knowledge Archivist",
-    identity: "Sable",
-    avatar: "AR",
+    id: "nexus-4",
+    callsign: "Nexus_4",
+    title: "Custom Agent",
+    identity: "",
+    avatar: "N4",
     accent: "#34d399",
-    mission:
-      "Summarize decisions, maintain documentation, compress context into reusable memory.",
+    mission: "",
+    executionPrompt: "",
+    profileLocked: false,
     provider: "openai",
-    model: "gpt-5.5-2026-04-23",
+    model: "gpt-5.5",
+    modelSettings: normalizeAgentModelSettings("gpt-5.5"),
     capabilities: getDefaultCapabilities("chat"),
-    memory: [
-      {
-        label: "Decision ledger",
-        content: "Capture the why, not just the outcome.",
-        intensity: 84,
-      },
-      {
-        label: "Compression habit",
-        content: "Turn long transcripts into reusable memory and documentation notes.",
-        intensity: 88,
-      },
-    ],
-    contextNotes: [
-      {
-        title: "Role",
-        value: "Documentation and memory synthesis.",
-        source: "mission",
-      },
-      {
-        title: "L1 boundary",
-        value: "Keep records reliable before adding full collaboration workflows.",
-        source: "workspace",
-      },
-    ],
-    tools: [
-      { name: "Decision Digest", scope: "Docs", status: "planned" },
-      { name: "Memory Compressor", scope: "Memory", status: "planned" },
-      {
-        name: "Web Surfer",
-        scope: "Web Context",
-        status: "available",
-        executorId: "web-surfer",
-      },
-      { name: "Context Index", scope: "Knowledge", status: "planned" },
-    ],
+    memory: [],
+    contextNotes: [],
+    tools: [],
   },
 ];
+
+export function resolveAgentTemplateProfile(
+  template: AgentTemplate,
+  profile?: Partial<AgentTemplateProfile> | null,
+): AgentTemplateProfile {
+  return {
+    callsign: profile?.callsign?.trim() || template.callsign,
+    title: profile?.title?.trim() || template.title,
+    identity:
+      typeof profile?.identity === "string" ? profile.identity : template.identity,
+    mission:
+      typeof profile?.mission === "string" ? profile.mission : template.mission,
+    executionPrompt:
+      typeof profile?.executionPrompt === "string"
+        ? profile.executionPrompt
+        : template.executionPrompt ?? "",
+    profileLocked:
+      typeof profile?.profileLocked === "boolean"
+        ? profile.profileLocked
+        : template.profileLocked ?? false,
+  };
+}
+
+export function applyAgentTemplateProfile(
+  template: AgentTemplate,
+  profile?: AgentTemplateProfileUpdate | null,
+): AgentTemplate {
+  const resolved = resolveAgentTemplateProfile(template, profile);
+
+  return {
+    ...template,
+    callsign: resolved.callsign,
+    title: resolved.title,
+    identity: resolved.identity,
+    mission: resolved.mission,
+    executionPrompt: resolved.executionPrompt,
+    profileLocked: resolved.profileLocked,
+  };
+}
 
 export const defaultLayouts: AgentLayout[] = [
   { x: 24, y: 64, width: 500, height: 560, zIndex: 3 },
@@ -300,10 +223,10 @@ export function getDefaultGraphPosition(index: number) {
 }
 
 export const defaultGraphNodes: WorkspaceGraphNode[] = [
-  { agentId: "agent-architect", ...getDefaultGraphPosition(0) },
-  { agentId: "agent-operator", ...getDefaultGraphPosition(1) },
-  { agentId: "agent-sentinel", ...getDefaultGraphPosition(3) },
-  { agentId: "agent-archivist", ...getDefaultGraphPosition(2) },
+  { agentId: "agent-nexus-1", ...getDefaultGraphPosition(0) },
+  { agentId: "agent-nuxus-2", ...getDefaultGraphPosition(1) },
+  { agentId: "agent-nuxus-3", ...getDefaultGraphPosition(2) },
+  { agentId: "agent-nexus-4", ...getDefaultGraphPosition(3) },
 ];
 
 export function makeId(prefix: string) {
@@ -331,8 +254,11 @@ export function createAgentFromTemplate(
     title: template.title,
     identity: template.identity,
     mission: template.mission,
+    executionPrompt: template.executionPrompt ?? "",
+    profileLocked: template.profileLocked ?? false,
     provider: template.provider,
     model: template.model,
+    modelSettings: normalizeAgentModelSettings(template.model, template.modelSettings),
     capabilities: template.capabilities
       ? {
           type: template.capabilities.type,
@@ -360,7 +286,9 @@ export function createAgentFromTemplate(
         id: `${id}-boot`,
         role: "assistant",
         createdAt: timestamp,
-        content: `${template.callsign} online. Mission loaded: ${template.mission}`,
+        content: template.mission
+          ? `${template.callsign} online. Mission loaded: ${template.mission}`
+          : `${template.callsign} online. Profile ready for operator configuration.`,
       },
     ],
     layout,
@@ -404,8 +332,11 @@ export function createMediaAgent(
     title,
     identity: image ? "Prism" : "Kinetix",
     mission,
+    executionPrompt: "",
+    profileLocked: false,
     provider,
     model,
+    modelSettings: normalizeAgentModelSettings(model),
     capabilities: getDefaultCapabilities(type),
     status: "idle",
     accent,
@@ -491,8 +422,11 @@ export function createSandboxAgent(
     title: "Live UI Sandbox",
     identity: "Canvas",
     mission: "Prototype raw HTML, CSS, and JavaScript in a live isolated preview.",
+    executionPrompt: "",
+    profileLocked: false,
     provider: "local-sandbox",
     model: "html-css-js",
+    modelSettings: normalizeAgentModelSettings("html-css-js"),
     capabilities: getDefaultCapabilities("sandbox"),
     sandboxCode: DEFAULT_SANDBOX_CODE,
     sandboxUrl: "",
@@ -602,15 +536,16 @@ export function createDefaultWorkspace(
       nodes: defaultGraphNodes,
       edges: [],
     },
-    activeAgentId: "agent-operator",
-    selectedAgentId: "agent-operator",
+    activeAgentId: "agent-nexus-1",
+    selectedAgentId: "agent-nexus-1",
     settings: {
       provider: "openai",
-      model: "gpt-4o-mini",
+      model: "gpt-5.5",
       streamMode: "mock",
       viewMode: "panels",
       autosave: true,
       branchingSettings: { ...DEFAULT_WORKSPACE_BRANCHING_SETTINGS },
+      agentTemplateProfiles: {},
     },
     createdAt: timestamp,
     updatedAt: timestamp,

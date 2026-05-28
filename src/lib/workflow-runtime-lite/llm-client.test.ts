@@ -89,6 +89,7 @@ function makeAgent(): NexusAgent {
     createdAt: new Date().toISOString(),
     id: "agent-test",
     identity: "test agent",
+    executionPrompt: "",
     layout: {
       height: 200,
       width: 320,
@@ -101,7 +102,9 @@ function makeAgent(): NexusAgent {
     minimized: false,
     mission: "test",
     model: "gpt-4o-mini",
+    modelSettings: {},
     messages: [],
+    profileLocked: false,
     provider: "openai-compatible",
     status: "idle",
     telemetry: {
@@ -153,6 +156,7 @@ function makeWorkspace(): NexusWorkspace {
       branchingSettings: {
         defaultRetentionRatio: 0.5,
       },
+      agentTemplateProfiles: {},
       model: "gpt-4o-mini",
       provider: "openai-compatible",
       streamMode: "live",

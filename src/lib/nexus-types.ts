@@ -26,6 +26,32 @@ export type StreamMode = "mock" | "live" | "mixed";
 
 export type WorkspaceViewMode = "panels" | "graph";
 
+export type NexusReasoningEffort =
+  | "none"
+  | "minimal"
+  | "low"
+  | "medium"
+  | "high"
+  | "xhigh";
+
+export type NexusVerbosity = "low" | "medium" | "high";
+
+export type NexusReasoningDetail = "low" | "medium" | "high";
+
+export type AgentModelSettings = {
+  reasoningEffort?: NexusReasoningEffort;
+  verbosity?: NexusVerbosity;
+  reasoningDetail?: NexusReasoningDetail;
+  temperature?: number;
+};
+
+export type AgentProfileUpdate = Partial<
+  Pick<
+    NexusAgent,
+    "callsign" | "title" | "identity" | "mission" | "executionPrompt" | "profileLocked"
+  >
+>;
+
 export type ToolStatus =
   | "available"
   | "planned"
@@ -44,6 +70,7 @@ export type AgentMessage = {
   createdAt: string;
   streaming?: boolean;
   interrupted?: boolean;
+  reasoningContent?: string;
   media?: AgentMediaArtifact;
 };
 
@@ -147,8 +174,11 @@ export type NexusAgent = {
   title: string;
   identity: string;
   mission: string;
+  executionPrompt: string;
+  profileLocked: boolean;
   provider: string;
   model: string;
+  modelSettings: AgentModelSettings;
   capabilities: AgentCapabilities;
   sandboxCode?: string;
   sandboxUrl?: string;
@@ -303,6 +333,7 @@ export type ModelLlmNodeData = {
   label?: string;
   prompt: string;
   model: string;
+  modelSettings?: AgentModelSettings;
   provider?: string;
 };
 
@@ -441,6 +472,7 @@ export type WorkspaceSettings = {
   viewMode: WorkspaceViewMode;
   autosave: boolean;
   branchingSettings: WorkspaceBranchingSettings;
+  agentTemplateProfiles: Record<string, AgentTemplateProfile>;
 };
 
 export interface IAuthVault {
@@ -448,7 +480,17 @@ export interface IAuthVault {
   globalApiKey: string | null;
   globalBaseUrl: string | null;
   isLocked: boolean;
+  providerCredentials?: Record<string, ProviderCredentialRecord>;
 }
+
+export type ProviderCredentialRecord = {
+  apiKey: string | null;
+  baseUrl: string | null;
+  isLocked: boolean;
+  liveVerifiedAt?: string | null;
+  verificationStatus?: "untested" | "verified" | "failed";
+  verificationError?: string | null;
+};
 
 export type NexusWorkspace = {
   id: string;
@@ -490,18 +532,33 @@ export type AgentTemplate = {
   avatar: string;
   accent: string;
   mission: string;
+  executionPrompt?: string;
+  profileLocked?: boolean;
   provider: string;
   model: string;
   capabilities?: AgentCapabilities;
+  modelSettings?: AgentModelSettings;
   memory: Omit<AgentMemoryBlock, "id" | "updatedAt">[];
   contextNotes: Omit<AgentContextNote, "id">[];
   tools: Omit<AgentTool, "id" | "lastRunAt" | "result" | "error">[];
 };
 
+export type AgentTemplateProfile = {
+  callsign: string;
+  title: string;
+  identity: string;
+  mission: string;
+  executionPrompt: string;
+  profileLocked: boolean;
+};
+
+export type AgentTemplateProfileUpdate = Partial<AgentTemplateProfile>;
+
 export type WorkspaceSnapshot = {
   schemaVersion: 1;
   exportedAt: string;
   workspace: NexusWorkspace;
+  notebooks?: NotebookRecord[];
 };
 
 export type WorkspaceCloudSnapshotType =
@@ -538,12 +595,15 @@ export type WorkspaceCloudSnapshotAgent = Pick<
   | "createdAt"
   | "id"
   | "identity"
+  | "executionPrompt"
   | "layout"
   | "maximized"
   | "memory"
   | "minimized"
   | "mission"
+  | "profileLocked"
   | "model"
+  | "modelSettings"
   | "previousLayout"
   | "provider"
   | "title"
@@ -964,10 +1024,13 @@ export type WorkflowTemplateAgentBlueprint = Pick<
   | "contextNotes"
   | "id"
   | "identity"
+  | "executionPrompt"
   | "layout"
   | "memory"
   | "mission"
+  | "profileLocked"
   | "model"
+  | "modelSettings"
   | "provider"
   | "sandboxCode"
   | "sandboxUrl"
@@ -1410,7 +1473,8 @@ export interface IStateSyncManager {
 }
 
 export type AgentStreamRequest = {
-  globalApiKey?: string;
+  reasoningEffort?: NexusReasoningEffort;
+  modelSettings?: AgentModelSettings;
   taskId?: string;
   sessionId?: string;
   outputMessageId?: string;
@@ -1422,6 +1486,7 @@ export type AgentStreamRequest = {
     | "callsign"
     | "title"
     | "mission"
+    | "executionPrompt"
     | "provider"
     | "model"
     | "memory"

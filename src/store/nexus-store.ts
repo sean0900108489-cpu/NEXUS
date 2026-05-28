@@ -11,14 +11,14 @@ import {
   DEFAULT_BASE_URL,
   DEFAULT_WORKSPACE_BRANCHING_SETTINGS,
   agentTemplates,
+  applyAgentTemplateProfile,
   createAgentFromTemplate,
   createDefaultWorkspace,
   createMediaAgent,
   createSandboxAgent,
-  defaultGraphNodes,
-  defaultLayouts,
   getDefaultGraphPosition,
   makeId,
+  resolveAgentTemplateProfile,
 } from "@/lib/nexus-defaults";
 import { NexusApiError, nexusApiClient } from "@/lib/api/nexus-api-client";
 import { HistoricalDataFetcher } from "@/lib/backend/history/historical-data-fetcher";
@@ -27,6 +27,11 @@ import { getNexusSupabaseClient } from "@/lib/supabase/client";
 import { createWorkspaceSnapshot, sanitizeWorkspace, validateWorkspaceSnapshot } from "@/lib/workspace-kernel";
 import type { ToolExecutorInput } from "@/lib/tool-executors";
 import { LlmMemoryCompressor } from "@/lib/adapters/memory-compression-adapter";
+import {
+  getModelOption,
+  getProviderOption,
+  normalizeAgentModelSettings,
+} from "@/lib/nexus-registry";
 import {
   createWorkflowRuntimeLlmCall,
   resolveWorkflowRuntimeExecutionAgent,
@@ -47,8 +52,11 @@ import type {
   AgentBranchingStatus,
   AgentCreationCapabilityType,
   AgentLayout,
+  AgentModelSettings,
   AgentMessage,
+  AgentProfileUpdate,
   AgentStatus,
+  AgentTemplateProfileUpdate,
   ArtifactVaultCache,
   ArtifactVaultRecord,
   HistoricalDataPage,
@@ -119,6 +127,7 @@ const DEFAULT_AUTH_VAULT: IAuthVault = {
   globalApiKey: null,
   globalBaseUrl: DEFAULT_BASE_URL,
   isLocked: true,
+  providerCredentials: {},
 };
 
 function normalizeAuthVault(value: unknown): IAuthVault {
@@ -140,7 +149,44 @@ function normalizeAuthVault(value: unknown): IAuthVault {
         ? vault.globalBaseUrl.trim()
         : DEFAULT_BASE_URL,
     isLocked: vault.isLocked ?? Boolean(globalApiKey),
+    providerCredentials: normalizeProviderCredentials(vault.providerCredentials),
   };
+}
+
+function normalizeProviderCredentials(value: unknown): IAuthVault["providerCredentials"] {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  return Object.entries(value as Record<string, unknown>).reduce<
+    NonNullable<IAuthVault["providerCredentials"]>
+  >((credentials, [providerId, entry]) => {
+    if (!entry || typeof entry !== "object") {
+      return credentials;
+    }
+
+    const record = entry as NonNullable<IAuthVault["providerCredentials"]>[string];
+    const apiKey =
+      typeof record.apiKey === "string" && record.apiKey.trim()
+        ? record.apiKey
+        : null;
+    const provider = getProviderOption(providerId);
+    const baseUrl =
+      typeof record.baseUrl === "string" && record.baseUrl.trim()
+        ? record.baseUrl.trim()
+        : provider?.defaultBaseUrl ?? null;
+
+    credentials[providerId] = {
+      apiKey,
+      baseUrl,
+      isLocked: record.isLocked ?? Boolean(apiKey),
+      liveVerifiedAt: record.liveVerifiedAt ?? null,
+      verificationStatus: record.verificationStatus ?? "untested",
+      verificationError: record.verificationError ?? null,
+    };
+
+    return credentials;
+  }, {});
 }
 
 const EMPTY_ARTIFACT_VAULT_CACHE: ArtifactVaultCache = {
@@ -268,7 +314,7 @@ type NexusStore = {
   switchWorkspace: (workspaceId: string) => void;
   renameWorkspace: (name: string) => void;
   exportActiveWorkspace: () => WorkspaceSnapshot;
-  importWorkspace: (snapshot: unknown) => void;
+  importWorkspace: (snapshot: WorkspaceSnapshot) => void;
   spawnAgent: (templateId?: string, capabilityType?: AgentCreationCapabilityType) => string;
   branchAgent: (
     sourceAgentId: string,
@@ -285,12 +331,30 @@ type NexusStore = {
   focusAgent: (agentId: string) => void;
   selectAgent: (agentId: string) => void;
   updateLayout: (agentId: string, layout: Partial<AgentLayout>) => void;
+  updateAgentProfile: (agentId: string, profile: AgentProfileUpdate) => void;
+  updateAgentCallsign: (agentId: string, callsign: string) => void;
+  setAgentProfileLocked: (agentId: string, locked: boolean) => void;
   updateAgentMission: (agentId: string, mission: string) => void;
   updateAgentModel: (agentId: string, model: string) => void;
+  updateAgentModelSettings: (agentId: string, settings: Partial<AgentModelSettings>) => void;
+  updateAgentTemplateProfile: (
+    templateId: string,
+    profile: AgentTemplateProfileUpdate,
+  ) => void;
   login: (user: IAuthVault["user"]) => void;
   logout: () => void;
   setGlobalApiKey: (key: string) => void;
   setGlobalBaseUrl: (baseUrl: string) => void;
+  setProviderApiKey: (providerId: string, key: string) => void;
+  setProviderBaseUrl: (providerId: string, baseUrl: string) => void;
+  setProviderVerificationStatus: (
+    providerId: string,
+    status: "untested" | "verified" | "failed",
+    error?: string,
+  ) => void;
+  lockProviderCredential: (providerId: string) => void;
+  unlockProviderCredential: (providerId: string) => void;
+  deleteProviderCredential: (providerId: string) => void;
   lockVault: () => void;
   unlockVault: () => void;
   deleteApiKey: () => void;
@@ -320,6 +384,7 @@ type NexusStore = {
   arrangeAgents: (bounds: WorkspaceBounds) => void;
   addMessage: (agentId: string, message: AgentMessage) => void;
   appendToMessage: (agentId: string, messageId: string, token: string) => void;
+  appendReasoningToMessage: (agentId: string, messageId: string, token: string) => void;
   finishMessage: (
     agentId: string,
     messageId: string,
@@ -374,17 +439,20 @@ function partializeTemporalState(state: NexusStore): NexusTemporalState {
 function temporalWorkspaceSignature(workspace: NexusWorkspace) {
   return {
     activeAgentId: workspace.activeAgentId,
-    agents: workspace.agents.map((agent) => ({
-      callsign: agent.callsign,
-      capabilities: agent.capabilities,
-      id: agent.id,
-      identity: agent.identity,
-      layout: agent.layout,
-      maximized: agent.maximized,
-      minimized: agent.minimized,
-      mission: agent.mission,
-      model: agent.model,
-      previousLayout: agent.previousLayout,
+      agents: workspace.agents.map((agent) => ({
+        callsign: agent.callsign,
+        capabilities: agent.capabilities,
+        id: agent.id,
+        identity: agent.identity,
+        executionPrompt: agent.executionPrompt,
+        layout: agent.layout,
+        maximized: agent.maximized,
+        minimized: agent.minimized,
+        mission: agent.mission,
+        profileLocked: agent.profileLocked,
+        model: agent.model,
+        modelSettings: agent.modelSettings,
+        previousLayout: agent.previousLayout,
       provider: agent.provider,
       title: agent.title,
     })),
@@ -629,8 +697,14 @@ function createAgentFromMacroBlueprint({
     title: blueprint.title || "Macro Agent",
     identity: blueprint.identity || "Macro",
     mission: blueprint.mission || "Execute this saved workflow blueprint.",
+    executionPrompt: blueprint.executionPrompt || "",
+    profileLocked: blueprint.profileLocked ?? false,
     provider: blueprint.provider || "openai",
     model: blueprint.model || "gpt-4o-mini",
+    modelSettings: normalizeAgentModelSettings(
+      blueprint.model || "gpt-4o-mini",
+      blueprint.modelSettings,
+    ),
     capabilities: blueprint.capabilities ?? {
       type: "chat",
       supportedModels: DEFAULT_CHAT_SUPPORTED_MODELS,
@@ -894,21 +968,39 @@ function upsertWorkflowRun(runs: WorkflowRun[], run: WorkflowRun) {
 }
 
 function resolveStreamMode(_workspace: NexusWorkspace | undefined, authVault?: IAuthVault): StreamMode {
-  return authVault?.globalApiKey?.trim() ? "live" : "mock";
+  return authVault?.globalApiKey?.trim() ||
+    Object.values(authVault?.providerCredentials ?? {}).some((entry) => entry.apiKey?.trim())
+    ? "live"
+    : "mock";
 }
 
-function getDefaultChatModelForAgent(agent: Pick<NexusAgent, "callsign">) {
-  return agent.callsign === "ARCHITECT"
-    ? "gpt-5.5-pro-2026-04-23"
-    : "gpt-5.5-2026-04-23";
+function getDefaultChatModelForAgent() {
+  return DEFAULT_CHAT_SUPPORTED_MODELS.includes("gpt-5.5")
+    ? "gpt-5.5"
+    : DEFAULT_CHAT_SUPPORTED_MODELS[0] ?? "gpt-4o-mini";
 }
 
 function normalizeAgentModelCatalog(agent: NexusAgent): NexusAgent {
+  const candidate = agent as NexusAgent & {
+    executionPrompt?: unknown;
+    profileLocked?: unknown;
+  };
+  const profileFields = {
+    executionPrompt:
+      typeof candidate.executionPrompt === "string" ? candidate.executionPrompt : "",
+    profileLocked:
+      typeof candidate.profileLocked === "boolean" ? candidate.profileLocked : false,
+  };
+
   if ((agent.capabilities?.type ?? "chat") !== "chat") {
-    return agent;
+    return {
+      ...agent,
+      ...profileFields,
+      modelSettings: normalizeAgentModelSettings(agent.model, agent.modelSettings),
+    };
   }
 
-  const model = agent.model?.trim() || getDefaultChatModelForAgent(agent);
+  const model = agent.model?.trim() || getDefaultChatModelForAgent();
   const supportedModels = Array.from(
     new Set([
       model,
@@ -919,7 +1011,9 @@ function normalizeAgentModelCatalog(agent: NexusAgent): NexusAgent {
 
   return {
     ...agent,
+    ...profileFields,
     model,
+    modelSettings: normalizeAgentModelSettings(model, agent.modelSettings),
     capabilities: {
       ...(agent.capabilities ?? { type: "chat", supportedModels: [] }),
       type: "chat",
@@ -986,9 +1080,12 @@ function createWorkflowTemplateBlueprint(
       callsign: agent.callsign,
       title: agent.title,
       identity: agent.identity,
+      executionPrompt: agent.executionPrompt,
       mission: agent.mission,
+      profileLocked: agent.profileLocked,
       provider: agent.provider,
       model: agent.model,
+      modelSettings: clone(agent.modelSettings),
       capabilities: clone(agent.capabilities),
       sandboxCode: agent.sandboxCode,
       sandboxUrl: agent.sandboxUrl,
@@ -1117,27 +1214,6 @@ function clampLayout(layout: AgentLayout, bounds: WorkspaceBounds) {
 function normalizeWorkspaces(workspaces: NexusWorkspace[] | undefined) {
   const fallback = initialWorkspace();
   const sanitized = (workspaces?.length ? workspaces : [fallback]).map(sanitizeWorkspace);
-  const active = sanitized[0];
-  const callsigns = new Set(active.agents.map((agent) => agent.callsign));
-
-  if (!callsigns.has("ARCHIVIST")) {
-    const template = agentTemplates.find((agent) => agent.id === "archivist");
-
-    if (template) {
-      active.agents.push(
-        createAgentFromTemplate(
-          template,
-          "agent-archivist",
-          defaultLayouts[3],
-          new Date().toISOString(),
-        ),
-      );
-      active.graph = {
-        nodes: [...(active.graph?.nodes ?? []), defaultGraphNodes[3]],
-        edges: active.graph?.edges ?? [],
-      };
-    }
-  }
 
   return sanitized
     .map((workspace) => ({
@@ -1145,6 +1221,7 @@ function normalizeWorkspaces(workspaces: NexusWorkspace[] | undefined) {
       agents: workspace.agents.map(normalizeAgentModelCatalog),
       settings: {
         ...workspace.settings,
+        agentTemplateProfiles: workspace.settings.agentTemplateProfiles ?? {},
         branchingSettings: normalizeBranchingSettings(
           workspace.settings.branchingSettings,
         ),
@@ -1156,9 +1233,10 @@ function normalizeWorkspaces(workspaces: NexusWorkspace[] | undefined) {
 function prepareWorkspacesForLocalPersistence(workspaces: NexusWorkspace[]) {
   return normalizeWorkspaces(workspaces).map((workspace) => ({
     ...workspace,
-    settings: {
-      ...workspace.settings,
-    },
+      settings: {
+        ...workspace.settings,
+        agentTemplateProfiles: workspace.settings.agentTemplateProfiles ?? {},
+      },
   }));
 }
 
@@ -1183,7 +1261,7 @@ export const useNexusStore = create<NexusStore>()(
       (set, get) => ({
       activeWorkspaceId: ACTIVE_WORKSPACE_ID,
       workspaces: [initialWorkspace()],
-      selectedAgentId: "agent-operator",
+      selectedAgentId: "agent-nexus-1",
       nextZIndex: 10,
       streamMode: "mock",
       viewMode: "panels",
@@ -1229,6 +1307,13 @@ export const useNexusStore = create<NexusStore>()(
           lastSavedAt: now,
         }));
         queueWorkspaceCloudSync(workspace);
+        get().notebooksCache.forEach((notebook) => {
+          void supabaseStateSyncManager
+            .upsertNotebook(notebook, notebook.workspace_id ?? workspace?.id)
+            .catch((error) => {
+              console.error("[Datapad Save Sync Error]:", error);
+            });
+        });
       },
 
       createWorkspace: () => {
@@ -1293,8 +1378,11 @@ export const useNexusStore = create<NexusStore>()(
       },
 
       exportActiveWorkspace: () => {
-        const workspace = getActiveWorkspace(get());
-        return createWorkspaceSnapshot(workspace);
+        const state = get();
+        const workspace = getActiveWorkspace(state);
+        return createWorkspaceSnapshot(workspace, {
+          notebooks: state.notebooksCache,
+        });
       },
 
       importWorkspace: (snapshot) => {
@@ -1311,6 +1399,7 @@ export const useNexusStore = create<NexusStore>()(
         set({
           activeWorkspaceId: workspace.id,
           workspaces: [workspace],
+          notebooksCache: sortNotebooks(snapshot.notebooks ?? get().notebooksCache),
           selectedAgentId: workspace.selectedAgentId ?? workspace.agents[0]?.id,
           nextZIndex: highestZ + 1,
           streamMode: resolveStreamMode(workspace, get().authVault),
@@ -1320,14 +1409,25 @@ export const useNexusStore = create<NexusStore>()(
         });
         queueWorkspaceCloudSync(workspace);
         queuePromptsCacheRefresh(workspace.id);
+        (snapshot.notebooks ?? []).forEach((notebook) => {
+          void supabaseStateSyncManager
+            .upsertNotebook(notebook, notebook.workspace_id ?? workspace.id)
+            .catch((error) => {
+              console.error("[Datapad Import Sync Error]:", error);
+            });
+        });
       },
 
       spawnAgent: (templateId, capabilityType = "chat") => {
         const state = get();
         const workspace = getActiveWorkspace(state);
-        const template =
+        const baseTemplate =
           agentTemplates.find((candidate) => candidate.id === templateId) ??
           agentTemplates[workspace.agents.length % agentTemplates.length];
+        const template = applyAgentTemplateProfile(
+          baseTemplate,
+          workspace.settings.agentTemplateProfiles?.[baseTemplate.id],
+        );
         const id = makeId("agent");
         const nextZIndex = state.nextZIndex + 1;
         const offset = workspace.agents.length * 34;
@@ -1853,15 +1953,62 @@ export const useNexusStore = create<NexusStore>()(
         }));
       },
 
-      updateAgentMission: (agentId, mission) => {
+      updateAgentProfile: (agentId, profile) => {
+        const callsign = profile.callsign?.trim();
+        const title = profile.title?.trim();
+
         set((state) => ({
           workspaces: withActiveWorkspace(state, (workspace) =>
-            withAgent(workspace, agentId, (agent) => ({
-              ...agent,
-              mission,
-            })),
+            withAgent(workspace, agentId, (agent) => {
+              const profileLocked =
+                typeof profile.profileLocked === "boolean"
+                  ? profile.profileLocked
+                  : agent.profileLocked;
+
+              if (agent.profileLocked && profile.profileLocked !== false) {
+                return {
+                  ...agent,
+                  profileLocked,
+                  updatedAt: new Date().toISOString(),
+                };
+              }
+
+              return {
+                ...agent,
+                callsign: callsign || agent.callsign,
+                title: title || agent.title,
+                identity:
+                  typeof profile.identity === "string" ? profile.identity : agent.identity,
+                mission:
+                  typeof profile.mission === "string" ? profile.mission : agent.mission,
+                executionPrompt:
+                  typeof profile.executionPrompt === "string"
+                    ? profile.executionPrompt
+                    : agent.executionPrompt,
+                profileLocked,
+                updatedAt: new Date().toISOString(),
+              };
+            }),
           ),
         }));
+      },
+
+      updateAgentCallsign: (agentId, callsign) => {
+        const nextCallsign = callsign.trim();
+
+        if (!nextCallsign) {
+          return;
+        }
+
+        get().updateAgentProfile(agentId, { callsign: nextCallsign });
+      },
+
+      setAgentProfileLocked: (agentId, locked) => {
+        get().updateAgentProfile(agentId, { profileLocked: locked });
+      },
+
+      updateAgentMission: (agentId, mission) => {
+        get().updateAgentProfile(agentId, { mission });
       },
 
       updateAgentModel: (agentId, model) => {
@@ -1871,11 +2018,16 @@ export const useNexusStore = create<NexusStore>()(
           return;
         }
 
+        const nextProvider = getModelOption(nextModel)?.provider;
+
         set((state) => ({
           workspaces: withActiveWorkspace(state, (workspace) =>
             withAgent(workspace, agentId, (agent) => ({
               ...agent,
               model: nextModel,
+              provider: nextProvider ?? agent.provider,
+              modelSettings: normalizeAgentModelSettings(nextModel, agent.modelSettings),
+              updatedAt: new Date().toISOString(),
               capabilities: {
                 ...agent.capabilities,
                 supportedModels: Array.from(
@@ -1884,6 +2036,76 @@ export const useNexusStore = create<NexusStore>()(
               },
             })),
           ),
+        }));
+      },
+
+      updateAgentModelSettings: (agentId, settings) => {
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withAgent(workspace, agentId, (agent) => ({
+              ...agent,
+              modelSettings: normalizeAgentModelSettings(agent.model, {
+                ...agent.modelSettings,
+                ...settings,
+              }),
+              updatedAt: new Date().toISOString(),
+            })),
+          ),
+        }));
+      },
+
+      updateAgentTemplateProfile: (templateId, profile) => {
+        const template = agentTemplates.find((candidate) => candidate.id === templateId);
+
+        if (!template) {
+          return;
+        }
+
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) => {
+            const currentProfiles = workspace.settings.agentTemplateProfiles ?? {};
+            const currentProfile = resolveAgentTemplateProfile(
+              template,
+              currentProfiles[templateId],
+            );
+            const nextLocked =
+              typeof profile.profileLocked === "boolean"
+                ? profile.profileLocked
+                : currentProfile.profileLocked;
+
+            if (currentProfile.profileLocked && profile.profileLocked !== false) {
+              return {
+                ...workspace,
+                settings: {
+                  ...workspace.settings,
+                  agentTemplateProfiles: {
+                    ...currentProfiles,
+                    [templateId]: {
+                      ...currentProfile,
+                      profileLocked: nextLocked,
+                    },
+                  },
+                },
+                updatedAt: new Date().toISOString(),
+              };
+            }
+
+            return {
+              ...workspace,
+              settings: {
+                ...workspace.settings,
+                agentTemplateProfiles: {
+                  ...currentProfiles,
+                  [templateId]: resolveAgentTemplateProfile(template, {
+                    ...currentProfile,
+                    ...profile,
+                    profileLocked: nextLocked,
+                  }),
+                },
+              },
+              updatedAt: new Date().toISOString(),
+            };
+          }),
         }));
       },
 
@@ -1924,7 +2146,13 @@ export const useNexusStore = create<NexusStore>()(
               globalApiKey,
               isLocked: Boolean(globalApiKey),
             },
-            streamMode: globalApiKey ? "live" : "mock",
+            streamMode:
+              globalApiKey ||
+              Object.values(state.authVault.providerCredentials ?? {}).some((entry) =>
+                entry.apiKey?.trim(),
+              )
+                ? "live"
+                : "mock",
           };
         });
       },
@@ -1939,6 +2167,151 @@ export const useNexusStore = create<NexusStore>()(
             globalBaseUrl,
           },
         }));
+      },
+
+      setProviderApiKey: (providerId, key) => {
+        const sanitizedKey = key.replace(/[^\x20-\x7E]/g, "").trim();
+        const provider = getProviderOption(providerId);
+
+        set((state) => {
+          const current = state.authVault.providerCredentials?.[providerId];
+
+          return {
+            authVault: {
+              ...state.authVault,
+              providerCredentials: {
+                ...(state.authVault.providerCredentials ?? {}),
+                [providerId]: {
+                  apiKey: sanitizedKey || null,
+                  baseUrl: current?.baseUrl ?? provider?.defaultBaseUrl ?? null,
+                  isLocked: Boolean(sanitizedKey),
+                  liveVerifiedAt: sanitizedKey ? current?.liveVerifiedAt ?? null : null,
+                  verificationError: null,
+                  verificationStatus: sanitizedKey
+                    ? current?.verificationStatus ?? "untested"
+                    : "untested",
+                },
+              },
+            },
+            streamMode: sanitizedKey || state.authVault.globalApiKey ? "live" : "mock",
+          };
+        });
+      },
+
+      setProviderBaseUrl: (providerId, baseUrl) => {
+        const sanitizedBaseUrl = baseUrl.replace(/[^\x20-\x7E]/g, "").trim();
+        const provider = getProviderOption(providerId);
+
+        set((state) => {
+          const current = state.authVault.providerCredentials?.[providerId];
+
+          return {
+            authVault: {
+              ...state.authVault,
+              providerCredentials: {
+                ...(state.authVault.providerCredentials ?? {}),
+                [providerId]: {
+                  apiKey: current?.apiKey ?? null,
+                  baseUrl: sanitizedBaseUrl || provider?.defaultBaseUrl || null,
+                  isLocked: current?.isLocked ?? Boolean(current?.apiKey),
+                  liveVerifiedAt: null,
+                  verificationError: null,
+                  verificationStatus: "untested",
+                },
+              },
+            },
+          };
+        });
+      },
+
+      setProviderVerificationStatus: (providerId, status, error) => {
+        set((state) => {
+          const provider = getProviderOption(providerId);
+          const current = state.authVault.providerCredentials?.[providerId];
+
+          return {
+            authVault: {
+              ...state.authVault,
+              providerCredentials: {
+                ...(state.authVault.providerCredentials ?? {}),
+                [providerId]: {
+                  apiKey: current?.apiKey ?? null,
+                  baseUrl: current?.baseUrl ?? provider?.defaultBaseUrl ?? null,
+                  isLocked: current?.isLocked ?? Boolean(current?.apiKey),
+                  liveVerifiedAt: status === "verified" ? new Date().toISOString() : null,
+                  verificationError: status === "failed" ? error ?? "Verification failed." : null,
+                  verificationStatus: status,
+                },
+              },
+            },
+          };
+        });
+      },
+
+      lockProviderCredential: (providerId) => {
+        set((state) => {
+          const provider = getProviderOption(providerId);
+          const current = state.authVault.providerCredentials?.[providerId];
+
+          return {
+            authVault: {
+              ...state.authVault,
+              providerCredentials: {
+                ...(state.authVault.providerCredentials ?? {}),
+                [providerId]: {
+                  apiKey: current?.apiKey ?? null,
+                  baseUrl: current?.baseUrl ?? provider?.defaultBaseUrl ?? null,
+                  isLocked: true,
+                  liveVerifiedAt: current?.liveVerifiedAt ?? null,
+                  verificationError: current?.verificationError ?? null,
+                  verificationStatus: current?.verificationStatus ?? "untested",
+                },
+              },
+            },
+          };
+        });
+      },
+
+      unlockProviderCredential: (providerId) => {
+        set((state) => {
+          const provider = getProviderOption(providerId);
+          const current = state.authVault.providerCredentials?.[providerId];
+
+          return {
+            authVault: {
+              ...state.authVault,
+              providerCredentials: {
+                ...(state.authVault.providerCredentials ?? {}),
+                [providerId]: {
+                  apiKey: current?.apiKey ?? null,
+                  baseUrl: current?.baseUrl ?? provider?.defaultBaseUrl ?? null,
+                  isLocked: false,
+                  liveVerifiedAt: current?.liveVerifiedAt ?? null,
+                  verificationError: current?.verificationError ?? null,
+                  verificationStatus: current?.verificationStatus ?? "untested",
+                },
+              },
+            },
+          };
+        });
+      },
+
+      deleteProviderCredential: (providerId) => {
+        set((state) => {
+          const nextCredentials = { ...(state.authVault.providerCredentials ?? {}) };
+          delete nextCredentials[providerId];
+
+          return {
+            authVault: {
+              ...state.authVault,
+              providerCredentials: nextCredentials,
+            },
+            streamMode:
+              state.authVault.globalApiKey || Object.values(nextCredentials).some((entry) => entry.apiKey)
+                ? "live"
+                : "mock",
+          };
+        });
       },
 
       lockVault: () => {
@@ -1966,7 +2339,11 @@ export const useNexusStore = create<NexusStore>()(
             globalApiKey: null,
             isLocked: false,
           },
-          streamMode: "mock",
+          streamMode: Object.values(state.authVault.providerCredentials ?? {}).some((entry) =>
+            entry.apiKey?.trim(),
+          )
+            ? "live"
+            : "mock",
         }));
       },
 
@@ -2544,6 +2921,24 @@ export const useNexusStore = create<NexusStore>()(
         }));
       },
 
+      appendReasoningToMessage: (agentId, messageId, token) => {
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withAgent(workspace, agentId, (agent) => ({
+              ...agent,
+              messages: agent.messages.map((message) =>
+                message.id === messageId
+                  ? {
+                      ...message,
+                      reasoningContent: `${message.reasoningContent ?? ""}${token}`,
+                    }
+                  : message,
+              ),
+            })),
+          ),
+        }));
+      },
+
       finishMessage: (agentId, messageId, fallback, interrupted) => {
         const state = get();
         const workspace = getActiveWorkspace(state);
@@ -3107,7 +3502,7 @@ export const useNexusStore = create<NexusStore>()(
     {
       name: PERSIST_STORAGE_NAME,
       storage: createJSONStorage(() => indexedDbStateStorage),
-      version: 10,
+      version: 13,
       onRehydrateStorage: () => (state) => {
         state?.materializeDefaultWorkspace();
         logHydratedMemoryState(state);
@@ -3117,7 +3512,7 @@ export const useNexusStore = create<NexusStore>()(
           return {
             activeWorkspaceId: ACTIVE_WORKSPACE_ID,
             workspaces: [initialWorkspace()],
-            selectedAgentId: "agent-operator",
+            selectedAgentId: "agent-nexus-1",
             nextZIndex: 10,
             streamMode: "mock",
             viewMode: "panels",
@@ -3176,7 +3571,7 @@ export const useNexusStore = create<NexusStore>()(
         return {
           activeWorkspaceId: ACTIVE_WORKSPACE_ID,
           workspaces: [initialWorkspace()],
-          selectedAgentId: "agent-operator",
+          selectedAgentId: "agent-nexus-1",
           nextZIndex: 10,
           streamMode: "mock",
           viewMode: "panels",

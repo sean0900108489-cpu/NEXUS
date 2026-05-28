@@ -1,4 +1,7 @@
-import { DEFAULT_CHAT_MODEL_IDS } from "@/lib/nexus-registry";
+import {
+  DEFAULT_CHAT_MODEL_IDS,
+  normalizeAgentModelSettings,
+} from "@/lib/nexus-registry";
 import type {
   InputTextNodeData,
   ModelLlmNodeData,
@@ -51,6 +54,7 @@ export const WORKFLOW_RUNTIME_NODE_DEFINITIONS = {
       ({
         label: "LLM",
         model: defaultModel,
+        modelSettings: normalizeAgentModelSettings(defaultModel),
         prompt: "Use the upstream context and respond clearly.",
       }) satisfies ModelLlmNodeData,
   },

@@ -285,3 +285,49 @@
 ```text
 You are extending NEXUS // AI OPS after V10. First read NEXUS_POST_V10_ARCHITECTURE_SCAN.md, then inspect the relevant registry and UI files before coding. Implement the next feature as an additive extension socket, for example Infinite Canvas / tldraw inside the center workspace, while preserving V1-V10 boundaries: no Vector DB, no semantic search lifecycle, no second sync queue, no full historical messages/memory/artifacts in Zustand or IndexedDB root state, and no rewrite of the backend foundation. If an integration point is unclear, mark it Needs verification before implementing.
 ```
+
+## 10. V11/V13 Model And Agent Customization Upgrade
+
+Implemented extension points:
+
+- Agent-level model tuning lives on `NexusAgent.modelSettings` in `src/lib/nexus-types.ts`.
+- Agent-level custom execution text lives on `NexusAgent.executionPrompt`; UI lock state lives on `NexusAgent.profileLocked`.
+- Agent Bay template-level custom defaults live on `WorkspaceSettings.agentTemplateProfiles`; these settings are applied when a Custom Agent template is spawned.
+- Supported setting value types are `NexusReasoningEffort`, `NexusVerbosity`, and `NexusReasoningDetail`.
+- Provider/model capability discovery lives in `src/lib/nexus-registry.ts`; UI and backend code must read `ModelCapabilityProfile` instead of hardcoding OpenAI or DeepSeek control lists.
+- Registry normalization lives in `normalizeAgentModelSettings(modelId, settings)`.
+- OpenAI GPT-5/GPT-5.5 controls use `apiFamily: "responses"` and map to `reasoning.effort`, `reasoning.summary`, and `text.verbosity`.
+- DeepSeek V4 controls use Chat Completions compatible `thinking` and `reasoning_effort`; `low` and `medium` map to `high`, while `xhigh` maps to `max`.
+
+UI entry points:
+
+- Left `Operators` in `src/components/nexus/nexus-ops.tsx` now exposes per-agent model tuning through a compact gear icon in each operator row.
+- The controls render from `getModelCapabilityProfile(agent.model)` and call `updateAgentModel` / `updateAgentModelSettings`.
+- Left `Agent Bay` Custom Agent template rows expose compact gear panels for name, role, task, execution prompt, lock, and launch.
+- Right `Intel` / Agent Bay in `AgentSettingsSidebar` exposes compact gear panels for name, role, task, execution prompt, and profile lock.
+- Agent name edits update `agent.callsign`, so the left `Operators` label changes through the same source of truth.
+- Locked agent/template profiles disable custom fields in UI and are guarded in store actions; runtime execution still reads the saved config.
+
+State and persistence path:
+
+- Store actions were added in `src/store/nexus-store.ts`: `updateAgentProfile`, `updateAgentCallsign`, `setAgentProfileLocked`, `updateAgentTemplateProfile`, and `updateAgentModelSettings`.
+- Persist version is now `13`; hydration and workspace normalization backfill valid `modelSettings`, empty `executionPrompt`, unlocked `profileLocked`, and empty `agentTemplateProfiles` for older workspaces.
+- `WorkspaceSnapshotSerializer` includes `modelSettings`, `executionPrompt`, and `profileLocked` inside the agent payload, so cloud snapshots and projection rows persist the setting with the existing workspace snapshot flow.
+- Template custom defaults persist inside `workspace.settings.agentTemplateProfiles`, so the existing workspace snapshot/projection path stores them without a new table.
+- No independent agent settings or model settings DB table was added.
+
+Default workspace changes:
+
+- New default chat agents are `Nexus_1`, `Nuxus_2`, `Nuxus_3`, and `Nexus_4`.
+- Default agent role/task fields are intentionally empty.
+- Prompt builders skip empty identity, mission, and execution prompt fields instead of emitting empty template lines.
+
+Do-not-duplicate rules:
+
+- Do not create a second model settings store outside `NexusAgent.modelSettings`.
+- Do not create a second custom prompt/profile store outside `NexusAgent.executionPrompt`, `identity`, `mission`, and `profileLocked`.
+- Do not create a second template customization store outside `WorkspaceSettings.agentTemplateProfiles`.
+- Do not add provider/model tuning lists inside UI components; extend `ModelCapabilityProfile`.
+- Do not use `callsign` to grant tools, providers, models, or behavior.
+- Do not persist `apiKey`, `baseUrl`, auth tokens, or provider secrets on agents.
+- Treat model settings as agent config; treat streamed reasoning output as message/runtime output.

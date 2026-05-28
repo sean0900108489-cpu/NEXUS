@@ -1,7 +1,11 @@
 import type {
+  AgentModelSettings,
   AgentCapabilityType,
   IToolExecutor,
   IWorkflowEdge,
+  NexusReasoningDetail,
+  NexusReasoningEffort,
+  NexusVerbosity,
   RealToolExecutorType,
   ToolExecutorPermissions,
   WorkflowGraphNodeType,
@@ -51,6 +55,70 @@ export interface NexusModelOption {
   tier?: "standard" | "advanced" | "pro" | "custom";
   releaseDate?: string;
   description?: string;
+  capabilityProfile?: ModelCapabilityProfile;
+}
+
+export type ProviderAdapterKind = "openai-compatible" | "local-preview";
+export type ProviderVerificationStatus = "untested" | "verified" | "failed";
+export type ModelLiveStatus = "verified" | "unverified" | "local-only";
+export type ModelApiFamily = "chat-completions" | "responses" | "local-preview";
+export type ProviderRequestParam =
+  | "temperature"
+  | "top_p"
+  | "presence_penalty"
+  | "frequency_penalty";
+
+export interface ProviderRegistryEntry {
+  id: string;
+  label: string;
+  adapter: ProviderAdapterKind;
+  defaultBaseUrl?: string;
+  credentialLabel?: string;
+  verificationStatus: ProviderVerificationStatus;
+  description: string;
+}
+
+export interface ModelThinkingProfile {
+  supported: boolean;
+  defaultEnabled: boolean;
+  defaultReasoningEffort?: NexusReasoningEffort;
+  supportedReasoningEfforts: NexusReasoningEffort[];
+  providerReasoningEffortMap?: Partial<Record<NexusReasoningEffort, string>>;
+  disabledRequestParams: ProviderRequestParam[];
+  requestToggleParam?: "thinking";
+  requestReasoningEffortParam?: "reasoning_effort" | "reasoning.effort";
+  responseReasoningField?: "reasoning_content";
+}
+
+export interface ModelVerbosityProfile {
+  supported: boolean;
+  defaultVerbosity?: NexusVerbosity;
+  supportedVerbosity: NexusVerbosity[];
+  requestParam?: "text.verbosity";
+}
+
+export interface ModelReasoningDetailProfile {
+  supported: boolean;
+  defaultDetail?: NexusReasoningDetail;
+  supportedDetails: NexusReasoningDetail[];
+  providerSummaryMap?: Partial<Record<NexusReasoningDetail, string>>;
+  requestParam?: "reasoning.summary";
+  responseReasoningField?: "reasoning_content";
+}
+
+export interface ModelCapabilityProfile {
+  providerId: string;
+  adapter: ProviderAdapterKind;
+  apiFamily: ModelApiFamily;
+  liveStatus: ModelLiveStatus;
+  supportsStreaming: boolean;
+  supportsJsonMode?: boolean;
+  supportsToolCalls?: boolean;
+  supportsTemperature: boolean;
+  defaultTemperature?: number;
+  thinking: ModelThinkingProfile;
+  verbosity: ModelVerbosityProfile;
+  reasoningDetail: ModelReasoningDetailProfile;
 }
 
 export interface MemoryCompressionProfile {
@@ -86,13 +154,193 @@ export const STANDARD_CHAT_MODEL_IDS = [
 export const DEFAULT_CHAT_MODEL_IDS = [
   ...CUSTOM_POWER_CHAT_MODEL_IDS,
   ...STANDARD_CHAT_MODEL_IDS,
+  "deepseek-v4-pro",
+  "deepseek-v4-flash",
 ] as const;
+
+export const PROVIDER_REGISTRY: Record<string, ProviderRegistryEntry> = {
+  deepseek: {
+    id: "deepseek",
+    label: "DeepSeek",
+    adapter: "openai-compatible",
+    defaultBaseUrl: "https://api.deepseek.com",
+    credentialLabel: "DeepSeek API Key",
+    verificationStatus: "untested",
+    description: "DeepSeek OpenAI-compatible chat completions provider.",
+  },
+  openai: {
+    id: "openai",
+    label: "OpenAI",
+    adapter: "openai-compatible",
+    defaultBaseUrl: "https://api.openai.com/v1",
+    credentialLabel: "OpenAI API Key",
+    verificationStatus: "untested",
+    description: "OpenAI first-party chat, image, and media models.",
+  },
+  "openai-compatible": {
+    id: "openai-compatible",
+    label: "OpenAI Compatible",
+    adapter: "openai-compatible",
+    defaultBaseUrl: "https://api.openai.com/v1",
+    credentialLabel: "Compatible API Key",
+    verificationStatus: "untested",
+    description: "Generic OpenAI-compatible runtime endpoint.",
+  },
+  "custom-openai-compatible": {
+    id: "custom-openai-compatible",
+    label: "Custom Compatible",
+    adapter: "openai-compatible",
+    defaultBaseUrl: "https://api.openai.com/v1",
+    credentialLabel: "Custom Runtime Key",
+    verificationStatus: "untested",
+    description: "User-managed OpenAI-compatible endpoint for custom model ids.",
+  },
+  "local-preview": {
+    id: "local-preview",
+    label: "Local Preview",
+    adapter: "local-preview",
+    verificationStatus: "verified",
+    description: "Browser-local preview runtime with no external credential.",
+  },
+  "local-sandbox": {
+    id: "local-sandbox",
+    label: "Local Sandbox",
+    adapter: "local-preview",
+    verificationStatus: "verified",
+    description: "Local sandbox runtime with no external credential.",
+  },
+};
+
+const NO_THINKING_PROFILE: ModelThinkingProfile = {
+  supported: false,
+  defaultEnabled: false,
+  supportedReasoningEfforts: [],
+  disabledRequestParams: [],
+};
+
+const NO_VERBOSITY_PROFILE: ModelVerbosityProfile = {
+  supported: false,
+  supportedVerbosity: [],
+};
+
+const NO_REASONING_DETAIL_PROFILE: ModelReasoningDetailProfile = {
+  supported: false,
+  supportedDetails: [],
+};
+
+const DEFAULT_OPENAI_COMPATIBLE_CHAT_PROFILE: ModelCapabilityProfile = {
+  providerId: "openai-compatible",
+  adapter: "openai-compatible",
+  apiFamily: "chat-completions",
+  liveStatus: "unverified",
+  supportsStreaming: true,
+  supportsJsonMode: true,
+  supportsToolCalls: true,
+  supportsTemperature: true,
+  defaultTemperature: 0.65,
+  thinking: NO_THINKING_PROFILE,
+  verbosity: NO_VERBOSITY_PROFILE,
+  reasoningDetail: NO_REASONING_DETAIL_PROFILE,
+};
+
+const OPENAI_RESPONSES_REASONING_PROFILE: ModelCapabilityProfile = {
+  providerId: "openai",
+  adapter: "openai-compatible",
+  apiFamily: "responses",
+  liveStatus: "unverified",
+  supportsStreaming: true,
+  supportsJsonMode: true,
+  supportsToolCalls: true,
+  supportsTemperature: false,
+  thinking: {
+    supported: true,
+    defaultEnabled: true,
+    defaultReasoningEffort: "medium",
+    supportedReasoningEfforts: ["none", "low", "medium", "high", "xhigh"],
+    disabledRequestParams: ["temperature", "top_p", "presence_penalty", "frequency_penalty"],
+    requestReasoningEffortParam: "reasoning.effort",
+  },
+  verbosity: {
+    supported: true,
+    defaultVerbosity: "medium",
+    supportedVerbosity: ["low", "medium", "high"],
+    requestParam: "text.verbosity",
+  },
+  reasoningDetail: {
+    supported: true,
+    defaultDetail: "medium",
+    supportedDetails: ["low", "medium", "high"],
+    providerSummaryMap: {
+      low: "concise",
+      medium: "auto",
+      high: "detailed",
+    },
+    requestParam: "reasoning.summary",
+  },
+};
+
+const DEEPSEEK_V4_THINKING_PROFILE: ModelCapabilityProfile = {
+  providerId: "deepseek",
+  adapter: "openai-compatible",
+  apiFamily: "chat-completions",
+  liveStatus: "unverified",
+  supportsStreaming: true,
+  supportsJsonMode: true,
+  supportsToolCalls: true,
+  supportsTemperature: false,
+  thinking: {
+    supported: true,
+    defaultEnabled: true,
+    defaultReasoningEffort: "high",
+    supportedReasoningEfforts: ["low", "medium", "high", "xhigh"],
+    providerReasoningEffortMap: {
+      low: "high",
+      medium: "high",
+      high: "high",
+      xhigh: "max",
+    },
+    disabledRequestParams: [
+      "temperature",
+      "top_p",
+      "presence_penalty",
+      "frequency_penalty",
+    ],
+    requestToggleParam: "thinking",
+    requestReasoningEffortParam: "reasoning_effort",
+    responseReasoningField: "reasoning_content",
+  },
+  verbosity: NO_VERBOSITY_PROFILE,
+  reasoningDetail: {
+    supported: true,
+    defaultDetail: "medium",
+    supportedDetails: ["low", "medium", "high"],
+    responseReasoningField: "reasoning_content",
+  },
+};
 
 /**
  * @rule SCAN FIRST: Model ids are the exact provider payload values. Labels are
  * display-only. Do not create parallel model maps elsewhere.
  */
 export const NEXUS_MODEL_CATALOG: NexusModelOption[] = [
+  {
+    id: "deepseek-v4-pro",
+    label: "DeepSeek V4 Pro",
+    provider: "deepseek",
+    capability: "chat",
+    tier: "pro",
+    description: "DeepSeek V4 Pro with registry-defined thinking mode policy.",
+    capabilityProfile: DEEPSEEK_V4_THINKING_PROFILE,
+  },
+  {
+    id: "deepseek-v4-flash",
+    label: "DeepSeek V4 Flash",
+    provider: "deepseek",
+    capability: "chat",
+    tier: "standard",
+    description: "DeepSeek V4 Flash with the same OpenAI-compatible thinking policy.",
+    capabilityProfile: DEEPSEEK_V4_THINKING_PROFILE,
+  },
   {
     id: "gpt-5.5-2026-04-23",
     label: "5.5 // 2026.04.23",
@@ -114,16 +362,20 @@ export const NEXUS_MODEL_CATALOG: NexusModelOption[] = [
   {
     id: "gpt-5.5",
     label: "gpt-5.5",
-    provider: "custom-openai-compatible",
+    provider: "openai",
     capability: "chat",
     tier: "custom",
+    description: "OpenAI GPT-5.5 via the Responses API with registry-defined reasoning and verbosity controls.",
+    capabilityProfile: OPENAI_RESPONSES_REASONING_PROFILE,
   },
   {
     id: "gpt-5",
     label: "gpt-5",
-    provider: "custom-openai-compatible",
+    provider: "openai",
     capability: "chat",
     tier: "advanced",
+    description: "OpenAI GPT-5 reasoning model via the Responses API.",
+    capabilityProfile: OPENAI_RESPONSES_REASONING_PROFILE,
   },
   {
     id: "gpt-4.1",
@@ -212,6 +464,148 @@ export function getModelOptionsForCapability(capability: AgentCapabilityType) {
   return NEXUS_MODEL_CATALOG.filter((model) => model.capability === capability);
 }
 
+export function getProviderOption(providerId: string | undefined) {
+  if (!providerId) {
+    return undefined;
+  }
+
+  return PROVIDER_REGISTRY[providerId];
+}
+
+export function getModelCapabilityProfile(modelId: string | undefined) {
+  const option = modelId ? getModelOption(modelId) : undefined;
+
+  if (option?.capabilityProfile) {
+    return option.capabilityProfile;
+  }
+
+  if (option?.capability === "sandbox") {
+    return {
+      providerId: option.provider,
+      adapter: "local-preview",
+      apiFamily: "local-preview",
+      liveStatus: "local-only",
+      supportsStreaming: false,
+      supportsTemperature: false,
+      thinking: NO_THINKING_PROFILE,
+      verbosity: NO_VERBOSITY_PROFILE,
+      reasoningDetail: NO_REASONING_DETAIL_PROFILE,
+    } satisfies ModelCapabilityProfile;
+  }
+
+  if (option?.capability === "chat") {
+    return {
+      ...DEFAULT_OPENAI_COMPATIBLE_CHAT_PROFILE,
+      providerId: option.provider,
+      supportsTemperature:
+        !option.id.toLowerCase().startsWith("o") &&
+        !option.id.toLowerCase().startsWith("gpt-5"),
+    };
+  }
+
+  if (option) {
+    return {
+      providerId: option.provider,
+      adapter: "openai-compatible",
+      apiFamily: "chat-completions",
+      liveStatus: "unverified",
+      supportsStreaming: false,
+      supportsTemperature: false,
+      thinking: NO_THINKING_PROFILE,
+      verbosity: NO_VERBOSITY_PROFILE,
+      reasoningDetail: NO_REASONING_DETAIL_PROFILE,
+    } satisfies ModelCapabilityProfile;
+  }
+
+  return undefined;
+}
+
+export function getProviderIdForModel(modelId: string | undefined, fallback?: string) {
+  return getModelCapabilityProfile(modelId)?.providerId || fallback || "openai-compatible";
+}
+
+export function mapReasoningEffortForModel(
+  modelId: string,
+  effort?: NexusReasoningEffort,
+) {
+  const thinking = getModelCapabilityProfile(modelId)?.thinking;
+
+  if (!thinking?.supported) {
+    return undefined;
+  }
+
+  const requested =
+    effort && thinking.supportedReasoningEfforts.includes(effort)
+      ? effort
+      : thinking.defaultReasoningEffort ?? thinking.supportedReasoningEfforts[0] ?? "high";
+
+  return thinking.providerReasoningEffortMap?.[requested] ?? requested;
+}
+
+export function mapReasoningDetailForModel(
+  modelId: string,
+  detail?: NexusReasoningDetail,
+) {
+  const reasoningDetail = getModelCapabilityProfile(modelId)?.reasoningDetail;
+
+  if (!reasoningDetail?.supported) {
+    return undefined;
+  }
+
+  const requested =
+    detail && reasoningDetail.supportedDetails.includes(detail)
+      ? detail
+      : reasoningDetail.defaultDetail ?? reasoningDetail.supportedDetails[0] ?? "medium";
+
+  return reasoningDetail.providerSummaryMap?.[requested] ?? requested;
+}
+
+export function normalizeAgentModelSettings(
+  modelId: string | undefined,
+  settings: AgentModelSettings | undefined = {},
+): AgentModelSettings {
+  const capability = getModelCapabilityProfile(modelId);
+  const next: AgentModelSettings = {};
+  const reasoning = capability?.thinking;
+  const verbosity = capability?.verbosity;
+  const reasoningDetail = capability?.reasoningDetail;
+
+  if (reasoning?.supported) {
+    next.reasoningEffort =
+      settings.reasoningEffort &&
+      reasoning.supportedReasoningEfforts.includes(settings.reasoningEffort)
+        ? settings.reasoningEffort
+        : reasoning.defaultReasoningEffort ?? reasoning.supportedReasoningEfforts[0];
+  }
+
+  if (verbosity?.supported) {
+    next.verbosity =
+      settings.verbosity && verbosity.supportedVerbosity.includes(settings.verbosity)
+        ? settings.verbosity
+        : verbosity.defaultVerbosity ?? verbosity.supportedVerbosity[0];
+  }
+
+  if (reasoningDetail?.supported) {
+    next.reasoningDetail =
+      settings.reasoningDetail &&
+      reasoningDetail.supportedDetails.includes(settings.reasoningDetail)
+        ? settings.reasoningDetail
+        : reasoningDetail.defaultDetail ?? reasoningDetail.supportedDetails[0];
+  }
+
+  if (
+    capability?.supportsTemperature &&
+    typeof settings.temperature === "number" &&
+    Number.isFinite(settings.temperature)
+  ) {
+    next.temperature = Math.max(0, Math.min(2, settings.temperature));
+  } else if (capability?.supportsTemperature && capability.defaultTemperature !== undefined) {
+    next.temperature = capability.defaultTemperature;
+  }
+
+  return next;
+}
+
 /**
  * @rule SCAN FIRST: Memory compression profiles live here. Before adding agent
  * forking, context summarization, or branch compression behavior, reuse this
@@ -245,7 +639,7 @@ export const CAPABILITY_REGISTRY: Record<
     state: "implemented",
     ownerLayer: "L1",
     description: "Text streaming agent using mock or OpenAI-compatible chat.",
-    providerSlots: ["openai-compatible-chat"],
+    providerSlots: ["openai-compatible-chat", "deepseek-chat"],
     toolSlots: ["mock-review-mesh"],
   },
   image: {

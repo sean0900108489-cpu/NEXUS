@@ -64,6 +64,7 @@ import {
   DEFAULT_WORKSPACE_BRANCHING_SETTINGS,
   agentTemplates,
   makeId,
+  resolveAgentTemplateProfile,
 } from "@/lib/nexus-defaults";
 import type {
   AgentCapabilityType,
@@ -71,6 +72,10 @@ import type {
   AgentMediaArtifact,
   ArtifactGetResponse,
   ArtifactVaultRecord,
+  AgentModelSettings,
+  AgentProfileUpdate,
+  AgentTemplateProfile,
+  AgentTemplateProfileUpdate,
   HistoricalMessageRecord,
   MediaAgentCapabilityType,
   AgentMessage,
@@ -79,6 +84,9 @@ import type {
   AgentTaskCreateResponse,
   AgentTemplate,
   IAuthVault,
+  NexusReasoningDetail,
+  NexusReasoningEffort,
+  NexusVerbosity,
   NexusAgent,
   NexusWorkspace,
   NotebookRecord,
@@ -88,6 +96,7 @@ import type {
   SystemEventRecord,
   WorkflowTemplateRecord,
   WorkspaceBranchingSettings,
+  WorkspaceSnapshot,
   WorkspaceThemeConfig,
   WorkspaceViewMode,
 } from "@/lib/nexus-types";
@@ -104,10 +113,12 @@ import {
 import { getEmbeddableUrl, getIframeBlockReason } from "@/lib/embed-url";
 import { buildMockPredictiveIntelSuggestions } from "@/lib/predictive-intel";
 import {
-  CUSTOM_POWER_CHAT_MODEL_IDS,
-  STANDARD_CHAT_MODEL_IDS,
+  PROVIDER_REGISTRY,
   getModelOption,
+  getModelCapabilityProfile,
   getModelOptionsForCapability,
+  getProviderIdForModel,
+  getProviderOption,
 } from "@/lib/nexus-registry";
 import {
   evaluateWorkflowHandoffs,
@@ -181,6 +192,16 @@ const typographyOptions = [
 ] as const;
 
 type NexusTheme = "cyberpunk" | "apple" | "tesla" | "terminal";
+type RightDockPanelId =
+  | "intel"
+  | "providers"
+  | "models"
+  | "theme"
+  | "memory"
+  | "artifacts"
+  | "workflows"
+  | "trace"
+  | "account";
 
 const themeOptions: Array<{ id: NexusTheme; label: string }> = [
   { id: "cyberpunk", label: "Cyberpunk" },
@@ -204,6 +225,7 @@ type ClientStreamEvent =
       traceId?: string;
     }
   | { type: "token"; token?: string; delta?: string }
+  | { type: "reasoning"; delta?: string }
   | { type: "done" };
 
 type PaletteCommand = {
@@ -344,6 +366,10 @@ function getModelLabel(modelId: string) {
   return getModelOption(modelId)?.label ?? modelId;
 }
 
+function getProviderLabel(providerId: string | undefined) {
+  return getProviderOption(providerId)?.label ?? providerId ?? "Unknown";
+}
+
 function uniqueModelIds(models: Array<string | undefined>) {
   return Array.from(
     new Set(
@@ -362,35 +388,53 @@ function getAgentModelGroups(agent: NexusAgent) {
     (model) => model.id,
   );
 
-  if (capabilityType !== "chat") {
-    return [
-      {
-        label: "Agent Supported Models",
-        models: uniqueModelIds([currentModel, ...supportedModels, ...catalogModels]),
-      },
-    ];
-  }
+  const models = uniqueModelIds([currentModel, ...supportedModels, ...catalogModels]);
+  const grouped = models.reduce<Array<{ label: string; models: string[] }>>(
+    (groups, modelId) => {
+      const option = getModelOption(modelId);
+      const providerId = option?.provider ?? agent.provider;
+      const label = getProviderLabel(providerId);
+      const group = groups.find((candidate) => candidate.label === label);
 
-  const customPowerModels = uniqueModelIds([...CUSTOM_POWER_CHAT_MODEL_IDS]);
-  const standardModels = uniqueModelIds([...STANDARD_CHAT_MODEL_IDS]);
-  const knownModels = new Set([...customPowerModels, ...standardModels]);
-  const otherModels = uniqueModelIds([currentModel, ...supportedModels, ...catalogModels])
-    .filter((model) => !knownModels.has(model));
+      if (group) {
+        group.models.push(modelId);
+        return groups;
+      }
 
-  return [
-    {
-      label: "Custom Power Models",
-      models: customPowerModels,
+      groups.push({ label, models: [modelId] });
+      return groups;
     },
-    {
-      label: "Standard Chat Models",
-      models: standardModels,
-    },
-    {
-      label: "Agent / Legacy Models",
-      models: otherModels,
-    },
-  ].filter((group) => group.models.length);
+    [],
+  );
+
+  return grouped.length
+    ? grouped
+    : [{ label: "Agent Supported Models", models }];
+}
+
+function resolveRuntimeCredentialForModel(authVault: IAuthVault, model: string, fallbackProvider?: string) {
+  const providerId = getProviderIdForModel(model, fallbackProvider);
+  const provider = getProviderOption(providerId);
+  const providerCredential = authVault.providerCredentials?.[providerId];
+  const apiKey =
+    providerCredential?.apiKey?.replace(/[^\x20-\x7E]/g, "").trim() ||
+    authVault.globalApiKey?.replace(/[^\x20-\x7E]/g, "").trim() ||
+    "";
+  const baseUrl =
+    providerCredential?.baseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
+    authVault.globalBaseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
+    provider?.defaultBaseUrl ||
+    DEFAULT_BASE_URL;
+
+  return {
+    apiKey,
+    baseUrl,
+    providerId,
+    providerLabel: provider?.label ?? providerId,
+    verificationStatus:
+      providerCredential?.verificationStatus ?? provider?.verificationStatus ?? "untested",
+    liveVerifiedAt: providerCredential?.liveVerifiedAt ?? null,
+  };
 }
 
 function isMediaCapability(
@@ -516,7 +560,10 @@ function IconButton({
 }
 
 function resolveAgentsStreamMode(authVault: IAuthVault): StreamMode {
-  return authVault.globalApiKey?.trim() ? "live" : "mock";
+  return authVault.globalApiKey?.trim() ||
+    Object.values(authVault.providerCredentials ?? {}).some((entry) => entry.apiKey?.trim())
+    ? "live"
+    : "mock";
 }
 
 function syncSupabaseSessionUser(user: IAuthVault["user"]) {
@@ -592,9 +639,8 @@ export function NexusOps() {
     height: 780,
   });
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeRightPanel, setActiveRightPanel] = useState<RightDockPanelId | null>(null);
   const [leftDockOpen, setLeftDockOpen] = useState(false);
-  const [rightIntelOpen, setRightIntelOpen] = useState(false);
   const [notice, setNotice] = useState("Workspace persistence online");
   const [macros, setMacros] = useState<WorkflowTemplateRecord[]>([]);
   const [macrosLoading, setMacrosLoading] = useState(false);
@@ -638,8 +684,19 @@ export function NexusOps() {
   const focusAgent = useNexusStore((state) => state.focusAgent);
   const selectAgent = useNexusStore((state) => state.selectAgent);
   const updateLayout = useNexusStore((state) => state.updateLayout);
+  const updateAgentProfile = useNexusStore((state) => state.updateAgentProfile);
+  const updateAgentCallsign = useNexusStore((state) => state.updateAgentCallsign);
+  const setAgentProfileLocked = useNexusStore(
+    (state) => state.setAgentProfileLocked,
+  );
   const updateAgentMission = useNexusStore((state) => state.updateAgentMission);
   const updateAgentModel = useNexusStore((state) => state.updateAgentModel);
+  const updateAgentModelSettings = useNexusStore(
+    (state) => state.updateAgentModelSettings,
+  );
+  const updateAgentTemplateProfile = useNexusStore(
+    (state) => state.updateAgentTemplateProfile,
+  );
   const updateMemoryBlock = useNexusStore((state) => state.updateMemoryBlock);
   const minimizeAgent = useNexusStore((state) => state.minimizeAgent);
   const restoreAgent = useNexusStore((state) => state.restoreAgent);
@@ -659,6 +716,14 @@ export function NexusOps() {
   const logout = useNexusStore((state) => state.logout);
   const setGlobalApiKey = useNexusStore((state) => state.setGlobalApiKey);
   const setGlobalBaseUrl = useNexusStore((state) => state.setGlobalBaseUrl);
+  const setProviderApiKey = useNexusStore((state) => state.setProviderApiKey);
+  const setProviderBaseUrl = useNexusStore((state) => state.setProviderBaseUrl);
+  const setProviderVerificationStatus = useNexusStore(
+    (state) => state.setProviderVerificationStatus,
+  );
+  const lockProviderCredential = useNexusStore((state) => state.lockProviderCredential);
+  const unlockProviderCredential = useNexusStore((state) => state.unlockProviderCredential);
+  const deleteProviderCredential = useNexusStore((state) => state.deleteProviderCredential);
   const lockVault = useNexusStore((state) => state.lockVault);
   const unlockVault = useNexusStore((state) => state.unlockVault);
   const deleteApiKey = useNexusStore((state) => state.deleteApiKey);
@@ -893,7 +958,7 @@ export function NexusOps() {
 
       if (key === "escape") {
         setPaletteOpen(false);
-        setSettingsOpen(false);
+        setActiveRightPanel(null);
       }
     };
 
@@ -961,24 +1026,24 @@ export function NexusOps() {
   }, []);
 
   useEffect(() => {
-    if (!settingsOpen) {
+    if (activeRightPanel !== "workflows") {
       return;
     }
 
     window.setTimeout(() => {
       void refreshMacros();
     }, 0);
-  }, [macroRefreshToken, refreshMacros, settingsOpen]);
+  }, [activeRightPanel, macroRefreshToken, refreshMacros]);
 
   useEffect(() => {
-    if (!settingsOpen) {
+    if (activeRightPanel !== "artifacts") {
       return;
     }
 
     window.setTimeout(() => {
       void refreshArtifacts();
     }, 0);
-  }, [artifactRefreshToken, refreshArtifacts, settingsOpen]);
+  }, [activeRightPanel, artifactRefreshToken, refreshArtifacts]);
 
   const handleExport = useCallback(() => {
     const snapshot = exportActiveWorkspace();
@@ -1001,7 +1066,9 @@ export function NexusOps() {
     }
 
     try {
-      const result = parseWorkspaceSnapshot(await file.text());
+      const text = await file.text();
+      const result = parseWorkspaceSnapshot(text);
+      const snapshot = JSON.parse(text) as Partial<WorkspaceSnapshot>;
 
       if (!result.ok) {
         throw new Error(result.error);
@@ -1010,6 +1077,7 @@ export function NexusOps() {
       importWorkspace({
         schemaVersion: 1,
         exportedAt: new Date().toISOString(),
+        notebooks: Array.isArray(snapshot.notebooks) ? snapshot.notebooks : undefined,
         workspace: result.workspace,
       });
       setNotice("Workspace snapshot imported");
@@ -1103,16 +1171,17 @@ export function NexusOps() {
       state.workspaces.find((candidate) => candidate.id === state.activeWorkspaceId) ??
       state.workspaces[0];
     const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
-    const safeKey = state.authVault.globalApiKey
-      ? state.authVault.globalApiKey.replace(/[^\x20-\x7E]/g, "").trim()
-      : "";
-    const safeBaseUrl =
-      state.authVault.globalBaseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
-      DEFAULT_BASE_URL;
     const model =
       agent?.model?.trim() ||
       workspace?.settings.model?.trim() ||
       "gpt-4o-mini";
+    const runtimeCredential = resolveRuntimeCredentialForModel(
+      state.authVault,
+      model,
+      agent?.provider ?? workspace?.settings.provider,
+    );
+    const safeKey = runtimeCredential.apiKey;
+    const safeBaseUrl = runtimeCredential.baseUrl;
     const userId = state.authVault.user?.id;
 
     if (!agent || agent.status === "streaming" || agent.status === "thinking") {
@@ -1148,7 +1217,7 @@ export function NexusOps() {
           },
           model,
           outputMessageId: assistantMessage.id,
-          provider: agent.provider,
+          provider: runtimeCredential.providerId,
           taskType: "chat",
           workspaceId: workspace.id,
         },
@@ -1167,8 +1236,9 @@ export function NexusOps() {
     }
 
     const request: AgentStreamRequest = {
-      globalApiKey: safeKey,
       model,
+      modelSettings: agent.modelSettings ?? {},
+      reasoningEffort: agent.modelSettings?.reasoningEffort,
       outputMessageId: assistantMessage.id,
       sessionId: taskResponse.session.id,
       taskId: taskResponse.task.id,
@@ -1178,7 +1248,8 @@ export function NexusOps() {
         callsign: agent.callsign,
         title: agent.title,
         mission: agent.mission,
-        provider: agent.provider,
+        executionPrompt: agent.executionPrompt,
+        provider: runtimeCredential.providerId,
         model,
         memory: agent.memory,
         contextNotes: agent.contextNotes,
@@ -1198,8 +1269,8 @@ export function NexusOps() {
     state.setAgentStatus(agentId, "thinking");
     setNotice(
       safeKey
-        ? `${agent.callsign} live stream opened`
-        : `${agent.callsign} mock stream opened`,
+        ? `${agent.callsign} live stream opened via ${runtimeCredential.providerLabel}`
+        : `${agent.callsign} mock stream opened; ${runtimeCredential.providerLabel} key missing`,
     );
     state.setStreamMode(safeKey ? "live" : "mock");
 
@@ -1227,7 +1298,8 @@ export function NexusOps() {
       if (safeKey) {
         headers.set("Authorization", `Bearer ${safeKey}`);
       }
-      headers.set("x-openai-base-url", safeBaseUrl);
+      headers.set("x-nexus-base-url", safeBaseUrl);
+      headers.set("x-nexus-provider-id", runtimeCredential.providerId);
 
       const response = await fetchWithBackoff(
         `/api/v1/agents/${agentId}/stream`,
@@ -1269,6 +1341,18 @@ export function NexusOps() {
           useNexusStore
             .getState()
             .appendToMessage(agentId, assistantMessage.id, delta);
+        }
+
+        if (event.type === "reasoning") {
+          const delta = event.delta ?? "";
+
+          if (!delta) {
+            return;
+          }
+
+          useNexusStore
+            .getState()
+            .appendReasoningToMessage(agentId, assistantMessage.id, delta);
         }
 
         if (event.type === "meta") {
@@ -1382,12 +1466,13 @@ export function NexusOps() {
       agent,
       lastAssistantMessage,
     });
-    const safeKey = state.authVault.globalApiKey
-      ? state.authVault.globalApiKey.replace(/[^\x20-\x7E]/g, "").trim()
-      : "";
-    const safeBaseUrl =
-      state.authVault.globalBaseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
-      DEFAULT_BASE_URL;
+    const runtimeCredential = resolveRuntimeCredentialForModel(
+      state.authVault,
+      agent?.model ?? workspace?.settings.model ?? "gpt-4o-mini",
+      agent?.provider ?? workspace?.settings.provider,
+    );
+    const safeKey = runtimeCredential.apiKey;
+    const safeBaseUrl = runtimeCredential.baseUrl;
 
     if (!agent || !lastAssistantMessage) {
       return fallback;
@@ -1402,14 +1487,15 @@ export function NexusOps() {
         headers.set("Authorization", `Bearer ${safeKey}`);
       }
 
-      headers.set("x-openai-base-url", safeBaseUrl);
+      headers.set("x-nexus-base-url", safeBaseUrl);
+      headers.set("x-nexus-provider-id", runtimeCredential.providerId);
 
       const response = await fetch("/api/predictive-intel", {
         method: "POST",
         headers,
         body: JSON.stringify({
-          apiKey: safeKey || undefined,
           lastMessage: lastAssistantMessage,
+          model: agent.model,
           agent: {
             callsign: agent.callsign,
             capabilityType: getCapabilityType(agent),
@@ -1773,7 +1859,9 @@ export function NexusOps() {
           switchWorkspace(workspaceId);
           setNotice(`${target?.name ?? "Workspace"} active`);
         }}
-        onToggleSettings={() => setSettingsOpen((current) => !current)}
+        onToggleSettings={() =>
+          setActiveRightPanel((current) => (current ? null : "providers"))
+        }
         onSave={() => {
           saveWorkspaceSnapshot();
           setNotice("Workspace snapshot saved");
@@ -1785,7 +1873,7 @@ export function NexusOps() {
           setNotice("Agent spawned");
         }}
         onSyncRetry={retryFailedSyncOperation}
-        settingsOpen={settingsOpen}
+        settingsOpen={Boolean(activeRightPanel)}
         streamMode={effectiveStreamMode}
         syncStatus={syncQueueStatus}
         viewMode={viewMode}
@@ -1819,6 +1907,9 @@ export function NexusOps() {
                 <LeftDock
                   activeAgentId={activeAgentId}
                   agents={agents}
+                  agentTemplateProfiles={
+                    workspace?.settings.agentTemplateProfiles ?? {}
+                  }
                   onFocus={focusAgent}
                   onRestore={restoreAgent}
                   onSelect={selectAgent}
@@ -1827,6 +1918,9 @@ export function NexusOps() {
                     focusAgent(id);
                     setNotice(`${template.callsign} spawned`);
                   }}
+                  onUpdateAgentModel={updateAgentModel}
+                  onUpdateAgentModelSettings={updateAgentModelSettings}
+                  onUpdateAgentTemplateProfile={updateAgentTemplateProfile}
                   selectedAgentId={selectedAgent?.id}
                 />
               </motion.div>
@@ -1914,41 +2008,14 @@ export function NexusOps() {
           </AnimatePresence>
         </section>
 
-        <motion.aside
-          animate={{ width: rightIntelOpen ? 306 : 44 }}
-          className="relative z-[80] hidden h-full min-h-0 shrink-0 overflow-hidden xl:block"
-          transition={{ duration: 0.2, ease: "easeOut" }}
-        >
-          <SidebarToggleButton
-            collapsed={!rightIntelOpen}
-            label={rightIntelOpen ? "Collapse right sidebar" : "Expand right sidebar"}
-            onClick={() => setRightIntelOpen((current) => !current)}
-            side="right"
-          />
-          <AnimatePresence initial={false} mode="wait">
-            {rightIntelOpen ? (
-              <motion.div
-                key="right-expanded"
-                animate={{ opacity: 1, x: 0 }}
-                className="h-full min-h-0"
-                exit={{ opacity: 0, x: 12 }}
-                initial={{ opacity: 0, x: 12 }}
-                transition={{ duration: 0.16 }}
-              >
-                <RightIntel
-                  activeAgent={activeAgent}
-                  agent={selectedAgent}
-                  onRunTool={runTool}
-                  onUpdateMemory={updateMemoryBlock}
-                  onUpdateMission={updateAgentMission}
-                />
-              </motion.div>
-            ) : (
-              <CollapsedSidebarRail key="right-collapsed" label="Intel" side="right" />
-            )}
-          </AnimatePresence>
-        </motion.aside>
       </section>
+
+      <RightFloatingDock
+        activePanel={activeRightPanel}
+        onTogglePanel={(panel) =>
+          setActiveRightPanel((current) => (current === panel ? null : panel))
+        }
+      />
 
       <CommandPalette
         commands={commands}
@@ -1987,7 +2054,10 @@ export function NexusOps() {
       </AnimatePresence>
 
       <AgentSettingsSidebar
+        activeAgent={activeAgent}
+        activePanel={activeRightPanel ?? "providers"}
         agents={agents}
+        agent={selectedAgent}
         authVault={authVault}
         artifactError={artifactError}
         artifacts={artifactVault}
@@ -2004,7 +2074,7 @@ export function NexusOps() {
           focusAgent(id);
           setNotice(`${type.toUpperCase()} agent spawned`);
         }}
-        onClose={() => setSettingsOpen(false)}
+        onClose={() => setActiveRightPanel(null)}
         onCopyArtifact={handleCopyArtifact}
         onCreateNotebook={() => {
           const id = createNotebook();
@@ -2016,17 +2086,30 @@ export function NexusOps() {
         onSpawnMacro={handleSpawnMacro}
         onToggleNotebook={toggleNotebookOpen}
         onDeleteApiKey={deleteApiKey}
+        onDeleteProviderCredential={deleteProviderCredential}
         onLockVault={lockVault}
+        onLockProviderCredential={lockProviderCredential}
         onLogout={logout}
+        onRunTool={runTool}
+        onSelectAgent={selectAgent}
         onSetGlobalApiKey={setGlobalApiKey}
         onSetGlobalBaseUrl={setGlobalBaseUrl}
+        onSetProviderApiKey={setProviderApiKey}
+        onSetProviderBaseUrl={setProviderBaseUrl}
+        onSetProviderVerificationStatus={setProviderVerificationStatus}
         onUnlockVault={unlockVault}
+        onUnlockProviderCredential={unlockProviderCredential}
+        onUpdateMemory={updateMemoryBlock}
+        onUpdateAgentCallsign={updateAgentCallsign}
+        onUpdateAgentProfile={updateAgentProfile}
+        onSetAgentProfileLocked={setAgentProfileLocked}
+        onUpdateMission={updateAgentMission}
         onUpdateThemeConfig={updateThemeConfig}
         onUpdateBranchingSettings={updateBranchingSettings}
         activeTheme={activeTheme}
         onSetTheme={handleThemeChange}
         onUpdateAgentModel={updateAgentModel}
-        open={settingsOpen}
+        open={Boolean(activeRightPanel)}
         streamMode={effectiveStreamMode}
         themeConfig={themeConfig}
       />
@@ -2094,6 +2177,108 @@ function CollapsedSidebarRail({
         {label}
       </div>
     </motion.div>
+  );
+}
+
+const rightDockPanels: Array<{
+  id: RightDockPanelId;
+  label: string;
+  detail: string;
+  icon: ReactNode;
+}> = [
+  {
+    id: "intel",
+    label: "Intel",
+    detail: "Selected agent mission, memory, tools, and telemetry",
+    icon: <PanelRight className="h-4 w-4" />,
+  },
+  {
+    id: "providers",
+    label: "Providers",
+    detail: "Provider credentials, base URLs, and live verification",
+    icon: <Lock className="h-4 w-4" />,
+  },
+  {
+    id: "models",
+    label: "Models",
+    detail: "Per-agent model routing and capability recognition",
+    icon: <BrainCircuit className="h-4 w-4" />,
+  },
+  {
+    id: "theme",
+    label: "Theme",
+    detail: "LEGO theme engine controls",
+    icon: <Settings className="h-4 w-4" />,
+  },
+  {
+    id: "memory",
+    label: "Memory",
+    detail: "Branching defaults and workspace datapads",
+    icon: <Database className="h-4 w-4" />,
+  },
+  {
+    id: "artifacts",
+    label: "Artifacts",
+    detail: "Artifact vault references",
+    icon: <Archive className="h-4 w-4" />,
+  },
+  {
+    id: "workflows",
+    label: "Workflows",
+    detail: "Macro blueprint vault",
+    icon: <Workflow className="h-4 w-4" />,
+  },
+  {
+    id: "trace",
+    label: "Trace",
+    detail: "Sync status and observability events",
+    icon: <RadioTower className="h-4 w-4" />,
+  },
+  {
+    id: "account",
+    label: "Account",
+    detail: "Operator identity and logout",
+    icon: <Home className="h-4 w-4" />,
+  },
+];
+
+function getRightDockPanelMeta(panel: RightDockPanelId) {
+  return rightDockPanels.find((candidate) => candidate.id === panel) ?? rightDockPanels[1];
+}
+
+function RightFloatingDock({
+  activePanel,
+  onTogglePanel,
+}: {
+  activePanel: RightDockPanelId | null;
+  onTogglePanel: (panel: RightDockPanelId) => void;
+}) {
+  return (
+    <nav
+      aria-label="Right workspace tools"
+      className="pointer-events-none fixed right-3 top-1/2 z-[130] hidden -translate-y-1/2 xl:block"
+    >
+      <div className="pointer-events-auto grid gap-2 border border-cyan-300/25 bg-slate-950/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.45),0_0_32px_rgba(34,211,238,0.14)] backdrop-blur-xl">
+        {rightDockPanels.map((panel) => (
+          <button
+            key={panel.id}
+            aria-label={panel.label}
+            aria-pressed={activePanel === panel.id}
+            className={cx(
+              "grid h-9 w-9 place-items-center border text-slate-400 transition",
+              activePanel === panel.id
+                ? "border-cyan-300/55 bg-cyan-300/15 text-cyan-100"
+                : "border-white/10 bg-black/25 hover:border-cyan-300/35 hover:text-cyan-100",
+            )}
+            onClick={() => onTogglePanel(panel.id)}
+            title={panel.label}
+            type="button"
+          >
+            {panel.icon}
+          </button>
+        ))}
+      </div>
+    </nav>
   );
 }
 
@@ -2550,9 +2735,273 @@ function MacroComposerModal({
   );
 }
 
+function ProviderVaultPanel({
+  authVault,
+  onDeleteProviderCredential,
+  onLockProviderCredential,
+  onSetProviderApiKey,
+  onSetProviderBaseUrl,
+  onSetProviderVerificationStatus,
+  onUnlockProviderCredential,
+}: {
+  authVault: IAuthVault;
+  onDeleteProviderCredential: (providerId: string) => void;
+  onLockProviderCredential: (providerId: string) => void;
+  onSetProviderApiKey: (providerId: string, key: string) => void;
+  onSetProviderBaseUrl: (providerId: string, baseUrl: string) => void;
+  onSetProviderVerificationStatus: (
+    providerId: string,
+    status: "untested" | "verified" | "failed",
+    error?: string,
+  ) => void;
+  onUnlockProviderCredential: (providerId: string) => void;
+}) {
+  const providerId = "deepseek";
+  const provider = PROVIDER_REGISTRY[providerId];
+  const credential = authVault.providerCredentials?.[providerId];
+  const [keyDraft, setKeyDraft] = useState("");
+  const [baseUrlDraft, setBaseUrlDraft] = useState(
+    credential?.baseUrl ?? provider.defaultBaseUrl ?? "",
+  );
+  const [verifying, setVerifying] = useState(false);
+  const deepseekModels = getModelOptionsForCapability("chat").filter(
+    (model) => model.provider === providerId,
+  );
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setBaseUrlDraft(credential?.baseUrl ?? provider.defaultBaseUrl ?? "");
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [credential?.baseUrl, provider.defaultBaseUrl]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      if (!credential?.apiKey || credential.isLocked) {
+        setKeyDraft("");
+        return;
+      }
+
+      setKeyDraft(credential.apiKey);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [credential?.apiKey, credential?.isLocked]);
+
+  const verifyProvider = async () => {
+    const apiKey = credential?.apiKey?.replace(/[^\x20-\x7E]/g, "").trim() ?? "";
+
+    if (!apiKey || verifying) {
+      return;
+    }
+
+    setVerifying(true);
+
+    try {
+      const response = await fetch("/api/v1/providers/verify", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "x-nexus-base-url": baseUrlDraft,
+        },
+        body: JSON.stringify({
+          baseUrl: baseUrlDraft,
+          model: "deepseek-v4-pro",
+          providerId,
+        }),
+      });
+      const data = (await response.json()) as {
+        error?: string;
+        verified?: boolean;
+      };
+
+      if (!response.ok || !data.verified) {
+        onSetProviderVerificationStatus(
+          providerId,
+          "failed",
+          data.error ?? "Live verification failed.",
+        );
+        return;
+      }
+
+      onSetProviderVerificationStatus(providerId, "verified");
+    } catch (error) {
+      onSetProviderVerificationStatus(
+        providerId,
+        "failed",
+        error instanceof Error ? error.message : "Live verification failed.",
+      );
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  return (
+    <section className="mb-4 border border-cyan-300/25 bg-cyan-300/[0.045] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
+            Providers / Model Vault
+          </div>
+          <div className="mt-1 text-xs text-slate-500">
+            DeepSeek is routed through the provider registry.
+          </div>
+        </div>
+        <span
+          className={cx(
+            "border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em]",
+            credential?.verificationStatus === "verified"
+              ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+              : credential?.verificationStatus === "failed"
+                ? "border-rose-300/35 bg-rose-300/10 text-rose-100"
+                : "border-amber-300/35 bg-amber-300/10 text-amber-100",
+          )}
+        >
+          {credential?.verificationStatus ?? "untested"}
+        </span>
+      </div>
+
+      <div className="grid gap-3">
+        <label className="grid gap-2">
+          <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
+            DeepSeek Base URL
+          </span>
+          <input
+            className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-xs text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
+            onBlur={() => onSetProviderBaseUrl(providerId, baseUrlDraft)}
+            onChange={(event) => setBaseUrlDraft(event.target.value)}
+            placeholder={provider.defaultBaseUrl}
+            spellCheck={false}
+            type="url"
+            value={baseUrlDraft}
+          />
+        </label>
+
+        {credential?.apiKey && credential.isLocked ? (
+          <div className="border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-slate-300">
+            ••••••••••••••••
+          </div>
+        ) : (
+          <input
+            autoComplete="new-password"
+            className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
+            onChange={(event) => setKeyDraft(event.target.value)}
+            placeholder="DeepSeek API key"
+            type="password"
+            value={keyDraft}
+          />
+        )}
+
+        <div className="grid grid-cols-4 gap-2">
+          <button
+            className="border border-emerald-300/35 bg-emerald-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-emerald-100 transition hover:bg-emerald-300/20 disabled:opacity-40"
+            disabled={!keyDraft.trim()}
+            onClick={() => {
+              onSetProviderBaseUrl(providerId, baseUrlDraft);
+              onSetProviderApiKey(providerId, keyDraft);
+              onLockProviderCredential(providerId);
+              setKeyDraft("");
+            }}
+            type="button"
+          >
+            Save
+          </button>
+          <button
+            className="border border-cyan-300/35 bg-cyan-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+            disabled={!credential?.apiKey}
+            onClick={() =>
+              credential?.isLocked
+                ? onUnlockProviderCredential(providerId)
+                : onLockProviderCredential(providerId)
+            }
+            type="button"
+          >
+            {credential?.isLocked ? "Unlock" : "Lock"}
+          </button>
+          <button
+            className="border border-cyan-300/35 bg-cyan-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+            disabled={!credential?.apiKey || verifying}
+            onClick={() => void verifyProvider()}
+            type="button"
+          >
+            {verifying ? "Checking" : "Verify"}
+          </button>
+          <button
+            className="border border-rose-300/35 bg-rose-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-rose-100 transition hover:bg-rose-300/20 disabled:opacity-40"
+            disabled={!credential?.apiKey}
+            onClick={() => onDeleteProviderCredential(providerId)}
+            type="button"
+          >
+            Delete
+          </button>
+        </div>
+
+        {credential?.verificationError ? (
+          <div className="border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-[11px] text-rose-100">
+            {credential.verificationError}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="mt-4 grid gap-2">
+        {deepseekModels.map((model) => {
+          const capability = getModelCapabilityProfile(model.id);
+          const thinking = capability?.thinking;
+          const effortMap = thinking?.providerReasoningEffortMap;
+
+          return (
+            <article key={model.id} className="border border-white/10 bg-black/25 p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-white">
+                    {model.label}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">{model.id}</div>
+                </div>
+                <span className="border border-cyan-300/25 bg-cyan-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100">
+                  {model.tier ?? "standard"}
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+                  Provider: {provider.label}
+                </span>
+                <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+                  Thinking: {thinking?.supported ? "Supported" : "No"}
+                </span>
+                <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+                  Default: {thinking?.defaultEnabled ? "On" : "Off"}
+                </span>
+                <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+                  Live: {credential?.verificationStatus === "verified" ? "Verified" : "Untested"}
+                </span>
+              </div>
+              {thinking?.supported ? (
+                <div className="mt-3 border border-cyan-300/20 bg-cyan-300/[0.04] p-2 text-[11px] leading-5 text-slate-400">
+                  <div>
+                    Effort: {thinking.supportedReasoningEfforts.join(" / ")}; xhigh maps
+                    to {effortMap?.xhigh ?? "xhigh"}
+                  </div>
+                  <div>Disabled params: {thinking.disabledRequestParams.join(", ")}</div>
+                  <div>Reasoning field: {thinking.responseReasoningField ?? "none"}</div>
+                </div>
+              ) : null}
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function AgentSettingsSidebar({
   open,
+  activeAgent,
+  activePanel,
   activeTheme,
+  agent,
   agents,
   authVault,
   artifactError,
@@ -2572,22 +3021,38 @@ function AgentSettingsSidebar({
   onCopyArtifact,
   onCreateNotebook,
   onDeleteApiKey,
+  onDeleteProviderCredential,
   onLockVault,
+  onLockProviderCredential,
   onLogout,
   onRefreshArtifacts,
   onRefreshMacros,
+  onRunTool,
+  onSelectAgent,
   onSetGlobalApiKey,
   onSetGlobalBaseUrl,
+  onSetProviderApiKey,
+  onSetProviderBaseUrl,
+  onSetProviderVerificationStatus,
+  onSetAgentProfileLocked,
   onSpawnMacro,
   onToggleNotebook,
   onUnlockVault,
+  onUnlockProviderCredential,
   onUpdateBranchingSettings,
+  onUpdateMemory,
+  onUpdateAgentCallsign,
+  onUpdateAgentProfile,
+  onUpdateMission,
   onUpdateThemeConfig,
   onUpdateAgentModel,
   onSetTheme,
 }: {
   open: boolean;
+  activeAgent?: NexusAgent;
+  activePanel: RightDockPanelId;
   activeTheme: NexusTheme;
+  agent?: NexusAgent;
   agents: NexusAgent[];
   authVault: IAuthVault;
   artifactError?: string;
@@ -2607,16 +3072,33 @@ function AgentSettingsSidebar({
   onCopyArtifact: (artifact: ArtifactVaultRecord) => void;
   onCreateNotebook: () => string;
   onDeleteApiKey: () => void;
+  onDeleteProviderCredential: (providerId: string) => void;
   onLockVault: () => void;
+  onLockProviderCredential: (providerId: string) => void;
   onLogout: () => void;
   onRefreshArtifacts: () => void;
   onRefreshMacros: () => void;
+  onRunTool: (agentId: string, toolId: string) => Promise<void>;
+  onSelectAgent: (agentId: string) => void;
   onSetGlobalApiKey: (key: string) => void;
   onSetGlobalBaseUrl: (baseUrl: string) => void;
+  onSetProviderApiKey: (providerId: string, key: string) => void;
+  onSetProviderBaseUrl: (providerId: string, baseUrl: string) => void;
+  onSetProviderVerificationStatus: (
+    providerId: string,
+    status: "untested" | "verified" | "failed",
+    error?: string,
+  ) => void;
+  onSetAgentProfileLocked: (agentId: string, locked: boolean) => void;
   onSpawnMacro: (macro: WorkflowTemplateRecord) => void;
   onToggleNotebook: (id: string) => void;
   onUnlockVault: () => void;
+  onUnlockProviderCredential: (providerId: string) => void;
   onUpdateBranchingSettings: (settings: Partial<WorkspaceBranchingSettings>) => void;
+  onUpdateMemory: (agentId: string, memoryId: string, content: string) => void;
+  onUpdateAgentCallsign: (agentId: string, callsign: string) => void;
+  onUpdateAgentProfile: (agentId: string, profile: AgentProfileUpdate) => void;
+  onUpdateMission: (agentId: string, mission: string) => void;
   onUpdateThemeConfig: (config: Partial<WorkspaceThemeConfig>) => void;
   onUpdateAgentModel: (agentId: string, model: string) => void;
   onSetTheme: (theme: NexusTheme) => void;
@@ -2633,6 +3115,7 @@ function AgentSettingsSidebar({
   const [traceEventsLoading, setTraceEventsLoading] = useState(false);
   const [traceEventsError, setTraceEventsError] = useState<string | undefined>();
   const traceViewerUserId = authVault.user?.id ?? "local-owner";
+  const panelMeta = getRightDockPanelMeta(activePanel);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -2696,34 +3179,67 @@ function AgentSettingsSidebar({
       {open && (
         <motion.aside
           animate={{ opacity: 1, x: 0 }}
-          className="fixed bottom-3 right-3 top-[88px] z-[120] flex w-[min(390px,calc(100vw-24px))] flex-col overflow-hidden border border-cyan-300/25 bg-slate-950/88 shadow-[0_24px_90px_rgba(0,0,0,0.55),0_0_44px_rgba(34,211,238,0.14)] backdrop-blur-xl"
+	          className="fixed bottom-3 right-3 top-[88px] z-[120] flex w-[min(390px,calc(100vw-24px))] flex-col overflow-hidden border border-cyan-300/25 bg-slate-950/88 shadow-[0_24px_90px_rgba(0,0,0,0.55),0_0_44px_rgba(34,211,238,0.14)] backdrop-blur-xl xl:right-16"
           exit={{ opacity: 0, x: 36 }}
           initial={{ opacity: 0, x: 48 }}
           transition={{ duration: 0.22, ease: "easeOut" }}
         >
-          <header className="flex items-center justify-between border-b border-white/10 bg-cyan-300/[0.04] p-4">
-            <div>
-              <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-cyan-100">
-                Account / Vault Settings
-              </div>
-              <div className="mt-1 text-xs text-slate-500">Identity and global runtime key</div>
-            </div>
-            <IconButton label="Close settings" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </IconButton>
-          </header>
+	          <header className="flex items-center justify-between border-b border-white/10 bg-cyan-300/[0.04] p-4">
+	            <div>
+	              <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-cyan-100">
+	                {panelMeta.label}
+	              </div>
+	              <div className="mt-1 text-xs text-slate-500">{panelMeta.detail}</div>
+	            </div>
+	            <IconButton label="Close panel" onClick={onClose}>
+	              <X className="h-4 w-4" />
+	            </IconButton>
+	          </header>
 
           <div className="cyber-scroll min-h-0 flex-1 overflow-y-auto p-4">
-            <div
-              className={cx(
-                "mb-4 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em]",
-                streamModeTone(streamMode),
-              )}
-            >
-              STREAM: {streamMode}
-            </div>
+	            <div
+	              className={cx(
+	                "mb-4 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em]",
+	                streamModeTone(streamMode),
+	              )}
+	            >
+	              STREAM: {streamMode}
+	            </div>
 
-            <section className="mb-4 border border-white/10 bg-white/[0.025] p-2">
+	            {activePanel === "intel" ? (
+		              <RightIntel
+		                activeAgent={activeAgent}
+		                agent={agent}
+                    agents={agents}
+                    selectedAgentId={agent?.id}
+                    onSelectAgent={onSelectAgent}
+		                onRunTool={onRunTool}
+                    onSetAgentProfileLocked={onSetAgentProfileLocked}
+                    onUpdateAgentCallsign={onUpdateAgentCallsign}
+                    onUpdateAgentProfile={onUpdateAgentProfile}
+		                onUpdateMemory={onUpdateMemory}
+		                onUpdateMission={onUpdateMission}
+		              />
+	            ) : null}
+
+	            {activePanel === "providers" ? (
+	              <ProviderVaultPanel
+	                authVault={authVault}
+	                onDeleteProviderCredential={onDeleteProviderCredential}
+	                onLockProviderCredential={onLockProviderCredential}
+	                onSetProviderApiKey={onSetProviderApiKey}
+	                onSetProviderBaseUrl={onSetProviderBaseUrl}
+	                onSetProviderVerificationStatus={onSetProviderVerificationStatus}
+	                onUnlockProviderCredential={onUnlockProviderCredential}
+	              />
+	            ) : null}
+
+	            <section
+	              className={cx(
+	                "mb-4 border border-white/10 bg-white/[0.025] p-2",
+	                activePanel !== "theme" && "hidden",
+	              )}
+	            >
               <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.18em] text-slate-400">
                 Theme / Style
               </div>
@@ -2747,12 +3263,19 @@ function AgentSettingsSidebar({
               </div>
             </section>
 
-            <LegoThemeEngineControls
-              onCommitThemeConfig={onUpdateThemeConfig}
-              themeConfig={themeConfig}
-            />
+	            {activePanel === "theme" ? (
+	              <LegoThemeEngineControls
+	                onCommitThemeConfig={onUpdateThemeConfig}
+	                themeConfig={themeConfig}
+	              />
+	            ) : null}
 
-            <section className="mb-4 border border-fuchsia-300/25 bg-fuchsia-300/[0.045] p-3 shadow-[0_0_28px_rgba(217,70,239,0.08)]">
+	            <section
+	              className={cx(
+	                "mb-4 border border-fuchsia-300/25 bg-fuchsia-300/[0.045] p-3 shadow-[0_0_28px_rgba(217,70,239,0.08)]",
+	                activePanel !== "memory" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fuchsia-100">
@@ -2828,7 +3351,12 @@ function AgentSettingsSidebar({
               </div>
             </section>
 
-            <section className="mb-4 border border-cyan-300/25 bg-cyan-300/[0.045] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]">
+	            <section
+	              className={cx(
+	                "mb-4 border border-cyan-300/25 bg-cyan-300/[0.045] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]",
+	                activePanel !== "account" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
@@ -2848,7 +3376,12 @@ function AgentSettingsSidebar({
               </div>
             </section>
 
-            <section className="mb-4 border border-fuchsia-300/25 bg-fuchsia-300/[0.045] p-3 shadow-[0_0_28px_rgba(217,70,239,0.08)]">
+	            <section
+	              className={cx(
+	                "mb-4 border border-fuchsia-300/25 bg-fuchsia-300/[0.045] p-3 shadow-[0_0_28px_rgba(217,70,239,0.08)]",
+	                activePanel !== "providers" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fuchsia-100">
@@ -2962,7 +3495,12 @@ function AgentSettingsSidebar({
               )}
             </section>
 
-            <section className="mb-4 border border-cyan-300/25 bg-cyan-300/[0.035] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]">
+	            <section
+	              className={cx(
+	                "mb-4 border border-cyan-300/25 bg-cyan-300/[0.035] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]",
+	                activePanel !== "models" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center gap-2">
                 <BrainCircuit className="h-4 w-4 text-cyan-100" />
                 <div>
@@ -2975,10 +3513,18 @@ function AgentSettingsSidebar({
                 </div>
               </div>
               <div className="grid gap-2">
-                {agents.map((agent) => {
-                  const modelGroups = getAgentModelGroups(agent);
+	                {agents.map((agent) => {
+	                  const modelGroups = getAgentModelGroups(agent);
+	                  const modelOption = getModelOption(agent.model);
+	                  const capability = getModelCapabilityProfile(agent.model);
+	                  const providerCredential =
+	                    authVault.providerCredentials?.[
+	                      capability?.providerId ?? modelOption?.provider ?? agent.provider
+	                    ];
+	                  const providerVerified =
+	                    providerCredential?.verificationStatus === "verified";
 
-                  return (
+	                  return (
                     <div
                       key={agent.id}
                       className="border border-white/10 bg-black/25 p-2"
@@ -2996,8 +3542,8 @@ function AgentSettingsSidebar({
                           {getModelLabel(agent.model)}
                         </span>
                       </div>
-                      <select
-                        className="w-full border border-white/10 bg-black/40 px-2.5 py-2 font-mono text-[11px] text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
+	                      <select
+	                        className="w-full border border-white/10 bg-black/40 px-2.5 py-2 font-mono text-[11px] text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
                         onChange={(event) =>
                           onUpdateAgentModel(agent.id, event.currentTarget.value)
                         }
@@ -3010,16 +3556,58 @@ function AgentSettingsSidebar({
                                 {getModelLabel(model)}
                               </option>
                             ))}
-                          </optgroup>
-                        ))}
-                      </select>
-                    </div>
-                  );
-                })}
+	                          </optgroup>
+	                        ))}
+	                      </select>
+	                      <div className="mt-2 grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+	                        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+	                          Provider: {getProviderLabel(capability?.providerId ?? agent.provider)}
+	                        </span>
+	                        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+	                          Key: {providerCredential?.apiKey ? "Set" : "Missing"}
+	                        </span>
+	                        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+	                          Thinking: {capability?.thinking.supported ? "Supported" : "No"}
+	                        </span>
+	                        <span
+	                          className={cx(
+	                            "border px-2 py-1",
+	                            providerVerified
+	                              ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+	                              : "border-amber-300/25 bg-amber-300/10 text-amber-100",
+	                          )}
+	                        >
+	                          Live: {providerVerified ? "Verified" : "Untested"}
+	                        </span>
+	                      </div>
+	                      {capability?.thinking.supported ? (
+	                        <div className="mt-2 border border-cyan-300/20 bg-cyan-300/[0.04] p-2 text-[11px] leading-5 text-slate-400">
+	                          <span className="font-mono uppercase tracking-[0.14em] text-cyan-100">
+	                            Reasoning
+	                          </span>
+	                          <span className="ml-2">
+	                            {capability.thinking.supportedReasoningEfforts.join(" / ")}
+	                          </span>
+	                          <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+	                            xhigh maps to{" "}
+	                            {capability.thinking.providerReasoningEffortMap?.xhigh ?? "xhigh"};
+	                            disabled params:{" "}
+	                            {capability.thinking.disabledRequestParams.join(", ")}
+	                          </div>
+	                        </div>
+	                      ) : null}
+	                    </div>
+	                  );
+	                })}
               </div>
             </section>
 
-            <section className="mb-4 border border-white/10 bg-white/[0.035] p-3">
+	            <section
+	              className={cx(
+	                "mb-4 border border-white/10 bg-white/[0.035] p-3",
+	                activePanel !== "models" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
@@ -3059,7 +3647,12 @@ function AgentSettingsSidebar({
               </div>
             </section>
 
-            <section className="mb-4 border border-emerald-300/30 bg-emerald-300/[0.045] p-3 shadow-[0_0_28px_rgba(16,185,129,0.09)]">
+	            <section
+	              className={cx(
+	                "mb-4 border border-emerald-300/30 bg-emerald-300/[0.045] p-3 shadow-[0_0_28px_rgba(16,185,129,0.09)]",
+	                activePanel !== "memory" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-100">
@@ -3113,7 +3706,12 @@ function AgentSettingsSidebar({
               )}
             </section>
 
-            <section className="mt-5 border border-emerald-300/35 bg-emerald-300/[0.05] p-3 shadow-[0_0_34px_rgba(16,185,129,0.1)]">
+	            <section
+	              className={cx(
+	                "mt-5 border border-emerald-300/35 bg-emerald-300/[0.05] p-3 shadow-[0_0_34px_rgba(16,185,129,0.1)]",
+	                activePanel !== "artifacts" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-100">
@@ -3190,7 +3788,12 @@ function AgentSettingsSidebar({
               </div>
             </section>
 
-            <section className="mt-5 border border-cyan-300/25 bg-cyan-300/[0.045] p-3">
+	            <section
+	              className={cx(
+	                "mt-5 border border-cyan-300/25 bg-cyan-300/[0.045] p-3",
+	                activePanel !== "trace" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
@@ -3258,7 +3861,12 @@ function AgentSettingsSidebar({
               ) : null}
             </section>
 
-            <section className="mt-5 border border-fuchsia-300/35 bg-fuchsia-300/[0.055] p-3 shadow-[0_0_34px_rgba(217,70,239,0.12)]">
+	            <section
+	              className={cx(
+	                "mt-5 border border-fuchsia-300/35 bg-fuchsia-300/[0.055] p-3 shadow-[0_0_34px_rgba(217,70,239,0.12)]",
+	                activePanel !== "workflows" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fuchsia-100">
@@ -3522,25 +4130,262 @@ function LegoThemeEngineControls({
   );
 }
 
+function ModelTuningSelect<TValue extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly TValue[];
+  value?: TValue;
+  onChange: (value: TValue) => void;
+}) {
+  if (!options.length) {
+    return null;
+  }
+
+  return (
+    <label className="grid gap-1.5">
+      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+        {label}
+      </span>
+      <select
+        className="w-full border border-white/10 bg-black/45 px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-100 outline-none transition focus:border-cyan-300/60"
+        onChange={(event) => onChange(event.currentTarget.value as TValue)}
+        value={value ?? options[0]}
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function AgentModelTuningPanel({
+  agent,
+  onUpdateAgentModel,
+  onUpdateAgentModelSettings,
+}: {
+  agent: NexusAgent;
+  onUpdateAgentModel: (agentId: string, model: string) => void;
+  onUpdateAgentModelSettings: (
+    agentId: string,
+    settings: Partial<AgentModelSettings>,
+  ) => void;
+}) {
+  const modelGroups = getAgentModelGroups(agent);
+  const capability = getModelCapabilityProfile(agent.model);
+  const settings = agent.modelSettings ?? {};
+
+  return (
+    <div className="mx-3 mb-3 grid gap-3 border border-cyan-300/20 bg-black/25 p-3">
+      <label className="grid gap-1.5">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+          Model
+        </span>
+        <select
+          className="w-full border border-white/10 bg-black/45 px-2 py-1.5 font-mono text-[10px] text-slate-100 outline-none transition focus:border-cyan-300/60"
+          onChange={(event) =>
+            onUpdateAgentModel(agent.id, event.currentTarget.value)
+          }
+          value={agent.model}
+        >
+          {modelGroups.map((group) => (
+            <optgroup key={group.label} label={group.label.toUpperCase()}>
+              {group.models.map((model) => (
+                <option key={model} value={model}>
+                  {getModelLabel(model)}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </label>
+
+      <div className="grid grid-cols-2 gap-2">
+        <ModelTuningSelect<NexusReasoningEffort>
+          label="Reasoning"
+          onChange={(reasoningEffort) =>
+            onUpdateAgentModelSettings(agent.id, { reasoningEffort })
+          }
+          options={capability?.thinking.supportedReasoningEfforts ?? []}
+          value={settings.reasoningEffort}
+        />
+        <ModelTuningSelect<NexusVerbosity>
+          label="Verbosity"
+          onChange={(verbosity) =>
+            onUpdateAgentModelSettings(agent.id, { verbosity })
+          }
+          options={capability?.verbosity.supportedVerbosity ?? []}
+          value={settings.verbosity}
+        />
+        <ModelTuningSelect<NexusReasoningDetail>
+          label="Detail"
+          onChange={(reasoningDetail) =>
+            onUpdateAgentModelSettings(agent.id, { reasoningDetail })
+          }
+          options={capability?.reasoningDetail.supportedDetails ?? []}
+          value={settings.reasoningDetail}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+          Provider: {getProviderLabel(capability?.providerId ?? agent.provider)}
+        </span>
+        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+          API: {capability?.apiFamily ?? "unknown"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function AgentTemplateProfilePanel({
+  profile,
+  template,
+  onSpawn,
+  onUpdate,
+}: {
+  profile: AgentTemplateProfile;
+  template: AgentTemplate;
+  onSpawn: (template: AgentTemplate) => void;
+  onUpdate: (templateId: string, profile: AgentTemplateProfileUpdate) => void;
+}) {
+  const locked = profile.profileLocked;
+
+  return (
+    <div className="mx-3 mb-3 grid gap-2 border border-cyan-300/20 bg-black/25 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+          Custom Agent
+        </span>
+        <div className="flex items-center gap-1.5">
+          <button
+            aria-label={`${profile.callsign} launch custom agent`}
+            className="grid h-7 w-7 place-items-center border border-cyan-300/35 bg-cyan-300/10 text-cyan-100 transition hover:bg-cyan-300/20"
+            onClick={() => onSpawn(template)}
+            title={`${profile.callsign} launch custom agent`}
+            type="button"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+          <button
+            aria-pressed={locked}
+            className={cx(
+              "grid h-7 w-7 place-items-center border transition",
+              locked
+                ? "border-emerald-300/45 bg-emerald-300/10 text-emerald-100"
+                : "border-white/10 bg-white/[0.035] text-slate-500 hover:border-cyan-300/45 hover:text-cyan-100",
+            )}
+            onClick={() => onUpdate(template.id, { profileLocked: !locked })}
+            title={locked ? "Unlock custom agent" : "Lock custom agent"}
+            type="button"
+          >
+            {locked ? (
+              <Lock className="h-3.5 w-3.5" />
+            ) : (
+              <Unlock className="h-3.5 w-3.5" />
+            )}
+          </button>
+        </div>
+      </div>
+      <label className="grid gap-1.5">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+          Name
+        </span>
+        <input
+          className="w-full border border-white/10 bg-black/35 px-2 py-1.5 font-mono text-[11px] text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+          disabled={locked}
+          onChange={(event) =>
+            onUpdate(template.id, { callsign: event.currentTarget.value })
+          }
+          value={profile.callsign}
+        />
+      </label>
+      <label className="grid gap-1.5">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+          Role
+        </span>
+        <input
+          className="w-full border border-white/10 bg-black/35 px-2 py-1.5 text-xs text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+          disabled={locked}
+          onChange={(event) =>
+            onUpdate(template.id, { identity: event.currentTarget.value })
+          }
+          value={profile.identity}
+        />
+      </label>
+      <label className="grid gap-1.5">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+          Task
+        </span>
+        <textarea
+          className="min-h-16 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+          disabled={locked}
+          onChange={(event) =>
+            onUpdate(template.id, { mission: event.currentTarget.value })
+          }
+          value={profile.mission}
+        />
+      </label>
+      <label className="grid gap-1.5">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+          Execution
+        </span>
+        <textarea
+          className="min-h-20 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+          disabled={locked}
+          onChange={(event) =>
+            onUpdate(template.id, { executionPrompt: event.currentTarget.value })
+          }
+          value={profile.executionPrompt}
+        />
+      </label>
+    </div>
+  );
+}
+
 function LeftDock({
   agents,
+  agentTemplateProfiles,
   activeAgentId,
   selectedAgentId,
   onSpawn,
   onFocus,
   onSelect,
   onRestore,
+  onUpdateAgentModel,
+  onUpdateAgentModelSettings,
+  onUpdateAgentTemplateProfile,
 }: {
   agents: NexusAgent[];
+  agentTemplateProfiles: Record<string, AgentTemplateProfile>;
   activeAgentId?: string;
   selectedAgentId?: string;
   onSpawn: (template: AgentTemplate) => void;
   onFocus: (agentId: string) => void;
   onSelect: (agentId: string) => void;
   onRestore: (agentId: string) => void;
+  onUpdateAgentModel: (agentId: string, model: string) => void;
+  onUpdateAgentModelSettings: (
+    agentId: string,
+    settings: Partial<AgentModelSettings>,
+  ) => void;
+  onUpdateAgentTemplateProfile: (
+    templateId: string,
+    profile: AgentTemplateProfileUpdate,
+  ) => void;
 }) {
+  const [expandedAgentId, setExpandedAgentId] = useState<string | null>(null);
+  const [expandedTemplateId, setExpandedTemplateId] = useState<string | null>(null);
+
   return (
-    <aside className="nexus-panel hidden h-full min-h-0 flex-col overflow-hidden xl:flex">
+    <div className="nexus-panel flex min-h-0 flex-col overflow-hidden">
       <div className="border-b border-white/10 p-4">
         <div className="flex items-center justify-between">
           <h2 className="font-mono text-xs uppercase tracking-[0.22em] text-slate-300">
@@ -3549,35 +4394,80 @@ function LeftDock({
           <BrainCircuit className="h-4 w-4 text-cyan-200" />
         </div>
         <div className="mt-4 grid gap-2">
-          {agentTemplates.map((template) => (
-            <button
-              key={template.id}
-              className="group border border-white/10 bg-white/[0.035] p-3 text-left transition hover:border-cyan-300/40 hover:bg-cyan-300/10"
-              onClick={() => onSpawn(template)}
-              type="button"
-            >
-              <div className="flex items-center gap-3">
-                <span
-                  className="grid h-9 w-9 place-items-center border font-mono text-xs font-semibold"
-                  style={{
-                    borderColor: `${template.accent}88`,
-                    color: template.accent,
-                    backgroundColor: `${template.accent}14`,
-                  }}
-                >
-                  {template.avatar}
-                </span>
-                  <span className="min-w-0">
-                    <span className="block truncate font-mono text-[11px] uppercase tracking-[0.16em] text-white">
-                      {template.callsign}
-                    </span>
-                    <span className="mt-0.5 block truncate text-xs text-slate-400">
-                      {template.title}
-                    </span>
-                  </span>
-              </div>
-            </button>
-          ))}
+          {agentTemplates.map((template) => {
+            const profile = resolveAgentTemplateProfile(
+              template,
+              agentTemplateProfiles[template.id],
+            );
+            const open = expandedTemplateId === template.id;
+
+            return (
+              <article
+                key={template.id}
+                className="border border-white/10 bg-white/[0.035] transition hover:border-cyan-300/30"
+              >
+                <div className="flex items-start gap-2 p-3">
+                  <button
+                    className="group min-w-0 flex-1 text-left"
+                    onClick={() => onSpawn(template)}
+                    type="button"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="grid h-9 w-9 place-items-center border font-mono text-xs font-semibold"
+                        style={{
+                          borderColor: `${template.accent}88`,
+                          color: template.accent,
+                          backgroundColor: `${template.accent}14`,
+                        }}
+                      >
+                        {template.avatar}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="flex items-center gap-2">
+                          <span className="truncate font-mono text-[11px] uppercase tracking-[0.16em] text-white">
+                            {profile.callsign}
+                          </span>
+                          {profile.profileLocked ? (
+                            <Lock className="h-3 w-3 shrink-0 text-emerald-200" />
+                          ) : null}
+                        </span>
+                        <span className="mt-0.5 block truncate text-xs text-slate-400">
+                          {profile.title}
+                        </span>
+                      </span>
+                    </div>
+                  </button>
+                  <button
+                    aria-expanded={open}
+                    aria-label={`${profile.callsign} custom agent settings`}
+                    className={cx(
+                      "grid h-7 w-7 shrink-0 place-items-center border text-slate-500 transition hover:border-cyan-300/45 hover:bg-cyan-300/10 hover:text-cyan-100",
+                      open &&
+                        "border-cyan-300/55 bg-cyan-300/15 text-cyan-100",
+                    )}
+                    onClick={() =>
+                      setExpandedTemplateId((current) =>
+                        current === template.id ? null : template.id,
+                      )
+                    }
+                    title={`${profile.callsign} custom agent settings`}
+                    type="button"
+                  >
+                    <Settings className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                {open ? (
+                  <AgentTemplateProfilePanel
+                    profile={profile}
+                    template={template}
+                    onSpawn={onSpawn}
+                    onUpdate={onUpdateAgentTemplateProfile}
+                  />
+                ) : null}
+              </article>
+            );
+          })}
         </div>
       </div>
 
@@ -3590,48 +4480,79 @@ function LeftDock({
         </div>
         <div className="grid gap-2">
           {agents.map((agent) => (
-            <button
+            <article
               key={agent.id}
               className={cx(
-                "border p-3 text-left transition",
+                "border transition",
                 selectedAgentId === agent.id
                   ? "border-cyan-300/45 bg-cyan-300/10"
                   : "border-white/10 bg-white/[0.035] hover:border-white/25",
               )}
-              onClick={() => {
-                onSelect(agent.id);
-                if (agent.minimized) {
-                  onRestore(agent.id);
-                } else {
-                  onFocus(agent.id);
-                }
-              }}
-              type="button"
             >
-              <div className="flex items-center gap-3">
-                <span
-                  className="h-2.5 w-2.5 shrink-0 rounded-full"
-                  style={{ backgroundColor: agent.accent }}
-                />
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center justify-between gap-2">
-                    <span className="truncate font-mono text-[11px] uppercase tracking-[0.16em] text-white">
-                      {agent.callsign}
+              <div className="flex items-start gap-2 p-3">
+                <button
+                  className="min-w-0 flex-1 text-left"
+                  onClick={() => {
+                    onSelect(agent.id);
+                    if (agent.minimized) {
+                      onRestore(agent.id);
+                    } else {
+                      onFocus(agent.id);
+                    }
+                  }}
+                  type="button"
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: agent.accent }}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-2">
+                        <span className="truncate font-mono text-[11px] uppercase tracking-[0.16em] text-white">
+                          {agent.callsign}
+                        </span>
+                        {activeAgentId === agent.id && (
+                          <Zap className="h-3.5 w-3.5 shrink-0 text-amber-200" />
+                        )}
+                      </span>
+                      <span className="mt-1 block truncate text-xs text-slate-400">
+                        {getCapabilityType(agent)} / {agent.model}
+                      </span>
                     </span>
-                    {activeAgentId === agent.id && (
-                      <Zap className="h-3.5 w-3.5 shrink-0 text-amber-200" />
-                    )}
-                  </span>
-                  <span className="mt-1 block truncate text-xs text-slate-400">
-                    {getCapabilityType(agent)} / {agent.model}
-                  </span>
-                </span>
+                  </div>
+                </button>
+                <button
+                  aria-expanded={expandedAgentId === agent.id}
+                  aria-label={`${agent.callsign} model settings`}
+                  className={cx(
+                    "grid h-7 w-7 shrink-0 place-items-center border text-slate-500 transition hover:border-cyan-300/45 hover:bg-cyan-300/10 hover:text-cyan-100",
+                    expandedAgentId === agent.id &&
+                      "border-cyan-300/55 bg-cyan-300/15 text-cyan-100",
+                  )}
+                  onClick={() =>
+                    setExpandedAgentId((current) =>
+                      current === agent.id ? null : agent.id,
+                    )
+                  }
+                  title={`${agent.callsign} model settings`}
+                  type="button"
+                >
+                  <Settings className="h-3.5 w-3.5" />
+                </button>
               </div>
-            </button>
+              {expandedAgentId === agent.id ? (
+                <AgentModelTuningPanel
+                  agent={agent}
+                  onUpdateAgentModel={onUpdateAgentModel}
+                  onUpdateAgentModelSettings={onUpdateAgentModelSettings}
+                />
+              ) : null}
+            </article>
           ))}
         </div>
       </div>
-    </aside>
+    </div>
   );
 }
 
@@ -3917,7 +4838,11 @@ function AgentWindow({
                       </div>
                     ) : null}
                     {renderedMessages.map((message) => (
-                      <MessageBubble key={message.id} message={message} />
+                      <MessageBubble
+                        key={message.id}
+                        message={message}
+                        reasoningDetail={agent.modelSettings?.reasoningDetail}
+                      />
                     ))}
                   </div>
                 </div>
@@ -4764,9 +5689,30 @@ function MediaArtifactPreview({ artifact }: { artifact: AgentMediaArtifact }) {
   );
 }
 
-function MessageBubble({ message }: { message: AgentMessage }) {
+function getReasoningPreview(content: string, detail: NexusReasoningDetail | undefined) {
+  if (detail === "low") {
+    return content.length > 480 ? `${content.slice(0, 480)}...` : content;
+  }
+
+  if (detail === "medium") {
+    return content.length > 1200 ? `${content.slice(0, 1200)}...` : content;
+  }
+
+  return content;
+}
+
+function MessageBubble({
+  message,
+  reasoningDetail,
+}: {
+  message: AgentMessage;
+  reasoningDetail?: NexusReasoningDetail;
+}) {
   const isUser = message.role === "user";
   const isTool = message.role === "tool";
+  const reasoningPreview = message.reasoningContent
+    ? getReasoningPreview(message.reasoningContent, reasoningDetail)
+    : "";
 
   return (
     <article
@@ -4798,6 +5744,16 @@ function MessageBubble({ message }: { message: AgentMessage }) {
           </span>
         )}
       </p>
+      {message.reasoningContent ? (
+        <details className="mt-3 border border-cyan-300/20 bg-black/22 p-2">
+          <summary className="cursor-pointer font-mono text-[9px] uppercase tracking-[0.16em] text-cyan-100">
+            Provider reasoning
+          </summary>
+          <p className="mt-2 max-h-36 overflow-y-auto whitespace-pre-wrap break-words text-[11px] leading-5 text-slate-400">
+            {reasoningPreview}
+          </p>
+        </details>
+      ) : null}
       {message.media && (
         <div className="mt-3 aspect-video overflow-hidden border border-white/10 bg-black/25">
           <MediaArtifactPreview artifact={message.media} />
@@ -4847,17 +5803,31 @@ function MinimizedRail({
 
 function RightIntel({
   agent,
+  agents,
   activeAgent,
+  selectedAgentId,
+  onSelectAgent,
+  onSetAgentProfileLocked,
+  onUpdateAgentCallsign,
+  onUpdateAgentProfile,
   onUpdateMission,
   onUpdateMemory,
   onRunTool,
 }: {
   agent?: NexusAgent;
+  agents: NexusAgent[];
   activeAgent?: NexusAgent;
+  selectedAgentId?: string;
+  onSelectAgent: (agentId: string) => void;
+  onSetAgentProfileLocked: (agentId: string, locked: boolean) => void;
+  onUpdateAgentCallsign: (agentId: string, callsign: string) => void;
+  onUpdateAgentProfile: (agentId: string, profile: AgentProfileUpdate) => void;
   onUpdateMission: (agentId: string, mission: string) => void;
   onUpdateMemory: (agentId: string, memoryId: string, content: string) => void;
   onRunTool: (agentId: string, toolId: string) => Promise<void>;
 }) {
+  const [profilePanelAgentId, setProfilePanelAgentId] = useState<string | null>(null);
+
   return (
     <aside className="nexus-panel hidden h-full min-h-0 flex-col overflow-hidden xl:flex">
       <div className="border-b border-white/10 p-4">
@@ -4878,18 +5848,147 @@ function RightIntel({
             {agent ? `${agent.callsign} / ${agent.title}` : "No agent selected"}
           </p>
         </div>
-        {agent && (
-          <div className="mt-3">
-            <label className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500">
-              Mission
-            </label>
-            <textarea
-              className="mt-2 min-h-20 w-full resize-none border border-white/10 bg-black/30 p-2 text-xs leading-5 text-slate-200 outline-none transition focus:border-cyan-300/50"
-              onChange={(event) => onUpdateMission(agent.id, event.target.value)}
-              value={agent.mission}
-            />
-          </div>
-        )}
+        <div className="mt-3 grid gap-2">
+          {agents.map((candidate) => {
+            const selected = selectedAgentId === candidate.id;
+            const open = profilePanelAgentId === candidate.id;
+            const locked = Boolean(candidate.profileLocked);
+
+            return (
+              <article
+                key={candidate.id}
+                className={cx(
+                  "border bg-black/24 transition",
+                  selected ? "border-cyan-300/35" : "border-white/10",
+                )}
+              >
+                <div className="flex items-start gap-2 px-3 py-2">
+                  <button
+                    className="min-w-0 flex-1 text-left"
+                    onClick={() => onSelectAgent(candidate.id)}
+                    type="button"
+                  >
+                    <span className="block min-w-0">
+                      <span className="flex items-center gap-2">
+                        <span className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-white">
+                          {candidate.callsign}
+                        </span>
+                        {locked ? (
+                          <Lock className="h-3 w-3 shrink-0 text-emerald-200" />
+                        ) : null}
+                      </span>
+                      <span className="block truncate text-[11px] text-slate-500">
+                        {candidate.model}
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    aria-expanded={open}
+                    aria-label={`${candidate.callsign} custom settings`}
+                    className={cx(
+                      "grid h-7 w-7 shrink-0 place-items-center border text-slate-500 transition hover:border-cyan-300/45 hover:bg-cyan-300/10 hover:text-cyan-100",
+                      open &&
+                        "border-cyan-300/55 bg-cyan-300/15 text-cyan-100",
+                    )}
+                    onClick={() => {
+                      onSelectAgent(candidate.id);
+                      setProfilePanelAgentId((current) =>
+                        current === candidate.id ? null : candidate.id,
+                      );
+                    }}
+                    title={`${candidate.callsign} custom settings`}
+                    type="button"
+                  >
+                    <Settings className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                {open ? (
+                  <div className="grid gap-2 border-t border-white/10 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                        Custom Agent
+                      </span>
+                      <button
+                        aria-pressed={locked}
+                        className={cx(
+                          "grid h-7 w-7 place-items-center border transition",
+                          locked
+                            ? "border-emerald-300/45 bg-emerald-300/10 text-emerald-100"
+                            : "border-white/10 bg-white/[0.035] text-slate-500 hover:border-cyan-300/45 hover:text-cyan-100",
+                        )}
+                        onClick={() => onSetAgentProfileLocked(candidate.id, !locked)}
+                        title={locked ? "Unlock custom agent" : "Lock custom agent"}
+                        type="button"
+                      >
+                        {locked ? (
+                          <Lock className="h-3.5 w-3.5" />
+                        ) : (
+                          <Unlock className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </div>
+                    <label className="grid gap-1.5">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                        Name
+                      </span>
+                      <input
+                        className="w-full border border-white/10 bg-black/35 px-2 py-1.5 font-mono text-[11px] text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+                        disabled={locked}
+                        onChange={(event) =>
+                          onUpdateAgentCallsign(candidate.id, event.currentTarget.value)
+                        }
+                        value={candidate.callsign}
+                      />
+                    </label>
+                    <label className="grid gap-1.5">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                        Role
+                      </span>
+                      <input
+                        className="w-full border border-white/10 bg-black/35 px-2 py-1.5 text-xs text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+                        disabled={locked}
+                        onChange={(event) =>
+                          onUpdateAgentProfile(candidate.id, {
+                            identity: event.currentTarget.value,
+                          })
+                        }
+                        value={candidate.identity}
+                      />
+                    </label>
+                    <label className="grid gap-1.5">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                        Task
+                      </span>
+                      <textarea
+                        className="min-h-20 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+                        disabled={locked}
+                        onChange={(event) =>
+                          onUpdateMission(candidate.id, event.currentTarget.value)
+                        }
+                        value={candidate.mission}
+                      />
+                    </label>
+                    <label className="grid gap-1.5">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                        Execution
+                      </span>
+                      <textarea
+                        className="min-h-24 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+                        disabled={locked}
+                        onChange={(event) =>
+                          onUpdateAgentProfile(candidate.id, {
+                            executionPrompt: event.currentTarget.value,
+                          })
+                        }
+                        value={candidate.executionPrompt}
+                      />
+                    </label>
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
       </div>
 
       <div className="cyber-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">

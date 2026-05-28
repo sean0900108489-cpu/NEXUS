@@ -19,17 +19,17 @@ describe("workspace kernel", () => {
 
     expect(workspace.agents).toHaveLength(4);
     expect(workspace.agents.map((agent) => agent.callsign)).toEqual([
-      "ARCHITECT",
-      "OPERATOR",
-      "SENTINEL",
-      "ARCHIVIST",
+      "Nexus_1",
+      "Nuxus_2",
+      "Nuxus_3",
+      "Nexus_4",
     ]);
   });
 
   it("creates independent message and context arrays per agent", () => {
     const workspace = createDefaultWorkspace();
-    const architect = workspace.agents.find((agent) => agent.callsign === "ARCHITECT");
-    const operator = workspace.agents.find((agent) => agent.callsign === "OPERATOR");
+    const architect = workspace.agents[0];
+    const operator = workspace.agents[1];
 
     expect(architect).toBeDefined();
     expect(operator).toBeDefined();
@@ -177,7 +177,7 @@ describe("workspace kernel", () => {
       y: 222,
     };
     workspace.graph.edges.push({
-      id: "edge-agent-architect-agent-operator-test",
+      id: "edge-agent-nexus-test",
       sourceAgentId: workspace.agents[0].id,
       targetAgentId: workspace.agents[1].id,
     });
@@ -268,11 +268,6 @@ describe("workspace kernel", () => {
 
   it("downgrades queued tools without executors and preserves executable tools", () => {
     const workspace = createDefaultWorkspace();
-    const architect = workspace.agents.find((agent) => agent.callsign === "ARCHITECT");
-
-    expect(architect?.tools.find((tool) => tool.name === "Review Mesh")?.status).toBe(
-      "available",
-    );
 
     const unsafeWorkspace = structuredClone(workspace);
     unsafeWorkspace.agents[0].tools.push({

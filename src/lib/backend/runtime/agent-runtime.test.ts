@@ -288,6 +288,7 @@ describe("ProviderAdapter fallback boundary", () => {
             identity: "test",
             memory: [],
             mission: "test",
+            executionPrompt: "",
             model: "gpt-4o-mini",
             provider: "openai-compatible",
             title: "Test",

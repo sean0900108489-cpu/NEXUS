@@ -3372,3 +3372,28 @@ Post-optimization local verification:
 - `npm run lint` passed.
 - `npm run build` passed on Next.js 16.2.6 / Turbopack. Existing warning only: edge runtime page disables static generation.
 - `git diff --check` passed.
+
+## GitHub / Vercel Preview Landing Pass
+
+Updated: 2026-05-29 04:38:00 AEST
+
+GitHub:
+
+- Created branch `codex/v16-supabase-release-landing`.
+- Commit: `9e0c31b` (`Complete V16 durable sync rollout`).
+- Pushed branch to `origin/codex/v16-supabase-release-landing`.
+- Created draft PR: https://github.com/sean0900108489-cpu/NEXUS/pull/3
+
+Vercel Preview:
+
+- Git push triggered Vercel Preview deployment `dpl_1VHBUmDkMkW7xx23B3ZzhkEnCZwH`.
+- Preview URL: `https://nexus-dg99fxuv9-sean-s-projects10.vercel.app`
+- Deployment state: `READY`.
+- Root page returned `200 OK`.
+- `npx vercel curl https://nexus-dg99fxuv9-sean-s-projects10.vercel.app/api/v1/health` returned:
+  `ok: true`, `mode: production`, `status: degraded`, `database: false`, `env: false`, `deployment: true`, `registry: true`.
+
+Preview blocker:
+
+- The preview confirms the app builds and routes deploy, but server health is still degraded because Vercel env is missing `SUPABASE_SERVICE_ROLE_KEY`.
+- Production deploy/promotion remains intentionally blocked until the server-only Supabase service-role env is configured.

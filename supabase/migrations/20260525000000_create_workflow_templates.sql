@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS public.workflow_templates (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Development-only policy: public anon read/write access.
-ALTER TABLE public.workflow_templates DISABLE ROW LEVEL SECURITY;
-GRANT ALL ON TABLE public.workflow_templates TO anon;
+-- Production-safe default: keep the table protected until the workspace-aware
+-- policies in the security boundary migration are applied.
+ALTER TABLE public.workflow_templates ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.workflow_templates FROM anon;

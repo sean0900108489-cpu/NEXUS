@@ -11,41 +11,95 @@ import {
   DEFAULT_BASE_URL,
   DEFAULT_WORKSPACE_BRANCHING_SETTINGS,
   agentTemplates,
+  applyAgentTemplateProfile,
   createAgentFromTemplate,
   createDefaultWorkspace,
   createMediaAgent,
   createSandboxAgent,
-  defaultGraphNodes,
-  defaultLayouts,
   getDefaultGraphPosition,
   makeId,
+  resolveAgentTemplateProfile,
 } from "@/lib/nexus-defaults";
+import { NexusApiError, nexusApiClient } from "@/lib/api/nexus-api-client";
+import {
+  ACTIVE_WINDOW_DEFAULT_LIMIT,
+  ACTIVE_WINDOW_MAX_LIMIT,
+  AGENT_MEMORY_CONTENT_MAX_BYTES,
+} from "@/lib/backend/history/history-constants";
+import { HistoricalDataFetcher } from "@/lib/backend/history/historical-data-fetcher";
 import { supabaseStateSyncManager } from "@/lib/state-sync";
 import { getNexusSupabaseClient } from "@/lib/supabase/client";
-import { createWorkspaceSnapshot, sanitizeWorkspace, validateWorkspaceSnapshot } from "@/lib/workspace-kernel";
-import { type ToolExecutorInput, toolExecutors } from "@/lib/tool-executors";
+import {
+  createWorkspaceSnapshot,
+  materializeWorkspaceFromCloudSnapshot,
+  sanitizeWorkspace,
+  validateWorkspaceSnapshot,
+} from "@/lib/workspace-kernel";
+import type { ToolExecutorInput } from "@/lib/tool-executors";
 import { LlmMemoryCompressor } from "@/lib/adapters/memory-compression-adapter";
+import {
+  getModelOption,
+  getProviderOption,
+  normalizeAgentModelSettings,
+} from "@/lib/nexus-registry";
+import {
+  createWorkflowRuntimeLlmCall,
+  resolveWorkflowRuntimeExecutionAgent,
+} from "@/lib/workflow-runtime-lite/llm-client";
+import {
+  createEmptyWorkflowRuntimeLiteState,
+  createWorkflowRuntimeId,
+  createWorkflowRuntimeNode,
+  limitWorkflowRuns,
+  normalizeWorkflowRuntimeLiteState,
+} from "@/lib/workflow-runtime-lite/state";
+import {
+  runWorkflowRuntimeLite,
+  type WorkflowRuntimeNodePatch,
+} from "@/lib/workflow-runtime-lite/runner";
 import type {
+  ActiveUiStateSnapshot,
+  AgentLocalPersistenceMetadata,
   AgentBranchingStatus,
   AgentCreationCapabilityType,
   AgentLayout,
+  AgentModelSettings,
   AgentMessage,
+  AgentProfileUpdate,
   AgentStatus,
+  AgentTemplateProfileUpdate,
+  ArtifactVaultCache,
   ArtifactVaultRecord,
+  HistoricalDataPage,
+  HistoricalMessageRecord,
   IAgentBranchMetadata,
   IAuthVault,
   IMemoryCompressionConfig,
   ITransactionLog,
+  NotebookDraftRecord,
   NotebookRecord,
   NexusAgent,
   NexusWorkspace,
   PromptRecord,
   StreamMode,
+  ToolRunCancelResponse,
+  ToolRunConfirmResponse,
+  ToolRunRequest,
+  ToolRunResponse,
+  ToolStatus,
+  WorkflowNodeInstance,
+  WorkflowRun,
+  WorkflowRuntimeEdge,
+  WorkflowRuntimeNodeData,
+  WorkflowRuntimeNodeType,
   WorkflowTemplateAgentBlueprint,
   WorkflowTemplateBlueprintData,
   WorkflowTemplateRecord,
+  WorkspaceNotebookRecoveryMetadata,
   WorkspaceBranchingSettings,
   WorkspaceGraphEdge,
+  WorkspaceRecoveryApplyResult,
+  WorkspaceRecoveryStateResponse,
   WorkspaceThemeConfig,
   WorkspaceSnapshot,
   WorkspaceViewMode,
@@ -59,6 +113,11 @@ type WorkspaceBounds = {
 type WorkspaceIdentity = Pick<NexusWorkspace, "id" | "name">;
 type WorkspaceThemeConfigUpdate = Partial<WorkspaceThemeConfig>;
 type WorkspaceBranchingSettingsUpdate = Partial<WorkspaceBranchingSettings>;
+type HistoricalMessageCacheEntry = HistoricalDataPage<HistoricalMessageRecord> & {
+  error?: string;
+  fetchedAt?: string;
+  loading: boolean;
+};
 
 const PERSIST_STORAGE_NAME = "nexus-ai-ops-workspace";
 const LEGACY_LOCAL_STORAGE_KEYS = ["nexus-workspace-storage", PERSIST_STORAGE_NAME] as const;
@@ -68,12 +127,22 @@ const indexedDbStore =
     : createStore("nexus-ai-ops", "workspace-state");
 let initialStorageReadFinished = false;
 let themeConfigSyncTimeout: ReturnType<typeof setTimeout> | undefined;
+const HISTORY_FETCH_DEBOUNCE_MS = 350;
+const historicalDataFetcher = new HistoricalDataFetcher();
+const historyFetchDebounces = new Map<
+  string,
+  {
+    resolve: (shouldRun: boolean) => void;
+    timeout: ReturnType<typeof setTimeout>;
+  }
+>();
 
 const DEFAULT_AUTH_VAULT: IAuthVault = {
   user: null,
   globalApiKey: null,
   globalBaseUrl: DEFAULT_BASE_URL,
   isLocked: true,
+  providerCredentials: {},
 };
 
 function normalizeAuthVault(value: unknown): IAuthVault {
@@ -95,7 +164,144 @@ function normalizeAuthVault(value: unknown): IAuthVault {
         ? vault.globalBaseUrl.trim()
         : DEFAULT_BASE_URL,
     isLocked: vault.isLocked ?? Boolean(globalApiKey),
+    providerCredentials: normalizeProviderCredentials(vault.providerCredentials),
   };
+}
+
+function normalizeProviderCredentials(value: unknown): IAuthVault["providerCredentials"] {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  return Object.entries(value as Record<string, unknown>).reduce<
+    NonNullable<IAuthVault["providerCredentials"]>
+  >((credentials, [providerId, entry]) => {
+    if (!entry || typeof entry !== "object") {
+      return credentials;
+    }
+
+    const record = entry as NonNullable<IAuthVault["providerCredentials"]>[string];
+    const apiKey =
+      typeof record.apiKey === "string" && record.apiKey.trim()
+        ? record.apiKey
+        : null;
+    const provider = getProviderOption(providerId);
+    const baseUrl =
+      typeof record.baseUrl === "string" && record.baseUrl.trim()
+        ? record.baseUrl.trim()
+        : provider?.defaultBaseUrl ?? null;
+
+    credentials[providerId] = {
+      apiKey,
+      baseUrl,
+      isLocked: record.isLocked ?? Boolean(apiKey),
+      liveVerifiedAt: record.liveVerifiedAt ?? null,
+      verificationStatus: record.verificationStatus ?? "untested",
+      verificationError: record.verificationError ?? null,
+    };
+
+    return credentials;
+  }, {});
+}
+
+const EMPTY_ARTIFACT_VAULT_CACHE: ArtifactVaultCache = {
+  byId: {},
+  hasMore: false,
+  ids: [],
+  nextCursor: null,
+};
+
+function createArtifactVaultCache(
+  artifacts: ArtifactVaultRecord[],
+  options: Pick<ArtifactVaultCache, "hasMore" | "nextCursor"> = {
+    hasMore: false,
+    nextCursor: null,
+  },
+): ArtifactVaultCache {
+  const byId: Record<string, ArtifactVaultRecord> = {};
+  const ids: string[] = [];
+
+  for (const artifact of artifacts) {
+    byId[artifact.id] = artifact;
+    ids.push(artifact.id);
+  }
+
+  return {
+    byId,
+    fetchedAt: new Date().toISOString(),
+    hasMore: options.hasMore,
+    ids,
+    nextCursor: options.nextCursor ?? null,
+  };
+}
+
+function getHistoricalMessageCacheKey(workspaceId: string, agentId: string) {
+  return `${workspaceId}::${agentId}`;
+}
+
+function waitForHistoryFetchDebounce(key: string) {
+  return new Promise<boolean>((resolve) => {
+    const existing = historyFetchDebounces.get(key);
+
+    if (existing) {
+      clearTimeout(existing.timeout);
+      existing.resolve(false);
+    }
+
+    const timeout = setTimeout(() => {
+      historyFetchDebounces.delete(key);
+      resolve(true);
+    }, HISTORY_FETCH_DEBOUNCE_MS);
+
+    historyFetchDebounces.set(key, { resolve, timeout });
+  });
+}
+
+function normalizeArtifactVaultCache(value: unknown): ArtifactVaultCache {
+  if (Array.isArray(value)) {
+    return createArtifactVaultCache(value.filter(isArtifactVaultRecord));
+  }
+
+  if (!value || typeof value !== "object") {
+    return EMPTY_ARTIFACT_VAULT_CACHE;
+  }
+
+  const candidate = value as Partial<ArtifactVaultCache>;
+  const byId = isArtifactVaultRecordMap(candidate.byId) ? candidate.byId : {};
+  const ids = Array.isArray(candidate.ids)
+    ? candidate.ids.filter((id) => typeof id === "string" && Boolean(byId[id]))
+    : Object.keys(byId);
+
+  return {
+    byId,
+    fetchedAt: typeof candidate.fetchedAt === "string" ? candidate.fetchedAt : undefined,
+    hasMore: Boolean(candidate.hasMore),
+    ids,
+    nextCursor: typeof candidate.nextCursor === "string" ? candidate.nextCursor : null,
+  };
+}
+
+function isArtifactVaultRecord(value: unknown): value is ArtifactVaultRecord {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<ArtifactVaultRecord>;
+
+  return (
+    typeof candidate.id === "string" &&
+    typeof candidate.workspaceId === "string" &&
+    typeof candidate.type === "string" &&
+    typeof candidate.createdAt === "string"
+  );
+}
+
+function isArtifactVaultRecordMap(value: unknown): value is Record<string, ArtifactVaultRecord> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+
+  return Object.values(value).every(isArtifactVaultRecord);
 }
 
 type NexusStore = {
@@ -107,10 +313,14 @@ type NexusStore = {
   viewMode: WorkspaceViewMode;
   isVaultManagerOpen: boolean;
   authVault: IAuthVault;
-  artifactVault: ArtifactVaultRecord[];
+  artifactVault: ArtifactVaultCache;
+  historicalMessages: Record<string, HistoricalMessageCacheEntry>;
   promptsCache: PromptRecord[];
   notebooksCache: NotebookRecord[];
+  deletedNotebooksCache: NotebookRecord[];
+  notebookDrafts: Record<string, NotebookDraftRecord>;
   openNotebookIds: string[];
+  notebookWindowLayers: Record<string, number>;
   transactionHistory: ITransactionLog[];
   branchingStatus: AgentBranchingStatus;
   lastSavedAt?: string;
@@ -120,8 +330,13 @@ type NexusStore = {
   createWorkspace: () => WorkspaceIdentity;
   switchWorkspace: (workspaceId: string) => void;
   renameWorkspace: (name: string) => void;
-  exportActiveWorkspace: () => WorkspaceSnapshot;
-  importWorkspace: (snapshot: unknown) => void;
+  exportActiveWorkspace: (options?: {
+    notebookRecovery?: WorkspaceNotebookRecoveryMetadata;
+  }) => WorkspaceSnapshot;
+  importWorkspace: (snapshot: WorkspaceSnapshot) => void;
+  applyWorkspaceRecoveryState: (
+    recovery: WorkspaceRecoveryStateResponse,
+  ) => WorkspaceRecoveryApplyResult;
   spawnAgent: (templateId?: string, capabilityType?: AgentCreationCapabilityType) => string;
   branchAgent: (
     sourceAgentId: string,
@@ -138,12 +353,30 @@ type NexusStore = {
   focusAgent: (agentId: string) => void;
   selectAgent: (agentId: string) => void;
   updateLayout: (agentId: string, layout: Partial<AgentLayout>) => void;
+  updateAgentProfile: (agentId: string, profile: AgentProfileUpdate) => void;
+  updateAgentCallsign: (agentId: string, callsign: string) => void;
+  setAgentProfileLocked: (agentId: string, locked: boolean) => void;
   updateAgentMission: (agentId: string, mission: string) => void;
   updateAgentModel: (agentId: string, model: string) => void;
+  updateAgentModelSettings: (agentId: string, settings: Partial<AgentModelSettings>) => void;
+  updateAgentTemplateProfile: (
+    templateId: string,
+    profile: AgentTemplateProfileUpdate,
+  ) => void;
   login: (user: IAuthVault["user"]) => void;
   logout: () => void;
   setGlobalApiKey: (key: string) => void;
   setGlobalBaseUrl: (baseUrl: string) => void;
+  setProviderApiKey: (providerId: string, key: string) => void;
+  setProviderBaseUrl: (providerId: string, baseUrl: string) => void;
+  setProviderVerificationStatus: (
+    providerId: string,
+    status: "untested" | "verified" | "failed",
+    error?: string,
+  ) => void;
+  lockProviderCredential: (providerId: string) => void;
+  unlockProviderCredential: (providerId: string) => void;
+  deleteProviderCredential: (providerId: string) => void;
   lockVault: () => void;
   unlockVault: () => void;
   deleteApiKey: () => void;
@@ -153,13 +386,17 @@ type NexusStore = {
   updateSandboxUrl: (agentId: string, sandboxUrl: string) => void;
   saveArtifactToCloud: (agentId: string, content: string, type: string) => void;
   fetchArtifactsFromCloud: () => Promise<ArtifactVaultRecord[]>;
+  fetchHistoricalMessages: (agentId: string) => Promise<void>;
   setPromptsCache: (prompts: PromptRecord[]) => void;
   addPromptToCache: (prompt: PromptRecord) => void;
   updatePrompt: (id: string, newTitle: string, newContent: string) => void;
   deletePrompt: (id: string) => void;
   setNotebooksCache: (notebooks: NotebookRecord[]) => void;
   toggleNotebookOpen: (id: string) => void;
+  focusNotebookWindow: (id: string) => void;
   createNotebook: () => string;
+  saveNotebookDraft: (id: string, title: string, content: string) => void;
+  clearNotebookDraft: (id: string) => void;
   updateNotebook: (id: string, title: string, content: string) => void;
   deleteNotebook: (id: string) => void;
   updateMemoryBlock: (agentId: string, memoryId: string, content: string) => void;
@@ -171,6 +408,7 @@ type NexusStore = {
   arrangeAgents: (bounds: WorkspaceBounds) => void;
   addMessage: (agentId: string, message: AgentMessage) => void;
   appendToMessage: (agentId: string, messageId: string, token: string) => void;
+  appendReasoningToMessage: (agentId: string, messageId: string, token: string) => void;
   finishMessage: (
     agentId: string,
     messageId: string,
@@ -185,6 +423,18 @@ type NexusStore = {
   updateGraphNodePosition: (agentId: string, position: { x: number; y: number }) => void;
   connectGraphAgents: (edge: WorkspaceGraphEdge) => void;
   removeGraphEdges: (edgeIds: string[]) => void;
+  addWorkflowRuntimeNode: (type: WorkflowRuntimeNodeType) => string;
+  updateWorkflowRuntimeNodeData: (
+    nodeId: string,
+    data: Partial<WorkflowRuntimeNodeData>,
+  ) => void;
+  updateWorkflowRuntimeNodePosition: (
+    nodeId: string,
+    position: { x: number; y: number },
+  ) => void;
+  connectWorkflowRuntimeNodes: (edge: WorkflowRuntimeEdge) => void;
+  removeWorkflowRuntimeEdges: (edgeIds: string[]) => void;
+  runWorkflowRuntimeLiteFlow: () => Promise<WorkflowRun | undefined>;
   updateAgentTelemetry: (agentId: string, generatedCharacters: number) => void;
   clearAgentMessages: (agentId: string) => void;
   runTool: (agentId: string, toolId: string, input?: ToolExecutorInput) => Promise<void>;
@@ -213,17 +463,20 @@ function partializeTemporalState(state: NexusStore): NexusTemporalState {
 function temporalWorkspaceSignature(workspace: NexusWorkspace) {
   return {
     activeAgentId: workspace.activeAgentId,
-    agents: workspace.agents.map((agent) => ({
-      callsign: agent.callsign,
-      capabilities: agent.capabilities,
-      id: agent.id,
-      identity: agent.identity,
-      layout: agent.layout,
-      maximized: agent.maximized,
-      minimized: agent.minimized,
-      mission: agent.mission,
-      model: agent.model,
-      previousLayout: agent.previousLayout,
+      agents: workspace.agents.map((agent) => ({
+        callsign: agent.callsign,
+        capabilities: agent.capabilities,
+        id: agent.id,
+        identity: agent.identity,
+        executionPrompt: agent.executionPrompt,
+        layout: agent.layout,
+        maximized: agent.maximized,
+        minimized: agent.minimized,
+        mission: agent.mission,
+        profileLocked: agent.profileLocked,
+        model: agent.model,
+        modelSettings: agent.modelSettings,
+        previousLayout: agent.previousLayout,
       provider: agent.provider,
       title: agent.title,
     })),
@@ -468,8 +721,14 @@ function createAgentFromMacroBlueprint({
     title: blueprint.title || "Macro Agent",
     identity: blueprint.identity || "Macro",
     mission: blueprint.mission || "Execute this saved workflow blueprint.",
+    executionPrompt: blueprint.executionPrompt || "",
+    profileLocked: blueprint.profileLocked ?? false,
     provider: blueprint.provider || "openai",
     model: blueprint.model || "gpt-4o-mini",
+    modelSettings: normalizeAgentModelSettings(
+      blueprint.model || "gpt-4o-mini",
+      blueprint.modelSettings,
+    ),
     capabilities: blueprint.capabilities ?? {
       type: "chat",
       supportedModels: DEFAULT_CHAT_SUPPORTED_MODELS,
@@ -532,14 +791,48 @@ function getActiveWorkspace(state: Pick<NexusStore, "activeWorkspaceId" | "works
   );
 }
 
+function createActiveUiStateSnapshot(
+  workspace: NexusWorkspace,
+): ActiveUiStateSnapshot {
+  return {
+    activeAgentId: workspace.activeAgentId,
+    agents: workspace.agents,
+    createdAt: workspace.createdAt,
+    graph: workspace.graph,
+    id: workspace.id,
+    name: workspace.name,
+    panels: workspace.panels,
+    selectedAgentId: workspace.selectedAgentId,
+    settings: workspace.settings,
+    themeConfig: workspace.themeConfig,
+    updatedAt: workspace.updatedAt,
+  };
+}
+
 function queueWorkspaceCloudSync(workspace?: Pick<NexusWorkspace, "id" | "name">) {
   if (!workspace) {
     return;
   }
 
-  void supabaseStateSyncManager
-    .upsertWorkspace(workspace.id, workspace.name)
-    .catch(() => undefined);
+  const fullWorkspace =
+    isFullWorkspace(workspace)
+      ? workspace
+      : useNexusStore.getState().workspaces.find((candidate) => candidate.id === workspace.id);
+
+  if (fullWorkspace) {
+    void supabaseStateSyncManager
+      .syncActiveUiState(createActiveUiStateSnapshot(fullWorkspace))
+      .catch(() => undefined);
+    return;
+  }
+
+  void supabaseStateSyncManager.upsertWorkspace(workspace.id, workspace.name).catch(() => undefined);
+}
+
+function isFullWorkspace(
+  workspace: Pick<NexusWorkspace, "id" | "name">,
+): workspace is NexusWorkspace {
+  return "agents" in workspace && Array.isArray(workspace.agents);
 }
 
 function queueThemeConfigCloudSync(workspace?: Pick<NexusWorkspace, "id" | "name">) {
@@ -601,6 +894,99 @@ function sortNotebooks(notebooks: NotebookRecord[]) {
   });
 }
 
+function sortPrompts(prompts: PromptRecord[]) {
+  return [...prompts].sort((left, right) =>
+    right.updated_at.localeCompare(left.updated_at),
+  );
+}
+
+function mergeRemotePromptsWithLocalCache(
+  remotePrompts: PromptRecord[],
+  localPrompts: PromptRecord[],
+) {
+  const visibleRemote = remotePrompts.filter((prompt) => !prompt.deleted_at);
+  const mergedById = new Map(visibleRemote.map((prompt) => [prompt.id, prompt]));
+
+  localPrompts
+    .filter((prompt) => !prompt.deleted_at)
+    .forEach((localPrompt) => {
+      const remotePrompt = mergedById.get(localPrompt.id);
+
+      if (
+        !remotePrompt ||
+        isNewerTimestamp(localPrompt.updated_at, remotePrompt.updated_at)
+      ) {
+        mergedById.set(localPrompt.id, localPrompt);
+      }
+    });
+
+  return sortPrompts([...mergedById.values()]);
+}
+
+function normalizeNotebookDrafts(drafts: NotebookDraftRecord[]) {
+  return Object.fromEntries(
+    drafts
+      .filter((draft) => draft.notebookId && typeof draft.updatedAt === "string")
+      .map((draft) => [
+        draft.notebookId,
+        {
+          baseUpdatedAt: draft.baseUpdatedAt ?? null,
+          content: draft.content ?? "",
+          notebookId: draft.notebookId,
+          title: draft.title ?? "",
+          updatedAt: draft.updatedAt,
+          workspaceId: draft.workspaceId ?? null,
+        },
+      ]),
+  );
+}
+
+function omitNotebookDraft(
+  drafts: Record<string, NotebookDraftRecord>,
+  notebookId: string,
+) {
+  const remaining = { ...drafts };
+  delete remaining[notebookId];
+
+  return remaining;
+}
+
+function mergeRemoteNotebooksWithLocalCache(
+  remoteNotebooks: NotebookRecord[],
+  localNotebooks: NotebookRecord[],
+) {
+  if (remoteNotebooks.length === 0 && localNotebooks.length === 0) {
+    return sortNotebooks(remoteNotebooks);
+  }
+
+  const mergedById = new Map(remoteNotebooks.map((notebook) => [notebook.id, notebook]));
+
+  localNotebooks.forEach((localNotebook) => {
+    const remoteNotebook = mergedById.get(localNotebook.id);
+
+    if (
+      !remoteNotebook ||
+      isNewerTimestamp(
+        localNotebook.updated_at ?? localNotebook.created_at,
+        remoteNotebook.updated_at ?? remoteNotebook.created_at,
+      )
+    ) {
+      // Without tombstones, remote reads are not authoritative enough to erase newer/local-only Datapads.
+      mergedById.set(localNotebook.id, localNotebook);
+    }
+  });
+
+  return sortNotebooks([...mergedById.values()]);
+}
+
+function isNewerTimestamp(left?: string | null, right?: string | null) {
+  if (!left || !right) {
+    return false;
+  }
+
+  return new Date(left).getTime() > new Date(right).getTime();
+}
+
 function queueNotebooksCacheRefresh() {
   void supabaseStateSyncManager
     .fetchNotebooks()
@@ -648,22 +1034,90 @@ function withAgent(
   };
 }
 
-function resolveStreamMode(_workspace: NexusWorkspace | undefined, authVault?: IAuthVault): StreamMode {
-  return authVault?.globalApiKey?.trim() ? "live" : "mock";
+function withWorkflowRuntimeLite(
+  workspace: NexusWorkspace,
+  updater: (
+    runtimeLite: ReturnType<typeof normalizeWorkflowRuntimeLiteState>,
+  ) => ReturnType<typeof normalizeWorkflowRuntimeLiteState>,
+) {
+  const runtimeLite = normalizeWorkflowRuntimeLiteState(
+    workspace.graph.runtimeLite,
+    { resetInterrupted: false },
+  );
+
+  return {
+    ...workspace,
+    graph: {
+      ...workspace.graph,
+      runtimeLite: updater(runtimeLite),
+    },
+  };
 }
 
-function getDefaultChatModelForAgent(agent: Pick<NexusAgent, "callsign">) {
-  return agent.callsign === "ARCHITECT"
-    ? "gpt-5.5-pro-2026-04-23"
-    : "gpt-5.5-2026-04-23";
+function patchWorkflowRuntimeNode(
+  node: WorkflowNodeInstance,
+  patch: WorkflowRuntimeNodePatch,
+): WorkflowNodeInstance {
+  return {
+    ...node,
+    ...patch,
+  } as WorkflowNodeInstance;
+}
+
+function resetWorkflowRuntimeNodeForRun(
+  node: WorkflowNodeInstance,
+): WorkflowNodeInstance {
+  return {
+    ...node,
+    error: null,
+    inputSnapshot: null,
+    outputSnapshot: null,
+    status: "idle",
+  };
+}
+
+function upsertWorkflowRun(runs: WorkflowRun[], run: WorkflowRun) {
+  const nextRuns = runs.some((candidate) => candidate.runId === run.runId)
+    ? runs.map((candidate) => (candidate.runId === run.runId ? run : candidate))
+    : [run, ...runs];
+
+  return limitWorkflowRuns(nextRuns);
+}
+
+function resolveStreamMode(_workspace: NexusWorkspace | undefined, authVault?: IAuthVault): StreamMode {
+  return authVault?.globalApiKey?.trim() ||
+    Object.values(authVault?.providerCredentials ?? {}).some((entry) => entry.apiKey?.trim())
+    ? "live"
+    : "mock";
+}
+
+function getDefaultChatModelForAgent() {
+  return DEFAULT_CHAT_SUPPORTED_MODELS.includes("gpt-5.5")
+    ? "gpt-5.5"
+    : DEFAULT_CHAT_SUPPORTED_MODELS[0] ?? "gpt-4o-mini";
 }
 
 function normalizeAgentModelCatalog(agent: NexusAgent): NexusAgent {
+  const candidate = agent as NexusAgent & {
+    executionPrompt?: unknown;
+    profileLocked?: unknown;
+  };
+  const profileFields = {
+    executionPrompt:
+      typeof candidate.executionPrompt === "string" ? candidate.executionPrompt : "",
+    profileLocked:
+      typeof candidate.profileLocked === "boolean" ? candidate.profileLocked : false,
+  };
+
   if ((agent.capabilities?.type ?? "chat") !== "chat") {
-    return agent;
+    return {
+      ...agent,
+      ...profileFields,
+      modelSettings: normalizeAgentModelSettings(agent.model, agent.modelSettings),
+    };
   }
 
-  const model = agent.model?.trim() || getDefaultChatModelForAgent(agent);
+  const model = agent.model?.trim() || getDefaultChatModelForAgent();
   const supportedModels = Array.from(
     new Set([
       model,
@@ -674,7 +1128,9 @@ function normalizeAgentModelCatalog(agent: NexusAgent): NexusAgent {
 
   return {
     ...agent,
+    ...profileFields,
     model,
+    modelSettings: normalizeAgentModelSettings(model, agent.modelSettings),
     capabilities: {
       ...(agent.capabilities ?? { type: "chat", supportedModels: [] }),
       type: "chat",
@@ -683,7 +1139,11 @@ function normalizeAgentModelCatalog(agent: NexusAgent): NexusAgent {
   };
 }
 
-function syncPanels(workspace: NexusWorkspace) {
+function syncPanels(
+  workspace: NexusWorkspace,
+  options: { resetInterrupted?: boolean } = {},
+) {
+  const resetInterrupted = options.resetInterrupted ?? false;
   const knownAgentIds = new Set(workspace.agents.map((agent) => agent.id));
   const existingGraphNodes = new Map(
     workspace.graph?.nodes
@@ -716,6 +1176,9 @@ function syncPanels(workspace: NexusWorkspace) {
         workspace.graph?.edges?.filter(
           (edge) => knownAgentIds.has(edge.sourceAgentId) && knownAgentIds.has(edge.targetAgentId),
         ) ?? [],
+      runtimeLite: normalizeWorkflowRuntimeLiteState(workspace.graph?.runtimeLite, {
+        resetInterrupted,
+      }),
     },
   };
 
@@ -734,9 +1197,12 @@ function createWorkflowTemplateBlueprint(
       callsign: agent.callsign,
       title: agent.title,
       identity: agent.identity,
+      executionPrompt: agent.executionPrompt,
       mission: agent.mission,
+      profileLocked: agent.profileLocked,
       provider: agent.provider,
       model: agent.model,
+      modelSettings: clone(agent.modelSettings),
       capabilities: clone(agent.capabilities),
       sandboxCode: agent.sandboxCode,
       sandboxUrl: agent.sandboxUrl,
@@ -865,27 +1331,6 @@ function clampLayout(layout: AgentLayout, bounds: WorkspaceBounds) {
 function normalizeWorkspaces(workspaces: NexusWorkspace[] | undefined) {
   const fallback = initialWorkspace();
   const sanitized = (workspaces?.length ? workspaces : [fallback]).map(sanitizeWorkspace);
-  const active = sanitized[0];
-  const callsigns = new Set(active.agents.map((agent) => agent.callsign));
-
-  if (!callsigns.has("ARCHIVIST")) {
-    const template = agentTemplates.find((agent) => agent.id === "archivist");
-
-    if (template) {
-      active.agents.push(
-        createAgentFromTemplate(
-          template,
-          "agent-archivist",
-          defaultLayouts[3],
-          new Date().toISOString(),
-        ),
-      );
-      active.graph = {
-        nodes: [...(active.graph?.nodes ?? []), defaultGraphNodes[3]],
-        edges: active.graph?.edges ?? [],
-      };
-    }
-  }
 
   return sanitized
     .map((workspace) => ({
@@ -893,21 +1338,88 @@ function normalizeWorkspaces(workspaces: NexusWorkspace[] | undefined) {
       agents: workspace.agents.map(normalizeAgentModelCatalog),
       settings: {
         ...workspace.settings,
+        agentTemplateProfiles: workspace.settings.agentTemplateProfiles ?? {},
         branchingSettings: normalizeBranchingSettings(
           workspace.settings.branchingSettings,
         ),
       },
     }))
-    .map(syncPanels);
+    .map((workspace) => syncPanels(workspace, { resetInterrupted: true }));
 }
 
-function prepareWorkspacesForLocalPersistence(workspaces: NexusWorkspace[]) {
-  return normalizeWorkspaces(workspaces).map((workspace) => ({
+export function prepareWorkspacesForLocalPersistence(workspaces: NexusWorkspace[]) {
+  return normalizeWorkspaces(workspaces).map(prepareWorkspaceForLocalPersistence);
+}
+
+function prepareWorkspaceForLocalPersistence(workspace: NexusWorkspace): NexusWorkspace {
+  return {
     ...workspace,
+    agents: workspace.agents.map(prepareAgentForLocalPersistence),
     settings: {
       ...workspace.settings,
+      agentTemplateProfiles: workspace.settings.agentTemplateProfiles ?? {},
     },
-  }));
+  };
+}
+
+function prepareAgentForLocalPersistence(agent: NexusAgent): NexusAgent {
+  const messages = prepareMessagesForLocalPersistence(agent.messages);
+  const memory = prepareMemoryForLocalPersistence(agent.memory);
+
+  return {
+    ...agent,
+    localPersistence: createAgentLocalPersistenceMetadata(messages, memory),
+    memory,
+    messages,
+  };
+}
+
+function prepareMessagesForLocalPersistence(
+  messages: NexusAgent["messages"],
+): NexusAgent["messages"] {
+  return messages.map((message) => ({ ...message }));
+}
+
+function prepareMemoryForLocalPersistence(
+  memory: NexusAgent["memory"],
+): NexusAgent["memory"] {
+  return memory.map((block) => ({ ...block }));
+}
+
+function createAgentLocalPersistenceMetadata(
+  messages: NexusAgent["messages"],
+  memory: NexusAgent["memory"],
+): AgentLocalPersistenceMetadata {
+  return {
+    schemaVersion: 1,
+    messages: createMessageRetentionMetadata(messages),
+    memory: createMemoryRetentionMetadata(memory),
+  };
+}
+
+function createMessageRetentionMetadata(
+  messages: NexusAgent["messages"],
+): AgentLocalPersistenceMetadata["messages"] {
+  return {
+    activeWindowLimit: ACTIVE_WINDOW_DEFAULT_LIMIT,
+    durability: "needs_sync_operation_applier_message_projection",
+    maxWindowLimit: ACTIVE_WINDOW_MAX_LIMIT,
+    mode: "preserve_full_until_durable_projection",
+    omittedCount: 0,
+    retainedCount: messages.length,
+  };
+}
+
+function createMemoryRetentionMetadata(
+  memory: NexusAgent["memory"],
+): AgentLocalPersistenceMetadata["memory"] {
+  return {
+    durability: "needs_memory_write_route",
+    maxRecordContentBytes: AGENT_MEMORY_CONTENT_MAX_BYTES,
+    mode: "preserve_full_until_durable_write",
+    omittedBlockCount: 0,
+    retainedBlockCount: memory.length,
+  };
 }
 
 function logHydratedMemoryState(state: NexusStore | undefined) {
@@ -931,16 +1443,20 @@ export const useNexusStore = create<NexusStore>()(
       (set, get) => ({
       activeWorkspaceId: ACTIVE_WORKSPACE_ID,
       workspaces: [initialWorkspace()],
-      selectedAgentId: "agent-operator",
+      selectedAgentId: "agent-nexus-1",
       nextZIndex: 10,
       streamMode: "mock",
       viewMode: "panels",
       isVaultManagerOpen: false,
       authVault: DEFAULT_AUTH_VAULT,
-      artifactVault: [],
+      artifactVault: EMPTY_ARTIFACT_VAULT_CACHE,
+      historicalMessages: {},
       promptsCache: [],
       notebooksCache: [],
+      deletedNotebooksCache: [],
+      notebookDrafts: {},
       openNotebookIds: [],
+      notebookWindowLayers: {},
       transactionHistory: [],
       branchingStatus: "idle",
 
@@ -975,6 +1491,13 @@ export const useNexusStore = create<NexusStore>()(
           lastSavedAt: now,
         }));
         queueWorkspaceCloudSync(workspace);
+        get().notebooksCache.forEach((notebook) => {
+          void supabaseStateSyncManager
+            .upsertNotebook(notebook, notebook.workspace_id ?? undefined)
+            .catch((error) => {
+              console.error("[Datapad Save Sync Error]:", error);
+            });
+        });
       },
 
       createWorkspace: () => {
@@ -1038,9 +1561,15 @@ export const useNexusStore = create<NexusStore>()(
         queueWorkspaceCloudSync({ id: workspace.id, name: nextName });
       },
 
-      exportActiveWorkspace: () => {
-        const workspace = getActiveWorkspace(get());
-        return createWorkspaceSnapshot(workspace);
+      exportActiveWorkspace: (options) => {
+        const state = get();
+        const workspace = getActiveWorkspace(state);
+        return createWorkspaceSnapshot(workspace, {
+          deletedNotebooks: state.deletedNotebooksCache,
+          notebookDrafts: Object.values(state.notebookDrafts),
+          notebookRecovery: options?.notebookRecovery,
+          notebooks: state.notebooksCache,
+        });
       },
 
       importWorkspace: (snapshot) => {
@@ -1057,6 +1586,13 @@ export const useNexusStore = create<NexusStore>()(
         set({
           activeWorkspaceId: workspace.id,
           workspaces: [workspace],
+          deletedNotebooksCache: sortNotebooks(
+            snapshot.deletedNotebooks ?? get().deletedNotebooksCache,
+          ),
+          notebookDrafts: normalizeNotebookDrafts(
+            snapshot.notebookDrafts ?? Object.values(get().notebookDrafts),
+          ),
+          notebooksCache: sortNotebooks(snapshot.notebooks ?? get().notebooksCache),
           selectedAgentId: workspace.selectedAgentId ?? workspace.agents[0]?.id,
           nextZIndex: highestZ + 1,
           streamMode: resolveStreamMode(workspace, get().authVault),
@@ -1066,14 +1602,100 @@ export const useNexusStore = create<NexusStore>()(
         });
         queueWorkspaceCloudSync(workspace);
         queuePromptsCacheRefresh(workspace.id);
+        (snapshot.notebooks ?? []).forEach((notebook) => {
+          void supabaseStateSyncManager
+            .upsertNotebook(notebook, notebook.workspace_id ?? workspace.id)
+            .catch((error) => {
+              console.error("[Datapad Import Sync Error]:", error);
+            });
+        });
+      },
+
+      applyWorkspaceRecoveryState: (recovery) => {
+        if (!recovery.latest || !recovery.plan) {
+          return {
+            reason: "missing_cloud_state",
+            status: "skipped",
+          };
+        }
+
+        if (recovery.plan.action === "conflict") {
+          return {
+            checksum: recovery.plan.checksum,
+            reason: recovery.plan.reason,
+            status: "conflicted",
+            workspaceId: recovery.plan.workspaceId,
+          };
+        }
+
+        if (recovery.plan.action === "skip") {
+          return {
+            checksum: recovery.plan.checksum,
+            reason: recovery.plan.reason,
+            status: "skipped",
+            workspaceId: recovery.plan.workspaceId,
+          };
+        }
+
+        const recoveredWorkspace = materializeWorkspaceFromCloudSnapshot(
+          recovery.latest.snapshot,
+        );
+        const state = get();
+        const existingWorkspace = state.workspaces.find(
+          (workspace) => workspace.id === recoveredWorkspace.id,
+        );
+
+        if (
+          existingWorkspace &&
+          isNewerTimestamp(existingWorkspace.updatedAt, recoveredWorkspace.updatedAt)
+        ) {
+          return {
+            checksum: recovery.plan.checksum,
+            reason: "local_newer",
+            status: "conflicted",
+            workspaceId: recoveredWorkspace.id,
+          };
+        }
+
+        set((current) => {
+          const exists = current.workspaces.some(
+            (workspace) => workspace.id === recoveredWorkspace.id,
+          );
+          const workspaces = exists
+            ? current.workspaces.map((workspace) =>
+                workspace.id === recoveredWorkspace.id ? recoveredWorkspace : workspace,
+              )
+            : [recoveredWorkspace, ...current.workspaces];
+
+          return {
+            activeWorkspaceId: recoveredWorkspace.id,
+            lastSavedAt: new Date().toISOString(),
+            selectedAgentId:
+              recoveredWorkspace.selectedAgentId ?? recoveredWorkspace.agents[0]?.id,
+            streamMode: resolveStreamMode(recoveredWorkspace, current.authVault),
+            viewMode: recoveredWorkspace.settings.viewMode,
+            workspaces,
+          };
+        });
+
+        return {
+          checksum: recovery.plan.checksum,
+          reason: recovery.plan.reason,
+          status: "applied",
+          workspaceId: recoveredWorkspace.id,
+        };
       },
 
       spawnAgent: (templateId, capabilityType = "chat") => {
         const state = get();
         const workspace = getActiveWorkspace(state);
-        const template =
+        const baseTemplate =
           agentTemplates.find((candidate) => candidate.id === templateId) ??
           agentTemplates[workspace.agents.length % agentTemplates.length];
+        const template = applyAgentTemplateProfile(
+          baseTemplate,
+          workspace.settings.agentTemplateProfiles?.[baseTemplate.id],
+        );
         const id = makeId("agent");
         const nextZIndex = state.nextZIndex + 1;
         const offset = workspace.agents.length * 34;
@@ -1213,6 +1835,7 @@ export const useNexusStore = create<NexusStore>()(
           if (normalizedConfig.mode === "summary") {
             const compressionResult = await LlmMemoryCompressor.compress(
               {
+                agentId: sourceSnapshot.id,
                 identity: sourceSnapshot.identity,
                 mission: sourceSnapshot.mission,
                 contextNotes: sourceSnapshot.contextNotes,
@@ -1437,7 +2060,9 @@ export const useNexusStore = create<NexusStore>()(
         set({
           activeWorkspaceId: restoredWorkspace.id,
           workspaces: state.workspaces.map((candidate) =>
-            candidate.id === workspace.id ? syncPanels(restoredWorkspace) : candidate,
+            candidate.id === workspace.id
+              ? syncPanels(restoredWorkspace, { resetInterrupted: true })
+              : candidate,
           ),
           selectedAgentId:
             restoredWorkspace.selectedAgentId ?? restoredWorkspace.agents[0]?.id,
@@ -1596,15 +2221,62 @@ export const useNexusStore = create<NexusStore>()(
         }));
       },
 
-      updateAgentMission: (agentId, mission) => {
+      updateAgentProfile: (agentId, profile) => {
+        const callsign = profile.callsign?.trim();
+        const title = profile.title?.trim();
+
         set((state) => ({
           workspaces: withActiveWorkspace(state, (workspace) =>
-            withAgent(workspace, agentId, (agent) => ({
-              ...agent,
-              mission,
-            })),
+            withAgent(workspace, agentId, (agent) => {
+              const profileLocked =
+                typeof profile.profileLocked === "boolean"
+                  ? profile.profileLocked
+                  : agent.profileLocked;
+
+              if (agent.profileLocked && profile.profileLocked !== false) {
+                return {
+                  ...agent,
+                  profileLocked,
+                  updatedAt: new Date().toISOString(),
+                };
+              }
+
+              return {
+                ...agent,
+                callsign: callsign || agent.callsign,
+                title: title || agent.title,
+                identity:
+                  typeof profile.identity === "string" ? profile.identity : agent.identity,
+                mission:
+                  typeof profile.mission === "string" ? profile.mission : agent.mission,
+                executionPrompt:
+                  typeof profile.executionPrompt === "string"
+                    ? profile.executionPrompt
+                    : agent.executionPrompt,
+                profileLocked,
+                updatedAt: new Date().toISOString(),
+              };
+            }),
           ),
         }));
+      },
+
+      updateAgentCallsign: (agentId, callsign) => {
+        const nextCallsign = callsign.trim();
+
+        if (!nextCallsign) {
+          return;
+        }
+
+        get().updateAgentProfile(agentId, { callsign: nextCallsign });
+      },
+
+      setAgentProfileLocked: (agentId, locked) => {
+        get().updateAgentProfile(agentId, { profileLocked: locked });
+      },
+
+      updateAgentMission: (agentId, mission) => {
+        get().updateAgentProfile(agentId, { mission });
       },
 
       updateAgentModel: (agentId, model) => {
@@ -1614,11 +2286,16 @@ export const useNexusStore = create<NexusStore>()(
           return;
         }
 
+        const nextProvider = getModelOption(nextModel)?.provider;
+
         set((state) => ({
           workspaces: withActiveWorkspace(state, (workspace) =>
             withAgent(workspace, agentId, (agent) => ({
               ...agent,
               model: nextModel,
+              provider: nextProvider ?? agent.provider,
+              modelSettings: normalizeAgentModelSettings(nextModel, agent.modelSettings),
+              updatedAt: new Date().toISOString(),
               capabilities: {
                 ...agent.capabilities,
                 supportedModels: Array.from(
@@ -1627,6 +2304,76 @@ export const useNexusStore = create<NexusStore>()(
               },
             })),
           ),
+        }));
+      },
+
+      updateAgentModelSettings: (agentId, settings) => {
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withAgent(workspace, agentId, (agent) => ({
+              ...agent,
+              modelSettings: normalizeAgentModelSettings(agent.model, {
+                ...agent.modelSettings,
+                ...settings,
+              }),
+              updatedAt: new Date().toISOString(),
+            })),
+          ),
+        }));
+      },
+
+      updateAgentTemplateProfile: (templateId, profile) => {
+        const template = agentTemplates.find((candidate) => candidate.id === templateId);
+
+        if (!template) {
+          return;
+        }
+
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) => {
+            const currentProfiles = workspace.settings.agentTemplateProfiles ?? {};
+            const currentProfile = resolveAgentTemplateProfile(
+              template,
+              currentProfiles[templateId],
+            );
+            const nextLocked =
+              typeof profile.profileLocked === "boolean"
+                ? profile.profileLocked
+                : currentProfile.profileLocked;
+
+            if (currentProfile.profileLocked && profile.profileLocked !== false) {
+              return {
+                ...workspace,
+                settings: {
+                  ...workspace.settings,
+                  agentTemplateProfiles: {
+                    ...currentProfiles,
+                    [templateId]: {
+                      ...currentProfile,
+                      profileLocked: nextLocked,
+                    },
+                  },
+                },
+                updatedAt: new Date().toISOString(),
+              };
+            }
+
+            return {
+              ...workspace,
+              settings: {
+                ...workspace.settings,
+                agentTemplateProfiles: {
+                  ...currentProfiles,
+                  [templateId]: resolveAgentTemplateProfile(template, {
+                    ...currentProfile,
+                    ...profile,
+                    profileLocked: nextLocked,
+                  }),
+                },
+              },
+              updatedAt: new Date().toISOString(),
+            };
+          }),
         }));
       },
 
@@ -1667,7 +2414,13 @@ export const useNexusStore = create<NexusStore>()(
               globalApiKey,
               isLocked: Boolean(globalApiKey),
             },
-            streamMode: globalApiKey ? "live" : "mock",
+            streamMode:
+              globalApiKey ||
+              Object.values(state.authVault.providerCredentials ?? {}).some((entry) =>
+                entry.apiKey?.trim(),
+              )
+                ? "live"
+                : "mock",
           };
         });
       },
@@ -1682,6 +2435,151 @@ export const useNexusStore = create<NexusStore>()(
             globalBaseUrl,
           },
         }));
+      },
+
+      setProviderApiKey: (providerId, key) => {
+        const sanitizedKey = key.replace(/[^\x20-\x7E]/g, "").trim();
+        const provider = getProviderOption(providerId);
+
+        set((state) => {
+          const current = state.authVault.providerCredentials?.[providerId];
+
+          return {
+            authVault: {
+              ...state.authVault,
+              providerCredentials: {
+                ...(state.authVault.providerCredentials ?? {}),
+                [providerId]: {
+                  apiKey: sanitizedKey || null,
+                  baseUrl: current?.baseUrl ?? provider?.defaultBaseUrl ?? null,
+                  isLocked: Boolean(sanitizedKey),
+                  liveVerifiedAt: sanitizedKey ? current?.liveVerifiedAt ?? null : null,
+                  verificationError: null,
+                  verificationStatus: sanitizedKey
+                    ? current?.verificationStatus ?? "untested"
+                    : "untested",
+                },
+              },
+            },
+            streamMode: sanitizedKey || state.authVault.globalApiKey ? "live" : "mock",
+          };
+        });
+      },
+
+      setProviderBaseUrl: (providerId, baseUrl) => {
+        const sanitizedBaseUrl = baseUrl.replace(/[^\x20-\x7E]/g, "").trim();
+        const provider = getProviderOption(providerId);
+
+        set((state) => {
+          const current = state.authVault.providerCredentials?.[providerId];
+
+          return {
+            authVault: {
+              ...state.authVault,
+              providerCredentials: {
+                ...(state.authVault.providerCredentials ?? {}),
+                [providerId]: {
+                  apiKey: current?.apiKey ?? null,
+                  baseUrl: sanitizedBaseUrl || provider?.defaultBaseUrl || null,
+                  isLocked: current?.isLocked ?? Boolean(current?.apiKey),
+                  liveVerifiedAt: null,
+                  verificationError: null,
+                  verificationStatus: "untested",
+                },
+              },
+            },
+          };
+        });
+      },
+
+      setProviderVerificationStatus: (providerId, status, error) => {
+        set((state) => {
+          const provider = getProviderOption(providerId);
+          const current = state.authVault.providerCredentials?.[providerId];
+
+          return {
+            authVault: {
+              ...state.authVault,
+              providerCredentials: {
+                ...(state.authVault.providerCredentials ?? {}),
+                [providerId]: {
+                  apiKey: current?.apiKey ?? null,
+                  baseUrl: current?.baseUrl ?? provider?.defaultBaseUrl ?? null,
+                  isLocked: current?.isLocked ?? Boolean(current?.apiKey),
+                  liveVerifiedAt: status === "verified" ? new Date().toISOString() : null,
+                  verificationError: status === "failed" ? error ?? "Verification failed." : null,
+                  verificationStatus: status,
+                },
+              },
+            },
+          };
+        });
+      },
+
+      lockProviderCredential: (providerId) => {
+        set((state) => {
+          const provider = getProviderOption(providerId);
+          const current = state.authVault.providerCredentials?.[providerId];
+
+          return {
+            authVault: {
+              ...state.authVault,
+              providerCredentials: {
+                ...(state.authVault.providerCredentials ?? {}),
+                [providerId]: {
+                  apiKey: current?.apiKey ?? null,
+                  baseUrl: current?.baseUrl ?? provider?.defaultBaseUrl ?? null,
+                  isLocked: true,
+                  liveVerifiedAt: current?.liveVerifiedAt ?? null,
+                  verificationError: current?.verificationError ?? null,
+                  verificationStatus: current?.verificationStatus ?? "untested",
+                },
+              },
+            },
+          };
+        });
+      },
+
+      unlockProviderCredential: (providerId) => {
+        set((state) => {
+          const provider = getProviderOption(providerId);
+          const current = state.authVault.providerCredentials?.[providerId];
+
+          return {
+            authVault: {
+              ...state.authVault,
+              providerCredentials: {
+                ...(state.authVault.providerCredentials ?? {}),
+                [providerId]: {
+                  apiKey: current?.apiKey ?? null,
+                  baseUrl: current?.baseUrl ?? provider?.defaultBaseUrl ?? null,
+                  isLocked: false,
+                  liveVerifiedAt: current?.liveVerifiedAt ?? null,
+                  verificationError: current?.verificationError ?? null,
+                  verificationStatus: current?.verificationStatus ?? "untested",
+                },
+              },
+            },
+          };
+        });
+      },
+
+      deleteProviderCredential: (providerId) => {
+        set((state) => {
+          const nextCredentials = { ...(state.authVault.providerCredentials ?? {}) };
+          delete nextCredentials[providerId];
+
+          return {
+            authVault: {
+              ...state.authVault,
+              providerCredentials: nextCredentials,
+            },
+            streamMode:
+              state.authVault.globalApiKey || Object.values(nextCredentials).some((entry) => entry.apiKey)
+                ? "live"
+                : "mock",
+          };
+        });
       },
 
       lockVault: () => {
@@ -1709,7 +2607,11 @@ export const useNexusStore = create<NexusStore>()(
             globalApiKey: null,
             isLocked: false,
           },
-          streamMode: "mock",
+          streamMode: Object.values(state.authVault.providerCredentials ?? {}).some((entry) =>
+            entry.apiKey?.trim(),
+          )
+            ? "live"
+            : "mock",
         }));
       },
 
@@ -1741,42 +2643,164 @@ export const useNexusStore = create<NexusStore>()(
         const state = get();
         const workspace = getActiveWorkspace(state);
         const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
-        const contentUrl = content.trim();
+        const contentText = content.trim();
 
-        if (!workspace || !contentUrl) {
+        if (!workspace || !contentText) {
           return;
         }
 
-        const now = new Date().toISOString();
         const sourceMessageId = agent?.messages.at(-1)?.id ?? makeId("artifact-source");
-        const artifact: ArtifactVaultRecord = {
-          id: makeId("artifact"),
-          workspaceId: workspace.id,
-          sourceMessageId,
-          contentUrl,
-          type,
-          createdAt: now,
-        };
-
-        set((current) => ({
-          artifactVault: [artifact, ...current.artifactVault].slice(0, 80),
-        }));
+        const userId = state.authVault.user?.id ?? "local-owner";
 
         void supabaseStateSyncManager
-          .saveArtifact(workspace.id, sourceMessageId, contentUrl, type)
+          .saveArtifact(workspace.id, sourceMessageId, contentText, type, {
+            sourceAgentId: agentId,
+            title: agent?.callsign ? `${agent.callsign} ${type}` : undefined,
+            userId,
+          })
+          .then((result) => {
+            if (!result.ok) {
+              return undefined;
+            }
+
+            return supabaseStateSyncManager.fetchArtifacts(workspace.id, userId);
+          })
+          .then((response) => {
+            if (!response) {
+              return;
+            }
+
+            set({
+              artifactVault: createArtifactVaultCache(response.artifacts, {
+                hasMore: response.hasMore,
+                nextCursor: response.nextCursor,
+              }),
+            });
+          })
           .catch(() => undefined);
       },
 
       fetchArtifactsFromCloud: async () => {
-        const artifacts = await supabaseStateSyncManager.fetchArtifacts();
+        const state = get();
+        const workspace = getActiveWorkspace(state);
+        const workspaceId = workspace?.id ?? ACTIVE_WORKSPACE_ID;
+        const userId = state.authVault.user?.id ?? "local-owner";
+        const response = await supabaseStateSyncManager.fetchArtifacts(workspaceId, userId);
+        const artifacts = response.artifacts;
 
-        set({ artifactVault: artifacts });
+        set({
+          artifactVault: createArtifactVaultCache(artifacts, {
+            hasMore: response.hasMore,
+            nextCursor: response.nextCursor,
+          }),
+        });
 
         return artifacts;
       },
 
+      fetchHistoricalMessages: async (agentId) => {
+        const state = get();
+        const workspace = getActiveWorkspace(state);
+        const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
+
+        if (!workspace || !agent) {
+          return;
+        }
+
+        const cacheKey = getHistoricalMessageCacheKey(workspace.id, agentId);
+        const shouldRun = await waitForHistoryFetchDebounce(cacheKey);
+
+        if (!shouldRun) {
+          return;
+        }
+
+        const beforeFetch = get();
+        const existing = beforeFetch.historicalMessages[cacheKey];
+
+        if (existing?.loading) {
+          return;
+        }
+
+        set({
+          historicalMessages: {
+            ...beforeFetch.historicalMessages,
+            [cacheKey]: {
+              hasMore: existing?.hasMore ?? true,
+              items: existing?.items ?? [],
+              loading: true,
+              nextCursor: existing?.nextCursor,
+            },
+          },
+        });
+
+        try {
+          const latest = get();
+          const latestWorkspace = getActiveWorkspace(latest);
+          const latestAgent = latestWorkspace?.agents.find((candidate) => candidate.id === agentId);
+          const current = latest.historicalMessages[cacheKey];
+          const page = await historicalDataFetcher.fetchHistoricalMessages({
+            agentId,
+            cursor: current?.nextCursor,
+            limit: 50,
+            userId: latest.authVault.user?.id ?? "local-owner",
+            workspaceId: workspace.id,
+          });
+          const activeIds = new Set(
+            latestAgent?.messages.map((message) => message.id) ?? [],
+          );
+          const byId = new Map<string, HistoricalMessageRecord>();
+
+          for (const item of [...(current?.items ?? []), ...page.items]) {
+            if (!activeIds.has(item.message.id)) {
+              byId.set(item.message.id, item);
+            }
+          }
+
+          const items = [...byId.values()].sort((left, right) =>
+            right.message.createdAt.localeCompare(left.message.createdAt),
+          );
+
+          set((currentState) => ({
+            historicalMessages: {
+              ...currentState.historicalMessages,
+              [cacheKey]: {
+                fetchedAt: new Date().toISOString(),
+                hasMore: page.hasMore,
+                items,
+                loading: false,
+                nextCursor: page.nextCursor,
+              },
+            },
+          }));
+        } catch (error) {
+          const message =
+            error instanceof NexusApiError || error instanceof Error
+              ? error.message
+              : "History could not be loaded.";
+
+          set((currentState) => ({
+            historicalMessages: {
+              ...currentState.historicalMessages,
+              [cacheKey]: {
+                ...(currentState.historicalMessages[cacheKey] ?? {
+                  hasMore: true,
+                  items: [],
+                }),
+                error: message,
+                loading: false,
+              },
+            },
+          }));
+        }
+      },
+
       setPromptsCache: (prompts) => {
-        set({ promptsCache: prompts });
+        set((state) => ({
+          promptsCache: mergeRemotePromptsWithLocalCache(
+            prompts,
+            state.promptsCache,
+          ),
+        }));
       },
 
       addPromptToCache: (prompt) => {
@@ -1828,56 +2852,149 @@ export const useNexusStore = create<NexusStore>()(
       },
 
       deletePrompt: (id) => {
+        const prompt = get().promptsCache.find((candidate) => candidate.id === id);
         set((state) => ({
           promptsCache: state.promptsCache.filter((prompt) => prompt.id !== id),
         }));
-        void supabaseStateSyncManager.deletePrompt(id).catch((error) => {
+        void supabaseStateSyncManager.deletePrompt(id, prompt?.workspace_id).catch((error) => {
           console.error("[Prompt Vault Sync Error]:", error);
         });
       },
 
       setNotebooksCache: (notebooks) => {
         set((state) => {
-          const notebookIds = new Set(notebooks.map((notebook) => notebook.id));
+          const nextNotebooks = mergeRemoteNotebooksWithLocalCache(
+            notebooks,
+            state.notebooksCache,
+          );
+          const notebookIds = new Set(nextNotebooks.map((notebook) => notebook.id));
+          const notebookWindowLayers = Object.fromEntries(
+            Object.entries(state.notebookWindowLayers).filter(([id]) =>
+              notebookIds.has(id),
+            ),
+          );
 
           return {
-            notebooksCache: sortNotebooks(notebooks),
+            notebooksCache: nextNotebooks,
             openNotebookIds: state.openNotebookIds.filter((id) =>
               notebookIds.has(id),
             ),
+            notebookWindowLayers,
           };
         });
       },
 
       toggleNotebookOpen: (id) => {
-        set((state) => ({
-          openNotebookIds: state.openNotebookIds.includes(id)
-            ? state.openNotebookIds.filter((candidate) => candidate !== id)
-            : [...state.openNotebookIds, id],
-        }));
+        set((state) => {
+          if (state.openNotebookIds.includes(id)) {
+            return {
+              openNotebookIds: state.openNotebookIds.filter(
+                (candidate) => candidate !== id,
+              ),
+              notebookWindowLayers: Object.fromEntries(
+                Object.entries(state.notebookWindowLayers).filter(
+                  ([notebookId]) => notebookId !== id,
+                ),
+              ),
+            };
+          }
+
+          const nextZIndex = state.nextZIndex + 1;
+
+          return {
+            openNotebookIds: [...state.openNotebookIds, id],
+            notebookWindowLayers: {
+              ...state.notebookWindowLayers,
+              [id]: nextZIndex,
+            },
+            nextZIndex,
+          };
+        });
+      },
+
+      focusNotebookWindow: (id) => {
+        set((state) => {
+          const nextZIndex = state.nextZIndex + 1;
+
+          return {
+            notebookWindowLayers: {
+              ...state.notebookWindowLayers,
+              [id]: nextZIndex,
+            },
+            nextZIndex,
+          };
+        });
       },
 
       createNotebook: () => {
         const now = new Date().toISOString();
         const notebook: NotebookRecord = {
           id: makeId("notebook"),
+          workspace_id: null,
           title: "Untitled Datapad",
           content: "",
           created_at: now,
           updated_at: now,
         };
 
-        set((state) => ({
-          notebooksCache: sortNotebooks([notebook, ...state.notebooksCache]),
-          openNotebookIds: Array.from(
-            new Set([...state.openNotebookIds, notebook.id]),
-          ),
-        }));
-        void supabaseStateSyncManager.upsertNotebook(notebook).catch((error) => {
+        set((state) => {
+          const nextZIndex = state.nextZIndex + 1;
+
+          return {
+            notebooksCache: sortNotebooks([notebook, ...state.notebooksCache]),
+            openNotebookIds: Array.from(
+              new Set([...state.openNotebookIds, notebook.id]),
+            ),
+            notebookWindowLayers: {
+              ...state.notebookWindowLayers,
+              [notebook.id]: nextZIndex,
+            },
+            nextZIndex,
+          };
+        });
+        void supabaseStateSyncManager.upsertNotebook(notebook, undefined).catch((error) => {
           console.error("[Datapad Sync Error]:", error);
         });
 
         return notebook.id;
+      },
+
+      saveNotebookDraft: (id, title, content) => {
+        const state = get();
+        const notebook = state.notebooksCache.find((candidate) => candidate.id === id);
+
+        if (!notebook) {
+          return;
+        }
+
+        const updatedAt = new Date().toISOString();
+        const draft: NotebookDraftRecord = {
+          baseUpdatedAt: notebook.updated_at ?? notebook.created_at ?? null,
+          content,
+          notebookId: id,
+          title,
+          updatedAt,
+          workspaceId: notebook.workspace_id ?? null,
+        };
+
+        set((state) => ({
+          notebookDrafts: {
+            ...state.notebookDrafts,
+            [id]: draft,
+          },
+        }));
+      },
+
+      clearNotebookDraft: (id) => {
+        set((state) => {
+          if (!(id in state.notebookDrafts)) {
+            return state;
+          }
+
+          return {
+            notebookDrafts: omitNotebookDraft(state.notebookDrafts, id),
+          };
+        });
       },
 
       updateNotebook: (id, title, content) => {
@@ -1890,34 +3007,73 @@ export const useNexusStore = create<NexusStore>()(
 
         const updatedNotebook: NotebookRecord = {
           ...notebook,
+          workspace_id: notebook.workspace_id ?? null,
           title: title.trim() || "Untitled Datapad",
           content,
           updated_at: new Date().toISOString(),
         };
 
         set((current) => ({
+          notebookDrafts: omitNotebookDraft(current.notebookDrafts, id),
           notebooksCache: sortNotebooks([
             updatedNotebook,
             ...current.notebooksCache.filter((candidate) => candidate.id !== id),
           ]),
         }));
         void supabaseStateSyncManager
-          .upsertNotebook(updatedNotebook)
+          .upsertNotebook(updatedNotebook, updatedNotebook.workspace_id ?? undefined)
           .catch((error) => {
             console.error("[Datapad Sync Error]:", error);
           });
       },
 
       deleteNotebook: (id) => {
+        const state = get();
+        const notebook = state.notebooksCache.find((candidate) => candidate.id === id);
+        const workspaceId = notebook
+          ? notebook.workspace_id ?? null
+          : getActiveWorkspace(state)?.id ?? null;
+        const draft = state.notebookDrafts[id];
+        const deletedAt = new Date().toISOString();
+        const tombstone = notebook
+          ? {
+              ...notebook,
+              content: draft?.content ?? notebook.content,
+              deleted_at: deletedAt,
+              deleted_by: state.authVault.user?.id ?? null,
+              title: draft?.title?.trim() || notebook.title,
+              updated_at: deletedAt,
+              workspace_id: workspaceId,
+            }
+          : null;
+
         set((state) => ({
+          deletedNotebooksCache: tombstone
+            ? sortNotebooks([
+                tombstone,
+                ...state.deletedNotebooksCache.filter(
+                  (candidate) => candidate.id !== id,
+                ),
+              ])
+            : state.deletedNotebooksCache,
+          notebookDrafts: omitNotebookDraft(state.notebookDrafts, id),
           notebooksCache: state.notebooksCache.filter(
             (notebook) => notebook.id !== id,
           ),
           openNotebookIds: state.openNotebookIds.filter(
             (candidate) => candidate !== id,
           ),
+          notebookWindowLayers: Object.fromEntries(
+            Object.entries(state.notebookWindowLayers).filter(
+              ([notebookId]) => notebookId !== id,
+            ),
+          ),
         }));
-        void supabaseStateSyncManager.deleteNotebook(id).catch((error) => {
+        void supabaseStateSyncManager.deleteNotebook(
+          id,
+          workspaceId ?? undefined,
+          tombstone,
+        ).catch((error) => {
           console.error("[Datapad Sync Error]:", error);
         });
       },
@@ -2112,6 +3268,24 @@ export const useNexusStore = create<NexusStore>()(
         }));
       },
 
+      appendReasoningToMessage: (agentId, messageId, token) => {
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withAgent(workspace, agentId, (agent) => ({
+              ...agent,
+              messages: agent.messages.map((message) =>
+                message.id === messageId
+                  ? {
+                      ...message,
+                      reasoningContent: `${message.reasoningContent ?? ""}${token}`,
+                    }
+                  : message,
+              ),
+            })),
+          ),
+        }));
+      },
+
       finishMessage: (agentId, messageId, fallback, interrupted) => {
         const state = get();
         const workspace = getActiveWorkspace(state);
@@ -2263,6 +3437,219 @@ export const useNexusStore = create<NexusStore>()(
         }));
       },
 
+      addWorkflowRuntimeNode: (type) => {
+        const state = get();
+        const workspace = getActiveWorkspace(state);
+        const runtimeLite = normalizeWorkflowRuntimeLiteState(
+          workspace.graph.runtimeLite ?? createEmptyWorkflowRuntimeLiteState(),
+          { resetInterrupted: false },
+        );
+        const id = createWorkflowRuntimeId("wf_node");
+        const previousNode = runtimeLite.nodes.at(-1);
+        const node = createWorkflowRuntimeNode({
+          id,
+          position: previousNode
+            ? {
+                x: previousNode.position.x + 360,
+                y: previousNode.position.y,
+              }
+            : { x: 120, y: 96 },
+          type,
+        });
+
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+              ...runtimeLite,
+              lastError: null,
+              nodes: [...runtimeLite.nodes, node],
+            })),
+          ),
+          selectedAgentId: state.selectedAgentId,
+        }));
+
+        return id;
+      },
+
+      updateWorkflowRuntimeNodeData: (nodeId, data) => {
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+              ...runtimeLite,
+              nodes: runtimeLite.nodes.map((node) =>
+                node.id === nodeId
+                  ? ({
+                      ...node,
+                      data: {
+                        ...node.data,
+                        ...data,
+                      },
+                    } as WorkflowNodeInstance)
+                  : node,
+              ),
+            })),
+          ),
+        }));
+      },
+
+      updateWorkflowRuntimeNodePosition: (nodeId, position) => {
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+              ...runtimeLite,
+              nodes: runtimeLite.nodes.map((node) =>
+                node.id === nodeId
+                  ? {
+                      ...node,
+                      position,
+                    }
+                  : node,
+              ),
+            })),
+          ),
+        }));
+      },
+
+      connectWorkflowRuntimeNodes: (edge) => {
+        if (edge.source === edge.target) {
+          return;
+        }
+
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withWorkflowRuntimeLite(workspace, (runtimeLite) => {
+              const duplicate = runtimeLite.edges.some(
+                (candidate) =>
+                  candidate.source === edge.source &&
+                  candidate.target === edge.target &&
+                  candidate.sourceHandle === edge.sourceHandle &&
+                  candidate.targetHandle === edge.targetHandle,
+              );
+
+              if (duplicate) {
+                return runtimeLite;
+              }
+
+              return {
+                ...runtimeLite,
+                edges: [
+                  ...runtimeLite.edges,
+                  {
+                    ...edge,
+                    animated: edge.animated ?? true,
+                  },
+                ],
+                lastError: null,
+              };
+            }),
+          ),
+        }));
+      },
+
+      removeWorkflowRuntimeEdges: (edgeIds) => {
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+              ...runtimeLite,
+              edges: runtimeLite.edges.filter((edge) => !edgeIds.includes(edge.id)),
+            })),
+          ),
+        }));
+      },
+
+      runWorkflowRuntimeLiteFlow: async () => {
+        const state = get();
+        const workspace = getActiveWorkspace(state);
+        const runtimeLite = normalizeWorkflowRuntimeLiteState(
+          workspace.graph.runtimeLite ?? createEmptyWorkflowRuntimeLiteState(),
+        );
+        const executionAgent = resolveWorkflowRuntimeExecutionAgent(workspace);
+        const runId = createWorkflowRuntimeId("run");
+
+        if (!executionAgent) {
+          const failedRun: WorkflowRun = {
+            completedAt: new Date().toISOString(),
+            error: "Workflow Runtime Lite requires an existing NEXUS agent for LLM execution.",
+            nodeExecutions: [],
+            runId,
+            startedAt: new Date().toISOString(),
+            status: "failed",
+            workflowId: workspace.id,
+          };
+
+          set((state) => ({
+            workspaces: withActiveWorkspace(state, (workspace) =>
+              withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+                ...runtimeLite,
+                lastError: failedRun.error,
+                lastRunId: failedRun.runId,
+                runs: upsertWorkflowRun(runtimeLite.runs, failedRun),
+              })),
+            ),
+          }));
+
+          return failedRun;
+        }
+
+        const preparedRuntimeLite = {
+          ...runtimeLite,
+          lastError: null,
+          lastRunId: runId,
+          nodes: runtimeLite.nodes.map(resetWorkflowRuntimeNodeForRun),
+        };
+
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) => ({
+            ...workspace,
+            graph: {
+              ...workspace.graph,
+              runtimeLite: preparedRuntimeLite,
+            },
+          })),
+        }));
+
+        const patchNode = (nodeId: string, patch: WorkflowRuntimeNodePatch) => {
+          set((state) => ({
+            workspaces: withActiveWorkspace(state, (workspace) =>
+              withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+                ...runtimeLite,
+                nodes: runtimeLite.nodes.map((node) =>
+                  node.id === nodeId ? patchWorkflowRuntimeNode(node, patch) : node,
+                ),
+              })),
+            ),
+          }));
+        };
+        const updateRun = (run: WorkflowRun) => {
+          set((state) => ({
+            workspaces: withActiveWorkspace(state, (workspace) =>
+              withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+                ...runtimeLite,
+                lastError: run.status === "failed" ? run.error ?? null : null,
+                lastRunId: run.runId,
+                runs: upsertWorkflowRun(runtimeLite.runs, run),
+              })),
+            ),
+          }));
+        };
+        const run = await runWorkflowRuntimeLite({
+          callLlm: createWorkflowRuntimeLlmCall({
+            authVault: get().authVault,
+            executionAgent,
+            workspace,
+          }),
+          onNodePatch: patchNode,
+          onRunUpdate: updateRun,
+          runId,
+          runtimeLite: preparedRuntimeLite,
+          workflowId: workspace.id,
+        });
+
+        queueWorkspaceCloudSync(getActiveWorkspace(get()));
+
+        return run;
+      },
+
       updateAgentTelemetry: (agentId, generatedCharacters) => {
         set((state) => ({
           workspaces: withActiveWorkspace(state, (workspace) =>
@@ -2305,9 +3692,8 @@ export const useNexusStore = create<NexusStore>()(
         const workspace = getActiveWorkspace(state);
         const agent = workspace.agents.find((candidate) => candidate.id === agentId);
         const tool = agent?.tools.find((candidate) => candidate.id === toolId);
-        const executor = tool?.executorId ? toolExecutors[tool.executorId] : undefined;
 
-        if (!agent || !tool || !executor) {
+        if (!agent || !tool?.executorId) {
           return;
         }
 
@@ -2328,42 +3714,91 @@ export const useNexusStore = create<NexusStore>()(
           const safeApiKey =
             state.authVault.globalApiKey?.replace(/[^\x20-\x7E]/g, "").trim() ||
             undefined;
-          const result = await executor.run(agent, tool, {
-            ...input,
-            apiKey: safeApiKey,
-          });
-          const toolMessage: AgentMessage = {
-            id: makeId("message"),
-            role: "tool",
-            content: result.content,
-            createdAt: new Date().toISOString(),
-            media: result.media,
+          const request: ToolRunRequest = {
+            agentId,
+            input: input ? sanitizeToolInput(input) : undefined,
+            workspaceId: workspace.id,
           };
+          const response = await nexusApiClient.post<ToolRunResponse, ToolRunRequest>(
+            `/api/v1/tools/${encodeURIComponent(tool.executorId)}/run`,
+            request,
+            {
+              headers: safeApiKey
+                ? {
+                    Authorization: `Bearer ${safeApiKey}`,
+                  }
+                : undefined,
+              idempotencyKey: makeId("tool_mutation"),
+              userId: state.authVault.user?.id ?? "local-owner",
+              workspaceId: workspace.id,
+            },
+          );
+          const finalResponse =
+            response.confirmationRequired && response.toolRun.status === "awaiting_confirmation"
+              ? await resolveToolConfirmation({
+                  apiKey: safeApiKey,
+                  toolName: tool.name,
+                  toolRunId: response.toolRun.id,
+                  userId: state.authVault.user?.id ?? "local-owner",
+                  workspaceId: workspace.id,
+                })
+              : response;
+          const resultContent = getToolRunContent(finalResponse);
+          const projectedStatus = mapToolRunStatus(finalResponse.toolRun.status);
+          const toolMessage: AgentMessage | undefined =
+            resultContent && finalResponse.toolRun.status === "succeeded"
+              ? {
+                  content: resultContent,
+                  createdAt: new Date().toISOString(),
+                  id: makeId("message"),
+                  role: "tool",
+                }
+              : undefined;
 
           set((current) => ({
             workspaces: withActiveWorkspace(current, (activeWorkspace) =>
               withAgent(activeWorkspace, agentId, (currentAgent) => ({
                 ...currentAgent,
-                messages: [...currentAgent.messages, toolMessage],
-                tools: currentAgent.tools.map((currentTool) =>
-                  currentTool.id === toolId
-                    ? { ...currentTool, status: "done", result: result.content }
-                    : currentTool,
-                ),
+                messages: toolMessage
+                  ? [...currentAgent.messages, toolMessage]
+                  : currentAgent.messages,
                 telemetry: {
                   ...currentAgent.telemetry,
-                  toolRuns: currentAgent.telemetry.toolRuns + 1,
+                  errors:
+                    projectedStatus === "error"
+                      ? currentAgent.telemetry.errors + 1
+                      : currentAgent.telemetry.errors,
+                  toolRuns:
+                    finalResponse.toolRun.status === "succeeded"
+                      ? currentAgent.telemetry.toolRuns + 1
+                      : currentAgent.telemetry.toolRuns,
                 },
+                tools: currentAgent.tools.map((currentTool) =>
+                  currentTool.id === toolId
+                    ? {
+                        ...currentTool,
+                        error: finalResponse.toolRun.errorMessage ?? undefined,
+                        result: resultContent,
+                        status: projectedStatus,
+                      }
+                    : currentTool,
+                ),
               })),
             ),
           }));
-          queueMessageCloudSync({
-            agentId,
-            message: toolMessage,
-            workspaceId: workspace.id,
-          });
+
+          if (toolMessage) {
+            queueMessageCloudSync({
+              agentId,
+              message: toolMessage,
+              workspaceId: workspace.id,
+            });
+          }
         } catch (error) {
-          const detail = error instanceof Error ? error.message : "Tool executor failed.";
+          const detail =
+            error instanceof NexusApiError || error instanceof Error
+              ? error.message
+              : "Tool executor failed.";
           set((current) => ({
             workspaces: withActiveWorkspace(current, (activeWorkspace) =>
               withAgent(activeWorkspace, agentId, (currentAgent) => ({
@@ -2394,8 +3829,10 @@ export const useNexusStore = create<NexusStore>()(
           streamMode: "mock",
           viewMode: "panels",
           isVaultManagerOpen: false,
+          historicalMessages: {},
           promptsCache: [],
           branchingStatus: "idle",
+          notebookWindowLayers: {},
           lastSavedAt: new Date().toISOString(),
           lastImportError: undefined,
         });
@@ -2412,25 +3849,32 @@ export const useNexusStore = create<NexusStore>()(
     {
       name: PERSIST_STORAGE_NAME,
       storage: createJSONStorage(() => indexedDbStateStorage),
-      version: 10,
+      version: 14,
       onRehydrateStorage: () => (state) => {
         state?.materializeDefaultWorkspace();
         logHydratedMemoryState(state);
       },
       migrate: (persisted) => {
         if (!persisted || typeof persisted !== "object") {
+          const workspaces = prepareWorkspacesForLocalPersistence([initialWorkspace()]);
+
           return {
             activeWorkspaceId: ACTIVE_WORKSPACE_ID,
-            workspaces: [initialWorkspace()],
-            selectedAgentId: "agent-operator",
+            workspaces,
+            selectedAgentId: "agent-nexus-1",
             nextZIndex: 10,
             streamMode: "mock",
             viewMode: "panels",
             isVaultManagerOpen: false,
             authVault: DEFAULT_AUTH_VAULT,
+            artifactVault: EMPTY_ARTIFACT_VAULT_CACHE,
+            historicalMessages: {},
             promptsCache: [],
             notebooksCache: [],
+            deletedNotebooksCache: [],
+            notebookDrafts: {},
             openNotebookIds: [],
+            notebookWindowLayers: {},
             transactionHistory: [],
             branchingStatus: "idle",
           };
@@ -2439,7 +3883,7 @@ export const useNexusStore = create<NexusStore>()(
         const value = persisted as Partial<NexusStore> & { agents?: NexusAgent[] };
 
         if (Array.isArray(value.workspaces)) {
-          const workspaces = normalizeWorkspaces(value.workspaces);
+          const workspaces = prepareWorkspacesForLocalPersistence(value.workspaces);
           const authVault = normalizeAuthVault(value.authVault);
           const activeWorkspaceId = value.activeWorkspaceId ?? workspaces[0]?.id;
           const activeWorkspace =
@@ -2464,33 +3908,50 @@ export const useNexusStore = create<NexusStore>()(
               : "mock",
             viewMode: value.viewMode ?? activeWorkspace?.settings.viewMode ?? "panels",
             isVaultManagerOpen: false,
+            artifactVault: normalizeArtifactVaultCache(value.artifactVault),
+            historicalMessages: {},
             promptsCache: [],
             notebooksCache: sortNotebooks(value.notebooksCache ?? []),
+            deletedNotebooksCache: sortNotebooks(value.deletedNotebooksCache ?? []),
+            notebookDrafts: normalizeNotebookDrafts(
+              Object.values(value.notebookDrafts ?? {}),
+            ),
             openNotebookIds: value.openNotebookIds ?? [],
+            notebookWindowLayers: {},
             transactionHistory: (value.transactionHistory ?? []).slice(0, 100),
             branchingStatus: "idle",
           };
         }
 
+        const workspaces = prepareWorkspacesForLocalPersistence([initialWorkspace()]);
+
         return {
           activeWorkspaceId: ACTIVE_WORKSPACE_ID,
-          workspaces: [initialWorkspace()],
-          selectedAgentId: "agent-operator",
+          workspaces,
+          selectedAgentId: "agent-nexus-1",
           nextZIndex: 10,
           streamMode: "mock",
           viewMode: "panels",
           isVaultManagerOpen: false,
           authVault: DEFAULT_AUTH_VAULT,
+          artifactVault: EMPTY_ARTIFACT_VAULT_CACHE,
+          historicalMessages: {},
           promptsCache: [],
           notebooksCache: [],
+          deletedNotebooksCache: [],
+          notebookDrafts: {},
           openNotebookIds: [],
+          notebookWindowLayers: {},
           transactionHistory: [],
           branchingStatus: "idle",
         };
       },
       partialize: (state) => ({
         activeWorkspaceId: state.activeWorkspaceId,
+        artifactVault: state.artifactVault,
         authVault: state.authVault,
+        deletedNotebooksCache: state.deletedNotebooksCache,
+        notebookDrafts: state.notebookDrafts,
         notebooksCache: state.notebooksCache,
         openNotebookIds: state.openNotebookIds,
         workspaces: prepareWorkspacesForLocalPersistence(state.workspaces),
@@ -2505,6 +3966,126 @@ export const useNexusStore = create<NexusStore>()(
     },
   ),
 );
+
+async function resolveToolConfirmation({
+  apiKey,
+  toolName,
+  toolRunId,
+  userId,
+  workspaceId,
+}: {
+  apiKey?: string;
+  toolName: string;
+  toolRunId: string;
+  userId: string;
+  workspaceId: string;
+}): Promise<ToolRunResponse> {
+  const shouldConfirm =
+    typeof window !== "undefined" &&
+    window.confirm(`Confirm high-risk tool execution: ${toolName}?`);
+  const headers = apiKey
+    ? {
+        Authorization: `Bearer ${apiKey}`,
+      }
+    : undefined;
+
+  if (!shouldConfirm) {
+    const cancelled = await nexusApiClient.post<
+      ToolRunCancelResponse,
+      { workspaceId: string }
+    >(
+      `/api/v1/tool-runs/${encodeURIComponent(toolRunId)}/cancel`,
+      {
+        workspaceId,
+      },
+      {
+        idempotencyKey: makeId("tool_cancel"),
+        userId,
+        workspaceId,
+      },
+    );
+
+    return {
+      confirmationRequired: false,
+      materializationStatus: "not_requested",
+      toolRun: cancelled.toolRun,
+    };
+  }
+
+  return nexusApiClient.post<ToolRunConfirmResponse, { workspaceId: string }>(
+    `/api/v1/tool-runs/${encodeURIComponent(toolRunId)}/confirm`,
+    {
+      workspaceId,
+    },
+    {
+      headers,
+      idempotencyKey: makeId("tool_confirm"),
+      userId,
+      workspaceId,
+    },
+  );
+}
+
+function sanitizeToolInput(input: ToolExecutorInput): Record<string, unknown> {
+  const sanitized: Record<string, unknown> = {};
+
+  if (typeof input.prompt === "string" && input.prompt.trim()) {
+    sanitized.prompt = input.prompt;
+  }
+
+  if (typeof input.path === "string" && input.path.trim()) {
+    sanitized.path = input.path;
+  }
+
+  if (typeof input.url === "string" && input.url.trim()) {
+    sanitized.url = input.url;
+  }
+
+  return sanitized;
+}
+
+function getToolRunContent(response: ToolRunResponse) {
+  const output = response.toolRun.outputRedacted;
+  const content = output && typeof output.content === "string" ? output.content : "";
+  const materializationNote =
+    response.materializationStatus === "TOOL_MATERIALIZATION_NOT_AVAILABLE"
+      ? "\n\nTOOL_MATERIALIZATION_NOT_AVAILABLE"
+      : "";
+
+  if (content) {
+    return `${content}${materializationNote}`;
+  }
+
+  if (response.toolRun.status === "awaiting_confirmation") {
+    return "Tool run is awaiting high-risk confirmation.";
+  }
+
+  if (response.toolRun.status === "cancelled") {
+    return "Tool run was cancelled.";
+  }
+
+  return response.toolRun.errorMessage ?? undefined;
+}
+
+function mapToolRunStatus(status: ToolRunResponse["toolRun"]["status"]): ToolStatus {
+  if (status === "succeeded" || status === "materialized") {
+    return "done";
+  }
+
+  if (status === "running") {
+    return "running";
+  }
+
+  if (status === "awaiting_confirmation" || status === "created") {
+    return "queued";
+  }
+
+  if (status === "cancelled") {
+    return "available";
+  }
+
+  return "error";
+}
 
 supabaseStateSyncManager.setTransactionLogger((entry) => {
   useNexusStore.getState().recordTransaction(entry);

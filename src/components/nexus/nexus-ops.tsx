@@ -20,12 +20,15 @@ import {
   GitBranch,
   Home,
   Layers3,
+  Lock,
   Maximize2,
   Menu,
   Minimize2,
   PanelRight,
   Pencil,
   PackageCheck,
+  PanelLeftClose,
+  PanelLeftOpen,
   Plus,
   RadioTower,
   RefreshCcw,
@@ -37,6 +40,7 @@ import {
   Settings,
   Square,
   Trash2,
+  Unlock,
   Upload,
   Workflow,
   X,
@@ -60,39 +64,63 @@ import {
   DEFAULT_WORKSPACE_BRANCHING_SETTINGS,
   agentTemplates,
   makeId,
+  resolveAgentTemplateProfile,
 } from "@/lib/nexus-defaults";
 import type {
   AgentCapabilityType,
   AgentCreationCapabilityType,
   AgentMediaArtifact,
+  ArtifactGetResponse,
   ArtifactVaultRecord,
+  AgentModelSettings,
+  AgentProfileUpdate,
+  AgentTemplateProfile,
+  AgentTemplateProfileUpdate,
+  HistoricalMessageRecord,
   MediaAgentCapabilityType,
   AgentMessage,
   AgentStreamRequest,
+  AgentTaskCreateRequest,
+  AgentTaskCreateResponse,
   AgentTemplate,
   IAuthVault,
+  NexusReasoningDetail,
+  NexusReasoningEffort,
+  NexusVerbosity,
   NexusAgent,
   NexusWorkspace,
   NotebookRecord,
   PromptRecord,
   StreamMode,
+  SystemEventListResponse,
+  SystemEventRecord,
   WorkflowTemplateRecord,
   WorkspaceBranchingSettings,
+  WorkspaceRecoveryListItem,
+  WorkspaceSnapshot,
   WorkspaceThemeConfig,
   WorkspaceViewMode,
 } from "@/lib/nexus-types";
-import { parseWorkspaceSnapshot } from "@/lib/workspace-kernel";
+import { nexusApiClient } from "@/lib/api/nexus-api-client";
+import { createNotebookRecoveryMetadata, parseWorkspaceSnapshot } from "@/lib/workspace-kernel";
+import { buildLocalWorkspaceRecoveryContext } from "@/lib/workspace-recovery-local";
 import { hasToolExecutor } from "@/lib/tool-executors";
 import { fetchWithBackoff, isAbortLikeError } from "@/lib/stream-retry";
 import { supabaseStateSyncManager } from "@/lib/state-sync";
-import { getNexusSupabaseClient } from "@/lib/supabase/client";
+import { localSyncQueueAdapter, type QueueStatusProjection } from "@/lib/sync/local-sync-queue-adapter";
+import {
+  ensureNexusSupabaseClientConfigured,
+  getNexusSupabaseClient,
+} from "@/lib/supabase/client";
 import { getEmbeddableUrl, getIframeBlockReason } from "@/lib/embed-url";
 import { buildMockPredictiveIntelSuggestions } from "@/lib/predictive-intel";
 import {
-  CUSTOM_POWER_CHAT_MODEL_IDS,
-  STANDARD_CHAT_MODEL_IDS,
+  PROVIDER_REGISTRY,
   getModelOption,
+  getModelCapabilityProfile,
   getModelOptionsForCapability,
+  getProviderIdForModel,
+  getProviderOption,
 } from "@/lib/nexus-registry";
 import {
   evaluateWorkflowHandoffs,
@@ -116,14 +144,21 @@ const EMPTY_AGENTS: NexusAgent[] = [];
 const EMPTY_GRAPH = { nodes: [], edges: [] };
 const SANDBOX_MIN_SPLIT = 20;
 const SANDBOX_MAX_SPLIT = 80;
-const SANDBOX_COLLAPSED_WIDTH = 46;
 
 type LegoThemeKey = keyof WorkspaceThemeConfig;
+type AgentHistoricalPage = {
+  error?: string;
+  hasMore: boolean;
+  items: HistoricalMessageRecord[];
+  loading?: boolean;
+  nextCursor?: string;
+};
 
 const LEGO_THEME_DEFAULTS: Required<WorkspaceThemeConfig> = {
   radius: "4px",
   blur: "8px",
-  borderWidth: "1px",
+  borderWidth: "0px",
+  glowIntensity: "28%",
   iconWeight: "2px",
   fontFamily: "var(--font-geist-sans), Arial, Helvetica, sans-serif",
   chatOpacity: "88%",
@@ -133,6 +168,7 @@ const LEGO_THEME_VARIABLES: Record<LegoThemeKey, string> = {
   radius: "--radius-base",
   blur: "--backdrop-blur",
   borderWidth: "--border-width",
+  glowIntensity: "--agent-glow-intensity",
   iconWeight: "--icon-weight",
   fontFamily: "--font-main",
   chatOpacity: "--chat-panel-opacity",
@@ -158,6 +194,16 @@ const typographyOptions = [
 ] as const;
 
 type NexusTheme = "cyberpunk" | "apple" | "tesla" | "terminal";
+type RightDockPanelId =
+  | "intel"
+  | "providers"
+  | "models"
+  | "theme"
+  | "memory"
+  | "artifacts"
+  | "workflows"
+  | "trace"
+  | "account";
 
 const themeOptions: Array<{ id: NexusTheme; label: string }> = [
   { id: "cyberpunk", label: "Cyberpunk" },
@@ -172,8 +218,16 @@ type WorkspaceSize = {
 };
 
 type ClientStreamEvent =
-  | { type: "meta"; mode: "mock" | "openai"; detail: string }
-  | { type: "token"; token: string }
+  | {
+      type: "meta";
+      mode?: "mock" | "openai";
+      detail?: string;
+      taskId?: string;
+      sessionId?: string | null;
+      traceId?: string;
+    }
+  | { type: "token"; token?: string; delta?: string }
+  | { type: "reasoning"; delta?: string }
   | { type: "done" };
 
 type PaletteCommand = {
@@ -215,6 +269,7 @@ function normalizeThemeConfig(
   return {
     ...LEGO_THEME_DEFAULTS,
     ...(config ?? {}),
+    borderWidth: LEGO_THEME_DEFAULTS.borderWidth,
   };
 }
 
@@ -247,9 +302,11 @@ function applyLegoThemeConfigToDom(config?: WorkspaceThemeConfig) {
   (Object.entries(LEGO_THEME_VARIABLES) as Array<[LegoThemeKey, string]>).forEach(
     ([key, variable]) => {
       const value = config[key];
+      const nextValue =
+        key === "borderWidth" ? LEGO_THEME_DEFAULTS.borderWidth : value;
 
-      if (typeof value === "string" && value.trim()) {
-        rootStyle.setProperty(variable, value);
+      if (typeof nextValue === "string" && nextValue.trim()) {
+        rootStyle.setProperty(variable, nextValue);
       } else {
         rootStyle.removeProperty(variable);
       }
@@ -271,8 +328,11 @@ function readLegoThemeConfigFromDom(
   return {
     radius: config?.radius || fromDom("radius") || LEGO_THEME_DEFAULTS.radius,
     blur: config?.blur || fromDom("blur") || LEGO_THEME_DEFAULTS.blur,
-    borderWidth:
-      config?.borderWidth || fromDom("borderWidth") || LEGO_THEME_DEFAULTS.borderWidth,
+    borderWidth: LEGO_THEME_DEFAULTS.borderWidth,
+    glowIntensity:
+      config?.glowIntensity ||
+      fromDom("glowIntensity") ||
+      LEGO_THEME_DEFAULTS.glowIntensity,
     iconWeight:
       config?.iconWeight || fromDom("iconWeight") || LEGO_THEME_DEFAULTS.iconWeight,
     fontFamily: normalizeTypographyValue(
@@ -308,6 +368,10 @@ function getModelLabel(modelId: string) {
   return getModelOption(modelId)?.label ?? modelId;
 }
 
+function getProviderLabel(providerId: string | undefined) {
+  return getProviderOption(providerId)?.label ?? providerId ?? "Unknown";
+}
+
 function uniqueModelIds(models: Array<string | undefined>) {
   return Array.from(
     new Set(
@@ -326,35 +390,53 @@ function getAgentModelGroups(agent: NexusAgent) {
     (model) => model.id,
   );
 
-  if (capabilityType !== "chat") {
-    return [
-      {
-        label: "Agent Supported Models",
-        models: uniqueModelIds([currentModel, ...supportedModels, ...catalogModels]),
-      },
-    ];
-  }
+  const models = uniqueModelIds([currentModel, ...supportedModels, ...catalogModels]);
+  const grouped = models.reduce<Array<{ label: string; models: string[] }>>(
+    (groups, modelId) => {
+      const option = getModelOption(modelId);
+      const providerId = option?.provider ?? agent.provider;
+      const label = getProviderLabel(providerId);
+      const group = groups.find((candidate) => candidate.label === label);
 
-  const customPowerModels = uniqueModelIds([...CUSTOM_POWER_CHAT_MODEL_IDS]);
-  const standardModels = uniqueModelIds([...STANDARD_CHAT_MODEL_IDS]);
-  const knownModels = new Set([...customPowerModels, ...standardModels]);
-  const otherModels = uniqueModelIds([currentModel, ...supportedModels, ...catalogModels])
-    .filter((model) => !knownModels.has(model));
+      if (group) {
+        group.models.push(modelId);
+        return groups;
+      }
 
-  return [
-    {
-      label: "Custom Power Models",
-      models: customPowerModels,
+      groups.push({ label, models: [modelId] });
+      return groups;
     },
-    {
-      label: "Standard Chat Models",
-      models: standardModels,
-    },
-    {
-      label: "Agent / Legacy Models",
-      models: otherModels,
-    },
-  ].filter((group) => group.models.length);
+    [],
+  );
+
+  return grouped.length
+    ? grouped
+    : [{ label: "Agent Supported Models", models }];
+}
+
+function resolveRuntimeCredentialForModel(authVault: IAuthVault, model: string, fallbackProvider?: string) {
+  const providerId = getProviderIdForModel(model, fallbackProvider);
+  const provider = getProviderOption(providerId);
+  const providerCredential = authVault.providerCredentials?.[providerId];
+  const apiKey =
+    providerCredential?.apiKey?.replace(/[^\x20-\x7E]/g, "").trim() ||
+    authVault.globalApiKey?.replace(/[^\x20-\x7E]/g, "").trim() ||
+    "";
+  const baseUrl =
+    providerCredential?.baseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
+    authVault.globalBaseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
+    provider?.defaultBaseUrl ||
+    DEFAULT_BASE_URL;
+
+  return {
+    apiKey,
+    baseUrl,
+    providerId,
+    providerLabel: provider?.label ?? providerId,
+    verificationStatus:
+      providerCredential?.verificationStatus ?? provider?.verificationStatus ?? "untested",
+    liveVerifiedAt: providerCredential?.liveVerifiedAt ?? null,
+  };
 }
 
 function isMediaCapability(
@@ -442,7 +524,7 @@ async function readStreamEvents(
       try {
         onEvent(JSON.parse(line.replace(/^data:\s*/, "")) as ClientStreamEvent);
       } catch {
-        onEvent({ type: "meta", mode: "mock", detail: "Malformed stream event." });
+        onEvent({ type: "meta", detail: "Malformed stream event.", mode: "mock" });
       }
     }
   }
@@ -480,7 +562,10 @@ function IconButton({
 }
 
 function resolveAgentsStreamMode(authVault: IAuthVault): StreamMode {
-  return authVault.globalApiKey?.trim() ? "live" : "mock";
+  return authVault.globalApiKey?.trim() ||
+    Object.values(authVault.providerCredentials ?? {}).some((entry) => entry.apiKey?.trim())
+    ? "live"
+    : "mock";
 }
 
 function syncSupabaseSessionUser(user: IAuthVault["user"]) {
@@ -522,25 +607,43 @@ function artifactPreview(value: string) {
   return `${compact.slice(0, 117)}...`;
 }
 
+function traceSeverityClass(severity: SystemEventRecord["severity"]) {
+  if (severity === "critical" || severity === "error") {
+    return "text-rose-200";
+  }
+
+  if (severity === "warn") {
+    return "text-amber-200";
+  }
+
+  if (severity === "debug") {
+    return "text-slate-500";
+  }
+
+  return "text-cyan-100";
+}
+
 export function NexusOps() {
   const { resolvedTheme, setTheme, theme } = useTheme();
   const workspaceRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const abortControllersRef = useRef<Map<string, AbortController>>(new Map());
+  const abortControllersRef = useRef<
+    Map<string, { controller: AbortController; taskId?: string; workspaceId?: string }>
+  >(new Map());
   const workflowAgentSnapshotsRef = useRef<Map<string, WorkflowAgentSnapshot>>(
     new Map(),
   );
   const processedWorkflowHandoffsRef = useRef<Set<string>>(new Set());
   const workflowDispatchQueueRef = useRef<Promise<void>>(Promise.resolve());
   const workflowQueueEpochRef = useRef(0);
+  const recoveredLoginUserRef = useRef<string | null>(null);
   const [workspaceSize, setWorkspaceSize] = useState<WorkspaceSize>({
     width: 1200,
     height: 780,
   });
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeRightPanel, setActiveRightPanel] = useState<RightDockPanelId | null>(null);
   const [leftDockOpen, setLeftDockOpen] = useState(false);
-  const [rightIntelOpen, setRightIntelOpen] = useState(false);
   const [notice, setNotice] = useState("Workspace persistence online");
   const [macros, setMacros] = useState<WorkflowTemplateRecord[]>([]);
   const [macrosLoading, setMacrosLoading] = useState(false);
@@ -555,6 +658,10 @@ export function NexusOps() {
   const [branchAgentId, setBranchAgentId] = useState<string | null>(null);
   const [themeMounted, setThemeMounted] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [workspaceRecoveryItems, setWorkspaceRecoveryItems] = useState<
+    WorkspaceRecoveryListItem[]
+  >([]);
+  const [workspaceRecoveryLoading, setWorkspaceRecoveryLoading] = useState(false);
 
   const activeWorkspaceId = useNexusStore((state) => state.activeWorkspaceId);
   const workspaces = useNexusStore((state) => state.workspaces);
@@ -562,7 +669,7 @@ export function NexusOps() {
   const viewMode = useNexusStore((state) => state.viewMode);
   const isVaultManagerOpen = useNexusStore((state) => state.isVaultManagerOpen);
   const authVault = useNexusStore((state) => state.authVault);
-  const artifactVault = useNexusStore((state) => state.artifactVault);
+  const artifactVaultCache = useNexusStore((state) => state.artifactVault);
   const promptsCache = useNexusStore((state) => state.promptsCache);
   const notebooksCache = useNexusStore((state) => state.notebooksCache);
   const openNotebookIds = useNexusStore((state) => state.openNotebookIds);
@@ -584,8 +691,19 @@ export function NexusOps() {
   const focusAgent = useNexusStore((state) => state.focusAgent);
   const selectAgent = useNexusStore((state) => state.selectAgent);
   const updateLayout = useNexusStore((state) => state.updateLayout);
+  const updateAgentProfile = useNexusStore((state) => state.updateAgentProfile);
+  const updateAgentCallsign = useNexusStore((state) => state.updateAgentCallsign);
+  const setAgentProfileLocked = useNexusStore(
+    (state) => state.setAgentProfileLocked,
+  );
   const updateAgentMission = useNexusStore((state) => state.updateAgentMission);
   const updateAgentModel = useNexusStore((state) => state.updateAgentModel);
+  const updateAgentModelSettings = useNexusStore(
+    (state) => state.updateAgentModelSettings,
+  );
+  const updateAgentTemplateProfile = useNexusStore(
+    (state) => state.updateAgentTemplateProfile,
+  );
   const updateMemoryBlock = useNexusStore((state) => state.updateMemoryBlock);
   const minimizeAgent = useNexusStore((state) => state.minimizeAgent);
   const restoreAgent = useNexusStore((state) => state.restoreAgent);
@@ -596,6 +714,9 @@ export function NexusOps() {
   const clearAgentMessages = useNexusStore((state) => state.clearAgentMessages);
   const resetWorkspace = useNexusStore((state) => state.resetWorkspace);
   const importWorkspace = useNexusStore((state) => state.importWorkspace);
+  const applyWorkspaceRecoveryState = useNexusStore(
+    (state) => state.applyWorkspaceRecoveryState,
+  );
   const setStreamMode = useNexusStore((state) => state.setStreamMode);
   const setViewMode = useNexusStore((state) => state.setViewMode);
   const openVaultManager = useNexusStore((state) => state.openVaultManager);
@@ -605,6 +726,14 @@ export function NexusOps() {
   const logout = useNexusStore((state) => state.logout);
   const setGlobalApiKey = useNexusStore((state) => state.setGlobalApiKey);
   const setGlobalBaseUrl = useNexusStore((state) => state.setGlobalBaseUrl);
+  const setProviderApiKey = useNexusStore((state) => state.setProviderApiKey);
+  const setProviderBaseUrl = useNexusStore((state) => state.setProviderBaseUrl);
+  const setProviderVerificationStatus = useNexusStore(
+    (state) => state.setProviderVerificationStatus,
+  );
+  const lockProviderCredential = useNexusStore((state) => state.lockProviderCredential);
+  const unlockProviderCredential = useNexusStore((state) => state.unlockProviderCredential);
+  const deleteProviderCredential = useNexusStore((state) => state.deleteProviderCredential);
   const lockVault = useNexusStore((state) => state.lockVault);
   const unlockVault = useNexusStore((state) => state.unlockVault);
   const deleteApiKey = useNexusStore((state) => state.deleteApiKey);
@@ -623,7 +752,29 @@ export function NexusOps() {
   );
   const connectGraphAgents = useNexusStore((state) => state.connectGraphAgents);
   const removeGraphEdges = useNexusStore((state) => state.removeGraphEdges);
+  const addWorkflowRuntimeNode = useNexusStore(
+    (state) => state.addWorkflowRuntimeNode,
+  );
+  const updateWorkflowRuntimeNodeData = useNexusStore(
+    (state) => state.updateWorkflowRuntimeNodeData,
+  );
+  const updateWorkflowRuntimeNodePosition = useNexusStore(
+    (state) => state.updateWorkflowRuntimeNodePosition,
+  );
+  const connectWorkflowRuntimeNodes = useNexusStore(
+    (state) => state.connectWorkflowRuntimeNodes,
+  );
+  const removeWorkflowRuntimeEdges = useNexusStore(
+    (state) => state.removeWorkflowRuntimeEdges,
+  );
+  const runWorkflowRuntimeLiteFlow = useNexusStore(
+    (state) => state.runWorkflowRuntimeLiteFlow,
+  );
   const runTool = useNexusStore((state) => state.runTool);
+  const historicalMessages = useNexusStore((state) => state.historicalMessages);
+  const fetchHistoricalMessages = useNexusStore(
+    (state) => state.fetchHistoricalMessages,
+  );
 
   const workspace =
     workspaces.find((candidate) => candidate.id === activeWorkspaceId) ?? workspaces[0];
@@ -632,6 +783,13 @@ export function NexusOps() {
   const branchingSettings = workspace?.settings.branchingSettings;
   const activeAgentId = workspace?.activeAgentId;
   const agents = workspace?.agents ?? EMPTY_AGENTS;
+  const artifactVault = useMemo(
+    () =>
+      artifactVaultCache.ids
+        .map((id) => artifactVaultCache.byId[id])
+        .filter((artifact): artifact is ArtifactVaultRecord => Boolean(artifact)),
+    [artifactVaultCache],
+  );
   const effectiveStreamMode = useMemo(
     () => resolveAgentsStreamMode(authVault),
     [authVault],
@@ -643,14 +801,138 @@ export function NexusOps() {
     agents.find((agent) => agent.id === selectedAgentId) ?? agents[0];
   const activeAgent =
     agents.find((agent) => agent.id === activeAgentId) ?? selectedAgent;
+  const workflowRunning = Boolean(
+    workspace?.graph.runtimeLite?.runs.some((run) => run.status === "running"),
+  );
   const branchAgent = agents.find((agent) => agent.id === branchAgentId);
   const activeTheme = themeMounted
     ? normalizeTheme(theme ?? resolvedTheme)
     : "cyberpunk";
+  const [syncQueueStatus, setSyncQueueStatus] = useState<QueueStatusProjection>({
+    conflicted: 0,
+    failed: 0,
+    pending: 0,
+    syncing: 0,
+  });
+
+  const recoverWorkspaceAfterLogin = useCallback((userId: string) => {
+    const state = useNexusStore.getState();
+    const localWorkspace =
+      state.workspaces.find((candidate) => candidate.id === state.activeWorkspaceId) ??
+      state.workspaces[0];
+
+    setWorkspaceRecoveryLoading(true);
+    void buildLocalWorkspaceRecoveryContext(localWorkspace)
+      .then(async (localRecovery) => {
+        const [recovery, recoveryList] = await Promise.all([
+          supabaseStateSyncManager.fetchLatestWorkspaceRecoveryState({
+            ...localRecovery,
+            userId,
+          }),
+          supabaseStateSyncManager.fetchWorkspaceRecoveryList({
+            localChecksum: localRecovery.localChecksum,
+            userId,
+          }),
+        ]);
+
+        setWorkspaceRecoveryItems(recoveryList.items);
+
+        return recovery;
+      })
+      .then((recovery) => {
+        const result = applyWorkspaceRecoveryState(recovery);
+
+        if (result.status === "applied") {
+          setNotice("Workspace recovered from cloud");
+        } else if (result.status === "conflicted") {
+          console.warn("[Workspace Recovery Conflict]: local workspace is newer.", result);
+        }
+      })
+      .catch((error) => {
+        console.error("[Workspace Recovery Error]:", error);
+      })
+      .finally(() => {
+        setWorkspaceRecoveryLoading(false);
+      });
+  }, [applyWorkspaceRecoveryState]);
+
+  const recoverSelectedWorkspace = useCallback((workspaceId: string) => {
+    const userId = useNexusStore.getState().authVault.user?.id;
+    const state = useNexusStore.getState();
+    const localWorkspace = state.workspaces.find(
+      (candidate) => candidate.id === workspaceId,
+    );
+
+    if (!userId) {
+      return;
+    }
+
+    setWorkspaceRecoveryLoading(true);
+    void buildLocalWorkspaceRecoveryContext(localWorkspace)
+      .then((localRecovery) =>
+        supabaseStateSyncManager.fetchWorkspaceRecoveryState({
+          ...localRecovery,
+          userId,
+          workspaceId,
+        }),
+      )
+      .then((recovery) => {
+        const result = applyWorkspaceRecoveryState(recovery);
+
+        if (result.status === "applied") {
+          setNotice("Workspace recovered from cloud");
+        } else if (result.status === "conflicted") {
+          setNotice("Recovery skipped: local workspace is newer");
+        } else {
+          setNotice("Workspace recovery skipped");
+        }
+      })
+      .catch((error) => {
+        console.error("[Workspace Recovery Error]:", error);
+      })
+      .finally(() => {
+        setWorkspaceRecoveryLoading(false);
+      });
+  }, [applyWorkspaceRecoveryState]);
+
+  const handleSessionUser = useCallback((user: IAuthVault["user"]) => {
+    syncSupabaseSessionUser(user);
+
+    if (!user) {
+      recoveredLoginUserRef.current = null;
+      return;
+    }
+
+    if (recoveredLoginUserRef.current === user.id) {
+      return;
+    }
+
+    recoveredLoginUserRef.current = user.id;
+    recoverWorkspaceAfterLogin(user.id);
+  }, [recoverWorkspaceAfterLogin]);
 
   useEffect(() => {
     materializeDefaultWorkspace();
   }, [materializeDefaultWorkspace]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const refresh = () => {
+      void localSyncQueueAdapter.getStatus().then((status) => {
+        if (mounted) {
+          setSyncQueueStatus(status);
+        }
+      });
+    };
+    const intervalId = window.setInterval(refresh, 2000);
+    refresh();
+
+    return () => {
+      mounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -681,41 +963,51 @@ export function NexusOps() {
 
   useEffect(() => {
     let mounted = true;
+    let unsubscribe: (() => void) | undefined;
 
-    try {
-      const supabase = getNexusSupabaseClient();
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    void ensureNexusSupabaseClientConfigured()
+      .then(() => {
         if (!mounted) {
           return;
         }
 
-        syncSupabaseSessionUser(session?.user ?? null);
-      });
-
-      void supabase.auth
-        .getSession()
-        .then(({ data: sessionData }) => {
+        const supabase = getNexusSupabaseClient();
+        const { data } = supabase.auth.onAuthStateChange((_event, session) => {
           if (!mounted) {
             return;
           }
 
-          syncSupabaseSessionUser(sessionData.session?.user ?? null);
-        })
-        .catch(() => undefined)
-        .finally(() => {
-          if (mounted) {
-            setAuthChecked(true);
-          }
+          handleSessionUser(session?.user ?? null);
         });
+        unsubscribe = () => data.subscription.unsubscribe();
 
-      return () => {
-        mounted = false;
-        data.subscription.unsubscribe();
-      };
-    } catch {
-      window.setTimeout(() => setAuthChecked(true), 0);
-    }
-  }, []);
+        return supabase.auth
+          .getSession()
+          .then(({ data: sessionData }) => {
+            if (!mounted) {
+              return;
+            }
+
+            handleSessionUser(sessionData.session?.user ?? null);
+          })
+          .catch(() => undefined)
+          .finally(() => {
+            if (mounted) {
+              setAuthChecked(true);
+            }
+          });
+      })
+      .catch(() => {
+        if (mounted) {
+          window.setTimeout(() => setAuthChecked(true), 0);
+        }
+      });
+
+    return () => {
+      mounted = false;
+      unsubscribe?.();
+    };
+  }, [handleSessionUser]);
 
   useEffect(() => {
     setStreamMode(effectiveStreamMode);
@@ -742,9 +1034,13 @@ export function NexusOps() {
 
   useEffect(() => {
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
-      const key = event.key.toLowerCase();
+      const key = typeof event.key === "string" ? event.key.toLowerCase() : "";
 
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      if (!key) {
+        return;
+      }
+
+      if ((event.metaKey || event.ctrlKey) && key === "k") {
         event.preventDefault();
         setPaletteOpen((current) => !current);
       }
@@ -766,9 +1062,9 @@ export function NexusOps() {
         setNotice("Undo applied");
       }
 
-      if (event.key === "Escape") {
+      if (key === "escape") {
         setPaletteOpen(false);
-        setSettingsOpen(false);
+        setActiveRightPanel(null);
       }
     };
 
@@ -812,39 +1108,78 @@ export function NexusOps() {
     }
   }, [fetchArtifactsFromCloud]);
 
+  const retryFailedSyncOperation = useCallback(() => {
+    void localSyncQueueAdapter
+      .getOperations()
+      .then((operations) =>
+        operations.find((operation) =>
+          ["failed", "conflicted"].includes(operation.status),
+        ),
+      )
+      .then((operation) => {
+        if (!operation) {
+          return undefined;
+        }
+
+        return localSyncQueueAdapter.retry(operation.clientMutationId);
+      })
+      .then(() => {
+        setNotice("Sync retry queued.");
+      })
+      .catch(() => {
+        setNotice("Sync retry could not be queued.");
+      });
+  }, []);
+
   useEffect(() => {
-    if (!settingsOpen) {
+    if (activeRightPanel !== "workflows") {
       return;
     }
 
     window.setTimeout(() => {
       void refreshMacros();
     }, 0);
-  }, [macroRefreshToken, refreshMacros, settingsOpen]);
+  }, [activeRightPanel, macroRefreshToken, refreshMacros]);
 
   useEffect(() => {
-    if (!settingsOpen) {
+    if (activeRightPanel !== "artifacts") {
       return;
     }
 
     window.setTimeout(() => {
       void refreshArtifacts();
     }, 0);
-  }, [artifactRefreshToken, refreshArtifacts, settingsOpen]);
+  }, [activeRightPanel, artifactRefreshToken, refreshArtifacts]);
 
   const handleExport = useCallback(() => {
-    const snapshot = exportActiveWorkspace();
-    const url = URL.createObjectURL(
-      new Blob([JSON.stringify(snapshot, null, 2)], {
-        type: "application/json",
-      }),
-    );
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `nexus-ai-ops-${Date.now()}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-    setNotice("Workspace snapshot exported");
+    const downloadSnapshot = (snapshot: WorkspaceSnapshot) => {
+      const url = URL.createObjectURL(
+        new Blob([JSON.stringify(snapshot, null, 2)], {
+          type: "application/json",
+        }),
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `nexus-ai-ops-${Date.now()}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    };
+
+    void localSyncQueueAdapter
+      .getOperations()
+      .then((operations) => {
+        downloadSnapshot(
+          exportActiveWorkspace({
+            notebookRecovery: createNotebookRecoveryMetadata(operations),
+          }),
+        );
+        setNotice("Workspace snapshot exported");
+      })
+      .catch((error) => {
+        console.error("[Workspace Export Sync Metadata Error]:", error);
+        downloadSnapshot(exportActiveWorkspace());
+        setNotice("Workspace snapshot exported");
+      });
   }, [exportActiveWorkspace]);
 
   const handleImport = useCallback(async (file?: File) => {
@@ -853,7 +1188,9 @@ export function NexusOps() {
     }
 
     try {
-      const result = parseWorkspaceSnapshot(await file.text());
+      const text = await file.text();
+      const result = parseWorkspaceSnapshot(text);
+      const snapshot = JSON.parse(text) as Partial<WorkspaceSnapshot>;
 
       if (!result.ok) {
         throw new Error(result.error);
@@ -861,7 +1198,14 @@ export function NexusOps() {
 
       importWorkspace({
         schemaVersion: 1,
+        deletedNotebooks: Array.isArray(snapshot.deletedNotebooks)
+          ? snapshot.deletedNotebooks
+          : undefined,
         exportedAt: new Date().toISOString(),
+        notebookDrafts: Array.isArray(snapshot.notebookDrafts)
+          ? snapshot.notebookDrafts
+          : undefined,
+        notebooks: Array.isArray(snapshot.notebooks) ? snapshot.notebooks : undefined,
         workspace: result.workspace,
       });
       setNotice("Workspace snapshot imported");
@@ -916,16 +1260,32 @@ export function NexusOps() {
     }, 900);
   }, [saveArtifactToCloud]);
 
+  const artifactRequestUserId = authVault.user?.id ?? "local-owner";
   const handleCopyArtifact = useCallback((artifact: ArtifactVaultRecord) => {
     void (async () => {
       try {
-        await navigator.clipboard.writeText(artifact.contentUrl);
+        const response = await nexusApiClient.get<ArtifactGetResponse>(
+          `/api/v1/artifacts/${encodeURIComponent(artifact.id)}?workspaceId=${encodeURIComponent(artifact.workspaceId)}`,
+          {
+            userId: artifactRequestUserId,
+            workspaceId: artifact.workspaceId,
+          },
+        );
+        const payload =
+          response.artifact.contentText ??
+          response.artifact.contentUrl ??
+          artifact.previewText ??
+          artifact.contentUrl ??
+          artifact.contentHash ??
+          "";
+
+        await navigator.clipboard.writeText(payload);
         setNotice("Artifact payload copied");
       } catch {
         setNotice("Clipboard unavailable for artifact payload");
       }
     })();
-  }, []);
+  }, [artifactRequestUserId]);
 
   const handleSend = useCallback(async (agentId: string, content: string) => {
     const trimmed = content.trim();
@@ -939,16 +1299,18 @@ export function NexusOps() {
       state.workspaces.find((candidate) => candidate.id === state.activeWorkspaceId) ??
       state.workspaces[0];
     const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
-    const safeKey = state.authVault.globalApiKey
-      ? state.authVault.globalApiKey.replace(/[^\x20-\x7E]/g, "").trim()
-      : "";
-    const safeBaseUrl =
-      state.authVault.globalBaseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
-      DEFAULT_BASE_URL;
     const model =
       agent?.model?.trim() ||
       workspace?.settings.model?.trim() ||
       "gpt-4o-mini";
+    const runtimeCredential = resolveRuntimeCredentialForModel(
+      state.authVault,
+      model,
+      agent?.provider ?? workspace?.settings.provider,
+    );
+    const safeKey = runtimeCredential.apiKey;
+    const safeBaseUrl = runtimeCredential.baseUrl;
+    const userId = state.authVault.user?.id;
 
     if (!agent || agent.status === "streaming" || agent.status === "thinking") {
       return;
@@ -967,15 +1329,55 @@ export function NexusOps() {
       createdAt: new Date().toISOString(),
       streaming: true,
     };
+
+    let taskResponse: AgentTaskCreateResponse;
+
+    try {
+      taskResponse = await nexusApiClient.post<
+        AgentTaskCreateResponse,
+        AgentTaskCreateRequest
+      >(
+        `/api/v1/agents/${agentId}/tasks`,
+        {
+          inputMessageId: userMessage.id,
+          metadata: {
+            messageCount: agent.messages.length + 1,
+          },
+          model,
+          outputMessageId: assistantMessage.id,
+          provider: runtimeCredential.providerId,
+          taskType: "chat",
+          workspaceId: workspace.id,
+        },
+        {
+          idempotencyKey: `task_${userMessage.id}`,
+          userId,
+          workspaceId: workspace.id,
+        },
+      );
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "Unable to create agent task.";
+
+      setNotice(`${agent.callsign} task rejected: ${detail}`);
+      useNexusStore.getState().setAgentStatus(agentId, "error");
+      throw error instanceof Error ? error : new Error(detail);
+    }
+
     const request: AgentStreamRequest = {
-      globalApiKey: safeKey,
       model,
+      modelSettings: agent.modelSettings ?? {},
+      reasoningEffort: agent.modelSettings?.reasoningEffort,
+      outputMessageId: assistantMessage.id,
+      sessionId: taskResponse.session.id,
+      taskId: taskResponse.task.id,
+      workspaceId: workspace.id,
       agent: {
         identity: agent.identity,
         callsign: agent.callsign,
         title: agent.title,
         mission: agent.mission,
-        provider: agent.provider,
+        executionPrompt: agent.executionPrompt,
+        provider: runtimeCredential.providerId,
         model,
         memory: agent.memory,
         contextNotes: agent.contextNotes,
@@ -995,8 +1397,8 @@ export function NexusOps() {
     state.setAgentStatus(agentId, "thinking");
     setNotice(
       safeKey
-        ? `${agent.callsign} live stream opened`
-        : `${agent.callsign} mock stream opened`,
+        ? `${agent.callsign} live stream opened via ${runtimeCredential.providerLabel}`
+        : `${agent.callsign} mock stream opened; ${runtimeCredential.providerLabel} key missing`,
     );
     state.setStreamMode(safeKey ? "live" : "mock");
 
@@ -1005,20 +1407,30 @@ export function NexusOps() {
     let streamFailed = false;
     let streamInterrupted = false;
     const controller = new AbortController();
-    abortControllersRef.current.set(agentId, controller);
+    abortControllersRef.current.set(agentId, {
+      controller,
+      taskId: taskResponse.task.id,
+      workspaceId: workspace.id,
+    });
 
     try {
       const headers = new Headers({
         "Content-Type": "application/json",
+        "X-Workspace-Id": workspace.id,
       });
+
+      if (userId) {
+        headers.set("X-User-Id", userId);
+      }
 
       if (safeKey) {
         headers.set("Authorization", `Bearer ${safeKey}`);
       }
-      headers.set("x-openai-base-url", safeBaseUrl);
+      headers.set("x-nexus-base-url", safeBaseUrl);
+      headers.set("x-nexus-provider-id", runtimeCredential.providerId);
 
       const response = await fetchWithBackoff(
-        "/api/agent-stream",
+        `/api/v1/agents/${agentId}/stream`,
         {
           method: "POST",
           headers,
@@ -1042,20 +1454,40 @@ export function NexusOps() {
 
       await readStreamEvents(response, (event) => {
         if (event.type === "token") {
+          const delta = event.delta ?? event.token ?? "";
+
+          if (!delta) {
+            return;
+          }
+
           if (!firstTokenReceived) {
             firstTokenReceived = true;
             useNexusStore.getState().setAgentStatus(agentId, "streaming");
           }
 
-          received += event.token;
+          received += delta;
           useNexusStore
             .getState()
-            .appendToMessage(agentId, assistantMessage.id, event.token);
+            .appendToMessage(agentId, assistantMessage.id, delta);
+        }
+
+        if (event.type === "reasoning") {
+          const delta = event.delta ?? "";
+
+          if (!delta) {
+            return;
+          }
+
+          useNexusStore
+            .getState()
+            .appendReasoningToMessage(agentId, assistantMessage.id, delta);
         }
 
         if (event.type === "meta") {
-          setNotice(event.detail);
-          useNexusStore.getState().setStreamMode(event.mode === "openai" ? "live" : "mock");
+          setNotice(event.detail ?? `${agent.callsign} task ${event.taskId ?? taskResponse.task.id} streaming`);
+          if (event.mode) {
+            useNexusStore.getState().setStreamMode(event.mode === "openai" ? "live" : "mock");
+          }
         }
       });
     } catch (error) {
@@ -1097,6 +1529,56 @@ export function NexusOps() {
     }
   }, []);
 
+  const handleRunWorkflowRuntimeLite = useCallback(async () => {
+    setNotice("Workflow Runtime Lite started");
+
+    try {
+      const run = await runWorkflowRuntimeLiteFlow();
+
+      if (!run) {
+        setNotice("Workflow Runtime Lite could not start");
+        return;
+      }
+
+      if (run.status === "success") {
+        setNotice(`Workflow Runtime Lite completed: ${run.runId}`);
+        return;
+      }
+
+      setNotice(run.error ?? "Workflow Runtime Lite failed");
+    } catch (error) {
+      setNotice(
+        error instanceof Error
+          ? `Workflow Runtime Lite failed: ${error.message}`
+          : "Workflow Runtime Lite failed",
+      );
+    }
+  }, [runWorkflowRuntimeLiteFlow]);
+
+  const handleCopyWorkflowOutput = useCallback(async (nodeId: string) => {
+    const runtimeNode = useNexusStore
+      .getState()
+      .workspaces.find(
+        (candidate) =>
+          candidate.id === useNexusStore.getState().activeWorkspaceId,
+      )
+      ?.graph.runtimeLite?.nodes.find((node) => node.id === nodeId);
+    const packet = runtimeNode?.outputSnapshot;
+    const text = packet?.rawText || packet?.displayText || "";
+
+    if (!text) {
+      setNotice("Output node is still empty");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setNotice("Output copied");
+    } catch {
+      setNotice("Clipboard unavailable for output");
+    }
+  }, []);
+
   const handlePredictiveIntel = useCallback(async (agentId: string) => {
     const state = useNexusStore.getState();
     const workspace =
@@ -1112,12 +1594,13 @@ export function NexusOps() {
       agent,
       lastAssistantMessage,
     });
-    const safeKey = state.authVault.globalApiKey
-      ? state.authVault.globalApiKey.replace(/[^\x20-\x7E]/g, "").trim()
-      : "";
-    const safeBaseUrl =
-      state.authVault.globalBaseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
-      DEFAULT_BASE_URL;
+    const runtimeCredential = resolveRuntimeCredentialForModel(
+      state.authVault,
+      agent?.model ?? workspace?.settings.model ?? "gpt-4o-mini",
+      agent?.provider ?? workspace?.settings.provider,
+    );
+    const safeKey = runtimeCredential.apiKey;
+    const safeBaseUrl = runtimeCredential.baseUrl;
 
     if (!agent || !lastAssistantMessage) {
       return fallback;
@@ -1132,14 +1615,15 @@ export function NexusOps() {
         headers.set("Authorization", `Bearer ${safeKey}`);
       }
 
-      headers.set("x-openai-base-url", safeBaseUrl);
+      headers.set("x-nexus-base-url", safeBaseUrl);
+      headers.set("x-nexus-provider-id", runtimeCredential.providerId);
 
       const response = await fetch("/api/predictive-intel", {
         method: "POST",
         headers,
         body: JSON.stringify({
-          apiKey: safeKey || undefined,
           lastMessage: lastAssistantMessage,
+          model: agent.model,
           agent: {
             callsign: agent.callsign,
             capabilityType: getCapabilityType(agent),
@@ -1168,7 +1652,22 @@ export function NexusOps() {
   }, []);
 
   const handleStop = useCallback((agentId: string) => {
-    abortControllersRef.current.get(agentId)?.abort();
+    const active = abortControllersRef.current.get(agentId);
+
+    active?.controller.abort();
+    if (active?.taskId && active.workspaceId) {
+      void nexusApiClient.post(
+        `/api/v1/agents/${agentId}/tasks/${active.taskId}/cancel`,
+        {
+          workspaceId: active.workspaceId,
+        },
+        {
+          idempotencyKey: `cancel_${active.taskId}`,
+          userId: useNexusStore.getState().authVault.user?.id,
+          workspaceId: active.workspaceId,
+        },
+      ).catch(() => undefined);
+    }
     setNotice("Stream stop requested");
   }, []);
 
@@ -1483,12 +1982,15 @@ export function NexusOps() {
           renameWorkspace(name);
           setNotice("Workspace renamed");
         }}
+        onRecoverWorkspace={recoverSelectedWorkspace}
         onSwitchWorkspace={(workspaceId) => {
           const target = workspaces.find((candidate) => candidate.id === workspaceId);
           switchWorkspace(workspaceId);
           setNotice(`${target?.name ?? "Workspace"} active`);
         }}
-        onToggleSettings={() => setSettingsOpen((current) => !current)}
+        onToggleSettings={() =>
+          setActiveRightPanel((current) => (current ? null : "providers"))
+        }
         onSave={() => {
           saveWorkspaceSnapshot();
           setNotice("Workspace snapshot saved");
@@ -1499,9 +2001,13 @@ export function NexusOps() {
           focusAgent(id);
           setNotice("Agent spawned");
         }}
-        settingsOpen={settingsOpen}
+        onSyncRetry={retryFailedSyncOperation}
+        settingsOpen={Boolean(activeRightPanel)}
         streamMode={effectiveStreamMode}
+        syncStatus={syncQueueStatus}
         viewMode={viewMode}
+        workspaceRecoveryItems={workspaceRecoveryItems}
+        workspaceRecoveryLoading={workspaceRecoveryLoading}
         onSetViewMode={setViewMode}
         workspaceName={workspaceName}
         workspaces={workspaces}
@@ -1532,6 +2038,9 @@ export function NexusOps() {
                 <LeftDock
                   activeAgentId={activeAgentId}
                   agents={agents}
+                  agentTemplateProfiles={
+                    workspace?.settings.agentTemplateProfiles ?? {}
+                  }
                   onFocus={focusAgent}
                   onRestore={restoreAgent}
                   onSelect={selectAgent}
@@ -1540,6 +2049,9 @@ export function NexusOps() {
                     focusAgent(id);
                     setNotice(`${template.callsign} spawned`);
                   }}
+                  onUpdateAgentModel={updateAgentModel}
+                  onUpdateAgentModelSettings={updateAgentModelSettings}
+                  onUpdateAgentTemplateProfile={updateAgentTemplateProfile}
                   selectedAgentId={selectedAgent?.id}
                 />
               </motion.div>
@@ -1579,6 +2091,10 @@ export function NexusOps() {
                     onUpdateSandboxCode={updateSandboxCode}
                     onUpdateSandboxUrl={updateSandboxUrl}
                     onUpdateLayout={updateLayout}
+                    historicalPage={
+                      historicalMessages[`${activeWorkspaceId}::${agent.id}`]
+                    }
+                    onLoadHistory={fetchHistoricalMessages}
                     selected={agent.id === selectedAgent?.id}
                     workspaceId={activeWorkspaceId}
                   />
@@ -1591,7 +2107,13 @@ export function NexusOps() {
             <NexusGraph
               agents={agents}
               graph={workspace?.graph ?? EMPTY_GRAPH}
+              onAddWorkflowNode={(type) => {
+                addWorkflowRuntimeNode(type);
+                setNotice(`${type} node added`);
+              }}
               onConnectAgents={connectGraphAgents}
+              onConnectWorkflowNodes={connectWorkflowRuntimeNodes}
+              onCopyWorkflowOutput={handleCopyWorkflowOutput}
               onFocusAgent={selectAgent}
               onOpenAgent={(agentId) => {
                 setViewMode("panels");
@@ -1599,7 +2121,14 @@ export function NexusOps() {
               }}
               onRemoveAgent={removeAgent}
               onRemoveEdges={removeGraphEdges}
+              onRemoveWorkflowEdges={removeWorkflowRuntimeEdges}
+              onRunWorkflow={() => {
+                void handleRunWorkflowRuntimeLite();
+              }}
+              onUpdateWorkflowNodeData={updateWorkflowRuntimeNodeData}
+              onUpdateWorkflowNodePosition={updateWorkflowRuntimeNodePosition}
               onUpdateNodePosition={updateGraphNodePosition}
+              workflowRunning={workflowRunning}
             />
           )}
 
@@ -1610,41 +2139,14 @@ export function NexusOps() {
           </AnimatePresence>
         </section>
 
-        <motion.aside
-          animate={{ width: rightIntelOpen ? 306 : 44 }}
-          className="relative z-[80] hidden h-full min-h-0 shrink-0 overflow-hidden xl:block"
-          transition={{ duration: 0.2, ease: "easeOut" }}
-        >
-          <SidebarToggleButton
-            collapsed={!rightIntelOpen}
-            label={rightIntelOpen ? "Collapse right sidebar" : "Expand right sidebar"}
-            onClick={() => setRightIntelOpen((current) => !current)}
-            side="right"
-          />
-          <AnimatePresence initial={false} mode="wait">
-            {rightIntelOpen ? (
-              <motion.div
-                key="right-expanded"
-                animate={{ opacity: 1, x: 0 }}
-                className="h-full min-h-0"
-                exit={{ opacity: 0, x: 12 }}
-                initial={{ opacity: 0, x: 12 }}
-                transition={{ duration: 0.16 }}
-              >
-                <RightIntel
-                  activeAgent={activeAgent}
-                  agent={selectedAgent}
-                  onRunTool={runTool}
-                  onUpdateMemory={updateMemoryBlock}
-                  onUpdateMission={updateAgentMission}
-                />
-              </motion.div>
-            ) : (
-              <CollapsedSidebarRail key="right-collapsed" label="Intel" side="right" />
-            )}
-          </AnimatePresence>
-        </motion.aside>
       </section>
+
+      <RightFloatingDock
+        activePanel={activeRightPanel}
+        onTogglePanel={(panel) =>
+          setActiveRightPanel((current) => (current === panel ? null : panel))
+        }
+      />
 
       <CommandPalette
         commands={commands}
@@ -1683,11 +2185,15 @@ export function NexusOps() {
       </AnimatePresence>
 
       <AgentSettingsSidebar
+        activeAgent={activeAgent}
+        activePanel={activeRightPanel ?? "providers"}
         agents={agents}
+        agent={selectedAgent}
         authVault={authVault}
         artifactError={artifactError}
         artifacts={artifactVault}
         artifactsLoading={artifactsLoading}
+        workspaceId={workspace?.id ?? activeWorkspaceId}
         macroError={macroError}
         macros={macros}
         macrosLoading={macrosLoading}
@@ -1699,7 +2205,7 @@ export function NexusOps() {
           focusAgent(id);
           setNotice(`${type.toUpperCase()} agent spawned`);
         }}
-        onClose={() => setSettingsOpen(false)}
+        onClose={() => setActiveRightPanel(null)}
         onCopyArtifact={handleCopyArtifact}
         onCreateNotebook={() => {
           const id = createNotebook();
@@ -1711,17 +2217,30 @@ export function NexusOps() {
         onSpawnMacro={handleSpawnMacro}
         onToggleNotebook={toggleNotebookOpen}
         onDeleteApiKey={deleteApiKey}
+        onDeleteProviderCredential={deleteProviderCredential}
         onLockVault={lockVault}
+        onLockProviderCredential={lockProviderCredential}
         onLogout={logout}
+        onRunTool={runTool}
+        onSelectAgent={selectAgent}
         onSetGlobalApiKey={setGlobalApiKey}
         onSetGlobalBaseUrl={setGlobalBaseUrl}
+        onSetProviderApiKey={setProviderApiKey}
+        onSetProviderBaseUrl={setProviderBaseUrl}
+        onSetProviderVerificationStatus={setProviderVerificationStatus}
         onUnlockVault={unlockVault}
+        onUnlockProviderCredential={unlockProviderCredential}
+        onUpdateMemory={updateMemoryBlock}
+        onUpdateAgentCallsign={updateAgentCallsign}
+        onUpdateAgentProfile={updateAgentProfile}
+        onSetAgentProfileLocked={setAgentProfileLocked}
+        onUpdateMission={updateAgentMission}
         onUpdateThemeConfig={updateThemeConfig}
         onUpdateBranchingSettings={updateBranchingSettings}
         activeTheme={activeTheme}
         onSetTheme={handleThemeChange}
         onUpdateAgentModel={updateAgentModel}
-        open={settingsOpen}
+        open={Boolean(activeRightPanel)}
         streamMode={effectiveStreamMode}
         themeConfig={themeConfig}
       />
@@ -1792,6 +2311,108 @@ function CollapsedSidebarRail({
   );
 }
 
+const rightDockPanels: Array<{
+  id: RightDockPanelId;
+  label: string;
+  detail: string;
+  icon: ReactNode;
+}> = [
+  {
+    id: "intel",
+    label: "Intel",
+    detail: "Selected agent mission, memory, tools, and telemetry",
+    icon: <PanelRight className="h-4 w-4" />,
+  },
+  {
+    id: "providers",
+    label: "Providers",
+    detail: "Provider credentials, base URLs, and live verification",
+    icon: <Lock className="h-4 w-4" />,
+  },
+  {
+    id: "models",
+    label: "Models",
+    detail: "Per-agent model routing and capability recognition",
+    icon: <BrainCircuit className="h-4 w-4" />,
+  },
+  {
+    id: "theme",
+    label: "Theme",
+    detail: "LEGO theme engine controls",
+    icon: <Settings className="h-4 w-4" />,
+  },
+  {
+    id: "memory",
+    label: "Memory",
+    detail: "Branching defaults and workspace datapads",
+    icon: <Database className="h-4 w-4" />,
+  },
+  {
+    id: "artifacts",
+    label: "Artifacts",
+    detail: "Artifact vault references",
+    icon: <Archive className="h-4 w-4" />,
+  },
+  {
+    id: "workflows",
+    label: "Workflows",
+    detail: "Macro blueprint vault",
+    icon: <Workflow className="h-4 w-4" />,
+  },
+  {
+    id: "trace",
+    label: "Trace",
+    detail: "Sync status and observability events",
+    icon: <RadioTower className="h-4 w-4" />,
+  },
+  {
+    id: "account",
+    label: "Account",
+    detail: "Operator identity and logout",
+    icon: <Home className="h-4 w-4" />,
+  },
+];
+
+function getRightDockPanelMeta(panel: RightDockPanelId) {
+  return rightDockPanels.find((candidate) => candidate.id === panel) ?? rightDockPanels[1];
+}
+
+function RightFloatingDock({
+  activePanel,
+  onTogglePanel,
+}: {
+  activePanel: RightDockPanelId | null;
+  onTogglePanel: (panel: RightDockPanelId) => void;
+}) {
+  return (
+    <nav
+      aria-label="Right workspace tools"
+      className="pointer-events-none fixed right-3 top-1/2 z-[130] hidden -translate-y-1/2 xl:block"
+    >
+      <div className="pointer-events-auto grid gap-2 border border-cyan-300/25 bg-slate-950/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.45),0_0_32px_rgba(34,211,238,0.14)] backdrop-blur-xl">
+        {rightDockPanels.map((panel) => (
+          <button
+            key={panel.id}
+            aria-label={panel.label}
+            aria-pressed={activePanel === panel.id}
+            className={cx(
+              "grid h-9 w-9 place-items-center border text-slate-400 transition",
+              activePanel === panel.id
+                ? "border-cyan-300/55 bg-cyan-300/15 text-cyan-100"
+                : "border-white/10 bg-black/25 hover:border-cyan-300/35 hover:text-cyan-100",
+            )}
+            onClick={() => onTogglePanel(panel.id)}
+            title={panel.label}
+            type="button"
+          >
+            {panel.icon}
+          </button>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 function TopBar({
   activeWorkspaceId,
   workspaceName,
@@ -1805,11 +2426,16 @@ function TopBar({
   onSave,
   onSaveMacro,
   onRenameWorkspace,
+  onRecoverWorkspace,
   onSwitchWorkspace,
+  onSyncRetry,
   onToggleSettings,
   settingsOpen,
   streamMode,
+  syncStatus,
   viewMode,
+  workspaceRecoveryItems,
+  workspaceRecoveryLoading,
   onSetViewMode,
 }: {
   activeWorkspaceId: string;
@@ -1824,11 +2450,16 @@ function TopBar({
   onSave: () => void;
   onSaveMacro: () => void;
   onRenameWorkspace: (name: string) => void;
+  onRecoverWorkspace: (workspaceId: string) => void;
   onSwitchWorkspace: (workspaceId: string) => void;
+  onSyncRetry: () => void;
   onToggleSettings: () => void;
   settingsOpen: boolean;
   streamMode: StreamMode;
+  syncStatus: QueueStatusProjection;
   viewMode: WorkspaceViewMode;
+  workspaceRecoveryItems: WorkspaceRecoveryListItem[];
+  workspaceRecoveryLoading: boolean;
   onSetViewMode: (mode: WorkspaceViewMode) => void;
 }) {
   const [renaming, setRenaming] = useState(false);
@@ -2025,6 +2656,45 @@ function TopBar({
                 </button>
               </div>
 
+              {(workspaceRecoveryItems.length || workspaceRecoveryLoading) ? (
+                <div className="grid gap-1 border-b border-white/10 p-2">
+                  <div className="px-1 font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500">
+                    Cloud Recovery
+                  </div>
+                  {workspaceRecoveryLoading ? (
+                    <div className="border border-white/10 bg-white/[0.025] px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                      Refreshing
+                    </div>
+                  ) : null}
+                  {workspaceRecoveryItems.map((item) => (
+                    <button
+                      key={item.workspaceId}
+                      className={cx(
+                        "flex w-full items-center gap-3 border px-3 py-2 text-left transition",
+                        item.isLocalChecksumMatch
+                          ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+                          : "border-white/10 bg-white/[0.025] text-slate-300 hover:border-cyan-300/30 hover:bg-cyan-300/10",
+                      )}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onRecoverWorkspace(item.workspaceId);
+                      }}
+                      type="button"
+                    >
+                      <PackageCheck className="h-3.5 w-3.5 shrink-0" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-mono text-xs uppercase tracking-[0.14em]">
+                          {item.workspaceName}
+                        </span>
+                        <span className="mt-0.5 block truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                          {item.isLocalChecksumMatch ? "Current checksum" : item.updatedAt}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
               <div className="grid grid-cols-2 gap-1 p-2">
                 <TopMenuAction icon={<Command className="h-3.5 w-3.5" />} label="Palette" onClick={() => {
                   setMenuOpen(false);
@@ -2066,7 +2736,45 @@ function TopBar({
           )}
         </AnimatePresence>
       </div>
+      <div className="ml-auto flex min-w-0 items-center gap-2">
+        <SyncBadge status={syncStatus} onRetry={onSyncRetry} />
+      </div>
     </header>
+  );
+}
+
+function SyncBadge({
+  onRetry,
+  status,
+}: {
+  onRetry: () => void;
+  status: QueueStatusProjection;
+}) {
+  const hasIssue = status.failed > 0 || status.conflicted > 0;
+  const active = status.pending > 0 || status.syncing > 0;
+  const label = hasIssue
+    ? `${status.failed + status.conflicted} sync issue`
+    : active
+      ? `${status.pending + status.syncing} syncing`
+      : "Synced";
+
+  return (
+    <button
+      aria-label={hasIssue ? "Retry failed sync operation" : "Sync status"}
+      className={cx(
+        "inline-flex h-8 items-center gap-2 border px-2 font-mono text-[9px] uppercase tracking-[0.14em] transition",
+        hasIssue
+          ? "border-rose-300/45 bg-rose-300/12 text-rose-100 hover:bg-rose-300/20"
+          : active
+            ? "border-amber-300/35 bg-amber-300/10 text-amber-100"
+            : "border-emerald-300/25 bg-emerald-300/[0.06] text-emerald-100",
+      )}
+      onClick={hasIssue ? onRetry : undefined}
+      type="button"
+    >
+      {hasIssue ? <RefreshCcw className="h-3.5 w-3.5" /> : <RadioTower className="h-3.5 w-3.5" />}
+      <span className="hidden sm:inline">{label}</span>
+    </button>
   );
 }
 
@@ -2203,14 +2911,279 @@ function MacroComposerModal({
   );
 }
 
+function ProviderVaultPanel({
+  authVault,
+  onDeleteProviderCredential,
+  onLockProviderCredential,
+  onSetProviderApiKey,
+  onSetProviderBaseUrl,
+  onSetProviderVerificationStatus,
+  onUnlockProviderCredential,
+}: {
+  authVault: IAuthVault;
+  onDeleteProviderCredential: (providerId: string) => void;
+  onLockProviderCredential: (providerId: string) => void;
+  onSetProviderApiKey: (providerId: string, key: string) => void;
+  onSetProviderBaseUrl: (providerId: string, baseUrl: string) => void;
+  onSetProviderVerificationStatus: (
+    providerId: string,
+    status: "untested" | "verified" | "failed",
+    error?: string,
+  ) => void;
+  onUnlockProviderCredential: (providerId: string) => void;
+}) {
+  const providerId = "deepseek";
+  const provider = PROVIDER_REGISTRY[providerId];
+  const credential = authVault.providerCredentials?.[providerId];
+  const [keyDraft, setKeyDraft] = useState("");
+  const [baseUrlDraft, setBaseUrlDraft] = useState(
+    credential?.baseUrl ?? provider.defaultBaseUrl ?? "",
+  );
+  const [verifying, setVerifying] = useState(false);
+  const deepseekModels = getModelOptionsForCapability("chat").filter(
+    (model) => model.provider === providerId,
+  );
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setBaseUrlDraft(credential?.baseUrl ?? provider.defaultBaseUrl ?? "");
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [credential?.baseUrl, provider.defaultBaseUrl]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      if (!credential?.apiKey || credential.isLocked) {
+        setKeyDraft("");
+        return;
+      }
+
+      setKeyDraft(credential.apiKey);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [credential?.apiKey, credential?.isLocked]);
+
+  const verifyProvider = async () => {
+    const apiKey = credential?.apiKey?.replace(/[^\x20-\x7E]/g, "").trim() ?? "";
+
+    if (!apiKey || verifying) {
+      return;
+    }
+
+    setVerifying(true);
+
+    try {
+      const response = await fetch("/api/v1/providers/verify", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "x-nexus-base-url": baseUrlDraft,
+        },
+        body: JSON.stringify({
+          baseUrl: baseUrlDraft,
+          model: "deepseek-v4-pro",
+          providerId,
+        }),
+      });
+      const data = (await response.json()) as {
+        error?: string;
+        verified?: boolean;
+      };
+
+      if (!response.ok || !data.verified) {
+        onSetProviderVerificationStatus(
+          providerId,
+          "failed",
+          data.error ?? "Live verification failed.",
+        );
+        return;
+      }
+
+      onSetProviderVerificationStatus(providerId, "verified");
+    } catch (error) {
+      onSetProviderVerificationStatus(
+        providerId,
+        "failed",
+        error instanceof Error ? error.message : "Live verification failed.",
+      );
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  return (
+    <section className="mb-4 border border-cyan-300/25 bg-cyan-300/[0.045] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
+            Providers / Model Vault
+          </div>
+          <div className="mt-1 text-xs text-slate-500">
+            DeepSeek is routed through the provider registry.
+          </div>
+        </div>
+        <span
+          className={cx(
+            "border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em]",
+            credential?.verificationStatus === "verified"
+              ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+              : credential?.verificationStatus === "failed"
+                ? "border-rose-300/35 bg-rose-300/10 text-rose-100"
+                : "border-amber-300/35 bg-amber-300/10 text-amber-100",
+          )}
+        >
+          {credential?.verificationStatus ?? "untested"}
+        </span>
+      </div>
+
+      <div className="grid gap-3">
+        <label className="grid gap-2">
+          <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
+            DeepSeek Base URL
+          </span>
+          <input
+            className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-xs text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
+            onBlur={() => onSetProviderBaseUrl(providerId, baseUrlDraft)}
+            onChange={(event) => setBaseUrlDraft(event.target.value)}
+            placeholder={provider.defaultBaseUrl}
+            spellCheck={false}
+            type="url"
+            value={baseUrlDraft}
+          />
+        </label>
+
+        {credential?.apiKey && credential.isLocked ? (
+          <div className="border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-slate-300">
+            ••••••••••••••••
+          </div>
+        ) : (
+          <input
+            autoComplete="new-password"
+            className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
+            onChange={(event) => setKeyDraft(event.target.value)}
+            placeholder="DeepSeek API key"
+            type="password"
+            value={keyDraft}
+          />
+        )}
+
+        <div className="grid grid-cols-4 gap-2">
+          <button
+            className="border border-emerald-300/35 bg-emerald-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-emerald-100 transition hover:bg-emerald-300/20 disabled:opacity-40"
+            disabled={!keyDraft.trim()}
+            onClick={() => {
+              onSetProviderBaseUrl(providerId, baseUrlDraft);
+              onSetProviderApiKey(providerId, keyDraft);
+              onLockProviderCredential(providerId);
+              setKeyDraft("");
+            }}
+            type="button"
+          >
+            Save
+          </button>
+          <button
+            className="border border-cyan-300/35 bg-cyan-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+            disabled={!credential?.apiKey}
+            onClick={() =>
+              credential?.isLocked
+                ? onUnlockProviderCredential(providerId)
+                : onLockProviderCredential(providerId)
+            }
+            type="button"
+          >
+            {credential?.isLocked ? "Unlock" : "Lock"}
+          </button>
+          <button
+            className="border border-cyan-300/35 bg-cyan-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+            disabled={!credential?.apiKey || verifying}
+            onClick={() => void verifyProvider()}
+            type="button"
+          >
+            {verifying ? "Checking" : "Verify"}
+          </button>
+          <button
+            className="border border-rose-300/35 bg-rose-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-rose-100 transition hover:bg-rose-300/20 disabled:opacity-40"
+            disabled={!credential?.apiKey}
+            onClick={() => onDeleteProviderCredential(providerId)}
+            type="button"
+          >
+            Delete
+          </button>
+        </div>
+
+        {credential?.verificationError ? (
+          <div className="border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-[11px] text-rose-100">
+            {credential.verificationError}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="mt-4 grid gap-2">
+        {deepseekModels.map((model) => {
+          const capability = getModelCapabilityProfile(model.id);
+          const thinking = capability?.thinking;
+          const effortMap = thinking?.providerReasoningEffortMap;
+
+          return (
+            <article key={model.id} className="border border-white/10 bg-black/25 p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-white">
+                    {model.label}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">{model.id}</div>
+                </div>
+                <span className="border border-cyan-300/25 bg-cyan-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100">
+                  {model.tier ?? "standard"}
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+                  Provider: {provider.label}
+                </span>
+                <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+                  Thinking: {thinking?.supported ? "Supported" : "No"}
+                </span>
+                <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+                  Default: {thinking?.defaultEnabled ? "On" : "Off"}
+                </span>
+                <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+                  Live: {credential?.verificationStatus === "verified" ? "Verified" : "Untested"}
+                </span>
+              </div>
+              {thinking?.supported ? (
+                <div className="mt-3 border border-cyan-300/20 bg-cyan-300/[0.04] p-2 text-[11px] leading-5 text-slate-400">
+                  <div>
+                    Effort: {thinking.supportedReasoningEfforts.join(" / ")}; xhigh maps
+                    to {effortMap?.xhigh ?? "xhigh"}
+                  </div>
+                  <div>Disabled params: {thinking.disabledRequestParams.join(", ")}</div>
+                  <div>Reasoning field: {thinking.responseReasoningField ?? "none"}</div>
+                </div>
+              ) : null}
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function AgentSettingsSidebar({
   open,
+  activeAgent,
+  activePanel,
   activeTheme,
+  agent,
   agents,
   authVault,
   artifactError,
   artifacts,
   artifactsLoading,
+  workspaceId,
   macroError,
   macros,
   macrosLoading,
@@ -2224,27 +3197,44 @@ function AgentSettingsSidebar({
   onCopyArtifact,
   onCreateNotebook,
   onDeleteApiKey,
+  onDeleteProviderCredential,
   onLockVault,
+  onLockProviderCredential,
   onLogout,
   onRefreshArtifacts,
   onRefreshMacros,
+  onRunTool,
+  onSelectAgent,
   onSetGlobalApiKey,
   onSetGlobalBaseUrl,
+  onSetProviderApiKey,
+  onSetProviderBaseUrl,
+  onSetProviderVerificationStatus,
+  onSetAgentProfileLocked,
   onSpawnMacro,
   onToggleNotebook,
   onUnlockVault,
+  onUnlockProviderCredential,
   onUpdateBranchingSettings,
+  onUpdateMemory,
+  onUpdateAgentCallsign,
+  onUpdateAgentProfile,
+  onUpdateMission,
   onUpdateThemeConfig,
   onUpdateAgentModel,
   onSetTheme,
 }: {
   open: boolean;
+  activeAgent?: NexusAgent;
+  activePanel: RightDockPanelId;
   activeTheme: NexusTheme;
+  agent?: NexusAgent;
   agents: NexusAgent[];
   authVault: IAuthVault;
   artifactError?: string;
   artifacts: ArtifactVaultRecord[];
   artifactsLoading: boolean;
+  workspaceId: string;
   macroError?: string;
   macros: WorkflowTemplateRecord[];
   macrosLoading: boolean;
@@ -2258,16 +3248,33 @@ function AgentSettingsSidebar({
   onCopyArtifact: (artifact: ArtifactVaultRecord) => void;
   onCreateNotebook: () => string;
   onDeleteApiKey: () => void;
+  onDeleteProviderCredential: (providerId: string) => void;
   onLockVault: () => void;
+  onLockProviderCredential: (providerId: string) => void;
   onLogout: () => void;
   onRefreshArtifacts: () => void;
   onRefreshMacros: () => void;
+  onRunTool: (agentId: string, toolId: string) => Promise<void>;
+  onSelectAgent: (agentId: string) => void;
   onSetGlobalApiKey: (key: string) => void;
   onSetGlobalBaseUrl: (baseUrl: string) => void;
+  onSetProviderApiKey: (providerId: string, key: string) => void;
+  onSetProviderBaseUrl: (providerId: string, baseUrl: string) => void;
+  onSetProviderVerificationStatus: (
+    providerId: string,
+    status: "untested" | "verified" | "failed",
+    error?: string,
+  ) => void;
+  onSetAgentProfileLocked: (agentId: string, locked: boolean) => void;
   onSpawnMacro: (macro: WorkflowTemplateRecord) => void;
   onToggleNotebook: (id: string) => void;
   onUnlockVault: () => void;
+  onUnlockProviderCredential: (providerId: string) => void;
   onUpdateBranchingSettings: (settings: Partial<WorkspaceBranchingSettings>) => void;
+  onUpdateMemory: (agentId: string, memoryId: string, content: string) => void;
+  onUpdateAgentCallsign: (agentId: string, callsign: string) => void;
+  onUpdateAgentProfile: (agentId: string, profile: AgentProfileUpdate) => void;
+  onUpdateMission: (agentId: string, mission: string) => void;
   onUpdateThemeConfig: (config: Partial<WorkspaceThemeConfig>) => void;
   onUpdateAgentModel: (agentId: string, model: string) => void;
   onSetTheme: (theme: NexusTheme) => void;
@@ -2278,6 +3285,13 @@ function AgentSettingsSidebar({
   const [vaultBaseUrlDraft, setVaultBaseUrlDraft] = useState(
     authVault.globalBaseUrl ?? DEFAULT_BASE_URL,
   );
+  const [traceEvents, setTraceEvents] = useState<SystemEventRecord[]>([]);
+  const [traceEventsCursor, setTraceEventsCursor] = useState<string | null>(null);
+  const [traceEventsHasMore, setTraceEventsHasMore] = useState(false);
+  const [traceEventsLoading, setTraceEventsLoading] = useState(false);
+  const [traceEventsError, setTraceEventsError] = useState<string | undefined>();
+  const traceViewerUserId = authVault.user?.id ?? "local-owner";
+  const panelMeta = getRightDockPanelMeta(activePanel);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -2300,39 +3314,108 @@ function AgentSettingsSidebar({
     return () => window.clearTimeout(timeoutId);
   }, [authVault.globalBaseUrl]);
 
+  const loadTraceEvents = useCallback(async (mode: "next" | "reset" = "reset") => {
+    setTraceEventsLoading(true);
+    setTraceEventsError(undefined);
+
+    try {
+      const params = new URLSearchParams({
+        limit: "20",
+        workspaceId,
+      });
+
+      if (mode === "next" && traceEventsCursor) {
+        params.set("cursor", traceEventsCursor);
+      }
+
+      const response = await nexusApiClient.get<SystemEventListResponse>(
+        `/api/v1/observability/events?${params.toString()}`,
+        {
+          userId: traceViewerUserId,
+          workspaceId,
+        },
+      );
+
+      setTraceEvents((current) =>
+        mode === "next" ? [...current, ...response.events] : response.events,
+      );
+      setTraceEventsCursor(response.nextCursor ?? null);
+      setTraceEventsHasMore(response.hasMore);
+    } catch (error) {
+      setTraceEventsError(
+        error instanceof Error ? error.message : "Trace events unavailable.",
+      );
+    } finally {
+      setTraceEventsLoading(false);
+    }
+  }, [traceEventsCursor, traceViewerUserId, workspaceId]);
+
   return (
     <AnimatePresence>
       {open && (
         <motion.aside
           animate={{ opacity: 1, x: 0 }}
-          className="fixed bottom-3 right-3 top-[88px] z-[120] flex w-[min(390px,calc(100vw-24px))] flex-col overflow-hidden border border-cyan-300/25 bg-slate-950/88 shadow-[0_24px_90px_rgba(0,0,0,0.55),0_0_44px_rgba(34,211,238,0.14)] backdrop-blur-xl"
+	          className="fixed bottom-3 right-3 top-[88px] z-[120] flex w-[min(390px,calc(100vw-24px))] flex-col overflow-hidden border border-cyan-300/25 bg-slate-950/88 shadow-[0_24px_90px_rgba(0,0,0,0.55),0_0_44px_rgba(34,211,238,0.14)] backdrop-blur-xl xl:right-16"
           exit={{ opacity: 0, x: 36 }}
           initial={{ opacity: 0, x: 48 }}
           transition={{ duration: 0.22, ease: "easeOut" }}
         >
-          <header className="flex items-center justify-between border-b border-white/10 bg-cyan-300/[0.04] p-4">
-            <div>
-              <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-cyan-100">
-                Account / Vault Settings
-              </div>
-              <div className="mt-1 text-xs text-slate-500">Identity and global runtime key</div>
-            </div>
-            <IconButton label="Close settings" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </IconButton>
-          </header>
+	          <header className="flex items-center justify-between border-b border-white/10 bg-cyan-300/[0.04] p-4">
+	            <div>
+	              <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-cyan-100">
+	                {panelMeta.label}
+	              </div>
+	              <div className="mt-1 text-xs text-slate-500">{panelMeta.detail}</div>
+	            </div>
+	            <IconButton label="Close panel" onClick={onClose}>
+	              <X className="h-4 w-4" />
+	            </IconButton>
+	          </header>
 
           <div className="cyber-scroll min-h-0 flex-1 overflow-y-auto p-4">
-            <div
-              className={cx(
-                "mb-4 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em]",
-                streamModeTone(streamMode),
-              )}
-            >
-              STREAM: {streamMode}
-            </div>
+	            <div
+	              className={cx(
+	                "mb-4 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em]",
+	                streamModeTone(streamMode),
+	              )}
+	            >
+	              STREAM: {streamMode}
+	            </div>
 
-            <section className="mb-4 border border-white/10 bg-white/[0.025] p-2">
+	            {activePanel === "intel" ? (
+		              <RightIntel
+		                activeAgent={activeAgent}
+		                agent={agent}
+                    agents={agents}
+                    selectedAgentId={agent?.id}
+                    onSelectAgent={onSelectAgent}
+		                onRunTool={onRunTool}
+                    onSetAgentProfileLocked={onSetAgentProfileLocked}
+                    onUpdateAgentCallsign={onUpdateAgentCallsign}
+                    onUpdateAgentProfile={onUpdateAgentProfile}
+		                onUpdateMemory={onUpdateMemory}
+		                onUpdateMission={onUpdateMission}
+		              />
+	            ) : null}
+
+	            {activePanel === "providers" ? (
+	              <ProviderVaultPanel
+	                authVault={authVault}
+	                onDeleteProviderCredential={onDeleteProviderCredential}
+	                onLockProviderCredential={onLockProviderCredential}
+	                onSetProviderApiKey={onSetProviderApiKey}
+	                onSetProviderBaseUrl={onSetProviderBaseUrl}
+	                onSetProviderVerificationStatus={onSetProviderVerificationStatus}
+	                onUnlockProviderCredential={onUnlockProviderCredential}
+	              />
+	            ) : null}
+
+	            <section
+	              className={cx(
+	                "mb-4 border border-white/10 bg-white/[0.025] p-2",
+	                activePanel !== "theme" && "hidden",
+	              )}
+	            >
               <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.18em] text-slate-400">
                 Theme / Style
               </div>
@@ -2356,12 +3439,19 @@ function AgentSettingsSidebar({
               </div>
             </section>
 
-            <LegoThemeEngineControls
-              onCommitThemeConfig={onUpdateThemeConfig}
-              themeConfig={themeConfig}
-            />
+	            {activePanel === "theme" ? (
+	              <LegoThemeEngineControls
+	                onCommitThemeConfig={onUpdateThemeConfig}
+	                themeConfig={themeConfig}
+	              />
+	            ) : null}
 
-            <section className="mb-4 border border-fuchsia-300/25 bg-fuchsia-300/[0.045] p-3 shadow-[0_0_28px_rgba(217,70,239,0.08)]">
+	            <section
+	              className={cx(
+	                "mb-4 border border-fuchsia-300/25 bg-fuchsia-300/[0.045] p-3 shadow-[0_0_28px_rgba(217,70,239,0.08)]",
+	                activePanel !== "memory" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fuchsia-100">
@@ -2437,7 +3527,12 @@ function AgentSettingsSidebar({
               </div>
             </section>
 
-            <section className="mb-4 border border-cyan-300/25 bg-cyan-300/[0.045] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]">
+	            <section
+	              className={cx(
+	                "mb-4 border border-cyan-300/25 bg-cyan-300/[0.045] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]",
+	                activePanel !== "account" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
@@ -2457,7 +3552,12 @@ function AgentSettingsSidebar({
               </div>
             </section>
 
-            <section className="mb-4 border border-fuchsia-300/25 bg-fuchsia-300/[0.045] p-3 shadow-[0_0_28px_rgba(217,70,239,0.08)]">
+	            <section
+	              className={cx(
+	                "mb-4 border border-fuchsia-300/25 bg-fuchsia-300/[0.045] p-3 shadow-[0_0_28px_rgba(217,70,239,0.08)]",
+	                activePanel !== "providers" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fuchsia-100">
@@ -2571,7 +3671,12 @@ function AgentSettingsSidebar({
               )}
             </section>
 
-            <section className="mb-4 border border-cyan-300/25 bg-cyan-300/[0.035] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]">
+	            <section
+	              className={cx(
+	                "mb-4 border border-cyan-300/25 bg-cyan-300/[0.035] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]",
+	                activePanel !== "models" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center gap-2">
                 <BrainCircuit className="h-4 w-4 text-cyan-100" />
                 <div>
@@ -2584,10 +3689,18 @@ function AgentSettingsSidebar({
                 </div>
               </div>
               <div className="grid gap-2">
-                {agents.map((agent) => {
-                  const modelGroups = getAgentModelGroups(agent);
+	                {agents.map((agent) => {
+	                  const modelGroups = getAgentModelGroups(agent);
+	                  const modelOption = getModelOption(agent.model);
+	                  const capability = getModelCapabilityProfile(agent.model);
+	                  const providerCredential =
+	                    authVault.providerCredentials?.[
+	                      capability?.providerId ?? modelOption?.provider ?? agent.provider
+	                    ];
+	                  const providerVerified =
+	                    providerCredential?.verificationStatus === "verified";
 
-                  return (
+	                  return (
                     <div
                       key={agent.id}
                       className="border border-white/10 bg-black/25 p-2"
@@ -2605,8 +3718,8 @@ function AgentSettingsSidebar({
                           {getModelLabel(agent.model)}
                         </span>
                       </div>
-                      <select
-                        className="w-full border border-white/10 bg-black/40 px-2.5 py-2 font-mono text-[11px] text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
+	                      <select
+	                        className="w-full border border-white/10 bg-black/40 px-2.5 py-2 font-mono text-[11px] text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
                         onChange={(event) =>
                           onUpdateAgentModel(agent.id, event.currentTarget.value)
                         }
@@ -2619,16 +3732,58 @@ function AgentSettingsSidebar({
                                 {getModelLabel(model)}
                               </option>
                             ))}
-                          </optgroup>
-                        ))}
-                      </select>
-                    </div>
-                  );
-                })}
+	                          </optgroup>
+	                        ))}
+	                      </select>
+	                      <div className="mt-2 grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+	                        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+	                          Provider: {getProviderLabel(capability?.providerId ?? agent.provider)}
+	                        </span>
+	                        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+	                          Key: {providerCredential?.apiKey ? "Set" : "Missing"}
+	                        </span>
+	                        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+	                          Thinking: {capability?.thinking.supported ? "Supported" : "No"}
+	                        </span>
+	                        <span
+	                          className={cx(
+	                            "border px-2 py-1",
+	                            providerVerified
+	                              ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+	                              : "border-amber-300/25 bg-amber-300/10 text-amber-100",
+	                          )}
+	                        >
+	                          Live: {providerVerified ? "Verified" : "Untested"}
+	                        </span>
+	                      </div>
+	                      {capability?.thinking.supported ? (
+	                        <div className="mt-2 border border-cyan-300/20 bg-cyan-300/[0.04] p-2 text-[11px] leading-5 text-slate-400">
+	                          <span className="font-mono uppercase tracking-[0.14em] text-cyan-100">
+	                            Reasoning
+	                          </span>
+	                          <span className="ml-2">
+	                            {capability.thinking.supportedReasoningEfforts.join(" / ")}
+	                          </span>
+	                          <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+	                            xhigh maps to{" "}
+	                            {capability.thinking.providerReasoningEffortMap?.xhigh ?? "xhigh"};
+	                            disabled params:{" "}
+	                            {capability.thinking.disabledRequestParams.join(", ")}
+	                          </div>
+	                        </div>
+	                      ) : null}
+	                    </div>
+	                  );
+	                })}
               </div>
             </section>
 
-            <section className="mb-4 border border-white/10 bg-white/[0.035] p-3">
+	            <section
+	              className={cx(
+	                "mb-4 border border-white/10 bg-white/[0.035] p-3",
+	                activePanel !== "models" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
@@ -2668,7 +3823,12 @@ function AgentSettingsSidebar({
               </div>
             </section>
 
-            <section className="mb-4 border border-emerald-300/30 bg-emerald-300/[0.045] p-3 shadow-[0_0_28px_rgba(16,185,129,0.09)]">
+	            <section
+	              className={cx(
+	                "mb-4 border border-emerald-300/30 bg-emerald-300/[0.045] p-3 shadow-[0_0_28px_rgba(16,185,129,0.09)]",
+	                activePanel !== "memory" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-100">
@@ -2722,7 +3882,12 @@ function AgentSettingsSidebar({
               )}
             </section>
 
-            <section className="mt-5 border border-emerald-300/35 bg-emerald-300/[0.05] p-3 shadow-[0_0_34px_rgba(16,185,129,0.1)]">
+	            <section
+	              className={cx(
+	                "mt-5 border border-emerald-300/35 bg-emerald-300/[0.05] p-3 shadow-[0_0_34px_rgba(16,185,129,0.1)]",
+	                activePanel !== "artifacts" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-100">
@@ -2777,7 +3942,13 @@ function AgentSettingsSidebar({
                           </span>
                         </div>
                         <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-400">
-                          {artifactPreview(artifact.contentUrl)}
+                          {artifactPreview(
+                            artifact.previewText ??
+                              artifact.contentUrl ??
+                              artifact.contentHash ??
+                              artifact.title ??
+                              "",
+                          )}
                         </p>
                       </div>
                       <button
@@ -2793,7 +3964,85 @@ function AgentSettingsSidebar({
               </div>
             </section>
 
-            <section className="mt-5 border border-fuchsia-300/35 bg-fuchsia-300/[0.055] p-3 shadow-[0_0_34px_rgba(217,70,239,0.12)]">
+	            <section
+	              className={cx(
+	                "mt-5 border border-cyan-300/25 bg-cyan-300/[0.045] p-3",
+	                activePanel !== "trace" && "hidden",
+	              )}
+	            >
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
+                    Trace Viewer
+                  </div>
+                  <div className="mt-1 text-[11px] text-slate-500">
+                    Latest workspace events
+                  </div>
+                </div>
+                <button
+                  className="border border-cyan-300/35 bg-cyan-300/10 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+                  disabled={traceEventsLoading}
+                  onClick={() => void loadTraceEvents("reset")}
+                  type="button"
+                >
+                  Refresh
+                </button>
+              </div>
+
+              {traceEventsError ? (
+                <div className="mb-2 border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-[11px] text-amber-100">
+                  {traceEventsError}
+                </div>
+              ) : null}
+
+              <div className="grid gap-2">
+                {!traceEvents.length && !traceEventsLoading ? (
+                  <div className="border border-white/10 bg-black/25 px-3 py-3 text-xs text-slate-500">
+                    No trace events loaded.
+                  </div>
+                ) : null}
+
+                {traceEvents.map((event) => (
+                  <article
+                    key={event.id}
+                    className="border border-white/10 bg-black/25 px-3 py-2"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`font-mono text-[9px] uppercase tracking-[0.14em] ${traceSeverityClass(event.severity)}`}>
+                        {event.severity}
+                      </span>
+                      <span className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        {formatTime(event.createdAt)}
+                      </span>
+                    </div>
+                    <div className="mt-1 truncate font-mono text-[10px] text-slate-300">
+                      {event.source} / {event.eventType}
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-slate-500">
+                      {event.message ?? event.resourceType ?? event.traceId}
+                    </p>
+                  </article>
+                ))}
+              </div>
+
+              {traceEventsHasMore ? (
+                <button
+                  className="mt-3 w-full border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-300 transition hover:border-cyan-300/35 hover:bg-cyan-300/10 disabled:opacity-40"
+                  disabled={traceEventsLoading}
+                  onClick={() => void loadTraceEvents("next")}
+                  type="button"
+                >
+                  Load More
+                </button>
+              ) : null}
+            </section>
+
+	            <section
+	              className={cx(
+	                "mt-5 border border-fuchsia-300/35 bg-fuchsia-300/[0.055] p-3 shadow-[0_0_34px_rgba(217,70,239,0.12)]",
+	                activePanel !== "workflows" && "hidden",
+	              )}
+	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fuchsia-100">
@@ -2983,7 +4232,7 @@ function LegoThemeEngineControls({
             Live Token Preview
           </span>
           <span>
-            {localConfig.radius} / {localConfig.blur}
+            {localConfig.radius} / {localConfig.blur} / {localConfig.glowIntensity}
           </span>
         </div>
         <button
@@ -3009,10 +4258,11 @@ function LegoThemeEngineControls({
           max: 32,
         })}
         {rangeControl({
-          key: "borderWidth",
-          label: "Border Width",
+          key: "glowIntensity",
+          label: "Agent Glow",
           min: 0,
-          max: 4,
+          max: 100,
+          unit: "%",
         })}
         {rangeControl({
           key: "chatOpacity",
@@ -3056,25 +4306,262 @@ function LegoThemeEngineControls({
   );
 }
 
+function ModelTuningSelect<TValue extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly TValue[];
+  value?: TValue;
+  onChange: (value: TValue) => void;
+}) {
+  if (!options.length) {
+    return null;
+  }
+
+  return (
+    <label className="grid gap-1.5">
+      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+        {label}
+      </span>
+      <select
+        className="w-full border border-white/10 bg-black/45 px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-100 outline-none transition focus:border-cyan-300/60"
+        onChange={(event) => onChange(event.currentTarget.value as TValue)}
+        value={value ?? options[0]}
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function AgentModelTuningPanel({
+  agent,
+  onUpdateAgentModel,
+  onUpdateAgentModelSettings,
+}: {
+  agent: NexusAgent;
+  onUpdateAgentModel: (agentId: string, model: string) => void;
+  onUpdateAgentModelSettings: (
+    agentId: string,
+    settings: Partial<AgentModelSettings>,
+  ) => void;
+}) {
+  const modelGroups = getAgentModelGroups(agent);
+  const capability = getModelCapabilityProfile(agent.model);
+  const settings = agent.modelSettings ?? {};
+
+  return (
+    <div className="mx-3 mb-3 grid gap-3 border border-cyan-300/20 bg-black/25 p-3">
+      <label className="grid gap-1.5">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+          Model
+        </span>
+        <select
+          className="w-full border border-white/10 bg-black/45 px-2 py-1.5 font-mono text-[10px] text-slate-100 outline-none transition focus:border-cyan-300/60"
+          onChange={(event) =>
+            onUpdateAgentModel(agent.id, event.currentTarget.value)
+          }
+          value={agent.model}
+        >
+          {modelGroups.map((group) => (
+            <optgroup key={group.label} label={group.label.toUpperCase()}>
+              {group.models.map((model) => (
+                <option key={model} value={model}>
+                  {getModelLabel(model)}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </label>
+
+      <div className="grid grid-cols-2 gap-2">
+        <ModelTuningSelect<NexusReasoningEffort>
+          label="Reasoning"
+          onChange={(reasoningEffort) =>
+            onUpdateAgentModelSettings(agent.id, { reasoningEffort })
+          }
+          options={capability?.thinking.supportedReasoningEfforts ?? []}
+          value={settings.reasoningEffort}
+        />
+        <ModelTuningSelect<NexusVerbosity>
+          label="Verbosity"
+          onChange={(verbosity) =>
+            onUpdateAgentModelSettings(agent.id, { verbosity })
+          }
+          options={capability?.verbosity.supportedVerbosity ?? []}
+          value={settings.verbosity}
+        />
+        <ModelTuningSelect<NexusReasoningDetail>
+          label="Detail"
+          onChange={(reasoningDetail) =>
+            onUpdateAgentModelSettings(agent.id, { reasoningDetail })
+          }
+          options={capability?.reasoningDetail.supportedDetails ?? []}
+          value={settings.reasoningDetail}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+          Provider: {getProviderLabel(capability?.providerId ?? agent.provider)}
+        </span>
+        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+          API: {capability?.apiFamily ?? "unknown"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function AgentTemplateProfilePanel({
+  profile,
+  template,
+  onSpawn,
+  onUpdate,
+}: {
+  profile: AgentTemplateProfile;
+  template: AgentTemplate;
+  onSpawn: (template: AgentTemplate) => void;
+  onUpdate: (templateId: string, profile: AgentTemplateProfileUpdate) => void;
+}) {
+  const locked = profile.profileLocked;
+
+  return (
+    <div className="mx-3 mb-3 grid gap-2 border border-cyan-300/20 bg-black/25 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+          Custom Agent
+        </span>
+        <div className="flex items-center gap-1.5">
+          <button
+            aria-label={`${profile.callsign} launch custom agent`}
+            className="grid h-7 w-7 place-items-center border border-cyan-300/35 bg-cyan-300/10 text-cyan-100 transition hover:bg-cyan-300/20"
+            onClick={() => onSpawn(template)}
+            title={`${profile.callsign} launch custom agent`}
+            type="button"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+          <button
+            aria-pressed={locked}
+            className={cx(
+              "grid h-7 w-7 place-items-center border transition",
+              locked
+                ? "border-emerald-300/45 bg-emerald-300/10 text-emerald-100"
+                : "border-white/10 bg-white/[0.035] text-slate-500 hover:border-cyan-300/45 hover:text-cyan-100",
+            )}
+            onClick={() => onUpdate(template.id, { profileLocked: !locked })}
+            title={locked ? "Unlock custom agent" : "Lock custom agent"}
+            type="button"
+          >
+            {locked ? (
+              <Lock className="h-3.5 w-3.5" />
+            ) : (
+              <Unlock className="h-3.5 w-3.5" />
+            )}
+          </button>
+        </div>
+      </div>
+      <label className="grid gap-1.5">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+          Name
+        </span>
+        <input
+          className="w-full border border-white/10 bg-black/35 px-2 py-1.5 font-mono text-[11px] text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+          disabled={locked}
+          onChange={(event) =>
+            onUpdate(template.id, { callsign: event.currentTarget.value })
+          }
+          value={profile.callsign}
+        />
+      </label>
+      <label className="grid gap-1.5">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+          Role
+        </span>
+        <input
+          className="w-full border border-white/10 bg-black/35 px-2 py-1.5 text-xs text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+          disabled={locked}
+          onChange={(event) =>
+            onUpdate(template.id, { identity: event.currentTarget.value })
+          }
+          value={profile.identity}
+        />
+      </label>
+      <label className="grid gap-1.5">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+          Task
+        </span>
+        <textarea
+          className="min-h-16 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+          disabled={locked}
+          onChange={(event) =>
+            onUpdate(template.id, { mission: event.currentTarget.value })
+          }
+          value={profile.mission}
+        />
+      </label>
+      <label className="grid gap-1.5">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+          Execution
+        </span>
+        <textarea
+          className="min-h-20 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+          disabled={locked}
+          onChange={(event) =>
+            onUpdate(template.id, { executionPrompt: event.currentTarget.value })
+          }
+          value={profile.executionPrompt}
+        />
+      </label>
+    </div>
+  );
+}
+
 function LeftDock({
   agents,
+  agentTemplateProfiles,
   activeAgentId,
   selectedAgentId,
   onSpawn,
   onFocus,
   onSelect,
   onRestore,
+  onUpdateAgentModel,
+  onUpdateAgentModelSettings,
+  onUpdateAgentTemplateProfile,
 }: {
   agents: NexusAgent[];
+  agentTemplateProfiles: Record<string, AgentTemplateProfile>;
   activeAgentId?: string;
   selectedAgentId?: string;
   onSpawn: (template: AgentTemplate) => void;
   onFocus: (agentId: string) => void;
   onSelect: (agentId: string) => void;
   onRestore: (agentId: string) => void;
+  onUpdateAgentModel: (agentId: string, model: string) => void;
+  onUpdateAgentModelSettings: (
+    agentId: string,
+    settings: Partial<AgentModelSettings>,
+  ) => void;
+  onUpdateAgentTemplateProfile: (
+    templateId: string,
+    profile: AgentTemplateProfileUpdate,
+  ) => void;
 }) {
+  const [expandedAgentId, setExpandedAgentId] = useState<string | null>(null);
+  const [expandedTemplateId, setExpandedTemplateId] = useState<string | null>(null);
+
   return (
-    <aside className="nexus-panel hidden h-full min-h-0 flex-col overflow-hidden xl:flex">
+    <div className="nexus-panel flex min-h-0 flex-col overflow-hidden">
       <div className="border-b border-white/10 p-4">
         <div className="flex items-center justify-between">
           <h2 className="font-mono text-xs uppercase tracking-[0.22em] text-slate-300">
@@ -3083,35 +4570,80 @@ function LeftDock({
           <BrainCircuit className="h-4 w-4 text-cyan-200" />
         </div>
         <div className="mt-4 grid gap-2">
-          {agentTemplates.map((template) => (
-            <button
-              key={template.id}
-              className="group border border-white/10 bg-white/[0.035] p-3 text-left transition hover:border-cyan-300/40 hover:bg-cyan-300/10"
-              onClick={() => onSpawn(template)}
-              type="button"
-            >
-              <div className="flex items-center gap-3">
-                <span
-                  className="grid h-9 w-9 place-items-center border font-mono text-xs font-semibold"
-                  style={{
-                    borderColor: `${template.accent}88`,
-                    color: template.accent,
-                    backgroundColor: `${template.accent}14`,
-                  }}
-                >
-                  {template.avatar}
-                </span>
-                  <span className="min-w-0">
-                    <span className="block truncate font-mono text-[11px] uppercase tracking-[0.16em] text-white">
-                      {template.callsign}
-                    </span>
-                    <span className="mt-0.5 block truncate text-xs text-slate-400">
-                      {template.title}
-                    </span>
-                  </span>
-              </div>
-            </button>
-          ))}
+          {agentTemplates.map((template) => {
+            const profile = resolveAgentTemplateProfile(
+              template,
+              agentTemplateProfiles[template.id],
+            );
+            const open = expandedTemplateId === template.id;
+
+            return (
+              <article
+                key={template.id}
+                className="border border-white/10 bg-white/[0.035] transition hover:border-cyan-300/30"
+              >
+                <div className="flex items-start gap-2 p-3">
+                  <button
+                    className="group min-w-0 flex-1 text-left"
+                    onClick={() => onSpawn(template)}
+                    type="button"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="grid h-9 w-9 place-items-center border font-mono text-xs font-semibold"
+                        style={{
+                          borderColor: `${template.accent}88`,
+                          color: template.accent,
+                          backgroundColor: `${template.accent}14`,
+                        }}
+                      >
+                        {template.avatar}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="flex items-center gap-2">
+                          <span className="truncate font-mono text-[11px] uppercase tracking-[0.16em] text-white">
+                            {profile.callsign}
+                          </span>
+                          {profile.profileLocked ? (
+                            <Lock className="h-3 w-3 shrink-0 text-emerald-200" />
+                          ) : null}
+                        </span>
+                        <span className="mt-0.5 block truncate text-xs text-slate-400">
+                          {profile.title}
+                        </span>
+                      </span>
+                    </div>
+                  </button>
+                  <button
+                    aria-expanded={open}
+                    aria-label={`${profile.callsign} custom agent settings`}
+                    className={cx(
+                      "grid h-7 w-7 shrink-0 place-items-center border text-slate-500 transition hover:border-cyan-300/45 hover:bg-cyan-300/10 hover:text-cyan-100",
+                      open &&
+                        "border-cyan-300/55 bg-cyan-300/15 text-cyan-100",
+                    )}
+                    onClick={() =>
+                      setExpandedTemplateId((current) =>
+                        current === template.id ? null : template.id,
+                      )
+                    }
+                    title={`${profile.callsign} custom agent settings`}
+                    type="button"
+                  >
+                    <Settings className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                {open ? (
+                  <AgentTemplateProfilePanel
+                    profile={profile}
+                    template={template}
+                    onSpawn={onSpawn}
+                    onUpdate={onUpdateAgentTemplateProfile}
+                  />
+                ) : null}
+              </article>
+            );
+          })}
         </div>
       </div>
 
@@ -3124,48 +4656,79 @@ function LeftDock({
         </div>
         <div className="grid gap-2">
           {agents.map((agent) => (
-            <button
+            <article
               key={agent.id}
               className={cx(
-                "border p-3 text-left transition",
+                "border transition",
                 selectedAgentId === agent.id
                   ? "border-cyan-300/45 bg-cyan-300/10"
                   : "border-white/10 bg-white/[0.035] hover:border-white/25",
               )}
-              onClick={() => {
-                onSelect(agent.id);
-                if (agent.minimized) {
-                  onRestore(agent.id);
-                } else {
-                  onFocus(agent.id);
-                }
-              }}
-              type="button"
             >
-              <div className="flex items-center gap-3">
-                <span
-                  className="h-2.5 w-2.5 shrink-0 rounded-full"
-                  style={{ backgroundColor: agent.accent }}
-                />
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center justify-between gap-2">
-                    <span className="truncate font-mono text-[11px] uppercase tracking-[0.16em] text-white">
-                      {agent.callsign}
+              <div className="flex items-start gap-2 p-3">
+                <button
+                  className="min-w-0 flex-1 text-left"
+                  onClick={() => {
+                    onSelect(agent.id);
+                    if (agent.minimized) {
+                      onRestore(agent.id);
+                    } else {
+                      onFocus(agent.id);
+                    }
+                  }}
+                  type="button"
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: agent.accent }}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-2">
+                        <span className="truncate font-mono text-[11px] uppercase tracking-[0.16em] text-white">
+                          {agent.callsign}
+                        </span>
+                        {activeAgentId === agent.id && (
+                          <Zap className="h-3.5 w-3.5 shrink-0 text-amber-200" />
+                        )}
+                      </span>
+                      <span className="mt-1 block truncate text-xs text-slate-400">
+                        {getCapabilityType(agent)} / {agent.model}
+                      </span>
                     </span>
-                    {activeAgentId === agent.id && (
-                      <Zap className="h-3.5 w-3.5 shrink-0 text-amber-200" />
-                    )}
-                  </span>
-                  <span className="mt-1 block truncate text-xs text-slate-400">
-                    {getCapabilityType(agent)} / {agent.model}
-                  </span>
-                </span>
+                  </div>
+                </button>
+                <button
+                  aria-expanded={expandedAgentId === agent.id}
+                  aria-label={`${agent.callsign} model settings`}
+                  className={cx(
+                    "grid h-7 w-7 shrink-0 place-items-center border text-slate-500 transition hover:border-cyan-300/45 hover:bg-cyan-300/10 hover:text-cyan-100",
+                    expandedAgentId === agent.id &&
+                      "border-cyan-300/55 bg-cyan-300/15 text-cyan-100",
+                  )}
+                  onClick={() =>
+                    setExpandedAgentId((current) =>
+                      current === agent.id ? null : agent.id,
+                    )
+                  }
+                  title={`${agent.callsign} model settings`}
+                  type="button"
+                >
+                  <Settings className="h-3.5 w-3.5" />
+                </button>
               </div>
-            </button>
+              {expandedAgentId === agent.id ? (
+                <AgentModelTuningPanel
+                  agent={agent}
+                  onUpdateAgentModel={onUpdateAgentModel}
+                  onUpdateAgentModelSettings={onUpdateAgentModelSettings}
+                />
+              ) : null}
+            </article>
           ))}
         </div>
       </div>
-    </aside>
+    </div>
   );
 }
 
@@ -3185,6 +4748,8 @@ function AgentWindow({
   onOpenVaultManager,
   onSaveArtifact,
   promptsCache,
+  historicalPage,
+  onLoadHistory,
   onSend,
   onStop,
   onUpdateSandboxCode,
@@ -3214,6 +4779,8 @@ function AgentWindow({
   onOpenVaultManager: () => void;
   onSaveArtifact: (agentId: string, content: string) => void;
   promptsCache: PromptRecord[];
+  historicalPage?: AgentHistoricalPage;
+  onLoadHistory: (agentId: string) => Promise<void>;
   onSend: (agentId: string, content: string) => Promise<void>;
   onStop: (agentId: string) => void;
   onUpdateSandboxCode: (agentId: string, sandboxCode: string) => void;
@@ -3221,11 +4788,26 @@ function AgentWindow({
   workspaceId: string;
 }) {
   const [draft, setDraft] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sandboxEditorCollapsed, setSandboxEditorCollapsed] = useState(false);
+  const [sandboxInteractionLocked, setSandboxInteractionLocked] = useState(false);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const capabilityType = getCapabilityType(agent);
   const isMediaAgent = isMediaCapability(capabilityType);
   const isSandboxAgent = isSandboxCapability(capabilityType);
+  const windowInteractionLocked = isSandboxAgent && sandboxInteractionLocked;
+  const renderedMessages = useMemo(() => {
+    const activeIds = new Set(agent.messages.map((message) => message.id));
+    const historical = (historicalPage?.items ?? [])
+      .filter((record) => !activeIds.has(record.message.id))
+      .sort((left, right) =>
+        left.message.createdAt.localeCompare(right.message.createdAt),
+      )
+      .map((record) => record.message);
+
+    return [...historical, ...agent.messages];
+  }, [agent.messages, historicalPage?.items]);
 
   useEffect(() => {
     bodyRef.current?.scrollTo({
@@ -3254,8 +4836,22 @@ function AgentWindow({
     }
 
     const value = draft;
+
+    if (!value.trim() || isSubmitting) {
+      return;
+    }
+
     setDraft("");
-    await (isMediaAgent ? onGenerateMedia(agent.id, value) : onSend(agent.id, value));
+    setIsSubmitting(true);
+
+    try {
+      await (isMediaAgent ? onGenerateMedia(agent.id, value) : onSend(agent.id, value));
+    } catch {
+      setDraft(value);
+      window.setTimeout(() => composerRef.current?.focus(), 0);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const onComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -3274,20 +4870,33 @@ function AgentWindow({
     setDraft("");
     composerRef.current?.focus();
   };
+  const agentGlowColor = `color-mix(in srgb, ${agent.accent} var(--agent-glow-intensity), transparent)`;
 
   return (
     <Rnd
       bounds="parent"
       className="absolute"
-      disableDragging={agent.maximized}
+      disableDragging={agent.maximized || windowInteractionLocked}
       dragHandleClassName="nexus-drag-handle"
-      enableResizing={!agent.maximized}
+      enableResizing={!agent.maximized && !windowInteractionLocked}
       minHeight={360}
       minWidth={390}
-      onDragStart={() => onFocus(agent.id)}
+      onDragStart={() => {
+        if (!windowInteractionLocked) {
+          onFocus(agent.id);
+        }
+      }}
       onDragStop={onDragStop}
-      onMouseDown={() => onFocus(agent.id)}
-      onResizeStart={() => onFocus(agent.id)}
+      onMouseDown={() => {
+        if (!windowInteractionLocked) {
+          onFocus(agent.id);
+        }
+      }}
+      onResizeStart={() => {
+        if (!windowInteractionLocked) {
+          onFocus(agent.id);
+        }
+      }}
       onResizeStop={onResizeStop}
       position={{ x: agent.layout.x, y: agent.layout.y }}
       size={{ width: agent.layout.width, height: agent.layout.height }}
@@ -3295,19 +4904,29 @@ function AgentWindow({
     >
       <motion.section
         animate={{ opacity: 1, scale: 1 }}
-        className="nexus-agent-window relative flex h-full min-h-0 flex-col overflow-visible border-2 bg-slate-950/88 shadow-[0_22px_70px_rgba(0,0,0,0.45)]"
+        className={cx(
+          "nexus-agent-window relative flex h-full min-h-0 flex-col overflow-visible bg-slate-950/88 shadow-[0_22px_70px_rgba(0,0,0,0.45)]",
+          isSandboxAgent ? "border-0" : "border-2",
+        )}
         exit={{ opacity: 0, scale: 0.96 }}
         initial={{ opacity: 0, scale: 0.96 }}
         style={{
           WebkitBackdropFilter: "blur(var(--glass-blur))",
           backdropFilter: "blur(var(--glass-blur))",
-          background:
-            "color-mix(in srgb, var(--bg-elevated) var(--chat-panel-opacity), transparent)",
+          background: isSandboxAgent
+            ? "color-mix(in srgb, var(--bg-elevated) 72%, transparent)"
+            : "color-mix(in srgb, var(--bg-elevated) var(--chat-panel-opacity), transparent)",
           borderRadius: "var(--surface-radius)",
-          borderColor: selected ? `${agent.accent}f2` : `${agent.accent}99`,
-          boxShadow: selected
-            ? `0 0 34px ${agent.accent}28, 0 22px 70px rgba(0,0,0,0.45)`
-            : `0 0 15px ${agent.accent}22, 0 22px 70px rgba(0,0,0,0.38)`,
+          borderColor: isSandboxAgent
+            ? "transparent"
+            : selected
+              ? `${agent.accent}f2`
+              : `${agent.accent}99`,
+          boxShadow: isSandboxAgent
+            ? "0 20px 60px rgba(0,0,0,0.32)"
+            : selected
+              ? `0 0 42px ${agentGlowColor}, 0 22px 70px rgba(0,0,0,0.45)`
+              : `0 0 24px ${agentGlowColor}, 0 22px 70px rgba(0,0,0,0.38)`,
         }}
         transition={{ duration: 0.18 }}
       >
@@ -3315,7 +4934,7 @@ function AgentWindow({
           aria-label={`${agent.callsign} drag handle`}
           className="nexus-drag-handle h-2 shrink-0 cursor-move"
           style={{
-            background: `linear-gradient(90deg, ${agent.accent}, ${agent.accent}55, transparent)`,
+            background: "transparent",
             borderTopLeftRadius: "var(--surface-radius)",
             borderTopRightRadius: "var(--surface-radius)",
           }}
@@ -3334,6 +4953,23 @@ function AgentWindow({
           onNewReply={startNewReply}
           onOpenBranchInterface={() => onOpenBranchInterface(agent.id)}
           onOpenVaultManager={onOpenVaultManager}
+          onSaveSandboxArtifact={
+            isSandboxAgent
+              ? () => onSaveArtifact(agent.id, agent.sandboxCode ?? DEFAULT_SANDBOX_CODE)
+              : undefined
+          }
+          onToggleSandboxEditor={
+            isSandboxAgent
+              ? () => setSandboxEditorCollapsed((current) => !current)
+              : undefined
+          }
+          sandboxEditorCollapsed={sandboxEditorCollapsed}
+          sandboxInteractionLocked={sandboxInteractionLocked}
+          onToggleSandboxInteractionLock={
+            isSandboxAgent
+              ? () => setSandboxInteractionLocked((current) => !current)
+              : undefined
+          }
           onStop={() => onStop(agent.id)}
           onToggleMaximize={() => onToggleMaximize(agent.id)}
           promptsCache={promptsCache}
@@ -3344,7 +4980,8 @@ function AgentWindow({
           {isSandboxAgent ? (
             <SandboxCanvas
               agent={agent}
-              onSaveArtifact={onSaveArtifact}
+              editorCollapsed={sandboxEditorCollapsed}
+              interactionLocked={sandboxInteractionLocked}
               onUpdateSandboxCode={onUpdateSandboxCode}
               onUpdateSandboxUrl={onUpdateSandboxUrl}
             />
@@ -3358,8 +4995,30 @@ function AgentWindow({
                   className="cyber-scroll min-h-0 flex-1 overflow-y-auto p-3"
                 >
                   <div className="grid gap-3">
-                    {agent.messages.map((message) => (
-                      <MessageBubble key={message.id} message={message} />
+                    {(historicalPage?.hasMore ?? true) ? (
+                      <div className="flex justify-center">
+                        <button
+                          className="inline-flex items-center gap-2 border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-slate-300 transition hover:border-cyan-300/40 hover:text-cyan-100 disabled:opacity-45"
+                          disabled={Boolean(historicalPage?.loading)}
+                          onClick={() => void onLoadHistory(agent.id)}
+                          type="button"
+                        >
+                          <Archive className="h-3.5 w-3.5" />
+                          {historicalPage?.loading ? "Loading" : "Load history"}
+                        </button>
+                      </div>
+                    ) : null}
+                    {historicalPage?.error ? (
+                      <div className="border border-rose-300/20 bg-rose-500/10 px-3 py-2 text-xs text-rose-100">
+                        {historicalPage.error}
+                      </div>
+                    ) : null}
+                    {renderedMessages.map((message) => (
+                      <MessageBubble
+                        key={message.id}
+                        message={message}
+                        reasoningDetail={agent.modelSettings?.reasoningDetail}
+                      />
                     ))}
                   </div>
                 </div>
@@ -3369,7 +5028,11 @@ function AgentWindow({
                   <textarea
                     ref={composerRef}
                     className="min-h-16 flex-1 resize-none border border-white/10 bg-black/30 p-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
-                    disabled={agent.status === "streaming" || agent.status === "thinking"}
+                    disabled={
+                      isSubmitting ||
+                      agent.status === "streaming" ||
+                      agent.status === "thinking"
+                    }
                     onChange={(event) => setDraft(event.target.value)}
                     onKeyDown={onComposerKeyDown}
                     placeholder={
@@ -3383,6 +5046,7 @@ function AgentWindow({
                     aria-label="Send message"
                     className="grid w-12 place-items-center border border-cyan-300/40 bg-cyan-300/12 text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
                     disabled={
+                      isSubmitting ||
                       agent.status === "streaming" ||
                       agent.status === "thinking" ||
                       !draft.trim()
@@ -3403,26 +5067,24 @@ function AgentWindow({
 
 function SandboxCanvas({
   agent,
-  onSaveArtifact,
+  editorCollapsed,
+  interactionLocked,
   onUpdateSandboxCode,
   onUpdateSandboxUrl,
 }: {
   agent: NexusAgent;
-  onSaveArtifact: (agentId: string, content: string) => void;
+  editorCollapsed: boolean;
+  interactionLocked: boolean;
   onUpdateSandboxCode: (agentId: string, sandboxCode: string) => void;
   onUpdateSandboxUrl: (agentId: string, sandboxUrl: string) => void;
 }) {
   const code = agent.sandboxCode ?? DEFAULT_SANDBOX_CODE;
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sandboxUrlInputRef = useRef<HTMLInputElement | null>(null);
-  const [splitPercent, setSplitPercent] = useState(50);
+  const [splitPercent, setSplitPercent] = useState(42);
   const [resizing, setResizing] = useState(false);
-  const [codeCollapsed, setCodeCollapsed] = useState(false);
-  const [previewCollapsed, setPreviewCollapsed] = useState(false);
   const [sandboxUrlDraft, setSandboxUrlDraft] = useState(agent.sandboxUrl ?? "");
   const [sandboxUrlError, setSandboxUrlError] = useState<string | undefined>();
-  const bothCollapsed = codeCollapsed && previewCollapsed;
-  const showDivider = !codeCollapsed && !previewCollapsed;
   const externalPreviewUrl = normalizeSandboxUrl(agent.sandboxUrl ?? "");
   const embeddablePreviewUrl = externalPreviewUrl
     ? getEmbeddableUrl(externalPreviewUrl)
@@ -3494,80 +5156,81 @@ function SandboxCanvas({
     };
   }, [resizing, updateSplitFromClientX]);
 
-  const codePaneStyle = bothCollapsed
-    ? { flex: "1 1 0" }
-    : codeCollapsed
-      ? { flex: `0 0 ${SANDBOX_COLLAPSED_WIDTH}px` }
-      : previewCollapsed
-        ? { flex: "1 1 0" }
-        : { flex: `0 0 ${splitPercent}%` };
-  const previewPaneStyle = bothCollapsed
-    ? { flex: "1 1 0" }
-    : previewCollapsed
-      ? { flex: `0 0 ${SANDBOX_COLLAPSED_WIDTH}px` }
-      : codeCollapsed
-        ? { flex: "1 1 0" }
-        : { flex: "1 1 0" };
+  const codePaneStyle = { flex: `0 0 ${splitPercent}%` };
+  const previewPaneStyle = { flex: "1 1 0" };
 
   return (
     <div
       ref={containerRef}
       className={cx(
-        "flex min-h-0 flex-1 gap-0 border-t border-white/5 bg-black/10 p-3",
+        "relative flex min-h-0 flex-1 gap-0 bg-transparent",
         resizing && "cursor-col-resize select-none",
       )}
     >
-      <section
-        className={cx(
-          "flex min-h-0 min-w-0 flex-col overflow-hidden border border-cyan-300/20 bg-slate-950/80 shadow-[0_0_34px_rgba(34,211,238,0.08)]",
-          codeCollapsed && "shrink-0",
-        )}
-        style={codePaneStyle}
-      >
-        {codeCollapsed ? (
-          <SandboxCollapsedPane
-            label="Code"
-            onExpand={() => setCodeCollapsed(false)}
-            side="left"
-            tone="cyan"
-          />
-        ) : (
-          <>
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-cyan-300/15 bg-cyan-300/[0.045] px-3 py-2">
-              <div className="min-w-0 truncate font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
-                Code Area
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <span className="hidden border border-cyan-300/25 bg-cyan-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em] text-cyan-100 sm:inline-flex">
-                  HTML / CSS / JS
-                </span>
-                <button
-                  aria-label="Collapse code area"
-                  className="grid h-7 w-7 place-items-center border border-cyan-300/25 bg-cyan-300/10 text-cyan-100 transition hover:bg-cyan-300/20"
-                  onClick={() => setCodeCollapsed(true)}
-                  title="Collapse code area"
-                  type="button"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-            <textarea
-              aria-label={`${agent.callsign} sandbox code`}
-              className="cyber-scroll min-h-0 flex-1 resize-none border-0 bg-black/45 p-4 font-mono text-xs leading-5 text-slate-100 outline-none placeholder:text-slate-600 focus:bg-black/55"
-              onChange={(event) => onUpdateSandboxCode(agent.id, event.target.value)}
-              spellCheck={false}
-              value={code}
-            />
-          </>
-        )}
-      </section>
+      {!editorCollapsed ? (
+        <section
+          className="flex min-h-0 min-w-[220px] flex-col overflow-hidden bg-black/24"
+          style={codePaneStyle}
+        >
+          <form
+            className="shrink-0 px-3 pb-2 pt-3"
+            onSubmit={commitSandboxUrl}
+          >
+            <div
+              className={cx(
+                "flex h-9 items-center gap-2 bg-white/[0.045] px-3 outline outline-1 transition focus-within:bg-white/[0.07]",
+                sandboxUrlError
+                  ? "outline-rose-300/40"
+                  : "outline-white/[0.055] focus-within:outline-white/20",
+              )}
+            >
+              <RadioTower className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+              <input
+                aria-label={`${agent.callsign} sandbox preview URL`}
+                autoCapitalize="none"
+                className="min-w-0 flex-1 bg-transparent font-mono text-[11px] text-slate-100 outline-none placeholder:text-slate-600"
+                inputMode="url"
+                disabled={interactionLocked}
+                onBlur={() => commitSandboxUrl()}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
 
-      {showDivider && (
+                  setSandboxUrlDraft(nextValue);
+                  setSandboxUrlError(undefined);
+
+                  if (!nextValue.trim()) {
+                    onUpdateSandboxUrl(agent.id, "");
+                  }
+                }}
+                placeholder="URL or blank for HTML / CSS / JS"
+                ref={sandboxUrlInputRef}
+                spellCheck={false}
+                type="text"
+                value={sandboxUrlDraft}
+              />
+            </div>
+            {sandboxUrlError ? (
+              <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.14em] text-rose-200">
+                {sandboxUrlError}
+              </div>
+            ) : null}
+          </form>
+          <textarea
+            aria-label={`${agent.callsign} sandbox code`}
+            className="cyber-scroll min-h-0 flex-1 resize-none border-0 bg-transparent px-4 pb-4 pt-2 font-mono text-xs leading-5 text-slate-100 outline-none placeholder:text-slate-600 focus:bg-white/[0.02]"
+            disabled={interactionLocked}
+            onChange={(event) => onUpdateSandboxCode(agent.id, event.target.value)}
+            spellCheck={false}
+            value={code}
+          />
+        </section>
+      ) : null}
+
+      {!editorCollapsed ? (
         <div
           aria-label="Resize sandbox panes"
           aria-orientation="vertical"
-          className="group relative z-20 grid w-3 shrink-0 cursor-col-resize place-items-center"
+          className="group relative z-20 grid w-2 shrink-0 cursor-col-resize place-items-center"
           onKeyDown={(event) => {
             if (event.key === "ArrowLeft") {
               event.preventDefault();
@@ -3593,201 +5256,75 @@ function SandboxCanvas({
         >
           <div
             className={cx(
-              "h-full w-px bg-cyan-300/25 transition group-hover:bg-cyan-200/70",
-              resizing && "bg-cyan-200/80 shadow-[0_0_22px_rgba(34,211,238,0.55)]",
-            )}
-          />
-          <div
-            className={cx(
-              "absolute h-12 w-1 border border-cyan-300/25 bg-slate-950 transition group-hover:border-cyan-200/70",
-              resizing && "border-cyan-200/80",
+              "h-full w-px bg-white/8 transition group-hover:bg-white/25",
+              resizing && "bg-white/40",
             )}
           />
         </div>
-      )}
+      ) : null}
 
       <section
-        className={cx(
-          "flex min-h-0 min-w-0 flex-col overflow-hidden border border-emerald-300/20 bg-slate-950/80 shadow-[0_0_34px_rgba(45,212,191,0.08)]",
-          previewCollapsed && "shrink-0",
-        )}
+        className="relative flex min-h-0 min-w-0 flex-col overflow-hidden bg-white"
         style={previewPaneStyle}
       >
-        {previewCollapsed ? (
-          <SandboxCollapsedPane
-            label="Preview"
-            onExpand={() => setPreviewCollapsed(false)}
-            side="right"
-            tone="emerald"
-          />
-        ) : (
-          <>
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-emerald-300/15 bg-emerald-300/[0.045] px-3 py-2">
-              <div className="min-w-0 truncate font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-100">
-                Live Preview
+        {iframeBlockReason ? (
+          <div className="grid min-h-0 flex-1 place-items-center bg-slate-950 p-6">
+            <div className="max-w-md text-center">
+              <div className="mx-auto mb-4 grid h-11 w-11 place-items-center bg-white/[0.06] text-amber-100">
+                <ShieldCheck className="h-5 w-5" />
               </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <button
-                  aria-label="Save artifact"
-                  className="flex h-7 items-center gap-1.5 border border-emerald-300/30 bg-emerald-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-100 transition hover:border-emerald-200/70 hover:bg-emerald-300/20"
-                  onClick={() => onSaveArtifact(agent.id, code)}
-                  title="SAVE ARTIFACT"
-                  type="button"
-                >
-                  <Save className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Save Artifact</span>
-                </button>
-                <button
-                  aria-label="Collapse live preview"
-                  className="grid h-7 w-7 place-items-center border border-emerald-300/25 bg-emerald-300/10 text-emerald-100 transition hover:bg-emerald-300/20"
-                  onClick={() => setPreviewCollapsed(true)}
-                  title="Collapse live preview"
-                  type="button"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-                <span className="hidden border border-emerald-300/25 bg-emerald-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em] text-emerald-100 sm:inline-flex">
-                  {externalPreviewUrl ? "external" : "srcDoc"}
-                </span>
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-100">
+                External-Only Surface
               </div>
+              <p className="mt-3 text-xs leading-5 text-slate-400">
+                {iframeBlockReason}
+              </p>
+              <button
+                aria-label="Open preview URL in browser"
+                className="mt-5 inline-grid h-9 w-9 place-items-center bg-white/[0.08] text-amber-100 transition hover:bg-white/[0.14]"
+                onClick={openExternalPreview}
+                title="Open site"
+                type="button"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+              </button>
             </div>
-            <form
-              className="shrink-0 border-b border-white/10 bg-black/24 px-3 py-2"
-              onSubmit={commitSandboxUrl}
-            >
-              <div className="flex items-center gap-2">
-                <div className="flex min-w-0 flex-1 items-center gap-2 border border-emerald-300/20 bg-black/35 px-2.5 py-2 shadow-[inset_0_0_18px_rgba(16,185,129,0.08)] transition focus-within:border-emerald-300/55">
-                  <RadioTower className="h-3.5 w-3.5 shrink-0 text-emerald-200/75" />
-                  <input
-                    aria-label={`${agent.callsign} sandbox preview URL`}
-                    className="min-w-0 flex-1 bg-transparent font-mono text-[11px] text-emerald-50 outline-none placeholder:text-slate-600"
-                    onChange={(event) => {
-                      const nextValue = event.target.value;
-
-                      setSandboxUrlDraft(nextValue);
-                      setSandboxUrlError(undefined);
-
-                      if (!nextValue.trim()) {
-                        onUpdateSandboxUrl(agent.id, "");
-                      }
-                    }}
-                    placeholder="https://example.com"
-                    ref={sandboxUrlInputRef}
-                    spellCheck={false}
-                    type="text"
-                    value={sandboxUrlDraft}
-                  />
-                </div>
-                <button
-                  className="h-9 border border-emerald-300/35 bg-emerald-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-100 transition hover:border-emerald-200/70 hover:bg-emerald-300/20 hover:shadow-[0_0_22px_rgba(16,185,129,0.18)]"
-                  type="submit"
-                >
-                  GO
-                </button>
-                <button
-                  aria-label="Open preview URL in browser"
-                  className={cx(
-                    "grid h-9 w-9 place-items-center border border-emerald-300/25 bg-black/30 text-emerald-100 transition hover:border-emerald-200/70 hover:bg-emerald-300/15",
-                    !externalPreviewUrl && "pointer-events-none opacity-35",
-                  )}
-                  disabled={!externalPreviewUrl}
-                  onClick={openExternalPreview}
-                  title="Open site"
-                  type="button"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              {sandboxUrlError ? (
-                <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.14em] text-rose-200">
-                  {sandboxUrlError}
-                </div>
-              ) : null}
-            </form>
-            {iframeBlockReason ? (
-              <div className="grid min-h-0 flex-1 place-items-center bg-black/45 p-6">
-                <div className="max-w-md border border-amber-300/30 bg-slate-950/88 p-5 text-center shadow-[0_0_36px_rgba(251,191,36,0.12)]">
-                  <div className="mx-auto mb-4 grid h-11 w-11 place-items-center border border-amber-300/35 bg-amber-300/10 text-amber-100">
-                    <ShieldCheck className="h-5 w-5" />
-                  </div>
-                  <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-100">
-                    External-Only Surface
-                  </div>
-                  <p className="mt-3 text-xs leading-5 text-slate-400">
-                    {iframeBlockReason}
-                  </p>
-                  <button
-                    className="mt-5 inline-flex items-center justify-center gap-2 border border-amber-300/40 bg-amber-300/10 px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-amber-100 transition hover:border-amber-200/75 hover:bg-amber-300/20"
-                    onClick={openExternalPreview}
-                    type="button"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    Open Secure Tab
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <iframe
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
-                allowFullScreen
-                key={embeddablePreviewUrl || "srcdoc"}
-                className="min-h-0 flex-1 border-0 bg-white"
-                referrerPolicy="strict-origin-when-cross-origin"
-                sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-presentation"
-                src={embeddablePreviewUrl || undefined}
-                srcDoc={embeddablePreviewUrl ? undefined : code}
-                style={{ pointerEvents: resizing ? "none" : "auto" }}
-                title={
-                  externalPreviewUrl
-                    ? `${agent.callsign} external sandbox preview`
-                    : `${agent.callsign} live UI sandbox preview`
-                }
-              />
-            )}
-          </>
+          </div>
+        ) : (
+          <iframe
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
+            allowFullScreen
+            key={embeddablePreviewUrl || "srcdoc"}
+            className="min-h-0 flex-1 border-0 bg-white"
+            referrerPolicy="strict-origin-when-cross-origin"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-presentation"
+            src={embeddablePreviewUrl || undefined}
+            srcDoc={embeddablePreviewUrl ? undefined : code}
+            style={{ pointerEvents: resizing || interactionLocked ? "none" : "auto" }}
+            title={
+              externalPreviewUrl
+                ? `${agent.callsign} external sandbox preview`
+                : `${agent.callsign} live UI sandbox preview`
+            }
+          />
         )}
       </section>
+
+      {interactionLocked ? (
+        <div
+          aria-label={`${agent.callsign} sandbox interactions locked`}
+          className="nexus-sandbox-lock-overlay absolute inset-0 z-30 flex items-end justify-end bg-black/[0.01] p-3"
+          onClick={(event) => event.stopPropagation()}
+          onMouseDown={(event) => event.stopPropagation()}
+          onPointerDown={(event) => event.stopPropagation()}
+          onTouchStart={(event) => event.stopPropagation()}
+        >
+          <div className="pointer-events-none grid h-8 w-8 place-items-center border border-cyan-300/24 bg-slate-950/58 text-cyan-100/75 shadow-[0_10px_24px_rgba(0,0,0,0.3)] backdrop-blur-md">
+            <Lock className="h-3.5 w-3.5" />
+          </div>
+        </div>
+      ) : null}
     </div>
-  );
-}
-
-function SandboxCollapsedPane({
-  label,
-  onExpand,
-  side,
-  tone,
-}: {
-  label: string;
-  onExpand: () => void;
-  side: "left" | "right";
-  tone: "cyan" | "emerald";
-}) {
-  const Icon = side === "left" ? ChevronRight : ChevronLeft;
-  const toneClass =
-    tone === "cyan"
-      ? "border-cyan-300/20 bg-cyan-300/[0.045] text-cyan-100 hover:bg-cyan-300/12"
-      : "border-emerald-300/20 bg-emerald-300/[0.045] text-emerald-100 hover:bg-emerald-300/12";
-
-  return (
-    <button
-      aria-label={`Expand ${label.toLowerCase()} pane`}
-      className={cx(
-        "flex h-full w-full flex-col items-center justify-between gap-3 border-0 px-2 py-3 transition",
-        toneClass,
-      )}
-      onClick={onExpand}
-      title={`Expand ${label}`}
-      type="button"
-    >
-      <Icon className="h-4 w-4 shrink-0" />
-      <span
-        className="font-mono text-[10px] uppercase tracking-[0.18em]"
-        style={{ writingMode: "vertical-rl" }}
-      >
-        {label}
-      </span>
-      <span className="h-4 w-4" />
-    </button>
   );
 }
 
@@ -3804,6 +5341,11 @@ function AgentActionToolbar({
   onMinimize,
   onNewReply,
   onOpenVaultManager,
+  onSaveSandboxArtifact,
+  onToggleSandboxEditor,
+  sandboxEditorCollapsed,
+  sandboxInteractionLocked,
+  onToggleSandboxInteractionLock,
   onStop,
   onToggleMaximize,
   promptsCache,
@@ -3821,6 +5363,11 @@ function AgentActionToolbar({
   onMinimize: () => void;
   onNewReply: () => void;
   onOpenVaultManager: () => void;
+  onSaveSandboxArtifact?: () => void;
+  onToggleSandboxEditor?: () => void;
+  sandboxEditorCollapsed?: boolean;
+  sandboxInteractionLocked?: boolean;
+  onToggleSandboxInteractionLock?: () => void;
   onStop: () => void;
   onToggleMaximize: () => void;
   promptsCache: PromptRecord[];
@@ -3904,6 +5451,8 @@ function AgentActionToolbar({
 
     void navigator.clipboard?.writeText(latestResponse).catch(() => undefined);
   };
+  const railUnlockActive =
+    isSandboxAgent && Boolean(sandboxInteractionLocked && onToggleSandboxInteractionLock);
 
   return (
     <div
@@ -3918,19 +5467,44 @@ function AgentActionToolbar({
     >
       <button
         aria-expanded={expanded || vaultOpen || intelOpen}
-        aria-label="Expand agent action toolbar"
-        className="grid h-12 w-3 place-items-center border border-white/10 bg-black/70 text-slate-400 backdrop-blur transition hover:border-cyan-300/40 hover:text-cyan-100"
-        onClick={() => setExpanded((current) => !current)}
+        aria-label={
+          railUnlockActive ? "Unlock sandbox interactions" : "Expand agent action toolbar"
+        }
+        className={cx(
+          "relative z-50 grid h-12 place-items-center border bg-black/70 backdrop-blur transition hover:border-cyan-300/40 hover:text-cyan-100",
+          railUnlockActive ? "w-7" : "w-3",
+          railUnlockActive
+            ? "border-cyan-300/45 text-cyan-100"
+            : "border-white/10 text-slate-400",
+        )}
+        onClick={() => {
+          if (railUnlockActive) {
+            onToggleSandboxInteractionLock?.();
+            setExpanded(false);
+            setVaultOpen(false);
+            setIntelOpen(false);
+            return;
+          }
+
+          setExpanded((current) => !current);
+        }}
         type="button"
       >
-        <ChevronLeft className="h-3 w-3" />
+        {railUnlockActive ? (
+          <Unlock className="h-3 w-3" />
+        ) : (
+          <ChevronLeft className="h-3 w-3" />
+        )}
       </button>
 
       <AnimatePresence>
         {(expanded || vaultOpen || intelOpen) && (
           <motion.div
             animate={{ opacity: 1, x: 0 }}
-            className="absolute right-0 top-0 flex flex-col gap-1 border border-white/10 bg-slate-950/92 p-1 shadow-[0_18px_44px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+            className={cx(
+              "absolute top-0 z-40 flex flex-col gap-1 border border-white/10 bg-slate-950/92 p-1 shadow-[0_18px_44px_rgba(0,0,0,0.45)] backdrop-blur-xl",
+              railUnlockActive ? "right-8" : "right-0",
+            )}
             exit={{ opacity: 0, x: 8 }}
             initial={{ opacity: 0, x: 8 }}
             transition={{ duration: 0.12 }}
@@ -3941,6 +5515,45 @@ function AgentActionToolbar({
             <ToolbarIconButton label="Collapse" onClick={onMinimize}>
               <Minimize2 className="h-3.5 w-3.5" />
             </ToolbarIconButton>
+            {isSandboxAgent && onToggleSandboxEditor ? (
+              <ToolbarIconButton
+                active={sandboxEditorCollapsed}
+                label={
+                  sandboxEditorCollapsed
+                    ? "Expand left editor"
+                    : "Collapse left editor"
+                }
+                onClick={onToggleSandboxEditor}
+              >
+                {sandboxEditorCollapsed ? (
+                  <PanelLeftOpen className="h-3.5 w-3.5" />
+                ) : (
+                  <PanelLeftClose className="h-3.5 w-3.5" />
+                )}
+              </ToolbarIconButton>
+            ) : null}
+            {isSandboxAgent && onToggleSandboxInteractionLock ? (
+              <ToolbarIconButton
+                active={sandboxInteractionLocked}
+                label={
+                  sandboxInteractionLocked
+                    ? "Unlock sandbox interactions"
+                    : "Lock sandbox interactions"
+                }
+                onClick={onToggleSandboxInteractionLock}
+              >
+                {sandboxInteractionLocked ? (
+                  <Unlock className="h-3.5 w-3.5" />
+                ) : (
+                  <Lock className="h-3.5 w-3.5" />
+                )}
+              </ToolbarIconButton>
+            ) : null}
+            {isSandboxAgent && onSaveSandboxArtifact ? (
+              <ToolbarIconButton label="Save artifact" onClick={onSaveSandboxArtifact}>
+                <Save className="h-3.5 w-3.5" />
+              </ToolbarIconButton>
+            ) : null}
             <ToolbarIconButton label="Duplicate" onClick={onDuplicate}>
               <Layers3 className="h-3.5 w-3.5" />
             </ToolbarIconButton>
@@ -4252,9 +5865,30 @@ function MediaArtifactPreview({ artifact }: { artifact: AgentMediaArtifact }) {
   );
 }
 
-function MessageBubble({ message }: { message: AgentMessage }) {
+function getReasoningPreview(content: string, detail: NexusReasoningDetail | undefined) {
+  if (detail === "low") {
+    return content.length > 480 ? `${content.slice(0, 480)}...` : content;
+  }
+
+  if (detail === "medium") {
+    return content.length > 1200 ? `${content.slice(0, 1200)}...` : content;
+  }
+
+  return content;
+}
+
+function MessageBubble({
+  message,
+  reasoningDetail,
+}: {
+  message: AgentMessage;
+  reasoningDetail?: NexusReasoningDetail;
+}) {
   const isUser = message.role === "user";
   const isTool = message.role === "tool";
+  const reasoningPreview = message.reasoningContent
+    ? getReasoningPreview(message.reasoningContent, reasoningDetail)
+    : "";
 
   return (
     <article
@@ -4286,6 +5920,16 @@ function MessageBubble({ message }: { message: AgentMessage }) {
           </span>
         )}
       </p>
+      {message.reasoningContent ? (
+        <details className="mt-3 border border-cyan-300/20 bg-black/22 p-2">
+          <summary className="cursor-pointer font-mono text-[9px] uppercase tracking-[0.16em] text-cyan-100">
+            Provider reasoning
+          </summary>
+          <p className="mt-2 max-h-36 overflow-y-auto whitespace-pre-wrap break-words text-[11px] leading-5 text-slate-400">
+            {reasoningPreview}
+          </p>
+        </details>
+      ) : null}
       {message.media && (
         <div className="mt-3 aspect-video overflow-hidden border border-white/10 bg-black/25">
           <MediaArtifactPreview artifact={message.media} />
@@ -4335,17 +5979,31 @@ function MinimizedRail({
 
 function RightIntel({
   agent,
+  agents,
   activeAgent,
+  selectedAgentId,
+  onSelectAgent,
+  onSetAgentProfileLocked,
+  onUpdateAgentCallsign,
+  onUpdateAgentProfile,
   onUpdateMission,
   onUpdateMemory,
   onRunTool,
 }: {
   agent?: NexusAgent;
+  agents: NexusAgent[];
   activeAgent?: NexusAgent;
+  selectedAgentId?: string;
+  onSelectAgent: (agentId: string) => void;
+  onSetAgentProfileLocked: (agentId: string, locked: boolean) => void;
+  onUpdateAgentCallsign: (agentId: string, callsign: string) => void;
+  onUpdateAgentProfile: (agentId: string, profile: AgentProfileUpdate) => void;
   onUpdateMission: (agentId: string, mission: string) => void;
   onUpdateMemory: (agentId: string, memoryId: string, content: string) => void;
   onRunTool: (agentId: string, toolId: string) => Promise<void>;
 }) {
+  const [profilePanelAgentId, setProfilePanelAgentId] = useState<string | null>(null);
+
   return (
     <aside className="nexus-panel hidden h-full min-h-0 flex-col overflow-hidden xl:flex">
       <div className="border-b border-white/10 p-4">
@@ -4366,18 +6024,147 @@ function RightIntel({
             {agent ? `${agent.callsign} / ${agent.title}` : "No agent selected"}
           </p>
         </div>
-        {agent && (
-          <div className="mt-3">
-            <label className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500">
-              Mission
-            </label>
-            <textarea
-              className="mt-2 min-h-20 w-full resize-none border border-white/10 bg-black/30 p-2 text-xs leading-5 text-slate-200 outline-none transition focus:border-cyan-300/50"
-              onChange={(event) => onUpdateMission(agent.id, event.target.value)}
-              value={agent.mission}
-            />
-          </div>
-        )}
+        <div className="mt-3 grid gap-2">
+          {agents.map((candidate) => {
+            const selected = selectedAgentId === candidate.id;
+            const open = profilePanelAgentId === candidate.id;
+            const locked = Boolean(candidate.profileLocked);
+
+            return (
+              <article
+                key={candidate.id}
+                className={cx(
+                  "border bg-black/24 transition",
+                  selected ? "border-cyan-300/35" : "border-white/10",
+                )}
+              >
+                <div className="flex items-start gap-2 px-3 py-2">
+                  <button
+                    className="min-w-0 flex-1 text-left"
+                    onClick={() => onSelectAgent(candidate.id)}
+                    type="button"
+                  >
+                    <span className="block min-w-0">
+                      <span className="flex items-center gap-2">
+                        <span className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-white">
+                          {candidate.callsign}
+                        </span>
+                        {locked ? (
+                          <Lock className="h-3 w-3 shrink-0 text-emerald-200" />
+                        ) : null}
+                      </span>
+                      <span className="block truncate text-[11px] text-slate-500">
+                        {candidate.model}
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    aria-expanded={open}
+                    aria-label={`${candidate.callsign} custom settings`}
+                    className={cx(
+                      "grid h-7 w-7 shrink-0 place-items-center border text-slate-500 transition hover:border-cyan-300/45 hover:bg-cyan-300/10 hover:text-cyan-100",
+                      open &&
+                        "border-cyan-300/55 bg-cyan-300/15 text-cyan-100",
+                    )}
+                    onClick={() => {
+                      onSelectAgent(candidate.id);
+                      setProfilePanelAgentId((current) =>
+                        current === candidate.id ? null : candidate.id,
+                      );
+                    }}
+                    title={`${candidate.callsign} custom settings`}
+                    type="button"
+                  >
+                    <Settings className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                {open ? (
+                  <div className="grid gap-2 border-t border-white/10 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                        Custom Agent
+                      </span>
+                      <button
+                        aria-pressed={locked}
+                        className={cx(
+                          "grid h-7 w-7 place-items-center border transition",
+                          locked
+                            ? "border-emerald-300/45 bg-emerald-300/10 text-emerald-100"
+                            : "border-white/10 bg-white/[0.035] text-slate-500 hover:border-cyan-300/45 hover:text-cyan-100",
+                        )}
+                        onClick={() => onSetAgentProfileLocked(candidate.id, !locked)}
+                        title={locked ? "Unlock custom agent" : "Lock custom agent"}
+                        type="button"
+                      >
+                        {locked ? (
+                          <Lock className="h-3.5 w-3.5" />
+                        ) : (
+                          <Unlock className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </div>
+                    <label className="grid gap-1.5">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                        Name
+                      </span>
+                      <input
+                        className="w-full border border-white/10 bg-black/35 px-2 py-1.5 font-mono text-[11px] text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+                        disabled={locked}
+                        onChange={(event) =>
+                          onUpdateAgentCallsign(candidate.id, event.currentTarget.value)
+                        }
+                        value={candidate.callsign}
+                      />
+                    </label>
+                    <label className="grid gap-1.5">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                        Role
+                      </span>
+                      <input
+                        className="w-full border border-white/10 bg-black/35 px-2 py-1.5 text-xs text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+                        disabled={locked}
+                        onChange={(event) =>
+                          onUpdateAgentProfile(candidate.id, {
+                            identity: event.currentTarget.value,
+                          })
+                        }
+                        value={candidate.identity}
+                      />
+                    </label>
+                    <label className="grid gap-1.5">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                        Task
+                      </span>
+                      <textarea
+                        className="min-h-20 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+                        disabled={locked}
+                        onChange={(event) =>
+                          onUpdateMission(candidate.id, event.currentTarget.value)
+                        }
+                        value={candidate.mission}
+                      />
+                    </label>
+                    <label className="grid gap-1.5">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                        Execution
+                      </span>
+                      <textarea
+                        className="min-h-24 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+                        disabled={locked}
+                        onChange={(event) =>
+                          onUpdateAgentProfile(candidate.id, {
+                            executionPrompt: event.currentTarget.value,
+                          })
+                        }
+                        value={candidate.executionPrompt}
+                      />
+                    </label>
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
       </div>
 
       <div className="cyber-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">

@@ -3,10 +3,12 @@ import type {
   ICompressedMemoryResult,
   IMemoryCompressionConfig,
 } from "@/lib/nexus-types";
+import { nexusApiClient } from "@/lib/api/nexus-api-client";
 
 export interface MemoryCompressionPayload {
   payload: unknown;
   config: IMemoryCompressionConfig;
+  workspaceId?: string;
 }
 
 const DEFAULT_MOCK_SUMMARY =
@@ -179,17 +181,17 @@ export class LlmMemoryCompressor {
         headers["x-openai-base-url"] = baseUrl;
       }
 
-      const response = await fetch("/api/memory-compress", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ payload, config } satisfies MemoryCompressionPayload),
-      });
-
-      if (!response.ok) {
-        return MockMemoryCompressor.compress(payload, config);
-      }
-
-      const result = (await response.json()) as unknown;
+      const activeWorkspaceId = useNexusStore.getState().activeWorkspaceId;
+      const userId = useNexusStore.getState().authVault.user?.id;
+      const result = await nexusApiClient.post<unknown, MemoryCompressionPayload>(
+        "/api/v1/agents/memory-compress",
+        { payload, config, workspaceId: activeWorkspaceId } satisfies MemoryCompressionPayload,
+        {
+          headers,
+          userId,
+          workspaceId: activeWorkspaceId,
+        },
+      );
 
       if (
         result &&

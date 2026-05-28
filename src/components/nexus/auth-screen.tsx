@@ -3,7 +3,10 @@
 import { KeyRound, Lock, Mail, ShieldCheck } from "lucide-react";
 import { type FormEvent, useState } from "react";
 
-import { getNexusSupabaseClient } from "@/lib/supabase/client";
+import {
+  ensureNexusSupabaseClientConfigured,
+  getNexusSupabaseClient,
+} from "@/lib/supabase/client";
 import { useNexusStore } from "@/store/nexus-store";
 
 type AuthScreenProps = {
@@ -38,6 +41,7 @@ export function AuthScreen({ checked }: AuthScreenProps) {
     setMessage(mode === "login" ? "Opening secure session..." : "Creating operator identity...");
 
     try {
+      await ensureNexusSupabaseClientConfigured();
       const supabase = getNexusSupabaseClient();
       const result =
         mode === "login"

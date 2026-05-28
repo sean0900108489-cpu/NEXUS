@@ -6,7 +6,7 @@ import { buildMockReply } from "@/lib/mock-stream";
 describe("mock stream builder", () => {
   it("builds deterministic operator-ready mock text without an API key", () => {
     const workspace = createDefaultWorkspace();
-    const agent = workspace.agents.find((candidate) => candidate.callsign === "ARCHIVIST");
+    const agent = workspace.agents.find((candidate) => candidate.callsign === "Nexus_4");
 
     expect(agent).toBeDefined();
 
@@ -16,6 +16,7 @@ describe("mock stream builder", () => {
         callsign: agent!.callsign,
         title: agent!.title,
         mission: agent!.mission,
+        executionPrompt: agent!.executionPrompt,
         provider: agent!.provider,
         model: agent!.model,
         memory: agent!.memory,
@@ -24,7 +25,7 @@ describe("mock stream builder", () => {
       messages: [{ role: "user", content: "compress this context" }],
     });
 
-    expect(reply).toContain("ARCHIVIST received the packet");
+    expect(reply).toContain("Nexus_4 received the packet");
     expect(reply).toContain("compress this context");
     expect(reply).toContain("Mock mode is active by design");
   });

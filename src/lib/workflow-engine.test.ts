@@ -97,7 +97,7 @@ describe("workflow engine", () => {
         sourceAgent: architect,
         targetAgent: operator,
       }),
-    ).toContain("[L2 AUTO-HANDOFF] ARCHITECT -> OPERATOR");
+    ).toContain("[L2 AUTO-HANDOFF] Nexus_1 -> Nuxus_2");
   });
 
   it("evaluates idle transitions into dispatch decisions", () => {

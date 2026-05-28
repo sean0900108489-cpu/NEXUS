@@ -1,25 +1,38 @@
 import {
+  normalizeAgentModelSettings,
+} from "@/lib/nexus-registry";
+import {
   DEFAULT_SANDBOX_CODE,
   DEFAULT_WORKSPACE_BRANCHING_SETTINGS,
   WORKSPACE_SCHEMA_VERSION,
+  agentTemplates,
   cloneWorkspace,
   getDefaultCapabilities,
   getDefaultGraphPosition,
+  resolveAgentTemplateProfile,
 } from "@/lib/nexus-defaults";
 import type {
   AgentCapabilities,
   AgentCapabilityType,
   AgentLayout,
+  AgentModelSettings,
+  AgentTemplateProfile,
+  LocalSyncQueueOperation,
   NexusAgent,
   NexusWorkspace,
+  NotebookDraftRecord,
+  NotebookRecord,
   ToolStatus,
   WorkspaceGraphEdge,
   WorkspaceGraphNode,
+  WorkspaceCloudSnapshotPayload,
+  WorkspaceNotebookRecoveryMetadata,
   WorkspacePanel,
   WorkspaceSnapshot,
   WorkspaceBranchingSettings,
   WorkspaceThemeConfig,
 } from "@/lib/nexus-types";
+import { normalizeWorkflowRuntimeLiteState } from "@/lib/workflow-runtime-lite/state";
 
 type ValidationResult =
   | { ok: true; workspace: NexusWorkspace }
@@ -53,6 +66,10 @@ function isString(value: unknown): value is string {
   return typeof value === "string" && value.length > 0;
 }
 
+function isPlainString(value: unknown): value is string {
+  return typeof value === "string";
+}
+
 function isNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
@@ -81,6 +98,23 @@ function validateCapabilities(value: unknown): value is AgentCapabilities {
   );
 }
 
+function validateModelSettings(value: unknown): value is AgentModelSettings {
+  if (value === undefined) {
+    return true;
+  }
+
+  if (!isObject(value)) {
+    return false;
+  }
+
+  return (
+    (value.reasoningEffort === undefined || typeof value.reasoningEffort === "string") &&
+    (value.verbosity === undefined || typeof value.verbosity === "string") &&
+    (value.reasoningDetail === undefined || typeof value.reasoningDetail === "string") &&
+    (value.temperature === undefined || isNumber(value.temperature))
+  );
+}
+
 function validateAgent(agent: unknown): agent is NexusAgent {
   if (!isObject(agent)) {
     return false;
@@ -95,10 +129,14 @@ function validateAgent(agent: unknown): agent is NexusAgent {
     isString(agent.id) &&
     isString(agent.callsign) &&
     isString(agent.title) &&
-    isString(agent.identity) &&
-    isString(agent.mission) &&
+    isPlainString(agent.identity) &&
+    isPlainString(agent.mission) &&
+    (agent.executionPrompt === undefined ||
+      isPlainString(agent.executionPrompt)) &&
+    (agent.profileLocked === undefined || typeof agent.profileLocked === "boolean") &&
     isString(agent.provider) &&
     isString(agent.model) &&
+    validateModelSettings(agent.modelSettings) &&
     validateCapabilities(agent.capabilities) &&
     (agent.sandboxCode === undefined || typeof agent.sandboxCode === "string") &&
     (agent.sandboxUrl === undefined || typeof agent.sandboxUrl === "string") &&
@@ -206,6 +244,34 @@ function sanitizeBranchingSettings(value: unknown): WorkspaceBranchingSettings {
   };
 }
 
+function sanitizeAgentTemplateProfiles(
+  value: unknown,
+): Record<string, AgentTemplateProfile> {
+  if (!isObject(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    agentTemplates.flatMap((template) => {
+      const rawProfile = value[template.id];
+
+      if (!isObject(rawProfile)) {
+        return [];
+      }
+
+      return [
+        [
+          template.id,
+          resolveAgentTemplateProfile(
+            template,
+            rawProfile as Partial<AgentTemplateProfile>,
+          ),
+        ],
+      ];
+    }),
+  );
+}
+
 function sanitizeCheckpoints(value: unknown): NexusWorkspace["checkpoints"] {
   if (!Array.isArray(value)) {
     return undefined;
@@ -299,6 +365,7 @@ export function validateWorkspaceSnapshot(value: unknown): ValidationResult {
       graph: {
         nodes: graph.nodes,
         edges: graph.edges,
+        runtimeLite: normalizeWorkflowRuntimeLiteState(graph.runtimeLite),
       },
     }),
   };
@@ -343,35 +410,16 @@ export function sanitizeWorkspace(workspace: NexusWorkspace): NexusWorkspace {
       });
     }
 
-    if (
-      agent.callsign === "ARCHITECT" &&
-      !tools.some((tool) => tool.executorId === "real-file-scanner")
-    ) {
-      tools.splice(2, 0, {
-        id: `${agent.id}-tool-real-file-scanner`,
-        name: "Project Scanner",
-        scope: "Local FS",
-        status: "available",
-        executorId: "real-file-scanner",
-      });
-    }
-
-    if (
-      agent.callsign === "ARCHIVIST" &&
-      !tools.some((tool) => tool.executorId === "web-surfer")
-    ) {
-      tools.splice(2, 0, {
-        id: `${agent.id}-tool-web-surfer`,
-        name: "Web Surfer",
-        scope: "Web Context",
-        status: "available",
-        executorId: "web-surfer",
-      });
-    }
-
     const nextAgent: NexusAgent & { apiKey?: unknown; baseUrl?: unknown } = {
       ...agent,
       capabilities,
+      identity: typeof agent.identity === "string" ? agent.identity : "",
+      mission: typeof agent.mission === "string" ? agent.mission : "",
+      executionPrompt:
+        typeof agent.executionPrompt === "string" ? agent.executionPrompt : "",
+      profileLocked:
+        typeof agent.profileLocked === "boolean" ? agent.profileLocked : false,
+      modelSettings: normalizeAgentModelSettings(agent.model, agent.modelSettings),
       sandboxCode:
         typeof agent.sandboxCode === "string"
           ? agent.sandboxCode
@@ -429,6 +477,7 @@ export function sanitizeWorkspace(workspace: NexusWorkspace): NexusWorkspace {
       sanitized.graph?.edges?.filter(
         (edge) => knownAgentIds.has(edge.sourceAgentId) && knownAgentIds.has(edge.targetAgentId),
       ) ?? [],
+    runtimeLite: normalizeWorkflowRuntimeLiteState(sanitized.graph?.runtimeLite),
   };
 
   sanitized.settings = {
@@ -436,6 +485,9 @@ export function sanitizeWorkspace(workspace: NexusWorkspace): NexusWorkspace {
     viewMode: sanitized.settings.viewMode ?? "panels",
     branchingSettings: sanitizeBranchingSettings(
       sanitized.settings.branchingSettings,
+    ),
+    agentTemplateProfiles: sanitizeAgentTemplateProfiles(
+      sanitized.settings.agentTemplateProfiles,
     ),
   };
   sanitized.themeConfig = sanitizeThemeConfig(sanitized.themeConfig);
@@ -448,10 +500,102 @@ export function sanitizeWorkspace(workspace: NexusWorkspace): NexusWorkspace {
   return sanitized;
 }
 
-export function createWorkspaceSnapshot(workspace: NexusWorkspace): WorkspaceSnapshot {
+function sanitizeNotebookRecord(notebook: NotebookRecord): NotebookRecord {
+  return {
+    id: notebook.id,
+    workspace_id: notebook.workspace_id ?? null,
+    title: notebook.title,
+    content: notebook.content,
+    created_at: notebook.created_at,
+    deleted_at: notebook.deleted_at ?? null,
+    deleted_by: notebook.deleted_by ?? null,
+    updated_at: notebook.updated_at,
+  };
+}
+
+function sanitizeNotebookDraftRecord(
+  draft: NotebookDraftRecord,
+): NotebookDraftRecord {
+  return {
+    baseUpdatedAt: draft.baseUpdatedAt ?? null,
+    content: draft.content,
+    notebookId: draft.notebookId,
+    title: draft.title,
+    updatedAt: draft.updatedAt,
+    workspaceId: draft.workspaceId ?? null,
+  };
+}
+
+export function createNotebookRecoveryMetadata(
+  operations: LocalSyncQueueOperation[],
+  generatedAt = new Date().toISOString(),
+): WorkspaceNotebookRecoveryMetadata | undefined {
+  const recoveryOperations = operations
+    .filter((operation) =>
+      operation.entityType === "notebook" &&
+      !["synced", "compacted"].includes(operation.status),
+    )
+    .map((operation) => ({
+      clientMutationId: operation.clientMutationId,
+      notebookId: operation.entityId,
+      operationType: operation.operationType,
+      payloadHash: operation.payloadHash,
+      queuedAt: operation.createdAt,
+      status: operation.status as WorkspaceNotebookRecoveryMetadata["operations"][number]["status"],
+      updatedAt: operation.updatedAt,
+      workspaceId: operation.workspaceId,
+    }));
+
+  if (!recoveryOperations.length) {
+    return undefined;
+  }
+
+  return {
+    generatedAt,
+    operationCount: recoveryOperations.length,
+    operations: recoveryOperations,
+    schemaVersion: 1,
+    source: "local_sync_queue",
+  };
+}
+
+export function materializeWorkspaceFromCloudSnapshot(
+  snapshot: WorkspaceCloudSnapshotPayload,
+): NexusWorkspace {
+  return sanitizeWorkspace({
+    ...snapshot.workspace,
+    agents: snapshot.workspace.agents.map((agent): NexusAgent => ({
+      ...agent,
+      messages: [],
+      status: "idle",
+      telemetry: {
+        confidence: 1,
+        errors: 0,
+        latency: 0,
+        tasks: 0,
+        tokens: 0,
+        toolRuns: 0,
+      },
+    })),
+  });
+}
+
+export function createWorkspaceSnapshot(
+  workspace: NexusWorkspace,
+  options: {
+    deletedNotebooks?: NotebookRecord[];
+    notebookDrafts?: NotebookDraftRecord[];
+    notebookRecovery?: WorkspaceNotebookRecoveryMetadata;
+    notebooks?: NotebookRecord[];
+  } = {},
+): WorkspaceSnapshot {
   return {
     schemaVersion: WORKSPACE_SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
+    deletedNotebooks: options.deletedNotebooks?.map(sanitizeNotebookRecord),
+    notebookDrafts: options.notebookDrafts?.map(sanitizeNotebookDraftRecord),
+    notebookRecovery: options.notebookRecovery,
+    notebooks: options.notebooks?.map(sanitizeNotebookRecord),
     workspace: sanitizeWorkspace(workspace),
   };
 }

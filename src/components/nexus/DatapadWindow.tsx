@@ -14,8 +14,14 @@ export function DatapadWindow({ notebookId }: { notebookId: string }) {
   const notebook = useNexusStore((state) =>
     state.notebooksCache.find((candidate) => candidate.id === notebookId),
   );
+  const notebookDraft = useNexusStore((state) => state.notebookDrafts[notebookId]);
   const openNotebookIds = useNexusStore((state) => state.openNotebookIds);
+  const zIndex = useNexusStore(
+    (state) => state.notebookWindowLayers[notebookId] ?? state.nextZIndex,
+  );
   const toggleNotebookOpen = useNexusStore((state) => state.toggleNotebookOpen);
+  const focusNotebookWindow = useNexusStore((state) => state.focusNotebookWindow);
+  const saveNotebookDraft = useNexusStore((state) => state.saveNotebookDraft);
   const updateNotebook = useNexusStore((state) => state.updateNotebook);
   const deleteNotebook = useNexusStore((state) => state.deleteNotebook);
   const windowIndex = Math.max(0, openNotebookIds.indexOf(notebookId));
@@ -28,18 +34,20 @@ export function DatapadWindow({ notebookId }: { notebookId: string }) {
     }),
     [windowIndex],
   );
-  const [titleDraft, setTitleDraft] = useState(notebook?.title ?? "");
-  const [contentDraft, setContentDraft] = useState(notebook?.content ?? "");
+  const recoveryTitle = notebookDraft?.title ?? notebook?.title ?? "";
+  const recoveryContent = notebookDraft?.content ?? notebook?.content ?? "";
+  const [titleDraft, setTitleDraft] = useState(recoveryTitle);
+  const [contentDraft, setContentDraft] = useState(recoveryContent);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
-      setTitleDraft(notebook?.title ?? "");
-      setContentDraft(notebook?.content ?? "");
+      setTitleDraft(recoveryTitle);
+      setContentDraft(recoveryContent);
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [notebook?.content, notebook?.title]);
+  }, [recoveryContent, recoveryTitle]);
 
   useEffect(() => {
     if (!saved) {
@@ -51,6 +59,10 @@ export function DatapadWindow({ notebookId }: { notebookId: string }) {
     return () => window.clearTimeout(timeoutId);
   }, [saved]);
 
+  useEffect(() => {
+    focusNotebookWindow(notebookId);
+  }, [focusNotebookWindow, notebookId]);
+
   if (!notebook) {
     return null;
   }
@@ -59,22 +71,35 @@ export function DatapadWindow({ notebookId }: { notebookId: string }) {
     updateNotebook(notebook.id, titleDraft, contentDraft);
     setSaved(true);
   };
+  const handleTitleDraftChange = (value: string) => {
+    setTitleDraft(value);
+    saveNotebookDraft(notebook.id, value, contentDraft);
+  };
+  const handleContentDraftChange = (value: string) => {
+    setContentDraft(value);
+    saveNotebookDraft(notebook.id, titleDraft, value);
+  };
+  const bringToFront = () => focusNotebookWindow(notebook.id);
 
   return (
     <Rnd
       bounds="parent"
-      className="z-[95]"
+      className="absolute"
       default={defaultFrame}
       dragHandleClassName="datapad-drag-handle"
       minHeight={260}
       minWidth={320}
+      onDragStart={bringToFront}
+      onMouseDown={bringToFront}
+      onTouchStart={bringToFront}
+      style={{ zIndex }}
     >
-      <section className="flex h-full min-h-0 flex-col overflow-hidden border border-emerald-300/30 bg-slate-950/94 text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.55),0_0_34px_rgba(16,185,129,0.14)] backdrop-blur-xl">
+      <section className="nexus-datapad-window flex h-full min-h-0 flex-col overflow-hidden border border-emerald-300/30 bg-slate-950/94 text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.55),0_0_34px_rgba(16,185,129,0.14)] backdrop-blur-xl">
         <header className="datapad-drag-handle flex h-12 shrink-0 cursor-move items-center gap-2 border-b border-emerald-300/15 bg-emerald-300/[0.045] px-3">
           <input
             aria-label="Datapad title"
             className="min-w-0 flex-1 bg-transparent font-mono text-xs uppercase tracking-[0.16em] text-emerald-50 outline-none placeholder:text-slate-600"
-            onChange={(event) => setTitleDraft(event.currentTarget.value)}
+            onChange={(event) => handleTitleDraftChange(event.currentTarget.value)}
             placeholder="Untitled Datapad"
             value={titleDraft}
           />
@@ -91,7 +116,7 @@ export function DatapadWindow({ notebookId }: { notebookId: string }) {
         <textarea
           aria-label="Datapad content"
           className="cyber-scroll min-h-0 flex-1 resize-none border-0 bg-black/35 p-4 font-mono text-sm leading-6 text-slate-100 outline-none placeholder:text-slate-600 focus:bg-black/45"
-          onChange={(event) => setContentDraft(event.currentTarget.value)}
+          onChange={(event) => handleContentDraftChange(event.currentTarget.value)}
           placeholder="Capture global notes, reusable context, decisions, and operator memory..."
           spellCheck={false}
           value={contentDraft}

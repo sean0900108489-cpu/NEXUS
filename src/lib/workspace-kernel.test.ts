@@ -7,11 +7,13 @@ import {
 import { MockImageAdapter } from "@/lib/adapters/image-adapter";
 import { toolExecutors } from "@/lib/tool-executors";
 import {
+  createNotebookRecoveryMetadata,
   createWorkspaceSnapshot,
   parseWorkspaceSnapshot,
   sanitizeWorkspace,
   validateWorkspaceSnapshot,
 } from "@/lib/workspace-kernel";
+import type { LocalSyncQueueOperation } from "@/lib/nexus-types";
 
 describe("workspace kernel", () => {
   it("creates the default workspace with four required agents", () => {
@@ -19,17 +21,17 @@ describe("workspace kernel", () => {
 
     expect(workspace.agents).toHaveLength(4);
     expect(workspace.agents.map((agent) => agent.callsign)).toEqual([
-      "ARCHITECT",
-      "OPERATOR",
-      "SENTINEL",
-      "ARCHIVIST",
+      "Nexus_1",
+      "Nuxus_2",
+      "Nuxus_3",
+      "Nexus_4",
     ]);
   });
 
   it("creates independent message and context arrays per agent", () => {
     const workspace = createDefaultWorkspace();
-    const architect = workspace.agents.find((agent) => agent.callsign === "ARCHITECT");
-    const operator = workspace.agents.find((agent) => agent.callsign === "OPERATOR");
+    const architect = workspace.agents[0];
+    const operator = workspace.agents[1];
 
     expect(architect).toBeDefined();
     expect(operator).toBeDefined();
@@ -56,6 +58,52 @@ describe("workspace kernel", () => {
     expect(snapshot.schemaVersion).toBe(1);
     expect(snapshot.workspace.id).toBe(workspace.id);
     expect(result.ok).toBe(true);
+  });
+
+  it("adds pending notebook recovery metadata without raw sync payload content", () => {
+    const workspace = createDefaultWorkspace();
+    const operation = createLocalNotebookOperation({
+      clientMutationId: "mutation-notebook-pending",
+      entityId: "notebook-pending",
+      payload: {
+        content: "raw pending content must stay out of metadata",
+        title: "Raw pending title",
+      },
+      payloadHash: "hash-pending",
+      status: "queued",
+    });
+    const syncedOperation = createLocalNotebookOperation({
+      clientMutationId: "mutation-notebook-synced",
+      entityId: "notebook-synced",
+      payloadHash: "hash-synced",
+      status: "synced",
+    });
+    const notebookRecovery = createNotebookRecoveryMetadata(
+      [operation, syncedOperation],
+      "2026-05-28T03:00:00.000Z",
+    );
+    const snapshot = createWorkspaceSnapshot(workspace, { notebookRecovery });
+
+    expect(snapshot.notebookRecovery).toEqual({
+      generatedAt: "2026-05-28T03:00:00.000Z",
+      operationCount: 1,
+      operations: [
+        {
+          clientMutationId: "mutation-notebook-pending",
+          notebookId: "notebook-pending",
+          operationType: "upsert",
+          payloadHash: "hash-pending",
+          queuedAt: "2026-05-28T02:00:00.000Z",
+          status: "queued",
+          updatedAt: "2026-05-28T02:01:00.000Z",
+          workspaceId: "workspace-recovery",
+        },
+      ],
+      schemaVersion: 1,
+      source: "local_sync_queue",
+    });
+    expect(JSON.stringify(snapshot.notebookRecovery)).not.toContain("raw pending content");
+    expect(JSON.stringify(snapshot.notebookRecovery)).not.toContain("Raw pending title");
   });
 
   it("creates graph nodes for every default agent", () => {
@@ -177,7 +225,7 @@ describe("workspace kernel", () => {
       y: 222,
     };
     workspace.graph.edges.push({
-      id: "edge-agent-architect-agent-operator-test",
+      id: "edge-agent-nexus-test",
       sourceAgentId: workspace.agents[0].id,
       targetAgentId: workspace.agents[1].id,
     });
@@ -268,11 +316,6 @@ describe("workspace kernel", () => {
 
   it("downgrades queued tools without executors and preserves executable tools", () => {
     const workspace = createDefaultWorkspace();
-    const architect = workspace.agents.find((agent) => agent.callsign === "ARCHITECT");
-
-    expect(architect?.tools.find((tool) => tool.name === "Review Mesh")?.status).toBe(
-      "available",
-    );
 
     const unsafeWorkspace = structuredClone(workspace);
     unsafeWorkspace.agents[0].tools.push({
@@ -349,3 +392,23 @@ describe("workspace kernel", () => {
     expect(result.media.prompt).toBe("contract test");
   });
 });
+
+function createLocalNotebookOperation(
+  patch: Partial<LocalSyncQueueOperation>,
+): LocalSyncQueueOperation {
+  return {
+    attemptCount: 0,
+    baseVersion: null,
+    clientMutationId: "mutation-notebook",
+    createdAt: "2026-05-28T02:00:00.000Z",
+    entityId: "notebook-pending",
+    entityType: "notebook",
+    operationType: "upsert",
+    payload: {},
+    payloadHash: "hash",
+    status: "queued",
+    updatedAt: "2026-05-28T02:01:00.000Z",
+    workspaceId: "workspace-recovery",
+    ...patch,
+  };
+}

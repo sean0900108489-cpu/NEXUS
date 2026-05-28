@@ -1,4 +1,9 @@
 import { normalizePredictiveIntelSuggestions } from "@/lib/predictive-intel";
+import {
+  getModelCapabilityProfile,
+  getProviderOption,
+  mapReasoningEffortForModel,
+} from "@/lib/nexus-registry";
 
 export const runtime = "edge";
 export const maxDuration = 60;
@@ -13,7 +18,6 @@ const SYSTEM_PROMPT =
   "You are a tactical UI assistant for NEXUS // AI OPS. Based on the last assistant message, generate exactly 3 short, actionable follow-up questions or commands. Return ONLY a valid JSON array of 3 strings. Do not include markdown, code blocks, or explanations.";
 
 type PredictiveIntelRequest = {
-  apiKey?: string;
   lastMessage?: string;
   model?: string;
   agent?: {
@@ -41,19 +45,19 @@ function getBearerToken(header: string | null) {
     : "";
 }
 
-function getCompatibleBaseUrl(value: string | null | undefined) {
-  const candidate = value?.trim() || DEFAULT_BASE_URL;
+function getCompatibleBaseUrl(value: string | null | undefined, fallback = DEFAULT_BASE_URL) {
+  const candidate = value?.trim() || fallback;
 
   try {
     const url = new URL(candidate);
 
     if (url.protocol !== "https:" && url.protocol !== "http:") {
-      return DEFAULT_BASE_URL;
+      return fallback;
     }
 
     return url.toString().replace(/\/$/, "");
   } catch {
-    return DEFAULT_BASE_URL;
+    return fallback;
   }
 }
 
@@ -75,6 +79,43 @@ function parseSuggestions(content: string) {
   }
 }
 
+function buildPredictiveIntelBody(model: string, lastMessage: string) {
+  const capability = getModelCapabilityProfile(model);
+  const thinking = capability?.thinking;
+  const thinkingEnabled = Boolean(thinking?.supported && thinking.defaultEnabled);
+  const body: Record<string, unknown> = {
+    messages: [
+      {
+        role: "system",
+        content: SYSTEM_PROMPT,
+      },
+      {
+        role: "user",
+        content: lastMessage,
+      },
+    ],
+    model,
+  };
+
+  if (thinkingEnabled) {
+    if (thinking?.requestToggleParam === "thinking") {
+      body.thinking = { type: "enabled" };
+    }
+
+    if (thinking?.requestReasoningEffortParam === "reasoning_effort") {
+      body.reasoning_effort = mapReasoningEffortForModel(model);
+    }
+
+    return body;
+  }
+
+  if (capability?.supportsTemperature) {
+    body.temperature = 0.3;
+  }
+
+  return body;
+}
+
 export async function POST(request: Request) {
   let payload: PredictiveIntelRequest;
 
@@ -85,18 +126,24 @@ export async function POST(request: Request) {
   }
 
   const lastMessage = (payload.lastMessage ?? payload.lastAssistantMessage ?? "").trim();
-  const apiKey =
-    getBearerToken(request.headers.get("authorization")) ||
-    sanitizeHeaderValue(payload.apiKey);
+  const apiKey = getBearerToken(request.headers.get("authorization"));
 
   if (!apiKey) {
     return Response.json({ mode: "mock", suggestions: [...FALLBACK_SUGGESTIONS] });
   }
 
-  const baseUrl = getCompatibleBaseUrl(
-    request.headers.get("x-openai-base-url") || process.env.OPENAI_BASE_URL,
-  );
   const model = payload.model?.trim() || process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const providerId =
+    sanitizeHeaderValue(request.headers.get("x-nexus-provider-id")) ||
+    getModelCapabilityProfile(model)?.providerId ||
+    "openai-compatible";
+  const baseUrl = getCompatibleBaseUrl(
+    request.headers.get("x-nexus-base-url") ||
+      request.headers.get("x-openai-base-url") ||
+      process.env.OPENAI_BASE_URL,
+    getProviderOption(providerId)?.defaultBaseUrl ?? DEFAULT_BASE_URL,
+  );
+  const body = buildPredictiveIntelBody(model, lastMessage);
 
   try {
     const response = await fetch(`${baseUrl}/chat/completions`, {
@@ -105,20 +152,7 @@ export async function POST(request: Request) {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model,
-        temperature: 0.3,
-        messages: [
-          {
-            role: "system",
-            content: SYSTEM_PROMPT,
-          },
-          {
-            role: "user",
-            content: lastMessage,
-          },
-        ],
-      }),
+      body: JSON.stringify(body),
       signal: request.signal,
     });
 

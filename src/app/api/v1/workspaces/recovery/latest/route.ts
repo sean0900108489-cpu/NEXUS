@@ -1,23 +1,19 @@
 import type { WorkspaceRecoveryStateResponse } from "@/lib/nexus-types";
 import { apiHandler } from "@/lib/backend/api/api-handler";
-import { ApiError } from "@/lib/backend/api/api-errors";
+import {
+  createSupabaseBearerAuthSessionVerifier,
+  type AuthSessionVerifier,
+} from "@/lib/backend/security/auth-session";
 import { createWorkspaceStateService } from "@/lib/backend/workspace/workspace-state-service";
 
 const workspaceStateService = createWorkspaceStateService();
+let authSessionVerifier: AuthSessionVerifier =
+  createSupabaseBearerAuthSessionVerifier();
 
 export async function GET(request: Request) {
   return apiHandler<undefined, WorkspaceRecoveryStateResponse>({
-    handler: ({ request: routeRequest, requestId, traceId }) => {
-      const userId = routeRequest.headers.get("X-User-Id")?.trim();
-
-      if (!userId) {
-        throw new ApiError(
-          "PERMISSION_DENIED",
-          "Workspace recovery requires an authenticated user.",
-          403,
-        );
-      }
-
+    handler: async ({ request: routeRequest, requestId, traceId }) => {
+      const sessionUser = await authSessionVerifier.verifyRequest(routeRequest);
       const url = new URL(routeRequest.url);
 
       return workspaceStateService.getLatestRecoveryState({
@@ -26,10 +22,20 @@ export async function GET(request: Request) {
         localWorkspaceId: url.searchParams.get("localWorkspaceId"),
         requestId,
         traceId,
-        userId,
+        userId: sessionUser.id,
       });
     },
     methods: ["GET"],
     route: "/api/v1/workspaces/recovery/latest",
   })(request);
+}
+
+export function setWorkspaceRecoveryAuthVerifierForTests(
+  verifier: AuthSessionVerifier,
+) {
+  authSessionVerifier = verifier;
+}
+
+export function resetWorkspaceRecoveryAuthVerifierForTests() {
+  authSessionVerifier = createSupabaseBearerAuthSessionVerifier();
 }

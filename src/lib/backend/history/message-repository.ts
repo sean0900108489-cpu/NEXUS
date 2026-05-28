@@ -10,7 +10,11 @@ import {
   getNexusSupabaseAdminClient,
   hasSupabaseServiceRoleConfig,
 } from "@/lib/supabase/admin";
-import type { Database, Messages } from "@/lib/supabase/database.types";
+import type {
+  Database,
+  MessageInsert,
+  Messages,
+} from "@/lib/supabase/database.types";
 
 import type { HistoryCursorPayload } from "./storage-partition-service";
 
@@ -29,8 +33,33 @@ export type ArchiveMessagesInput = {
   archivedAt?: string;
 };
 
+export type UpsertMessageInput = {
+  id: string;
+  workspaceId: string;
+  agentId: string;
+  role: AgentMessageRole;
+  content: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  createdBy?: string | null;
+  metadata?: Record<string, unknown>;
+  taskId?: string | null;
+  sourceToolRunId?: string | null;
+};
+
+export class MessageUpsertConflictError extends Error {
+  readonly code = "SYNC_CONFLICT";
+
+  constructor(readonly details: Record<string, unknown>) {
+    super("Message id already exists with different durable content or identity.");
+    this.name = "MessageUpsertConflictError";
+  }
+}
+
 export interface MessageRepository {
+  findById(id: string): Promise<MessageHistoryRecord | null>;
   listMessages(query: MessageHistoryQuery): Promise<MessageHistoryRecord[]>;
+  upsertMessage(input: UpsertMessageInput): Promise<MessageHistoryRecord>;
   archiveOutsideActiveWindow(input: ArchiveMessagesInput): Promise<{
     archivedCount: number;
     activeWindowCount: number;
@@ -50,6 +79,10 @@ export class InMemoryMessageRepository implements MessageRepository {
     this.messages.clear();
   }
 
+  async findById(id: string) {
+    return this.messages.get(id) ?? null;
+  }
+
   async listMessages(query: MessageHistoryQuery) {
     return this.sortedMessages()
       .filter((message) => message.workspaceId === query.workspaceId)
@@ -57,6 +90,41 @@ export class InMemoryMessageRepository implements MessageRepository {
       .filter((message) => !query.activeOnly || message.isActiveWindow)
       .filter((message) => !query.cursor || isOlderThanCursor(message, query.cursor))
       .slice(0, query.limit);
+  }
+
+  async upsertMessage(input: UpsertMessageInput) {
+    const existing = this.messages.get(input.id);
+    const now = new Date().toISOString();
+    const createdAt = input.createdAt ?? now;
+    const updatedAt = input.updatedAt ?? now;
+    const contentHash = createMessageContentHash(input.content);
+
+    if (existing) {
+      assertMessageUpsertIsIdempotent(existing, input, contentHash);
+
+      return existing;
+    }
+
+    const record: MessageHistoryRecord = {
+      agentId: input.agentId,
+      archivedAt: null,
+      content: input.content,
+      contentHash,
+      createdAt,
+      id: input.id,
+      isActiveWindow: true,
+      metadata: input.metadata ?? {},
+      role: input.role,
+      sourceToolRunId: input.sourceToolRunId ?? null,
+      taskId: input.taskId ?? null,
+      tokenCount: estimateTokenCount(input.content),
+      updatedAt,
+      workspaceId: input.workspaceId,
+    };
+
+    this.messages.set(input.id, record);
+
+    return record;
   }
 
   async archiveOutsideActiveWindow(input: ArchiveMessagesInput) {
@@ -98,6 +166,20 @@ export class InMemoryMessageRepository implements MessageRepository {
 export class SupabaseMessageRepository implements MessageRepository {
   constructor(private readonly client: SupabaseClient<Database>) {}
 
+  async findById(id: string) {
+    const { data, error } = await this.client
+      .from("messages")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data ? mapMessage(data) : null;
+  }
+
   async listMessages(query: MessageHistoryQuery) {
     let request = this.client
       .from("messages")
@@ -123,6 +205,47 @@ export class SupabaseMessageRepository implements MessageRepository {
     }
 
     return (data ?? []).map(mapMessage);
+  }
+
+  async upsertMessage(input: UpsertMessageInput) {
+    const existing = await this.findById(input.id);
+    const now = new Date().toISOString();
+    const contentHash = createMessageContentHash(input.content);
+
+    if (existing) {
+      assertMessageUpsertIsIdempotent(existing, input, contentHash);
+
+      return existing;
+    }
+
+    const row: MessageInsert = {
+      agent_id: input.agentId,
+      content: input.content,
+      content_hash: contentHash,
+      created_at: input.createdAt ?? now,
+      created_by: input.createdBy ?? null,
+      id: input.id,
+      is_active_window: true,
+      metadata: input.metadata ?? {},
+      role: input.role,
+      source_tool_run_id: input.sourceToolRunId ?? null,
+      task_id: input.taskId ?? null,
+      token_count: estimateTokenCount(input.content),
+      type: input.role,
+      updated_at: input.updatedAt ?? now,
+      workspace_id: input.workspaceId,
+    };
+    const { data, error } = await this.client
+      .from("messages")
+      .insert(row)
+      .select("*")
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return mapMessage(data);
   }
 
   async archiveOutsideActiveWindow(input: ArchiveMessagesInput) {
@@ -183,7 +306,7 @@ export function mapMessage(row: Messages): MessageHistoryRecord {
     agentId: row.agent_id,
     archivedAt: row.archived_at,
     content: row.content,
-    contentHash: row.content_hash ?? createContentHash(row.content),
+    contentHash: row.content_hash ?? createMessageContentHash(row.content),
     createdAt: row.created_at,
     id: row.id,
     isActiveWindow: row.is_active_window ?? true,
@@ -214,7 +337,7 @@ function normalizeMessageRole(value: string): AgentMessageRole {
     : "assistant";
 }
 
-function createContentHash(content: string) {
+export function createMessageContentHash(content: string) {
   return `sha256:${createHash("sha256").update(content).digest("hex")}`;
 }
 
@@ -224,4 +347,28 @@ export function estimateTokenCount(content: string) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function assertMessageUpsertIsIdempotent(
+  existing: MessageHistoryRecord,
+  input: UpsertMessageInput,
+  incomingContentHash: string,
+) {
+  const existingContentHash =
+    existing.contentHash ?? createMessageContentHash(existing.content);
+  const conflicts = {
+    agent: existing.agentId !== input.agentId,
+    contentHash: existingContentHash !== incomingContentHash,
+    role: existing.role !== input.role,
+    workspace: existing.workspaceId !== input.workspaceId,
+  };
+
+  if (Object.values(conflicts).some(Boolean)) {
+    throw new MessageUpsertConflictError({
+      conflicts,
+      existingContentHash,
+      incomingContentHash,
+      messageId: existing.id,
+    });
+  }
 }

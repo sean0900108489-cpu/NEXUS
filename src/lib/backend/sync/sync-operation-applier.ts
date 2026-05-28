@@ -1,7 +1,10 @@
 import type { NotebookRecord, WorkspaceStatePutRequest } from "@/lib/nexus-types";
 
 import { ApiError } from "../api/api-errors";
+import { createMessageHistoryService, type MessageHistoryService } from "../history/message-history-service";
 import { createNotebookService, type NotebookService } from "../notebooks/notebook-service";
+import type { RecordPromptRevisionInput } from "../prompts/prompt-repository";
+import { createPromptService, type PromptService } from "../prompts/prompt-service";
 import { createWorkspaceStateService, type WorkspaceStateService } from "../workspace/workspace-state-service";
 
 import type { SyncOperationRecord } from "./sync-operation-repository";
@@ -12,16 +15,23 @@ export type SyncOperationApplyResult =
   | { status: "unsupported"; code: "SYNC_DOMAIN_NOT_SUPPORTED"; message: string };
 
 export type SyncOperationApplierDependencies = {
+  messageHistoryService?: MessageHistoryService;
   notebookService?: NotebookService;
+  promptService?: PromptService;
   workspaceStateService?: WorkspaceStateService;
 };
 
 export class SyncOperationApplier {
+  private readonly messageHistoryService: MessageHistoryService;
   private readonly notebookService: NotebookService;
+  private readonly promptService: PromptService;
   private readonly workspaceStateService: WorkspaceStateService;
 
   constructor(dependencies: SyncOperationApplierDependencies = {}) {
+    this.messageHistoryService =
+      dependencies.messageHistoryService ?? createMessageHistoryService();
     this.notebookService = dependencies.notebookService ?? createNotebookService();
+    this.promptService = dependencies.promptService ?? createPromptService();
     this.workspaceStateService =
       dependencies.workspaceStateService ?? createWorkspaceStateService();
   }
@@ -98,10 +108,84 @@ export class SyncOperationApplier {
     }
 
     if (
-      ["agent", "message", "prompt", "artifact_reference"].includes(
-        operation.entityType,
-      )
+      operation.entityType === "message"
     ) {
+      if (["create", "update", "upsert"].includes(operation.operationType)) {
+        const message = normalizeMessagePayload(operation);
+        const result = await this.messageHistoryService.upsertMessage(
+          {
+            agentId: message.agentId,
+            content: message.content,
+            createdAt: message.createdAt,
+            id: message.id,
+            metadata: message.metadata,
+            role: message.role,
+            workspaceId: message.workspaceId,
+          },
+          {
+            userId: operation.createdBy ?? undefined,
+          },
+        );
+
+        return {
+          remoteVersion: result.updatedAt ?? result.createdAt,
+          status: "applied",
+        };
+      }
+
+      throw new ApiError(
+        "VALIDATION_FAILED",
+        "Message sync operation type is invalid.",
+        400,
+      );
+    }
+
+    if (operation.entityType === "prompt") {
+      if (["create", "update", "upsert"].includes(operation.operationType)) {
+        const prompt = normalizePromptPayload(operation);
+        const result = await this.promptService.upsertPrompt(
+          {
+            content: prompt.content,
+            createdAt: prompt.created_at ?? null,
+            id: prompt.id,
+            revisions: prompt.revisions,
+            title: prompt.title,
+            updatedAt: prompt.updated_at ?? null,
+            workspaceId: prompt.workspace_id,
+          },
+          {
+            userId: operation.createdBy ?? undefined,
+          },
+        );
+
+        return {
+          remoteVersion: result.updated_at,
+          status: "applied",
+        };
+      }
+
+      if (operation.operationType === "delete") {
+        const deleted = await this.promptService.deletePrompt(
+          normalizePromptDeletePayload(operation),
+          {
+            userId: operation.createdBy ?? undefined,
+          },
+        );
+
+        return {
+          remoteVersion: deleted.deleted_at ?? deleted.updated_at,
+          status: "applied",
+        };
+      }
+
+      throw new ApiError(
+        "VALIDATION_FAILED",
+        "Prompt sync operation type is invalid.",
+        400,
+      );
+    }
+
+    if (operation.entityType === "agent") {
       return { status: "queued" };
     }
 
@@ -177,7 +261,178 @@ function normalizeNotebookDeletePayload(operation: SyncOperationRecord) {
     );
   }
 
-  return { id, workspaceId };
+  return {
+    createdAt: isRecord(payload) && typeof payload.created_at === "string"
+      ? payload.created_at
+      : null,
+    deletedAt: isRecord(payload) && typeof payload.deleted_at === "string"
+      ? payload.deleted_at
+      : null,
+    id,
+    workspaceId,
+  };
+}
+
+function normalizeMessagePayload(operation: SyncOperationRecord) {
+  const payload = operation.payload;
+
+  if (!isRecord(payload) || !isRecord(payload.message)) {
+    throw new ApiError("VALIDATION_FAILED", "Message sync payload is invalid.", 400);
+  }
+
+  const message = payload.message;
+  const id = typeof message.id === "string" ? message.id : "";
+  const workspaceId =
+    typeof payload.workspaceId === "string" ? payload.workspaceId : operation.workspaceId;
+  const agentId = typeof payload.agentId === "string" ? payload.agentId : "";
+  const role = typeof message.role === "string" ? message.role : "";
+  const content = typeof message.content === "string" ? message.content : "";
+  const createdAt =
+    typeof message.createdAt === "string" ? message.createdAt : undefined;
+
+  if (id !== operation.entityId || workspaceId !== operation.workspaceId) {
+    throw new ApiError(
+      "VALIDATION_FAILED",
+      "Message sync payload identity does not match the sync operation.",
+      400,
+    );
+  }
+
+  if (!["system", "user", "assistant", "tool"].includes(role)) {
+    throw new ApiError("VALIDATION_FAILED", "Message sync role is invalid.", 400);
+  }
+
+  return {
+    agentId,
+    content,
+    createdAt,
+    id,
+    metadata: {
+      interrupted: typeof message.interrupted === "boolean" ? message.interrupted : undefined,
+      media: isRecord(message.media) ? message.media : undefined,
+      reasoningContent:
+        typeof message.reasoningContent === "string"
+          ? message.reasoningContent
+          : undefined,
+      streaming: typeof message.streaming === "boolean" ? message.streaming : undefined,
+    },
+    role: role as "system" | "user" | "assistant" | "tool",
+    workspaceId,
+  };
+}
+
+function normalizePromptPayload(operation: SyncOperationRecord) {
+  const payload = operation.payload;
+
+  if (!isRecord(payload)) {
+    throw new ApiError("VALIDATION_FAILED", "Prompt sync payload is invalid.", 400);
+  }
+
+  const id = typeof payload.id === "string" ? payload.id : "";
+  const workspaceId =
+    typeof payload.workspace_id === "string"
+      ? payload.workspace_id
+      : typeof payload.workspaceId === "string"
+        ? payload.workspaceId
+        : operation.workspaceId;
+
+  if (id !== operation.entityId || workspaceId !== operation.workspaceId) {
+    throw new ApiError(
+      "VALIDATION_FAILED",
+      "Prompt sync payload identity does not match the sync operation.",
+      400,
+    );
+  }
+
+  return {
+    content: typeof payload.content === "string" ? payload.content : "",
+    created_at: typeof payload.created_at === "string" ? payload.created_at : undefined,
+    id,
+    revisions: normalizePromptRevisionPayload(payload.revisions, id),
+    title: typeof payload.title === "string" ? payload.title : "",
+    updated_at: typeof payload.updated_at === "string" ? payload.updated_at : undefined,
+    workspace_id: workspaceId,
+  };
+}
+
+function normalizePromptRevisionPayload(
+  value: unknown,
+  promptId: string,
+): RecordPromptRevisionInput[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(isRecord)
+    .map((revision) => {
+      const id =
+        typeof revision.revisionId === "string"
+          ? revision.revisionId
+          : typeof revision.id === "string"
+            ? revision.id
+            : "";
+      const revisionPromptId =
+        typeof revision.promptId === "string"
+          ? revision.promptId
+          : typeof revision.prompt_id === "string"
+            ? revision.prompt_id
+            : "";
+      const previousContent =
+        typeof revision.previousContent === "string"
+          ? revision.previousContent
+          : typeof revision.previous_content === "string"
+            ? revision.previous_content
+            : "";
+      const newContent =
+        typeof revision.newContent === "string"
+          ? revision.newContent
+          : typeof revision.new_content === "string"
+            ? revision.new_content
+            : "";
+      const createdAt =
+        typeof revision.updatedAt === "string"
+          ? revision.updatedAt
+          : typeof revision.created_at === "string"
+            ? revision.created_at
+            : null;
+
+      return {
+        createdAt,
+        id,
+        newContent,
+        previousContent,
+        promptId: revisionPromptId,
+      };
+    })
+    .filter((revision) => revision.id && revision.promptId === promptId);
+}
+
+function normalizePromptDeletePayload(operation: SyncOperationRecord) {
+  const payload = operation.payload;
+  const id = isRecord(payload) && typeof payload.id === "string"
+    ? payload.id
+    : operation.entityId;
+  const workspaceId =
+    isRecord(payload) && typeof payload.workspaceId === "string"
+      ? payload.workspaceId
+      : operation.workspaceId;
+
+  if (id !== operation.entityId || workspaceId !== operation.workspaceId) {
+    throw new ApiError(
+      "VALIDATION_FAILED",
+      "Prompt delete payload identity does not match the sync operation.",
+      400,
+    );
+  }
+
+  return {
+    deletedAt: isRecord(payload) && typeof payload.deleted_at === "string"
+      ? payload.deleted_at
+      : null,
+    id,
+    workspaceId,
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

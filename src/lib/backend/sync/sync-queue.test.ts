@@ -6,8 +6,12 @@ import { POST as postSyncOperation } from "@/app/api/v1/sync/operations/route";
 import { GET as getSyncStatus } from "@/app/api/v1/sync/status/route";
 import { POST as cancelSyncOperation } from "@/app/api/v1/sync/operations/[operationId]/cancel/route";
 import { ApiError } from "@/lib/backend/api/api-errors";
+import { InMemoryMessageRepository } from "@/lib/backend/history/message-repository";
+import { MessageHistoryService } from "@/lib/backend/history/message-history-service";
 import { InMemoryNotebookRepository } from "@/lib/backend/notebooks/notebook-repository";
 import { NotebookService } from "@/lib/backend/notebooks/notebook-service";
+import { InMemoryPromptRepository } from "@/lib/backend/prompts/prompt-repository";
+import { PromptService } from "@/lib/backend/prompts/prompt-service";
 
 import { SyncOperationApplier } from "./sync-operation-applier";
 import { InMemorySyncOperationRepository } from "./sync-operation-repository";
@@ -22,10 +26,14 @@ function makeOperation(overrides: Partial<Parameters<SyncQueueService["createOpe
     entityType: "message",
     operationType: "create",
     payload: {
+      agentId: "agent-sync-a",
       message: {
         content: "hello",
+        createdAt: "2026-05-28T00:00:00.000Z",
         id: "message-1",
+        role: "user",
       },
+      workspaceId: "workspace-sync-a",
     },
     workspaceId: "workspace-sync-a",
     ...overrides,
@@ -96,6 +104,14 @@ describe("SyncQueueService", () => {
     await expect(
       service.createOperation(makeOperation({ entityType: "tool_run" })),
     ).rejects.toMatchObject({ code: "SYNC_DOMAIN_NOT_SUPPORTED" });
+    await expect(
+      service.createOperation(makeOperation({ entityType: "artifact_reference" })),
+    ).rejects.toMatchObject({
+      code: "SYNC_DOMAIN_NOT_SUPPORTED",
+      details: {
+        canonicalRoute: "/api/v1/artifacts/[artifactId]/references",
+      },
+    });
     await expect(
       service.createOperation(
         makeOperation({ payload: { Authorization: "Bearer sk-secret-123456789" } }),
@@ -192,6 +208,181 @@ describe("SyncQueueService", () => {
     });
   });
 
+  it("applies message creates to the durable message repository", async () => {
+    const syncRepository = new InMemorySyncOperationRepository();
+    const messageRepository = new InMemoryMessageRepository();
+    const service = new SyncQueueService({
+      applier: new SyncOperationApplier({
+        messageHistoryService: new MessageHistoryService({
+          messages: messageRepository,
+        }),
+      }),
+      repository: syncRepository,
+    });
+    const input = makeOperation({
+      entityId: "message-durable",
+      entityType: "message",
+      operationType: "create",
+      payload: {
+        agentId: "agent-sync-a",
+        message: {
+          content: "durable message body",
+          createdAt: "2026-05-28T00:03:00.000Z",
+          id: "message-durable",
+          role: "assistant",
+        },
+        workspaceId: "workspace-sync-a",
+      },
+    });
+
+    const response = await service.createOperation(input, { userId: "user-owner" });
+    const messages = await messageRepository.listMessages({
+      agentId: "agent-sync-a",
+      limit: 10,
+      workspaceId: "workspace-sync-a",
+    });
+
+    expect(response.operation.status).toBe("synced");
+    expect(messages).toEqual([
+      expect.objectContaining({
+        content: "durable message body",
+        id: "message-durable",
+        role: "assistant",
+        workspaceId: "workspace-sync-a",
+      }),
+    ]);
+  });
+
+  it("keeps message create idempotent for the same id and content hash", async () => {
+    const messageRepository = new InMemoryMessageRepository();
+    const service = new SyncQueueService({
+      applier: new SyncOperationApplier({
+        messageHistoryService: new MessageHistoryService({
+          messages: messageRepository,
+        }),
+      }),
+      repository: new InMemorySyncOperationRepository(),
+    });
+    const input = makeOperation({
+      entityId: "message-idempotent",
+      entityType: "message",
+      operationType: "create",
+      payload: {
+        agentId: "agent-sync-a",
+        message: {
+          content: "idempotent message body",
+          createdAt: "2026-05-28T00:04:00.000Z",
+          id: "message-idempotent",
+          role: "assistant",
+        },
+        workspaceId: "workspace-sync-a",
+      },
+    });
+    const retry = {
+      ...input,
+      clientMutationId: `mutation_message_retry_${crypto.randomUUID()}`,
+    };
+
+    const first = await service.createOperation(input, { userId: "user-owner" });
+    const second = await service.createOperation(retry, { userId: "user-owner" });
+    const messages = await messageRepository.listMessages({
+      agentId: "agent-sync-a",
+      limit: 10,
+      workspaceId: "workspace-sync-a",
+    });
+
+    expect(first.operation.status).toBe("synced");
+    expect(second.operation.status).toBe("synced");
+    expect(messages).toEqual([
+      expect.objectContaining({
+        content: "idempotent message body",
+        id: "message-idempotent",
+      }),
+    ]);
+  });
+
+  it("conflicts same message id with different content or identity", async () => {
+    const messageRepository = new InMemoryMessageRepository();
+    const service = new SyncQueueService({
+      applier: new SyncOperationApplier({
+        messageHistoryService: new MessageHistoryService({
+          messages: messageRepository,
+        }),
+      }),
+      repository: new InMemorySyncOperationRepository(),
+    });
+    const firstInput = makeOperation({
+      entityId: "message-conflict",
+      entityType: "message",
+      operationType: "create",
+      payload: {
+        agentId: "agent-sync-a",
+        message: {
+          content: "original durable body",
+          createdAt: "2026-05-28T00:05:00.000Z",
+          id: "message-conflict",
+          role: "assistant",
+        },
+        workspaceId: "workspace-sync-a",
+      },
+    });
+    const contentConflict = makeOperation({
+      clientMutationId: `mutation_message_content_conflict_${crypto.randomUUID()}`,
+      entityId: "message-conflict",
+      entityType: "message",
+      operationType: "create",
+      payload: {
+        agentId: "agent-sync-a",
+        message: {
+          content: "different stale body",
+          createdAt: "2026-05-28T00:06:00.000Z",
+          id: "message-conflict",
+          role: "assistant",
+        },
+        workspaceId: "workspace-sync-a",
+      },
+    });
+    const identityConflict = makeOperation({
+      clientMutationId: `mutation_message_identity_conflict_${crypto.randomUUID()}`,
+      entityId: "message-conflict",
+      entityType: "message",
+      operationType: "create",
+      payload: {
+        agentId: "agent-sync-b",
+        message: {
+          content: "original durable body",
+          createdAt: "2026-05-28T00:07:00.000Z",
+          id: "message-conflict",
+          role: "assistant",
+        },
+        workspaceId: "workspace-sync-a",
+      },
+    });
+
+    const first = await service.createOperation(firstInput, { userId: "user-owner" });
+    const conflictedContent = await service.createOperation(contentConflict, {
+      userId: "user-owner",
+    });
+    const conflictedIdentity = await service.createOperation(identityConflict, {
+      userId: "user-owner",
+    });
+    const messages = await messageRepository.listMessages({
+      agentId: "agent-sync-a",
+      limit: 10,
+      workspaceId: "workspace-sync-a",
+    });
+
+    expect(first.operation.status).toBe("synced");
+    expect(conflictedContent.operation.status).toBe("conflicted");
+    expect(conflictedIdentity.operation.status).toBe("conflicted");
+    expect(messages).toEqual([
+      expect.objectContaining({
+        content: "original durable body",
+        id: "message-conflict",
+      }),
+    ]);
+  });
+
   it("conflicts stale notebook upserts instead of overwriting newer durable data", async () => {
     const notebookRepository = new InMemoryNotebookRepository();
     await notebookRepository.upsert({
@@ -251,6 +442,7 @@ describe("SyncQueueService", () => {
       entityType: "notebook",
       operationType: "delete",
       payload: {
+        deleted_at: "2026-05-28T00:02:00.000Z",
         id: "notebook-delete",
         workspaceId: "workspace-sync-a",
       },
@@ -264,12 +456,193 @@ describe("SyncQueueService", () => {
 
     expect(first.operation.status).toBe("synced");
     expect(second.operation.status).toBe("synced");
-    await expect(
-      notebookRepository.findById({
-        id: "notebook-delete",
-        workspaceId: "workspace-sync-a",
+    const tombstone = await notebookRepository.findById({
+      id: "notebook-delete",
+      workspaceId: "workspace-sync-a",
+    });
+
+    expect(tombstone).toMatchObject({
+      content: "delete me",
+      deleted_at: "2026-05-28T00:02:00.000Z",
+      deleted_by: "user-owner",
+      id: "notebook-delete",
+      title: "Delete Datapad",
+      workspace_id: "workspace-sync-a",
+    });
+  });
+
+  it("applies prompt upserts and tombstone deletes durably", async () => {
+    const promptRepository = new InMemoryPromptRepository();
+    const service = new SyncQueueService({
+      applier: new SyncOperationApplier({
+        promptService: new PromptService({ repository: promptRepository }),
       }),
-    ).resolves.toBeNull();
+      repository: new InMemorySyncOperationRepository(),
+    });
+    const upsert = makeOperation({
+      entityId: "prompt-durable",
+      entityType: "prompt",
+      operationType: "upsert",
+      payload: {
+        content: "durable prompt body",
+        created_at: "2026-05-28T00:04:00.000Z",
+        id: "prompt-durable",
+        revisions: [
+          {
+            newContent: "durable prompt body",
+            previousContent: "draft prompt body",
+            promptId: "prompt-durable",
+            revisionId: "prompt-revision-durable",
+            updatedAt: "2026-05-28T00:05:00.000Z",
+          },
+        ],
+        title: "Durable Prompt",
+        updated_at: "2026-05-28T00:05:00.000Z",
+        workspace_id: "workspace-sync-a",
+      },
+    });
+    const created = await service.createOperation(upsert, { userId: "user-owner" });
+    const deleted = await service.createOperation(
+      makeOperation({
+        clientMutationId: `mutation_prompt_delete_${crypto.randomUUID()}`,
+        entityId: "prompt-durable",
+        entityType: "prompt",
+        operationType: "delete",
+        payload: {
+          deleted_at: "2026-05-28T00:06:00.000Z",
+          id: "prompt-durable",
+          workspaceId: "workspace-sync-a",
+        },
+      }),
+      { userId: "user-owner" },
+    );
+    const prompt = await promptRepository.findById({
+      id: "prompt-durable",
+      workspaceId: "workspace-sync-a",
+    });
+    const revisions = await promptRepository.listRevisions("prompt-durable");
+
+    expect(created.operation.status).toBe("synced");
+    expect(deleted.operation.status).toBe("synced");
+    expect(prompt).toMatchObject({
+      content: "durable prompt body",
+      deleted_at: "2026-05-28T00:06:00.000Z",
+      deleted_by: "user-owner",
+      id: "prompt-durable",
+    });
+    expect(revisions).toEqual([
+      expect.objectContaining({
+        id: "prompt-revision-durable",
+        new_content: "durable prompt body",
+        previous_content: "draft prompt body",
+        prompt_id: "prompt-durable",
+      }),
+    ]);
+  });
+});
+
+describe("durable prompt tombstone and revision migrations", () => {
+  const promptMigration = readFileSync(
+    new URL(
+      "../../../../supabase/migrations/20260527011000_prompt_durable_tombstones.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  const revisionMigration = readFileSync(
+    new URL(
+      "../../../../supabase/migrations/20260527013000_prompt_revision_history.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+
+  it("keeps prompt deletes recoverable and workspace-scoped", () => {
+    expect(promptMigration).toContain("CREATE TABLE IF NOT EXISTS public.prompts");
+    expect(promptMigration).toContain("deleted_at timestamptz");
+    expect(promptMigration).toContain("prompts_deleted_by_requires_tombstone");
+    expect(promptMigration).toContain("idx_prompts_workspace_visible_updated");
+    expect(promptMigration).toContain("ALTER TABLE public.prompts ENABLE ROW LEVEL SECURITY");
+    expect(promptMigration).toContain("workspace_id IS NOT NULL");
+    expect(promptMigration).not.toContain("workspace_id IS NULL OR");
+    expect(promptMigration).not.toMatch(/\bDROP\s+TABLE\b/i);
+    expect(promptMigration).not.toMatch(/\bDROP\s+COLUMN\b/i);
+    expect(promptMigration).not.toMatch(/\bDELETE\s+FROM\b/i);
+  });
+
+  it("creates prompt revision history without a second prompt store", () => {
+    expect(revisionMigration).toContain("CREATE TABLE IF NOT EXISTS public.prompt_revisions");
+    expect(revisionMigration).toContain("prompt_revisions_prompt_id_fkey");
+    expect(revisionMigration).toContain("idx_prompt_revisions_prompt_created");
+    expect(revisionMigration).toContain("ALTER TABLE public.prompt_revisions ENABLE ROW LEVEL SECURITY");
+    expect(revisionMigration).toContain("Current prompt content remains canonical in public.prompts");
+    expect(revisionMigration).not.toMatch(/\bDROP\s+TABLE\b/i);
+    expect(revisionMigration).not.toMatch(/\bDROP\s+COLUMN\b/i);
+    expect(revisionMigration).not.toMatch(/\bDELETE\s+FROM\b/i);
+  });
+});
+
+describe("durable notebook tombstone migration", () => {
+  const migration = readFileSync(
+    new URL(
+      "../../../../supabase/migrations/20260527010000_notebook_durable_tombstones.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+
+  it("creates public.notebooks with recoverable tombstone fields", () => {
+    expect(migration).toContain("CREATE TABLE IF NOT EXISTS public.notebooks");
+    expect(migration).toContain("deleted_at timestamptz");
+    expect(migration).toContain("deleted_by uuid");
+    expect(migration).toContain("notebooks_deleted_by_requires_tombstone");
+    expect(migration).toContain("notebooks_global_created_by_required");
+    expect(migration).toContain("idx_notebooks_workspace_visible_updated");
+    expect(migration).toContain("idx_notebooks_workspace_deleted");
+    expect(migration).toContain("idx_notebooks_global_owner_visible_updated");
+    expect(migration).toContain("ALTER TABLE public.notebooks ENABLE ROW LEVEL SECURITY");
+  });
+
+  it("keeps notebook migration additive and non-destructive", () => {
+    expect(migration).toContain("ADD COLUMN IF NOT EXISTS deleted_at");
+    expect(migration).toContain("ADD COLUMN IF NOT EXISTS deleted_by");
+    expect(migration).toContain("remote empty results are not delete proof");
+    expect(migration).toContain("workspace_id IS NULL AND created_by = auth.uid()");
+    expect(migration).not.toContain("workspace_id IS NULL OR public.is_workspace_member(workspace_id)");
+    expect(migration).not.toMatch(/\bDROP\s+TABLE\b/i);
+    expect(migration).not.toMatch(/\bDROP\s+COLUMN\b/i);
+    expect(migration).not.toMatch(/\bDELETE\s+FROM\b/i);
+  });
+});
+
+describe("durable message history base migration", () => {
+  const migration = readFileSync(
+    new URL(
+      "../../../../supabase/migrations/20260527012000_message_history_base_table.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+
+  it("creates public.messages with idempotency and archive projection fields", () => {
+    expect(migration).toContain("CREATE TABLE IF NOT EXISTS public.messages");
+    expect(migration).toContain("id text PRIMARY KEY");
+    expect(migration).toContain("workspace_id text NOT NULL");
+    expect(migration).toContain("content_hash text");
+    expect(migration).toContain("archived_at timestamptz");
+    expect(migration).toContain("messages_workspace_id_required");
+    expect(migration).toContain("idx_messages_workspace_agent_created");
+    expect(migration).toContain("ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY");
+  });
+
+  it("keeps message migration additive and workspace-scoped", () => {
+    expect(migration).toContain("ADD COLUMN IF NOT EXISTS content_hash");
+    expect(migration).toContain("remote empty results are not delete proof");
+    expect(migration).toContain("workspace_id IS NOT NULL");
+    expect(migration).not.toContain("workspace_id IS NULL OR");
+    expect(migration).not.toMatch(/\bDROP\s+TABLE\b/i);
+    expect(migration).not.toMatch(/\bDROP\s+COLUMN\b/i);
+    expect(migration).not.toMatch(/\bDELETE\s+FROM\b/i);
   });
 });
 
@@ -336,6 +709,8 @@ describe("sync API routes", () => {
   it("cancels queued operations through the cancel endpoint", async () => {
     const operation = makeOperation({
       clientMutationId: `mutation_cancel_${crypto.randomUUID()}`,
+      entityId: "agent-cancel",
+      entityType: "agent",
       workspaceId: `workspace-cancel-${crypto.randomUUID()}`,
     });
 

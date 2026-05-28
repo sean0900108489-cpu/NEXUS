@@ -269,12 +269,16 @@ BEGIN
     END IF;
 END $$;
 
-CREATE OR REPLACE FUNCTION public.is_workspace_member(target_workspace_id TEXT)
+CREATE SCHEMA IF NOT EXISTS private;
+REVOKE ALL ON SCHEMA private FROM PUBLIC;
+GRANT USAGE ON SCHEMA private TO authenticated, service_role;
+
+CREATE OR REPLACE FUNCTION private.is_workspace_member(target_workspace_id TEXT)
 RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, auth
 AS $$
     SELECT target_workspace_id IS NOT NULL
         AND auth.uid() IS NOT NULL
@@ -286,7 +290,7 @@ AS $$
         );
 $$;
 
-CREATE OR REPLACE FUNCTION public.has_workspace_role(
+CREATE OR REPLACE FUNCTION private.has_workspace_role(
     target_workspace_id TEXT,
     allowed_roles TEXT[]
 )
@@ -294,7 +298,7 @@ RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, auth
 AS $$
     SELECT target_workspace_id IS NOT NULL
         AND auth.uid() IS NOT NULL
@@ -307,10 +311,38 @@ AS $$
         );
 $$;
 
+REVOKE ALL ON FUNCTION private.is_workspace_member(TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION private.has_workspace_role(TEXT, TEXT[]) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION private.is_workspace_member(TEXT) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION private.has_workspace_role(TEXT, TEXT[]) TO authenticated, service_role;
+
+CREATE OR REPLACE FUNCTION public.is_workspace_member(target_workspace_id TEXT)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY INVOKER
+SET search_path = public, private
+AS $$
+    SELECT private.is_workspace_member(target_workspace_id);
+$$;
+
+CREATE OR REPLACE FUNCTION public.has_workspace_role(
+    target_workspace_id TEXT,
+    allowed_roles TEXT[]
+)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY INVOKER
+SET search_path = public, private
+AS $$
+    SELECT private.has_workspace_role(target_workspace_id, allowed_roles);
+$$;
+
 REVOKE ALL ON FUNCTION public.is_workspace_member(TEXT) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.has_workspace_role(TEXT, TEXT[]) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.is_workspace_member(TEXT) TO anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.has_workspace_role(TEXT, TEXT[]) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.is_workspace_member(TEXT) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.has_workspace_role(TEXT, TEXT[]) TO authenticated, service_role;
 
 ALTER TABLE public.workspace_memberships ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.permission_audit_logs ENABLE ROW LEVEL SECURITY;

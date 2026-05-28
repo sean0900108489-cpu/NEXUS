@@ -76,6 +76,7 @@ import type {
   IAuthVault,
   IMemoryCompressionConfig,
   ITransactionLog,
+  NotebookDraftRecord,
   NotebookRecord,
   NexusAgent,
   NexusWorkspace,
@@ -316,6 +317,8 @@ type NexusStore = {
   historicalMessages: Record<string, HistoricalMessageCacheEntry>;
   promptsCache: PromptRecord[];
   notebooksCache: NotebookRecord[];
+  deletedNotebooksCache: NotebookRecord[];
+  notebookDrafts: Record<string, NotebookDraftRecord>;
   openNotebookIds: string[];
   notebookWindowLayers: Record<string, number>;
   transactionHistory: ITransactionLog[];
@@ -392,6 +395,8 @@ type NexusStore = {
   toggleNotebookOpen: (id: string) => void;
   focusNotebookWindow: (id: string) => void;
   createNotebook: () => string;
+  saveNotebookDraft: (id: string, title: string, content: string) => void;
+  clearNotebookDraft: (id: string) => void;
   updateNotebook: (id: string, title: string, content: string) => void;
   deleteNotebook: (id: string) => void;
   updateMemoryBlock: (agentId: string, memoryId: string, content: string) => void;
@@ -887,6 +892,63 @@ function sortNotebooks(notebooks: NotebookRecord[]) {
 
     return rightDate.localeCompare(leftDate);
   });
+}
+
+function sortPrompts(prompts: PromptRecord[]) {
+  return [...prompts].sort((left, right) =>
+    right.updated_at.localeCompare(left.updated_at),
+  );
+}
+
+function mergeRemotePromptsWithLocalCache(
+  remotePrompts: PromptRecord[],
+  localPrompts: PromptRecord[],
+) {
+  const visibleRemote = remotePrompts.filter((prompt) => !prompt.deleted_at);
+  const mergedById = new Map(visibleRemote.map((prompt) => [prompt.id, prompt]));
+
+  localPrompts
+    .filter((prompt) => !prompt.deleted_at)
+    .forEach((localPrompt) => {
+      const remotePrompt = mergedById.get(localPrompt.id);
+
+      if (
+        !remotePrompt ||
+        isNewerTimestamp(localPrompt.updated_at, remotePrompt.updated_at)
+      ) {
+        mergedById.set(localPrompt.id, localPrompt);
+      }
+    });
+
+  return sortPrompts([...mergedById.values()]);
+}
+
+function normalizeNotebookDrafts(drafts: NotebookDraftRecord[]) {
+  return Object.fromEntries(
+    drafts
+      .filter((draft) => draft.notebookId && typeof draft.updatedAt === "string")
+      .map((draft) => [
+        draft.notebookId,
+        {
+          baseUpdatedAt: draft.baseUpdatedAt ?? null,
+          content: draft.content ?? "",
+          notebookId: draft.notebookId,
+          title: draft.title ?? "",
+          updatedAt: draft.updatedAt,
+          workspaceId: draft.workspaceId ?? null,
+        },
+      ]),
+  );
+}
+
+function omitNotebookDraft(
+  drafts: Record<string, NotebookDraftRecord>,
+  notebookId: string,
+) {
+  const remaining = { ...drafts };
+  delete remaining[notebookId];
+
+  return remaining;
 }
 
 function mergeRemoteNotebooksWithLocalCache(
@@ -1391,6 +1453,8 @@ export const useNexusStore = create<NexusStore>()(
       historicalMessages: {},
       promptsCache: [],
       notebooksCache: [],
+      deletedNotebooksCache: [],
+      notebookDrafts: {},
       openNotebookIds: [],
       notebookWindowLayers: {},
       transactionHistory: [],
@@ -1429,7 +1493,7 @@ export const useNexusStore = create<NexusStore>()(
         queueWorkspaceCloudSync(workspace);
         get().notebooksCache.forEach((notebook) => {
           void supabaseStateSyncManager
-            .upsertNotebook(notebook, notebook.workspace_id ?? workspace?.id)
+            .upsertNotebook(notebook, notebook.workspace_id ?? undefined)
             .catch((error) => {
               console.error("[Datapad Save Sync Error]:", error);
             });
@@ -1501,6 +1565,8 @@ export const useNexusStore = create<NexusStore>()(
         const state = get();
         const workspace = getActiveWorkspace(state);
         return createWorkspaceSnapshot(workspace, {
+          deletedNotebooks: state.deletedNotebooksCache,
+          notebookDrafts: Object.values(state.notebookDrafts),
           notebookRecovery: options?.notebookRecovery,
           notebooks: state.notebooksCache,
         });
@@ -1520,6 +1586,12 @@ export const useNexusStore = create<NexusStore>()(
         set({
           activeWorkspaceId: workspace.id,
           workspaces: [workspace],
+          deletedNotebooksCache: sortNotebooks(
+            snapshot.deletedNotebooks ?? get().deletedNotebooksCache,
+          ),
+          notebookDrafts: normalizeNotebookDrafts(
+            snapshot.notebookDrafts ?? Object.values(get().notebookDrafts),
+          ),
           notebooksCache: sortNotebooks(snapshot.notebooks ?? get().notebooksCache),
           selectedAgentId: workspace.selectedAgentId ?? workspace.agents[0]?.id,
           nextZIndex: highestZ + 1,
@@ -2723,7 +2795,12 @@ export const useNexusStore = create<NexusStore>()(
       },
 
       setPromptsCache: (prompts) => {
-        set({ promptsCache: prompts });
+        set((state) => ({
+          promptsCache: mergeRemotePromptsWithLocalCache(
+            prompts,
+            state.promptsCache,
+          ),
+        }));
       },
 
       addPromptToCache: (prompt) => {
@@ -2853,7 +2930,7 @@ export const useNexusStore = create<NexusStore>()(
         const now = new Date().toISOString();
         const notebook: NotebookRecord = {
           id: makeId("notebook"),
-          workspace_id: getActiveWorkspace(get())?.id,
+          workspace_id: null,
           title: "Untitled Datapad",
           content: "",
           created_at: now,
@@ -2875,11 +2952,49 @@ export const useNexusStore = create<NexusStore>()(
             nextZIndex,
           };
         });
-        void supabaseStateSyncManager.upsertNotebook(notebook, notebook.workspace_id ?? undefined).catch((error) => {
+        void supabaseStateSyncManager.upsertNotebook(notebook, undefined).catch((error) => {
           console.error("[Datapad Sync Error]:", error);
         });
 
         return notebook.id;
+      },
+
+      saveNotebookDraft: (id, title, content) => {
+        const state = get();
+        const notebook = state.notebooksCache.find((candidate) => candidate.id === id);
+
+        if (!notebook) {
+          return;
+        }
+
+        const updatedAt = new Date().toISOString();
+        const draft: NotebookDraftRecord = {
+          baseUpdatedAt: notebook.updated_at ?? notebook.created_at ?? null,
+          content,
+          notebookId: id,
+          title,
+          updatedAt,
+          workspaceId: notebook.workspace_id ?? null,
+        };
+
+        set((state) => ({
+          notebookDrafts: {
+            ...state.notebookDrafts,
+            [id]: draft,
+          },
+        }));
+      },
+
+      clearNotebookDraft: (id) => {
+        set((state) => {
+          if (!(id in state.notebookDrafts)) {
+            return state;
+          }
+
+          return {
+            notebookDrafts: omitNotebookDraft(state.notebookDrafts, id),
+          };
+        });
       },
 
       updateNotebook: (id, title, content) => {
@@ -2892,13 +3007,14 @@ export const useNexusStore = create<NexusStore>()(
 
         const updatedNotebook: NotebookRecord = {
           ...notebook,
-          workspace_id: notebook.workspace_id ?? getActiveWorkspace(state)?.id,
+          workspace_id: notebook.workspace_id ?? null,
           title: title.trim() || "Untitled Datapad",
           content,
           updated_at: new Date().toISOString(),
         };
 
         set((current) => ({
+          notebookDrafts: omitNotebookDraft(current.notebookDrafts, id),
           notebooksCache: sortNotebooks([
             updatedNotebook,
             ...current.notebooksCache.filter((candidate) => candidate.id !== id),
@@ -2912,8 +3028,35 @@ export const useNexusStore = create<NexusStore>()(
       },
 
       deleteNotebook: (id) => {
-        const notebook = get().notebooksCache.find((candidate) => candidate.id === id);
+        const state = get();
+        const notebook = state.notebooksCache.find((candidate) => candidate.id === id);
+        const workspaceId = notebook
+          ? notebook.workspace_id ?? null
+          : getActiveWorkspace(state)?.id ?? null;
+        const draft = state.notebookDrafts[id];
+        const deletedAt = new Date().toISOString();
+        const tombstone = notebook
+          ? {
+              ...notebook,
+              content: draft?.content ?? notebook.content,
+              deleted_at: deletedAt,
+              deleted_by: state.authVault.user?.id ?? null,
+              title: draft?.title?.trim() || notebook.title,
+              updated_at: deletedAt,
+              workspace_id: workspaceId,
+            }
+          : null;
+
         set((state) => ({
+          deletedNotebooksCache: tombstone
+            ? sortNotebooks([
+                tombstone,
+                ...state.deletedNotebooksCache.filter(
+                  (candidate) => candidate.id !== id,
+                ),
+              ])
+            : state.deletedNotebooksCache,
+          notebookDrafts: omitNotebookDraft(state.notebookDrafts, id),
           notebooksCache: state.notebooksCache.filter(
             (notebook) => notebook.id !== id,
           ),
@@ -2926,7 +3069,11 @@ export const useNexusStore = create<NexusStore>()(
             ),
           ),
         }));
-        void supabaseStateSyncManager.deleteNotebook(id, notebook?.workspace_id ?? getActiveWorkspace(get())?.id).catch((error) => {
+        void supabaseStateSyncManager.deleteNotebook(
+          id,
+          workspaceId ?? undefined,
+          tombstone,
+        ).catch((error) => {
           console.error("[Datapad Sync Error]:", error);
         });
       },
@@ -3724,6 +3871,8 @@ export const useNexusStore = create<NexusStore>()(
             historicalMessages: {},
             promptsCache: [],
             notebooksCache: [],
+            deletedNotebooksCache: [],
+            notebookDrafts: {},
             openNotebookIds: [],
             notebookWindowLayers: {},
             transactionHistory: [],
@@ -3763,6 +3912,10 @@ export const useNexusStore = create<NexusStore>()(
             historicalMessages: {},
             promptsCache: [],
             notebooksCache: sortNotebooks(value.notebooksCache ?? []),
+            deletedNotebooksCache: sortNotebooks(value.deletedNotebooksCache ?? []),
+            notebookDrafts: normalizeNotebookDrafts(
+              Object.values(value.notebookDrafts ?? {}),
+            ),
             openNotebookIds: value.openNotebookIds ?? [],
             notebookWindowLayers: {},
             transactionHistory: (value.transactionHistory ?? []).slice(0, 100),
@@ -3785,6 +3938,8 @@ export const useNexusStore = create<NexusStore>()(
           historicalMessages: {},
           promptsCache: [],
           notebooksCache: [],
+          deletedNotebooksCache: [],
+          notebookDrafts: {},
           openNotebookIds: [],
           notebookWindowLayers: {},
           transactionHistory: [],
@@ -3795,6 +3950,8 @@ export const useNexusStore = create<NexusStore>()(
         activeWorkspaceId: state.activeWorkspaceId,
         artifactVault: state.artifactVault,
         authVault: state.authVault,
+        deletedNotebooksCache: state.deletedNotebooksCache,
+        notebookDrafts: state.notebookDrafts,
         notebooksCache: state.notebooksCache,
         openNotebookIds: state.openNotebookIds,
         workspaces: prepareWorkspacesForLocalPersistence(state.workspaces),

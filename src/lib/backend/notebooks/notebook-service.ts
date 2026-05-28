@@ -8,6 +8,7 @@ import { SYNC_PAYLOAD_MAX_BYTES } from "../sync/sync-constants";
 import {
   createNotebookRepository,
   type DeleteNotebookInput,
+  type ListVisibleNotebooksInput,
   type NotebookRepository,
   type UpsertNotebookInput,
 } from "./notebook-repository";
@@ -75,19 +76,46 @@ export class NotebookService {
     context: NotebookServiceContext = {},
   ) {
     const normalized = this.validateNotebookIdentity(input);
-    const deleted = await this.repository.deleteById(normalized);
-    const eventNotebook: NotebookRecord = {
-      content: "",
-      id: normalized.id,
-      title: "",
-      workspace_id: normalized.workspaceId,
-    };
+    const deletedAt = input.deletedAt ?? new Date().toISOString();
+    const deleted = await this.repository.deleteById({
+      ...normalized,
+      createdAt: input.createdAt ?? null,
+      deletedAt,
+      deletedBy: context.userId ?? null,
+    });
 
-    await this.emitNotebookEvent("notebook.deleted", eventNotebook, context, {
+    await this.emitNotebookEvent("notebook.deleted", deleted.tombstone, context, {
       deleted: deleted.deleted,
+      deletedAt: deleted.tombstone.deleted_at,
     });
 
     return deleted;
+  }
+
+  async listVisibleNotebooks(
+    input: ListVisibleNotebooksInput,
+    context: NotebookServiceContext = {},
+  ) {
+    const userId = input.userId.trim();
+    const workspaceId = input.workspaceId?.trim() || null;
+
+    if (!userId) {
+      throw new ApiError(
+        "AUTH_REQUIRED",
+        "Notebook fetch requires an authenticated user.",
+        401,
+      );
+    }
+
+    const notebooks = await this.repository.listVisible({
+      limit: input.limit,
+      userId,
+      workspaceId,
+    });
+
+    await this.emitNotebookFetchEvent(notebooks, context, workspaceId);
+
+    return notebooks;
   }
 
   private validateNotebook(input: UpsertNotebookInput): Required<UpsertNotebookInput> {
@@ -143,11 +171,14 @@ export class NotebookService {
     };
   }
 
-  private validateNotebookIdentity(input: DeleteNotebookInput): DeleteNotebookInput {
+  private validateNotebookIdentity(
+    input: Pick<DeleteNotebookInput, "id" | "workspaceId">,
+  ): Pick<DeleteNotebookInput, "id" | "workspaceId"> {
     const id = input.id.trim();
-    const workspaceId = input.workspaceId.trim();
+    const workspaceId =
+      input.workspaceId === null ? null : input.workspaceId.trim();
 
-    if (!id || !workspaceId) {
+    if (!id || workspaceId === "") {
       throw new ApiError(
         "VALIDATION_FAILED",
         "Notebook id and workspace id are required.",
@@ -188,6 +219,34 @@ export class NotebookService {
       });
     } catch {
       // Event failures must not make notebook sync run twice.
+    }
+  }
+
+  private async emitNotebookFetchEvent(
+    notebooks: NotebookRecord[],
+    context: NotebookServiceContext,
+    workspaceId: string | null,
+  ) {
+    try {
+      await emitBackendEvent({
+        name: "notebook.fetch.visible",
+        payload: {
+          notebookCount: notebooks.length,
+          source: "api",
+          workspaceId: workspaceId ?? undefined,
+        },
+        status: "succeeded",
+        trace: {
+          requestId: context.requestId ?? "request-unknown",
+          resourceType: "notebook",
+          source: "api",
+          traceId: context.traceId ?? "trace-unknown",
+          userId: context.userId,
+          workspaceId: workspaceId ?? undefined,
+        },
+      });
+    } catch {
+      // Fetch observability must not make notebook recovery look empty.
     }
   }
 }

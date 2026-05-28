@@ -1,6 +1,7 @@
 import type {
   WorkspaceCloudSnapshotPayload,
   WorkspaceCloudSnapshotType,
+  WorkspaceRecoveryListResponse,
   WorkspaceRecoveryStateResponse,
   WorkspaceStateGetResponse,
   WorkspaceStatePutResponse,
@@ -42,6 +43,19 @@ export type GetWorkspaceRecoveryStateInput = {
   localChecksum?: string | null;
   localUpdatedAt?: string | null;
   localWorkspaceId?: string | null;
+  requestId?: string;
+  traceId?: string;
+};
+
+export type GetWorkspaceRecoveryStateForWorkspaceInput =
+  GetWorkspaceRecoveryStateInput & {
+    workspaceId: string;
+  };
+
+export type ListWorkspaceRecoveryStatesInput = {
+  userId: string;
+  localChecksum?: string | null;
+  limit?: number;
   requestId?: string;
   traceId?: string;
 };
@@ -147,6 +161,92 @@ export class WorkspaceStateService {
         workspaceId: snapshot.workspaceId,
       },
       plan,
+      userId: input.userId,
+    };
+  }
+
+  async getRecoveryStateForWorkspace(
+    input: GetWorkspaceRecoveryStateForWorkspaceInput,
+  ): Promise<WorkspaceRecoveryStateResponse> {
+    const snapshot = await this.snapshots.getLatestSnapshotForUserWorkspace(
+      input.userId,
+      input.workspaceId,
+    );
+
+    if (!snapshot) {
+      return {
+        latest: null,
+        plan: null,
+        userId: input.userId,
+      };
+    }
+
+    const localStatePresent = input.localWorkspaceId === snapshot.workspaceId;
+    const plan = this.hydration.createHydrationPlan({
+      cloudChecksum: snapshot.checksum,
+      cloudUpdatedAt: snapshot.updatedAt,
+      localChecksum: localStatePresent ? input.localChecksum : null,
+      localStatePresent,
+      localUpdatedAt: localStatePresent ? input.localUpdatedAt : null,
+      reason: localStatePresent ? "explicit_restore" : "local_missing",
+      workspaceId: snapshot.workspaceId,
+    });
+
+    await this.emitWorkspaceStateEvent({
+      checksum: snapshot.checksum,
+      payloadSizeBytes: snapshot.payloadSizeBytes,
+      requestId: input.requestId,
+      schemaVersion: snapshot.schemaVersion,
+      snapshotStatus: "read",
+      traceId: input.traceId,
+      workspaceId: snapshot.workspaceId,
+    });
+
+    return {
+      latest: {
+        checksum: snapshot.checksum,
+        payloadSizeBytes: snapshot.payloadSizeBytes,
+        schemaVersion: snapshot.schemaVersion,
+        snapshot: snapshot.payload,
+        snapshotType: snapshot.snapshotType,
+        updatedAt: snapshot.updatedAt,
+        workspaceId: snapshot.workspaceId,
+      },
+      plan,
+      userId: input.userId,
+    };
+  }
+
+  async listRecoveryStates(
+    input: ListWorkspaceRecoveryStatesInput,
+  ): Promise<WorkspaceRecoveryListResponse> {
+    const snapshots = await this.snapshots.listLatestSnapshotsForUser(
+      input.userId,
+      input.limit,
+    );
+    const items = snapshots.map((snapshot) => ({
+      checksum: snapshot.checksum,
+      isLocalChecksumMatch: Boolean(
+        input.localChecksum && input.localChecksum === snapshot.checksum,
+      ),
+      payloadSizeBytes: snapshot.payloadSizeBytes,
+      schemaVersion: snapshot.schemaVersion,
+      snapshotType: snapshot.snapshotType,
+      updatedAt: snapshot.updatedAt,
+      workspaceId: snapshot.workspaceId,
+      workspaceName: snapshot.payload.workspace.name,
+    }));
+
+    await this.emitWorkspaceStateEvent({
+      requestId: input.requestId,
+      snapshotStatus: "recovery_list",
+      traceId: input.traceId,
+      workspaceId: items[0]?.workspaceId ?? "__global__",
+    });
+
+    return {
+      items,
+      localChecksum: input.localChecksum ?? null,
       userId: input.userId,
     };
   }
@@ -270,7 +370,7 @@ export class WorkspaceStateService {
     projectionStatus?: "failed";
     requestId?: string;
     schemaVersion?: number;
-    snapshotStatus: "read" | "saved" | "unchanged";
+    snapshotStatus: "read" | "saved" | "unchanged" | "recovery_list";
     traceId?: string;
     workspaceId: string;
   }) {

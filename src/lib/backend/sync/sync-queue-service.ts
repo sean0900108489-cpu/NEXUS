@@ -73,6 +73,18 @@ export class SyncQueueService {
     const entityType = normalizeEntityType(input.entityType);
     const operationType = normalizeOperationType(input.operationType);
 
+    if (entityType === "artifact_reference") {
+      throw new ApiError(
+        "SYNC_DOMAIN_NOT_SUPPORTED",
+        "Artifact reference sync operations must use the governed artifact reference route.",
+        400,
+        {
+          canonicalRoute: "/api/v1/artifacts/[artifactId]/references",
+          entityType,
+        },
+      );
+    }
+
     this.assertPayloadSafe(input.payload);
 
     const payloadHash = await createSyncPayloadHash(input.payload);

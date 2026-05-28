@@ -1,9 +1,23 @@
 import { readFileSync } from "node:fs";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { PUT as putWorkspaceState, GET as getWorkspaceState } from "@/app/api/v1/workspaces/[workspaceId]/state/route";
-import { GET as getLatestWorkspaceRecoveryState } from "@/app/api/v1/workspaces/recovery/latest/route";
+import {
+  GET as getLatestWorkspaceRecoveryState,
+  resetWorkspaceRecoveryAuthVerifierForTests,
+  setWorkspaceRecoveryAuthVerifierForTests,
+} from "@/app/api/v1/workspaces/recovery/latest/route";
+import {
+  GET as getWorkspaceRecoveryList,
+  resetWorkspaceRecoveryListRouteDependenciesForTests,
+  setWorkspaceRecoveryListRouteDependenciesForTests,
+} from "@/app/api/v1/workspaces/recovery/route";
+import {
+  GET as getSelectedWorkspaceRecovery,
+  resetWorkspaceRecoverySelectionRouteDependenciesForTests,
+  setWorkspaceRecoverySelectionRouteDependenciesForTests,
+} from "@/app/api/v1/workspaces/recovery/[workspaceId]/route";
 import { createDefaultWorkspace } from "@/lib/nexus-defaults";
 import type { WorkspaceCloudSnapshotPayload } from "@/lib/nexus-types";
 import { WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS } from "@/lib/workflow-runtime-lite/constants";
@@ -74,6 +88,12 @@ function makePutRequest(
 async function readJson(response: Response) {
   return response.json() as Promise<Record<string, unknown>>;
 }
+
+afterEach(() => {
+  resetWorkspaceRecoveryAuthVerifierForTests();
+  resetWorkspaceRecoveryListRouteDependenciesForTests();
+  resetWorkspaceRecoverySelectionRouteDependenciesForTests();
+});
 
 describe("WorkspaceSnapshotSerializer", () => {
   it("creates bounded snapshots without full message content or tool output", async () => {
@@ -374,7 +394,27 @@ describe("workspace state API route", () => {
     });
   });
 
-  it("returns latest account recovery state without hydrating over newer local state", async () => {
+  it("rejects latest account recovery when only X-User-Id is provided", async () => {
+    const response = await getLatestWorkspaceRecoveryState(
+      new Request("http://localhost/api/v1/workspaces/recovery/latest", {
+        headers: {
+          "X-Request-Id": "req-recovery-no-auth",
+          "X-User-Id": "spoofed-owner",
+        },
+      }),
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(401);
+    expect(json).toMatchObject({
+      error: {
+        code: "AUTH_REQUIRED",
+      },
+      ok: false,
+    });
+  });
+
+  it("returns latest account recovery state for the verified session user", async () => {
     const workspaceId = `workspace-recover-${crypto.randomUUID()}`;
     const payload = makePayload(workspaceId);
     const context = { params: Promise.resolve({ workspaceId }) };
@@ -389,13 +429,26 @@ describe("workspace state API route", () => {
       context,
     );
     const putJson = await readJson(put);
+
+    setWorkspaceRecoveryAuthVerifierForTests({
+      async verifyRequest(request) {
+        expect(request.headers.get("authorization")).toBe("Bearer recover-token");
+
+        return {
+          email: "recover@example.test",
+          id: "recover-owner",
+        };
+      },
+    });
+
     const response = await getLatestWorkspaceRecoveryState(
       new Request(
         `http://localhost/api/v1/workspaces/recovery/latest?localWorkspaceId=${workspaceId}&localUpdatedAt=2026-05-29T00:00:00.000Z`,
         {
           headers: {
+            Authorization: "Bearer recover-token",
             "X-Request-Id": "req-recovery",
-            "X-User-Id": "recover-owner",
+            "X-User-Id": "spoofed-owner",
           },
         },
       ),
@@ -415,6 +468,268 @@ describe("workspace state API route", () => {
           workspaceId,
         },
         userId: "recover-owner",
+      },
+      ok: true,
+    });
+  });
+
+  it("lists workspace recovery candidates for the verified session user", async () => {
+    const firstWorkspaceId = `workspace-list-a-${crypto.randomUUID()}`;
+    const secondWorkspaceId = `workspace-list-b-${crypto.randomUUID()}`;
+    const firstPayload = makePayload(firstWorkspaceId);
+    const secondPayload = makePayload(secondWorkspaceId);
+    const firstPut = await putWorkspaceState(
+      makePutRequest(
+        firstWorkspaceId,
+        firstPayload,
+        {
+          "X-User-Id": "list-owner",
+        },
+      ),
+      { params: Promise.resolve({ workspaceId: firstWorkspaceId }) },
+    );
+    const secondPut = await putWorkspaceState(
+      makePutRequest(
+        secondWorkspaceId,
+        secondPayload,
+        {
+          "X-User-Id": "list-owner",
+        },
+      ),
+      { params: Promise.resolve({ workspaceId: secondWorkspaceId }) },
+    );
+    const firstJson = await readJson(firstPut);
+    await readJson(secondPut);
+    const firstChecksum = (firstJson.data as { checksum: string }).checksum;
+
+    setWorkspaceRecoveryListRouteDependenciesForTests({
+      authVerifier: {
+        async verifyRequest(request) {
+          expect(request.headers.get("authorization")).toBe("Bearer list-token");
+
+          return {
+            email: "list@example.test",
+            id: "list-owner",
+          };
+        },
+      },
+    });
+
+    const response = await getWorkspaceRecoveryList(
+      new Request(
+        `http://localhost/api/v1/workspaces/recovery?localChecksum=${encodeURIComponent(firstChecksum)}`,
+        {
+          headers: {
+            Authorization: "Bearer list-token",
+            "X-User-Id": "spoofed-owner",
+          },
+        },
+      ),
+    );
+    const json = await readJson(response);
+    const items = (json.data as {
+      items: Array<{ isLocalChecksumMatch: boolean; workspaceId: string }>;
+    }).items;
+
+    expect(response.status).toBe(200);
+    expect(json).toMatchObject({
+      data: {
+        localChecksum: firstChecksum,
+        userId: "list-owner",
+      },
+      ok: true,
+    });
+    expect(items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          isLocalChecksumMatch: true,
+          workspaceId: firstWorkspaceId,
+        }),
+        expect.objectContaining({
+          isLocalChecksumMatch: false,
+          workspaceId: secondWorkspaceId,
+        }),
+      ]),
+    );
+  });
+
+  it("rejects workspace recovery list when only X-User-Id is provided", async () => {
+    const response = await getWorkspaceRecoveryList(
+      new Request("http://localhost/api/v1/workspaces/recovery", {
+        headers: {
+          "X-User-Id": "spoofed-owner",
+        },
+      }),
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(401);
+    expect(json).toMatchObject({
+      error: {
+        code: "AUTH_REQUIRED",
+      },
+      ok: false,
+    });
+  });
+
+  it("returns a selected workspace recovery state for the verified user", async () => {
+    const workspaceId = `workspace-selected-${crypto.randomUUID()}`;
+    const payload = makePayload(workspaceId);
+    const put = await putWorkspaceState(
+      makePutRequest(
+        workspaceId,
+        payload,
+        {
+          "X-User-Id": "selected-owner",
+        },
+      ),
+      { params: Promise.resolve({ workspaceId }) },
+    );
+    const putJson = await readJson(put);
+    const checksum = (putJson.data as { checksum: string }).checksum;
+
+    setWorkspaceRecoverySelectionRouteDependenciesForTests({
+      authVerifier: {
+        async verifyRequest(request) {
+          expect(request.headers.get("authorization")).toBe("Bearer selected-token");
+
+          return {
+            email: "selected@example.test",
+            id: "selected-owner",
+          };
+        },
+      },
+    });
+
+    const response = await getSelectedWorkspaceRecovery(
+      new Request(
+        `http://localhost/api/v1/workspaces/recovery/${workspaceId}?localChecksum=${encodeURIComponent(checksum)}&localWorkspaceId=${encodeURIComponent(workspaceId)}`,
+        {
+          headers: {
+            Authorization: "Bearer selected-token",
+            "X-User-Id": "spoofed-owner",
+          },
+        },
+      ),
+      { params: Promise.resolve({ workspaceId }) },
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(200);
+    expect(json).toMatchObject({
+      data: {
+        latest: {
+          checksum,
+          workspaceId,
+        },
+        plan: {
+          action: "skip",
+          reason: "checksum_match",
+          workspaceId,
+        },
+        userId: "selected-owner",
+      },
+      ok: true,
+    });
+  });
+
+  it("ignores selected recovery local context when it belongs to a different workspace", async () => {
+    const workspaceId = `workspace-selected-${crypto.randomUUID()}`;
+    const payload = makePayload(workspaceId);
+    await putWorkspaceState(
+      makePutRequest(
+        workspaceId,
+        payload,
+        {
+          "X-User-Id": "selected-owner",
+        },
+      ),
+      { params: Promise.resolve({ workspaceId }) },
+    );
+
+    setWorkspaceRecoverySelectionRouteDependenciesForTests({
+      authVerifier: {
+        async verifyRequest() {
+          return {
+            email: "selected@example.test",
+            id: "selected-owner",
+          };
+        },
+      },
+    });
+
+    const response = await getSelectedWorkspaceRecovery(
+      new Request(
+        `http://localhost/api/v1/workspaces/recovery/${workspaceId}?localChecksum=${encodeURIComponent("sha256:other-local")}&localUpdatedAt=${encodeURIComponent("2026-05-29T00:00:00.000Z")}&localWorkspaceId=${encodeURIComponent("workspace-other-local")}`,
+        {
+          headers: {
+            Authorization: "Bearer selected-token",
+          },
+        },
+      ),
+      { params: Promise.resolve({ workspaceId }) },
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(200);
+    expect(json).toMatchObject({
+      data: {
+        plan: {
+          action: "hydrate",
+          reason: "local_missing",
+          workspaceId,
+        },
+      },
+      ok: true,
+    });
+  });
+
+  it("keeps selected recovery newer-local conflict for the same workspace id", async () => {
+    const workspaceId = `workspace-selected-${crypto.randomUUID()}`;
+    const payload = makePayload(workspaceId);
+    await putWorkspaceState(
+      makePutRequest(
+        workspaceId,
+        payload,
+        {
+          "X-User-Id": "selected-owner",
+        },
+      ),
+      { params: Promise.resolve({ workspaceId }) },
+    );
+
+    setWorkspaceRecoverySelectionRouteDependenciesForTests({
+      authVerifier: {
+        async verifyRequest() {
+          return {
+            email: "selected@example.test",
+            id: "selected-owner",
+          };
+        },
+      },
+    });
+
+    const response = await getSelectedWorkspaceRecovery(
+      new Request(
+        `http://localhost/api/v1/workspaces/recovery/${workspaceId}?localChecksum=${encodeURIComponent("sha256:newer-local")}&localUpdatedAt=${encodeURIComponent("2026-05-29T00:00:00.000Z")}&localWorkspaceId=${encodeURIComponent(workspaceId)}`,
+        {
+          headers: {
+            Authorization: "Bearer selected-token",
+          },
+        },
+      ),
+      { params: Promise.resolve({ workspaceId }) },
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(200);
+    expect(json).toMatchObject({
+      data: {
+        plan: {
+          action: "conflict",
+          reason: "local_newer",
+          workspaceId,
+        },
       },
       ok: true,
     });

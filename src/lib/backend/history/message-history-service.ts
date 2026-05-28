@@ -4,6 +4,7 @@ import type {
   MessageArchiveRequest,
   MessageArchiveResponse,
   MessageHistoryPageResponse,
+  MessageHistoryRecord,
 } from "@/lib/nexus-types";
 
 import { ApiError } from "../api/api-errors";
@@ -17,8 +18,11 @@ import {
 } from "./agent-memory-record-repository";
 import { isAgentMemoryRecordType } from "./history-constants";
 import {
+  createMessageContentHash,
   createMessageRepository,
+  MessageUpsertConflictError,
   type MessageRepository,
+  type UpsertMessageInput,
 } from "./message-repository";
 import { StoragePartitionService } from "./storage-partition-service";
 
@@ -139,6 +143,98 @@ export class MessageHistoryService {
     };
   }
 
+  async upsertMessage(
+    input: UpsertMessageInput,
+    context: HistoryServiceContext = {},
+  ): Promise<MessageHistoryRecord> {
+    const normalized = this.validateMessage(input);
+    const incomingContentHash = createMessageContentHash(normalized.content);
+    const existing = await this.messages.findById(normalized.id);
+
+    if (existing) {
+      const conflict = getMessageUpsertConflict(
+        existing,
+        normalized,
+        incomingContentHash,
+      );
+
+      if (conflict) {
+        await this.emitHistoryEvent(
+          "history.message.conflicted",
+          {
+            agentId: existing.agentId ?? normalized.agentId,
+            workspaceId: existing.workspaceId,
+          },
+          context,
+          {
+            conflict,
+            existingContentHash:
+              existing.contentHash ?? createMessageContentHash(existing.content),
+            incomingContentHash,
+            messageId: existing.id,
+          },
+          "failed",
+        );
+
+        throw new ApiError(
+          "SYNC_CONFLICT",
+          "Message id already exists with different durable content or identity.",
+          409,
+          {
+            conflict,
+            messageId: normalized.id,
+          },
+        );
+      }
+
+      await this.emitHistoryEvent(
+        "history.message.applied",
+        {
+          agentId: existing.agentId ?? normalized.agentId,
+          workspaceId: existing.workspaceId,
+        },
+        context,
+        {
+          contentLength: existing.content.length,
+          idempotent: true,
+          messageId: existing.id,
+          role: existing.role,
+        },
+      );
+
+      return existing;
+    }
+
+    const saved = await this.messages
+      .upsertMessage({
+        ...normalized,
+        createdBy: context.userId ?? null,
+      })
+      .catch((error) => {
+        if (error instanceof MessageUpsertConflictError) {
+          throw new ApiError(
+            "SYNC_CONFLICT",
+            "Message id already exists with different durable content or identity.",
+            409,
+            error.details,
+          );
+        }
+
+        throw error;
+      });
+
+    await this.emitHistoryEvent("history.message.applied", {
+      agentId: saved.agentId ?? normalized.agentId,
+      workspaceId: saved.workspaceId,
+    }, context, {
+      contentLength: saved.content.length,
+      messageId: saved.id,
+      role: saved.role,
+    });
+
+    return saved;
+  }
+
   async listMemoryRecords(
     input: {
       workspaceId: string;
@@ -209,11 +305,39 @@ export class MessageHistoryService {
     }
   }
 
+  private validateMessage(input: UpsertMessageInput): UpsertMessageInput {
+    const id = input.id.trim();
+    const workspaceId = input.workspaceId.trim();
+    const agentId = input.agentId.trim();
+    const content = input.content;
+
+    if (!id || !workspaceId || !agentId) {
+      throw new ApiError(
+        "VALIDATION_FAILED",
+        "Message id, workspace id, and agent id are required.",
+        400,
+      );
+    }
+
+    if (!["system", "user", "assistant", "tool"].includes(input.role)) {
+      throw new ApiError("VALIDATION_FAILED", "Message role is invalid.", 400);
+    }
+
+    return {
+      ...input,
+      agentId,
+      content,
+      id,
+      workspaceId,
+    };
+  }
+
   private async emitHistoryEvent(
     name: string,
     input: { workspaceId: string; agentId: string },
     context: HistoryServiceContext,
     payload: Record<string, unknown>,
+    status: "succeeded" | "failed" = "succeeded",
   ) {
     try {
       await emitBackendEvent({
@@ -223,7 +347,7 @@ export class MessageHistoryService {
           agentId: input.agentId,
           source: "history",
         },
-        status: "succeeded",
+        status,
         trace: {
           requestId: context.requestId ?? "request-unknown",
           resourceId: input.agentId,
@@ -242,4 +366,21 @@ export class MessageHistoryService {
 
 export function createMessageHistoryService(dependencies?: MessageHistoryServiceDependencies) {
   return new MessageHistoryService(dependencies);
+}
+
+function getMessageUpsertConflict(
+  existing: MessageHistoryRecord,
+  input: UpsertMessageInput,
+  incomingContentHash: string,
+) {
+  const existingContentHash =
+    existing.contentHash ?? createMessageContentHash(existing.content);
+  const conflict = {
+    agent: existing.agentId !== input.agentId,
+    contentHash: existingContentHash !== incomingContentHash,
+    role: existing.role !== input.role,
+    workspace: existing.workspaceId !== input.workspaceId,
+  };
+
+  return Object.values(conflict).some(Boolean) ? conflict : null;
 }

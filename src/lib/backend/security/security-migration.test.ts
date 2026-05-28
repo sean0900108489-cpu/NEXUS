@@ -55,9 +55,22 @@ describe("V1 security migration", () => {
   it("defines non-recursive RLS helper functions with fixed search_path", () => {
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.is_workspace_member");
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.has_workspace_role");
+    expect(migration).toContain("CREATE OR REPLACE FUNCTION private.is_workspace_member");
+    expect(migration).toContain("CREATE OR REPLACE FUNCTION private.has_workspace_role");
     expect(migration).toContain("SECURITY DEFINER");
-    expect(migration).toContain("SET search_path = public");
+    expect(migration).toContain("SECURITY INVOKER");
+    expect(migration).toContain("SET search_path = public, auth");
+    expect(migration).toContain("SET search_path = public, private");
     expect(migration).toContain("auth.uid()");
+    expect(migration).toContain(
+      "REVOKE ALL ON FUNCTION private.is_workspace_member(TEXT) FROM PUBLIC",
+    );
+    expect(migration).toContain(
+      "GRANT EXECUTE ON FUNCTION private.is_workspace_member(TEXT) TO authenticated, service_role",
+    );
+    expect(migration).toContain(
+      "GRANT EXECUTE ON FUNCTION public.is_workspace_member(TEXT) TO authenticated, service_role",
+    );
   });
 });
 

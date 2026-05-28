@@ -12,6 +12,7 @@ import type {
   AgentMemoryBlock,
   NexusWorkspace,
   NotebookRecord,
+  PromptRecord,
   WorkspaceRecoveryStateResponse,
   WorkspaceNotebookRecoveryMetadata,
 } from "@/lib/nexus-types";
@@ -342,6 +343,210 @@ describe("notebook cache hydration", () => {
 
     expect(useNexusStore.getState().notebooksCache).toEqual([local]);
   });
+
+  it("keeps deleted notebooks as local tombstones for export recovery", () => {
+    const workspace = createDefaultWorkspace({
+      id: "workspace-notebook-delete",
+      name: "Notebook Delete",
+      timestamp: "2026-05-28T02:30:00.000Z",
+    });
+    const notebook = createNotebookRecord("notebook-delete-local", {
+      content: "local-only body that should remain recoverable",
+      workspace_id: workspace.id,
+    });
+
+    useNexusStore.setState({
+      activeWorkspaceId: workspace.id,
+      deletedNotebooksCache: [],
+      notebookDrafts: {},
+      notebookWindowLayers: {
+        [notebook.id]: 71,
+      },
+      notebooksCache: [notebook],
+      openNotebookIds: [notebook.id],
+      selectedAgentId: workspace.selectedAgentId,
+      workspaces: [workspace],
+    });
+
+    useNexusStore.getState().saveNotebookDraft(
+      notebook.id,
+      "Unsaved delete title",
+      "unsaved local-only body that should remain recoverable",
+    );
+    useNexusStore.getState().deleteNotebook(notebook.id);
+    const state = useNexusStore.getState();
+    const snapshot = state.exportActiveWorkspace();
+
+    expect(state.notebooksCache).toEqual([]);
+    expect(state.notebookDrafts[notebook.id]).toBeUndefined();
+    expect(state.deletedNotebooksCache[0]).toMatchObject({
+      content: "unsaved local-only body that should remain recoverable",
+      deleted_at: expect.any(String),
+      id: notebook.id,
+      title: "Unsaved delete title",
+      workspace_id: workspace.id,
+    });
+    expect(snapshot.notebooks).toEqual([]);
+    expect(snapshot.deletedNotebooks?.[0]).toMatchObject({
+      content: "unsaved local-only body that should remain recoverable",
+      deleted_at: expect.any(String),
+      id: notebook.id,
+    });
+  });
+
+  it("exports unsaved datapad drafts without marking them synced", () => {
+    const workspace = createDefaultWorkspace({
+      id: "workspace-notebook-draft",
+      name: "Notebook Draft",
+      timestamp: "2026-05-28T02:45:00.000Z",
+    });
+    const notebook = createNotebookRecord("notebook-draft-local", {
+      content: "saved body",
+      title: "Saved title",
+      workspace_id: workspace.id,
+    });
+
+    useNexusStore.setState({
+      activeWorkspaceId: workspace.id,
+      deletedNotebooksCache: [],
+      notebookDrafts: {},
+      notebooksCache: [notebook],
+      selectedAgentId: workspace.selectedAgentId,
+      workspaces: [workspace],
+    });
+
+    useNexusStore.getState().saveNotebookDraft(
+      notebook.id,
+      "Unsaved title",
+      "unsaved body for export recovery",
+    );
+    const snapshot = useNexusStore.getState().exportActiveWorkspace();
+
+    expect(snapshot.notebooks?.[0]).toMatchObject({
+      content: "saved body",
+      title: "Saved title",
+    });
+    expect(snapshot.notebookDrafts?.[0]).toMatchObject({
+      baseUpdatedAt: notebook.updated_at,
+      content: "unsaved body for export recovery",
+      notebookId: notebook.id,
+      title: "Unsaved title",
+      workspaceId: workspace.id,
+    });
+
+    useNexusStore.getState().updateNotebook(
+      notebook.id,
+      "Saved after draft",
+      "durable body after draft",
+    );
+
+    expect(useNexusStore.getState().notebookDrafts[notebook.id]).toBeUndefined();
+  });
+
+  it("keeps global datapads account-scoped instead of active-workspace scoped", () => {
+    const workspace = createDefaultWorkspace({
+      id: "workspace-global-datapad",
+      name: "Global Datapad",
+      timestamp: "2026-05-28T03:15:00.000Z",
+    });
+
+    useNexusStore.setState({
+      activeWorkspaceId: workspace.id,
+      deletedNotebooksCache: [],
+      notebookDrafts: {},
+      notebooksCache: [],
+      selectedAgentId: workspace.selectedAgentId,
+      workspaces: [workspace],
+    });
+
+    const notebookId = useNexusStore.getState().createNotebook();
+    let state = useNexusStore.getState();
+
+    expect(state.notebooksCache[0]).toMatchObject({
+      id: notebookId,
+      workspace_id: null,
+    });
+
+    state.saveNotebookDraft(
+      notebookId,
+      "Global draft title",
+      "global draft body",
+    );
+    expect(useNexusStore.getState().notebookDrafts[notebookId]).toMatchObject({
+      notebookId,
+      workspaceId: null,
+    });
+
+    useNexusStore.getState().updateNotebook(
+      notebookId,
+      "Global saved title",
+      "global saved body",
+    );
+    state = useNexusStore.getState();
+
+    expect(state.notebooksCache[0]).toMatchObject({
+      content: "global saved body",
+      title: "Global saved title",
+      workspace_id: null,
+    });
+
+    state.deleteNotebook(notebookId);
+    state = useNexusStore.getState();
+
+    expect(state.notebooksCache).toEqual([]);
+    expect(state.deletedNotebooksCache[0]).toMatchObject({
+      content: "global saved body",
+      title: "Global saved title",
+      workspace_id: null,
+    });
+    expect(state.exportActiveWorkspace().deletedNotebooks?.[0]).toMatchObject({
+      id: notebookId,
+      workspace_id: null,
+    });
+  });
+});
+
+describe("prompt cache hydration", () => {
+  it("keeps local prompts when a remote fetch omits them", () => {
+    const local = createPromptRecord("prompt-local", {
+      content: "local prompt body",
+      updated_at: "2026-05-28T03:10:00.000Z",
+    });
+    const remote = createPromptRecord("prompt-remote", {
+      content: "remote prompt body",
+      updated_at: "2026-05-28T03:00:00.000Z",
+    });
+
+    useNexusStore.setState({
+      promptsCache: [local],
+    });
+
+    useNexusStore.getState().setPromptsCache([remote]);
+
+    expect(useNexusStore.getState().promptsCache.map((prompt) => prompt.id)).toEqual([
+      local.id,
+      remote.id,
+    ]);
+  });
+
+  it("keeps the newer local prompt over an older remote copy", () => {
+    const local = createPromptRecord("prompt-newer-local", {
+      content: "newer local prompt",
+      updated_at: "2026-05-28T03:20:00.000Z",
+    });
+    const olderRemote = createPromptRecord(local.id, {
+      content: "older remote prompt",
+      updated_at: "2026-05-28T03:00:00.000Z",
+    });
+
+    useNexusStore.setState({
+      promptsCache: [local],
+    });
+
+    useNexusStore.getState().setPromptsCache([olderRemote]);
+
+    expect(useNexusStore.getState().promptsCache).toEqual([local]);
+  });
 });
 
 describe("workspace login recovery", () => {
@@ -470,9 +675,28 @@ function createNotebookRecord(
   return {
     content: "",
     created_at: "2026-05-28T02:00:00.000Z",
+    deleted_at: null,
+    deleted_by: null,
     id,
     title: "Test Datapad",
     updated_at: "2026-05-28T02:00:00.000Z",
+    workspace_id: "workspace-v16-test",
+    ...patch,
+  };
+}
+
+function createPromptRecord(
+  id: string,
+  patch: Partial<PromptRecord> = {},
+): PromptRecord {
+  return {
+    content: "",
+    created_at: "2026-05-28T03:00:00.000Z",
+    deleted_at: null,
+    deleted_by: null,
+    id,
+    title: "Test Prompt",
+    updated_at: "2026-05-28T03:00:00.000Z",
     workspace_id: "workspace-v16-test",
     ...patch,
   };

@@ -423,6 +423,7 @@ export type WorkspaceThemeConfig = {
   radius?: string;
   blur?: string;
   borderWidth?: string;
+  glowIntensity?: string;
   iconWeight?: string;
   fontFamily?: string;
   chatOpacity?: string;

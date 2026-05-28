@@ -257,6 +257,7 @@ type NexusStore = {
   promptsCache: PromptRecord[];
   notebooksCache: NotebookRecord[];
   openNotebookIds: string[];
+  notebookWindowLayers: Record<string, number>;
   transactionHistory: ITransactionLog[];
   branchingStatus: AgentBranchingStatus;
   lastSavedAt?: string;
@@ -306,6 +307,7 @@ type NexusStore = {
   deletePrompt: (id: string) => void;
   setNotebooksCache: (notebooks: NotebookRecord[]) => void;
   toggleNotebookOpen: (id: string) => void;
+  focusNotebookWindow: (id: string) => void;
   createNotebook: () => string;
   updateNotebook: (id: string, title: string, content: string) => void;
   deleteNotebook: (id: string) => void;
@@ -1192,6 +1194,7 @@ export const useNexusStore = create<NexusStore>()(
       promptsCache: [],
       notebooksCache: [],
       openNotebookIds: [],
+      notebookWindowLayers: {},
       transactionHistory: [],
       branchingStatus: "idle",
 
@@ -2211,22 +2214,62 @@ export const useNexusStore = create<NexusStore>()(
       setNotebooksCache: (notebooks) => {
         set((state) => {
           const notebookIds = new Set(notebooks.map((notebook) => notebook.id));
+          const notebookWindowLayers = Object.fromEntries(
+            Object.entries(state.notebookWindowLayers).filter(([id]) =>
+              notebookIds.has(id),
+            ),
+          );
 
           return {
             notebooksCache: sortNotebooks(notebooks),
             openNotebookIds: state.openNotebookIds.filter((id) =>
               notebookIds.has(id),
             ),
+            notebookWindowLayers,
           };
         });
       },
 
       toggleNotebookOpen: (id) => {
-        set((state) => ({
-          openNotebookIds: state.openNotebookIds.includes(id)
-            ? state.openNotebookIds.filter((candidate) => candidate !== id)
-            : [...state.openNotebookIds, id],
-        }));
+        set((state) => {
+          if (state.openNotebookIds.includes(id)) {
+            return {
+              openNotebookIds: state.openNotebookIds.filter(
+                (candidate) => candidate !== id,
+              ),
+              notebookWindowLayers: Object.fromEntries(
+                Object.entries(state.notebookWindowLayers).filter(
+                  ([notebookId]) => notebookId !== id,
+                ),
+              ),
+            };
+          }
+
+          const nextZIndex = state.nextZIndex + 1;
+
+          return {
+            openNotebookIds: [...state.openNotebookIds, id],
+            notebookWindowLayers: {
+              ...state.notebookWindowLayers,
+              [id]: nextZIndex,
+            },
+            nextZIndex,
+          };
+        });
+      },
+
+      focusNotebookWindow: (id) => {
+        set((state) => {
+          const nextZIndex = state.nextZIndex + 1;
+
+          return {
+            notebookWindowLayers: {
+              ...state.notebookWindowLayers,
+              [id]: nextZIndex,
+            },
+            nextZIndex,
+          };
+        });
       },
 
       createNotebook: () => {
@@ -2240,12 +2283,21 @@ export const useNexusStore = create<NexusStore>()(
           updated_at: now,
         };
 
-        set((state) => ({
-          notebooksCache: sortNotebooks([notebook, ...state.notebooksCache]),
-          openNotebookIds: Array.from(
-            new Set([...state.openNotebookIds, notebook.id]),
-          ),
-        }));
+        set((state) => {
+          const nextZIndex = state.nextZIndex + 1;
+
+          return {
+            notebooksCache: sortNotebooks([notebook, ...state.notebooksCache]),
+            openNotebookIds: Array.from(
+              new Set([...state.openNotebookIds, notebook.id]),
+            ),
+            notebookWindowLayers: {
+              ...state.notebookWindowLayers,
+              [notebook.id]: nextZIndex,
+            },
+            nextZIndex,
+          };
+        });
         void supabaseStateSyncManager.upsertNotebook(notebook, notebook.workspace_id ?? undefined).catch((error) => {
           console.error("[Datapad Sync Error]:", error);
         });
@@ -2290,6 +2342,11 @@ export const useNexusStore = create<NexusStore>()(
           ),
           openNotebookIds: state.openNotebookIds.filter(
             (candidate) => candidate !== id,
+          ),
+          notebookWindowLayers: Object.fromEntries(
+            Object.entries(state.notebookWindowLayers).filter(
+              ([notebookId]) => notebookId !== id,
+            ),
           ),
         }));
         void supabaseStateSyncManager.deleteNotebook(id, notebook?.workspace_id ?? getActiveWorkspace(get())?.id).catch((error) => {
@@ -3033,6 +3090,7 @@ export const useNexusStore = create<NexusStore>()(
           historicalMessages: {},
           promptsCache: [],
           branchingStatus: "idle",
+          notebookWindowLayers: {},
           lastSavedAt: new Date().toISOString(),
           lastImportError: undefined,
         });
@@ -3070,6 +3128,7 @@ export const useNexusStore = create<NexusStore>()(
             promptsCache: [],
             notebooksCache: [],
             openNotebookIds: [],
+            notebookWindowLayers: {},
             transactionHistory: [],
             branchingStatus: "idle",
           };
@@ -3108,6 +3167,7 @@ export const useNexusStore = create<NexusStore>()(
             promptsCache: [],
             notebooksCache: sortNotebooks(value.notebooksCache ?? []),
             openNotebookIds: value.openNotebookIds ?? [],
+            notebookWindowLayers: {},
             transactionHistory: (value.transactionHistory ?? []).slice(0, 100),
             branchingStatus: "idle",
           };
@@ -3127,6 +3187,7 @@ export const useNexusStore = create<NexusStore>()(
           promptsCache: [],
           notebooksCache: [],
           openNotebookIds: [],
+          notebookWindowLayers: {},
           transactionHistory: [],
           branchingStatus: "idle",
         };

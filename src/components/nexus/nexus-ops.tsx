@@ -20,6 +20,7 @@ import {
   GitBranch,
   Home,
   Layers3,
+  Lock,
   Maximize2,
   Menu,
   Minimize2,
@@ -39,6 +40,7 @@ import {
   Settings,
   Square,
   Trash2,
+  Unlock,
   Upload,
   Workflow,
   X,
@@ -142,7 +144,8 @@ type AgentHistoricalPage = {
 const LEGO_THEME_DEFAULTS: Required<WorkspaceThemeConfig> = {
   radius: "4px",
   blur: "8px",
-  borderWidth: "1px",
+  borderWidth: "0px",
+  glowIntensity: "28%",
   iconWeight: "2px",
   fontFamily: "var(--font-geist-sans), Arial, Helvetica, sans-serif",
   chatOpacity: "88%",
@@ -152,6 +155,7 @@ const LEGO_THEME_VARIABLES: Record<LegoThemeKey, string> = {
   radius: "--radius-base",
   blur: "--backdrop-blur",
   borderWidth: "--border-width",
+  glowIntensity: "--agent-glow-intensity",
   iconWeight: "--icon-weight",
   fontFamily: "--font-main",
   chatOpacity: "--chat-panel-opacity",
@@ -241,6 +245,7 @@ function normalizeThemeConfig(
   return {
     ...LEGO_THEME_DEFAULTS,
     ...(config ?? {}),
+    borderWidth: LEGO_THEME_DEFAULTS.borderWidth,
   };
 }
 
@@ -273,9 +278,11 @@ function applyLegoThemeConfigToDom(config?: WorkspaceThemeConfig) {
   (Object.entries(LEGO_THEME_VARIABLES) as Array<[LegoThemeKey, string]>).forEach(
     ([key, variable]) => {
       const value = config[key];
+      const nextValue =
+        key === "borderWidth" ? LEGO_THEME_DEFAULTS.borderWidth : value;
 
-      if (typeof value === "string" && value.trim()) {
-        rootStyle.setProperty(variable, value);
+      if (typeof nextValue === "string" && nextValue.trim()) {
+        rootStyle.setProperty(variable, nextValue);
       } else {
         rootStyle.removeProperty(variable);
       }
@@ -297,8 +304,11 @@ function readLegoThemeConfigFromDom(
   return {
     radius: config?.radius || fromDom("radius") || LEGO_THEME_DEFAULTS.radius,
     blur: config?.blur || fromDom("blur") || LEGO_THEME_DEFAULTS.blur,
-    borderWidth:
-      config?.borderWidth || fromDom("borderWidth") || LEGO_THEME_DEFAULTS.borderWidth,
+    borderWidth: LEGO_THEME_DEFAULTS.borderWidth,
+    glowIntensity:
+      config?.glowIntensity ||
+      fromDom("glowIntensity") ||
+      LEGO_THEME_DEFAULTS.glowIntensity,
     iconWeight:
       config?.iconWeight || fromDom("iconWeight") || LEGO_THEME_DEFAULTS.iconWeight,
     fontFamily: normalizeTypographyValue(
@@ -3438,7 +3448,7 @@ function LegoThemeEngineControls({
             Live Token Preview
           </span>
           <span>
-            {localConfig.radius} / {localConfig.blur}
+            {localConfig.radius} / {localConfig.blur} / {localConfig.glowIntensity}
           </span>
         </div>
         <button
@@ -3464,10 +3474,11 @@ function LegoThemeEngineControls({
           max: 32,
         })}
         {rangeControl({
-          key: "borderWidth",
-          label: "Border Width",
+          key: "glowIntensity",
+          label: "Agent Glow",
           min: 0,
-          max: 4,
+          max: 100,
+          unit: "%",
         })}
         {rangeControl({
           key: "chatOpacity",
@@ -3682,11 +3693,13 @@ function AgentWindow({
   const [draft, setDraft] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sandboxEditorCollapsed, setSandboxEditorCollapsed] = useState(false);
+  const [sandboxInteractionLocked, setSandboxInteractionLocked] = useState(false);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const capabilityType = getCapabilityType(agent);
   const isMediaAgent = isMediaCapability(capabilityType);
   const isSandboxAgent = isSandboxCapability(capabilityType);
+  const windowInteractionLocked = isSandboxAgent && sandboxInteractionLocked;
   const renderedMessages = useMemo(() => {
     const activeIds = new Set(agent.messages.map((message) => message.id));
     const historical = (historicalPage?.items ?? [])
@@ -3760,20 +3773,33 @@ function AgentWindow({
     setDraft("");
     composerRef.current?.focus();
   };
+  const agentGlowColor = `color-mix(in srgb, ${agent.accent} var(--agent-glow-intensity), transparent)`;
 
   return (
     <Rnd
       bounds="parent"
       className="absolute"
-      disableDragging={agent.maximized}
+      disableDragging={agent.maximized || windowInteractionLocked}
       dragHandleClassName="nexus-drag-handle"
-      enableResizing={!agent.maximized}
+      enableResizing={!agent.maximized && !windowInteractionLocked}
       minHeight={360}
       minWidth={390}
-      onDragStart={() => onFocus(agent.id)}
+      onDragStart={() => {
+        if (!windowInteractionLocked) {
+          onFocus(agent.id);
+        }
+      }}
       onDragStop={onDragStop}
-      onMouseDown={() => onFocus(agent.id)}
-      onResizeStart={() => onFocus(agent.id)}
+      onMouseDown={() => {
+        if (!windowInteractionLocked) {
+          onFocus(agent.id);
+        }
+      }}
+      onResizeStart={() => {
+        if (!windowInteractionLocked) {
+          onFocus(agent.id);
+        }
+      }}
       onResizeStop={onResizeStop}
       position={{ x: agent.layout.x, y: agent.layout.y }}
       size={{ width: agent.layout.width, height: agent.layout.height }}
@@ -3802,8 +3828,8 @@ function AgentWindow({
           boxShadow: isSandboxAgent
             ? "0 20px 60px rgba(0,0,0,0.32)"
             : selected
-              ? `0 0 34px ${agent.accent}28, 0 22px 70px rgba(0,0,0,0.45)`
-              : `0 0 15px ${agent.accent}22, 0 22px 70px rgba(0,0,0,0.38)`,
+              ? `0 0 42px ${agentGlowColor}, 0 22px 70px rgba(0,0,0,0.45)`
+              : `0 0 24px ${agentGlowColor}, 0 22px 70px rgba(0,0,0,0.38)`,
         }}
         transition={{ duration: 0.18 }}
       >
@@ -3811,9 +3837,7 @@ function AgentWindow({
           aria-label={`${agent.callsign} drag handle`}
           className="nexus-drag-handle h-2 shrink-0 cursor-move"
           style={{
-            background: isSandboxAgent
-              ? "transparent"
-              : `linear-gradient(90deg, ${agent.accent}, ${agent.accent}55, transparent)`,
+            background: "transparent",
             borderTopLeftRadius: "var(--surface-radius)",
             borderTopRightRadius: "var(--surface-radius)",
           }}
@@ -3843,6 +3867,12 @@ function AgentWindow({
               : undefined
           }
           sandboxEditorCollapsed={sandboxEditorCollapsed}
+          sandboxInteractionLocked={sandboxInteractionLocked}
+          onToggleSandboxInteractionLock={
+            isSandboxAgent
+              ? () => setSandboxInteractionLocked((current) => !current)
+              : undefined
+          }
           onStop={() => onStop(agent.id)}
           onToggleMaximize={() => onToggleMaximize(agent.id)}
           promptsCache={promptsCache}
@@ -3854,6 +3884,7 @@ function AgentWindow({
             <SandboxCanvas
               agent={agent}
               editorCollapsed={sandboxEditorCollapsed}
+              interactionLocked={sandboxInteractionLocked}
               onUpdateSandboxCode={onUpdateSandboxCode}
               onUpdateSandboxUrl={onUpdateSandboxUrl}
             />
@@ -3936,11 +3967,13 @@ function AgentWindow({
 function SandboxCanvas({
   agent,
   editorCollapsed,
+  interactionLocked,
   onUpdateSandboxCode,
   onUpdateSandboxUrl,
 }: {
   agent: NexusAgent;
   editorCollapsed: boolean;
+  interactionLocked: boolean;
   onUpdateSandboxCode: (agentId: string, sandboxCode: string) => void;
   onUpdateSandboxUrl: (agentId: string, sandboxUrl: string) => void;
 }) {
@@ -4029,7 +4062,7 @@ function SandboxCanvas({
     <div
       ref={containerRef}
       className={cx(
-        "flex min-h-0 flex-1 gap-0 bg-transparent",
+        "relative flex min-h-0 flex-1 gap-0 bg-transparent",
         resizing && "cursor-col-resize select-none",
       )}
     >
@@ -4056,6 +4089,7 @@ function SandboxCanvas({
                 autoCapitalize="none"
                 className="min-w-0 flex-1 bg-transparent font-mono text-[11px] text-slate-100 outline-none placeholder:text-slate-600"
                 inputMode="url"
+                disabled={interactionLocked}
                 onBlur={() => commitSandboxUrl()}
                 onChange={(event) => {
                   const nextValue = event.target.value;
@@ -4083,6 +4117,7 @@ function SandboxCanvas({
           <textarea
             aria-label={`${agent.callsign} sandbox code`}
             className="cyber-scroll min-h-0 flex-1 resize-none border-0 bg-transparent px-4 pb-4 pt-2 font-mono text-xs leading-5 text-slate-100 outline-none placeholder:text-slate-600 focus:bg-white/[0.02]"
+            disabled={interactionLocked}
             onChange={(event) => onUpdateSandboxCode(agent.id, event.target.value)}
             spellCheck={false}
             value={code}
@@ -4164,7 +4199,7 @@ function SandboxCanvas({
             sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-presentation"
             src={embeddablePreviewUrl || undefined}
             srcDoc={embeddablePreviewUrl ? undefined : code}
-            style={{ pointerEvents: resizing ? "none" : "auto" }}
+            style={{ pointerEvents: resizing || interactionLocked ? "none" : "auto" }}
             title={
               externalPreviewUrl
                 ? `${agent.callsign} external sandbox preview`
@@ -4173,6 +4208,21 @@ function SandboxCanvas({
           />
         )}
       </section>
+
+      {interactionLocked ? (
+        <div
+          aria-label={`${agent.callsign} sandbox interactions locked`}
+          className="nexus-sandbox-lock-overlay absolute inset-0 z-30 flex items-end justify-end bg-black/[0.01] p-3"
+          onClick={(event) => event.stopPropagation()}
+          onMouseDown={(event) => event.stopPropagation()}
+          onPointerDown={(event) => event.stopPropagation()}
+          onTouchStart={(event) => event.stopPropagation()}
+        >
+          <div className="pointer-events-none grid h-8 w-8 place-items-center border border-cyan-300/24 bg-slate-950/58 text-cyan-100/75 shadow-[0_10px_24px_rgba(0,0,0,0.3)] backdrop-blur-md">
+            <Lock className="h-3.5 w-3.5" />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -4193,6 +4243,8 @@ function AgentActionToolbar({
   onSaveSandboxArtifact,
   onToggleSandboxEditor,
   sandboxEditorCollapsed,
+  sandboxInteractionLocked,
+  onToggleSandboxInteractionLock,
   onStop,
   onToggleMaximize,
   promptsCache,
@@ -4213,6 +4265,8 @@ function AgentActionToolbar({
   onSaveSandboxArtifact?: () => void;
   onToggleSandboxEditor?: () => void;
   sandboxEditorCollapsed?: boolean;
+  sandboxInteractionLocked?: boolean;
+  onToggleSandboxInteractionLock?: () => void;
   onStop: () => void;
   onToggleMaximize: () => void;
   promptsCache: PromptRecord[];
@@ -4296,6 +4350,8 @@ function AgentActionToolbar({
 
     void navigator.clipboard?.writeText(latestResponse).catch(() => undefined);
   };
+  const railUnlockActive =
+    isSandboxAgent && Boolean(sandboxInteractionLocked && onToggleSandboxInteractionLock);
 
   return (
     <div
@@ -4310,19 +4366,44 @@ function AgentActionToolbar({
     >
       <button
         aria-expanded={expanded || vaultOpen || intelOpen}
-        aria-label="Expand agent action toolbar"
-        className="grid h-12 w-3 place-items-center border border-white/10 bg-black/70 text-slate-400 backdrop-blur transition hover:border-cyan-300/40 hover:text-cyan-100"
-        onClick={() => setExpanded((current) => !current)}
+        aria-label={
+          railUnlockActive ? "Unlock sandbox interactions" : "Expand agent action toolbar"
+        }
+        className={cx(
+          "relative z-50 grid h-12 place-items-center border bg-black/70 backdrop-blur transition hover:border-cyan-300/40 hover:text-cyan-100",
+          railUnlockActive ? "w-7" : "w-3",
+          railUnlockActive
+            ? "border-cyan-300/45 text-cyan-100"
+            : "border-white/10 text-slate-400",
+        )}
+        onClick={() => {
+          if (railUnlockActive) {
+            onToggleSandboxInteractionLock?.();
+            setExpanded(false);
+            setVaultOpen(false);
+            setIntelOpen(false);
+            return;
+          }
+
+          setExpanded((current) => !current);
+        }}
         type="button"
       >
-        <ChevronLeft className="h-3 w-3" />
+        {railUnlockActive ? (
+          <Unlock className="h-3 w-3" />
+        ) : (
+          <ChevronLeft className="h-3 w-3" />
+        )}
       </button>
 
       <AnimatePresence>
         {(expanded || vaultOpen || intelOpen) && (
           <motion.div
             animate={{ opacity: 1, x: 0 }}
-            className="absolute right-0 top-0 flex flex-col gap-1 border border-white/10 bg-slate-950/92 p-1 shadow-[0_18px_44px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+            className={cx(
+              "absolute top-0 z-40 flex flex-col gap-1 border border-white/10 bg-slate-950/92 p-1 shadow-[0_18px_44px_rgba(0,0,0,0.45)] backdrop-blur-xl",
+              railUnlockActive ? "right-8" : "right-0",
+            )}
             exit={{ opacity: 0, x: 8 }}
             initial={{ opacity: 0, x: 8 }}
             transition={{ duration: 0.12 }}
@@ -4347,6 +4428,23 @@ function AgentActionToolbar({
                   <PanelLeftOpen className="h-3.5 w-3.5" />
                 ) : (
                   <PanelLeftClose className="h-3.5 w-3.5" />
+                )}
+              </ToolbarIconButton>
+            ) : null}
+            {isSandboxAgent && onToggleSandboxInteractionLock ? (
+              <ToolbarIconButton
+                active={sandboxInteractionLocked}
+                label={
+                  sandboxInteractionLocked
+                    ? "Unlock sandbox interactions"
+                    : "Lock sandbox interactions"
+                }
+                onClick={onToggleSandboxInteractionLock}
+              >
+                {sandboxInteractionLocked ? (
+                  <Unlock className="h-3.5 w-3.5" />
+                ) : (
+                  <Lock className="h-3.5 w-3.5" />
                 )}
               </ToolbarIconButton>
             ) : null}

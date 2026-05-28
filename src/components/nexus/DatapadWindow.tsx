@@ -15,7 +15,11 @@ export function DatapadWindow({ notebookId }: { notebookId: string }) {
     state.notebooksCache.find((candidate) => candidate.id === notebookId),
   );
   const openNotebookIds = useNexusStore((state) => state.openNotebookIds);
+  const zIndex = useNexusStore(
+    (state) => state.notebookWindowLayers[notebookId] ?? state.nextZIndex,
+  );
   const toggleNotebookOpen = useNexusStore((state) => state.toggleNotebookOpen);
+  const focusNotebookWindow = useNexusStore((state) => state.focusNotebookWindow);
   const updateNotebook = useNexusStore((state) => state.updateNotebook);
   const deleteNotebook = useNexusStore((state) => state.deleteNotebook);
   const windowIndex = Math.max(0, openNotebookIds.indexOf(notebookId));
@@ -51,6 +55,10 @@ export function DatapadWindow({ notebookId }: { notebookId: string }) {
     return () => window.clearTimeout(timeoutId);
   }, [saved]);
 
+  useEffect(() => {
+    focusNotebookWindow(notebookId);
+  }, [focusNotebookWindow, notebookId]);
+
   if (!notebook) {
     return null;
   }
@@ -59,17 +67,22 @@ export function DatapadWindow({ notebookId }: { notebookId: string }) {
     updateNotebook(notebook.id, titleDraft, contentDraft);
     setSaved(true);
   };
+  const bringToFront = () => focusNotebookWindow(notebook.id);
 
   return (
     <Rnd
       bounds="parent"
-      className="z-[95]"
+      className="absolute"
       default={defaultFrame}
       dragHandleClassName="datapad-drag-handle"
       minHeight={260}
       minWidth={320}
+      onDragStart={bringToFront}
+      onMouseDown={bringToFront}
+      onTouchStart={bringToFront}
+      style={{ zIndex }}
     >
-      <section className="flex h-full min-h-0 flex-col overflow-hidden border border-emerald-300/30 bg-slate-950/94 text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.55),0_0_34px_rgba(16,185,129,0.14)] backdrop-blur-xl">
+      <section className="nexus-datapad-window flex h-full min-h-0 flex-col overflow-hidden border border-emerald-300/30 bg-slate-950/94 text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.55),0_0_34px_rgba(16,185,129,0.14)] backdrop-blur-xl">
         <header className="datapad-drag-handle flex h-12 shrink-0 cursor-move items-center gap-2 border-b border-emerald-300/15 bg-emerald-300/[0.045] px-3">
           <input
             aria-label="Datapad title"

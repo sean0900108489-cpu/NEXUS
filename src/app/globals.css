@@ -24,7 +24,8 @@
   --shadow-glow: 0 0 32px rgb(34 211 238 / 0.18);
   --radius-base: 4px;
   --backdrop-blur: 8px;
-  --border-width: 1px;
+  --border-width: 0px;
+  --agent-glow-intensity: 28%;
   --icon-weight: 2px;
   --font-main: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   --chat-panel-opacity: 88%;
@@ -63,7 +64,8 @@
   --shadow-glow: 0 16px 38px rgb(0 0 0 / 0.08);
   --radius-base: 8px;
   --backdrop-blur: 22px;
-  --border-width: 1px;
+  --border-width: 0px;
+  --agent-glow-intensity: 28%;
   --icon-weight: 1.75px;
   --font-main: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   --chat-panel-opacity: 82%;
@@ -102,7 +104,8 @@
   --shadow-glow: 0 0 0 transparent;
   --radius-base: 0px;
   --backdrop-blur: 8px;
-  --border-width: 1px;
+  --border-width: 0px;
+  --agent-glow-intensity: 28%;
   --icon-weight: 2px;
   --font-main: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   --chat-panel-opacity: 90%;
@@ -144,7 +147,8 @@
   --shadow-glow: 0 0 30px rgb(0 255 204 / 0.2);
   --radius-base: 0px;
   --backdrop-blur: 26px;
-  --border-width: 1px;
+  --border-width: 0px;
+  --agent-glow-intensity: 28%;
   --icon-weight: 2px;
   --font-main: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   --chat-panel-opacity: 72%;
@@ -302,9 +306,11 @@ button {
     .nexus-panel,
     .nexus-glass,
     .nexus-agent-window,
+    .nexus-datapad-window,
     .nexus-workspace,
     .nexus-agent-node,
     .nexus-message-bubble,
+    .nexus-sandbox-lock-overlay,
     .react-flow__controls,
     .react-flow__controls-button,
     .react-flow__minimap,
@@ -334,8 +340,10 @@ button {
     .nexus-panel,
     .nexus-glass,
     .nexus-agent-window,
+    .nexus-datapad-window,
     .nexus-agent-node,
     .nexus-message-bubble,
+    .nexus-sandbox-lock-overlay,
     .react-flow__controls,
     .react-flow__controls-button,
     .react-flow__minimap,
@@ -354,6 +362,7 @@ button {
     .nexus-panel,
     .nexus-glass,
     .nexus-agent-window,
+    .nexus-datapad-window,
     .react-flow__controls,
     .react-flow__minimap
   ) {
@@ -393,6 +402,19 @@ button {
 .nexus-agent-window > .nexus-drag-handle {
   border-top-left-radius: var(--surface-radius);
   border-top-right-radius: var(--surface-radius);
+}
+
+.nexus-datapad-window {
+  border-radius: var(--surface-radius);
+}
+
+.nexus-datapad-window > .datapad-drag-handle {
+  border-top-left-radius: var(--surface-radius);
+  border-top-right-radius: var(--surface-radius);
+}
+
+.nexus-sandbox-lock-overlay {
+  border-radius: max(0px, calc(var(--surface-radius) - var(--border-width)));
 }
 
 svg.lucide {

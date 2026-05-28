@@ -32,11 +32,16 @@ const WORKSPACE_ID_PATTERN = /^workspace[-_][A-Za-z0-9_-]{3,96}$/;
 
 class LocalWorkspaceMembershipStore implements WorkspaceMembershipStore {
   async findByWorkspaceAndUser(workspaceId: string, userId: string) {
-    if (process.env.NODE_ENV === "production") {
+    if (!workspaceId || !userId) {
       return null;
     }
 
-    if (!workspaceId || !userId) {
+    // Production deployments without a service-role key use in-memory backend
+    // repositories; keep that fallback scoped to authenticated local-first IDs.
+    if (
+      process.env.NODE_ENV === "production" &&
+      !canUseEphemeralWorkspaceMembership(workspaceId, userId)
+    ) {
       return null;
     }
 
@@ -194,6 +199,13 @@ export function createWorkspaceStatePermissionService() {
 }
 
 function canBootstrapWorkspaceMembership(workspaceId: string, userId: string) {
+  return (
+    UUID_PATTERN.test(userId) &&
+    (UUID_PATTERN.test(workspaceId) || WORKSPACE_ID_PATTERN.test(workspaceId))
+  );
+}
+
+function canUseEphemeralWorkspaceMembership(workspaceId: string, userId: string) {
   return (
     UUID_PATTERN.test(userId) &&
     (UUID_PATTERN.test(workspaceId) || WORKSPACE_ID_PATTERN.test(workspaceId))

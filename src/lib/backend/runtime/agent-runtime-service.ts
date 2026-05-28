@@ -203,22 +203,47 @@ export class AgentRuntimeService {
     let sessionReused = false;
 
     if (input.taskId) {
-      task = await this.requireTask(input.taskId);
-      this.assertTaskScope(task, {
-        agentId: input.agentId,
-        taskId: input.taskId,
-        workspaceId: input.workspaceId,
-      });
-      session = await this.requireSessionForTask(task, {
-        agentId: input.agentId,
-        model: input.model,
-        provider: input.provider,
-        sessionId: input.sessionId,
-        userId,
-        workspaceId: input.workspaceId,
-      });
-      if (isTerminalAgentTaskStatus(task.status)) {
-        throw new ApiError("VALIDATION_FAILED", "Terminal agent tasks cannot be streamed.", 409);
+      try {
+        task = await this.requireTask(input.taskId);
+        this.assertTaskScope(task, {
+          agentId: input.agentId,
+          taskId: input.taskId,
+          workspaceId: input.workspaceId,
+        });
+        session = await this.requireSessionForTask(task, {
+          agentId: input.agentId,
+          model: input.model,
+          provider: input.provider,
+          sessionId: input.sessionId,
+          userId,
+          workspaceId: input.workspaceId,
+        });
+        if (isTerminalAgentTaskStatus(task.status)) {
+          throw new ApiError("VALIDATION_FAILED", "Terminal agent tasks cannot be streamed.", 409);
+        }
+      } catch (error) {
+        if (!isApiErrorCode(error, "AGENT_TASK_NOT_FOUND")) {
+          throw error;
+        }
+
+        const created = await this.createTask(
+          input.agentId,
+          {
+            metadata: input.metadata,
+            model: input.model,
+            outputMessageId: input.outputMessageId,
+            provider: input.provider,
+            taskType: "chat",
+            workspaceId: input.workspaceId,
+          },
+          context,
+          {
+            skipPermissionCheck: true,
+          },
+        );
+        task = created.task;
+        session = created.session;
+        sessionReused = created.sessionReused;
       }
     } else {
       const created = await this.createTask(
@@ -566,6 +591,10 @@ export function createAgentRuntimeService() {
 
 function numberOrNull(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function isApiErrorCode(error: unknown, code: string) {
+  return error instanceof ApiError && error.code === code;
 }
 
 function stringOrNull(value: unknown) {

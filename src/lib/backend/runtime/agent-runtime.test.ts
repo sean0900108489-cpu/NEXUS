@@ -204,6 +204,30 @@ describe("AgentRuntimeService", () => {
     expect(result.task.status).toBe("streaming");
   });
 
+  it("replaces missing precreated tasks when streaming from an ephemeral runtime store", async () => {
+    const repository = new InMemoryAgentRuntimeRepository();
+    const service = new AgentRuntimeService({ repository });
+
+    const result = await service.prepareStreamTask(
+      {
+        agentId: "agent-a",
+        model: "gpt-4o-mini",
+        outputMessageId: "message-output",
+        provider: "openai-compatible",
+        sessionId: "session-missing",
+        taskId: "00000000-0000-4000-8000-000000000404",
+        workspaceId: "workspace-runtime",
+      },
+      {
+        userId: "local-owner",
+      },
+    );
+
+    expect(result.task.id).not.toBe("00000000-0000-4000-8000-000000000404");
+    expect(result.task.outputMessageId).toBe("message-output");
+    expect(result.task.status).toBe("streaming");
+  });
+
   it("records only milestone events and sanitizes event payload secrets", async () => {
     const repository = new InMemoryAgentRuntimeRepository();
     const service = new AgentRuntimeService({ repository });

@@ -26,6 +26,8 @@ import {
   PanelRight,
   Pencil,
   PackageCheck,
+  PanelLeftClose,
+  PanelLeftOpen,
   Plus,
   RadioTower,
   RefreshCcw,
@@ -127,7 +129,6 @@ const EMPTY_AGENTS: NexusAgent[] = [];
 const EMPTY_GRAPH = { nodes: [], edges: [] };
 const SANDBOX_MIN_SPLIT = 20;
 const SANDBOX_MAX_SPLIT = 80;
-const SANDBOX_COLLAPSED_WIDTH = 46;
 
 type LegoThemeKey = keyof WorkspaceThemeConfig;
 type AgentHistoricalPage = {
@@ -3680,6 +3681,7 @@ function AgentWindow({
 }) {
   const [draft, setDraft] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sandboxEditorCollapsed, setSandboxEditorCollapsed] = useState(false);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const capabilityType = getCapabilityType(agent);
@@ -3779,19 +3781,29 @@ function AgentWindow({
     >
       <motion.section
         animate={{ opacity: 1, scale: 1 }}
-        className="nexus-agent-window relative flex h-full min-h-0 flex-col overflow-visible border-2 bg-slate-950/88 shadow-[0_22px_70px_rgba(0,0,0,0.45)]"
+        className={cx(
+          "nexus-agent-window relative flex h-full min-h-0 flex-col overflow-visible bg-slate-950/88 shadow-[0_22px_70px_rgba(0,0,0,0.45)]",
+          isSandboxAgent ? "border-0" : "border-2",
+        )}
         exit={{ opacity: 0, scale: 0.96 }}
         initial={{ opacity: 0, scale: 0.96 }}
         style={{
           WebkitBackdropFilter: "blur(var(--glass-blur))",
           backdropFilter: "blur(var(--glass-blur))",
-          background:
-            "color-mix(in srgb, var(--bg-elevated) var(--chat-panel-opacity), transparent)",
+          background: isSandboxAgent
+            ? "color-mix(in srgb, var(--bg-elevated) 72%, transparent)"
+            : "color-mix(in srgb, var(--bg-elevated) var(--chat-panel-opacity), transparent)",
           borderRadius: "var(--surface-radius)",
-          borderColor: selected ? `${agent.accent}f2` : `${agent.accent}99`,
-          boxShadow: selected
-            ? `0 0 34px ${agent.accent}28, 0 22px 70px rgba(0,0,0,0.45)`
-            : `0 0 15px ${agent.accent}22, 0 22px 70px rgba(0,0,0,0.38)`,
+          borderColor: isSandboxAgent
+            ? "transparent"
+            : selected
+              ? `${agent.accent}f2`
+              : `${agent.accent}99`,
+          boxShadow: isSandboxAgent
+            ? "0 20px 60px rgba(0,0,0,0.32)"
+            : selected
+              ? `0 0 34px ${agent.accent}28, 0 22px 70px rgba(0,0,0,0.45)`
+              : `0 0 15px ${agent.accent}22, 0 22px 70px rgba(0,0,0,0.38)`,
         }}
         transition={{ duration: 0.18 }}
       >
@@ -3799,7 +3811,9 @@ function AgentWindow({
           aria-label={`${agent.callsign} drag handle`}
           className="nexus-drag-handle h-2 shrink-0 cursor-move"
           style={{
-            background: `linear-gradient(90deg, ${agent.accent}, ${agent.accent}55, transparent)`,
+            background: isSandboxAgent
+              ? "transparent"
+              : `linear-gradient(90deg, ${agent.accent}, ${agent.accent}55, transparent)`,
             borderTopLeftRadius: "var(--surface-radius)",
             borderTopRightRadius: "var(--surface-radius)",
           }}
@@ -3818,6 +3832,17 @@ function AgentWindow({
           onNewReply={startNewReply}
           onOpenBranchInterface={() => onOpenBranchInterface(agent.id)}
           onOpenVaultManager={onOpenVaultManager}
+          onSaveSandboxArtifact={
+            isSandboxAgent
+              ? () => onSaveArtifact(agent.id, agent.sandboxCode ?? DEFAULT_SANDBOX_CODE)
+              : undefined
+          }
+          onToggleSandboxEditor={
+            isSandboxAgent
+              ? () => setSandboxEditorCollapsed((current) => !current)
+              : undefined
+          }
+          sandboxEditorCollapsed={sandboxEditorCollapsed}
           onStop={() => onStop(agent.id)}
           onToggleMaximize={() => onToggleMaximize(agent.id)}
           promptsCache={promptsCache}
@@ -3828,7 +3853,7 @@ function AgentWindow({
           {isSandboxAgent ? (
             <SandboxCanvas
               agent={agent}
-              onSaveArtifact={onSaveArtifact}
+              editorCollapsed={sandboxEditorCollapsed}
               onUpdateSandboxCode={onUpdateSandboxCode}
               onUpdateSandboxUrl={onUpdateSandboxUrl}
             />
@@ -3910,26 +3935,22 @@ function AgentWindow({
 
 function SandboxCanvas({
   agent,
-  onSaveArtifact,
+  editorCollapsed,
   onUpdateSandboxCode,
   onUpdateSandboxUrl,
 }: {
   agent: NexusAgent;
-  onSaveArtifact: (agentId: string, content: string) => void;
+  editorCollapsed: boolean;
   onUpdateSandboxCode: (agentId: string, sandboxCode: string) => void;
   onUpdateSandboxUrl: (agentId: string, sandboxUrl: string) => void;
 }) {
   const code = agent.sandboxCode ?? DEFAULT_SANDBOX_CODE;
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sandboxUrlInputRef = useRef<HTMLInputElement | null>(null);
-  const [splitPercent, setSplitPercent] = useState(50);
+  const [splitPercent, setSplitPercent] = useState(42);
   const [resizing, setResizing] = useState(false);
-  const [codeCollapsed, setCodeCollapsed] = useState(false);
-  const [previewCollapsed, setPreviewCollapsed] = useState(false);
   const [sandboxUrlDraft, setSandboxUrlDraft] = useState(agent.sandboxUrl ?? "");
   const [sandboxUrlError, setSandboxUrlError] = useState<string | undefined>();
-  const bothCollapsed = codeCollapsed && previewCollapsed;
-  const showDivider = !codeCollapsed && !previewCollapsed;
   const externalPreviewUrl = normalizeSandboxUrl(agent.sandboxUrl ?? "");
   const embeddablePreviewUrl = externalPreviewUrl
     ? getEmbeddableUrl(externalPreviewUrl)
@@ -4001,80 +4022,79 @@ function SandboxCanvas({
     };
   }, [resizing, updateSplitFromClientX]);
 
-  const codePaneStyle = bothCollapsed
-    ? { flex: "1 1 0" }
-    : codeCollapsed
-      ? { flex: `0 0 ${SANDBOX_COLLAPSED_WIDTH}px` }
-      : previewCollapsed
-        ? { flex: "1 1 0" }
-        : { flex: `0 0 ${splitPercent}%` };
-  const previewPaneStyle = bothCollapsed
-    ? { flex: "1 1 0" }
-    : previewCollapsed
-      ? { flex: `0 0 ${SANDBOX_COLLAPSED_WIDTH}px` }
-      : codeCollapsed
-        ? { flex: "1 1 0" }
-        : { flex: "1 1 0" };
+  const codePaneStyle = { flex: `0 0 ${splitPercent}%` };
+  const previewPaneStyle = { flex: "1 1 0" };
 
   return (
     <div
       ref={containerRef}
       className={cx(
-        "flex min-h-0 flex-1 gap-0 border-t border-white/5 bg-black/10 p-3",
+        "flex min-h-0 flex-1 gap-0 bg-transparent",
         resizing && "cursor-col-resize select-none",
       )}
     >
-      <section
-        className={cx(
-          "flex min-h-0 min-w-0 flex-col overflow-hidden border border-cyan-300/20 bg-slate-950/80 shadow-[0_0_34px_rgba(34,211,238,0.08)]",
-          codeCollapsed && "shrink-0",
-        )}
-        style={codePaneStyle}
-      >
-        {codeCollapsed ? (
-          <SandboxCollapsedPane
-            label="Code"
-            onExpand={() => setCodeCollapsed(false)}
-            side="left"
-            tone="cyan"
-          />
-        ) : (
-          <>
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-cyan-300/15 bg-cyan-300/[0.045] px-3 py-2">
-              <div className="min-w-0 truncate font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
-                Code Area
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <span className="hidden border border-cyan-300/25 bg-cyan-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em] text-cyan-100 sm:inline-flex">
-                  HTML / CSS / JS
-                </span>
-                <button
-                  aria-label="Collapse code area"
-                  className="grid h-7 w-7 place-items-center border border-cyan-300/25 bg-cyan-300/10 text-cyan-100 transition hover:bg-cyan-300/20"
-                  onClick={() => setCodeCollapsed(true)}
-                  title="Collapse code area"
-                  type="button"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-            <textarea
-              aria-label={`${agent.callsign} sandbox code`}
-              className="cyber-scroll min-h-0 flex-1 resize-none border-0 bg-black/45 p-4 font-mono text-xs leading-5 text-slate-100 outline-none placeholder:text-slate-600 focus:bg-black/55"
-              onChange={(event) => onUpdateSandboxCode(agent.id, event.target.value)}
-              spellCheck={false}
-              value={code}
-            />
-          </>
-        )}
-      </section>
+      {!editorCollapsed ? (
+        <section
+          className="flex min-h-0 min-w-[220px] flex-col overflow-hidden bg-black/24"
+          style={codePaneStyle}
+        >
+          <form
+            className="shrink-0 px-3 pb-2 pt-3"
+            onSubmit={commitSandboxUrl}
+          >
+            <div
+              className={cx(
+                "flex h-9 items-center gap-2 bg-white/[0.045] px-3 outline outline-1 transition focus-within:bg-white/[0.07]",
+                sandboxUrlError
+                  ? "outline-rose-300/40"
+                  : "outline-white/[0.055] focus-within:outline-white/20",
+              )}
+            >
+              <RadioTower className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+              <input
+                aria-label={`${agent.callsign} sandbox preview URL`}
+                autoCapitalize="none"
+                className="min-w-0 flex-1 bg-transparent font-mono text-[11px] text-slate-100 outline-none placeholder:text-slate-600"
+                inputMode="url"
+                onBlur={() => commitSandboxUrl()}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
 
-      {showDivider && (
+                  setSandboxUrlDraft(nextValue);
+                  setSandboxUrlError(undefined);
+
+                  if (!nextValue.trim()) {
+                    onUpdateSandboxUrl(agent.id, "");
+                  }
+                }}
+                placeholder="URL or blank for HTML / CSS / JS"
+                ref={sandboxUrlInputRef}
+                spellCheck={false}
+                type="text"
+                value={sandboxUrlDraft}
+              />
+            </div>
+            {sandboxUrlError ? (
+              <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.14em] text-rose-200">
+                {sandboxUrlError}
+              </div>
+            ) : null}
+          </form>
+          <textarea
+            aria-label={`${agent.callsign} sandbox code`}
+            className="cyber-scroll min-h-0 flex-1 resize-none border-0 bg-transparent px-4 pb-4 pt-2 font-mono text-xs leading-5 text-slate-100 outline-none placeholder:text-slate-600 focus:bg-white/[0.02]"
+            onChange={(event) => onUpdateSandboxCode(agent.id, event.target.value)}
+            spellCheck={false}
+            value={code}
+          />
+        </section>
+      ) : null}
+
+      {!editorCollapsed ? (
         <div
           aria-label="Resize sandbox panes"
           aria-orientation="vertical"
-          className="group relative z-20 grid w-3 shrink-0 cursor-col-resize place-items-center"
+          className="group relative z-20 grid w-2 shrink-0 cursor-col-resize place-items-center"
           onKeyDown={(event) => {
             if (event.key === "ArrowLeft") {
               event.preventDefault();
@@ -4100,201 +4120,60 @@ function SandboxCanvas({
         >
           <div
             className={cx(
-              "h-full w-px bg-cyan-300/25 transition group-hover:bg-cyan-200/70",
-              resizing && "bg-cyan-200/80 shadow-[0_0_22px_rgba(34,211,238,0.55)]",
-            )}
-          />
-          <div
-            className={cx(
-              "absolute h-12 w-1 border border-cyan-300/25 bg-slate-950 transition group-hover:border-cyan-200/70",
-              resizing && "border-cyan-200/80",
+              "h-full w-px bg-white/8 transition group-hover:bg-white/25",
+              resizing && "bg-white/40",
             )}
           />
         </div>
-      )}
+      ) : null}
 
       <section
-        className={cx(
-          "flex min-h-0 min-w-0 flex-col overflow-hidden border border-emerald-300/20 bg-slate-950/80 shadow-[0_0_34px_rgba(45,212,191,0.08)]",
-          previewCollapsed && "shrink-0",
-        )}
+        className="relative flex min-h-0 min-w-0 flex-col overflow-hidden bg-white"
         style={previewPaneStyle}
       >
-        {previewCollapsed ? (
-          <SandboxCollapsedPane
-            label="Preview"
-            onExpand={() => setPreviewCollapsed(false)}
-            side="right"
-            tone="emerald"
-          />
-        ) : (
-          <>
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-emerald-300/15 bg-emerald-300/[0.045] px-3 py-2">
-              <div className="min-w-0 truncate font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-100">
-                Live Preview
+        {iframeBlockReason ? (
+          <div className="grid min-h-0 flex-1 place-items-center bg-slate-950 p-6">
+            <div className="max-w-md text-center">
+              <div className="mx-auto mb-4 grid h-11 w-11 place-items-center bg-white/[0.06] text-amber-100">
+                <ShieldCheck className="h-5 w-5" />
               </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <button
-                  aria-label="Save artifact"
-                  className="flex h-7 items-center gap-1.5 border border-emerald-300/30 bg-emerald-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-100 transition hover:border-emerald-200/70 hover:bg-emerald-300/20"
-                  onClick={() => onSaveArtifact(agent.id, code)}
-                  title="SAVE ARTIFACT"
-                  type="button"
-                >
-                  <Save className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Save Artifact</span>
-                </button>
-                <button
-                  aria-label="Collapse live preview"
-                  className="grid h-7 w-7 place-items-center border border-emerald-300/25 bg-emerald-300/10 text-emerald-100 transition hover:bg-emerald-300/20"
-                  onClick={() => setPreviewCollapsed(true)}
-                  title="Collapse live preview"
-                  type="button"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-                <span className="hidden border border-emerald-300/25 bg-emerald-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em] text-emerald-100 sm:inline-flex">
-                  {externalPreviewUrl ? "external" : "srcDoc"}
-                </span>
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-100">
+                External-Only Surface
               </div>
+              <p className="mt-3 text-xs leading-5 text-slate-400">
+                {iframeBlockReason}
+              </p>
+              <button
+                aria-label="Open preview URL in browser"
+                className="mt-5 inline-grid h-9 w-9 place-items-center bg-white/[0.08] text-amber-100 transition hover:bg-white/[0.14]"
+                onClick={openExternalPreview}
+                title="Open site"
+                type="button"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+              </button>
             </div>
-            <form
-              className="shrink-0 border-b border-white/10 bg-black/24 px-3 py-2"
-              onSubmit={commitSandboxUrl}
-            >
-              <div className="flex items-center gap-2">
-                <div className="flex min-w-0 flex-1 items-center gap-2 border border-emerald-300/20 bg-black/35 px-2.5 py-2 shadow-[inset_0_0_18px_rgba(16,185,129,0.08)] transition focus-within:border-emerald-300/55">
-                  <RadioTower className="h-3.5 w-3.5 shrink-0 text-emerald-200/75" />
-                  <input
-                    aria-label={`${agent.callsign} sandbox preview URL`}
-                    className="min-w-0 flex-1 bg-transparent font-mono text-[11px] text-emerald-50 outline-none placeholder:text-slate-600"
-                    onChange={(event) => {
-                      const nextValue = event.target.value;
-
-                      setSandboxUrlDraft(nextValue);
-                      setSandboxUrlError(undefined);
-
-                      if (!nextValue.trim()) {
-                        onUpdateSandboxUrl(agent.id, "");
-                      }
-                    }}
-                    placeholder="https://example.com"
-                    ref={sandboxUrlInputRef}
-                    spellCheck={false}
-                    type="text"
-                    value={sandboxUrlDraft}
-                  />
-                </div>
-                <button
-                  className="h-9 border border-emerald-300/35 bg-emerald-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-100 transition hover:border-emerald-200/70 hover:bg-emerald-300/20 hover:shadow-[0_0_22px_rgba(16,185,129,0.18)]"
-                  type="submit"
-                >
-                  GO
-                </button>
-                <button
-                  aria-label="Open preview URL in browser"
-                  className={cx(
-                    "grid h-9 w-9 place-items-center border border-emerald-300/25 bg-black/30 text-emerald-100 transition hover:border-emerald-200/70 hover:bg-emerald-300/15",
-                    !externalPreviewUrl && "pointer-events-none opacity-35",
-                  )}
-                  disabled={!externalPreviewUrl}
-                  onClick={openExternalPreview}
-                  title="Open site"
-                  type="button"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              {sandboxUrlError ? (
-                <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.14em] text-rose-200">
-                  {sandboxUrlError}
-                </div>
-              ) : null}
-            </form>
-            {iframeBlockReason ? (
-              <div className="grid min-h-0 flex-1 place-items-center bg-black/45 p-6">
-                <div className="max-w-md border border-amber-300/30 bg-slate-950/88 p-5 text-center shadow-[0_0_36px_rgba(251,191,36,0.12)]">
-                  <div className="mx-auto mb-4 grid h-11 w-11 place-items-center border border-amber-300/35 bg-amber-300/10 text-amber-100">
-                    <ShieldCheck className="h-5 w-5" />
-                  </div>
-                  <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-100">
-                    External-Only Surface
-                  </div>
-                  <p className="mt-3 text-xs leading-5 text-slate-400">
-                    {iframeBlockReason}
-                  </p>
-                  <button
-                    className="mt-5 inline-flex items-center justify-center gap-2 border border-amber-300/40 bg-amber-300/10 px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-amber-100 transition hover:border-amber-200/75 hover:bg-amber-300/20"
-                    onClick={openExternalPreview}
-                    type="button"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    Open Secure Tab
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <iframe
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
-                allowFullScreen
-                key={embeddablePreviewUrl || "srcdoc"}
-                className="min-h-0 flex-1 border-0 bg-white"
-                referrerPolicy="strict-origin-when-cross-origin"
-                sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-presentation"
-                src={embeddablePreviewUrl || undefined}
-                srcDoc={embeddablePreviewUrl ? undefined : code}
-                style={{ pointerEvents: resizing ? "none" : "auto" }}
-                title={
-                  externalPreviewUrl
-                    ? `${agent.callsign} external sandbox preview`
-                    : `${agent.callsign} live UI sandbox preview`
-                }
-              />
-            )}
-          </>
+          </div>
+        ) : (
+          <iframe
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
+            allowFullScreen
+            key={embeddablePreviewUrl || "srcdoc"}
+            className="min-h-0 flex-1 border-0 bg-white"
+            referrerPolicy="strict-origin-when-cross-origin"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-presentation"
+            src={embeddablePreviewUrl || undefined}
+            srcDoc={embeddablePreviewUrl ? undefined : code}
+            style={{ pointerEvents: resizing ? "none" : "auto" }}
+            title={
+              externalPreviewUrl
+                ? `${agent.callsign} external sandbox preview`
+                : `${agent.callsign} live UI sandbox preview`
+            }
+          />
         )}
       </section>
     </div>
-  );
-}
-
-function SandboxCollapsedPane({
-  label,
-  onExpand,
-  side,
-  tone,
-}: {
-  label: string;
-  onExpand: () => void;
-  side: "left" | "right";
-  tone: "cyan" | "emerald";
-}) {
-  const Icon = side === "left" ? ChevronRight : ChevronLeft;
-  const toneClass =
-    tone === "cyan"
-      ? "border-cyan-300/20 bg-cyan-300/[0.045] text-cyan-100 hover:bg-cyan-300/12"
-      : "border-emerald-300/20 bg-emerald-300/[0.045] text-emerald-100 hover:bg-emerald-300/12";
-
-  return (
-    <button
-      aria-label={`Expand ${label.toLowerCase()} pane`}
-      className={cx(
-        "flex h-full w-full flex-col items-center justify-between gap-3 border-0 px-2 py-3 transition",
-        toneClass,
-      )}
-      onClick={onExpand}
-      title={`Expand ${label}`}
-      type="button"
-    >
-      <Icon className="h-4 w-4 shrink-0" />
-      <span
-        className="font-mono text-[10px] uppercase tracking-[0.18em]"
-        style={{ writingMode: "vertical-rl" }}
-      >
-        {label}
-      </span>
-      <span className="h-4 w-4" />
-    </button>
   );
 }
 
@@ -4311,6 +4190,9 @@ function AgentActionToolbar({
   onMinimize,
   onNewReply,
   onOpenVaultManager,
+  onSaveSandboxArtifact,
+  onToggleSandboxEditor,
+  sandboxEditorCollapsed,
   onStop,
   onToggleMaximize,
   promptsCache,
@@ -4328,6 +4210,9 @@ function AgentActionToolbar({
   onMinimize: () => void;
   onNewReply: () => void;
   onOpenVaultManager: () => void;
+  onSaveSandboxArtifact?: () => void;
+  onToggleSandboxEditor?: () => void;
+  sandboxEditorCollapsed?: boolean;
   onStop: () => void;
   onToggleMaximize: () => void;
   promptsCache: PromptRecord[];
@@ -4448,6 +4333,28 @@ function AgentActionToolbar({
             <ToolbarIconButton label="Collapse" onClick={onMinimize}>
               <Minimize2 className="h-3.5 w-3.5" />
             </ToolbarIconButton>
+            {isSandboxAgent && onToggleSandboxEditor ? (
+              <ToolbarIconButton
+                active={sandboxEditorCollapsed}
+                label={
+                  sandboxEditorCollapsed
+                    ? "Expand left editor"
+                    : "Collapse left editor"
+                }
+                onClick={onToggleSandboxEditor}
+              >
+                {sandboxEditorCollapsed ? (
+                  <PanelLeftOpen className="h-3.5 w-3.5" />
+                ) : (
+                  <PanelLeftClose className="h-3.5 w-3.5" />
+                )}
+              </ToolbarIconButton>
+            ) : null}
+            {isSandboxAgent && onSaveSandboxArtifact ? (
+              <ToolbarIconButton label="Save artifact" onClick={onSaveSandboxArtifact}>
+                <Save className="h-3.5 w-3.5" />
+              </ToolbarIconButton>
+            ) : null}
             <ToolbarIconButton label="Duplicate" onClick={onDuplicate}>
               <Layers3 className="h-3.5 w-3.5" />
             </ToolbarIconButton>

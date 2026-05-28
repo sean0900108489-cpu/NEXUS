@@ -1152,7 +1152,7 @@ export function NexusOps() {
 
       setNotice(`${agent.callsign} task rejected: ${detail}`);
       useNexusStore.getState().setAgentStatus(agentId, "error");
-      return;
+      throw error instanceof Error ? error : new Error(detail);
     }
 
     const request: AgentStreamRequest = {
@@ -3679,6 +3679,7 @@ function AgentWindow({
   workspaceId: string;
 }) {
   const [draft, setDraft] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const capabilityType = getCapabilityType(agent);
@@ -3723,8 +3724,22 @@ function AgentWindow({
     }
 
     const value = draft;
+
+    if (!value.trim() || isSubmitting) {
+      return;
+    }
+
     setDraft("");
-    await (isMediaAgent ? onGenerateMedia(agent.id, value) : onSend(agent.id, value));
+    setIsSubmitting(true);
+
+    try {
+      await (isMediaAgent ? onGenerateMedia(agent.id, value) : onSend(agent.id, value));
+    } catch {
+      setDraft(value);
+      window.setTimeout(() => composerRef.current?.focus(), 0);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const onComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -3856,7 +3871,11 @@ function AgentWindow({
                   <textarea
                     ref={composerRef}
                     className="min-h-16 flex-1 resize-none border border-white/10 bg-black/30 p-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
-                    disabled={agent.status === "streaming" || agent.status === "thinking"}
+                    disabled={
+                      isSubmitting ||
+                      agent.status === "streaming" ||
+                      agent.status === "thinking"
+                    }
                     onChange={(event) => setDraft(event.target.value)}
                     onKeyDown={onComposerKeyDown}
                     placeholder={
@@ -3870,6 +3889,7 @@ function AgentWindow({
                     aria-label="Send message"
                     className="grid w-12 place-items-center border border-cyan-300/40 bg-cyan-300/12 text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
                     disabled={
+                      isSubmitting ||
                       agent.status === "streaming" ||
                       agent.status === "thinking" ||
                       !draft.trim()

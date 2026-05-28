@@ -1,6 +1,7 @@
 import type {
   WorkspaceCloudSnapshotPayload,
   WorkspaceCloudSnapshotType,
+  WorkspaceRecoveryStateResponse,
   WorkspaceStateGetResponse,
   WorkspaceStatePutResponse,
 } from "@/lib/nexus-types";
@@ -20,16 +21,27 @@ import {
   createWorkspaceStateEntityRepository,
   type WorkspaceStateEntityRepository,
 } from "./workspace-state-entity-repository";
+import { WorkspaceHydrationService } from "./workspace-hydration-service";
 import { WorkspaceSnapshotValidator } from "./workspace-snapshot-validator";
 
 export type WorkspaceStateServiceDependencies = {
   snapshots?: WorkspaceSnapshotRepository;
   entities?: WorkspaceStateEntityRepository;
+  hydration?: WorkspaceHydrationService;
   validator?: WorkspaceSnapshotValidator;
 };
 
 export type GetWorkspaceStateInput = {
   workspaceId: string;
+  requestId?: string;
+  traceId?: string;
+};
+
+export type GetWorkspaceRecoveryStateInput = {
+  userId: string;
+  localChecksum?: string | null;
+  localUpdatedAt?: string | null;
+  localWorkspaceId?: string | null;
   requestId?: string;
   traceId?: string;
 };
@@ -49,11 +61,13 @@ export type SaveWorkspaceStateInput = {
 export class WorkspaceStateService {
   private readonly snapshots: WorkspaceSnapshotRepository;
   private readonly entities: WorkspaceStateEntityRepository;
+  private readonly hydration: WorkspaceHydrationService;
   private readonly validator: WorkspaceSnapshotValidator;
 
   constructor(dependencies: WorkspaceStateServiceDependencies = {}) {
     this.snapshots = dependencies.snapshots ?? createWorkspaceSnapshotRepository();
     this.entities = dependencies.entities ?? createWorkspaceStateEntityRepository();
+    this.hydration = dependencies.hydration ?? new WorkspaceHydrationService();
     this.validator = dependencies.validator ?? new WorkspaceSnapshotValidator();
   }
 
@@ -85,6 +99,55 @@ export class WorkspaceStateService {
       snapshotType: snapshot.snapshotType,
       updatedAt: snapshot.updatedAt,
       workspaceId: snapshot.workspaceId,
+    };
+  }
+
+  async getLatestRecoveryState(
+    input: GetWorkspaceRecoveryStateInput,
+  ): Promise<WorkspaceRecoveryStateResponse> {
+    const snapshot = await this.snapshots.getLatestSnapshotForUser(input.userId);
+
+    if (!snapshot) {
+      return {
+        latest: null,
+        plan: null,
+        userId: input.userId,
+      };
+    }
+
+    const localStatePresent = input.localWorkspaceId === snapshot.workspaceId;
+    const plan = this.hydration.createHydrationPlan({
+      cloudChecksum: snapshot.checksum,
+      cloudUpdatedAt: snapshot.updatedAt,
+      localChecksum: localStatePresent ? input.localChecksum : null,
+      localStatePresent,
+      localUpdatedAt: localStatePresent ? input.localUpdatedAt : null,
+      reason: localStatePresent ? "recover" : "local_missing",
+      workspaceId: snapshot.workspaceId,
+    });
+
+    await this.emitWorkspaceStateEvent({
+      checksum: snapshot.checksum,
+      payloadSizeBytes: snapshot.payloadSizeBytes,
+      requestId: input.requestId,
+      schemaVersion: snapshot.schemaVersion,
+      snapshotStatus: "read",
+      traceId: input.traceId,
+      workspaceId: snapshot.workspaceId,
+    });
+
+    return {
+      latest: {
+        checksum: snapshot.checksum,
+        payloadSizeBytes: snapshot.payloadSizeBytes,
+        schemaVersion: snapshot.schemaVersion,
+        snapshot: snapshot.payload,
+        snapshotType: snapshot.snapshotType,
+        updatedAt: snapshot.updatedAt,
+        workspaceId: snapshot.workspaceId,
+      },
+      plan,
+      userId: input.userId,
     };
   }
 

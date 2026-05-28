@@ -101,7 +101,7 @@ import type {
   WorkspaceViewMode,
 } from "@/lib/nexus-types";
 import { nexusApiClient } from "@/lib/api/nexus-api-client";
-import { parseWorkspaceSnapshot } from "@/lib/workspace-kernel";
+import { createNotebookRecoveryMetadata, parseWorkspaceSnapshot } from "@/lib/workspace-kernel";
 import { hasToolExecutor } from "@/lib/tool-executors";
 import { fetchWithBackoff, isAbortLikeError } from "@/lib/stream-retry";
 import { supabaseStateSyncManager } from "@/lib/state-sync";
@@ -634,6 +634,7 @@ export function NexusOps() {
   const processedWorkflowHandoffsRef = useRef<Set<string>>(new Set());
   const workflowDispatchQueueRef = useRef<Promise<void>>(Promise.resolve());
   const workflowQueueEpochRef = useRef(0);
+  const recoveredLoginUserRef = useRef<string | null>(null);
   const [workspaceSize, setWorkspaceSize] = useState<WorkspaceSize>({
     width: 1200,
     height: 780,
@@ -707,6 +708,9 @@ export function NexusOps() {
   const clearAgentMessages = useNexusStore((state) => state.clearAgentMessages);
   const resetWorkspace = useNexusStore((state) => state.resetWorkspace);
   const importWorkspace = useNexusStore((state) => state.importWorkspace);
+  const applyWorkspaceRecoveryState = useNexusStore(
+    (state) => state.applyWorkspaceRecoveryState,
+  );
   const setStreamMode = useNexusStore((state) => state.setStreamMode);
   const setViewMode = useNexusStore((state) => state.setViewMode);
   const openVaultManager = useNexusStore((state) => state.openVaultManager);
@@ -805,6 +809,48 @@ export function NexusOps() {
     syncing: 0,
   });
 
+  const recoverWorkspaceAfterLogin = useCallback((userId: string) => {
+    const state = useNexusStore.getState();
+    const localWorkspace =
+      state.workspaces.find((candidate) => candidate.id === state.activeWorkspaceId) ??
+      state.workspaces[0];
+
+    void supabaseStateSyncManager
+      .fetchLatestWorkspaceRecoveryState({
+        localUpdatedAt: localWorkspace?.updatedAt ?? null,
+        localWorkspaceId: localWorkspace?.id ?? null,
+        userId,
+      })
+      .then((recovery) => {
+        const result = applyWorkspaceRecoveryState(recovery);
+
+        if (result.status === "applied") {
+          setNotice("Workspace recovered from cloud");
+        } else if (result.status === "conflicted") {
+          console.warn("[Workspace Recovery Conflict]: local workspace is newer.", result);
+        }
+      })
+      .catch((error) => {
+        console.error("[Workspace Recovery Error]:", error);
+      });
+  }, [applyWorkspaceRecoveryState]);
+
+  const handleSessionUser = useCallback((user: IAuthVault["user"]) => {
+    syncSupabaseSessionUser(user);
+
+    if (!user) {
+      recoveredLoginUserRef.current = null;
+      return;
+    }
+
+    if (recoveredLoginUserRef.current === user.id) {
+      return;
+    }
+
+    recoveredLoginUserRef.current = user.id;
+    recoverWorkspaceAfterLogin(user.id);
+  }, [recoverWorkspaceAfterLogin]);
+
   useEffect(() => {
     materializeDefaultWorkspace();
   }, [materializeDefaultWorkspace]);
@@ -871,7 +917,7 @@ export function NexusOps() {
             return;
           }
 
-          syncSupabaseSessionUser(session?.user ?? null);
+          handleSessionUser(session?.user ?? null);
         });
         unsubscribe = () => data.subscription.unsubscribe();
 
@@ -882,7 +928,7 @@ export function NexusOps() {
               return;
             }
 
-            syncSupabaseSessionUser(sessionData.session?.user ?? null);
+            handleSessionUser(sessionData.session?.user ?? null);
           })
           .catch(() => undefined)
           .finally(() => {
@@ -901,7 +947,7 @@ export function NexusOps() {
       mounted = false;
       unsubscribe?.();
     };
-  }, []);
+  }, [handleSessionUser]);
 
   useEffect(() => {
     setStreamMode(effectiveStreamMode);
@@ -1046,18 +1092,34 @@ export function NexusOps() {
   }, [activeRightPanel, artifactRefreshToken, refreshArtifacts]);
 
   const handleExport = useCallback(() => {
-    const snapshot = exportActiveWorkspace();
-    const url = URL.createObjectURL(
-      new Blob([JSON.stringify(snapshot, null, 2)], {
-        type: "application/json",
-      }),
-    );
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `nexus-ai-ops-${Date.now()}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-    setNotice("Workspace snapshot exported");
+    const downloadSnapshot = (snapshot: WorkspaceSnapshot) => {
+      const url = URL.createObjectURL(
+        new Blob([JSON.stringify(snapshot, null, 2)], {
+          type: "application/json",
+        }),
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `nexus-ai-ops-${Date.now()}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    };
+
+    void localSyncQueueAdapter
+      .getOperations()
+      .then((operations) => {
+        downloadSnapshot(
+          exportActiveWorkspace({
+            notebookRecovery: createNotebookRecoveryMetadata(operations),
+          }),
+        );
+        setNotice("Workspace snapshot exported");
+      })
+      .catch((error) => {
+        console.error("[Workspace Export Sync Metadata Error]:", error);
+        downloadSnapshot(exportActiveWorkspace());
+        setNotice("Workspace snapshot exported");
+      });
   }, [exportActiveWorkspace]);
 
   const handleImport = useCallback(async (file?: File) => {

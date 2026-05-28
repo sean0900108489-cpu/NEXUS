@@ -255,11 +255,7 @@ export class LocalSyncQueueAdapter {
           workspaceId: operation.workspaceId,
         },
       );
-      const serverStatus = response.operation.status;
-      const localStatus: LocalSyncQueueOperation["status"] =
-        serverStatus === "failed" || serverStatus === "conflicted"
-          ? serverStatus
-          : "synced";
+      const localStatus = mapServerStatusToLocalQueueStatus(response.operation.status);
 
       await this.patchOperation(clientMutationId, {
         lastErrorCode: response.operation.lastErrorCode ?? undefined,
@@ -442,6 +438,12 @@ function isWorkspaceSnapshotIssue(
     operation.operationType === "snapshot" &&
     ["failed", "conflicted"].includes(operation.status)
   );
+}
+
+function mapServerStatusToLocalQueueStatus(
+  status: SyncOperationResponse["operation"]["status"],
+): LocalSyncQueueOperation["status"] {
+  return status;
 }
 
 function createClientMutationId() {

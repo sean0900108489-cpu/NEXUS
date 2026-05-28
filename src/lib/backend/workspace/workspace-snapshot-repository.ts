@@ -40,6 +40,7 @@ export type InsertWorkspaceSnapshotInput = {
 export interface WorkspaceSnapshotRepository {
   insertSnapshot(input: InsertWorkspaceSnapshotInput): Promise<WorkspaceSnapshotRecord>;
   getLatestSnapshot(workspaceId: string): Promise<WorkspaceSnapshotRecord | null>;
+  getLatestSnapshotForUser(userId: string): Promise<WorkspaceSnapshotRecord | null>;
   getLatestChecksum(workspaceId: string): Promise<string | null>;
   pruneActiveSnapshots(workspaceId: string, keep: number): Promise<number>;
 }
@@ -73,6 +74,19 @@ export class InMemoryWorkspaceSnapshotRepository implements WorkspaceSnapshotRep
         .filter(
           (snapshot) =>
             snapshot.workspaceId === workspaceId &&
+            ["active", "checkpoint"].includes(snapshot.snapshotType),
+        )
+        .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0] ??
+      null
+    );
+  }
+
+  async getLatestSnapshotForUser(userId: string) {
+    return (
+      this.snapshots
+        .filter(
+          (snapshot) =>
+            snapshot.userId === userId &&
             ["active", "checkpoint"].includes(snapshot.snapshotType),
         )
         .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0] ??
@@ -135,6 +149,23 @@ export class SupabaseWorkspaceSnapshotRepository implements WorkspaceSnapshotRep
       .from("workspace_snapshots")
       .select("*")
       .eq("workspace_id", workspaceId)
+      .in("snapshot_type", ["active", "checkpoint"])
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data ? mapSnapshot(data) : null;
+  }
+
+  async getLatestSnapshotForUser(userId: string) {
+    const { data, error } = await this.client
+      .from("workspace_snapshots")
+      .select("*")
+      .eq("user_id", userId)
       .in("snapshot_type", ["active", "checkpoint"])
       .order("updated_at", { ascending: false })
       .limit(1)

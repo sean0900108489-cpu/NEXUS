@@ -21,10 +21,20 @@ import {
   resolveAgentTemplateProfile,
 } from "@/lib/nexus-defaults";
 import { NexusApiError, nexusApiClient } from "@/lib/api/nexus-api-client";
+import {
+  ACTIVE_WINDOW_DEFAULT_LIMIT,
+  ACTIVE_WINDOW_MAX_LIMIT,
+  AGENT_MEMORY_CONTENT_MAX_BYTES,
+} from "@/lib/backend/history/history-constants";
 import { HistoricalDataFetcher } from "@/lib/backend/history/historical-data-fetcher";
 import { supabaseStateSyncManager } from "@/lib/state-sync";
 import { getNexusSupabaseClient } from "@/lib/supabase/client";
-import { createWorkspaceSnapshot, sanitizeWorkspace, validateWorkspaceSnapshot } from "@/lib/workspace-kernel";
+import {
+  createWorkspaceSnapshot,
+  materializeWorkspaceFromCloudSnapshot,
+  sanitizeWorkspace,
+  validateWorkspaceSnapshot,
+} from "@/lib/workspace-kernel";
 import type { ToolExecutorInput } from "@/lib/tool-executors";
 import { LlmMemoryCompressor } from "@/lib/adapters/memory-compression-adapter";
 import {
@@ -49,6 +59,7 @@ import {
 } from "@/lib/workflow-runtime-lite/runner";
 import type {
   ActiveUiStateSnapshot,
+  AgentLocalPersistenceMetadata,
   AgentBranchingStatus,
   AgentCreationCapabilityType,
   AgentLayout,
@@ -83,8 +94,11 @@ import type {
   WorkflowTemplateAgentBlueprint,
   WorkflowTemplateBlueprintData,
   WorkflowTemplateRecord,
+  WorkspaceNotebookRecoveryMetadata,
   WorkspaceBranchingSettings,
   WorkspaceGraphEdge,
+  WorkspaceRecoveryApplyResult,
+  WorkspaceRecoveryStateResponse,
   WorkspaceThemeConfig,
   WorkspaceSnapshot,
   WorkspaceViewMode,
@@ -313,8 +327,13 @@ type NexusStore = {
   createWorkspace: () => WorkspaceIdentity;
   switchWorkspace: (workspaceId: string) => void;
   renameWorkspace: (name: string) => void;
-  exportActiveWorkspace: () => WorkspaceSnapshot;
+  exportActiveWorkspace: (options?: {
+    notebookRecovery?: WorkspaceNotebookRecoveryMetadata;
+  }) => WorkspaceSnapshot;
   importWorkspace: (snapshot: WorkspaceSnapshot) => void;
+  applyWorkspaceRecoveryState: (
+    recovery: WorkspaceRecoveryStateResponse,
+  ) => WorkspaceRecoveryApplyResult;
   spawnAgent: (templateId?: string, capabilityType?: AgentCreationCapabilityType) => string;
   branchAgent: (
     sourceAgentId: string,
@@ -870,6 +889,42 @@ function sortNotebooks(notebooks: NotebookRecord[]) {
   });
 }
 
+function mergeRemoteNotebooksWithLocalCache(
+  remoteNotebooks: NotebookRecord[],
+  localNotebooks: NotebookRecord[],
+) {
+  if (remoteNotebooks.length === 0 && localNotebooks.length === 0) {
+    return sortNotebooks(remoteNotebooks);
+  }
+
+  const mergedById = new Map(remoteNotebooks.map((notebook) => [notebook.id, notebook]));
+
+  localNotebooks.forEach((localNotebook) => {
+    const remoteNotebook = mergedById.get(localNotebook.id);
+
+    if (
+      !remoteNotebook ||
+      isNewerTimestamp(
+        localNotebook.updated_at ?? localNotebook.created_at,
+        remoteNotebook.updated_at ?? remoteNotebook.created_at,
+      )
+    ) {
+      // Without tombstones, remote reads are not authoritative enough to erase newer/local-only Datapads.
+      mergedById.set(localNotebook.id, localNotebook);
+    }
+  });
+
+  return sortNotebooks([...mergedById.values()]);
+}
+
+function isNewerTimestamp(left?: string | null, right?: string | null) {
+  if (!left || !right) {
+    return false;
+  }
+
+  return new Date(left).getTime() > new Date(right).getTime();
+}
+
 function queueNotebooksCacheRefresh() {
   void supabaseStateSyncManager
     .fetchNotebooks()
@@ -1230,14 +1285,79 @@ function normalizeWorkspaces(workspaces: NexusWorkspace[] | undefined) {
     .map((workspace) => syncPanels(workspace, { resetInterrupted: true }));
 }
 
-function prepareWorkspacesForLocalPersistence(workspaces: NexusWorkspace[]) {
-  return normalizeWorkspaces(workspaces).map((workspace) => ({
+export function prepareWorkspacesForLocalPersistence(workspaces: NexusWorkspace[]) {
+  return normalizeWorkspaces(workspaces).map(prepareWorkspaceForLocalPersistence);
+}
+
+function prepareWorkspaceForLocalPersistence(workspace: NexusWorkspace): NexusWorkspace {
+  return {
     ...workspace,
-      settings: {
-        ...workspace.settings,
-        agentTemplateProfiles: workspace.settings.agentTemplateProfiles ?? {},
-      },
-  }));
+    agents: workspace.agents.map(prepareAgentForLocalPersistence),
+    settings: {
+      ...workspace.settings,
+      agentTemplateProfiles: workspace.settings.agentTemplateProfiles ?? {},
+    },
+  };
+}
+
+function prepareAgentForLocalPersistence(agent: NexusAgent): NexusAgent {
+  const messages = prepareMessagesForLocalPersistence(agent.messages);
+  const memory = prepareMemoryForLocalPersistence(agent.memory);
+
+  return {
+    ...agent,
+    localPersistence: createAgentLocalPersistenceMetadata(messages, memory),
+    memory,
+    messages,
+  };
+}
+
+function prepareMessagesForLocalPersistence(
+  messages: NexusAgent["messages"],
+): NexusAgent["messages"] {
+  return messages.map((message) => ({ ...message }));
+}
+
+function prepareMemoryForLocalPersistence(
+  memory: NexusAgent["memory"],
+): NexusAgent["memory"] {
+  return memory.map((block) => ({ ...block }));
+}
+
+function createAgentLocalPersistenceMetadata(
+  messages: NexusAgent["messages"],
+  memory: NexusAgent["memory"],
+): AgentLocalPersistenceMetadata {
+  return {
+    schemaVersion: 1,
+    messages: createMessageRetentionMetadata(messages),
+    memory: createMemoryRetentionMetadata(memory),
+  };
+}
+
+function createMessageRetentionMetadata(
+  messages: NexusAgent["messages"],
+): AgentLocalPersistenceMetadata["messages"] {
+  return {
+    activeWindowLimit: ACTIVE_WINDOW_DEFAULT_LIMIT,
+    durability: "needs_sync_operation_applier_message_projection",
+    maxWindowLimit: ACTIVE_WINDOW_MAX_LIMIT,
+    mode: "preserve_full_until_durable_projection",
+    omittedCount: 0,
+    retainedCount: messages.length,
+  };
+}
+
+function createMemoryRetentionMetadata(
+  memory: NexusAgent["memory"],
+): AgentLocalPersistenceMetadata["memory"] {
+  return {
+    durability: "needs_memory_write_route",
+    maxRecordContentBytes: AGENT_MEMORY_CONTENT_MAX_BYTES,
+    mode: "preserve_full_until_durable_write",
+    omittedBlockCount: 0,
+    retainedBlockCount: memory.length,
+  };
 }
 
 function logHydratedMemoryState(state: NexusStore | undefined) {
@@ -1377,10 +1497,11 @@ export const useNexusStore = create<NexusStore>()(
         queueWorkspaceCloudSync({ id: workspace.id, name: nextName });
       },
 
-      exportActiveWorkspace: () => {
+      exportActiveWorkspace: (options) => {
         const state = get();
         const workspace = getActiveWorkspace(state);
         return createWorkspaceSnapshot(workspace, {
+          notebookRecovery: options?.notebookRecovery,
           notebooks: state.notebooksCache,
         });
       },
@@ -1416,6 +1537,81 @@ export const useNexusStore = create<NexusStore>()(
               console.error("[Datapad Import Sync Error]:", error);
             });
         });
+      },
+
+      applyWorkspaceRecoveryState: (recovery) => {
+        if (!recovery.latest || !recovery.plan) {
+          return {
+            reason: "missing_cloud_state",
+            status: "skipped",
+          };
+        }
+
+        if (recovery.plan.action === "conflict") {
+          return {
+            checksum: recovery.plan.checksum,
+            reason: recovery.plan.reason,
+            status: "conflicted",
+            workspaceId: recovery.plan.workspaceId,
+          };
+        }
+
+        if (recovery.plan.action === "skip") {
+          return {
+            checksum: recovery.plan.checksum,
+            reason: recovery.plan.reason,
+            status: "skipped",
+            workspaceId: recovery.plan.workspaceId,
+          };
+        }
+
+        const recoveredWorkspace = materializeWorkspaceFromCloudSnapshot(
+          recovery.latest.snapshot,
+        );
+        const state = get();
+        const existingWorkspace = state.workspaces.find(
+          (workspace) => workspace.id === recoveredWorkspace.id,
+        );
+
+        if (
+          existingWorkspace &&
+          isNewerTimestamp(existingWorkspace.updatedAt, recoveredWorkspace.updatedAt)
+        ) {
+          return {
+            checksum: recovery.plan.checksum,
+            reason: "local_newer",
+            status: "conflicted",
+            workspaceId: recoveredWorkspace.id,
+          };
+        }
+
+        set((current) => {
+          const exists = current.workspaces.some(
+            (workspace) => workspace.id === recoveredWorkspace.id,
+          );
+          const workspaces = exists
+            ? current.workspaces.map((workspace) =>
+                workspace.id === recoveredWorkspace.id ? recoveredWorkspace : workspace,
+              )
+            : [recoveredWorkspace, ...current.workspaces];
+
+          return {
+            activeWorkspaceId: recoveredWorkspace.id,
+            lastSavedAt: new Date().toISOString(),
+            selectedAgentId:
+              recoveredWorkspace.selectedAgentId ?? recoveredWorkspace.agents[0]?.id,
+            streamMode: resolveStreamMode(recoveredWorkspace, current.authVault),
+            viewMode: recoveredWorkspace.settings.viewMode,
+            workspaces,
+          };
+        });
+
+        return {
+          checksum: recovery.plan.checksum,
+          reason: recovery.plan.reason,
+          status: "applied",
+          workspaceId: recoveredWorkspace.id,
+        };
       },
 
       spawnAgent: (templateId, capabilityType = "chat") => {
@@ -2590,7 +2786,11 @@ export const useNexusStore = create<NexusStore>()(
 
       setNotebooksCache: (notebooks) => {
         set((state) => {
-          const notebookIds = new Set(notebooks.map((notebook) => notebook.id));
+          const nextNotebooks = mergeRemoteNotebooksWithLocalCache(
+            notebooks,
+            state.notebooksCache,
+          );
+          const notebookIds = new Set(nextNotebooks.map((notebook) => notebook.id));
           const notebookWindowLayers = Object.fromEntries(
             Object.entries(state.notebookWindowLayers).filter(([id]) =>
               notebookIds.has(id),
@@ -2598,7 +2798,7 @@ export const useNexusStore = create<NexusStore>()(
           );
 
           return {
-            notebooksCache: sortNotebooks(notebooks),
+            notebooksCache: nextNotebooks,
             openNotebookIds: state.openNotebookIds.filter((id) =>
               notebookIds.has(id),
             ),
@@ -3502,16 +3702,18 @@ export const useNexusStore = create<NexusStore>()(
     {
       name: PERSIST_STORAGE_NAME,
       storage: createJSONStorage(() => indexedDbStateStorage),
-      version: 13,
+      version: 14,
       onRehydrateStorage: () => (state) => {
         state?.materializeDefaultWorkspace();
         logHydratedMemoryState(state);
       },
       migrate: (persisted) => {
         if (!persisted || typeof persisted !== "object") {
+          const workspaces = prepareWorkspacesForLocalPersistence([initialWorkspace()]);
+
           return {
             activeWorkspaceId: ACTIVE_WORKSPACE_ID,
-            workspaces: [initialWorkspace()],
+            workspaces,
             selectedAgentId: "agent-nexus-1",
             nextZIndex: 10,
             streamMode: "mock",
@@ -3532,7 +3734,7 @@ export const useNexusStore = create<NexusStore>()(
         const value = persisted as Partial<NexusStore> & { agents?: NexusAgent[] };
 
         if (Array.isArray(value.workspaces)) {
-          const workspaces = normalizeWorkspaces(value.workspaces);
+          const workspaces = prepareWorkspacesForLocalPersistence(value.workspaces);
           const authVault = normalizeAuthVault(value.authVault);
           const activeWorkspaceId = value.activeWorkspaceId ?? workspaces[0]?.id;
           const activeWorkspace =
@@ -3568,9 +3770,11 @@ export const useNexusStore = create<NexusStore>()(
           };
         }
 
+        const workspaces = prepareWorkspacesForLocalPersistence([initialWorkspace()]);
+
         return {
           activeWorkspaceId: ACTIVE_WORKSPACE_ID,
-          workspaces: [initialWorkspace()],
+          workspaces,
           selectedAgentId: "agent-nexus-1",
           nextZIndex: 10,
           streamMode: "mock",

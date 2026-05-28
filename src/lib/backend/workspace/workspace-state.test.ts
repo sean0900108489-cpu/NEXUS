@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { PUT as putWorkspaceState, GET as getWorkspaceState } from "@/app/api/v1/workspaces/[workspaceId]/state/route";
+import { GET as getLatestWorkspaceRecoveryState } from "@/app/api/v1/workspaces/recovery/latest/route";
 import { createDefaultWorkspace } from "@/lib/nexus-defaults";
 import type { WorkspaceCloudSnapshotPayload } from "@/lib/nexus-types";
 import { WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS } from "@/lib/workflow-runtime-lite/constants";
@@ -370,6 +371,52 @@ describe("workspace state API route", () => {
         code: "PERMISSION_DENIED",
       },
       ok: false,
+    });
+  });
+
+  it("returns latest account recovery state without hydrating over newer local state", async () => {
+    const workspaceId = `workspace-recover-${crypto.randomUUID()}`;
+    const payload = makePayload(workspaceId);
+    const context = { params: Promise.resolve({ workspaceId }) };
+    const put = await putWorkspaceState(
+      makePutRequest(
+        workspaceId,
+        payload,
+        {
+          "X-User-Id": "recover-owner",
+        },
+      ),
+      context,
+    );
+    const putJson = await readJson(put);
+    const response = await getLatestWorkspaceRecoveryState(
+      new Request(
+        `http://localhost/api/v1/workspaces/recovery/latest?localWorkspaceId=${workspaceId}&localUpdatedAt=2026-05-29T00:00:00.000Z`,
+        {
+          headers: {
+            "X-Request-Id": "req-recovery",
+            "X-User-Id": "recover-owner",
+          },
+        },
+      ),
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(200);
+    expect(json).toMatchObject({
+      data: {
+        latest: {
+          checksum: (putJson.data as { checksum: string }).checksum,
+          workspaceId,
+        },
+        plan: {
+          action: "conflict",
+          reason: "local_newer",
+          workspaceId,
+        },
+        userId: "recover-owner",
+      },
+      ok: true,
     });
   });
 });

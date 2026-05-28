@@ -85,7 +85,7 @@ describe("LocalSyncQueueAdapter", () => {
     ).toBe(true);
   });
 
-  it("flushes accepted operations with NexusApiClient and idempotency headers", async () => {
+  it("keeps backend queued operations pending with NexusApiClient and idempotency headers", async () => {
     const adapter = makeAdapter();
     await adapter.clear();
     const operation = await adapter.enqueue(makeOperation(3));
@@ -121,7 +121,48 @@ describe("LocalSyncQueueAdapter", () => {
     const operations = await adapter.getOperations();
 
     expect(headers.get("X-Idempotency-Key")).toBe(operation.clientMutationId);
+    expect(operations[0]?.status).toBe("queued");
+    expect(await adapter.getStatus()).toMatchObject({
+      pending: 1,
+    });
+  });
+
+  it("marks operations synced only when the backend reports synced", async () => {
+    const adapter = makeAdapter();
+    await adapter.clear();
+    const operation = await adapter.enqueue(makeOperation(33));
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      Response.json({
+        data: {
+          deduplicated: false,
+          operation: {
+            attemptCount: 1,
+            createdAt: "2026-05-27T00:00:00.000Z",
+            entityId: operation.entityId,
+            entityType: operation.entityType,
+            id: operation.clientMutationId,
+            maxAttempts: 5,
+            operationType: operation.operationType,
+            payloadHash: operation.payloadHash,
+            status: "synced",
+            updatedAt: "2026-05-27T00:00:00.000Z",
+            workspaceId: operation.workspaceId,
+          },
+        },
+        error: null,
+        meta: {
+          requestId: "req-local",
+          traceId: "trace-local",
+        },
+        ok: true,
+      }),
+    );
+
+    await adapter.flush();
+    const operations = await adapter.getOperations();
+
     expect(operations[0]?.status).toBe("synced");
+    expect((await adapter.getStatus()).lastSyncedAt).toBeDefined();
   });
 
   it("compacts rapid layout operations to the final state", async () => {

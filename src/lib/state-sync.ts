@@ -16,6 +16,7 @@ import type {
   PromptRevisionRecord,
   StateSyncResult,
   StateSyncStatus,
+  WorkspaceRecoveryStateResponse,
   WorkspaceStateGetResponse,
   WorkspaceStatePutRequest,
   WorkflowTemplateBlueprintData,
@@ -358,6 +359,19 @@ export class MockStateSyncManager implements IStateSyncManager {
   async deleteNotebook(id: string, workspaceId?: string): Promise<void> {
     void id;
     void workspaceId;
+  }
+
+  async fetchLatestWorkspaceRecoveryState(input: {
+    localChecksum?: string | null;
+    localUpdatedAt?: string | null;
+    localWorkspaceId?: string | null;
+    userId: string;
+  }): Promise<WorkspaceRecoveryStateResponse> {
+    return {
+      latest: null,
+      plan: null,
+      userId: input.userId,
+    };
   }
 
   async syncActiveUiState(snapshot: ActiveUiStateSnapshot): Promise<StateSyncResult> {
@@ -794,6 +808,53 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     } catch (error) {
       logSupabaseSyncError(error);
       this.status = "idle";
+    }
+  }
+
+  async fetchLatestWorkspaceRecoveryState(input: {
+    localChecksum?: string | null;
+    localUpdatedAt?: string | null;
+    localWorkspaceId?: string | null;
+    userId: string;
+  }): Promise<WorkspaceRecoveryStateResponse> {
+    this.status = "syncing";
+
+    try {
+      const searchParams = new URLSearchParams();
+
+      if (input.localChecksum) {
+        searchParams.set("localChecksum", input.localChecksum);
+      }
+
+      if (input.localUpdatedAt) {
+        searchParams.set("localUpdatedAt", input.localUpdatedAt);
+      }
+
+      if (input.localWorkspaceId) {
+        searchParams.set("localWorkspaceId", input.localWorkspaceId);
+      }
+
+      const query = searchParams.toString();
+      const response = await nexusApiClient.get<WorkspaceRecoveryStateResponse>(
+        `/api/v1/workspaces/recovery/latest${query ? `?${query}` : ""}`,
+        {
+          userId: input.userId,
+          workspaceId: input.localWorkspaceId ?? "__global__",
+        },
+      );
+
+      this.status = "idle";
+
+      return response;
+    } catch (error) {
+      logSupabaseSyncError(error);
+      this.status = "idle";
+
+      return {
+        latest: null,
+        plan: null,
+        userId: input.userId,
+      };
     }
   }
 

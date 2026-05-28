@@ -17,12 +17,15 @@ import type {
   AgentLayout,
   AgentModelSettings,
   AgentTemplateProfile,
+  LocalSyncQueueOperation,
   NexusAgent,
   NexusWorkspace,
   NotebookRecord,
   ToolStatus,
   WorkspaceGraphEdge,
   WorkspaceGraphNode,
+  WorkspaceCloudSnapshotPayload,
+  WorkspaceNotebookRecoveryMetadata,
   WorkspacePanel,
   WorkspaceSnapshot,
   WorkspaceBranchingSettings,
@@ -507,13 +510,71 @@ function sanitizeNotebookRecord(notebook: NotebookRecord): NotebookRecord {
   };
 }
 
+export function createNotebookRecoveryMetadata(
+  operations: LocalSyncQueueOperation[],
+  generatedAt = new Date().toISOString(),
+): WorkspaceNotebookRecoveryMetadata | undefined {
+  const recoveryOperations = operations
+    .filter((operation) =>
+      operation.entityType === "notebook" &&
+      !["synced", "compacted"].includes(operation.status),
+    )
+    .map((operation) => ({
+      clientMutationId: operation.clientMutationId,
+      notebookId: operation.entityId,
+      operationType: operation.operationType,
+      payloadHash: operation.payloadHash,
+      queuedAt: operation.createdAt,
+      status: operation.status as WorkspaceNotebookRecoveryMetadata["operations"][number]["status"],
+      updatedAt: operation.updatedAt,
+      workspaceId: operation.workspaceId,
+    }));
+
+  if (!recoveryOperations.length) {
+    return undefined;
+  }
+
+  return {
+    generatedAt,
+    operationCount: recoveryOperations.length,
+    operations: recoveryOperations,
+    schemaVersion: 1,
+    source: "local_sync_queue",
+  };
+}
+
+export function materializeWorkspaceFromCloudSnapshot(
+  snapshot: WorkspaceCloudSnapshotPayload,
+): NexusWorkspace {
+  return sanitizeWorkspace({
+    ...snapshot.workspace,
+    agents: snapshot.workspace.agents.map((agent): NexusAgent => ({
+      ...agent,
+      messages: [],
+      status: "idle",
+      telemetry: {
+        confidence: 1,
+        errors: 0,
+        latency: 0,
+        tasks: 0,
+        tokens: 0,
+        toolRuns: 0,
+      },
+    })),
+  });
+}
+
 export function createWorkspaceSnapshot(
   workspace: NexusWorkspace,
-  options: { notebooks?: NotebookRecord[] } = {},
+  options: {
+    notebookRecovery?: WorkspaceNotebookRecoveryMetadata;
+    notebooks?: NotebookRecord[];
+  } = {},
 ): WorkspaceSnapshot {
   return {
     schemaVersion: WORKSPACE_SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
+    notebookRecovery: options.notebookRecovery,
     notebooks: options.notebooks?.map(sanitizeNotebookRecord),
     workspace: sanitizeWorkspace(workspace),
   };

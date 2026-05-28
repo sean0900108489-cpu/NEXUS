@@ -6,6 +6,8 @@ import { POST as postSyncOperation } from "@/app/api/v1/sync/operations/route";
 import { GET as getSyncStatus } from "@/app/api/v1/sync/status/route";
 import { POST as cancelSyncOperation } from "@/app/api/v1/sync/operations/[operationId]/cancel/route";
 import { ApiError } from "@/lib/backend/api/api-errors";
+import { InMemoryNotebookRepository } from "@/lib/backend/notebooks/notebook-repository";
+import { NotebookService } from "@/lib/backend/notebooks/notebook-service";
 
 import { SyncOperationApplier } from "./sync-operation-applier";
 import { InMemorySyncOperationRepository } from "./sync-operation-repository";
@@ -150,6 +152,124 @@ describe("SyncQueueService", () => {
     );
 
     expect(cancelled.status).toBe("synced");
+  });
+
+  it("applies notebook upserts to the durable notebook repository", async () => {
+    const syncRepository = new InMemorySyncOperationRepository();
+    const notebookRepository = new InMemoryNotebookRepository();
+    const service = new SyncQueueService({
+      applier: new SyncOperationApplier({
+        notebookService: new NotebookService({ repository: notebookRepository }),
+      }),
+      repository: syncRepository,
+    });
+    const input = makeOperation({
+      entityId: "notebook-1",
+      entityType: "notebook",
+      operationType: "upsert",
+      payload: {
+        content: "durable datapad body",
+        created_at: "2026-05-28T00:00:00.000Z",
+        id: "notebook-1",
+        title: "Durable Datapad",
+        updated_at: "2026-05-28T00:01:00.000Z",
+        workspace_id: "workspace-sync-a",
+      },
+    });
+
+    const response = await service.createOperation(input, { userId: "user-owner" });
+    const notebook = await notebookRepository.findById({
+      id: "notebook-1",
+      workspaceId: "workspace-sync-a",
+    });
+
+    expect(response.operation.status).toBe("synced");
+    expect(notebook).toMatchObject({
+      content: "durable datapad body",
+      id: "notebook-1",
+      title: "Durable Datapad",
+      workspace_id: "workspace-sync-a",
+    });
+  });
+
+  it("conflicts stale notebook upserts instead of overwriting newer durable data", async () => {
+    const notebookRepository = new InMemoryNotebookRepository();
+    await notebookRepository.upsert({
+      content: "newer durable body",
+      id: "notebook-stale",
+      title: "Newer Datapad",
+      updatedAt: "2026-05-28T00:05:00.000Z",
+      workspaceId: "workspace-sync-a",
+    });
+    const service = new SyncQueueService({
+      applier: new SyncOperationApplier({
+        notebookService: new NotebookService({ repository: notebookRepository }),
+      }),
+      repository: new InMemorySyncOperationRepository(),
+    });
+    const response = await service.createOperation(
+      makeOperation({
+        entityId: "notebook-stale",
+        entityType: "notebook",
+        operationType: "upsert",
+        payload: {
+          content: "older local body",
+          id: "notebook-stale",
+          title: "Older Datapad",
+          updated_at: "2026-05-28T00:01:00.000Z",
+          workspace_id: "workspace-sync-a",
+        },
+      }),
+      { userId: "user-owner" },
+    );
+    const notebook = await notebookRepository.findById({
+      id: "notebook-stale",
+      workspaceId: "workspace-sync-a",
+    });
+
+    expect(response.operation.status).toBe("conflicted");
+    expect(notebook?.content).toBe("newer durable body");
+  });
+
+  it("applies notebook deletes idempotently", async () => {
+    const notebookRepository = new InMemoryNotebookRepository();
+    await notebookRepository.upsert({
+      content: "delete me",
+      id: "notebook-delete",
+      title: "Delete Datapad",
+      updatedAt: "2026-05-28T00:01:00.000Z",
+      workspaceId: "workspace-sync-a",
+    });
+    const service = new SyncQueueService({
+      applier: new SyncOperationApplier({
+        notebookService: new NotebookService({ repository: notebookRepository }),
+      }),
+      repository: new InMemorySyncOperationRepository(),
+    });
+    const input = makeOperation({
+      entityId: "notebook-delete",
+      entityType: "notebook",
+      operationType: "delete",
+      payload: {
+        id: "notebook-delete",
+        workspaceId: "workspace-sync-a",
+      },
+    });
+
+    const first = await service.createOperation(input, { userId: "user-owner" });
+    const second = await service.createOperation({
+      ...input,
+      clientMutationId: `mutation_delete_again_${crypto.randomUUID()}`,
+    }, { userId: "user-owner" });
+
+    expect(first.operation.status).toBe("synced");
+    expect(second.operation.status).toBe("synced");
+    await expect(
+      notebookRepository.findById({
+        id: "notebook-delete",
+        workspaceId: "workspace-sync-a",
+      }),
+    ).resolves.toBeNull();
   });
 });
 

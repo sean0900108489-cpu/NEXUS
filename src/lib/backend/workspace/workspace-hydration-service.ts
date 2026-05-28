@@ -1,43 +1,10 @@
-import type { WorkspaceCloudSnapshotPayload } from "@/lib/nexus-types";
+import type {
+  WorkspaceCloudSnapshotPayload,
+  WorkspaceHydrationInput,
+  WorkspaceHydrationPlan,
+} from "@/lib/nexus-types";
 
 import { ApiError } from "../api/api-errors";
-
-export type WorkspaceHydrationReason =
-  | "local_missing"
-  | "workspace_switch"
-  | "explicit_restore"
-  | "recover"
-  | "local_corrupt";
-
-export type WorkspaceHydrationInput = {
-  workspaceId: string;
-  cloudChecksum: string;
-  cloudUpdatedAt: string;
-  localChecksum?: string | null;
-  localUpdatedAt?: string | null;
-  localStatePresent: boolean;
-  reason: WorkspaceHydrationReason;
-};
-
-export type WorkspaceHydrationPlan =
-  | {
-      action: "hydrate";
-      workspaceId: string;
-      checksum: string;
-      reason: WorkspaceHydrationReason;
-    }
-  | {
-      action: "skip";
-      workspaceId: string;
-      checksum: string;
-      reason: "checksum_match" | "local_state_present";
-    }
-  | {
-      action: "conflict";
-      workspaceId: string;
-      checksum: string;
-      reason: "local_newer";
-    };
 
 export class WorkspaceHydrationService {
   createHydrationPlan(input: WorkspaceHydrationInput): WorkspaceHydrationPlan {

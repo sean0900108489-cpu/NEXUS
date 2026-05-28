@@ -89,6 +89,29 @@ export type AgentMemoryBlock = {
   updatedAt: string;
 };
 
+export type AgentMessageRetentionMetadata = {
+  mode: "preserve_full_until_durable_projection";
+  activeWindowLimit: number;
+  maxWindowLimit: number;
+  retainedCount: number;
+  omittedCount: number;
+  durability: "needs_sync_operation_applier_message_projection";
+};
+
+export type AgentMemoryRetentionMetadata = {
+  mode: "preserve_full_until_durable_write";
+  maxRecordContentBytes: number;
+  retainedBlockCount: number;
+  omittedBlockCount: number;
+  durability: "needs_memory_write_route";
+};
+
+export type AgentLocalPersistenceMetadata = {
+  schemaVersion: 1;
+  messages: AgentMessageRetentionMetadata;
+  memory: AgentMemoryRetentionMetadata;
+};
+
 export type AgentContextNote = {
   id: string;
   title: string;
@@ -197,6 +220,7 @@ export type NexusAgent = {
   updatedAt: string;
   telemetry: AgentTelemetry;
   branchMetadata?: IAgentBranchMetadata;
+  localPersistence?: AgentLocalPersistenceMetadata;
 };
 
 export type WorkspacePanel = {
@@ -554,9 +578,32 @@ export type AgentTemplateProfile = {
 
 export type AgentTemplateProfileUpdate = Partial<AgentTemplateProfile>;
 
+export type NotebookSyncRecoveryOperation = {
+  clientMutationId: string;
+  notebookId: string;
+  operationType: string;
+  payloadHash: string;
+  queuedAt: string;
+  status: Extract<
+    SyncOperationStatus,
+    "pending" | "queued" | "syncing" | "retrying" | "failed" | "conflicted" | "cancelled"
+  >;
+  updatedAt: string;
+  workspaceId: string;
+};
+
+export type WorkspaceNotebookRecoveryMetadata = {
+  schemaVersion: 1;
+  generatedAt: string;
+  operationCount: number;
+  operations: NotebookSyncRecoveryOperation[];
+  source: "local_sync_queue";
+};
+
 export type WorkspaceSnapshot = {
   schemaVersion: 1;
   exportedAt: string;
+  notebookRecovery?: WorkspaceNotebookRecoveryMetadata;
   workspace: NexusWorkspace;
   notebooks?: NotebookRecord[];
 };
@@ -655,6 +702,69 @@ export type WorkspaceStateGetResponse = {
   payloadSizeBytes: number;
   updatedAt: string;
 };
+
+export type WorkspaceHydrationReason =
+  | "local_missing"
+  | "workspace_switch"
+  | "explicit_restore"
+  | "recover"
+  | "local_corrupt";
+
+export type WorkspaceHydrationInput = {
+  workspaceId: string;
+  cloudChecksum: string;
+  cloudUpdatedAt: string;
+  localChecksum?: string | null;
+  localUpdatedAt?: string | null;
+  localStatePresent: boolean;
+  reason: WorkspaceHydrationReason;
+};
+
+export type WorkspaceHydrationPlan =
+  | {
+      action: "hydrate";
+      workspaceId: string;
+      checksum: string;
+      reason: WorkspaceHydrationReason;
+    }
+  | {
+      action: "skip";
+      workspaceId: string;
+      checksum: string;
+      reason: "checksum_match" | "local_state_present";
+    }
+  | {
+      action: "conflict";
+      workspaceId: string;
+      checksum: string;
+      reason: "local_newer";
+    };
+
+export type WorkspaceRecoveryStateResponse = {
+  latest: WorkspaceStateGetResponse | null;
+  plan: WorkspaceHydrationPlan | null;
+  userId: string;
+};
+
+export type WorkspaceRecoveryApplyResult =
+  | {
+      status: "applied";
+      workspaceId: string;
+      checksum: string;
+      reason: WorkspaceHydrationReason;
+    }
+  | {
+      status: "skipped";
+      workspaceId?: string;
+      checksum?: string;
+      reason: "missing_cloud_state" | "checksum_match" | "local_state_present";
+    }
+  | {
+      status: "conflicted";
+      workspaceId: string;
+      checksum: string;
+      reason: "local_newer";
+    };
 
 export type WorkspaceStatePutResponse = {
   workspaceId: string;
@@ -1005,7 +1115,15 @@ export type LocalSyncQueueOperation = SyncOperationRequest & {
   payloadHash: string;
   status: Extract<
     SyncOperationStatus,
-    "pending" | "queued" | "syncing" | "synced" | "retrying" | "failed" | "conflicted" | "compacted"
+    | "pending"
+    | "queued"
+    | "syncing"
+    | "synced"
+    | "retrying"
+    | "failed"
+    | "conflicted"
+    | "cancelled"
+    | "compacted"
   >;
   attemptCount: number;
   createdAt: string;
@@ -1466,6 +1584,12 @@ export interface IStateSyncManager {
   fetchNotebooks(): Promise<NotebookRecord[]>;
   upsertNotebook(notebook: NotebookRecord, workspaceId?: string): Promise<void>;
   deleteNotebook(id: string, workspaceId?: string): Promise<void>;
+  fetchLatestWorkspaceRecoveryState(input: {
+    localChecksum?: string | null;
+    localUpdatedAt?: string | null;
+    localWorkspaceId?: string | null;
+    userId: string;
+  }): Promise<WorkspaceRecoveryStateResponse>;
   syncActiveUiState(snapshot: ActiveUiStateSnapshot): Promise<StateSyncResult>;
   syncHistoricalMessage(record: HistoricalMessageRecord): Promise<StateSyncResult>;
   syncHistoricalArtifact(record: HistoricalArtifactRecord): Promise<StateSyncResult>;

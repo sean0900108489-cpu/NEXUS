@@ -3418,3 +3418,24 @@ Updated: 2026-05-29 04:48:03 AEST
 - Vercel blocked that deployment before build because the source commit author email was `sean@seandeMacBook-Pro.local`, which does not match the Git account.
 - Local repository git config has been corrected to `sean0900108489-cpu <sean0010801@gmail.com>` for the next landing commit.
 - Next safe step: commit this checkpoint with the corrected author, push it, then rerun Production deploy and verify `/api/v1/health`.
+
+## Vercel Production App Landing Complete
+
+Updated: 2026-05-29 04:55:31 AEST
+
+- Committed and pushed checkpoint commit `b975932` (`Record V16 production env landing`) with Git author `sean0900108489-cpu <sean0010801@gmail.com>`.
+- Redeployed Production successfully after the commit-author fix:
+  `dpl_7EEBC9xrzivV4fuwDnSVcVq9stLt`, URL `https://nexus-ojb7g96m8-sean-s-projects10.vercel.app`, aliased to `https://nexus-swart-ten.vercel.app`.
+- Initial health after adding the Supabase server credential returned `database: true`, `deployment: true`, `registry: true`, but `env: false` because Production defaulted to live provider runtime without a global `OPENAI_API_KEY`.
+- Added `NEXUS_RUNTIME_MODE=mock` to Vercel Production to match current product behavior documented in README: per-agent keys can be configured by the operator, and keyless agents use mock streaming rather than requiring a global server provider key.
+- Final Production deployment completed:
+  `dpl_92stuWqXBh3sQcYjcGxQrA7ZftvJ`, URL `https://nexus-2pb0cspar-sean-s-projects10.vercel.app`, aliased to `https://nexus-swart-ten.vercel.app`.
+- Production root returned `HTTP 200`.
+- Production `/api/v1/public-config` returned Supabase configured with project `xjuglddxwnikvcwxfbzg`.
+- Production auth boundary smoke:
+  unauthenticated `/api/v1/sync/status` returns `PERMISSION_DENIED`;
+  unauthenticated `/api/v1/workspaces/recovery/latest` returns `AUTH_REQUIRED`.
+- Production `/api/v1/health` now returns:
+  `database: true`, `deployment: true`, `env: true`, `registry: true`, `mode: production`, `status: warning`.
+- The remaining `warning` is the existing registry warning for declared planned/reserved tool slots, not a Supabase/Vercel/data-layer failure.
+- Chrome UI smoke loaded `https://nexus-swart-ten.vercel.app` successfully and showed the NEXUS workspace with sync status visible as `SYNCED`.

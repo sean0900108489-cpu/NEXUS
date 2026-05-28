@@ -3406,3 +3406,15 @@ Updated: 2026-05-29 04:42:00 AEST
 - Deleted disposable branch `v16-production-rollout-dryrun-20260529` (`40d7e9ac-1a17-4382-bab5-85ff54b657d3`, ref `vmlxdrcuykvhvtbcpfur`).
 - Deleted disposable branch `v16-release-verification-20260529` (`0dce3bbb-e890-4785-9b06-3568ac2604bd`, ref `mzvuvaslrcbxgrezpnjs`).
 - Confirmed Supabase branch list now only shows `main` for production project `xjuglddxwnikvcwxfbzg`.
+
+## Vercel Production Env Landing Pass
+
+Updated: 2026-05-29 04:48:03 AEST
+
+- Added `SUPABASE_SERVICE_ROLE_KEY` to Vercel project `nexus` Production environment.
+- The value was copied from Supabase API Keys as a server-only `sb_secret_...` credential, added through stdin, never printed to terminal or chat, and the local clipboard was cleared immediately afterward.
+- Vercel env list now includes `SUPABASE_SERVICE_ROLE_KEY` for Production.
+- Attempted Production deployment `dpl_7x2uZ35c6kSMdYE4RyzQp4Lk9K8w` / `https://nexus-gtcmkmj2r-sean-s-projects10.vercel.app`.
+- Vercel blocked that deployment before build because the source commit author email was `sean@seandeMacBook-Pro.local`, which does not match the Git account.
+- Local repository git config has been corrected to `sean0900108489-cpu <sean0010801@gmail.com>` for the next landing commit.
+- Next safe step: commit this checkpoint with the corrected author, push it, then rerun Production deploy and verify `/api/v1/health`.

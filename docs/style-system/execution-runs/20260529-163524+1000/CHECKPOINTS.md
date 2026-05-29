@@ -3196,3 +3196,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found the partially implemented pure validator status, implementation evidence, `recipes.commandPalette` coverage, remaining-gaps note, and current pure report shape. Stale marker scan returned no matches for the old documentation-only/no-code/future-report wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
 - Rollback note: revert only the CP-196 validator doc reconciliation and this run-doc checkpoint if the wording must be removed.
+
+## CP-197 - Pure Validator Recipe Token Reference Guard V1
+
+- Unit: add a pure validator guard that rejects recipe semantic token references pointing to unknown tokens before compilation or preview.
+- Allowed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: UI/TSX/app route/CSS files, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused validator/compiler Vitest; targeted lint for validator files; `npm run typecheck`; targeted side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `npm run test -- src/lib/style-engine/validator.test.ts src/lib/style-engine/compiler.test.ts`; `npm run lint -- src/lib/style-engine/validator.ts src/lib/style-engine/validator.test.ts`; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git diff --stat`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused validator/compiler Vitest passed 2 files / 14 tests. Targeted lint passed. `npm run typecheck` passed. Side-effect/behavior scans matched only existing validator safety detector strings and test-only unsafe fixture strings for Supabase/deploy/themeConfig/nodesDraggable/zIndex. `git diff --check` passed.
+- Rollback note: revert only the CP-197 validator/test changes and this run-doc checkpoint if the unknown-token-reference guard must be backed out.

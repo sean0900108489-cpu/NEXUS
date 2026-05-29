@@ -971,31 +971,37 @@ Run id: `20260529-163524+1000`
 - Started `CP-196 - Manifest Validator Rules Doc Reconciliation V1`.
 - Reconciled `manifest-validator-rules.md` with the current pure validator implementation evidence, command palette required-group coverage, current report shape, and remaining gaps.
 - Verified CP-196 with focused evidence scan, stale marker scan, `git diff --check`, diff stat, and status check.
+- Created local checkpoint commit `7159ac79d7cefd977996f12ed10fd483d06840b1` for the Manifest Validator Rules Doc Reconciliation V1 unit.
+- Started `CP-197 - Pure Validator Recipe Token Reference Guard V1`.
+- Added a pure validator guard that scans recipe string values shaped like semantic token references and rejects references whose token group exists but token name is missing.
+- Added validator coverage for `style.unknownTokenReference` and repaired the safe validator fixture to use an existing `border.subtle` reference.
+- Verified CP-197 with focused validator/compiler Vitest, targeted lint, `npm run typecheck`, targeted side-effect/behavior scans, `git diff --check`, diff stat, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-196 - Manifest Validator Rules Doc Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-196 local commit; previous clean checkpoint commit is `3d03c8cc7f97bea5c5f82a40163c3f1e856ed757`.
+- Latest completed checkpoint: `CP-197 - Pure Validator Recipe Token Reference Guard V1`.
+- Latest local checkpoint commit: pending CP-197 local commit; previous clean checkpoint commit is `7159ac79d7cefd977996f12ed10fd483d06840b1`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-196 verification: dirty only in CP-196 allowed docs and run-doc files.
-- Current stop reason: not stopped; CP-196 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-197 verification: dirty only in CP-197 allowed validator/test and run-doc files.
+- Current stop reason: not stopped; CP-197 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-196 - Local checkpoint commit prep`.
+- `CP-197 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/manifest-validator-rules.md`
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits, UI/CSS/production component files, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: UI/TSX/app route/CSS files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-196 docs/run-doc update if the validator doc reconciliation must be removed.
+- Rollback: revert only the CP-197 validator/test/run-doc update if the guard must be removed.
 
 ## Next
 
-1. Commit the CP-196 docs checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-197 validator guard checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

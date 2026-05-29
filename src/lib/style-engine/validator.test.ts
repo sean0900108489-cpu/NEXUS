@@ -80,6 +80,25 @@ describe("NEXUS Style Engine manifest validator", () => {
     });
   });
 
+  it("rejects recipe references to unknown semantic tokens", () => {
+    const manifest = createSafeManifest({
+      recipes: {
+        panel: {
+          surface: "surface.missing",
+        },
+      },
+    });
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toContainEqual({
+      code: "style.unknownTokenReference",
+      message: "Recipe references an unknown semantic token.",
+      path: "$.recipes.panel.surface",
+    });
+  });
+
   it("rejects React Flow behavior fields but allows the workspace token group", () => {
     const manifest = createSafeManifest({
       adapters: {
@@ -207,7 +226,7 @@ function createSafeManifest(
           text: "text.secondary",
         },
         focus: {
-          ring: "border.focus",
+          ring: "border.subtle",
         },
       },
       commandPalette: {},

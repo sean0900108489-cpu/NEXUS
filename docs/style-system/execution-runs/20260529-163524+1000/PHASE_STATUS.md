@@ -212,6 +212,7 @@ Run id: `20260529-163524+1000`
 | Post Pure Coverage Phase Gate | PASS | Full check passed after pure preview/governance/validator coverage additions; side-effect scan and git diff check passed. |
 | Style Lab Export Command Palette Smoke V1 | PASS | Source-closed local smoke confirmed Style Lab export text includes `commandPalette`, `windowModal`, and `previewVariableCount: 122`. |
 | Manifest Validator Rules Doc Reconciliation V1 | PASS | Reconciled validator rules doc with current pure validator implementation, command palette required-group coverage, and remaining gaps. |
+| Pure Validator Recipe Token Reference Guard V1 | PASS | Added pure validator guard and tests for unknown recipe semantic token references. |
 
 ## Current Gate
 
@@ -224,4 +225,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Manifest Validator Rules Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Validator Recipe Token Reference Guard local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

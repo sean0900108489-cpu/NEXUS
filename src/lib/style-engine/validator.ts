@@ -144,6 +144,7 @@ export function validateNexusStyleManifestV1(
   validateTokens(candidate.tokens, report);
   validateAccessibility(candidate.tokens, report);
   validateRecipes(candidate.recipes, report);
+  validateRecipeTokenReferences(candidate.tokens, candidate.recipes, report);
   validateAdapters(candidate.adapters, report);
   scanUnsafeStrings(candidate, "$", report);
 
@@ -391,6 +392,18 @@ function validateRecipes(value: unknown, report: MutableReport) {
   scanRecipeKeys(value, "$.recipes", report);
 }
 
+function validateRecipeTokenReferences(
+  tokens: unknown,
+  recipes: unknown,
+  report: MutableReport,
+) {
+  if (!isRecord(tokens) || !isRecord(recipes)) {
+    return;
+  }
+
+  scanRecipeTokenReferences(tokens, recipes, "$.recipes", report);
+}
+
 function validateAdapters(value: unknown, report: MutableReport) {
   if (!isRecord(value)) {
     addError(report, "$.adapters", "style.invalidAdapters", "adapters must be an object.");
@@ -432,6 +445,54 @@ function scanRecipeKeys(value: unknown, path: string, report: MutableReport) {
     }
 
     scanRecipeKeys(nextValue, keyPath, report);
+  }
+}
+
+function scanRecipeTokenReferences(
+  tokens: Record<string, unknown>,
+  value: unknown,
+  path: string,
+  report: MutableReport,
+) {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) =>
+      scanRecipeTokenReferences(tokens, item, `${path}[${index}]`, report),
+    );
+    return;
+  }
+
+  if (typeof value === "string") {
+    const reference = /^([a-z]+)\.([A-Za-z0-9]+)$/.exec(value);
+
+    if (!reference) {
+      return;
+    }
+
+    const [, group, tokenName] = reference;
+
+    if (!isStyleTokenGroup(group)) {
+      return;
+    }
+
+    const tokenGroup = tokens[group];
+
+    if (!isRecord(tokenGroup) || !(tokenName in tokenGroup)) {
+      addError(
+        report,
+        path,
+        "style.unknownTokenReference",
+        "Recipe references an unknown semantic token.",
+      );
+    }
+    return;
+  }
+
+  if (!isRecord(value)) {
+    return;
+  }
+
+  for (const [key, nextValue] of Object.entries(value).sort()) {
+    scanRecipeTokenReferences(tokens, nextValue, `${path}.${key}`, report);
   }
 }
 
@@ -538,6 +599,10 @@ function sortIssues(issues: NexusStyleValidationIssueV1[]) {
 
 function withinLength(value: string, min: number, max: number) {
   return value.length >= min && value.length <= max;
+}
+
+function isStyleTokenGroup(value: string) {
+  return NEXUS_STYLE_TOKEN_GROUPS_V1.some((group) => group === value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

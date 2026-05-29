@@ -82,6 +82,7 @@ type NexusCompiledStyleV1 = {
     badge: Record<string, Record<string, string>>;
     window: Record<string, string>;
     modal: Record<string, string>;
+    commandPalette: Record<string, string>;
     dock: Record<string, string>;
   };
   adapters: {

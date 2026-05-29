@@ -162,6 +162,7 @@ type NexusStyleRecipesV1 = {
   badge: Record<string, Record<string, string>>;
   window: Record<string, string>;
   modal: Record<string, string>;
+  commandPalette: Record<string, string>;
   dock: Record<string, string>;
 };
 ```
@@ -321,6 +322,16 @@ This is intentionally partial and illustrative.
     "badge": {},
     "window": {},
     "modal": {},
+    "commandPalette": {
+      "overlay": "surface.overlay",
+      "surface": "surface.panel",
+      "input": "surface.input",
+      "itemDefault": "surface.panelMuted",
+      "itemHover": "surface.raised",
+      "itemActive": "accent.primary",
+      "icon": "accent.primary",
+      "emptyState": "text.muted"
+    },
     "dock": {}
   },
   "adapters": {

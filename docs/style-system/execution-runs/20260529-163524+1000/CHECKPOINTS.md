@@ -3059,3 +3059,24 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS after one recoverable focused-test expectation repair. Initial focused Vitest exposed that an empty fixture `commandPalette` group falls back to safe default variable references; the compiler fixture was updated to provide explicit visual slots for the deterministic adapter-output assertion. Rerun focused Vitest passed 4 files / 22 tests. Targeted lint passed. `npm run typecheck` passed. Full focused style-engine Vitest passed 15 files / 68 tests. Side-effect scans found only existing test-only unsafe payloads and forbidden behavior-key registry/assertion strings; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed.
 - Rollback note: revert only the CP-188 pure style-engine/test changes and this run-doc checkpoint if the command palette recipe group must be backed out.
+
+## CP-189 - Command Palette Recipe Docs Reconciliation V1
+
+- Unit: reconcile manifest/compiler/window-modal recipe docs with the pure `commandPalette` recipe group added in CP-188.
+- Allowed files:
+  - `docs/style-system/manifest-v1-spec.md`
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/window-modal-recipe-system.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all `src/**`, tests, UI/CSS/app routes, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused doc evidence scan for `commandPalette` recipe shape/example/compiler contract and `recipes.commandPalette` adapter evidence; stale marker scan for old recipe-shape/example omissions; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused `rg` evidence scan; corrected focused `rg` stale/evidence scan after one invalid multiline regex harness attempt; `git diff --check`; `git diff --stat`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-v1-spec.md`
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/window-modal-recipe-system.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Manifest spec now includes `commandPalette: Record<string, string>` and a JSON `commandPalette` recipe example. Compiler contract now includes `commandPalette` in compiled recipes. Window/modal recipe doc now records that the adapter maps command palette visual slots from `recipes.commandPalette`. A first stale scan used an invalid newline regex and failed as a harness issue; corrected scans found the expected command palette evidence. `git diff --check` passed and status showed only allowed docs/run-doc files.
+- Rollback note: revert only the CP-189 documentation reconciliation and this run-doc checkpoint if the docs need to be backed out.

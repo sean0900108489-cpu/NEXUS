@@ -1085,30 +1085,35 @@ Run id: `20260529-163524+1000`
 - Ran full `npm run check`; lint, typecheck, 41 Vitest files / 308 tests, and build passed.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries/assertions, and the window/modal recipe adapter forbidden behavior key registry/assertions; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `89c2cdc77f9bbf5606b8ab662fb2a16599e8e15d` for the Post CSS Variable Guard Phase Gate.
+- Started `CP-223 - Pure Validator Approved CSS Variable Reference Coverage V1`.
+- Added focused validator test coverage that approved `--nexus-*` CSS variable references are allowed.
+- Verified CP-223 with focused validator Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-222 - Post CSS Variable Guard Phase Gate`.
-- Latest local checkpoint commit: pending CP-222 local commit; previous clean checkpoint commit is `cbad30d86462d0940c5232f370be58e45cfe10f1`.
+- Latest completed checkpoint: `CP-223 - Pure Validator Approved CSS Variable Reference Coverage V1`.
+- Latest local checkpoint commit: pending CP-223 local commit; previous clean checkpoint commit is `89c2cdc77f9bbf5606b8ab662fb2a16599e8e15d`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-222 verification: clean before run-doc bookkeeping; dirty only in CP-222 run-doc files after bookkeeping.
-- Current stop reason: not stopped; CP-222 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-223 verification: dirty only in CP-223 allowed test/run-doc files.
+- Current stop reason: not stopped; CP-223 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-222 - Local checkpoint commit prep`.
+- `CP-223 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test/docs outside this run folder, UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: source implementation files, compiler/governance/exchange/runtime/UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-222 run-doc bookkeeping if this gate record must be removed.
+- Rollback: revert only the CP-223 validator test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-222 phase-gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-223 test checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

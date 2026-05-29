@@ -238,6 +238,7 @@ Run id: `20260529-163524+1000`
 | Pure Validator CSS Variable Reference Guard V1 | PASS | Added a pure validator guard for unapproved CSS custom property references; focused tests, lint, typecheck, side-effect scan, and diff check passed. |
 | Validator CSS Variable Guard Doc Reconciliation V1 | PASS | Reconciled validator rules docs with CP-220 CSS variable namespace guard while preserving the full parser future gap. |
 | Post CSS Variable Guard Phase Gate | PASS | Full check passed after CSS variable namespace guard/docs; side-effect scan and git diff check passed. |
+| Pure Validator Approved CSS Variable Reference Coverage V1 | PASS | Added focused positive coverage for approved `--nexus-*` CSS variable references; focused test, lint, typecheck, side-effect scan, and diff check passed. |
 
 ## Current Gate
 
@@ -250,4 +251,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post CSS Variable Guard Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Validator Approved CSS Variable Reference Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

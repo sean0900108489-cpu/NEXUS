@@ -64,6 +64,21 @@ describe("NEXUS Style Engine manifest validator", () => {
     });
   });
 
+  it("allows CSS variable references inside the approved NEXUS namespace", () => {
+    const manifest = createSafeManifest({
+      tokens: {
+        surface: {
+          app: "var(--nexus-surface-app)",
+        },
+      },
+    });
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(true);
+    expect(report.errors).toEqual([]);
+  });
+
   it("rejects recipe behavior fields", () => {
     const manifest = createSafeManifest({
       recipes: {

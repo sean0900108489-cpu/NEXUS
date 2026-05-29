@@ -1164,31 +1164,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-241 - Pure Governance Retired Permission Coverage V1`.
 - Added focused governance test coverage for the existing retired lifecycle permission mapping.
 - Verified CP-241 with focused governance Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
+- Created local checkpoint commit `b6707079e386e5fd8e8b88e6aa76e0aab358b5f8` for the Pure Governance Retired Permission Coverage V1 unit.
+- Started `CP-242 - Governance Retired Permission Doc Reconciliation V1`.
+- Reconciled `style-pack-governance.md` with CP-241 retired lifecycle permission coverage.
+- Verified CP-242 with focused evidence/doc scans, source-diff absence check, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-241 - Pure Governance Retired Permission Coverage V1`.
-- Latest local checkpoint commit: pending CP-241 local commit; previous clean checkpoint commit is `15e5159b3ee6afeeabf8f6dc9ead1f669c1bb6b4`.
+- Latest completed checkpoint: `CP-242 - Governance Retired Permission Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-242 local commit; previous clean checkpoint commit is `b6707079e386e5fd8e8b88e6aa76e0aab358b5f8`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-241 verification: dirty only in CP-241 allowed governance test/run-doc files.
-- Current stop reason: not stopped; CP-241 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-242 verification: dirty only in CP-242 allowed docs/run-doc files.
+- Current stop reason: not stopped; CP-242 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-241 - Local checkpoint commit prep`.
+- `CP-242 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/governance.test.ts`
+  - `docs/style-system/style-pack-governance.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: source implementation files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, production Nexus components, docs outside this run folder, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, production Nexus components, docs outside this run folder, package/deploy/database/backend/store/sync/Supabase files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-241 governance test/run-doc changes if this coverage must be removed.
+- Rollback: revert only the CP-242 governance doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-241 governance test checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-242 governance doc checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

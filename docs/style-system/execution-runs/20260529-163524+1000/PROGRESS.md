@@ -1184,30 +1184,36 @@ Run id: `20260529-163524+1000`
 - Created local checkpoint commit `ff09efcfe1a12671eee7f8110b2c42fc251e8285` for the Post Governance Exchange Coverage Phase Gate.
 - Started `CP-246 - Phase Gate Commit Metadata Reconciliation V1`.
 - Reconciled run docs with the CP-245 local checkpoint commit and clean post-commit status.
+- Created local checkpoint commit `357894bc3d368de373ce29579a23a0c078d1e5ff` for the Phase Gate Commit Metadata Reconciliation V1 unit.
+- Started `CP-247 - Pure Validator Data URL Guard V1`.
+- Added a pure forbidden string guard for data URL schemes and focused coverage that a data URL in `source.reference` is rejected without echoing payload text.
+- Verified CP-247 with focused validator Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-246 - Phase Gate Commit Metadata Reconciliation V1`.
-- Latest recorded checkpoint commit: `ff09efcfe1a12671eee7f8110b2c42fc251e8285` for `CP-245 - Post Governance Exchange Coverage Phase Gate`; CP-246 run-doc metadata is being prepared for local commit.
+- Latest completed checkpoint: `CP-247 - Pure Validator Data URL Guard V1`.
+- Latest recorded checkpoint commit: `357894bc3d368de373ce29579a23a0c078d1e5ff` for `CP-246 - Phase Gate Commit Metadata Reconciliation V1`; CP-247 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-245 local commit: clean.
-- Current stop reason: not stopped; CP-246 run-doc metadata reconciliation is underway before next isolated unit selection.
+- Confirmed current status after CP-247 verification: dirty only in CP-247 allowed files.
+- Current stop reason: not stopped; CP-247 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-246 - Local checkpoint commit prep`.
+- `CP-247 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits, docs outside this run folder, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused metadata scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-246 run-doc metadata update if this reconciliation must be removed.
+- Forbidden files: docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring beyond pure validator imports, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-247 validator/test/run-doc changes if this guard must be removed.
 
 ## Next
 
-1. Commit the CP-246 run-doc metadata checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-247 pure validator checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -4054,3 +4054,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Run docs now record CP-245 commit `ff09efcfe1a12671eee7f8110b2c42fc251e8285`, clean post-commit status, and the CP-246 source-closed metadata scope. `git diff --check` passed and status showed only allowed run-doc files.
 - Rollback note: revert only the CP-246 run-doc metadata update if this reconciliation must be removed.
+
+## CP-247 - Pure Validator Data URL Guard V1
+
+- Unit: add a pure validator guard for data URL strings and focused coverage that payload text is not echoed in reports.
+- Allowed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring beyond pure validator imports, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused validator Vitest; targeted lint for touched validator files; `npm run typecheck`; targeted side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run test -- --testTimeout 20000 src/lib/style-engine/validator.test.ts`; `npm run lint -- src/lib/style-engine/validator.ts src/lib/style-engine/validator.test.ts`; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused validator Vitest passed 1 file / 16 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed after a local test narrowing fix. Side-effect scan only matched existing safety detector strings, existing manifest window recipe names, and test fixture strings; behavior scan only matched existing forbidden-key registries and test assertions/fixtures. `git diff --check` passed and status showed only allowed CP-247 files.
+- Rollback note: revert only the CP-247 validator/test/run-doc changes if this data URL guard must be removed.

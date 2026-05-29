@@ -45,6 +45,24 @@ describe("NEXUS Style Engine manifest validator", () => {
     expect(JSON.stringify(report)).not.toContain("example.test");
   });
 
+  it("rejects data URL strings without echoing payloads", () => {
+    const manifest = createSafeManifest();
+    manifest.source = {
+      kind: "imported-draft",
+      reference: "data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk=",
+    };
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toContainEqual({
+      code: "style.forbidden.dataUrl",
+      message: "Manifest contains a forbidden string value.",
+      path: "$.source.reference",
+    });
+    expect(JSON.stringify(report)).not.toContain("PHN2Zy");
+  });
+
   it("rejects CSS variable references outside approved namespaces", () => {
     const manifest = createSafeManifest({
       tokens: {

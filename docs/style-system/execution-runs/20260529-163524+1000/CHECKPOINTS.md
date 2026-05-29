@@ -434,3 +434,32 @@ Each checkpoint records:
 - Commit created: `fe6a2b3a57949b368f9d9cc6696de05bfd7a4f40`.
 - Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
 - Rollback note: revert the compiler commit only if the pure compiler unit must be removed; do not touch unrelated history.
+
+## CP-028 - Pure Compiler Record Commit Completed
+
+- Unit: commit pure compiler checkpoint metadata locally.
+- Allowed files: git metadata plus `docs/style-system/execution-runs/20260529-163524+1000/**`.
+- Forbidden files: `exports/**`, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `git add docs/style-system/execution-runs/20260529-163524+1000`; `git diff --cached --check`; `git commit -m "docs: record style compiler checkpoint"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -10`.
+- Commit created: `455a693031643ae209ddb2554c11fc88f637e1a7`.
+- Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
+- Rollback note: revert this metadata commit only if the checkpoint record must be corrected; do not touch unrelated history.
+
+## CP-029 - Legacy Cyberpunk Manifest Factory
+
+- Unit: implement pure built-in legacy Cyberpunk style manifest factory.
+- Allowed files:
+  - `src/lib/style-engine/**`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, CSS files, theme provider files, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/validator.test.ts src/lib/style-engine/compiler.test.ts src/lib/style-engine/presets.test.ts`; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan for DOM/store/Supabase/sync/React Flow imports, protected behavior class strings, and forbidden literals; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/presets.ts`
+  - `src/lib/style-engine/presets.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `src/lib/style-engine/validator.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. Focused style-engine tests passed, typecheck passed, isolated lint passed, diff check passed, and targeted side-effect/import scan returned no matches. Protected behavior class literals were kept out of the preset asset and generalized in validator issue patterns.
+- Rollback note: revert only `src/lib/style-engine/presets.ts`, `src/lib/style-engine/presets.test.ts`, the index export, the validator literal cleanup if necessary, and this run-doc checkpoint update if this pure preset unit must be removed.

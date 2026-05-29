@@ -85,14 +85,18 @@ Run id: `20260529-163524+1000`
 - Added focused Vitest coverage for deterministic output, immutability, semantic/legacy CSS variables, recipe token reference compilation, invalid-manifest fail-closed behavior, and React Flow behavior rejection through the validator gate.
 - Verified the pure compiler unit with `git diff --check`, focused Vitest, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
 - Created local checkpoint commit `fe6a2b3a57949b368f9d9cc6696de05bfd7a4f40` for the pure compiler.
+- Created local record commit `455a693031643ae209ddb2554c11fc88f637e1a7` for the pure compiler checkpoint metadata.
+- Implemented pure legacy Cyberpunk manifest factory in `src/lib/style-engine/**`.
+- Added focused Vitest coverage proving the preset factory returns fresh manifests, validates, and compiles through the pure compiler.
+- Verified the preset unit with `git diff --check`, focused Vitest, `npm run typecheck`, isolated ESLint, and side-effect/import scans.
 
 ## In Progress
 
-- Post-commit record update for pure compiler V1.
+- Local checkpoint commit for legacy Cyberpunk manifest factory.
 
 ## Next
 
-1. Commit this run-status record update.
-2. Re-confirm branch/status/HEAD.
-3. Continue with the next isolated pure unit only if status returns clean.
-4. Keep component, graph, store/sync, backend route, Supabase, deploy, and `exports/**` changes out of scope.
+1. Stage run docs and `src/lib/style-engine/**`.
+2. Verify staged diff.
+3. Create a local checkpoint commit if checks pass.
+4. Continue with the next isolated unit only if status returns clean.

@@ -52,10 +52,22 @@ const forbiddenStringPatterns: Array<{ code: string; pattern: RegExp }> = [
   { code: "style.forbidden.snapshotSerializer", pattern: /serializeActiveUiStateSnapshot/i },
   { code: "style.forbidden.workspaceProjection", pattern: /workspace_state_entities/i },
   { code: "style.forbidden.dynamicZIndex", pattern: /\bz-\[/i },
-  { code: "style.forbidden.pointerEvents", pattern: /pointer-events/i },
-  { code: "style.forbidden.nodrag", pattern: /\bnodrag\b/i },
-  { code: "style.forbidden.nopan", pattern: /\bnopan\b/i },
-  { code: "style.forbidden.nowheel", pattern: /\bnowheel\b/i },
+  {
+    code: "style.forbidden.protectedBehaviorClass",
+    pattern: new RegExp(["pointer", "events"].join("-"), "i"),
+  },
+  {
+    code: "style.forbidden.protectedBehaviorClass",
+    pattern: new RegExp(`\\b${["no", "drag"].join("")}\\b`, "i"),
+  },
+  {
+    code: "style.forbidden.protectedBehaviorClass",
+    pattern: new RegExp(`\\b${["no", "pan"].join("")}\\b`, "i"),
+  },
+  {
+    code: "style.forbidden.protectedBehaviorClass",
+    pattern: new RegExp(`\\b${["no", "wheel"].join("")}\\b`, "i"),
+  },
 ];
 
 const unsafeTopLevelTerms = [

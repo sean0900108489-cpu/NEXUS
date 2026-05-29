@@ -844,3 +844,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused Vitest passed 3 files and 14 tests; typecheck passed; isolated style-engine lint passed; `git diff --check` passed; targeted side-effect/import scan returned no matches.
 - Rollback note: remove only `src/lib/style-engine/import-text.ts`, `src/lib/style-engine/import-text.test.ts`, the index export, and this run-doc checkpoint update if this parser unit must be removed.
+
+## CP-057 - Style Lab Import Draft Panel V1
+
+- Unit: add a local-only draft import panel inside the isolated Style Lab component using the pure import text parser.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `src/app/page.tsx`, `src/app/style-lab/page.tsx`, `src/components/nexus/**`, CSS/global styles, React Flow behavior files, store/sync/backend/Supabase/database files, package files, deploy/config files, remote push, branch merge, and `exports/**`.
+- Verification plan: `git diff --check`; `npm run test -- src/lib/style-engine/import-text.test.ts src/lib/style-engine/exchange.test.ts`; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; targeted side-effect/import scan; Browser smoke on `http://localhost:3000/style-lab`.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/import-text.test.ts src/lib/style-engine/exchange.test.ts`; targeted side-effect/import scan for store/sync/backend/Supabase/DOM/storage/React Flow behavior strings; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; Browser smoke on `http://localhost:3000/style-lab`; browser log scan; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 2 files and 9 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only; side-effect scan returned no matches; Browser smoke confirmed Draft Input and Export Package render, Use Export and Load Draft load `legacy-cyberpunk`, Preview sets scoped runtime variables, Revert clears them, and severe browser log count is zero.
+- Rollback note: revert only `src/components/style-engine/nexus-style-lab.tsx` and this run-doc checkpoint update if the panel unit must be removed.

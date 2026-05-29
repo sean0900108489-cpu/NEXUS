@@ -154,33 +154,37 @@ Run id: `20260529-163524+1000`
 - Added pure JSON import text parsing that delegates parsed manifests/packages to existing import normalization.
 - Added focused tests for manifest JSON, export package JSON, invalid JSON redaction, unsafe parsed payload rejection, and empty/oversized text rejection.
 - Verified CP-056 with diff check, focused Vitest, targeted side-effect scan, typecheck, and isolated style-engine lint.
+- Created local checkpoint commit `78402ff2edfb023bc184321cf921cb909c3b1069` for the Style Import Text Parser V1 unit.
+- Implemented `CP-057 - Style Lab Import Draft Panel V1`.
+- Added a local Draft Input panel inside the isolated Style Lab component.
+- Wired Draft Input to the pure import text parser; accepted JSON manifests/packages become the active in-memory lab manifest, while rejected drafts only show path/code issues.
+- Added Baseline, Use Export, and Load Draft controls without touching app shell, store, sync, backend, Supabase, CSS, or React Flow behavior.
+- Verified CP-057 with focused import parser tests, typecheck, targeted lint, build, side-effect scan, and Browser smoke on `/style-lab`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-056 - Style Import Text Parser V1`.
-- Latest implementation gate commit before this docs-only reconciliation: `14ae17a17208c8ff5ffaa78f958e86ffc0dbb851`.
+- Latest completed checkpoint: `CP-057 - Style Lab Import Draft Panel V1`.
+- Latest local checkpoint commit: `78402ff2edfb023bc184321cf921cb909c3b1069`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
 - Confirmed current status during state assessment: clean before this run-doc reconciliation.
 - Current stop reason: normal context/turn checkpoint followed by explicit user-requested state assessment; not an error stop.
 
 ## In Progress
 
-- Preparing the CP-056 local checkpoint commit.
+- Preparing the CP-057 local checkpoint commit.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/import-text.ts`
-  - `src/lib/style-engine/import-text.test.ts`
-  - `src/lib/style-engine/index.ts`
+  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: app/component UI files, `src/components/nexus/nexus-ops.tsx`, CSS files, React Flow behavior files, store/sync/backend/Supabase/database files, package files, deploy/config files, remote push, branch merge, and `exports/**`.
-- Verification: `git diff --check`; focused Vitest for import text, exchange, and validator; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan.
-- Rollback: remove only the import text parser/test/export plus this unit's run-doc edits.
+- Forbidden files: `src/app/page.tsx`, `src/app/style-lab/page.tsx`, `src/components/nexus/**`, CSS/global styles, React Flow behavior files, store/sync/backend/Supabase/database files, package files, deploy/config files, remote push, branch merge, and `exports/**`.
+- Verification: `git diff --check`; focused import-text tests; `npm run typecheck`; targeted lint for the Style Lab component and style-engine; `npm run build`; targeted side-effect scan; Browser smoke on `/style-lab`.
+- Rollback: revert only `src/components/style-engine/nexus-style-lab.tsx` and this unit's run-doc edits.
 
 ## Next
 
-1. Commit the CP-056 local checkpoint.
+1. Commit the CP-057 local checkpoint.
 2. Confirm branch, HEAD, and clean status.
 3. Select the next isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

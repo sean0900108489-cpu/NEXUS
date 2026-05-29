@@ -15,11 +15,16 @@ import {
   createLegacyCyberpunkStyleManifestV1,
   createNexusStyleExportPackageV1,
   createNexusStylePreviewPatchV1,
+  parseNexusStyleImportTextV1,
   reviewNexusStylePackV1,
+  type NexusStyleImportTextResultV1,
+  type NexusStyleManifestV1,
 } from "@/lib/style-engine";
 import { useNexusStyleRuntimeV1 } from "@/components/style-engine/nexus-style-runtime-provider";
 
 type PreviewState = "idle" | "previewing" | "reverted";
+
+const maxVisibleImportIssues = 3;
 
 const surfaceStyle = {
   background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
@@ -37,7 +42,12 @@ const sampleStyle = {
 export function NexusStyleLab() {
   const runtime = useNexusStyleRuntimeV1();
   const [previewState, setPreviewState] = useState<PreviewState>("idle");
-  const manifest = useMemo(() => createLegacyCyberpunkStyleManifestV1(), []);
+  const [manifest, setManifest] = useState<NexusStyleManifestV1>(() =>
+    createLegacyCyberpunkStyleManifestV1(),
+  );
+  const [draftText, setDraftText] = useState("");
+  const [importResult, setImportResult] =
+    useState<NexusStyleImportTextResultV1 | null>(null);
   const compiled = useMemo(() => compileNexusStyleManifestV1(manifest), [manifest]);
   const review = useMemo(() => reviewNexusStylePackV1(manifest), [manifest]);
   const exportResult = useMemo(
@@ -79,6 +89,18 @@ export function NexusStyleLab() {
       value: compiled.style.cssVariables[name],
     }));
   }, [compiled]);
+  const importIssues = useMemo(() => {
+    if (!importResult || importResult.accepted) {
+      return [];
+    }
+
+    return importResult.errors.slice(0, maxVisibleImportIssues);
+  }, [importResult]);
+  const importStatus = importResult
+    ? importResult.accepted
+      ? `${importResult.source} accepted`
+      : `${importResult.source} rejected`
+    : "no draft";
 
   const startPreview = () => {
     if (!previewPatch) {
@@ -95,6 +117,32 @@ export function NexusStyleLab() {
   const revertPreview = () => {
     runtime.revertPreview(previewPatch?.previewId);
     setPreviewState("reverted");
+  };
+
+  const loadCurrentExport = () => {
+    setDraftText(exportText);
+    setImportResult(null);
+  };
+
+  const resetToBaseline = () => {
+    runtime.clearPreview();
+    setManifest(createLegacyCyberpunkStyleManifestV1());
+    setImportResult(null);
+    setPreviewState("idle");
+  };
+
+  const loadDraft = () => {
+    const result = parseNexusStyleImportTextV1(draftText);
+
+    setImportResult(result);
+
+    if (!result.accepted) {
+      return;
+    }
+
+    runtime.clearPreview();
+    setManifest(result.manifest);
+    setPreviewState("idle");
   };
 
   const statusIcon =
@@ -129,6 +177,14 @@ export function NexusStyleLab() {
               >
                 <Eye className="h-4 w-4" />
                 Preview
+              </button>
+              <button
+                className="inline-flex h-9 items-center gap-2 border border-white/10 bg-white/[0.04] px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                onClick={resetToBaseline}
+                type="button"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Baseline
               </button>
               <button
                 className="inline-flex h-9 items-center gap-2 border border-white/10 bg-white/[0.04] px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
@@ -223,22 +279,92 @@ export function NexusStyleLab() {
             </div>
           </section>
 
-          <aside className="grid min-h-0 grid-rows-[auto_1fr] overflow-hidden border border-white/10 bg-black/30">
-            <header className="flex items-center justify-between border-b border-white/10 p-4">
-              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-fuchsia-100">
-                <FileJson className="h-4 w-4" />
-                Export Package
-              </div>
-              <span className="font-mono text-[10px] text-slate-500">
-                {review.validation.warningCount}W / {review.validation.errorCount}E
-              </span>
-            </header>
-            <textarea
-              className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-slate-300 outline-none"
-              readOnly
-              spellCheck={false}
-              value={exportText}
-            />
+          <aside className="grid min-h-0 gap-4 overflow-hidden lg:grid-rows-[minmax(260px,0.95fr)_minmax(260px,1fr)]">
+            <section className="grid min-h-0 grid-rows-[auto_1fr_auto] overflow-hidden border border-white/10 bg-black/30">
+              <header className="flex items-center justify-between gap-3 border-b border-white/10 p-4">
+                <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                  <FileJson className="h-4 w-4 shrink-0" />
+                  <span className="truncate">Draft Input</span>
+                </div>
+                <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                  {importStatus}
+                </span>
+              </header>
+
+              <textarea
+                aria-label="Style import JSON"
+                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-slate-300 outline-none placeholder:text-slate-700"
+                onChange={(event) => setDraftText(event.target.value)}
+                placeholder="{}"
+                spellCheck={false}
+                value={draftText}
+              />
+
+              <footer className="border-t border-white/10 p-3">
+                <div className="mb-3 min-h-12 border border-white/10 bg-white/[0.03] p-2">
+                  {importResult ? (
+                    importResult.accepted ? (
+                      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-200">
+                        {importResult.manifest.id} loaded
+                      </div>
+                    ) : (
+                      <div className="grid gap-1">
+                        {importIssues.map((issue) => (
+                          <div
+                            key={`${issue.path}:${issue.code}`}
+                            className="truncate font-mono text-[10px] text-rose-200"
+                          >
+                            {issue.path} / {issue.code}
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  ) : (
+                    <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                      idle
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    className="inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-3 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                    onClick={loadCurrentExport}
+                    type="button"
+                  >
+                    <FileJson className="h-4 w-4" />
+                    Use Export
+                  </button>
+                  <button
+                    className="inline-flex h-9 items-center justify-center gap-2 border border-cyan-300/35 bg-cyan-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.12em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+                    disabled={draftText.trim().length === 0}
+                    onClick={loadDraft}
+                    type="button"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Load Draft
+                  </button>
+                </div>
+              </footer>
+            </section>
+
+            <section className="grid min-h-0 grid-rows-[auto_1fr] overflow-hidden border border-white/10 bg-black/30">
+              <header className="flex items-center justify-between border-b border-white/10 p-4">
+                <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-fuchsia-100">
+                  <FileJson className="h-4 w-4" />
+                  Export Package
+                </div>
+                <span className="font-mono text-[10px] text-slate-500">
+                  {review.validation.warningCount}W / {review.validation.errorCount}E
+                </span>
+              </header>
+              <textarea
+                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-slate-300 outline-none"
+                readOnly
+                spellCheck={false}
+                value={exportText}
+              />
+            </section>
           </aside>
         </div>
       </section>

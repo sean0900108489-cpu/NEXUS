@@ -72,6 +72,7 @@ Run id: `20260529-163524+1000`
 | Post-UI Phase Gate | PASS | `npm run check` passed after provider and Style Lab route; side-effect scan and git status remained clean. |
 | Run Docs Current-State Reconciliation | PASS | Current-state docs now align with committed CP-054/CP-055; duplicate CP-049 is explicitly noted; no source/runtime files touched. |
 | Style Import Text Parser V1 | PASS | Added pure JSON import text parser and tests; focused Vitest, typecheck, lint, diff check, and side-effect scan passed. |
+| Style Lab Import Draft Panel V1 | PASS | Added local-only import textarea/status inside isolated Style Lab; tests, typecheck, lint, build, side-effect scan, and Browser smoke passed. |
 
 ## Current Gate
 
@@ -84,4 +85,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-CP-056 is ready for a local checkpoint commit. UI files, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, `src/components/nexus/nexus-ops.tsx`, and React Flow behavior remain closed.
+CP-057 is ready for a local checkpoint commit. App shell, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, `src/components/nexus/nexus-ops.tsx`, and React Flow behavior remain closed.

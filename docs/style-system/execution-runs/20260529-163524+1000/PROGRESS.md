@@ -1292,30 +1292,35 @@ Run id: `20260529-163524+1000`
 - Ran full `npm run check`; lint, typecheck, 41 Vitest files / 327 tests, and build passed.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, recipe/window adapter names, test fixtures, Style Lab UI class/style/onClick handlers inside the isolated lab, and existing React Flow/window-modal adapter test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
+- Created local checkpoint commit `788660fe06c2bcba0ac941d7cb580945a70912cf` for the Post Validator Container Intent Phase Gate.
+- Started `CP-274 - Pure Intent Normalizer Fallback Intent Coverage V1`.
+- Added focused intent-normalizer coverage proving sparse benign briefs still produce non-empty fallback `mood` and `material` tags, preserve draft-only safety, and do not output tokens or recipes.
+- Verified CP-274 with focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, targeted side-effect/behavior scan on the CP-274 diff, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-273 - Post Validator Container Intent Phase Gate`.
-- Latest recorded checkpoint commit: `1cc9290971a8eeb5ce0666a5b816cc754421045e` for `CP-272 - Validator Non-Empty Intent Arrays Doc Reconciliation V1`; CP-273 is being prepared for local commit.
+- Latest completed checkpoint: `CP-274 - Pure Intent Normalizer Fallback Intent Coverage V1`.
+- Latest recorded checkpoint commit: `788660fe06c2bcba0ac941d7cb580945a70912cf` for `CP-273 - Post Validator Container Intent Phase Gate`; CP-274 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-273 verification prep: dirty only in CP-273 allowed run-doc files.
-- Current stop reason: not stopped; CP-273 phase-gate bookkeeping is underway.
+- Confirmed current status after CP-274 verification prep: dirty only in CP-274 allowed intent-normalizer test and run-doc files.
+- Current stop reason: not stopped; CP-274 intent normalizer coverage checkpoint is underway.
 
 ## In Progress
 
-- `CP-273 - Local checkpoint commit prep`.
+- `CP-274 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/intent-normalizer.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `npm run check`, targeted side-effect/behavior scans, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-273 run-doc changes if this phase-gate bookkeeping must be removed.
+- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, targeted side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-274 intent-normalizer test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-273 phase-gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-274 intent normalizer coverage checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

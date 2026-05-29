@@ -32,6 +32,22 @@ describe("NEXUS Style Engine intent normalizer", () => {
     expect(JSON.stringify(result)).not.toContain("recipes");
   });
 
+  it("keeps sparse benign briefs non-empty with fallback intent tags", () => {
+    const result = normalizeNexusStyleIntentV1("Make the interface feel better.");
+
+    expect(result.accepted).toBe(true);
+
+    if (!result.accepted) {
+      throw new Error("Expected accepted fallback intent draft.");
+    }
+
+    expect(result.draft.intent.mood).toEqual(["operational"]);
+    expect(result.draft.intent.material).toEqual(["dark-metal"]);
+    expect(result.draft.safety.persistence).toBe("not-persistent");
+    expect(JSON.stringify(result)).not.toContain("tokens");
+    expect(JSON.stringify(result)).not.toContain("recipes");
+  });
+
   it("rejects empty and oversized text without echoing the input", () => {
     expect(normalizeNexusStyleIntentV1("  ")).toEqual({
       accepted: false,

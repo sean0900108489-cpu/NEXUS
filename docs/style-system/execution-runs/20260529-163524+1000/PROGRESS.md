@@ -1327,32 +1327,35 @@ Run id: `20260529-163524+1000`
 - Added a pure validator guard for direct `http`, `https`, and `ftp` URL strings so arbitrary URLs fail closed without echoing private host text.
 - Added focused validator coverage for direct URL rejection in `source.reference`.
 - Verified CP-281 with focused validator Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, and `git diff --check`.
+- Created local checkpoint commit `99b949dc147bbb81cc07e0ef20e6f3a5dda8e47e` for the Pure Validator Direct URL Guard V1 unit.
+- Started `CP-282 - Validator Direct URL Doc Reconciliation V1`.
+- Reconciled manifest validator rules with CP-281 direct URL rejection coverage.
+- Verified CP-282 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-281 - Pure Validator Direct URL Guard V1`.
-- Latest recorded checkpoint commit: `0524886ce832f4c25370f5f8a95549cb532a6254` for `CP-280 - Post Interpreter Guard Coverage Phase Gate`; CP-281 is being prepared for local commit.
+- Latest completed checkpoint: `CP-282 - Validator Direct URL Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `99b949dc147bbb81cc07e0ef20e6f3a5dda8e47e` for `CP-281 - Pure Validator Direct URL Guard V1`; CP-282 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-281 verification prep: dirty only in CP-281 allowed validator source/test and run-doc files.
-- Current stop reason: not stopped; CP-281 direct URL guard checkpoint is underway.
+- Confirmed current status after CP-282 verification prep: dirty only in CP-282 allowed manifest validator rules doc and run-doc files.
+- Current stop reason: not stopped; CP-282 direct URL doc reconciliation checkpoint is underway.
 
 ## In Progress
 
-- `CP-281 - Local checkpoint commit prep`.
+- `CP-282 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.ts`
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused validator Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-281 validator source/test/run-doc changes if this guard must be removed.
+- Forbidden files: all source/test files, docs outside the listed validator rules doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-282 manifest validator rules doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-281 direct URL guard checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-282 direct URL doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -14,12 +14,16 @@ import {
   compileNexusStyleManifestV1,
   createHighContrastCarbonStyleManifestV1,
   createLegacyCyberpunkStyleManifestV1,
+  createNexusStyleManifestDraftFromIntentV1,
   createNexusStyleExportPackageV1,
   createNexusStylePreviewPatchV1,
   HIGH_CONTRAST_CARBON_STYLE_ID,
   LEGACY_CYBERPUNK_STYLE_ID,
+  normalizeNexusStyleIntentV1,
   parseNexusStyleImportTextV1,
   reviewNexusStylePackV1,
+  type NexusStyleIntentManifestDraftResultV1,
+  type NexusStyleIntentNormalizerResultV1,
   type NexusStyleImportTextResultV1,
   type NexusStyleManifestV1,
 } from "@/lib/style-engine";
@@ -27,6 +31,10 @@ import { useNexusStyleRuntimeV1 } from "@/components/style-engine/nexus-style-ru
 
 type PreviewState = "idle" | "previewing" | "reverted";
 type ExportView = "manifest" | "package" | "review";
+type BriefDraftResult = {
+  draft: NexusStyleIntentManifestDraftResultV1 | null;
+  intent: NexusStyleIntentNormalizerResultV1;
+};
 
 const maxVisibleImportIssues = 3;
 
@@ -127,6 +135,8 @@ export function NexusStyleLab() {
     createLegacyCyberpunkStyleManifestV1(),
   );
   const [draftText, setDraftText] = useState("");
+  const [briefText, setBriefText] = useState("");
+  const [briefResult, setBriefResult] = useState<BriefDraftResult | null>(null);
   const [exportView, setExportView] = useState<ExportView>("package");
   const [importResult, setImportResult] =
     useState<NexusStyleImportTextResultV1 | null>(null);
@@ -201,6 +211,26 @@ export function NexusStyleLab() {
       ? `${importResult.source} accepted`
       : `${importResult.source} rejected`
     : "no draft";
+  const briefIssues = useMemo(() => {
+    if (!briefResult) {
+      return [];
+    }
+
+    const intentIssues = briefResult.intent.accepted
+      ? [...briefResult.intent.warnings, ...briefResult.intent.questions]
+      : briefResult.intent.errors;
+    const draftIssues =
+      briefResult.draft && !briefResult.draft.accepted
+        ? briefResult.draft.errors
+        : [];
+
+    return [...draftIssues, ...intentIssues].slice(0, maxVisibleImportIssues);
+  }, [briefResult]);
+  const briefStatus = briefResult
+    ? briefResult.draft?.accepted
+      ? "draft loaded"
+      : "brief rejected"
+    : "no brief";
   const governanceRows = useMemo(
     () => [
       ["State", review.state],
@@ -264,6 +294,34 @@ export function NexusStyleLab() {
     setImportResult(null);
   };
 
+  const handleBriefTextChange = (
+    event: ChangeEvent<HTMLTextAreaElement>,
+  ) => {
+    setBriefText(event.target.value);
+    setBriefResult(null);
+  };
+
+  const loadBriefDraft = () => {
+    const intent = normalizeNexusStyleIntentV1(briefText, {
+      source: "human-brief",
+    });
+    const draft = intent.accepted
+      ? createNexusStyleManifestDraftFromIntentV1(intent)
+      : null;
+
+    setBriefResult({ draft, intent });
+
+    if (!draft || !draft.accepted) {
+      return;
+    }
+
+    runtime.clearPreview();
+    setManifest(draft.manifest);
+    setImportResult(null);
+    setPreviewState("idle");
+    setSelectedBuiltInPreset("brief-draft");
+  };
+
   const loadBuiltInPreset = (presetId: string) => {
     const preset = builtInPresets.find((candidate) => candidate.id === presetId);
 
@@ -273,6 +331,7 @@ export function NexusStyleLab() {
 
     runtime.clearPreview();
     setManifest(preset.create());
+    setBriefResult(null);
     setImportResult(null);
     setPreviewState("idle");
     setSelectedBuiltInPreset(preset.id);
@@ -293,6 +352,7 @@ export function NexusStyleLab() {
 
     runtime.clearPreview();
     setManifest(result.manifest);
+    setBriefResult(null);
     setSelectedBuiltInPreset(
       builtInPresets.some((preset) => preset.id === result.manifest.id)
         ? result.manifest.id
@@ -663,7 +723,7 @@ export function NexusStyleLab() {
             </div>
           </section>
 
-          <aside className="grid min-h-0 gap-4 overflow-hidden lg:grid-rows-[minmax(260px,0.95fr)_minmax(260px,1fr)]">
+          <aside className="grid min-h-0 gap-4 overflow-hidden lg:grid-rows-[minmax(220px,0.75fr)_minmax(220px,0.75fr)_minmax(260px,1fr)]">
             <section className="grid min-h-0 grid-rows-[auto_1fr_auto] overflow-hidden border border-white/10 bg-black/30">
               <header className="flex items-center justify-between gap-3 border-b border-white/10 p-4">
                 <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
@@ -729,6 +789,62 @@ export function NexusStyleLab() {
                     Load Draft
                   </button>
                 </div>
+              </footer>
+            </section>
+
+            <section className="grid min-h-0 grid-rows-[auto_1fr_auto] overflow-hidden border border-white/10 bg-black/30">
+              <header className="flex items-center justify-between gap-3 border-b border-white/10 p-4">
+                <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
+                  <FileJson className="h-4 w-4 shrink-0" />
+                  <span className="truncate">Brief Input</span>
+                </div>
+                <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                  {briefStatus}
+                </span>
+              </header>
+
+              <textarea
+                aria-label="Style brief text"
+                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-slate-300 outline-none placeholder:text-slate-700"
+                onChange={handleBriefTextChange}
+                placeholder="brief"
+                spellCheck={false}
+                value={briefText}
+              />
+
+              <footer className="border-t border-white/10 p-3">
+                <div className="mb-3 min-h-12 border border-white/10 bg-white/[0.03] p-2">
+                  {briefResult?.draft?.accepted ? (
+                    <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-200">
+                      {briefResult.draft.manifest.id} loaded
+                    </div>
+                  ) : briefIssues.length > 0 ? (
+                    <div className="grid gap-1">
+                      {briefIssues.map((issue) => (
+                        <div
+                          key={`${issue.path}:${issue.code}`}
+                          className="truncate font-mono text-[10px] text-amber-100"
+                        >
+                          {issue.path} / {issue.code}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                      idle
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  className="inline-flex h-9 w-full items-center justify-center gap-2 border border-emerald-300/35 bg-emerald-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-100 transition hover:bg-emerald-300/20 disabled:opacity-40"
+                  disabled={briefText.trim().length === 0}
+                  onClick={loadBriefDraft}
+                  type="button"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  Draft Manifest
+                </button>
               </footer>
             </section>
 

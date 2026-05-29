@@ -1146,3 +1146,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 39 Vitest files / 284 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only validator/normalizer detector strings and test-only cleanup helpers; no live store/sync/backend/Supabase import or mutation path, React Flow behavior path, DOM/storage/fetch path, deploy path, or `exports/**` path was found. `git diff --check` passed.
 - Rollback note: no source rollback for the gate itself. If the gate exposes a regression, fix only the responsible pure V12 unit and rerun; stop if fixing would cross a forbidden boundary.
+
+## CP-075 - Style Lab Brief Draft Panel V1
+
+- Unit: add a local-only brief-to-draft panel inside isolated Style Lab using the pure V12 intent normalizer and manifest draft helper.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, remote push, branch merge, and `exports/**`.
+- Verification plan: `git diff --check`; `npm run test -- src/lib/style-engine/intent-normalizer.test.ts src/lib/style-engine/intent-manifest.test.ts`; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; targeted side-effect/import scan; Browser smoke on `http://localhost:3000/style-lab`.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/intent-normalizer.test.ts src/lib/style-engine/intent-manifest.test.ts`; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; targeted side-effect/import scan; source-only side-effect/import scan excluding tests; in-app Browser load/console smoke; headless Chrome CDP smoke on `http://localhost:3000/style-lab`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 2 files and 10 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only. Side-effect scans found only validator/normalizer detector strings and test-only cleanup helpers, with no live AI call, DOM/storage/fetch mutation path, store/sync/backend/Supabase import or mutation path, React Flow behavior path, deploy path, or `exports/**` path. In-app Browser confirmed Brief Input and Draft Manifest render with zero severe logs. Chrome Computer Use was abandoned after Chrome focused a user-owned external tab; no local Style Lab interaction was performed there. Headless Chrome CDP then verified real text entry into the brief textarea, `Draft Manifest` enabling, `intent-draft-*` loading, high-contrast token output, Preview, Revert, and zero severe browser log events. Two earlier smoke-script failures were recoverable verification harness issues: one CDP navigation context reset and one DOM setter injection that did not update React controlled textarea state.
+- Rollback note: revert only `src/components/style-engine/nexus-style-lab.tsx` and this run-doc checkpoint update if the brief draft panel unit must be removed.

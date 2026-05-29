@@ -232,6 +232,42 @@ describe("NEXUS Style Engine manifest validator", () => {
     );
   });
 
+  it("rejects missing token groups, semantic tokens, and invalid token values", () => {
+    const manifest = createSafeManifest();
+    const tokens = manifest.tokens as unknown as Record<
+      string,
+      Record<string, unknown>
+    >;
+    delete tokens.accent;
+    delete tokens.surface.panel;
+    tokens.text.primary = {
+      nested: "not-a-token-value",
+    };
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toEqual(
+      expect.arrayContaining([
+        {
+          code: "style.missingTokenGroup",
+          message: "Required token group is missing.",
+          path: "$.tokens.accent",
+        },
+        {
+          code: "style.missingSemanticToken",
+          message: "Required semantic token is missing.",
+          path: "$.tokens.surface.panel",
+        },
+        {
+          code: "style.invalidTokenValue",
+          message: "Token values must be strings or numbers.",
+          path: "$.tokens.text.primary",
+        },
+      ]),
+    );
+  });
+
   it("rejects CSS variable references outside approved namespaces", () => {
     const manifest = createSafeManifest({
       tokens: {

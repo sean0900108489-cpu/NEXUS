@@ -987,30 +987,35 @@ Run id: `20260529-163524+1000`
 - Full Vitest with `--testTimeout 20000` passed 41 files / 303 tests.
 - Separate `npm run build` passed with `/style-lab` static and the known edge-runtime warning unchanged.
 - Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries/assertions, and the window/modal recipe adapter forbidden behavior key registry/assertions; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `c422b121b41fc67162eddec88e83d37700134233` for the Post Validator Token Reference Phase Gate.
+- Started `CP-200 - Style Pack Governance Doc Reconciliation V1`.
+- Reconciled `style-pack-governance.md` with current pure governance/exchange implementation evidence, adapter coverage metadata, preview variable count metadata, and remaining gaps.
+- Verified CP-200 with focused evidence scan, stale marker scan, `git diff --check`, diff stat, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-199 - Post Validator Token Reference Phase Gate`.
-- Latest local checkpoint commit: pending CP-199 local commit; previous clean checkpoint commit is `c742c822bebb67f6c533c81529558b8596940504`.
+- Latest completed checkpoint: `CP-200 - Style Pack Governance Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-200 local commit; previous clean checkpoint commit is `c422b121b41fc67162eddec88e83d37700134233`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-199 verification: clean before run-doc bookkeeping; dirty only in CP-199 allowed run-doc files after this update.
-- Current stop reason: not stopped; CP-199 verification passed with decomposed timeout fallback and local checkpoint commit prep is underway.
+- Confirmed current status after CP-200 verification: dirty only in CP-200 allowed docs and run-doc files.
+- Current stop reason: not stopped; CP-200 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-199 - Local checkpoint commit prep`.
+- `CP-200 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `docs/style-system/style-pack-governance.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the phase gate, UI/CSS/production component files, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test edits, UI/TSX/app route/CSS files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-199 run-doc update if the phase gate bookkeeping must be removed.
+- Rollback: revert only the CP-200 docs/run-doc update if the governance doc reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-199 phase gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-200 docs checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

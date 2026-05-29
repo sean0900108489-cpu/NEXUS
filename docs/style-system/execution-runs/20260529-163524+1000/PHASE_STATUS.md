@@ -215,6 +215,7 @@ Run id: `20260529-163524+1000`
 | Pure Validator Recipe Token Reference Guard V1 | PASS | Added pure validator guard and tests for unknown recipe semantic token references. |
 | Validator Token Reference Doc Reconciliation V1 | PASS | Reconciled validator rules doc with unknown recipe semantic token reference guard coverage. |
 | Post Validator Token Reference Phase Gate | PASS | Decomposed phase gate passed after unrelated 5s backend/workspace timeouts in full `npm run check`; full Vitest with longer timeout, build, side-effect scan, and git diff check passed. |
+| Style Pack Governance Doc Reconciliation V1 | PASS | Reconciled governance doc with current pure governance/exchange implementation and metadata coverage. |
 
 ## Current Gate
 
@@ -227,4 +228,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Validator Token Reference Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Style Pack Governance Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

@@ -3247,3 +3247,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS with recoverable timeout fallback. Two full `npm run check` attempts passed lint/typecheck but hit unrelated 5s timeout failures in backend/workspace streaming/recovery tests under load before build. Focused rerun of the failed backend/workspace files passed 3 files / 51 tests. Full Vitest with `--testTimeout 20000` passed 41 files / 303 tests. Separate `npm run build` passed with static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries/assertions, and the window/modal recipe adapter forbidden behavior key registry/assertions; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-199 run-doc update if the phase gate bookkeeping must be removed. If future verification exposes an actual source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-200 - Style Pack Governance Doc Reconciliation V1
+
+- Unit: reconcile the style pack governance doc with the current pure governance/exchange implementation and metadata coverage.
+- Allowed files:
+  - `docs/style-system/style-pack-governance.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits, UI/CSS/app routes, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused doc evidence scan for pure governance/exchange implementation, windowModal metadata coverage, and side-effect boundary; stale marker scan for documentation-only/no-runtime-code wording; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused `rg` evidence scan; focused `rg` stale marker scan; `git diff --check`; `git diff --stat`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-pack-governance.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found partially implemented pure governance/exchange status, `adapterCoverage.windowModal = complete` test evidence, local-only side-effect boundary, remaining gaps, and a side-effect-free acceptance gate. Stale marker scan returned no matches for documentation-only/no-runtime-code wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
+- Rollback note: revert only the CP-200 governance doc reconciliation and this run-doc checkpoint if the wording must be removed.

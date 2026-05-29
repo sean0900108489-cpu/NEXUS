@@ -26,6 +26,7 @@ import {
 import { useNexusStyleRuntimeV1 } from "@/components/style-engine/nexus-style-runtime-provider";
 
 type PreviewState = "idle" | "previewing" | "reverted";
+type ExportView = "manifest" | "package" | "review";
 
 const maxVisibleImportIssues = 3;
 
@@ -48,6 +49,12 @@ const builtInPresets = [
     id: HIGH_CONTRAST_CARBON_STYLE_ID,
     label: "High Contrast",
   },
+];
+
+const exportViews: Array<{ id: ExportView; label: string }> = [
+  { id: "package", label: "Package" },
+  { id: "manifest", label: "Manifest" },
+  { id: "review", label: "Review" },
 ];
 
 const surfaceStyle = {
@@ -120,6 +127,7 @@ export function NexusStyleLab() {
     createLegacyCyberpunkStyleManifestV1(),
   );
   const [draftText, setDraftText] = useState("");
+  const [exportView, setExportView] = useState<ExportView>("package");
   const [importResult, setImportResult] =
     useState<NexusStyleImportTextResultV1 | null>(null);
   const baselineCompiled = useMemo(
@@ -139,7 +147,7 @@ export function NexusStyleLab() {
 
     return createNexusStylePreviewPatchV1(compiled.style);
   }, [compiled]);
-  const exportText = useMemo(
+  const exportPackageText = useMemo(
     () =>
       JSON.stringify(
         exportResult.accepted
@@ -150,6 +158,20 @@ export function NexusStyleLab() {
       ),
     [exportResult],
   );
+  const exportText = useMemo(() => {
+    if (!exportResult.accepted) {
+      return exportPackageText;
+    }
+
+    const exportValue =
+      exportView === "manifest"
+        ? exportResult.exportPackage.manifest
+        : exportView === "review"
+          ? exportResult.review
+          : exportResult.exportPackage;
+
+    return JSON.stringify(exportValue, null, 2);
+  }, [exportPackageText, exportResult, exportView]);
   const tokenRows = useMemo(() => {
     if (!compiled.accepted) {
       return [];
@@ -231,7 +253,7 @@ export function NexusStyleLab() {
   };
 
   const loadCurrentExport = () => {
-    setDraftText(exportText);
+    setDraftText(exportPackageText);
     setImportResult(null);
   };
 
@@ -711,14 +733,41 @@ export function NexusStyleLab() {
             </section>
 
             <section className="grid min-h-0 grid-rows-[auto_1fr] overflow-hidden border border-white/10 bg-black/30">
-              <header className="flex items-center justify-between border-b border-white/10 p-4">
-                <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-fuchsia-100">
-                  <FileJson className="h-4 w-4" />
-                  Export Package
+              <header className="grid gap-3 border-b border-white/10 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-fuchsia-100">
+                    <FileJson className="h-4 w-4 shrink-0" />
+                    <span className="truncate">Export Text</span>
+                  </div>
+                  <span className="shrink-0 font-mono text-[10px] text-slate-500">
+                    {review.validation.warningCount}W /{" "}
+                    {review.validation.errorCount}E
+                  </span>
                 </div>
-                <span className="font-mono text-[10px] text-slate-500">
-                  {review.validation.warningCount}W / {review.validation.errorCount}E
-                </span>
+                <div
+                  aria-label="Export text view"
+                  className="grid grid-cols-3 gap-2"
+                >
+                  {exportViews.map((view) => {
+                    const active = exportView === view.id;
+
+                    return (
+                      <button
+                        key={view.id}
+                        className={[
+                          "h-8 min-w-0 border px-2 font-mono text-[9px] uppercase tracking-[0.1em] transition",
+                          active
+                            ? "border-fuchsia-300/45 bg-fuchsia-300/15 text-fuchsia-100"
+                            : "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/25 hover:bg-white/10",
+                        ].join(" ")}
+                        onClick={() => setExportView(view.id)}
+                        type="button"
+                      >
+                        {view.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </header>
               <textarea
                 className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-slate-300 outline-none"

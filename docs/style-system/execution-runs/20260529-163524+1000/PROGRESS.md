@@ -216,31 +216,36 @@ Run id: `20260529-163524+1000`
 - Added a local preview guard so the latest rejected draft blocks Preview until the draft is edited or a safe preset/export path resets the draft result.
 - Kept the guard entirely inside isolated Style Lab component state; no runtime provider, store, sync, backend, Supabase, app shell, CSS, or React Flow behavior files were touched.
 - Verified CP-069 with diff check, focused import/governance tests, side-effect scans, typecheck, targeted lint, build, in-app Browser load/console smoke, and Chrome interaction smoke for invalid draft blocking/recovery.
+- Created local checkpoint commit `ca7124a404c413d54017ecc962c80a2d1f66cf5c` for the Style Lab Rejected Draft Preview Guard V1 unit.
+- Implemented `CP-070 - Style Lab Export View Selector V1`.
+- Added display-only Package, Manifest, and Review export text views inside the isolated Style Lab export panel.
+- Kept `Use Export` on the importable safe package path and did not add download, clipboard, save, persistence, backend, Supabase, or file output behavior.
+- Verified CP-070 with diff check, focused exchange/governance tests, side-effect scans, typecheck, targeted lint, build, and Browser smoke for export view switching.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-069 - Style Lab Rejected Draft Preview Guard V1`.
-- Latest local checkpoint commit before the CP-069 commit: `359564898aa57c05b42a58e1c49ac31e129f5a04`.
+- Latest completed checkpoint: `CP-070 - Style Lab Export View Selector V1`.
+- Latest local checkpoint commit before the CP-070 commit: `ca7124a404c413d54017ecc962c80a2d1f66cf5c`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
 - Confirmed current status during state assessment: clean before this run-doc reconciliation.
 - Current stop reason: normal context/turn checkpoint followed by explicit user-requested state assessment; not an error stop.
 
 ## In Progress
 
-- Preparing the CP-069 local checkpoint commit.
+- Preparing the CP-070 local checkpoint commit.
 
 ## Current Unit Scope
 
 - Allowed files:
   - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
-- Verification: `git diff --check`; focused import/governance tests; `npm run typecheck`; targeted lint for the Style Lab component and style-engine; `npm run build`; targeted side-effect scan; Browser smoke on `/style-lab`.
+- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, file download/clipboard/save paths, React Flow behavior files, remote push, branch merge, and `exports/**`.
+- Verification: `git diff --check`; focused exchange/governance tests; `npm run typecheck`; targeted lint for the Style Lab component and style-engine; `npm run build`; targeted side-effect scan; Browser smoke on `/style-lab`.
 - Rollback: revert only `src/components/style-engine/nexus-style-lab.tsx` and this unit's run-doc edits.
 
 ## Next
 
-1. Commit the CP-069 local checkpoint.
+1. Commit the CP-070 local checkpoint.
 2. Confirm branch, HEAD, and clean status.
 3. Select the next isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

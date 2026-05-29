@@ -450,30 +450,37 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 39 Vitest files / 284 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live checksum/compiler behavior change, runtime provider change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, React Flow behavior path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `4fd4b6abcb59770e13d0681879fe90ac3bf886ad` for the Post Compiled Checksum Phase Gate.
+- Started `CP-110 - Style Lab Manifest Checksum Row V1`.
+- Implemented `CP-110 - Style Lab Manifest Checksum Row V1`.
+- Added a display-only `Manifest Checksum` row inside the isolated Style Lab governance report with normalized manifest checksum from existing review metadata.
+- Kept the row informational only; no manifest/checksum/compiler behavior, runtime provider internals, DOM behavior, apply/save/persist path, store, sync, backend, Supabase, app shell, CSS/global style, React Flow behavior, deploy config, or `exports/**` path was touched.
+- Verified CP-110 with focused import/governance/intent-manifest tests, typecheck, targeted lint, build, side-effect scans, and headless Chrome dump-DOM smoke for the manifest checksum row.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-109 - Post Compiled Checksum Phase Gate`.
-- Latest local checkpoint commit: pending CP-109 local commit; previous clean checkpoint commit is `4749943fc476f21c96e01ae8f25c7b09155f5c4b`.
+- Latest completed checkpoint: `CP-110 - Style Lab Manifest Checksum Row V1`.
+- Latest local checkpoint commit: pending CP-110 local commit; previous clean checkpoint commit is `4fd4b6abcb59770e13d0681879fe90ac3bf886ad`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status before CP-109 commit prep: dirty only in CP-109 allowed files.
-- Current stop reason: not stopped; CP-109 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status before CP-110 commit prep: dirty only in CP-110 allowed files.
+- Current stop reason: not stopped; CP-110 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-109 - Local checkpoint commit prep`.
+- `CP-110 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source edits during the gate, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only this CP-109 run-doc update if the phase gate bookkeeping must be removed.
+- Rollback: revert only `src/components/style-engine/nexus-style-lab.tsx` and this unit's run-doc edits.
 
 ## Next
 
-1. Commit the CP-109 docs-only checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-110 checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

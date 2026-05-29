@@ -107,6 +107,7 @@ Run id: `20260529-163524+1000`
 | Style Lab Apply Reason Row V1 | PASS | Added display-only apply reason row to isolated Style Lab governance report; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
 | Post Apply Reason Phase Gate | PASS | Full check passed after the apply reason row; side-effect scan and git diff check passed. |
 | Style Lab Export Boundary Row V1 | PASS | Added display-only text-only export boundary row to isolated Style Lab governance report; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
+| Post Export Boundary Phase Gate | PASS | Full check passed after the export boundary row; side-effect scan and git diff check passed. |
 
 ## Current Gate
 

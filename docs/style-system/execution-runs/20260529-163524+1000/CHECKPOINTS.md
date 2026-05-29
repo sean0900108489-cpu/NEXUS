@@ -550,3 +550,13 @@ Each checkpoint records:
 - Commit created: `a76e1c6693313f1521dd8c6dc7b631a47e1daf02`.
 - Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
 - Rollback note: revert the accessibility commit only if the pure contrast unit must be removed; do not touch unrelated history.
+
+## CP-037 - Accessibility Record Commit Completed
+
+- Unit: commit accessibility checkpoint metadata locally.
+- Allowed files: git metadata plus `docs/style-system/execution-runs/20260529-163524+1000/**`.
+- Forbidden files: `exports/**`, DOM files, CSS files, theme provider files, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `git diff --check`; trailing whitespace scan over run docs; `git status --porcelain=v1 -b`; `git add docs/style-system/execution-runs/20260529-163524+1000`; `git diff --cached --check`; `git commit -m "docs: record style contrast checkpoint"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -16`.
+- Commit created: `4171fb93eb551d866d5bc3015508ed16e123b4cd`.
+- Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
+- Rollback note: revert this metadata commit only if the checkpoint record must be corrected; do not touch unrelated history.

@@ -101,14 +101,15 @@ Run id: `20260529-163524+1000`
 - Added focused Vitest coverage for contrast ratios, unsupported color formats, and low-contrast manifest rejection.
 - Verified the contrast unit with `git diff --check`, focused Vitest, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
 - Created local checkpoint commit `a76e1c6693313f1521dd8c6dc7b631a47e1daf02` for the pure contrast helper and validator gate.
+- Created local record commit `4171fb93eb551d866d5bc3015508ed16e123b4cd` for the pure contrast checkpoint metadata.
 
 ## In Progress
 
-- Post-commit record update for pure accessibility contrast V1.
+- Selecting the next low-risk pure Style Engine unit.
 
 ## Next
 
-1. Commit this run-status record update.
-2. Re-confirm branch/status/HEAD.
-3. Decide whether next step remains pure or needs UI/browser gate.
+1. Keep the next implementation step inside `src/lib/style-engine/**` plus run docs unless a new gate opens a broader surface.
+2. Prefer pure import/export normalization or governance helpers before touching UI, DOM, CSS, graph, sync, backend, or Supabase paths.
+3. Reuse focused style-engine tests and side-effect scans for small units; reserve heavier checks for phase gates.
 4. Keep DOM, CSS, theme provider, components, graph, store/sync, backend route, Supabase, deploy, and `exports/**` changes out of scope unless a new gate explicitly opens them.

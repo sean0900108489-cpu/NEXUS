@@ -41,7 +41,8 @@ Run id: `20260529-163524+1000`
 | Preview Patch Record Update | PASS | Commit `628efb43822584e5362b5045694e4ad5ede2774d` created; post-commit status was clean. |
 | Pure Accessibility Contrast V1 | PASS | Added contrast helper, validator gate, and focused tests; Vitest, typecheck, lint, side-effect scan, and diff checks passed. |
 | Accessibility Local Checkpoint Commit | PASS | Commit `a76e1c6693313f1521dd8c6dc7b631a47e1daf02` created; post-commit status was clean. |
-| Accessibility Record Update | IN_PROGRESS | Recording pure accessibility checkpoint metadata. |
+| Accessibility Record Update | PASS | Commit `4171fb93eb551d866d5bc3015508ed16e123b4cd` created; post-commit status was clean. |
+| Next Pure Unit Selection | IN_PROGRESS | Choosing the next low-risk helper inside `src/lib/style-engine/**`; broader runtime surfaces remain closed. |
 
 ## Current Gate
 
@@ -54,4 +55,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Continue documentation-only Style Engine planning. Runtime, component, sync, backend, database, deploy, and `exports/**` changes remain blocked until an explicit implementation gate is clean.
+Continue pure Style Engine implementation inside `src/lib/style-engine/**` only. Runtime DOM, CSS, component, graph, sync, backend, database, deploy, and `exports/**` changes remain blocked until an explicit implementation gate is clean.

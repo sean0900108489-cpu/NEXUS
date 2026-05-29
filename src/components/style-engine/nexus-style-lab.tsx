@@ -262,6 +262,26 @@ const primitiveDatapadActionStyle = {
   color: "var(--nexus-text-inverse, #020617)",
 };
 
+const primitiveAgentChromeSurfaceStyle = {
+  background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
+  borderColor: "var(--nexus-accent-primary, #67e8f9)",
+  boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
+  color: "var(--nexus-text-primary, #f8fafc)",
+};
+
+const primitiveAgentChromeTopStyle = {
+  background: "var(--nexus-accent-primary, #67e8f9)",
+};
+
+const primitiveAgentChromeToolbarStyle = {
+  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
+  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+};
+
+const primitiveAgentChromeBodyStyle = {
+  background: "var(--nexus-surface-workspace, #020617)",
+};
+
 const graphCanvasStyle = {
   background:
     "var(--nexus-graph-background-color, var(--nexus-surface-workspace, #020617))",
@@ -888,6 +908,59 @@ export function NexusStyleLab() {
                     >
                       Ready
                     </span>
+                  </div>
+                </div>
+
+                <div
+                  aria-hidden="true"
+                  className="mt-3 overflow-hidden border"
+                  style={primitiveAgentChromeSurfaceStyle}
+                >
+                  <div className="h-2" style={primitiveAgentChromeTopStyle} />
+                  <div
+                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-4 py-3"
+                    style={primitiveAgentChromeToolbarStyle}
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                        Agent Chrome Specimen
+                      </div>
+                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Operator Window
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {["run", "dock", "view"].map((item) => (
+                        <span
+                          key={item}
+                          className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid gap-3 p-4" style={primitiveAgentChromeBodyStyle}>
+                    <div className="grid grid-cols-[44px_minmax(0,1fr)] gap-3">
+                      <span
+                        className="h-11 border border-white/10"
+                        style={primitiveWindowHandleStyle}
+                      />
+                      <span className="grid min-w-0 content-center gap-2">
+                        <span className="h-2 w-3/4 bg-white/15" />
+                        <span className="h-2 w-1/2 bg-white/10" />
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {["stream", "tools", "state"].map((item) => (
+                        <span
+                          key={item}
+                          className="truncate border border-white/10 bg-white/[0.04] px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
 

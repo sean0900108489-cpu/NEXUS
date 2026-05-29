@@ -7,7 +7,7 @@ Status: partially implemented isolated local Style Lab. No production app shell 
 ## Implementation Evidence
 
 - `/style-lab` is an isolated local route with validation, compiled token preview, comparison, export text views, local preview/revert controls, brief-to-draft flow, graph specimen, and governance rows.
-- Its primitive specimen gallery includes Panel, Button, Input, Badge, specimen-only static Window/Datapad/Modal/Prompt Vault visual shells, and a visual-only Command Palette specimen.
+- Its primitive specimen gallery includes Panel, Button, Input, Badge, specimen-only static Window/Agent Chrome/Datapad/Modal/Prompt Vault visual shells, and a visual-only Command Palette specimen.
 - Recent checkpoints added adapter coverage, preview variable counts, and text-only export/review metadata visibility without adding save/download/clipboard/backend persistence.
 - Style Lab state remains local to the route and scoped runtime provider; it does not enter `workspace.themeConfig`, workspace sync, backend routes, Supabase, or `workspace_state_entities`.
 - Production `nexus-ops.tsx`, production React Flow behavior, global CSS, deploy config, and `exports/**` remain outside the Style Lab implementation.
@@ -48,7 +48,7 @@ Style Lab state must not enter:
 | Draft input | Paste/import style document or manifest candidate. | Does not execute or apply input. |
 | Validation report | Shows errors/warnings/info from validator. | Invalid manifests cannot preview. |
 | Token preview | Shows compiled semantic and legacy variables. | Output is display-safe. |
-| Primitive gallery | Shows Panel/Button/Input/Badge/Window/Datapad/Modal/Prompt Vault/Command Palette specimens. | Specimen-only, no production component migration. |
+| Primitive gallery | Shows Panel/Button/Input/Badge/Window/Agent Chrome/Datapad/Modal/Prompt Vault/Command Palette specimens. | Specimen-only, no production component migration. |
 | Graph specimen | Shows adapter visuals in isolated graph sample. | No production graph behavior changes. |
 | Comparison | Compare baseline vs preview. | Revert is always available. |
 | Export | Export safe manifest/report text later. | No backend save in V11. |

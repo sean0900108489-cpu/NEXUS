@@ -2,13 +2,14 @@
 
 Phase: V9 - Window And Modal Recipe System
 Run: `docs/style-system/execution-runs/20260529-163524+1000`
-Status: partially implemented isolated Style Lab static specimens. No production window/modal, Datapad, Prompt Vault, or command palette code changed.
+Status: partially implemented isolated Style Lab static specimens. No production window/modal, Agent Window, Datapad, Prompt Vault, or command palette code changed.
 
 ## Implementation Evidence
 
 - `src/components/style-engine/nexus-style-lab.tsx` includes specimen-only static Modal and Window visual shells inside the isolated Style Lab primitive specimen gallery.
 - The Modal specimen has no `role="dialog"`, `aria-modal`, focus trap, close handler, fixed overlay, z-index tier, backend save, or persistence behavior.
 - The Window specimen has no drag handle class names, `draggable`, resize enablement, bounds, z-index state, focus/close handlers, sandbox interaction lock, or `react-rnd` usage.
+- The Agent Chrome specimen is visual-only and does not modify `nexus-ops.tsx`, `AgentWindow`, `react-rnd`, `motion`, `nexus-agent-window`, `nexus-drag-handle`, toolbar handlers, focus/minimize/close behavior, z-index/layering, resize/drag behavior, or sandbox locks.
 - The Datapad shell specimen is visual-only and does not modify `DatapadWindow`, `react-rnd`, store hooks, drag handles, bounds, layer state, save/delete handlers, draft persistence, or sync behavior.
 - The Prompt Vault specimen is visual-only and does not modify `PromptVaultManager`, `motion`, fixed overlays, z-index tiers, scroll ownership, edit/copy/delete handlers, close behavior, clipboard calls, store hooks, or Supabase/backend flows.
 - The Command Palette specimen is a visual-only shell with no keyboard shortcut handling, filtering logic, command execution, focus behavior, close behavior, fixed overlay, or z-index tier change.

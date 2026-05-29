@@ -1089,3 +1089,24 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 37 Vitest files / 274 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only validator detector strings and test-only cleanup helpers; no live store/sync/backend/Supabase import or mutation path, React Flow behavior path, download path, clipboard path, save path, deploy path, or `exports/**` path was found. `git diff --check` passed.
 - Rollback note: no source rollback for the gate itself. If the gate exposes a regression, fix only the responsible isolated unit and rerun; stop if fixing would cross a forbidden boundary.
+
+## CP-072 - Pure Style Intent Normalizer V1
+
+- Unit: add a pure draft-only style intent normalizer for inert human/AI brief text without creating manifests, CSS, runtime preview, apply, save, or persistence behavior.
+- Allowed files:
+  - `src/lib/style-engine/intent-normalizer.ts`
+  - `src/lib/style-engine/intent-normalizer.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: UI/app components, runtime provider files, CSS/global styles, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
+- Verification plan: `git diff --check`; `npm run test -- src/lib/style-engine/intent-normalizer.test.ts src/lib/style-engine/validator.test.ts src/lib/style-engine/governance.test.ts`; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/intent-normalizer.test.ts src/lib/style-engine/validator.test.ts src/lib/style-engine/governance.test.ts`; detector regex fix after first focused failure; rerun of the same focused Vitest command; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan.
+- Changed files:
+  - `src/lib/style-engine/intent-normalizer.ts`
+  - `src/lib/style-engine/intent-normalizer.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. First focused test run exposed a recoverable `.env` detector regex miss; the detector was tightened and the rerun passed 3 files and 14 tests. Typecheck passed; isolated style-engine lint passed; `git diff --check` passed. Side-effect scan found only validator/normalizer detector strings and test-only cleanup helpers; no DOM, storage, fetch, store/sync/backend/Supabase import or mutation path, React Flow behavior path, deploy path, or `exports/**` path was found.
+- Rollback note: remove only `src/lib/style-engine/intent-normalizer.ts`, `src/lib/style-engine/intent-normalizer.test.ts`, the index export, and this run-doc checkpoint update if the normalizer unit must be removed.

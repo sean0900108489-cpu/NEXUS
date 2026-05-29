@@ -226,30 +226,39 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 37 Vitest files / 274 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched validator detector strings and test-only cleanup helpers, not live store/sync/backend/Supabase imports or mutations, React Flow behavior, download, clipboard, save, deploy, or `exports/**` paths.
+- Created local checkpoint commit `42958e6d7fc322d78289f4e294116964e6b59912` for the Post Lab Guard Export Phase Gate.
+- Implemented `CP-072 - Pure Style Intent Normalizer V1`.
+- Added pure draft-only intent normalization for inert human/AI style brief text with normalized mood/material/density/motion/contrast plus V12 metadata fields.
+- Added fail-closed handling for empty, oversized, and secret-like text; unsafe instructions are omitted into safety warnings without echoing source text.
+- Kept the normalizer from producing manifests, CSS, runtime preview, apply/save/persist behavior, DOM access, storage, fetch, backend, Supabase, or React Flow behavior.
+- Verified CP-072 with diff check, focused intent-normalizer/validator/governance tests, side-effect scan, typecheck, and isolated style-engine lint.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-071 - Post Lab Guard Export Phase Gate`.
-- Latest local checkpoint commit before the CP-071 commit: `3d6cb3380b5138857f4e8a15ffd5c18d4fd58d6d`.
+- Latest completed checkpoint: `CP-072 - Pure Style Intent Normalizer V1`.
+- Latest local checkpoint commit before the CP-072 commit: `42958e6d7fc322d78289f4e294116964e6b59912`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
 - Confirmed current status during state assessment: clean before this run-doc reconciliation.
 - Current stop reason: normal context/turn checkpoint followed by explicit user-requested state assessment; not an error stop.
 
 ## In Progress
 
-- Preparing the CP-071 local checkpoint commit.
+- Preparing the CP-072 local checkpoint commit.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/intent-normalizer.ts`
+  - `src/lib/style-engine/intent-normalizer.test.ts`
+  - `src/lib/style-engine/index.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source edits during the gate, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, file download/clipboard/save paths, React Flow behavior files, remote push, branch merge, and `exports/**`.
-- Verification: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
-- Rollback: revert only this phase-gate run-doc update. If the gate exposes a regression, fix only the responsible isolated unit and rerun; stop if fixing would cross a forbidden boundary.
+- Forbidden files: UI/app components, runtime provider files, CSS/global styles, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
+- Verification: `git diff --check`; focused intent-normalizer/validator/governance tests; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan.
+- Rollback: remove only the new intent normalizer files, the index export, and this unit's run-doc edits.
 
 ## Next
 
-1. Commit the CP-071 local checkpoint.
+1. Commit the CP-072 local checkpoint.
 2. Confirm branch, HEAD, and clean status.
 3. Select the next isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

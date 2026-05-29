@@ -1,8 +1,13 @@
 import { readFileSync } from "node:fs";
 
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { GET as getMessages } from "@/app/api/v1/agents/[agentId]/messages/route";
+import {
+  authHeaders,
+  installMockApiAuthSessionVerifierForTests,
+  resetMockApiAuthSessionVerifierForTests,
+} from "@/lib/backend/api/api-auth-test-helper";
 import type { PermissionDecision } from "@/lib/backend/contracts/permission";
 import type { PermissionService } from "@/lib/backend/security/permission-service";
 import { supabaseStateSyncManager } from "@/lib/state-sync";
@@ -107,6 +112,10 @@ describe("V10 MessageHistoryService", () => {
     await localSyncQueueAdapter.clear();
   });
 
+  afterEach(() => {
+    resetMockApiAuthSessionVerifierForTests();
+  });
+
   it("caps message page size and returns signed next cursors", async () => {
     const messages = new InMemoryMessageRepository();
     messages.seed(Array.from({ length: 150 }, (_value, index) => makeMessage(index)));
@@ -194,6 +203,8 @@ describe("V10 MessageHistoryService", () => {
   });
 
   it("returns V2 envelope responses from the paged messages route", async () => {
+    installMockApiAuthSessionVerifierForTests("local-owner");
+
     getInMemoryMessageRepository().seed(
       Array.from({ length: 3 }, (_value, index) => makeMessage(index)),
     );
@@ -203,7 +214,7 @@ describe("V10 MessageHistoryService", () => {
         `http://localhost/api/v1/agents/${AGENT_ID}/messages?workspaceId=${WORKSPACE_ID}&limit=2`,
         {
           headers: {
-            "X-User-Id": "local-owner",
+            ...authHeaders("local-owner"),
           },
         },
       ),
@@ -219,6 +230,24 @@ describe("V10 MessageHistoryService", () => {
     expect(envelope.ok).toBe(true);
     expect(envelope.data.messages).toHaveLength(2);
     expect(envelope.data.nextCursor).toBeTruthy();
+  });
+
+  it("rejects message history requests when only X-User-Id is provided", async () => {
+    const response = await getMessages(
+      new Request(
+        `http://localhost/api/v1/agents/${AGENT_ID}/messages?workspaceId=${WORKSPACE_ID}`,
+        {
+          headers: {
+            "X-User-Id": "local-owner",
+          },
+        },
+      ),
+      {
+        params: Promise.resolve({ agentId: AGENT_ID }),
+      },
+    );
+
+    expect(response.status).toBe(401);
   });
 
   it("queues syncHistoricalMessage through the existing V4 local sync queue", async () => {

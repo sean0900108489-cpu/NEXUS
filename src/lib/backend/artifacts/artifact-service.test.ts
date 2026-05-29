@@ -1,9 +1,14 @@
 import { readFileSync } from "node:fs";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { POST as createArtifactPost } from "@/app/api/v1/artifacts/route";
 import { GET as getArtifactGet } from "@/app/api/v1/artifacts/[artifactId]/route";
+import {
+  authHeaders,
+  installMockApiAuthSessionVerifierForTests,
+  resetMockApiAuthSessionVerifierForTests,
+} from "@/lib/backend/api/api-auth-test-helper";
 import type { ApiEnvelope } from "@/lib/backend/contracts/api-envelope";
 
 import { ARTIFACT_CONTENT_TEXT_MAX_BYTES } from "./artifact-constants";
@@ -16,10 +21,10 @@ function makeArtifactRequest(body: unknown, userId = "local-editor") {
   return new Request("http://localhost/api/v1/artifacts", {
     body: JSON.stringify(body),
     headers: {
+      ...authHeaders(userId),
       "Content-Type": "application/json",
       "X-Idempotency-Key": `artifact_mutation_${id}`,
       "X-Request-Id": `req_${id}`,
-      "X-User-Id": userId,
       "X-Workspace-Id": "workspace-artifacts",
     },
     method: "POST",
@@ -29,6 +34,10 @@ function makeArtifactRequest(body: unknown, userId = "local-editor") {
 async function readJson<T>(response: Response) {
   return response.json() as Promise<T>;
 }
+
+afterEach(() => {
+  resetMockApiAuthSessionVerifierForTests();
+});
 
 describe("ArtifactService", () => {
   it("keeps artifact identity separate from content dedupe provenance", async () => {
@@ -155,7 +164,30 @@ describe("V8 artifact API and migration contract", () => {
     "utf8",
   );
 
+  it("rejects artifact creation when only X-User-Id is provided", async () => {
+    const response = await createArtifactPost(
+      new Request("http://localhost/api/v1/artifacts", {
+        body: JSON.stringify({
+          contentText: "route artifact content",
+          type: "note",
+          workspaceId: "workspace-artifacts",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          "X-Idempotency-Key": `artifact_mutation_${crypto.randomUUID()}`,
+          "X-User-Id": "local-editor",
+          "X-Workspace-Id": "workspace-artifacts",
+        },
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(401);
+  });
+
   it("creates V2 envelope responses for create and by-id fetch", async () => {
+    installMockApiAuthSessionVerifierForTests("local-editor");
+
     const createResponse = await createArtifactPost(
       makeArtifactRequest({
         contentText: "route artifact content",
@@ -183,7 +215,7 @@ describe("V8 artifact API and migration contract", () => {
         `http://localhost/api/v1/artifacts/${createJson.data?.artifact.id}?workspaceId=workspace-artifacts`,
         {
           headers: {
-            "X-User-Id": "local-viewer",
+            ...authHeaders("local-viewer"),
           },
         },
       ),

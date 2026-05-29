@@ -1,10 +1,15 @@
 import { readFileSync } from "node:fs";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { POST as postSyncOperation } from "@/app/api/v1/sync/operations/route";
 import { GET as getSyncStatus } from "@/app/api/v1/sync/status/route";
 import { POST as cancelSyncOperation } from "@/app/api/v1/sync/operations/[operationId]/cancel/route";
+import {
+  authHeaders,
+  installMockApiAuthSessionVerifierForTests,
+  resetMockApiAuthSessionVerifierForTests,
+} from "@/lib/backend/api/api-auth-test-helper";
 import { ApiError } from "@/lib/backend/api/api-errors";
 import { InMemoryMessageRepository } from "@/lib/backend/history/message-repository";
 import { MessageHistoryService } from "@/lib/backend/history/message-history-service";
@@ -49,10 +54,10 @@ function makeJsonRequest(url: string, body: unknown, userId = "local-owner") {
   return new Request(url, {
     body: JSON.stringify(body),
     headers: {
+      ...authHeaders(userId),
       "Content-Type": "application/json",
       "X-Idempotency-Key": clientMutationId,
       "X-Request-Id": `req_${crypto.randomUUID()}`,
-      "X-User-Id": userId,
     },
     method: "POST",
   });
@@ -61,6 +66,10 @@ function makeJsonRequest(url: string, body: unknown, userId = "local-owner") {
 async function readJson(response: Response) {
   return response.json() as Promise<Record<string, unknown>>;
 }
+
+afterEach(() => {
+  resetMockApiAuthSessionVerifierForTests();
+});
 
 describe("SyncQueueService", () => {
   it("creates a sync operation and deduplicates matching clientMutationId payloads", async () => {
@@ -647,7 +656,29 @@ describe("durable message history base migration", () => {
 });
 
 describe("sync API routes", () => {
+  it("rejects sync operation creation when only X-User-Id is provided", async () => {
+    const operation = makeOperation({
+      clientMutationId: `mutation_no_auth_${crypto.randomUUID()}`,
+      workspaceId: `workspace-no-auth-${crypto.randomUUID()}`,
+    });
+    const response = await postSyncOperation(
+      new Request("http://localhost/api/v1/sync/operations", {
+        body: JSON.stringify(operation),
+        headers: {
+          "Content-Type": "application/json",
+          "X-Idempotency-Key": operation.clientMutationId,
+          "X-User-Id": "local-owner",
+        },
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(401);
+  });
+
   it("returns V2 envelope for create and status routes", async () => {
+    installMockApiAuthSessionVerifierForTests("local-owner");
+
     const operation = makeOperation({
       clientMutationId: `mutation_route_${crypto.randomUUID()}`,
       workspaceId: `workspace-route-${crypto.randomUUID()}`,
@@ -661,8 +692,8 @@ describe("sync API routes", () => {
         `http://localhost/api/v1/sync/status?workspaceId=${operation.workspaceId}`,
         {
           headers: {
+            ...authHeaders("local-owner"),
             "X-Request-Id": "req-status",
-            "X-User-Id": "local-owner",
           },
         },
       ),
@@ -688,6 +719,8 @@ describe("sync API routes", () => {
   });
 
   it("denies viewer mutation operations", async () => {
+    installMockApiAuthSessionVerifierForTests("local-viewer");
+
     const response = await postSyncOperation(
       makeJsonRequest(
         "http://localhost/api/v1/sync/operations",
@@ -707,6 +740,8 @@ describe("sync API routes", () => {
   });
 
   it("cancels queued operations through the cancel endpoint", async () => {
+    installMockApiAuthSessionVerifierForTests("local-owner");
+
     const operation = makeOperation({
       clientMutationId: `mutation_cancel_${crypto.randomUUID()}`,
       entityId: "agent-cancel",

@@ -7,6 +7,11 @@ import { GET as latestDeploymentCheckGet } from "@/app/api/v1/deployment/checks/
 import { POST as runDeploymentCheckPost } from "@/app/api/v1/deployment/checks/run/route";
 import { GET as getFeatureFlags } from "@/app/api/v1/feature-flags/route";
 import { POST as toggleFeatureFlag } from "@/app/api/v1/feature-flags/[flagKey]/toggle/route";
+import {
+  authHeaders,
+  installMockApiAuthSessionVerifierForTests,
+  resetMockApiAuthSessionVerifierForTests,
+} from "@/lib/backend/api/api-auth-test-helper";
 
 function makeJsonRequest(
   url: string,
@@ -18,10 +23,10 @@ function makeJsonRequest(
   return new Request(url, {
     body: JSON.stringify(body),
     headers: {
+      ...authHeaders(userId),
       "Content-Type": "application/json",
       "X-Idempotency-Key": `mutation_${id}`,
       "X-Request-Id": `req_${id}`,
-      "X-User-Id": userId,
       "X-Workspace-Id": "workspace-deploy",
     },
     method: "POST",
@@ -32,9 +37,30 @@ async function readJson(response: Response) {
   return response.json() as Promise<Record<string, unknown>>;
 }
 
+afterEach(() => {
+  resetMockApiAuthSessionVerifierForTests();
+  vi.unstubAllEnvs();
+});
+
 describe("V5 health and admin deployment APIs", () => {
-  afterEach(() => {
-    vi.unstubAllEnvs();
+  it("rejects protected deployment checks when only X-User-Id is provided", async () => {
+    const response = await runDeploymentCheckPost(
+      new Request("http://localhost/api/v1/deployment/checks/run", {
+        body: JSON.stringify({
+          environment: "local",
+          workspaceId: "workspace-deploy",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          "X-Idempotency-Key": `mutation_${crypto.randomUUID()}`,
+          "X-User-Id": "local-admin",
+          "X-Workspace-Id": "workspace-deploy",
+        },
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(401);
   });
 
   it("returns lightweight health without env raw values or schema drift work", async () => {
@@ -64,6 +90,8 @@ describe("V5 health and admin deployment APIs", () => {
   });
 
   it("allows admin preflight runs and denies viewers", async () => {
+    installMockApiAuthSessionVerifierForTests("local-admin");
+
     const adminResponse = await runDeploymentCheckPost(
       makeJsonRequest("http://localhost/api/v1/deployment/checks/run", {
         environment: "local",
@@ -100,6 +128,8 @@ describe("V5 health and admin deployment APIs", () => {
   });
 
   it("returns latest deployment check through the admin-only route", async () => {
+    installMockApiAuthSessionVerifierForTests("local-admin");
+
     await runDeploymentCheckPost(
       makeJsonRequest("http://localhost/api/v1/deployment/checks/run", {
         environment: "local",
@@ -110,7 +140,7 @@ describe("V5 health and admin deployment APIs", () => {
     const response = await latestDeploymentCheckGet(
       new Request("http://localhost/api/v1/deployment/checks/latest?workspaceId=workspace-deploy", {
         headers: {
-          "X-User-Id": "local-admin",
+          ...authHeaders("local-admin"),
         },
       }),
     );
@@ -129,6 +159,8 @@ describe("V5 health and admin deployment APIs", () => {
 
 describe("V5 feature flag API", () => {
   it("toggles workspace flags as admin and returns frontend-safe projection", async () => {
+    installMockApiAuthSessionVerifierForTests("local-admin");
+
     const toggleResponse = await toggleFeatureFlag(
       makeJsonRequest("http://localhost/api/v1/feature-flags/sync.local_queue_enabled/toggle", {
         enabled: true,
@@ -161,7 +193,7 @@ describe("V5 feature flag API", () => {
     const listResponse = await getFeatureFlags(
       new Request("http://localhost/api/v1/feature-flags?workspaceId=workspace-deploy", {
         headers: {
-          "X-User-Id": "local-viewer",
+          ...authHeaders("local-viewer"),
         },
       }),
     );
@@ -183,6 +215,8 @@ describe("V5 feature flag API", () => {
   });
 
   it("rejects feature flag writes from viewers", async () => {
+    installMockApiAuthSessionVerifierForTests("local-viewer");
+
     const response = await toggleFeatureFlag(
       makeJsonRequest(
         "http://localhost/api/v1/feature-flags/sync.compaction_enabled/toggle",

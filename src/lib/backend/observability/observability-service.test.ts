@@ -1,10 +1,15 @@
 import { readFileSync } from "node:fs";
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET as eventsGet } from "@/app/api/v1/observability/events/route";
 import { GET as metricsGet } from "@/app/api/v1/observability/metrics/route";
 import { GET as traceGet } from "@/app/api/v1/observability/traces/[traceId]/route";
+import {
+  authHeaders,
+  installMockApiAuthSessionVerifierForTests,
+  resetMockApiAuthSessionVerifierForTests,
+} from "@/lib/backend/api/api-auth-test-helper";
 import type {
   SystemEventListResponse,
   TraceEventsResponse,
@@ -62,6 +67,11 @@ describe("V9 ObservabilityService", () => {
     getInMemorySystemEventRepository().clear();
     getInMemoryUsageMetricsRepository().clear();
     resetDefaultObservabilityServiceForTests();
+    installMockApiAuthSessionVerifierForTests("local-editor");
+  });
+
+  afterEach(() => {
+    resetMockApiAuthSessionVerifierForTests();
   });
 
   it("records backend events through the V0 emitter without blocking callers", async () => {
@@ -136,7 +146,7 @@ describe("V9 ObservabilityService", () => {
         `http://localhost/api/v1/observability/events?workspaceId=${WORKSPACE_ID}&limit=500`,
         {
           headers: {
-            "X-User-Id": "local-editor",
+            ...authHeaders("local-editor"),
           },
         },
       ),
@@ -147,6 +157,21 @@ describe("V9 ObservabilityService", () => {
     expect(json.data.events).toHaveLength(100);
     expect(json.data.hasMore).toBe(true);
     expect(json.data.nextCursor).toEqual(expect.any(String));
+  });
+
+  it("rejects observability event queries when only X-User-Id is provided", async () => {
+    const response = await eventsGet(
+      new Request(
+        `http://localhost/api/v1/observability/events?workspaceId=${WORKSPACE_ID}`,
+        {
+          headers: {
+            "X-User-Id": "local-editor",
+          },
+        },
+      ),
+    );
+
+    expect(response.status).toBe(401);
   });
 
   it("returns trace-scoped lifecycle projection with source and severity summary", async () => {
@@ -178,7 +203,7 @@ describe("V9 ObservabilityService", () => {
         `http://localhost/api/v1/observability/traces/trace-linked?workspaceId=${WORKSPACE_ID}`,
         {
           headers: {
-            "X-User-Id": "local-editor",
+            ...authHeaders("local-editor"),
           },
         },
       ),
@@ -227,7 +252,7 @@ describe("V9 ObservabilityService", () => {
         `http://localhost/api/v1/observability/metrics?workspaceId=${WORKSPACE_ID}`,
         {
           headers: {
-            "X-User-Id": "local-editor",
+            ...authHeaders("local-editor"),
           },
         },
       ),

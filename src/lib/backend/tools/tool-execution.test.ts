@@ -1,8 +1,13 @@
 import { readFileSync } from "node:fs";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { POST as runToolPost } from "@/app/api/v1/tools/[toolId]/run/route";
+import {
+  authHeaders,
+  installMockApiAuthSessionVerifierForTests,
+  resetMockApiAuthSessionVerifierForTests,
+} from "@/lib/backend/api/api-auth-test-helper";
 
 import { ToolExecutionService } from "./tool-execution-service";
 import { InMemoryToolRunRepository } from "./tool-run-repository";
@@ -22,10 +27,10 @@ function makeToolRunRequest(
     request: new Request(`http://localhost/api/v1/tools/${toolId}/run`, {
       body: JSON.stringify(body),
       headers: {
+        ...authHeaders(userId),
         "Content-Type": "application/json",
         "X-Idempotency-Key": `tool_mutation_${id}`,
         "X-Request-Id": `req_${id}`,
-        "X-User-Id": userId,
         "X-Workspace-Id": "workspace-tools",
       },
       method: "POST",
@@ -36,6 +41,10 @@ function makeToolRunRequest(
 async function readJson(response: Response) {
   return response.json() as Promise<Record<string, unknown>>;
 }
+
+afterEach(() => {
+  resetMockApiAuthSessionVerifierForTests();
+});
 
 describe("ToolRegistryValidator", () => {
   it("resolves declared aliases and fallbacks without creating a parallel registry", () => {
@@ -229,7 +238,31 @@ describe("ToolExecutionService", () => {
 });
 
 describe("V7 tool API and migration contract", () => {
+  it("rejects tool execution when only X-User-Id is provided", async () => {
+    const response = await runToolPost(
+      new Request("http://localhost/api/v1/tools/mock-image-gen/run", {
+        body: JSON.stringify({
+          workspaceId: "workspace-tools",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          "X-Idempotency-Key": `tool_mutation_${crypto.randomUUID()}`,
+          "X-User-Id": "local-admin",
+          "X-Workspace-Id": "workspace-tools",
+        },
+        method: "POST",
+      }),
+      {
+        params: Promise.resolve({ toolId: "mock-image-gen" }),
+      },
+    );
+
+    expect(response.status).toBe(401);
+  });
+
   it("exposes V2 envelope responses for high-risk tool runs", async () => {
+    installMockApiAuthSessionVerifierForTests("local-admin");
+
     const { context, request } = makeToolRunRequest("real-file-scanner", {
       input: {
         path: "./src",
@@ -253,6 +286,8 @@ describe("V7 tool API and migration contract", () => {
   });
 
   it("denies viewer tool execution through the route", async () => {
+    installMockApiAuthSessionVerifierForTests("local-viewer");
+
     const { context, request } = makeToolRunRequest(
       "mock-image-gen",
       {

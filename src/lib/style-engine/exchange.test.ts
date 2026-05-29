@@ -36,6 +36,7 @@ describe("NEXUS Style Engine import/export normalization", () => {
         manifestId: "legacy-cyberpunk",
         previewVariableCount: expect.any(Number),
         state: "warning",
+        validatorVersion: "nexus-style-validator-v1",
       },
     });
     expect(result.exportPackage.review.previewVariableCount).toBeGreaterThan(0);
@@ -112,6 +113,7 @@ describe("NEXUS Style Engine import/export normalization", () => {
     const redacted = redactNexusStyleReviewForExchangeV1(review);
 
     expect(redacted).not.toHaveProperty("governanceVersion");
+    expect(redacted.validatorVersion).toBe("nexus-style-validator-v1");
     expect(redacted).toMatchObject({
       adapterCoverage: {
         reactFlow: "complete",

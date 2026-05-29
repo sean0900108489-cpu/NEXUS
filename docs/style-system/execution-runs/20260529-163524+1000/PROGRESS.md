@@ -1012,32 +1012,39 @@ Run id: `20260529-163524+1000`
 - Started `CP-205 - Compiler Variable Limit Doc Reconciliation V1`.
 - Reconciled `compiler-v1-contract.md` and `manifest-v1-spec.md` with the CP-204 emitted CSS variable count guard.
 - Verified CP-205 with focused evidence scan, stale wording scan, `git diff --check`, and status check.
+- Created local checkpoint commit `92db0986390aaadfe5802abcd1cbed464160513f` for the Compiler Variable Limit Doc Reconciliation V1 unit.
+- Started `CP-206 - Pure Governance Validator Version Metadata V1`.
+- Added a pure `nexus-style-validator-v1` metadata constant and surfaced it through governance and exchange review metadata.
+- Verified CP-206 with focused governance/exchange/validator Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-205 - Compiler Variable Limit Doc Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-205 local commit; previous clean checkpoint commit is `4d09b9fad20b29e1077cd7b7b6b2a5ee00dd776d`.
+- Latest completed checkpoint: `CP-206 - Pure Governance Validator Version Metadata V1`.
+- Latest local checkpoint commit: pending CP-206 local commit; previous clean checkpoint commit is `92db0986390aaadfe5802abcd1cbed464160513f`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-205 verification: dirty only in CP-205 allowed docs and run-doc files.
-- Current stop reason: not stopped; CP-205 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-206 verification: dirty only in CP-206 allowed pure metadata/test/run-doc files.
+- Current stop reason: not stopped; CP-206 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-205 - Local checkpoint commit prep`.
+- `CP-206 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/compiler-v1-contract.md`
-  - `docs/style-system/manifest-v1-spec.md`
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/governance.ts`
+  - `src/lib/style-engine/governance.test.ts`
+  - `src/lib/style-engine/exchange.ts`
+  - `src/lib/style-engine/exchange.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits, UI/TSX/app route/CSS files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-205 docs/run-doc reconciliation if this wording must be removed.
+- Rollback: revert only the CP-206 pure metadata/test/run-doc changes if validator version metadata must be removed.
 
 ## Next
 
-1. Commit the CP-205 docs checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-206 pure metadata checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -221,6 +221,7 @@ Run id: `20260529-163524+1000`
 | Style Contract Doc Reconciliation V1 | PASS | Reconciled style contract doc with current pure contract token types, presets, compiler mapping, and legacy bridge output. |
 | Pure Compiler Variable Limit Guard V1 | PASS | Compiler now fails closed when emitted CSS variables exceed `constraints.maxCssVariableCount`; focused tests passed with recoverable 5s timeout retry. |
 | Compiler Variable Limit Doc Reconciliation V1 | PASS | Reconciled compiler and manifest docs with the CP-204 emitted variable count guard. |
+| Pure Governance Validator Version Metadata V1 | PASS | Added pure validator version metadata to governance and exchange reviews; focused tests, lint, typecheck, side-effect scan, and diff check passed. |
 
 ## Current Gate
 
@@ -233,4 +234,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Compiler Variable Limit Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Governance Validator Version Metadata local checkpoint prep. Production window/modal code, production graph/app shell files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

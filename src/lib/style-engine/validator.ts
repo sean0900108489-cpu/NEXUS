@@ -9,6 +9,9 @@ import {
 } from "./manifest";
 import { evaluateNexusStyleTextContrast } from "./accessibility";
 
+export const NEXUS_STYLE_VALIDATOR_VERSION_V1 =
+  "nexus-style-validator-v1" as const;
+
 type MutableReport = {
   manifestId?: string;
   errors: NexusStyleValidationIssueV1[];

@@ -29,6 +29,7 @@ describe("NEXUS Style Engine governance review", () => {
       },
       previewVariableCount: expect.any(Number),
       state: "warning",
+      validatorVersion: "nexus-style-validator-v1",
     });
     expect(review.previewVariableCount).toBeGreaterThan(0);
     expect(review.adapterCoverage?.windowModal).toBe("complete");
@@ -87,6 +88,7 @@ describe("NEXUS Style Engine governance review", () => {
       reasonCodes: ["style.pack.rejected"],
     });
     expect(review.rejectionCodes).toContain("style.forbidden.serviceRole");
+    expect(review.validatorVersion).toBe("nexus-style-validator-v1");
     expect(review.checksums.normalizedManifest).toBeUndefined();
     expect(review.checksums.compiledOutput).toBeUndefined();
     expect(review).not.toHaveProperty("adapterCoverage");

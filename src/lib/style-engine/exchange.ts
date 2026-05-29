@@ -22,6 +22,7 @@ export type NexusStyleExchangeReviewV1 = {
   previewVariableCount?: NexusStylePackReviewV1["previewVariableCount"];
   manifestId?: string;
   manifestVersion?: 1;
+  validatorVersion: string;
   compilerVersion?: string;
   checksums: NexusStylePackReviewV1["checksums"];
   validation: {
@@ -135,6 +136,7 @@ export function redactNexusStyleReviewForExchangeV1(
     permissions: review.permissions,
     rejectionCodes: [...review.rejectionCodes].sort(),
     state: review.state,
+    validatorVersion: review.validatorVersion,
     validation: {
       accepted: review.validation.accepted,
       errorCount: review.validation.errorCount,

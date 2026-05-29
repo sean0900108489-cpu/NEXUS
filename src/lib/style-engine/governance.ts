@@ -10,7 +10,10 @@ import {
   type NexusStyleValidationIssueV1,
 } from "./manifest";
 import { createNexusStylePreviewPatchV1 } from "./preview";
-import { validateNexusStyleManifestV1 } from "./validator";
+import {
+  NEXUS_STYLE_VALIDATOR_VERSION_V1,
+  validateNexusStyleManifestV1,
+} from "./validator";
 
 export const NEXUS_STYLE_GOVERNANCE_VERSION_V1 =
   "nexus-style-governance-v1" as const;
@@ -46,6 +49,7 @@ export type NexusStylePackReviewV1 = {
   previewVariableCount?: number;
   manifestId?: string;
   manifestVersion?: typeof NEXUS_STYLE_MANIFEST_VERSION;
+  validatorVersion: typeof NEXUS_STYLE_VALIDATOR_VERSION_V1;
   compilerVersion?: typeof NEXUS_STYLE_COMPILER_VERSION;
   checksums: {
     normalizedManifest?: string;
@@ -81,6 +85,7 @@ export function reviewNexusStylePackV1(candidate: unknown): NexusStylePackReview
       rejectionCodes: validation.errors.map((error) => error.code),
       state: "rejected",
       validation: validationSummary,
+      validatorVersion: NEXUS_STYLE_VALIDATOR_VERSION_V1,
     });
   }
 
@@ -104,6 +109,7 @@ export function reviewNexusStylePackV1(candidate: unknown): NexusStylePackReview
         warningCount: compiled.warnings.length,
         warnings: compiled.warnings,
       },
+      validatorVersion: NEXUS_STYLE_VALIDATOR_VERSION_V1,
     });
   }
 
@@ -128,6 +134,7 @@ export function reviewNexusStylePackV1(candidate: unknown): NexusStylePackReview
     rejectionCodes: [],
     state,
     validation: validationSummary,
+    validatorVersion: NEXUS_STYLE_VALIDATOR_VERSION_V1,
   });
 }
 

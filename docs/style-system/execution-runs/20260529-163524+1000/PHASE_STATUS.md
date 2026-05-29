@@ -266,6 +266,7 @@ Run id: `20260529-163524+1000`
 | Validator Data URL Doc Reconciliation V1 | PASS | Reconciled manifest validator and manifest spec docs with data URL guard coverage. |
 | Pure Validator VBScript URL Guard V1 | PASS | Added a pure validator guard and focused coverage for VBScript URL strings without echoing payload text. |
 | Validator VBScript URL Doc Reconciliation V1 | PASS | Reconciled manifest validator and manifest spec docs with VBScript URL guard coverage. |
+| Post URL Scheme Guard Phase Gate | PASS | Full check passed after data/VBScript URL guards and docs; side-effect scan and git diff check passed. |
 
 ## Current Gate
 
@@ -278,4 +279,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Validator VBScript URL Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post URL Scheme Guard Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

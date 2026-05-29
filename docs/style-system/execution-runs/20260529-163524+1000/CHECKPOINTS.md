@@ -2945,3 +2945,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Source scan found Agent Chrome style constants using `--nexus-recipe-window-surface`, `border`, `shadow`, `handle-visual`, `chrome-surface`, `chrome-border`, and `body-surface`. Targeted lint passed; `npm run typecheck` passed; `npm run build` passed with static `/style-lab` and the known edge-runtime warning only; local fetch smoke returned status 200 and confirmed `Agent Chrome Specimen`, `--nexus-recipe-window-surface`, and `--nexus-recipe-window-handle-visual` in rendered markup. Targeted side-effect/behavior scans in the Style Lab/app scope had no matches for DOM/storage/fetch/clipboard/download path, `react-rnd`, live React Flow import, production UI import/edit, store/sync/backend/Supabase import or mutation path, deploy path, `exports/**`, or forbidden behavior keys. `git diff --check` passed.
 - Rollback note: revert only the isolated Agent Chrome specimen recipe variable substitutions and this CP-182 run-doc checkpoint update if the specimen hookup must be removed.
+
+## CP-183 - Style Lab Datapad Shell Specimen Recipe Variables V1
+
+- Unit: make the isolated Style Lab Datapad shell specimen consume `--nexus-recipe-window-*` CSS variables with existing semantic/status fallbacks, without editing production Datapad code or behavior.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: style-engine pure logic, preview/compiler/governance/exchange files, app routes, CSS/global stylesheets, production components including `DatapadWindow`, `src/components/nexus/**`, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: source scan for Datapad shell `--nexus-recipe-window-*`; targeted Style Lab lint; `npm run typecheck`; `npm run build`; local `/style-lab` text smoke for Datapad shell recipe variable markup; side-effect/forbidden-surface scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused `rg` source scan; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx`; `npm run typecheck`; `npm run build`; local `/style-lab` fetch smoke; targeted side-effect/forbidden-surface scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Source scan found Datapad shell style constants using `--nexus-recipe-window-surface`, `border`, `shadow`, `chrome-surface`, `chrome-border`, and `body-surface`. Targeted lint passed; `npm run typecheck` passed; `npm run build` passed with static `/style-lab` and the known edge-runtime warning only; local fetch smoke returned status 200 and confirmed `Datapad Shell Specimen`, `--nexus-recipe-window-surface`, and `--nexus-recipe-window-body-surface` in rendered markup. Targeted side-effect/behavior scans in the Style Lab/app scope had no matches for DOM/storage/fetch/clipboard/download path, `react-rnd`, live React Flow import, production UI import/edit, store/sync/backend/Supabase import or mutation path, deploy path, `exports/**`, or forbidden behavior keys. `git diff --check` passed.
+- Rollback note: revert only the isolated Datapad shell specimen recipe variable substitutions and this CP-183 run-doc checkpoint update if the specimen hookup must be removed.

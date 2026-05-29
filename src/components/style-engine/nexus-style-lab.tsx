@@ -257,25 +257,33 @@ const primitiveWindowHandleStyle = {
 };
 
 const primitiveDatapadSurfaceStyle = {
-  background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
-  borderColor: "var(--nexus-status-success, #6ee7b7)",
-  boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
+  background:
+    "var(--nexus-recipe-window-surface, var(--nexus-surface-panel, rgb(8 16 22 / 0.78)))",
+  borderColor:
+    "var(--nexus-recipe-window-border, var(--nexus-status-success, #6ee7b7))",
+  boxShadow:
+    "var(--nexus-recipe-window-shadow, var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38)))",
   color: "var(--nexus-text-primary, #f8fafc)",
 };
 
 const primitiveDatapadChromeStyle = {
-  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
-  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+  background:
+    "var(--nexus-recipe-window-chrome-surface, var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62)))",
+  borderColor:
+    "var(--nexus-recipe-window-chrome-border, var(--nexus-border-subtle, rgb(226 232 240 / 0.12)))",
   color: "var(--nexus-status-success, #6ee7b7)",
 };
 
 const primitiveDatapadBodyStyle = {
-  background: "var(--nexus-surface-input, rgb(15 23 42 / 0.72))",
+  background:
+    "var(--nexus-recipe-window-body-surface, var(--nexus-surface-input, rgb(15 23 42 / 0.72)))",
 };
 
 const primitiveDatapadFooterStyle = {
-  background: "var(--nexus-surface-workspace, #020617)",
-  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+  background:
+    "var(--nexus-recipe-window-body-surface, var(--nexus-surface-workspace, #020617))",
+  borderColor:
+    "var(--nexus-recipe-window-chrome-border, var(--nexus-border-subtle, rgb(226 232 240 / 0.12)))",
 };
 
 const primitiveDatapadActionStyle = {

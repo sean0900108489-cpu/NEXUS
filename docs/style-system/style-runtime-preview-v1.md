@@ -14,6 +14,7 @@ Status: partially implemented local runtime preview. Pure target/controller help
 - `src/app/page.tsx` wraps `NexusOps` in `NexusStyleRuntimeProvider` without editing `src/components/nexus/nexus-ops.tsx`.
 - `src/app/style-lab/page.tsx` wraps the isolated Style Lab in the same provider, and `src/components/style-engine/nexus-style-lab.tsx` uses the provider for local preview/revert controls.
 - `CP-173 - Style Lab Preview Recipe Variable Count Smoke V1` confirmed local Style Lab preview patches now expose `Preview Vars 122` and `Active Vars 122` after Preview is clicked.
+- Source-closed Style Lab interaction smokes have confirmed local Preview updates active preview rows, Revert clears them, and page refresh does not restore an unsaved local preview session.
 - The current implementation remains local-only: no `useNexusStore`, workspace sync, backend route, Supabase/database, production React Flow behavior props, durable persistence path, or save/export-file behavior is involved.
 
 ## 0. Purpose
@@ -187,7 +188,7 @@ phase gate.
 
 ## 7. Browser Smoke Checklist
 
-When V5 runtime code exists, run Browser smoke on local dev:
+For runtime/UI preview units, run Browser smoke on local dev:
 
 - App loads without console errors.
 - Existing `cyberpunk/apple/tesla/terminal` preset buttons still work.
@@ -195,11 +196,12 @@ When V5 runtime code exists, run Browser smoke on local dev:
 - Preview changes visible surface/text/accent variables.
 - Revert restores previous visual state.
 - Refresh does not restore unsaved preview.
-- Workspace switch does not carry preview as durable state.
-- LEGO micro-controls still work as existing applied micro-controls.
+- Workspace switch or page refresh does not carry preview as durable state.
+- Existing applied theme controls still work as separate persisted controls.
 - No sync operation is triggered by preview-only actions.
 
-No browser smoke is required for this documentation-only pass.
+Documentation-only reconciliation does not require a new browser smoke when it
+does not change runtime code.
 
 ## 8. Future Implementation Unit Boundaries
 

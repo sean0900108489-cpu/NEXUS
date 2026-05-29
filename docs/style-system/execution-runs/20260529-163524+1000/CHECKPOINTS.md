@@ -3580,3 +3580,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found `intent-manifest` export, source, tests, and updated interpreter doc wording for the pure manifest draft helper. Stale wording scan returned no matches for old no-manifest-draft/no-manifest-generation wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
 - Rollback note: revert only the CP-218 docs/run-doc reconciliation if this wording must be removed.
+
+## CP-219 - Runtime Preview Browser Smoke Doc Reconciliation V1
+
+- Unit: reconcile runtime preview docs with existing runtime code and prior Preview/Revert/Refresh smoke evidence.
+- Allowed files:
+  - `docs/style-system/style-runtime-preview-v1.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits, UI/TSX/app route/CSS files, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence/stale wording scan for runtime preview smoke wording; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused runtime-smoke evidence scan; stale runtime-smoke wording scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-runtime-preview-v1.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found updated runtime preview smoke wording and CP-219 checkpoint context. Stale wording scan returned no matches for old `When V5 runtime code exists`, doc-only pass, or LEGO micro-controls wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
+- Rollback note: revert only the CP-219 docs/run-doc reconciliation if this wording must be removed.

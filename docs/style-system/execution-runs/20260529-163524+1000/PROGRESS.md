@@ -1068,31 +1068,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-218 - Style Interpreter Manifest Draft Doc Reconciliation V1`.
 - Reconciled `style-interpreter-boundary.md` with the existing pure intent-to-manifest draft helper and removed the stale no-manifest-drafts gap note.
 - Verified CP-218 with focused intent-manifest evidence scan, stale interpreter wording scan, `git diff --check`, and status check.
+- Created local checkpoint commit `454502243a0bfc906e9265ea6db7e3fea5fabe24` for the Style Interpreter Manifest Draft Doc Reconciliation V1 unit.
+- Started `CP-219 - Runtime Preview Browser Smoke Doc Reconciliation V1`.
+- Reconciled `style-runtime-preview-v1.md` with existing runtime provider/Style Lab preview code and prior source-closed Preview/Revert/Refresh smoke evidence.
+- Verified CP-219 with focused runtime-smoke evidence scan, stale runtime-smoke wording scan, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-218 - Style Interpreter Manifest Draft Doc Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-218 local commit; previous clean checkpoint commit is `50a08666af638d8bad3a24cf821658a44872c4e8`.
+- Latest completed checkpoint: `CP-219 - Runtime Preview Browser Smoke Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-219 local commit; previous clean checkpoint commit is `454502243a0bfc906e9265ea6db7e3fea5fabe24`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-218 verification: dirty only in CP-218 allowed docs and run-doc files.
-- Current stop reason: not stopped; CP-218 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-219 verification: dirty only in CP-219 allowed docs and run-doc files.
+- Current stop reason: not stopped; CP-219 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-218 - Local checkpoint commit prep`.
+- `CP-219 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-interpreter-boundary.md`
+  - `docs/style-system/style-runtime-preview-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: all source/test edits, UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-218 docs/run-doc reconciliation if this wording must be removed.
+- Rollback: revert only the CP-219 docs/run-doc reconciliation if this wording must be removed.
 
 ## Next
 
-1. Commit the CP-218 docs checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-219 docs checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

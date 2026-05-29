@@ -132,14 +132,18 @@ Run id: `20260529-163524+1000`
 - Added focused Vitest coverage for preview session cloning, prior-session cleanup, mismatch handling, and clear-all behavior.
 - Verified the controller unit with `git diff --check`, focused Vitest, full style-engine Vitest set, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
 - Created local checkpoint commit `d8d94ca0f80102019c92b0a2710c97304de7f78b` for the runtime preview controller.
+- Created local record commit `302ab30ebe7961c91c3ecdae5f0142575913d3d0` for the runtime controller checkpoint metadata.
+- Opened a minimal React/provider gate without editing `nexus-ops.tsx`.
+- Added `NexusStyleRuntimeProvider` and wrapped `Home` so future preview variables have a scoped runtime target.
+- Verified the provider gate with typecheck, targeted lint, focused runtime tests, `next build`, runtime marker scans, and Browser smoke on the existing local dev server.
 
 ## In Progress
 
-- Preparing next gate decision after local-only V5 helpers.
+- Local checkpoint commit for React runtime provider gate V1.
 
 ## Next
 
-1. Commit this run-status record update.
-2. Re-confirm branch/status/HEAD.
-3. Decide whether the next step stays local-only or opens a React/provider gate.
-4. If opening React/provider gate, keep store/sync/backend/Supabase and `exports/**` closed.
+1. Stage run docs plus the provider gate files.
+2. Verify staged diff.
+3. Create a local checkpoint commit if checks pass.
+4. Continue only if status returns clean.

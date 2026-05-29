@@ -711,3 +711,40 @@ Each checkpoint records:
 - Commit created: `d8d94ca0f80102019c92b0a2710c97304de7f78b`.
 - Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
 - Rollback note: revert the runtime controller commit only if the helper must be removed; do not touch unrelated history.
+
+## CP-049 - Runtime Provider V1
+
+- Unit: add the smallest React/provider gate for scoped local preview runtime wiring.
+- Allowed files:
+  - `src/app/page.tsx`
+  - `src/components/style-engine/**`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `src/components/nexus/**`, graph files, CSS files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation, `exports/**`.
+- Commands run: `git diff --check`; targeted import/side-effect scan for store, sync, backend, Supabase, workspace persistence, browser storage, and real DOM globals; `npm run lint -- src/app/page.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run typecheck`; `npm run test -- src/lib/style-engine`; `npm run build`; `npm run dev -- --hostname 127.0.0.1 --port 3000`; Browser local smoke test for `http://127.0.0.1:3000/`.
+- Changed files:
+  - `src/app/page.tsx`
+  - `src/components/style-engine/nexus-style-runtime-provider.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. Provider owns only a scoped CSS-variable target and context API around the existing preview controller; no app shell, graph, store, sync, backend, Supabase, package, CSS, or deployment surface was changed. Browser smoke loaded the app title `NEXUS // AI OPS`, found exactly one `data-nexus-style-runtime="v1"` target, and reported no severe dev logs.
+- Rollback note: revert only `src/app/page.tsx`, `src/components/style-engine/nexus-style-runtime-provider.tsx`, and this run-doc checkpoint update if this provider gate must be removed.
+
+## CP-049 - React Runtime Provider Gate V1
+
+- Unit: add a minimal client runtime provider and wrap the app page without touching `nexus-ops.tsx`.
+- Allowed files:
+  - `src/app/page.tsx`
+  - `src/components/style-engine/**`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/components/nexus/nexus-ops.tsx`, CSS files, theme provider changes, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; targeted scans for store/sync/backend/Supabase imports and protected behavior strings; `npm run typecheck`; `npm run lint -- src/app/page.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run test -- src/lib/style-engine/runtime-controller.test.ts src/lib/style-engine/runtime-target.test.ts src/lib/style-engine/preview.test.ts`; `npm run build`; Browser smoke against the existing local dev server at `http://127.0.0.1:3000`; `curl -I http://127.0.0.1:3000`; `curl http://127.0.0.1:3000` runtime marker scan; `git status --porcelain=v1 -b`.
+- Browser note: a separate `3001` dev-server attempt was blocked by the existing Next dev server lock for this repo, so verification used the already-running local server on `3000`.
+- Changed files:
+  - `src/app/page.tsx`
+  - `src/components/style-engine/nexus-style-runtime-provider.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. Typecheck, targeted lint, focused runtime tests, and `next build` passed. Browser smoke confirmed `data-nexus-style-runtime="v1"`, `class="contents"`, `nexus-shell`, one runtime child, hidden body overflow, expected auth-screen title text, and zero captured browser console errors.
+- Rollback note: revert only `src/app/page.tsx`, `src/components/style-engine/nexus-style-runtime-provider.tsx`, and this run-doc checkpoint update if the provider gate must be removed.

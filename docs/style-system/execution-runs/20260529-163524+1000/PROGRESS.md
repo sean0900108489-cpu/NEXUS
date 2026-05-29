@@ -780,33 +780,36 @@ Run id: `20260529-163524+1000`
 - Added focused tests covering default shape, fresh nested object copies, and absence of forbidden behavior keys in the emitted default adapter keys.
 - Exported the pure adapter from `src/lib/style-engine/index.ts`.
 - Verified CP-164 with focused Vitest, targeted style-engine lint, typecheck, side-effect scans, diff checks, and status checks.
+- Created local checkpoint commit `396a80e5ca029b032b3979dc238ee24192e35499` for the Pure Window Modal Recipe Adapter Shape V1 unit.
+- Started `CP-165 - Post Window Modal Recipe Adapter Shape Phase Gate` with source/test edits closed.
+- Ran `CP-165 - Post Window Modal Recipe Adapter Shape Phase Gate`.
+- Confirmed full `npm run check` passed: lint, typecheck, 41 Vitest files / 295 tests, and build.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, React Flow adapter forbidden behavior key registries, and the new window/modal recipe adapter forbidden behavior key registry; no live React Flow import, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/preview/governance wiring, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, download/clipboard/save/export-file path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-164 - Pure Window Modal Recipe Adapter Shape V1`.
-- Latest local checkpoint commit: pending CP-164 local commit; previous clean checkpoint commit is `2099459dc0294ed0b6ea66aa1a709c5178d0b536`.
+- Latest completed checkpoint: `CP-165 - Post Window Modal Recipe Adapter Shape Phase Gate`.
+- Latest local checkpoint commit: pending CP-165 local commit; previous clean checkpoint commit is `396a80e5ca029b032b3979dc238ee24192e35499`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-164 verification: dirty only in CP-164 allowed pure style-engine/run-doc files.
-- Current stop reason: not stopped; CP-164 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-165 verification: dirty only in CP-165 allowed run-doc files.
+- Current stop reason: not stopped; CP-165 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-164 - Local checkpoint commit prep`.
+- `CP-165 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/window-modal-recipe-adapter.ts`
-  - `src/lib/style-engine/window-modal-recipe-adapter.test.ts`
-  - `src/lib/style-engine/index.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all `src/components/**`, `src/app/**`, production UI, CSS/global stylesheets, compiler/preview/governance wiring, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test edits during the gate, Style Lab/UI source, runtime provider internals, production graph/app shell files, `src/components/nexus/**`, CSS/global stylesheets, pure style-engine logic changes, compiler/preview/governance wiring, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, window/modal behavior semantics, download/clipboard/save/export-file behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: remove the new adapter file, its focused test, the index export, and this run-doc checkpoint update if the pure adapter shape must be removed.
+- Rollback: revert only this CP-165 run-doc update if the phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-164 pure adapter checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-165 phase-gate checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

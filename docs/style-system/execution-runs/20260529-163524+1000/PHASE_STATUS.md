@@ -180,6 +180,7 @@ Run id: `20260529-163524+1000`
 | Window Modal Specimen Suite Doc Reconciliation V1 | PASS | Reconciled window/modal and Style Lab docs with isolated migration-order specimen coverage while preserving production migration boundaries. |
 | Style Lab Specimen Suite Visual Smoke V1 | PASS | Source-closed headless Chrome smoke captured a nonempty `/style-lab` screenshot and confirmed all six window/modal recipe specimen labels render. |
 | Pure Window Modal Recipe Adapter Shape V1 | PASS | Added pure visual-only window/modal/command palette recipe adapter shape and tests; no compiler, UI, production, persistence, or deploy wiring touched. |
+| Post Window Modal Recipe Adapter Shape Phase Gate | PASS | Full check passed after pure recipe adapter shape; side-effect scan and git diff check passed. |
 
 ## Current Gate
 
@@ -192,4 +193,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Window Modal Recipe Adapter Shape V1 local checkpoint prep. UI source, production window/modal code, production graph/app shell files, compiler/preview/governance wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post Window Modal Recipe Adapter Shape Phase Gate local checkpoint prep. Source edits, UI source, production window/modal code, production graph/app shell files, compiler/preview/governance wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

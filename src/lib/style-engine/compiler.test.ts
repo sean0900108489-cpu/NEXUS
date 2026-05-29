@@ -153,6 +153,21 @@ describe("NEXUS Style Engine pure compiler", () => {
     );
   });
 
+  it("preserves the optional next-themes bridge as inert adapter data", () => {
+    const result = compileNexusStyleManifestV1(createSafeManifest());
+
+    expect(result.accepted).toBe(true);
+
+    if (!result.accepted) {
+      throw new Error("Expected compiler to accept manifest.");
+    }
+
+    expect(result.style.adapters.nextThemes).toEqual({
+      colorScheme: "dark",
+      dataTheme: "cyberpunk",
+    });
+  });
+
   it("fails closed for invalid manifests without partial compiled output", () => {
     const manifest = createSafeManifest();
 

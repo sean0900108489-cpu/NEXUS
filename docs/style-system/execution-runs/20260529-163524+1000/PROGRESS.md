@@ -1393,18 +1393,22 @@ Run id: `20260529-163524+1000`
 - Started `CP-296 - Pure Compiler Report Variable Count Coverage V1`.
 - Added focused compiler coverage proving `report.emittedVariableCount` equals namespaced plus legacy CSS variable totals.
 - Verified CP-296 with focused compiler Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, and `git diff --check`.
+- Created local checkpoint commit `c2b77b4b5bb87c3ebf8013686299633e5c5d1055` for the Pure Compiler Report Variable Count Coverage V1 unit.
+- Started `CP-297 - Pure Compiler NextThemes Adapter Coverage V1`.
+- Added focused compiler coverage proving optional `nextThemes` bridge data is preserved as inert adapter output.
+- Verified CP-297 with focused compiler Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-296 - Pure Compiler Report Variable Count Coverage V1`.
-- Latest recorded checkpoint commit: `3eb048e03f6ece9ec4156b5ac94c2ad44a9d3899` for `CP-295 - Governance Compiler Rejection Doc Reconciliation V1`; CP-296 is being prepared for local commit.
+- Latest completed checkpoint: `CP-297 - Pure Compiler NextThemes Adapter Coverage V1`.
+- Latest recorded checkpoint commit: `c2b77b4b5bb87c3ebf8013686299633e5c5d1055` for `CP-296 - Pure Compiler Report Variable Count Coverage V1`; CP-297 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-296 verification prep: dirty only in CP-296 allowed compiler test and run-doc files.
-- Current stop reason: not stopped; CP-296 compiler report variable count coverage checkpoint is underway.
+- Confirmed current status after CP-297 verification prep: dirty only in CP-297 allowed compiler test and run-doc files.
+- Current stop reason: not stopped; CP-297 compiler nextThemes adapter coverage checkpoint is underway.
 
 ## In Progress
 
-- `CP-296 - Local checkpoint commit prep`.
+- `CP-297 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
@@ -1413,11 +1417,11 @@ Run id: `20260529-163524+1000`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: focused compiler Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-296 compiler test/run-doc changes if this coverage must be removed.
+- Rollback: revert only the CP-297 compiler test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-296 compiler report variable count coverage checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-297 compiler nextThemes adapter coverage checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -239,6 +239,7 @@ Run id: `20260529-163524+1000`
 | Validator CSS Variable Guard Doc Reconciliation V1 | PASS | Reconciled validator rules docs with CP-220 CSS variable namespace guard while preserving the full parser future gap. |
 | Post CSS Variable Guard Phase Gate | PASS | Full check passed after CSS variable namespace guard/docs; side-effect scan and git diff check passed. |
 | Pure Validator Approved CSS Variable Reference Coverage V1 | PASS | Added focused positive coverage for approved `--nexus-*` CSS variable references; focused test, lint, typecheck, side-effect scan, and diff check passed. |
+| Style Lab Validator Version Row V1 | PASS | Added a display-only Validator version row to the isolated Style Lab governance report; lint, typecheck, build, local smoke, side-effect scan, and diff check passed. |
 
 ## Current Gate
 
@@ -251,4 +252,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Validator Approved CSS Variable Reference Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Style Lab Validator Version Row local checkpoint prep. Production window/modal code, production graph/app shell files, pure engine logic, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

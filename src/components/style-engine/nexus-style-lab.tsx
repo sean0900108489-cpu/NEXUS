@@ -537,6 +537,7 @@ export function NexusStyleLab() {
       ["Export", "text-only"],
       ["Persistence", "not-persistent"],
       ["Governance", review.governanceVersion],
+      ["Validator", review.validatorVersion],
       ["Manifest", String(review.manifestVersion ?? "n/a")],
       ["Compiler", review.compilerVersion ?? "n/a"],
       ["Report", review.checksums.report],

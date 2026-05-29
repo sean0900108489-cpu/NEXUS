@@ -3665,3 +3665,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused validator Vitest passed 1 file / 11 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only an existing test-only `themeConfig` unsafe payload string. Behavior scan found only existing React Flow behavior test fixture/assertion strings. `git diff --check` passed.
 - Rollback note: revert only the CP-223 validator test/run-doc changes if this coverage must be removed.
+
+## CP-224 - Style Lab Validator Version Row V1
+
+- Unit: display the pure validator version in the isolated Style Lab governance report.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `src/components/nexus/**`, app routes, CSS/global stylesheets, pure engine logic, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: targeted lint for the component; `npm run typecheck`; `npm run build`; focused local `/style-lab` static smoke for `Validator` and `nexus-style-validator-v1`; targeted side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx`; `npm run typecheck`; `npm run build`; focused localhost `/style-lab` smoke for `Validator` and `nexus-style-validator-v1`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Targeted lint passed. `npm run typecheck` passed. `npm run build` passed, including static `/style-lab` and the known edge-runtime warning only. Focused localhost `/style-lab` smoke found `Validator` once and `nexus-style-validator-v1` twice in rendered output. Side-effect scan and behavior scan found no matches in the touched Style Lab component. `git diff --check` passed and status showed only allowed CP-224 files.
+- Rollback note: revert only the CP-224 Style Lab row/run-doc changes if this display row must be removed.

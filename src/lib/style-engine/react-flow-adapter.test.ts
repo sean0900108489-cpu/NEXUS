@@ -5,6 +5,7 @@ import {
   createHighContrastCarbonStyleManifestV1,
   createLegacyCyberpunkStyleManifestV1,
   createReactFlowStyleAdapterFromManifestV1,
+  emitReactFlowAdapterCssVariablesV1,
   NEXUS_REACT_FLOW_ADAPTER_FORBIDDEN_BEHAVIOR_KEYS,
   NEXUS_REACT_FLOW_ADAPTER_VERSION,
 } from "@/lib/style-engine";
@@ -117,6 +118,25 @@ describe("NEXUS React Flow visual adapter", () => {
     expect(adapter.handle.target.fill).toBe("#facc15");
     expect(adapter.edge.selectedStroke).toBe("#0ea5e9");
     expect(adapter.controls.icon).toBe("#ffffff");
+  });
+
+  it("emits deterministic graph-scoped CSS variables", () => {
+    const variables = emitReactFlowAdapterCssVariablesV1(
+      createReactFlowStyleAdapterFromManifestV1(
+        createLegacyCyberpunkStyleManifestV1(),
+      ),
+    );
+
+    expect(Object.keys(variables)).toEqual([...Object.keys(variables)].sort());
+    expect(variables).toMatchObject({
+      "--nexus-graph-background-color": "rgb(34 211 238 / 0.12)",
+      "--nexus-graph-edge-selected-stroke": "#22d3ee",
+      "--nexus-graph-handle-source-fill": "#67e8f9",
+      "--nexus-graph-handle-target-fill": "#f0abfc",
+      "--nexus-graph-minimap-node-stroke-width": "2",
+      "--nexus-graph-node-agent-surface": "rgb(8 16 22 / 0.78)",
+      "--nexus-graph-node-runtime-surface": "#0f172a",
+    });
   });
 });
 

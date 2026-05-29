@@ -89,6 +89,11 @@ export type NexusReactFlowStyleAdapterV1 = {
   };
 };
 
+export type NexusReactFlowAdapterCssVariablesV1 = Record<
+  `--nexus-graph-${string}`,
+  string
+>;
+
 export const DEFAULT_NEXUS_REACT_FLOW_STYLE_ADAPTER_V1 = {
   version: NEXUS_REACT_FLOW_ADAPTER_VERSION,
   background: {
@@ -260,6 +265,55 @@ export function createReactFlowStyleAdapterFromManifestV1(
       icon: token("text", "primary", fallback.controls.icon),
       hoverSurface: token("surface", "raised", fallback.controls.hoverSurface),
     },
+  };
+}
+
+export function emitReactFlowAdapterCssVariablesV1(
+  adapter: NexusReactFlowStyleAdapterV1,
+): NexusReactFlowAdapterCssVariablesV1 {
+  return {
+    "--nexus-graph-background-color": adapter.background.color,
+    "--nexus-graph-background-gap": String(adapter.background.gap),
+    "--nexus-graph-background-size": String(adapter.background.size),
+    "--nexus-graph-controls-border": adapter.controls.border,
+    "--nexus-graph-controls-hover-surface": adapter.controls.hoverSurface,
+    "--nexus-graph-controls-icon": adapter.controls.icon,
+    "--nexus-graph-controls-surface": adapter.controls.surface,
+    "--nexus-graph-edge-animated-dash": adapter.edge.animatedDash,
+    "--nexus-graph-edge-default-stroke": adapter.edge.defaultStroke,
+    "--nexus-graph-edge-delete-button-border": adapter.edge.deleteButton.border,
+    "--nexus-graph-edge-delete-button-hover-surface":
+      adapter.edge.deleteButton.hoverSurface,
+    "--nexus-graph-edge-delete-button-surface": adapter.edge.deleteButton.surface,
+    "--nexus-graph-edge-delete-button-text": adapter.edge.deleteButton.text,
+    "--nexus-graph-edge-glow": adapter.edge.glow,
+    "--nexus-graph-edge-runtime-stroke": adapter.edge.runtimeStroke,
+    "--nexus-graph-edge-selected-stroke": adapter.edge.selectedStroke,
+    "--nexus-graph-handle-source-border": adapter.handle.source.border,
+    "--nexus-graph-handle-source-fill": adapter.handle.source.fill,
+    "--nexus-graph-handle-source-glow": adapter.handle.source.glow,
+    "--nexus-graph-handle-target-border": adapter.handle.target.border,
+    "--nexus-graph-handle-target-fill": adapter.handle.target.fill,
+    "--nexus-graph-handle-target-glow": adapter.handle.target.glow,
+    "--nexus-graph-minimap-mask": adapter.minimap.mask,
+    "--nexus-graph-minimap-node-fallback": adapter.minimap.nodeFallback,
+    "--nexus-graph-minimap-node-stroke-width": String(
+      adapter.minimap.nodeStrokeWidth,
+    ),
+    "--nexus-graph-minimap-surface": adapter.minimap.surface,
+    "--nexus-graph-node-agent-active-glow": adapter.node.agent.activeGlow,
+    "--nexus-graph-node-agent-border": adapter.node.agent.border,
+    "--nexus-graph-node-agent-muted-text": adapter.node.agent.mutedText,
+    "--nexus-graph-node-agent-selected-glow": adapter.node.agent.selectedGlow,
+    "--nexus-graph-node-agent-surface": adapter.node.agent.surface,
+    "--nexus-graph-node-agent-text": adapter.node.agent.text,
+    "--nexus-graph-node-runtime-border": adapter.node.runtime.border,
+    "--nexus-graph-node-runtime-muted-text": adapter.node.runtime.mutedText,
+    "--nexus-graph-node-runtime-selected-border":
+      adapter.node.runtime.selectedBorder,
+    "--nexus-graph-node-runtime-shadow": adapter.node.runtime.shadow,
+    "--nexus-graph-node-runtime-surface": adapter.node.runtime.surface,
+    "--nexus-graph-node-runtime-text": adapter.node.runtime.text,
   };
 }
 

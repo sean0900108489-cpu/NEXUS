@@ -34,7 +34,8 @@ Run id: `20260529-163524+1000`
 | Pure Compiler Local Checkpoint Commit | PASS | Commit `fe6a2b3a57949b368f9d9cc6696de05bfd7a4f40` created; post-commit status was clean. |
 | Pure Compiler Record Update | PASS | Commit `455a693031643ae209ddb2554c11fc88f637e1a7` created; post-commit status was clean. |
 | Legacy Cyberpunk Manifest Factory | PASS | Added pure built-in preset manifest and focused tests; Vitest, typecheck, lint, side-effect scan, and diff checks passed. |
-| Legacy Preset Local Checkpoint Commit | IN_PROGRESS | Staging and committing preset unit locally only. |
+| Legacy Preset Local Checkpoint Commit | PASS | Commit `5279b6149bc1a29690e71afda98eceb13bc05953` created; post-commit status was clean. |
+| Legacy Preset Record Update | IN_PROGRESS | Recording legacy preset checkpoint metadata. |
 
 ## Current Gate
 

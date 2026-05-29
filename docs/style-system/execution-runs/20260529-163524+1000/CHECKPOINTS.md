@@ -463,3 +463,13 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
 - Verification result: PASS. Focused style-engine tests passed, typecheck passed, isolated lint passed, diff check passed, and targeted side-effect/import scan returned no matches. Protected behavior class literals were kept out of the preset asset and generalized in validator issue patterns.
 - Rollback note: revert only `src/lib/style-engine/presets.ts`, `src/lib/style-engine/presets.test.ts`, the index export, the validator literal cleanup if necessary, and this run-doc checkpoint update if this pure preset unit must be removed.
+
+## CP-030 - Legacy Preset Local Commit Completed
+
+- Unit: commit legacy Cyberpunk manifest factory locally.
+- Allowed files: git metadata plus `docs/style-system/execution-runs/20260529-163524+1000/**` for this record.
+- Forbidden files: `exports/**`, CSS files, theme provider files, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `git add src/lib/style-engine docs/style-system/execution-runs/20260529-163524+1000`; `git diff --cached --check`; `git diff --cached --name-only`; `git commit -m "feat: add legacy cyberpunk style preset"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -11`.
+- Commit created: `5279b6149bc1a29690e71afda98eceb13bc05953`.
+- Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
+- Rollback note: revert the preset commit only if the pure preset unit must be removed; do not touch unrelated history.

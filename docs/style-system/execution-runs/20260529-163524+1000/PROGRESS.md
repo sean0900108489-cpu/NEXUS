@@ -89,14 +89,15 @@ Run id: `20260529-163524+1000`
 - Implemented pure legacy Cyberpunk manifest factory in `src/lib/style-engine/**`.
 - Added focused Vitest coverage proving the preset factory returns fresh manifests, validates, and compiles through the pure compiler.
 - Verified the preset unit with `git diff --check`, focused Vitest, `npm run typecheck`, isolated ESLint, and side-effect/import scans.
+- Created local checkpoint commit `5279b6149bc1a29690e71afda98eceb13bc05953` for the legacy Cyberpunk manifest factory.
 
 ## In Progress
 
-- Local checkpoint commit for legacy Cyberpunk manifest factory.
+- Post-commit record update for legacy Cyberpunk manifest factory.
 
 ## Next
 
-1. Stage run docs and `src/lib/style-engine/**`.
-2. Verify staged diff.
-3. Create a local checkpoint commit if checks pass.
-4. Continue with the next isolated unit only if status returns clean.
+1. Commit this run-status record update.
+2. Re-confirm branch/status/HEAD.
+3. Continue with the next isolated unit only if status returns clean.
+4. Keep CSS, theme provider, components, graph, store/sync, backend route, Supabase, deploy, and `exports/**` changes out of scope.

@@ -228,3 +228,122 @@ Each checkpoint records:
 - Commit created: `87a8dedd42876219b6b490c9874c295b2ecc0632`.
 - Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
 - Rollback note: revert the checkpoint commit only if the whole V1-V9 documentation checkpoint must be removed; do not touch unrelated history.
+
+## CP-014 - Phase 10 React Flow Adapter Contract
+
+- Unit: create React Flow adapter V1 documentation.
+- Allowed files:
+  - `docs/style-system/react-flow-adapter-v1.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, graph/component code, CSS, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; `rg -n "[ \t]+$"` on changed adapter/index docs; targeted `rg` for visual-only, forbidden fields, graph behavior props, Browser smoke, and gate terms; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/react-flow-adapter-v1.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; adapter contract is visual-only and blocks behavior props.
+- Rollback note: revert only `react-flow-adapter-v1.md`, the index update, and this run-doc checkpoint update.
+
+## CP-015 - Phase 11 Style Lab Design
+
+- Unit: create local-only Style Lab design documentation.
+- Allowed files:
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, UI/component code, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; `rg -n "[ \t]+$"` on changed lab/index/run docs; targeted `rg` for local-only, `workspace.themeConfig`, Supabase, invalid manifests, export, Browser smoke, and gate terms; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; lab design keeps draft/preview/export local-only and blocks persistence.
+- Rollback note: revert only `style-lab-v1.md`, the index update, and this run-doc checkpoint update.
+
+## CP-016 - Phase 12 Style Interpreter Boundary
+
+- Unit: create style interpreter / normalizer boundary documentation.
+- Allowed files:
+  - `docs/style-system/style-interpreter-boundary.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, AI/runtime code, component code, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; `rg -n "[ \t]+$"` on changed interpreter/index/run docs; targeted `rg` for draft, secrets, prompt injection, validation, persistence, Supabase, deploy, and gate terms; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-interpreter-boundary.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; interpreter boundary keeps AI/human output draft-only and blocks secrets, deploy, DB, backend, and persistence bypass.
+- Rollback note: revert only `style-interpreter-boundary.md`, the index update, and this run-doc checkpoint update.
+
+## CP-017 - Phase 13 Style Persistence Contract
+
+- Unit: create style persistence contract documentation.
+- Allowed files:
+  - `docs/style-system/style-persistence-contract.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, schema/migration files, Supabase project mutation, deploy/config/remote/database mutation.
+- Commands run: official Supabase docs search for API keys/RLS/Auth/MCP/types; read-only local scans of `/api/v1`, backend workspace/security/Supabase client patterns, workspace snapshot flow, generated types, and existing migration text; `apply_patch`; `git diff --check`; `rg -n "[ \t]+$"` on changed docs; targeted `rg` for RLS, service role, publishable/anon, `workspace.themeConfig`, `workspace_snapshots`, `workspace_state_entities`, Preview/Persist, migration gate, no-schema, and `exports/**` terms; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-persistence-contract.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; persistence contract separates style packs from workspace snapshots and documents Supabase RLS/key/Auth boundaries without schema/runtime/Supabase project changes.
+- Rollback note: revert only `style-persistence-contract.md`, the index update, and this run-doc checkpoint update.
+
+## CP-018 - Phase 14 Style Pack Governance
+
+- Unit: create style pack governance documentation.
+- Allowed files:
+  - `docs/style-system/style-pack-governance.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, schema/migration files, marketplace/deploy/config/remote/database mutation.
+- Commands run: read-only phase scan of master plan, manifest spec, validator rules, and persistence contract; `apply_patch`; `git diff --check`; `rg -n "[ \t]+$"` on changed docs; targeted `rg` for lifecycle states, version axes, compatibility, checksum, fallback, and `exports/**` terms; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-pack-governance.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; governance doc defines lifecycle states, version axes, compatibility matrix, safety reports, checksums, fallback, and retirement/quarantine behavior without schema/runtime/marketplace changes.
+- Rollback note: revert only `style-pack-governance.md`, the index update, and this run-doc checkpoint update.
+
+## CP-019 - Phase 15 Personal UI Factory
+
+- Unit: create Personal UI Factory product boundary documentation.
+- Allowed files:
+  - `docs/style-system/personal-ui-factory.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, AI runtime/UI/component/schema files, marketplace/deploy/config/remote/database mutation.
+- Commands run: read-only phase scan of master plan, interpreter boundary, governance doc, and accessibility terms across style docs; `apply_patch`; `git diff --check`; `rg -n "[ \t]+$"` on changed docs; targeted `rg` for user brief, AI output, `workspace.themeConfig`, Supabase, accessibility, safety override, local-only preview, save/export, Persist, marketplace, fail-closed, and `exports/**` terms; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/personal-ui-factory.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; product boundary defines a governed generation pipeline, approval/privacy/preview boundaries, accessibility override, marketplace block, and fail-closed behavior without AI runtime/UI/schema changes.
+- Rollback note: revert only `personal-ui-factory.md`, the index update, and this run-doc checkpoint update.
+
+## CP-020 - V10-V15 Documentation Consistency And Commit Prep
+
+- Unit: verify V10-V15 documentation set before local checkpoint commit.
+- Allowed files: `docs/style-system/**`.
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, deploy/config/remote/database mutation.
+- Commands run: `git diff --check`; `rg -n "[ \t]+$"` across `docs/style-system`; targeted `rg` for V10-V15 doc names in the index/progress/status/checkpoints; targeted `rg` for documentation-only and forbidden-file boundary terms; `git diff --name-only`; `git ls-files --others --exclude-standard`.
+- Changed files: no new files in this unit beyond this checkpoint/progress/status update.
+- Verification result: PASS. Dirty tracked files are run docs plus `style-engine-technical-doc-pack-index.md`; untracked files are the six V10-V15 docs under `docs/style-system/**`; index lists all V10-V15 docs; documentation-only boundaries are present.
+- Rollback note: revert only the docs owned by CP-014 through CP-020 if this checkpoint set must be removed.
+- Commit decision: local checkpoint commit is allowed. No push, deploy, DB mutation, branch merge, or external operation is needed.

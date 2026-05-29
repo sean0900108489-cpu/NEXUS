@@ -35,16 +35,16 @@ Only read `/Users/sean/Downloads/nexusstyle總升級.md` for long-term ambition.
 | `primitive-specimens-v1.md` | Phase V7 primitive specimen contract | Primitive owner | Style contract, compiler contract, protected ledger, hardcoded token inventory | Primitive list, state matrix, accessibility gates, smoke checklist | First primitive implementation can start in an isolated specimen surface. |
 | `nexus-ops-style-map.md` | Phase V8 app shell semantic map | App shell owner | `nexus-ops.tsx` read-only function and style scan | Shell/dock/sidebar/window/modal slots, migration backlog, protected behavior list | Future code work avoids broad `nexus-ops.tsx` rewrites. |
 | `window-modal-recipe-system.md` | Phase V9 window/modal recipe boundary | Window/modal owner | Protected ledger, app shell map, modal/window source anchors | Visual recipe slots, z-index/scroll/focus protections, smoke checklist | Window/modal styling can migrate without touching behavior ownership. |
+| `react-flow-adapter-v1.md` | Phase V10 React Flow adapter contract | Graph adapter owner | React Flow boundary, compiler contract, graph source scan | Adapter output shape, forbidden fields, delivery strategy, smoke checklist | Future graph styling goes through visual adapter, not behavior props. |
+| `style-lab-v1.md` | Phase V11 local Style Lab design | Lab owner | Runtime preview design, validator rules, compiler contract, primitive and graph docs | Local lab panels, preview flow, export boundary, smoke checklist | Lab can be built later without workspace/sync/backend pollution. |
+| `style-interpreter-boundary.md` | Phase V12 style interpreter boundary | Interpreter owner | Manifest spec, validator rules, corrected prompt, ambition doc | Draft-only normalizer rules, prompt-injection boundary, safety report expectations | AI/human briefs cannot bypass validation, preview, or persistence gates. |
+| `style-persistence-contract.md` | Phase V13 persistence contract | Persistence owner | Supabase docs, workspace snapshot flow, API/backend/security scan | Durable style pack model, RLS/Auth/key boundary, migration gate | Style packs are separated from workspace snapshots before any DB work. |
+| `style-pack-governance.md` | Phase V14 style pack governance | Governance owner | Persistence contract, manifest spec, validator rules, master plan | Lifecycle states, version axes, compatibility matrix, safety reports, fallback rules | Packs can be rejected, upgraded, downgraded, retired, or quarantined without breaking workspaces. |
+| `personal-ui-factory.md` | Phase V15 personal UI factory | Product safety owner | Interpreter boundary, governance, accessibility gates, master plan | Product pipeline, approval boundary, privacy scope, fail-closed rules | Personalized generation creates governed assets, not executable UI. |
 
 ## 2. Phase Docs To Create Later
 
-| Doc | Phase | Purpose | Inputs | Outputs | Acceptance gate |
-| --- | --- | --- | --- | --- | --- |
-| `style-lab-v1.md` | V11 | Local lab design | Compiler, primitives, preview boundary | Lab surface, reports, local-only preview model | Lab state cannot enter workspace/sync/backend. |
-| `style-interpreter-boundary.md` | V12 | AI/human brief normalizer boundary | Manifest spec, safety rules | Draft-only normalizer flow | AI output cannot bypass validator/compiler. |
-| `style-persistence-contract.md` | V13 | Persistence model | Supabase gate, data flow boundary | Style pack and workspace preference model | Branch/RLS/advisor/types gate complete before DB work. |
-| `style-pack-governance.md` | V14 | Pack lifecycle and compatibility | Persistence contract, manifest versions | Versioning, safety report, fallback, rollback | Pack can be rejected/upgraded/retired. |
-| `personal-ui-factory.md` | V15 | Product-level generation | Interpreter, governance, accessibility policy | Personalization pipeline | Accessibility and safety override aesthetics. |
+No phase docs are currently queued in this run. Future implementation docs should be added here only after a new clean gate.
 
 ## 3. Context Sharding Protocol
 

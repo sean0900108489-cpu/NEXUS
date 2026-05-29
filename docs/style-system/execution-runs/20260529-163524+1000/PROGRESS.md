@@ -56,13 +56,32 @@ Run id: `20260529-163524+1000`
 - Verified V9 recipe doc with `git diff --check`, trailing whitespace scan, and targeted window/modal behavior scan.
 - Ran documentation set consistency scan before local checkpoint commit.
 - Created local checkpoint commit `87a8dedd42876219b6b490c9874c295b2ecc0632` with V1-V9 documentation and run protection docs.
+- Created `docs/style-system/react-flow-adapter-v1.md`.
+- Updated the doc-pack index so the V10 React Flow adapter contract is part of the current pack.
+- Verified V10 adapter doc with `git diff --check`, trailing whitespace scan, and targeted graph-behavior boundary scan.
+- Created `docs/style-system/style-lab-v1.md`.
+- Updated the doc-pack index so the V11 Style Lab design is part of the current pack.
+- Verified V11 lab design with `git diff --check`, trailing whitespace scan, and targeted local-only/export/persistence scan.
+- Created `docs/style-system/style-interpreter-boundary.md`.
+- Updated the doc-pack index so the V12 interpreter boundary is part of the current pack.
+- Verified V12 boundary with `git diff --check`, trailing whitespace scan, and targeted draft/secrets/persistence scan.
+- Queried official Supabase docs for API key, RLS, Next.js Auth, MCP/branching, and generated types boundaries.
+- Read local API/backend/workspace/Supabase migration patterns without reading secret files or printing secret values.
+- Created `docs/style-system/style-persistence-contract.md`.
+- Updated the doc-pack index so the V13 persistence contract is part of the current pack.
+- Created `docs/style-system/style-pack-governance.md`.
+- Updated the doc-pack index so the V14 governance contract is part of the current pack.
+- Created `docs/style-system/personal-ui-factory.md`.
+- Updated the doc-pack index so the V15 product boundary is part of the current pack.
+- Ran V10-V15 documentation consistency checks across the index, progress/status/checkpoints, docs-only boundaries, trailing whitespace, and dirty file list.
 
 ## In Progress
 
-- V10 graph adapter assessment.
+- Local checkpoint commit for V10-V15 documentation.
 
 ## Next
 
-1. Confirm whether existing `react-flow-style-boundary.md` is sufficient for V10 planning or whether a separate adapter implementation doc is needed.
-2. Keep any next step documentation-only unless the implementation gate is explicitly clean.
-3. If implementation begins later, start with isolated pure helpers/specimens, not `nexus-ops.tsx` or graph behavior.
+1. Stage `docs/style-system`.
+2. Verify staged diff.
+3. Create a local checkpoint commit if checks pass.
+4. Keep next steps documentation-only unless the implementation gate is explicitly clean.

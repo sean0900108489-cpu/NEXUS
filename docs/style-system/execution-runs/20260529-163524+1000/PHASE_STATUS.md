@@ -17,8 +17,14 @@ Run id: `20260529-163524+1000`
 | Checkpoint Commit Prep | PASS | Consistency scan clean by scope; local checkpoint commit allowed. |
 | Local Checkpoint Commit | PASS | Commit `87a8dedd42876219b6b490c9874c295b2ecc0632` created; post-commit status was clean. |
 | Post-Commit Record Update | PASS | Commit `124aaac419d0bfd68334262b39889261efcac78d` recorded the checkpoint commit metadata. |
-| V10 - React Flow Adapter Assessment | IN_PROGRESS | Checking whether V10 needs a separate adapter implementation doc before code. |
-| V10+ Graph And Component Migration | PENDING | No runtime/component work until earlier docs and gates remain clean. |
+| V10 - React Flow Adapter | PASS | Added `react-flow-adapter-v1.md`; no graph code or CSS touched. |
+| V11 - Style Lab | PASS | Added `style-lab-v1.md`; no UI code touched. |
+| V12 - Style Interpreter / Normalizer | PASS | Added `style-interpreter-boundary.md`; no AI/runtime code touched. |
+| V13 - Persistence Contract | PASS | Added `style-persistence-contract.md`; no schema, runtime, Supabase project, or deploy changes touched. |
+| V14 - Pack Governance | PASS | Added `style-pack-governance.md`; no schema, runtime, marketplace, or deploy changes touched. |
+| V15 - Personal UI Factory | PASS | Added `personal-ui-factory.md`; no AI runtime, UI code, schema, marketplace, or deploy changes touched. |
+| V10-V15 Checkpoint Commit Prep | PASS | Consistency scan clean by scope; local checkpoint commit allowed. |
+| V10-V15 Local Checkpoint Commit | IN_PROGRESS | Staging and committing documentation checkpoint locally only. |
 
 ## Current Gate
 
@@ -31,4 +37,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Proceed with documentation-only Phase 0 and Phase 1 audit. Do not edit runtime code yet.
+Continue documentation-only Style Engine planning. Runtime, component, sync, backend, database, deploy, and `exports/**` changes remain blocked until an explicit implementation gate is clean.

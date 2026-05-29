@@ -664,3 +664,13 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
 - Verification result: PASS. Helper mutates only the provided style-like target, records previous CSS variable values, reverts without touching unrelated variables, and has no `document`, `window`, store, sync, backend, or Supabase dependency.
 - Rollback note: revert only `src/lib/style-engine/runtime-target.ts`, `src/lib/style-engine/runtime-target.test.ts`, the index export, and this run-doc checkpoint update if this runtime target unit must be removed.
+
+## CP-045 - Runtime Target Local Commit Completed
+
+- Unit: commit runtime target helper locally.
+- Allowed files: git metadata plus `docs/style-system/execution-runs/20260529-163524+1000/**` for this record.
+- Forbidden files: `exports/**`, real DOM entrypoints, CSS files, theme provider files, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `git add src/lib/style-engine docs/style-system/execution-runs/20260529-163524+1000`; `git diff --cached --check`; `git diff --cached --name-only`; `git commit -m "feat: add style runtime target helper"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -12`.
+- Commit created: `82b6b0e4910e632308235997aedb59360381a32d`.
+- Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
+- Rollback note: revert the runtime target commit only if the helper must be removed; do not touch unrelated history.

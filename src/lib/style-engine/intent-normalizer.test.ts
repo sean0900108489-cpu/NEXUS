@@ -98,6 +98,28 @@ describe("NEXUS Style Engine intent normalizer", () => {
     expect(JSON.stringify(result)).not.toContain("nodesDraggable");
   });
 
+  it("omits workspace persistence instructions from style briefs", () => {
+    const result = normalizeNexusStyleIntentV1(
+      "Calm glass panels. Persist preview to workspace.themeConfig and sync snapshots.",
+    );
+
+    expect(result.accepted).toBe(true);
+
+    if (!result.accepted) {
+      throw new Error("Expected workspace persistence instruction to be omitted.");
+    }
+
+    expect(result.draft.intent.mood).toEqual(["calm"]);
+    expect(result.draft.intent.material).toEqual(["glass"]);
+    expect(result.draft.safety.omittedUnsafeInstructionCodes).toContain(
+      "style.intent.omittedWorkspacePersistenceInstruction",
+    );
+    expect(result.warnings.map((warning) => warning.code)).toContain(
+      "style.intent.omittedWorkspacePersistenceInstruction",
+    );
+    expect(JSON.stringify(result)).not.toContain("workspace.themeConfig");
+  });
+
   it("is deterministic for the same brief", () => {
     const brief = "Quiet matte interface with comfortable density and warm accents.";
 

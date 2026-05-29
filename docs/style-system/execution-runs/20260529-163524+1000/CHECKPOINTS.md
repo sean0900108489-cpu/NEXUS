@@ -3786,3 +3786,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found `style.forbidden.cssExpression` in validator source/tests and matching `expression(` wording in the validator rulebook. Source-diff absence check showed only the validator rules doc changed before run-doc bookkeeping. `git diff --check` passed and status showed only allowed docs files.
 - Rollback note: revert only the CP-230 validator rules doc/run-doc reconciliation if this wording must be removed.
+
+## CP-231 - Pure Validator HTML Tag Guard V1
+
+- Unit: add a pure validator guard for generic HTML tag strings in manifest values.
+- Allowed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: UI/TSX/app route/CSS files, production Nexus components, compiler/governance/exchange/runtime wiring, docs outside this run folder, workspace store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused validator Vitest; targeted lint for validator files; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `npm run test -- --testTimeout 20000 src/lib/style-engine/validator.test.ts`; `npm run lint -- src/lib/style-engine/validator.ts src/lib/style-engine/validator.test.ts`; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused validator Vitest passed 1 file / 14 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only existing validator safety detector strings and an existing test-only `themeConfig` unsafe payload string. Behavior scan found only existing validator `zIndex` forbidden-key registry and React Flow behavior test fixture/assertion strings. `git diff --check` passed and status showed only allowed CP-231 files.
+- Rollback note: revert only the CP-231 validator/test/run-doc changes if this guard must be removed.

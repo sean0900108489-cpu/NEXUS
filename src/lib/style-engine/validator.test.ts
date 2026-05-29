@@ -117,6 +117,25 @@ describe("NEXUS Style Engine manifest validator", () => {
     });
   });
 
+  it("rejects generic HTML tag strings", () => {
+    const manifest = createSafeManifest({
+      tokens: {
+        text: {
+          primary: "<img src=x>",
+        },
+      },
+    });
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toContainEqual({
+      code: "style.forbidden.htmlTag",
+      message: "Manifest contains a forbidden string value.",
+      path: "$.tokens.text.primary",
+    });
+  });
+
   it("rejects recipe behavior fields", () => {
     const manifest = createSafeManifest({
       recipes: {

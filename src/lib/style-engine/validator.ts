@@ -36,6 +36,7 @@ const topLevelKeys = new Set([
 
 const forbiddenStringPatterns: Array<{ code: string; pattern: RegExp }> = [
   { code: "style.forbidden.script", pattern: /<script/i },
+  { code: "style.forbidden.htmlTag", pattern: /<\/?[a-z][a-z0-9-]*(?:\s|>|\/>)/i },
   { code: "style.forbidden.javascriptUrl", pattern: /javascript:/i },
   { code: "style.forbidden.eval", pattern: /\beval\s*\(/i },
   { code: "style.forbidden.functionConstructor", pattern: /\bFunction\s*\(/ },

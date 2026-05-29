@@ -3750,3 +3750,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 310 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings and test-only unsafe prompt/payload strings; behavior scan found only existing validator and adapter forbidden-key registries plus test assertions/fixtures. No real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-228 run-doc update if the phase gate bookkeeping must be removed. If future verification exposes an actual source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-229 - Pure Validator CSS Expression Guard V1
+
+- Unit: add a pure validator guard for legacy CSS `expression(...)` strings in manifest values.
+- Allowed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: UI/TSX/app route/CSS files, production Nexus components, compiler/governance/exchange/runtime wiring, docs outside this run folder, workspace store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused validator Vitest; targeted lint for validator files; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `npm run test -- --testTimeout 20000 src/lib/style-engine/validator.test.ts`; `npm run lint -- src/lib/style-engine/validator.ts src/lib/style-engine/validator.test.ts`; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused validator Vitest passed 1 file / 13 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only existing validator safety detector strings and an existing test-only `themeConfig` unsafe payload string. Behavior scan found only existing validator `zIndex` forbidden-key registry and React Flow behavior test fixture/assertion strings. `git diff --check` passed and status showed only allowed CP-229 files.
+- Rollback note: revert only the CP-229 validator/test/run-doc changes if this guard must be removed.

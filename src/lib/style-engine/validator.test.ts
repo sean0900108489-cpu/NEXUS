@@ -98,6 +98,25 @@ describe("NEXUS Style Engine manifest validator", () => {
     });
   });
 
+  it("rejects legacy CSS expression strings", () => {
+    const manifest = createSafeManifest({
+      tokens: {
+        surface: {
+          app: "expression(alert(1))",
+        },
+      },
+    });
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toContainEqual({
+      code: "style.forbidden.cssExpression",
+      message: "Manifest contains a forbidden string value.",
+      path: "$.tokens.surface.app",
+    });
+  });
+
   it("rejects recipe behavior fields", () => {
     const manifest = createSafeManifest({
       recipes: {

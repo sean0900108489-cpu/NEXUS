@@ -41,6 +41,7 @@ const forbiddenStringPatterns: Array<{ code: string; pattern: RegExp }> = [
   { code: "style.forbidden.functionConstructor", pattern: /\bFunction\s*\(/ },
   { code: "style.forbidden.dynamicImport", pattern: /\bimport\s*\(/ },
   { code: "style.forbidden.cssImport", pattern: /@import/i },
+  { code: "style.forbidden.cssExpression", pattern: /\bexpression\s*\(/i },
   { code: "style.forbidden.cssBlock", pattern: /[{}]/ },
   { code: "style.forbidden.cssDeclarationList", pattern: /;\s*[-_a-z]+\s*:/i },
   { code: "style.forbidden.url", pattern: /\burl\s*\(/i },

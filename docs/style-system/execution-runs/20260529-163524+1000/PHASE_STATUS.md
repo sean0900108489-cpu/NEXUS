@@ -244,6 +244,7 @@ Run id: `20260529-163524+1000`
 | Pure Validator Dynamic Tailwind Arbitrary Class Guard V1 | PASS | Added a pure validator guard for dynamic Tailwind arbitrary value classes; focused test, lint, typecheck, side-effect scan, and diff check passed. |
 | Validator Dynamic Tailwind Doc Reconciliation V1 | PASS | Reconciled validator rules docs with CP-226 dynamic Tailwind arbitrary value class guard. |
 | Post Dynamic Tailwind Guard Phase Gate | PASS | Full check passed after validator Tailwind guard, Style Lab validator row, and related docs; side-effect scan and git diff check passed. |
+| Pure Validator CSS Expression Guard V1 | PASS | Added a pure validator guard for legacy CSS expression strings; focused test, lint, typecheck, side-effect scan, and diff check passed. |
 
 ## Current Gate
 
@@ -256,4 +257,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Dynamic Tailwind Guard Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, UI/TSX/app route/CSS files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Validator CSS Expression Guard local checkpoint prep. Production window/modal code, production graph/app shell files, UI/TSX/app route/CSS files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

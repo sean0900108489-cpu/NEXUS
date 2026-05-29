@@ -879,18 +879,24 @@ Run id: `20260529-163524+1000`
 - The isolated Style Lab Modal specimen now consumes `--nexus-recipe-modal-backdrop`, `surface`, `border`, `shadow`, `body-text`, `footer-surface`, `header-surface`, and `danger-callout` with semantic fallbacks.
 - Confirmed style-engine pure logic, preview/compiler/governance/exchange, app routes, CSS, production components, `src/components/nexus/**`, store/sync/backend/Supabase, deploy files, and `exports/**` were not changed.
 - Verified CP-179 with source scan, targeted Style Lab lint, typecheck, build, local `/style-lab` smoke, side-effect scans, diff check, and status check.
+- Created local checkpoint commit `2f7eb1262e209fcbbbddd454b038ee8da0e04af2` for the Style Lab Modal Specimen Recipe Variables V1 unit.
+- Started `CP-180 - Style Lab Command Palette Specimen Recipe Variables V1`.
+- Implemented `CP-180 - Style Lab Command Palette Specimen Recipe Variables V1`.
+- The isolated Style Lab Command Palette specimen now consumes `--nexus-recipe-command-palette-overlay`, `surface`, `input`, `item-default`, `item-active`, and `icon` with semantic fallbacks.
+- Confirmed style-engine pure logic, preview/compiler/governance/exchange, app routes, CSS, production components, `src/components/nexus/**`, store/sync/backend/Supabase, deploy files, and `exports/**` were not changed.
+- Verified CP-180 with source scan, targeted Style Lab lint, typecheck, build, local `/style-lab` smoke, side-effect scans, diff check, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-179 - Style Lab Modal Specimen Recipe Variables V1`.
-- Latest local checkpoint commit: pending CP-179 local commit; previous clean checkpoint commit is `b725070b554f72833ca0220fc437ed69a1b0fcb9`.
+- Latest completed checkpoint: `CP-180 - Style Lab Command Palette Specimen Recipe Variables V1`.
+- Latest local checkpoint commit: pending CP-180 local commit; previous clean checkpoint commit is `2f7eb1262e209fcbbbddd454b038ee8da0e04af2`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-179 verification: dirty only in CP-179 allowed Style Lab/run-doc files.
-- Current stop reason: not stopped; CP-179 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-180 verification: dirty only in CP-180 allowed Style Lab/run-doc files.
+- Current stop reason: not stopped; CP-180 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-179 - Local checkpoint commit prep`.
+- `CP-180 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
@@ -899,11 +905,11 @@ Run id: `20260529-163524+1000`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: style-engine pure logic, preview/compiler/governance/exchange files, app routes, CSS/global stylesheets, production components, `src/components/nexus/**`, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-179 isolated Modal specimen/run-doc update if it must be removed.
+- Rollback: revert only the CP-180 isolated Command Palette specimen/run-doc update if it must be removed.
 
 ## Next
 
-1. Commit the CP-179 implementation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-180 implementation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

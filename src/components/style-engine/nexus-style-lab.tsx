@@ -162,36 +162,42 @@ const primitiveCommandPaletteItems = [
 ];
 
 const primitiveCommandPaletteOverlayStyle = {
-  background: "rgb(2 6 23 / 0.76)",
+  background:
+    "var(--nexus-recipe-command-palette-overlay, rgb(2 6 23 / 0.76))",
 };
 
 const primitiveCommandPaletteSurfaceStyle = {
-  background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
+  background:
+    "var(--nexus-recipe-command-palette-surface, var(--nexus-surface-panel, rgb(8 16 22 / 0.78)))",
   borderColor: "var(--nexus-border-strong, rgb(226 232 240 / 0.18))",
   boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
   color: "var(--nexus-text-primary, #f8fafc)",
 };
 
 const primitiveCommandPaletteInputStyle = {
-  background: "var(--nexus-surface-input, rgb(15 23 42 / 0.72))",
+  background:
+    "var(--nexus-recipe-command-palette-input, var(--nexus-surface-input, rgb(15 23 42 / 0.72)))",
   borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
   color: "var(--nexus-text-secondary, #cbd5e1)",
 };
 
 const primitiveCommandPaletteItemStyle = {
-  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
+  background:
+    "var(--nexus-recipe-command-palette-item-default, var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62)))",
   borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
   color: "var(--nexus-text-primary, #f8fafc)",
 };
 
 const primitiveCommandPaletteActiveItemStyle = {
-  background: "var(--nexus-accent-primary, #67e8f9)",
+  background:
+    "var(--nexus-recipe-command-palette-item-active, var(--nexus-accent-primary, #67e8f9))",
   borderColor: "var(--nexus-accent-primary-strong, #22d3ee)",
   color: "var(--nexus-text-inverse, #020617)",
 };
 
 const primitiveCommandPaletteIconStyle = {
-  background: "var(--nexus-accent-primary, #67e8f9)",
+  background:
+    "var(--nexus-recipe-command-palette-icon, var(--nexus-accent-primary, #67e8f9))",
 };
 
 const primitivePromptVaultSurfaceStyle = {

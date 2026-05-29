@@ -2896,3 +2896,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Source scan found `--nexus-recipe-modal-backdrop`, `surface`, `border`, `shadow`, `body-text`, `footer-surface`, `header-surface`, and `danger-callout` in the isolated Modal specimen style constants. Targeted lint passed; `npm run typecheck` passed; `npm run build` passed with static `/style-lab` and the known edge-runtime warning only; local fetch smoke returned status 200 and confirmed `Modal Specimen`, `--nexus-recipe-modal-surface`, and `--nexus-recipe-modal-backdrop` in rendered markup. Targeted side-effect/behavior scans in the Style Lab/app scope had no matches for DOM/storage/fetch/clipboard/download path, `react-rnd`, live React Flow import, production UI import/edit, store/sync/backend/Supabase import or mutation path, deploy path, `exports/**`, or forbidden behavior keys. `git diff --check` passed.
 - Rollback note: revert only the isolated Modal specimen recipe variable substitutions and this CP-179 run-doc checkpoint update if the specimen hookup must be removed.
+
+## CP-180 - Style Lab Command Palette Specimen Recipe Variables V1
+
+- Unit: make the isolated Style Lab Command Palette specimen consume `--nexus-recipe-command-palette-*` CSS variables with existing semantic fallbacks, without adding keyboard, filtering, command execution, focus, close, overlay, z-index, or production wiring.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: style-engine pure logic, preview/compiler/governance/exchange files, app routes, CSS/global stylesheets, production components, `src/components/nexus/**`, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: source scan for `--nexus-recipe-command-palette-*`; targeted Style Lab lint; `npm run typecheck`; `npm run build`; local `/style-lab` text smoke for Command Palette specimen recipe variable markup; side-effect/forbidden-surface scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused `rg -- --nexus-recipe-command-palette-*`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx`; `npm run typecheck`; `npm run build`; local `/style-lab` fetch smoke; targeted side-effect/forbidden-surface scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Source scan found `--nexus-recipe-command-palette-overlay`, `surface`, `input`, `item-default`, `item-active`, and `icon` in the isolated Command Palette specimen style constants. Targeted lint passed; `npm run typecheck` passed; `npm run build` passed with static `/style-lab` and the known edge-runtime warning only; local fetch smoke returned status 200 and confirmed `Command Palette Specimen`, `--nexus-recipe-command-palette-surface`, and `--nexus-recipe-command-palette-item-active` in rendered markup. Targeted side-effect/behavior scans in the Style Lab/app scope had no matches for DOM/storage/fetch/clipboard/download path, `react-rnd`, live React Flow import, production UI import/edit, store/sync/backend/Supabase import or mutation path, deploy path, `exports/**`, or forbidden behavior keys. `git diff --check` passed.
+- Rollback note: revert only the isolated Command Palette specimen recipe variable substitutions and this CP-180 run-doc checkpoint update if the specimen hookup must be removed.

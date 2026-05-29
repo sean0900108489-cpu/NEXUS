@@ -51,7 +51,7 @@ Run id: `20260529-163524+1000`
 | Governance Local Checkpoint Commit | PASS | Commit `28468a4a19691edf5b805d00d1662a4b0bb1d4ae` created; post-commit status was clean. |
 | Governance Record Commit | PASS | Commit `f308088169031394bde3a1e647a9a2b7cb44b380` created; post-commit status was clean. |
 | Pure Import Export Normalization V1 | PASS | Added pure local exchange package creation/import normalization and tests; unsafe imports do not return manifest payloads. |
-| Exchange Local Checkpoint Commit | IN_PROGRESS | Staging and committing exchange unit locally only. |
+| Exchange Local Checkpoint Commit | PASS | Commit `6b4c7b10244ef27408621d3a27548229356bf2fe` created; post-commit status was clean. |
 
 ## Current Gate
 

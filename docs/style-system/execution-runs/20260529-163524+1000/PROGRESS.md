@@ -118,14 +118,15 @@ Run id: `20260529-163524+1000`
 - Added focused Vitest coverage for previewable export packages, package import normalization, unsafe import rejection without manifest echo, and exchange review redaction.
 - Repaired one type narrowing issue and one misplaced guard caught by focused tests.
 - Verified the exchange unit with `git diff --check`, focused Vitest, full style-engine Vitest set, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
+- Created local checkpoint commit `6b4c7b10244ef27408621d3a27548229356bf2fe` for pure import/export normalization.
 
 ## In Progress
 
-- Local checkpoint commit for pure import/export normalization V1.
+- Reviewing master-plan next step after pure implementation units.
 
 ## Next
 
-1. Stage run docs and `src/lib/style-engine/**`.
-2. Verify staged diff.
-3. Create a local checkpoint commit if checks pass.
-4. Continue with another pure helper only if status returns clean.
+1. Commit this run-status record update.
+2. Re-confirm branch/status/HEAD.
+3. Run a pure-style phase gate or open a broader UI gate only if the plan and status support it.
+4. Keep runtime DOM, CSS, component, graph, sync, backend, Supabase, deploy, and `exports/**` changes out of scope until a new gate is explicit.

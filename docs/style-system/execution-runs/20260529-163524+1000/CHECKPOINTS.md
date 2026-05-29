@@ -636,3 +636,13 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
 - Verification result: PASS. Export packages are created only for previewable manifests; import normalization rejects unsafe payloads without returning the unsafe manifest; exchange review output is redacted and local-only.
 - Rollback note: revert only `src/lib/style-engine/exchange.ts`, `src/lib/style-engine/exchange.test.ts`, the index export, and this run-doc checkpoint update if this pure exchange unit must be removed.
+
+## CP-043 - Exchange Local Commit Completed
+
+- Unit: commit pure import/export normalization locally.
+- Allowed files: git metadata plus `docs/style-system/execution-runs/20260529-163524+1000/**` for this record.
+- Forbidden files: `exports/**`, DOM files, CSS files, theme provider files, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `git add src/lib/style-engine docs/style-system/execution-runs/20260529-163524+1000`; `git diff --cached --check`; `git diff --cached --name-only`; `git commit -m "feat: add style exchange normalization"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -10`.
+- Commit created: `6b4c7b10244ef27408621d3a27548229356bf2fe`.
+- Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
+- Rollback note: revert the exchange commit only if the pure exchange unit must be removed; do not touch unrelated history.

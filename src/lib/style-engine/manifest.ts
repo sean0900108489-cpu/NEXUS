@@ -39,6 +39,7 @@ export type NexusStyleRecipesV1 = {
   badge: Record<string, Record<string, string>>;
   window: Record<string, string>;
   modal: Record<string, string>;
+  commandPalette: Record<string, string>;
   dock: Record<string, string>;
 };
 
@@ -137,5 +138,6 @@ export const NEXUS_STYLE_RECIPE_GROUPS_V1: Array<keyof NexusStyleRecipesV1> = [
   "badge",
   "window",
   "modal",
+  "commandPalette",
   "dock",
 ];

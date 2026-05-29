@@ -179,18 +179,38 @@ export function createWindowModalRecipeAdapterFromManifestV1(
       focusRing: token("border", "glow", fallback.modal.focusRing),
     },
     commandPalette: {
-      overlay: recipeToken("modal", "backdrop", fallback.commandPalette.overlay),
-      surface: recipeToken("modal", "surface", fallback.commandPalette.surface),
-      input: token("surface", "input", fallback.commandPalette.input),
-      itemDefault: token(
+      overlay: recipeToken(
+        "commandPalette",
+        "overlay",
+        fallback.commandPalette.overlay,
+      ),
+      surface: recipeToken(
+        "commandPalette",
         "surface",
-        "panelMuted",
+        fallback.commandPalette.surface,
+      ),
+      input: recipeToken("commandPalette", "input", fallback.commandPalette.input),
+      itemDefault: recipeToken(
+        "commandPalette",
+        "itemDefault",
         fallback.commandPalette.itemDefault,
       ),
-      itemHover: token("surface", "raised", fallback.commandPalette.itemHover),
-      itemActive: token("accent", "primary", fallback.commandPalette.itemActive),
-      icon: token("accent", "primary", fallback.commandPalette.icon),
-      emptyState: token("text", "muted", fallback.commandPalette.emptyState),
+      itemHover: recipeToken(
+        "commandPalette",
+        "itemHover",
+        fallback.commandPalette.itemHover,
+      ),
+      itemActive: recipeToken(
+        "commandPalette",
+        "itemActive",
+        fallback.commandPalette.itemActive,
+      ),
+      icon: recipeToken("commandPalette", "icon", fallback.commandPalette.icon),
+      emptyState: recipeToken(
+        "commandPalette",
+        "emptyState",
+        fallback.commandPalette.emptyState,
+      ),
     },
   };
 }

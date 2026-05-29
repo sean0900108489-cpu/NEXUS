@@ -92,6 +92,31 @@ describe("NEXUS window/modal recipe adapter", () => {
     expect(adapter.commandPalette.itemActive).toBe("#38bdf8");
   });
 
+  it("maps command palette recipe slots independently from modal slots", () => {
+    const manifest = createLegacyCyberpunkStyleManifestV1();
+    manifest.recipes.modal.surface = "surface.app";
+    manifest.recipes.commandPalette = {
+      emptyState: "text.secondary",
+      icon: "accent.secondary",
+      input: "surface.raised",
+      itemActive: "accent.secondary",
+      itemDefault: "surface.input",
+      itemHover: "surface.shell",
+      overlay: "surface.overlay",
+      surface: "surface.panelMuted",
+    };
+
+    const adapter = createWindowModalRecipeAdapterFromManifestV1(manifest);
+
+    expect(adapter.modal.surface).toBe("#030712");
+    expect(adapter.commandPalette.surface).toBe("rgb(15 23 42 / 0.62)");
+    expect(adapter.commandPalette.input).toBe("#0f172a");
+    expect(adapter.commandPalette.itemActive).toBe("#f0abfc");
+    expect(adapter.commandPalette.itemDefault).toBe("rgb(15 23 42 / 0.72)");
+    expect(adapter.commandPalette.itemHover).toBe("rgb(2 6 23 / 0.88)");
+    expect(adapter.commandPalette.emptyState).toBe("#cbd5e1");
+  });
+
   it("emits deterministic recipe-scoped CSS variables", () => {
     const variables = emitWindowModalRecipeCssVariablesV1(
       createWindowModalRecipeAdapterFromManifestV1(
@@ -103,6 +128,7 @@ describe("NEXUS window/modal recipe adapter", () => {
     expect(variables).toMatchObject({
       "--nexus-recipe-command-palette-input": "rgb(15 23 42 / 0.72)",
       "--nexus-recipe-command-palette-item-active": "#67e8f9",
+      "--nexus-recipe-command-palette-surface": "rgb(8 16 22 / 0.78)",
       "--nexus-recipe-modal-backdrop": "rgb(2 6 23 / 0.78)",
       "--nexus-recipe-modal-danger-callout": "#fda4af",
       "--nexus-recipe-window-body-surface": "#020617",

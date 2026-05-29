@@ -195,6 +195,7 @@ function createSafeManifest(
           ring: "border.focus",
         },
       },
+      commandPalette: {},
       dock: {},
       input: {},
       modal: {},

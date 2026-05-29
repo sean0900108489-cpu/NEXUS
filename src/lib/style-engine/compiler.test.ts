@@ -247,6 +247,10 @@ function createSafeManifest(): NexusStyleManifestV1 {
           text: "text.secondary",
         },
       },
+      commandPalette: {
+        emptyState: "text.muted",
+        itemActive: "accent.primary",
+      },
       dock: {},
       input: {},
       modal: {},

@@ -88,6 +88,7 @@ function createContrastManifest(): NexusStyleManifestV1 {
     recipes: {
       badge: {},
       button: {},
+      commandPalette: {},
       dock: {},
       input: {},
       modal: {},

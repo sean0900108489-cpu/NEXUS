@@ -927,32 +927,44 @@ Run id: `20260529-163524+1000`
 - Reconciled `style-lab-v1.md` with the fact that all six isolated recipe specimens now consume recipe-scoped CSS variables in the Style Lab specimen layer.
 - Reconciled `window-modal-recipe-system.md` with the recipe-variable specimen status, migration-order status, and CP-186 source-closed screenshot smoke evidence.
 - Verified CP-187 with focused evidence scan, stale marker scan, `git diff --check`, diff stat, and status check.
+- Created local checkpoint commit `800ce6acc9f6806b7e3b65541b4eca85364fd896` for the Style Lab Recipe Specimen Docs Reconciliation V1 unit.
+- Started `CP-188 - Pure Command Palette Recipe Group V1`.
+- Added `commandPalette` to the pure V1 recipe manifest shape and required recipe group list.
+- Added command palette visual recipes to the built-in legacy preset so high-contrast derived values stay token-driven.
+- Updated the pure window/modal recipe adapter to resolve command palette overlay, surface, input, item states, icon, and empty-state slots from `recipes.commandPalette`.
+- Added/updated pure tests and fixtures for command palette recipe mapping, compiler fixture output, validator fixture shape, and accessibility fixture shape.
+- Verified CP-188 with focused Vitest for touched tests, targeted lint, `npm run typecheck`, full focused `src/lib/style-engine` Vitest, targeted side-effect/behavior scans, `git diff --check`, diff stat, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-187 - Style Lab Recipe Specimen Docs Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-187 local commit; previous clean checkpoint commit is `bb7becc145d98ce1c7f0eed835a429a8e21ec055`.
+- Latest completed checkpoint: `CP-188 - Pure Command Palette Recipe Group V1`.
+- Latest local checkpoint commit: pending CP-188 local commit; previous clean checkpoint commit is `800ce6acc9f6806b7e3b65541b4eca85364fd896`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-187 verification: dirty only in CP-187 allowed docs and run-doc files.
-- Current stop reason: not stopped; CP-187 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-188 verification: dirty only in CP-188 allowed pure style-engine/test files and run-doc files.
+- Current stop reason: not stopped; CP-188 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-187 - Local checkpoint commit prep`.
+- `CP-188 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-lab-v1.md`
-  - `docs/style-system/window-modal-recipe-system.md`
+  - `src/lib/style-engine/manifest.ts`
+  - `src/lib/style-engine/presets.ts`
+  - `src/lib/style-engine/window-modal-recipe-adapter.ts`
+  - `src/lib/style-engine/window-modal-recipe-adapter.test.ts`
+  - `src/lib/style-engine/compiler.test.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `src/lib/style-engine/accessibility.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the doc reconciliation, UI/CSS/production component files, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all UI/TSX/app route/CSS files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-187 doc/run-doc update if the reconciliation bookkeeping must be removed.
+- Rollback: revert only the CP-188 pure code/test/run-doc update if the command palette recipe group must be removed.
 
 ## Next
 
-1. Commit the CP-187 doc reconciliation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-188 pure command palette recipe group checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

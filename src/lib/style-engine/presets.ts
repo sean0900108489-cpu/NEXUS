@@ -110,6 +110,16 @@ export function createLegacyCyberpunkStyleManifestV1(): NexusStyleManifestV1 {
           text: "text.primary",
         },
       },
+      commandPalette: {
+        emptyState: "text.muted",
+        icon: "accent.primary",
+        input: "surface.input",
+        itemActive: "accent.primary",
+        itemDefault: "surface.panelMuted",
+        itemHover: "surface.raised",
+        overlay: "surface.overlay",
+        surface: "surface.panel",
+      },
       dock: {
         border: "border.subtle",
         surface: "surface.shell",

@@ -308,6 +308,7 @@ Run id: `20260529-163524+1000`
 | Governance Unknown Import Doc Reconciliation V1 | PASS | Reconciled style pack governance docs with unknown import source rejection coverage. |
 | Pure Exchange Unsupported Package Source Guard V1 | PASS | Unsupported package-like import candidates now classify as unknown and fail closed without returning a manifest. |
 | Governance Unsupported Package Doc Reconciliation V1 | PASS | Reconciled style pack governance docs with unsupported package-like import source rejection coverage. |
+| Post Exchange Import Guard Phase Gate | PASS | Decomposed full gate passed after exchange import guard coverage; side-effect scan and git diff check passed. |
 
 ## Current Gate
 
@@ -320,4 +321,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Governance Unsupported Package Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside the style pack governance doc and this run folder, compiler/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post Exchange Import Guard Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside this run folder, compiler/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

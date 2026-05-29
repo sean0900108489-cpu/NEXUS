@@ -59,9 +59,10 @@ Run id: `20260529-163524+1000`
 
 ## In Progress
 
-- Post-commit recovery record update.
+- V10 graph adapter assessment.
 
 ## Next
 
-1. Commit this post-commit record update locally.
-2. Resume with V10+ planning or implementation gate assessment.
+1. Confirm whether existing `react-flow-style-boundary.md` is sufficient for V10 planning or whether a separate adapter implementation doc is needed.
+2. Keep any next step documentation-only unless the implementation gate is explicitly clean.
+3. If implementation begins later, start with isolated pure helpers/specimens, not `nexus-ops.tsx` or graph behavior.

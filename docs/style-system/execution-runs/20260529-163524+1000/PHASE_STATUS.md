@@ -16,7 +16,8 @@ Run id: `20260529-163524+1000`
 | V9 - Window And Modal Recipe System | PASS | Added `window-modal-recipe-system.md`; no component files touched. |
 | Checkpoint Commit Prep | PASS | Consistency scan clean by scope; local checkpoint commit allowed. |
 | Local Checkpoint Commit | PASS | Commit `87a8dedd42876219b6b490c9874c295b2ecc0632` created; post-commit status was clean. |
-| Post-Commit Record Update | IN_PROGRESS | Recording checkpoint commit hash for recovery. |
+| Post-Commit Record Update | PASS | Commit `124aaac419d0bfd68334262b39889261efcac78d` recorded the checkpoint commit metadata. |
+| V10 - React Flow Adapter Assessment | IN_PROGRESS | Checking whether V10 needs a separate adapter implementation doc before code. |
 | V10+ Graph And Component Migration | PENDING | No runtime/component work until earlier docs and gates remain clean. |
 
 ## Current Gate

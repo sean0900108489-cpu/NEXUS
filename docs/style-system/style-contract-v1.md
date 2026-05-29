@@ -2,7 +2,15 @@
 
 Phase: V2 - Style Contract And Semantic Token Registry
 Run: `docs/style-system/execution-runs/20260529-163524+1000`
-Status: documentation-only contract. No runtime types, compiler, provider, DB, package, or deploy changes.
+Status: partially implemented pure contract types and compiler mapping. Provider integration, DB, package, deploy, persistence, and production component consumption are not implemented.
+
+## Implementation Evidence
+
+- `src/lib/style-engine/manifest.ts` defines the V1 token group names, required semantic tokens, recipe group names, and manifest token shape.
+- `src/lib/style-engine/presets.ts` maps the legacy Cyberpunk baseline and High Contrast Carbon preset through the same semantic token groups.
+- `src/lib/style-engine/compiler.ts` emits deterministic `--nexus-*` semantic variables, preserves the legacy variable bridge, resolves recipe token references into CSS variable references, and emits visual-only adapter outputs.
+- `src/lib/style-engine/compiler.test.ts` covers semantic variable output, legacy bridge output, recipe reference compilation, fail-closed invalid manifests, and adapter metadata.
+- The contract remains local-only and pure. Components do not import raw manifests or AI drafts, runtime Tailwind generation remains forbidden, and workspace/sync/backend/Supabase/deploy/`exports/**` boundaries remain closed.
 
 ## 0. Purpose
 
@@ -11,8 +19,6 @@ validators, compilers, primitives, and adapters must use.
 
 It does not implement:
 
-- TypeScript interfaces.
-- Manifest validation.
 - Runtime preview.
 - Component migration.
 - Persistence or sync.
@@ -377,7 +383,8 @@ V2 passes when:
 - Runtime Tailwind class generation is explicitly forbidden.
 - Preview/apply/save/persist boundaries remain intact.
 - React Flow uses adapter-specific tokens.
-- No runtime code, schema, package, deploy, or `exports/**` files are changed.
+- Pure contract/schema/compiler code remains side-effect-free.
+- No component migration, persistence schema, package, deploy, or `exports/**` files are changed.
 
 ## 10. Next Phase Inputs
 

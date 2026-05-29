@@ -999,31 +999,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-202 - Manifest Spec Status Reconciliation V1`.
 - Reconciled `manifest-v1-spec.md` with current pure manifest types, presets, validator, compiler, command palette recipe group, unknown recipe token reference guard, and data-only boundary.
 - Verified CP-202 with focused evidence scan, stale marker scan, `git diff --check`, diff stat, and status check.
+- Created local checkpoint commit `8e14107922bd70a976b010278cad3de344b0d7b0` for the Manifest Spec Status Reconciliation V1 unit.
+- Started `CP-203 - Style Contract Doc Reconciliation V1`.
+- Reconciled `style-contract-v1.md` with current pure contract token types, built-in presets, compiler mapping, legacy bridge output, and side-effect-free boundary.
+- Verified CP-203 with focused evidence scan, stale marker scan, `git diff --check`, diff stat, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-202 - Manifest Spec Status Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-202 local commit; previous clean checkpoint commit is `e4f67031f21038b86f25b045c197eb76a2030df2`.
+- Latest completed checkpoint: `CP-203 - Style Contract Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-203 local commit; previous clean checkpoint commit is `8e14107922bd70a976b010278cad3de344b0d7b0`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-202 verification: dirty only in CP-202 allowed docs and run-doc files.
-- Current stop reason: not stopped; CP-202 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-203 verification: dirty only in CP-203 allowed docs and run-doc files.
+- Current stop reason: not stopped; CP-203 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-202 - Local checkpoint commit prep`.
+- `CP-203 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/manifest-v1-spec.md`
+  - `docs/style-system/style-contract-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: all source/test edits, UI/TSX/app route/CSS files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-202 docs/run-doc update if the manifest spec reconciliation must be removed.
+- Rollback: revert only the CP-203 docs/run-doc update if the style contract reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-202 docs checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-203 docs checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

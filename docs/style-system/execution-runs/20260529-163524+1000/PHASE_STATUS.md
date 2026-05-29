@@ -218,6 +218,7 @@ Run id: `20260529-163524+1000`
 | Style Pack Governance Doc Reconciliation V1 | PASS | Reconciled governance doc with current pure governance/exchange implementation and metadata coverage. |
 | Style Interpreter Boundary Doc Reconciliation V1 | PASS | Reconciled interpreter boundary doc with current pure intent normalizer implementation and no-AI-runtime boundary. |
 | Manifest Spec Status Reconciliation V1 | PASS | Reconciled manifest V1 spec with current pure manifest types, presets, validator, and compiler implementation. |
+| Style Contract Doc Reconciliation V1 | PASS | Reconciled style contract doc with current pure contract token types, presets, compiler mapping, and legacy bridge output. |
 
 ## Current Gate
 
@@ -230,4 +231,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Manifest Spec Status Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Style Contract Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

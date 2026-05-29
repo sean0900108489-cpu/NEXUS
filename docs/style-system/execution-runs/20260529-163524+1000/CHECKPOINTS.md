@@ -3298,3 +3298,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found partially implemented pure manifest/schema status, implementation evidence for manifest types, presets, validator, compiler, unknown token reference validation, current TypeScript shape, and the data-only no-component/persistence/backend/Supabase/deploy boundary. Stale marker scan returned no matches for documentation-only/no-runtime/future-shape wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
 - Rollback note: revert only the CP-202 manifest spec reconciliation and this run-doc checkpoint if the wording must be removed.
+
+## CP-203 - Style Contract Doc Reconciliation V1
+
+- Unit: reconcile the style contract doc with the current pure contract token types, presets, compiler mapping, and legacy bridge output.
+- Allowed files:
+  - `docs/style-system/style-contract-v1.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits, UI/CSS/app routes, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused doc evidence scan for pure contract/compiler implementation and side-effect boundary; stale marker scan for documentation-only/no-runtime-types wording; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused `rg` evidence scan; focused `rg` stale marker scan; `git diff --check`; `git diff --stat`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-contract-v1.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found partially implemented pure contract/compiler status, implementation evidence for token groups, presets, compiler outputs, legacy bridge, tests, and the workspace/sync/backend/Supabase/deploy/exports boundary. Stale marker scan returned no matches for documentation-only/no-runtime-types wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
+- Rollback note: revert only the CP-203 style contract doc reconciliation and this run-doc checkpoint if the wording must be removed.

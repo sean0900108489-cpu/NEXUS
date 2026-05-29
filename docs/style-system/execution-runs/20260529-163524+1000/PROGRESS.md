@@ -953,32 +953,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-192 - Pure Governance Window Modal Coverage Test V1`.
 - Added pure governance and exchange test assertions that `adapterCoverage.windowModal` is surfaced as `complete`.
 - Verified CP-192 with focused governance/exchange Vitest, targeted lint, `npm run typecheck`, targeted side-effect/behavior scans, `git diff --check`, diff stat, and status check.
+- Created local checkpoint commit `ce8789869da87291569a4cb4e64b25eddde94e4a` for the Pure Governance Window Modal Coverage Test V1 unit.
+- Started `CP-193 - Pure Validator Command Palette Required Group Test V1`.
+- Added a validator test proving a manifest missing `recipes.commandPalette` is rejected with `style.missingRecipeGroup`.
+- Verified CP-193 with focused validator Vitest, targeted lint, `npm run typecheck`, targeted side-effect/behavior scans, `git diff --check`, diff stat, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-192 - Pure Governance Window Modal Coverage Test V1`.
-- Latest local checkpoint commit: pending CP-192 local commit; previous clean checkpoint commit is `6c243f7eec835043c47de5231b1e3d2c27af8ca9`.
+- Latest completed checkpoint: `CP-193 - Pure Validator Command Palette Required Group Test V1`.
+- Latest local checkpoint commit: pending CP-193 local commit; previous clean checkpoint commit is `ce8789869da87291569a4cb4e64b25eddde94e4a`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-192 verification: dirty only in CP-192 allowed test and run-doc files.
-- Current stop reason: not stopped; CP-192 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-193 verification: dirty only in CP-193 allowed test and run-doc files.
+- Current stop reason: not stopped; CP-193 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-192 - Local checkpoint commit prep`.
+- `CP-193 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/governance.test.ts`
-  - `src/lib/style-engine/exchange.test.ts`
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: implementation source, UI/TSX/app route/CSS files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-192 test/run-doc update if the governance coverage must be removed.
+- Rollback: revert only the CP-193 test/run-doc update if the validator coverage must be removed.
 
 ## Next
 
-1. Commit the CP-192 governance coverage checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-193 validator coverage checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

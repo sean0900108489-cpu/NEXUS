@@ -3131,3 +3131,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused governance/exchange Vitest passed 2 files / 9 tests. Targeted lint passed. `npm run typecheck` passed. Side-effect and behavior scans returned no matches. `git diff --check` passed.
 - Rollback note: revert only the CP-192 governance/exchange test assertions and this run-doc checkpoint if the coverage needs to be removed.
+
+## CP-193 - Pure Validator Command Palette Required Group Test V1
+
+- Unit: add pure validator coverage proving `recipes.commandPalette` is required by the V1 manifest recipe group list.
+- Allowed files:
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: implementation source, UI/TSX/app route/CSS files, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused validator Vitest; targeted lint for the test file; `npm run typecheck`; targeted side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `npm run test -- src/lib/style-engine/validator.test.ts`; `npm run lint -- src/lib/style-engine/validator.test.ts`; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git diff --stat`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused validator Vitest passed 1 file / 6 tests. Targeted lint passed. `npm run typecheck` passed. Side-effect/behavior scans matched only existing test-only unsafe fixture strings for `themeConfig` and `nodesDraggable`. `git diff --check` passed.
+- Rollback note: revert only the CP-193 validator test and this run-doc checkpoint if the coverage needs to be removed.

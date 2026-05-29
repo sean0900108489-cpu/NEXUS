@@ -65,6 +65,21 @@ describe("NEXUS Style Engine manifest validator", () => {
     });
   });
 
+  it("requires the command palette recipe group", () => {
+    const manifest = createSafeManifest();
+    delete (manifest.recipes as Partial<NexusStyleManifestV1["recipes"]>)
+      .commandPalette;
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toContainEqual({
+      code: "style.missingRecipeGroup",
+      message: "Required recipe group is missing.",
+      path: "$.recipes.commandPalette",
+    });
+  });
+
   it("rejects React Flow behavior fields but allows the workspace token group", () => {
     const manifest = createSafeManifest({
       adapters: {

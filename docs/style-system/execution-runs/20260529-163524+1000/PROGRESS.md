@@ -1181,30 +1181,33 @@ Run id: `20260529-163524+1000`
 - Ran full `npm run check`; lint, typecheck, 41 Vitest files / 316 tests, and build passed.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe prompt/payload strings, adapter forbidden behavior key registries/assertions, and React Flow behavior test fixture/assertion strings; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `ff09efcfe1a12671eee7f8110b2c42fc251e8285` for the Post Governance Exchange Coverage Phase Gate.
+- Started `CP-246 - Phase Gate Commit Metadata Reconciliation V1`.
+- Reconciled run docs with the CP-245 local checkpoint commit and clean post-commit status.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-245 - Post Governance Exchange Coverage Phase Gate`.
-- Latest local checkpoint commit: pending CP-245 local commit; previous clean checkpoint commit is `8df1b2c7df61a59d23fd30bf5c1d2662a6e1c69a`.
+- Latest completed checkpoint: `CP-246 - Phase Gate Commit Metadata Reconciliation V1`.
+- Latest recorded checkpoint commit: `ff09efcfe1a12671eee7f8110b2c42fc251e8285` for `CP-245 - Post Governance Exchange Coverage Phase Gate`; CP-246 run-doc metadata is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-245 verification: dirty only in CP-245 run-doc files.
-- Current stop reason: not stopped; CP-245 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-245 local commit: clean.
+- Current stop reason: not stopped; CP-246 run-doc metadata reconciliation is underway before next isolated unit selection.
 
 ## In Progress
 
-- `CP-245 - Local checkpoint commit prep`.
+- `CP-246 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, docs outside this run folder, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-245 run-doc update if the phase gate bookkeeping must be removed.
+- Forbidden files: all source/test edits, docs outside this run folder, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused metadata scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-246 run-doc metadata update if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-245 phase-gate run-doc checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-246 run-doc metadata checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
-3. Select the next lowest-risk isolated unit.
+3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

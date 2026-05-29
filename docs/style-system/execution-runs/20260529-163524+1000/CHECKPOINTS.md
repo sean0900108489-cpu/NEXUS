@@ -4039,3 +4039,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 316 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings and test-only unsafe prompt/payload strings; behavior scan found only existing validator and adapter forbidden-key registries plus test assertions/fixtures. No real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-245 run-doc update if the phase gate bookkeeping must be removed. If future verification exposes an actual source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-246 - Phase Gate Commit Metadata Reconciliation V1
+
+- Unit: reconcile run docs with the CP-245 local checkpoint commit and clean post-commit state before selecting the next isolated unit.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits, docs outside this run folder, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused metadata scan for CP-245/CP-246 status; `git diff --check`; `git status --porcelain=v1 -b`; commit metadata check.
+- Commands run: focused metadata scan for CP-245/CP-246 status; `git diff --check`; `git status --porcelain=v1 -b`; commit metadata check.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Run docs now record CP-245 commit `ff09efcfe1a12671eee7f8110b2c42fc251e8285`, clean post-commit status, and the CP-246 source-closed metadata scope. `git diff --check` passed and status showed only allowed run-doc files.
+- Rollback note: revert only the CP-246 run-doc metadata update if this reconciliation must be removed.

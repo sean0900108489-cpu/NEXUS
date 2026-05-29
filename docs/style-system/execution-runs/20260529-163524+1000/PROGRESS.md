@@ -1381,30 +1381,35 @@ Run id: `20260529-163524+1000`
 - Ran decomposed full gate: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, and `npm run build`.
 - Confirmed full Vitest passed 41 files / 335 tests and build passed with static `/style-lab` plus the known edge-runtime warning.
 - Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI class/style/onClick/onChange handlers, and existing React Flow/window-modal adapter forbidden-key registries and test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
+- Created local checkpoint commit `1e1710b88286e0a066b60e886d71a8a5d5030195` for the Post Exchange Import Guard Phase Gate.
+- Started `CP-294 - Pure Governance Compiler Rejection Coverage V1`.
+- Added focused governance coverage proving compiler-failed manifests reject without preview metadata or compiled checksums.
+- Verified CP-294 with focused governance Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-293 - Post Exchange Import Guard Phase Gate`.
-- Latest recorded checkpoint commit: `ca85527f461e63b1417d4dde1443baf7336dbb1b` for `CP-292 - Governance Unsupported Package Doc Reconciliation V1`; CP-293 is being prepared for local commit.
+- Latest completed checkpoint: `CP-294 - Pure Governance Compiler Rejection Coverage V1`.
+- Latest recorded checkpoint commit: `1e1710b88286e0a066b60e886d71a8a5d5030195` for `CP-293 - Post Exchange Import Guard Phase Gate`; CP-294 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-293 verification prep: dirty only in CP-293 allowed run-doc files.
-- Current stop reason: not stopped; CP-293 exchange import guard phase gate checkpoint is underway.
+- Confirmed current status after CP-294 verification prep: dirty only in CP-294 allowed governance test and run-doc files.
+- Current stop reason: not stopped; CP-294 governance compiler rejection coverage checkpoint is underway.
 
 ## In Progress
 
-- `CP-293 - Local checkpoint commit prep`.
+- `CP-294 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/governance.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, docs outside this run folder, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: decomposed full gate with lint, typecheck, full longer-timeout Vitest, build, targeted side-effect/import scan, targeted behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-293 run-doc update if this phase-gate bookkeeping must be removed.
+- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused governance Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-294 governance test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-293 exchange import guard phase-gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-294 governance compiler rejection coverage checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

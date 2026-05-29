@@ -96,6 +96,29 @@ describe("NEXUS Style Engine governance review", () => {
     expect(JSON.stringify(review)).not.toContain("super-secret-value");
   });
 
+  it("rejects compiler-failed manifests without preview metadata", () => {
+    const manifest = createLegacyCyberpunkStyleManifestV1();
+
+    manifest.intent.contrast = "high";
+    manifest.constraints.maxCssVariableCount = 1;
+
+    const review = reviewNexusStylePackV1(manifest);
+
+    expect(review.state).toBe("rejected");
+    expect(review.compatibility).toBe("incompatible");
+    expect(review.permissions).toEqual({
+      canApply: false,
+      canPreview: false,
+      reasonCodes: ["style.pack.rejected"],
+    });
+    expect(review.rejectionCodes).toContain("style.variableCountExceeded");
+    expect(review.validation.accepted).toBe(false);
+    expect(review.checksums.normalizedManifest).toBeUndefined();
+    expect(review.checksums.compiledOutput).toBeUndefined();
+    expect(review).not.toHaveProperty("adapterCoverage");
+    expect(review).not.toHaveProperty("previewVariableCount");
+  });
+
   it("maps non-active lifecycle states to conservative permissions", () => {
     expect(getNexusStylePackPermissionsV1("draft")).toEqual({
       canApply: false,

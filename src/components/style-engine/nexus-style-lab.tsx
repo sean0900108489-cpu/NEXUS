@@ -124,6 +124,28 @@ const primitiveBadgeStyle = {
   color: "var(--nexus-status-warning, #fcd34d)",
 };
 
+const primitiveModalBackdropStyle = {
+  background: "rgb(2 6 23 / 0.72)",
+};
+
+const primitiveModalSurfaceStyle = {
+  background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
+  borderColor: "var(--nexus-border-strong, rgb(226 232 240 / 0.18))",
+  boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
+  color: "var(--nexus-text-primary, #f8fafc)",
+};
+
+const primitiveModalFooterStyle = {
+  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
+  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+};
+
+const primitiveModalCalloutStyle = {
+  background: "var(--nexus-surface-input, rgb(15 23 42 / 0.72))",
+  borderColor: "var(--nexus-status-warning, #fcd34d)",
+  color: "var(--nexus-status-warning, #fcd34d)",
+};
+
 const graphCanvasStyle = {
   background:
     "var(--nexus-graph-background-color, var(--nexus-surface-workspace, #020617))",
@@ -660,6 +682,44 @@ export function NexusStyleLab() {
                           {item}
                         </div>
                       ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  aria-hidden="true"
+                  className="mt-3 min-h-48 overflow-hidden border p-4"
+                  style={primitiveModalBackdropStyle}
+                >
+                  <div
+                    className="mx-auto grid max-w-md gap-3 border p-4"
+                    style={primitiveModalSurfaceStyle}
+                  >
+                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                      Modal Specimen
+                    </div>
+                    <div className="truncate text-sm text-slate-200">
+                      {manifest.name}
+                    </div>
+                    <div
+                      className="border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em]"
+                      style={primitiveModalCalloutStyle}
+                    >
+                      Review Required
+                    </div>
+                    <div
+                      className="grid grid-cols-2 gap-2 border-t pt-3"
+                      style={primitiveModalFooterStyle}
+                    >
+                      <span className="border border-white/10 bg-white/[0.04] px-3 py-2 text-center font-mono text-[10px] uppercase tracking-[0.12em] text-slate-300">
+                        Cancel
+                      </span>
+                      <span
+                        className="border px-3 py-2 text-center font-mono text-[10px] uppercase tracking-[0.12em]"
+                        style={primitiveButtonStyle}
+                      >
+                        Apply
+                      </span>
                     </div>
                   </div>
                 </div>

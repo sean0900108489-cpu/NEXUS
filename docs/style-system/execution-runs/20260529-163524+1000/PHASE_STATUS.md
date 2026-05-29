@@ -164,6 +164,7 @@ Run id: `20260529-163524+1000`
 | Runtime Preview Doc Provider Evidence Repair V1 | PASS | Repaired runtime preview doc to include existing scoped provider wiring for Home and Style Lab while preserving no-persistence/no-sync/no-backend/no-Supabase boundaries. |
 | Style Lab Active Preview Variable Count Row V1 | PASS | Added display-only Active Vars row to isolated Style Lab; focused checks, build, side-effect scan, static smoke, and CDP interaction smoke passed. |
 | Post Active Preview Vars Phase Gate | PASS | Full check passed after the Active Vars row; side-effect scan and git diff check passed. |
+| Style Lab Static Modal Specimen V1 | PASS | Added specimen-only static Modal visual shell to isolated Style Lab without modal behavior semantics; focused checks, build, side-effect scan, and local smoke passed. |
 
 ## Current Gate
 
@@ -176,4 +177,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Active Preview Vars Phase Gate local checkpoint prep. Source logic, Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Style Lab Static Modal Specimen V1 local checkpoint prep. Source logic beyond the isolated specimen, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

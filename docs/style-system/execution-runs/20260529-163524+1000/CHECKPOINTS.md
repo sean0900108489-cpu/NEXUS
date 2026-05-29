@@ -1999,3 +1999,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 40 Vitest files / 290 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, and test-only guard cases; no live React Flow import, graph behavior props, production graph/app shell file, runtime provider change, CSS/global stylesheet edit, compiler wiring, persistence, apply/save, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed.
 - Rollback note: revert only this CP-127 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-128 - Style Lab Graph Adapter Preset Switch Smoke V1
+
+- Unit: run a source-closed browser interaction smoke proving the isolated Style Lab graph specimen updates adapter CSS variables when switching to the High Contrast preset.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source edits during the smoke, production graph/app shell files, Style Lab UI source, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, compiler wiring, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: headless Chrome CDP smoke on `http://localhost:3000/style-lab`; verify default and High Contrast `--nexus-graph-*` values; confirm no lingering smoke process; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: headless Chrome CDP smoke on `http://localhost:3000/style-lab`; process cleanup scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. The first smoke harness attempts exposed CDP script/hydration timing issues before a source-closed retry waited for hydration and passed. Final CDP smoke confirmed the isolated graph specimen default values were `background=rgb(34 211 238 / 0.12)`, `nodeSurface=rgb(8 16 22 / 0.78)`, and `targetFill=#f0abfc`, then after clicking `High Contrast`, values changed to `background=rgb(56 189 248 / 0.16)`, `nodeSurface=rgb(16 16 16 / 0.94)`, and `targetFill=#facc15`. A process scan found no lingering smoke process. `git diff --check` passed and git status remained dirty only in CP-128 run docs.
+- Rollback note: revert only this CP-128 run-doc update if the smoke bookkeeping must be removed.

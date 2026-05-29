@@ -559,18 +559,24 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 40 Vitest files / 290 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import, graph behavior props, production graph/app shell file, runtime provider change, CSS/global stylesheet edit, compiler wiring, persistence, apply/save, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `fd9ee61d7e110c81fff90344116c09e80884b0be` for the Post Graph Adapter Specimen Phase Gate.
+- Started `CP-128 - Style Lab Graph Adapter Preset Switch Smoke V1` with source edits closed.
+- Ran `CP-128 - Style Lab Graph Adapter Preset Switch Smoke V1`.
+- Repaired CDP smoke harness timing without source edits; final retry waited for hydration before interaction.
+- Confirmed the isolated graph specimen switches `--nexus-graph-*` values from legacy Cyberpunk to High Contrast after clicking the built-in High Contrast preset.
+- Confirmed no lingering headless Chrome smoke process remained after the smoke.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-127 - Post Graph Adapter Specimen Phase Gate`.
-- Latest local checkpoint commit: pending CP-127 local commit; previous clean checkpoint commit is `aea8413ad66474838b624caa9b3879524b5aa72f`.
+- Latest completed checkpoint: `CP-128 - Style Lab Graph Adapter Preset Switch Smoke V1`.
+- Latest local checkpoint commit: pending CP-128 local commit; previous clean checkpoint commit is `fd9ee61d7e110c81fff90344116c09e80884b0be`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status before CP-127 commit prep: dirty only in CP-127 allowed files.
-- Current stop reason: not stopped; CP-127 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status before CP-128 commit prep: dirty only in CP-128 allowed files.
+- Current stop reason: not stopped; CP-128 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-127 - Local checkpoint commit prep`.
+- `CP-128 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
@@ -578,11 +584,11 @@ Run id: `20260529-163524+1000`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: all source edits during the gate, production graph/app shell files, Style Lab UI, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, compiler wiring, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only this CP-127 run-doc update if the phase gate bookkeeping must be removed.
+- Rollback: revert only this CP-128 run-doc update if the smoke bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-127 docs-only phase-gate record if final diff/status checks remain clean by scope.
+1. Commit the CP-128 docs-only smoke record if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

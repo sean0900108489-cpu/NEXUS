@@ -113,6 +113,7 @@ Run id: `20260529-163524+1000`
 | Style Lab Active Preview Checksum Row V1 | PASS | Added display-only active preview checksum row to isolated Style Lab governance report; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
 | Post Preview Checksum Phase Gate | PASS | Full check passed after the active preview checksum row; side-effect scan and git diff check passed. |
 | Style Lab Governance Version Rows V1 | PASS | Added display-only governance, manifest, and compiler version rows to isolated Style Lab governance report; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
+| Post Governance Version Phase Gate | PASS | Full check passed after the governance version rows; side-effect scan and git diff check passed. |
 
 ## Current Gate
 

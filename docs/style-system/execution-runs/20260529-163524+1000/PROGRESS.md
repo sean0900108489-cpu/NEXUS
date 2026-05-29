@@ -683,31 +683,36 @@ Run id: `20260529-163524+1000`
 - Added a specimen-only static modal visual shell to the isolated Style Lab primitive specimen gallery, following the documented modal-first migration order.
 - Confirmed the specimen does not add modal role, `aria-modal`, focus trap, close handler, z-index/fixed overlay, runtime provider change, production graph behavior, store, sync, backend, Supabase, deploy, save/export-file behavior, or `exports/**`.
 - Verified CP-149 with focused runtime/preview tests, targeted lint, typecheck, build, side-effect/modal-behavior scan, and static `/style-lab` smoke.
+- Created local checkpoint commit `d815bdaf437ab7a5597fb76eca0fe347b2cfcdf2` for the Style Lab Static Modal Specimen V1 unit.
+- Started `CP-150 - Post Modal Specimen Phase Gate` with source/test edits closed.
+- Ran `CP-150 - Post Modal Specimen Phase Gate`.
+- Confirmed full `npm run check` passed: lint, typecheck, 40 Vitest files / 292 tests, and build.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect/modal-behavior scans only matched existing pure preview patch adapter variable emission, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import, graph behavior props, modal/window behavior semantics, runtime provider logic change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, download/clipboard/save/export-file path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-149 - Style Lab Static Modal Specimen V1`.
-- Latest local checkpoint commit: pending CP-149 local commit; previous clean checkpoint commit is `e32ec42815ca758b7a6d904851ac088b479bb737`.
+- Latest completed checkpoint: `CP-150 - Post Modal Specimen Phase Gate`.
+- Latest local checkpoint commit: pending CP-150 local commit; previous clean checkpoint commit is `d815bdaf437ab7a5597fb76eca0fe347b2cfcdf2`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-149 verification: dirty only in CP-149 allowed files.
-- Current stop reason: not stopped; CP-149 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-150 verification: dirty only in CP-150 allowed run-doc files.
+- Current stop reason: not stopped; CP-150 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-149 - Local checkpoint commit prep`.
+- `CP-150 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: `src/app/**`, `src/components/nexus/**`, runtime provider internals, `src/lib/style-engine/**`, CSS/global stylesheets, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, modal behavior semantics such as `role="dialog"`, `aria-modal`, focus trap, close handlers, z-index changes, download/clipboard/save/export-file behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test edits during the gate, Style Lab/UI source, runtime provider internals, production graph/app shell files, `src/components/nexus/**`, CSS/global stylesheets, pure style-engine logic changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, modal/window behavior semantics, download/clipboard/save/export-file behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the isolated Style Lab modal specimen and this run-doc checkpoint update if the static modal specimen must be removed.
+- Rollback: revert only this CP-150 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
 
 ## Next
 
-1. Commit the CP-149 source+run-doc checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-150 run-doc checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

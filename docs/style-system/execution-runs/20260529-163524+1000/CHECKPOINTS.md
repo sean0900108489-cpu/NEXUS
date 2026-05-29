@@ -3429,3 +3429,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused validator/compiler Vitest passed 2 files / 16 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only existing validator safety detector strings and test-only unsafe payload strings for Supabase/deploy/themeConfig. Behavior scan found only the existing validator `zIndex` forbidden-key registry and React Flow behavior test fixture/assertion strings. `git diff --check` passed.
 - Rollback note: revert only the CP-209 validator/test/run-doc changes if focus recipe warnings must be removed.
+
+## CP-210 - Validator Focus Warning Doc Reconciliation V1
+
+- Unit: reconcile manifest validator rules with CP-209 focus-capable recipe warnings.
+- Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits, UI/TSX/app route/CSS files, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence scan for `style.missingFocusRecipe`; stale gap scan for old focus-style-not-implemented wording; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused focus-warning evidence scan; stale focus-gap scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found `style.missingFocusRecipe` coverage in validator source/tests and focus-capable recipe warning wording in the validator rules doc. Stale focus-gap scan returned no matches for the old focus-style-not-implemented wording. One initial evidence scan had shell quoting noise from a backtick-containing pattern; the corrected evidence scan passed. `git diff --check` passed and status showed only allowed docs/run-doc files.
+- Rollback note: revert only the CP-210 docs/run-doc reconciliation if this wording must be removed.

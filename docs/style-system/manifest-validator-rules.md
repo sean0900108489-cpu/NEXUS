@@ -6,15 +6,15 @@ Status: partially implemented pure validator. Runtime persistence, workspace syn
 
 ## Implementation Evidence
 
-- `src/lib/style-engine/validator.ts` implements pure V1 validation for top-level shape, identity, source metadata, intent, required constraints, required token groups/tokens, unsafe string patterns, recipe behavior-key scanning, React Flow behavior-key scanning, primary text contrast, and deterministic display-safe reports.
-- `src/lib/style-engine/validator.test.ts` covers safe manifest acceptance, unsafe string redaction, recipe behavior rejection, unknown recipe semantic token reference rejection, React Flow behavior rejection, workspace/backend top-level pollution rejection, and required `recipes.commandPalette` group rejection.
+- `src/lib/style-engine/validator.ts` implements pure V1 validation for top-level shape, identity, source metadata, intent, required constraints, required token groups/tokens, unsafe string patterns, recipe behavior-key scanning, focus-capable recipe warnings, React Flow behavior-key scanning, primary text contrast, and deterministic display-safe reports.
+- `src/lib/style-engine/validator.test.ts` covers safe manifest acceptance, unsafe string redaction, recipe behavior rejection, focus recipe warnings, unknown recipe semantic token reference rejection, React Flow behavior rejection, workspace/backend top-level pollution rejection, and required `recipes.commandPalette` group rejection.
 - The validator is used before compilation by `src/lib/style-engine/compiler.ts`; invalid manifests fail closed without partial compiled output.
 - The current implementation is local-only and pure. It does not mutate workspace state, sync queues, backend routes, Supabase/database, DOM, external services, deploy config, or `exports/**`.
 
 Known remaining gaps:
 
 - Token value parsing is still conservative pattern scanning, not a full structured CSS/value parser.
-- Optional recipe completeness warnings and focus-style recipe analysis are not implemented.
+- Broader optional recipe completeness warnings beyond focus-capable controls are not implemented.
 - Accessibility validation currently covers primary text contrast and high-contrast intent warning only.
 
 ## 0. Validator Purpose
@@ -167,7 +167,8 @@ Minimum required semantic tokens:
 - `radius.surface`
 - `blur.glass`
 
-Warning if optional recipe groups are empty.
+Warning if focus-capable `button` or `input` recipes omit a visual `focus`
+state.
 
 Error if recipe semantic token references point to unknown tokens.
 

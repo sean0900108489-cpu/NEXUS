@@ -1029,32 +1029,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-209 - Pure Validator Focus Recipe Warning V1`.
 - Added a pure validator warning for `button` and `input` recipes that omit a visual `focus` state.
 - Verified CP-209 with focused validator/compiler Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
+- Created local checkpoint commit `5a1bdf646eea6a232f09c63bf7484fd743d59481` for the Pure Validator Focus Recipe Warning V1 unit.
+- Started `CP-210 - Validator Focus Warning Doc Reconciliation V1`.
+- Reconciled `manifest-validator-rules.md` with CP-209 focus-capable recipe warnings and narrowed the remaining gap to broader optional recipe completeness warnings.
+- Verified CP-210 with focused evidence scan, stale focus-gap scan, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-209 - Pure Validator Focus Recipe Warning V1`.
-- Latest local checkpoint commit: pending CP-209 local commit; previous clean checkpoint commit is `69eccf84adad860d3c14098bc6a5eb5103647e89`.
+- Latest completed checkpoint: `CP-210 - Validator Focus Warning Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-210 local commit; previous clean checkpoint commit is `5a1bdf646eea6a232f09c63bf7484fd743d59481`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-209 verification: dirty only in CP-209 allowed validator/test/run-doc files.
-- Current stop reason: not stopped; CP-209 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-210 verification: dirty only in CP-210 allowed docs and run-doc files.
+- Current stop reason: not stopped; CP-210 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-209 - Local checkpoint commit prep`.
+- `CP-210 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.ts`
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: compiler/governance/exchange/runtime/UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test edits, UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-209 validator/test/run-doc changes if focus recipe warnings must be removed.
+- Rollback: revert only the CP-210 docs/run-doc reconciliation if this wording must be removed.
 
 ## Next
 
-1. Commit the CP-209 validator checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-210 docs checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

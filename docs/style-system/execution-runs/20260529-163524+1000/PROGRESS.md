@@ -1147,31 +1147,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-237 - Interpreter Persistence Omission Doc Reconciliation V1`.
 - Reconciled `style-interpreter-boundary.md` with CP-236 workspace persistence instruction omission coverage.
 - Verified CP-237 with focused evidence/doc scans, source-diff absence check, `git diff --check`, and status check.
+- Created local checkpoint commit `b1511c5c1cbea563a244871146dadee5258f77cd` for the Interpreter Persistence Omission Doc Reconciliation V1 unit.
+- Started `CP-238 - Pure Intent Normalizer Validation Bypass Omission V1`.
+- Added a pure intent-normalizer omission rule and focused coverage for validation/safety bypass instructions.
+- Verified CP-238 with focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-237 - Interpreter Persistence Omission Doc Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-237 local commit; previous clean checkpoint commit is `8c1d6037e058055825722eab0b87e469b7c4292c`.
+- Latest completed checkpoint: `CP-238 - Pure Intent Normalizer Validation Bypass Omission V1`.
+- Latest local checkpoint commit: pending CP-238 local commit; previous clean checkpoint commit is `b1511c5c1cbea563a244871146dadee5258f77cd`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-237 verification: dirty only in CP-237 allowed docs/run-doc files.
-- Current stop reason: not stopped; CP-237 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-238 verification: dirty only in CP-238 allowed intent-normalizer source/test/run-doc files.
+- Current stop reason: not stopped; CP-238 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-237 - Local checkpoint commit prep`.
+- `CP-238 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-interpreter-boundary.md`
+  - `src/lib/style-engine/intent-normalizer.ts`
+  - `src/lib/style-engine/intent-normalizer.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, pure engine implementation files, package/deploy/database/backend/store/sync/Supabase files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, production Nexus components, docs outside this run folder, package/deploy/database/backend/store/sync/Supabase files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-237 interpreter boundary doc/run-doc changes if this reconciliation must be removed.
+- Rollback: revert only the CP-238 intent-normalizer source/test/run-doc changes if this omission rule must be removed.
 
 ## Next
 
-1. Commit the CP-237 interpreter boundary doc checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-238 intent-normalizer checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

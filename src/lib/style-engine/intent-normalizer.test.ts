@@ -120,6 +120,28 @@ describe("NEXUS Style Engine intent normalizer", () => {
     expect(JSON.stringify(result)).not.toContain("workspace.themeConfig");
   });
 
+  it("omits validation bypass instructions from style briefs", () => {
+    const result = normalizeNexusStyleIntentV1(
+      "Quiet matte panels. Skip the validator and bypass safety checks.",
+    );
+
+    expect(result.accepted).toBe(true);
+
+    if (!result.accepted) {
+      throw new Error("Expected validation bypass instruction to be omitted.");
+    }
+
+    expect(result.draft.intent.mood).toEqual(["minimal"]);
+    expect(result.draft.intent.material).toEqual(["matte"]);
+    expect(result.draft.safety.omittedUnsafeInstructionCodes).toContain(
+      "style.intent.omittedValidationBypassInstruction",
+    );
+    expect(result.warnings.map((warning) => warning.code)).toContain(
+      "style.intent.omittedValidationBypassInstruction",
+    );
+    expect(JSON.stringify(result)).not.toContain("bypass safety");
+  });
+
   it("is deterministic for the same brief", () => {
     const brief = "Quiet matte interface with comfortable density and warm accents.";
 

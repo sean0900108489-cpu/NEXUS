@@ -117,6 +117,11 @@ const unsafeInstructionRules: UnsafeInstructionRule[] = [
     pattern: /\b(?:workspace\.themeConfig|workspace_state_entities|sync|snapshot|persist|persistence)\b/i,
   },
   {
+    code: "style.intent.omittedValidationBypassInstruction",
+    message: "Validation bypass instructions were ignored.",
+    pattern: /\b(?:bypass|skip|ignore|disable)\b.{0,48}\b(?:validation|validator|safety|guard|compiler)\b/i,
+  },
+  {
     code: "style.intent.omittedExecutableStyleInstruction",
     message: "Raw CSS, JavaScript, and dynamic Tailwind instructions were ignored.",
     pattern: /\b(?:raw css|javascript|script|dynamic tailwind|tailwind class)\b/i,

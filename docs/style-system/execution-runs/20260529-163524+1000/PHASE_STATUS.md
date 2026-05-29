@@ -253,6 +253,7 @@ Run id: `20260529-163524+1000`
 | Validator Legacy CSS Variable Coverage Doc Reconciliation V1 | PASS | Reconciled validator rules docs with approved NEXUS and legacy bridge CSS variable reference coverage. |
 | Pure Intent Normalizer Workspace Persistence Coverage V1 | PASS | Added focused coverage that workspace persistence instructions are omitted from inert style briefs; focused test, lint, typecheck, side-effect scan, and diff check passed. |
 | Interpreter Persistence Omission Doc Reconciliation V1 | PASS | Reconciled interpreter boundary docs with workspace persistence instruction omission coverage. |
+| Pure Intent Normalizer Validation Bypass Omission V1 | PASS | Added a pure intent-normalizer omission rule for validation and safety bypass instructions; focused test, lint, typecheck, side-effect scan, and diff check passed. |
 
 ## Current Gate
 
@@ -265,4 +266,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Interpreter Persistence Omission Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, UI/TSX/app route/CSS files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Intent Normalizer Validation Bypass Omission local checkpoint prep. Production window/modal code, production graph/app shell files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

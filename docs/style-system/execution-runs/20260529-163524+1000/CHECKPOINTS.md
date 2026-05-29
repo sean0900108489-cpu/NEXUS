@@ -3905,3 +3905,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found `style.intent.omittedWorkspacePersistenceInstruction` in normalizer source/tests and matching workspace persistence omission wording in the interpreter boundary doc. Source-diff absence check showed only the interpreter boundary doc changed before run-doc bookkeeping. `git diff --check` passed and status showed only allowed docs files.
 - Rollback note: revert only the CP-237 interpreter boundary doc/run-doc reconciliation if this wording must be removed.
+
+## CP-238 - Pure Intent Normalizer Validation Bypass Omission V1
+
+- Unit: add a pure intent-normalizer rule that omits validation/safety bypass instructions from inert style briefs.
+- Allowed files:
+  - `src/lib/style-engine/intent-normalizer.ts`
+  - `src/lib/style-engine/intent-normalizer.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, production Nexus components, docs outside this run folder, workspace store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused intent-normalizer Vitest; targeted lint for normalizer files; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `npm run test -- --testTimeout 20000 src/lib/style-engine/intent-normalizer.test.ts`; `npm run lint -- src/lib/style-engine/intent-normalizer.ts src/lib/style-engine/intent-normalizer.test.ts`; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/intent-normalizer.ts`
+  - `src/lib/style-engine/intent-normalizer.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused intent-normalizer Vitest passed 1 file / 7 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only existing normalizer safety detector strings and test-only unsafe prompt/assertion strings. Behavior scan found only existing React Flow behavior omission detector/test fixture strings. `git diff --check` passed and status showed only allowed CP-238 files.
+- Rollback note: revert only the CP-238 intent-normalizer source/test/run-doc changes if this omission rule must be removed.

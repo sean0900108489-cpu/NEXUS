@@ -4600,3 +4600,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused intent-normalizer Vitest passed 1 file / 9 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Targeted added-line side-effect/behavior scan returned no matches for workspace/sync/backend/Supabase/deploy/production Nexus/React Flow behavior paths. `git diff --check` passed.
 - Rollback note: revert only the CP-278 intent-normalizer source/test/run-doc changes if this guard must be removed.
+
+## CP-279 - Interpreter Executable Input Doc Reconciliation V1
+
+- Unit: reconcile Style Interpreter boundary docs with CP-278 executable code-like input rejection coverage.
+- Allowed files:
+  - `docs/style-system/style-interpreter-boundary.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, docs outside the listed interpreter doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence/doc scan for executable input rejection coverage; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: focused evidence/doc scan for executable input rejection coverage; source-diff absence check; `git diff --check`.
+- Changed files:
+  - `docs/style-system/style-interpreter-boundary.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found the CP-278 executable input normalizer test and matching Style Interpreter boundary wording. Source-diff absence check showed no source/runtime diff for this docs-only unit. `git diff --check` passed.
+- Rollback note: revert only the CP-279 doc/run-doc changes if this reconciliation must be removed.

@@ -4262,3 +4262,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found the CP-257 invalid source metadata test and matching manifest validator rules wording. Source-diff absence check showed only allowed docs changed after the CP-257 source checkpoint. `git diff --check` passed and status showed only allowed CP-258 docs files.
 - Rollback note: revert only the CP-258 doc/run-doc changes if this reconciliation must be removed.
+
+## CP-259 - Pure Validator Identity Metadata Coverage V1
+
+- Unit: add focused validator coverage for invalid schema, identity, description, author, and mode metadata.
+- Allowed files:
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused validator Vitest; targeted lint for touched validator test; `npm run typecheck`; targeted side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run test -- --testTimeout 20000 src/lib/style-engine/validator.test.ts`; `npm run lint -- src/lib/style-engine/validator.test.ts`; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused validator Vitest passed 1 file / 21 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan only matched existing platform-pollution fixture strings and manifest window recipe names; behavior scan only matched existing recipe/React Flow behavior test fixtures. `git diff --check` passed and status showed only allowed CP-259 files.
+- Rollback note: revert only the CP-259 validator test/run-doc changes if this coverage must be removed.

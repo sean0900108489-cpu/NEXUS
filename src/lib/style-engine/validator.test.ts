@@ -110,6 +110,54 @@ describe("NEXUS Style Engine manifest validator", () => {
     expect(JSON.stringify(report)).not.toContain("hidden-source-reference");
   });
 
+  it("rejects invalid identity metadata", () => {
+    const manifest = createSafeManifest() as unknown as Record<string, unknown>;
+    manifest.schemaVersion = 2;
+    manifest.id = "Bad ID!";
+    manifest.name = "";
+    manifest.description = "x".repeat(281);
+    manifest.author = 42;
+    manifest.mode = "sepia";
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toEqual(
+      expect.arrayContaining([
+        {
+          code: "style.invalidSchemaVersion",
+          message: "schemaVersion must be 1.",
+          path: "$.schemaVersion",
+        },
+        {
+          code: "style.invalidId",
+          message: "id must be a lowercase slug.",
+          path: "$.id",
+        },
+        {
+          code: "style.invalidName",
+          message: "name must be 1-80 characters.",
+          path: "$.name",
+        },
+        {
+          code: "style.invalidDescription",
+          message: "description must be 0-280 characters.",
+          path: "$.description",
+        },
+        {
+          code: "style.invalidAuthor",
+          message: "author must be display text.",
+          path: "$.author",
+        },
+        {
+          code: "style.invalidMode",
+          message: "mode must be dark, light, or adaptive.",
+          path: "$.mode",
+        },
+      ]),
+    );
+  });
+
   it("rejects CSS variable references outside approved namespaces", () => {
     const manifest = createSafeManifest({
       tokens: {

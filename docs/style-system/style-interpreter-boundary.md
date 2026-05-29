@@ -2,7 +2,20 @@
 
 Phase: V12 - Style Interpreter / Normalizer
 Run: `docs/style-system/execution-runs/20260529-163524+1000`
-Status: documentation-only interpreter boundary. No AI/runtime code implemented.
+Status: partially implemented pure intent normalizer. No AI provider runtime, manifest generation, component code, persistence, backend, Supabase/database, deploy, or production apply integration is implemented.
+
+## Implementation Evidence
+
+- `src/lib/style-engine/intent-normalizer.ts` implements a pure draft-only normalizer for inert human/AI/imported style brief text.
+- `src/lib/style-engine/intent-normalizer.test.ts` covers deterministic normalized intent metadata, draft-only safety flags, empty/oversized input rejection, secret-like value redaction, unsafe instruction omission, and React Flow behavior instruction omission.
+- Normalizer output is intent metadata only; tests assert it does not emit tokens or recipes.
+- The normalizer is local-only and pure. It does not call AI providers, mutate DOM, mutate workspace state, touch sync queues, call backend routes, use Supabase/database, deploy, persist, or touch `exports/**`.
+
+Known remaining gaps:
+
+- It does not generate manifest drafts yet.
+- It does not call AI/provider runtimes.
+- It uses keyword heuristics rather than model-assisted interpretation.
 
 ## 0. Purpose
 
@@ -144,4 +157,5 @@ V12 boundary passes when:
 - Secrets, production data, deploy, DB, and backend mutation are blocked.
 - Output cannot bypass manifest validator or compiler.
 - Persistence remains blocked.
-- No AI/runtime code, component code, schema, package, deploy, or `exports/**` files are changed.
+- Pure local normalizer code remains draft-only and side-effect-free.
+- No AI provider runtime, component code, schema, package, deploy, or `exports/**` files are changed.

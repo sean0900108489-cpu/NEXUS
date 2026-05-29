@@ -3264,3 +3264,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found partially implemented pure governance/exchange status, `adapterCoverage.windowModal = complete` test evidence, local-only side-effect boundary, remaining gaps, and a side-effect-free acceptance gate. Stale marker scan returned no matches for documentation-only/no-runtime-code wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
 - Rollback note: revert only the CP-200 governance doc reconciliation and this run-doc checkpoint if the wording must be removed.
+
+## CP-201 - Style Interpreter Boundary Doc Reconciliation V1
+
+- Unit: reconcile the style interpreter boundary doc with the current pure intent normalizer implementation while preserving the no-AI-runtime and no-manifest-generation boundary.
+- Allowed files:
+  - `docs/style-system/style-interpreter-boundary.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits, UI/CSS/app routes, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused doc evidence scan for pure intent normalizer implementation, draft-only boundary, no-token/no-recipe evidence, and remaining gaps; stale marker scan for documentation-only/no-AI-runtime-code wording; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused `rg` evidence scan; focused `rg` stale marker scan; `git diff --check`; `git diff --stat`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-interpreter-boundary.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found partially implemented pure intent normalizer status, implementation evidence, no-token/no-recipe output evidence, draft-only side-effect-free boundary, no-AI-provider-runtime boundary, and remaining gaps. Stale marker scan returned no matches for documentation-only/no-AI-runtime-code wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
+- Rollback note: revert only the CP-201 interpreter doc reconciliation and this run-doc checkpoint if the wording must be removed.

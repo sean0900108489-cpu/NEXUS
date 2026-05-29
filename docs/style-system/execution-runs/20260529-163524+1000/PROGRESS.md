@@ -833,30 +833,36 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 41 Vitest files / 299 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries, and the window/modal recipe adapter forbidden behavior key registry; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `9d8264a9b2a59295828cb4143c50076426cb2a5d` for the Post Preview Window Modal Variables Phase Gate.
+- Started `CP-173 - Style Lab Preview Recipe Variable Count Smoke V1` with source edits closed.
+- Ran static fetch smoke against local `/style-lab` and confirmed status 200 with `Preview Vars 122`.
+- Ran isolated headless Chrome CDP interaction smoke. The first harness clicked Preview but used `innerText` and a brittle wait condition, so it produced a false negative and was cleaned up as a harness issue.
+- Reran CDP smoke with `textContent`; confirmed initial `Preview Vars 122`, clicked Preview, and confirmed `Active Vars 122` with `previewing` visible.
+- Confirmed no isolated `codex-style-lab-chrome-profile-cp173` process remained afterward.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-172 - Post Preview Window Modal Variables Phase Gate`.
-- Latest local checkpoint commit: pending CP-172 local commit; previous clean checkpoint commit is `46cf6d50ff81ea8b30481f5831b3668e5d29e67a`.
+- Latest completed checkpoint: `CP-173 - Style Lab Preview Recipe Variable Count Smoke V1`.
+- Latest local checkpoint commit: pending CP-173 local commit; previous clean checkpoint commit is `9d8264a9b2a59295828cb4143c50076426cb2a5d`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-172 verification: dirty only in CP-172 allowed run-doc files.
-- Current stop reason: not stopped; CP-172 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-173 verification: dirty only in CP-173 allowed run-doc files.
+- Current stop reason: not stopped; CP-173 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-172 - Local checkpoint commit prep`.
+- `CP-173 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, compiler/runtime/governance wiring, UI/CSS/production component files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all repo source/test edits, user Chrome profile mutation, UI/CSS/production component files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-172 run-doc update if the phase gate bookkeeping must be removed.
+- Rollback: revert only the CP-173 run-doc update if the smoke bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-172 phase-gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-173 smoke checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -2775,3 +2775,19 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 299 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries, and the window/modal recipe adapter forbidden behavior key registry; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-172 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-173 - Style Lab Preview Recipe Variable Count Smoke V1
+
+- Unit: run source-closed local smoke to confirm isolated Style Lab preview/apply variable count reflects window/modal recipe preview variables.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+  - temporary isolated Chrome profile under `/tmp`
+- Forbidden files: all repo source/test edits, user Chrome profile mutation, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: fetch `http://localhost:3000/style-lab` and confirm `Preview Vars 122`; run isolated headless Chrome CDP interaction smoke to click Preview and confirm `Active Vars 122` plus `previewing`; cleanup isolated Chrome process/profile; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: Node fetch smoke against local `/style-lab`; isolated headless Google Chrome CDP smoke; isolated process cleanup; `pgrep -fl codex-style-lab-chrome-profile-cp173`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Static fetch returned status 200 and confirmed `Preview Vars 122`. The first CDP interaction harness clicked the Preview button but used `innerText` and a brittle wait condition, producing a false negative and requiring isolated Chrome cleanup. The second CDP smoke used `textContent`, confirmed initial `Preview Vars 122`, clicked Preview, and confirmed `Active Vars 122` with `previewing` visible. No `codex-style-lab-chrome-profile-cp173` process remained afterward. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
+- Rollback note: revert only this CP-173 run-doc update and remove any leftover `/tmp/codex-style-lab-chrome-profile-cp173*` artifact if the smoke bookkeeping must be removed.

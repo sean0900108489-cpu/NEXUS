@@ -296,6 +296,7 @@ export function NexusStyleLab() {
         `${review.validation.errorCount}E / ${review.validation.warningCount}W`,
       ],
       ["Compiled Vars", compiledVariableCountLabel],
+      ["Compiled Checksum", review.checksums.compiledOutput ?? "n/a"],
       ["Runtime Target", "scoped-provider-v1"],
       ["Active Preview", activePreviewLabel],
       ["Preview Checksum", activePreviewChecksumLabel],

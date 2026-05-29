@@ -30,6 +30,7 @@ describe("NEXUS Style Engine import/export normalization", () => {
       review: {
         adapterCoverage: {
           reactFlow: "complete",
+          windowModal: "complete",
         },
         compatibility: "compatible_with_warnings",
         manifestId: "legacy-cyberpunk",
@@ -114,6 +115,7 @@ describe("NEXUS Style Engine import/export normalization", () => {
     expect(redacted).toMatchObject({
       adapterCoverage: {
         reactFlow: "complete",
+        windowModal: "complete",
       },
       checksums: review.checksums,
       compatibility: review.compatibility,

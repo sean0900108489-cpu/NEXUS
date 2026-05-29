@@ -949,31 +949,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-191 - Pure Preview Command Palette Recipe Variable Test V1`.
 - Added a preview test proving command palette recipe variables come from `recipes.commandPalette` independently from modal recipe slots.
 - Verified CP-191 with focused preview Vitest, targeted lint, `npm run typecheck`, targeted side-effect/behavior scans, `git diff --check`, diff stat, and status check.
+- Created local checkpoint commit `6c243f7eec835043c47de5231b1e3d2c27af8ca9` for the Pure Preview Command Palette Recipe Variable Test V1 unit.
+- Started `CP-192 - Pure Governance Window Modal Coverage Test V1`.
+- Added pure governance and exchange test assertions that `adapterCoverage.windowModal` is surfaced as `complete`.
+- Verified CP-192 with focused governance/exchange Vitest, targeted lint, `npm run typecheck`, targeted side-effect/behavior scans, `git diff --check`, diff stat, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-191 - Pure Preview Command Palette Recipe Variable Test V1`.
-- Latest local checkpoint commit: pending CP-191 local commit; previous clean checkpoint commit is `f5bab8c77210ead3e7371db119b73efcd111b900`.
+- Latest completed checkpoint: `CP-192 - Pure Governance Window Modal Coverage Test V1`.
+- Latest local checkpoint commit: pending CP-192 local commit; previous clean checkpoint commit is `6c243f7eec835043c47de5231b1e3d2c27af8ca9`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-191 verification: dirty only in CP-191 allowed test and run-doc files.
-- Current stop reason: not stopped; CP-191 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-192 verification: dirty only in CP-192 allowed test and run-doc files.
+- Current stop reason: not stopped; CP-192 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-191 - Local checkpoint commit prep`.
+- `CP-192 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/preview.test.ts`
+  - `src/lib/style-engine/governance.test.ts`
+  - `src/lib/style-engine/exchange.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: implementation source, UI/TSX/app route/CSS files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-191 test/run-doc update if the preview coverage must be removed.
+- Rollback: revert only the CP-192 test/run-doc update if the governance coverage must be removed.
 
 ## Next
 
-1. Commit the CP-191 preview test checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-192 governance coverage checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

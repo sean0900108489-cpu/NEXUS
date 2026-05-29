@@ -15,6 +15,7 @@ describe("NEXUS Style Engine governance review", () => {
     expect(review).toMatchObject({
       adapterCoverage: {
         reactFlow: "complete",
+        windowModal: "complete",
       },
       compatibility: "compatible_with_warnings",
       compilerVersion: "nexus-style-compiler-v1",
@@ -30,6 +31,7 @@ describe("NEXUS Style Engine governance review", () => {
       state: "warning",
     });
     expect(review.previewVariableCount).toBeGreaterThan(0);
+    expect(review.adapterCoverage?.windowModal).toBe("complete");
     expect(review.checksums.normalizedManifest).toMatch(
       /^nexus-style-fnv1a32:[0-9a-f]{8}$/,
     );

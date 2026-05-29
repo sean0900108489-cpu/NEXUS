@@ -207,6 +207,7 @@ Run id: `20260529-163524+1000`
 | Command Palette Recipe Docs Reconciliation V1 | PASS | Reconciled manifest spec, compiler contract, and window/modal recipe docs with the pure `commandPalette` recipe group. |
 | Post Command Palette Recipe Group Phase Gate | PASS | Full check passed after command palette recipe group/docs; side-effect scan and git diff check passed. |
 | Pure Preview Command Palette Recipe Variable Test V1 | PASS | Added pure preview coverage proving `recipes.commandPalette` feeds command palette preview variables independently from modal recipe slots. |
+| Pure Governance Window Modal Coverage Test V1 | PASS | Added pure governance/exchange assertions that `adapterCoverage.windowModal` remains complete. |
 
 ## Current Gate
 
@@ -219,4 +220,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Preview Command Palette Recipe Variable Test local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Governance Window Modal Coverage Test local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

@@ -3112,3 +3112,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused preview Vitest passed 1 file / 4 tests. Targeted lint passed. `npm run typecheck` passed. Side-effect scan had no DOM/window/document/storage/network/import/deploy matches. Behavior scan only matched existing `not.toContain("nodesDraggable")` and `not.toContain("dragHandleClassName")` assertions in the preview test. `git diff --check` passed.
 - Rollback note: revert only the CP-191 preview test and this run-doc checkpoint if the coverage needs to be removed.
+
+## CP-192 - Pure Governance Window Modal Coverage Test V1
+
+- Unit: add pure governance/exchange test assertions that window/modal adapter coverage is surfaced as `complete` alongside React Flow coverage.
+- Allowed files:
+  - `src/lib/style-engine/governance.test.ts`
+  - `src/lib/style-engine/exchange.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: implementation source, UI/TSX/app route/CSS files, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused governance/exchange Vitest; targeted lint for the test files; `npm run typecheck`; targeted side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `npm run test -- src/lib/style-engine/governance.test.ts src/lib/style-engine/exchange.test.ts`; `npm run lint -- src/lib/style-engine/governance.test.ts src/lib/style-engine/exchange.test.ts`; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git diff --stat`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/governance.test.ts`
+  - `src/lib/style-engine/exchange.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused governance/exchange Vitest passed 2 files / 9 tests. Targeted lint passed. `npm run typecheck` passed. Side-effect and behavior scans returned no matches. `git diff --check` passed.
+- Rollback note: revert only the CP-192 governance/exchange test assertions and this run-doc checkpoint if the coverage needs to be removed.

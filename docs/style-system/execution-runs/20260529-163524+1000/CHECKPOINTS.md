@@ -2602,3 +2602,19 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. `git diff --check` passed. Focused doc scan confirmed Modal, Window, Command Palette, Datapad shell, Prompt Vault surface, and Agent Window chrome are documented as isolated Style Lab visual specimens, while production Datapad, Prompt Vault, Agent Window, modal, command palette behavior, `src/components/nexus/**`, production React Flow behavior, workspace store/sync, backend, Supabase/database, deploy config, and `exports/**` remain outside the implementation.
 - Rollback note: revert only these phase-doc reconciliation edits and this run-doc checkpoint update if the specimen-suite reconciliation must be removed.
+
+## CP-163 - Style Lab Specimen Suite Visual Smoke V1
+
+- Unit: run source-closed local visual smoke for the isolated Style Lab specimen suite after the window/modal migration-order specimen set was completed.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+  - temporary screenshot under `/tmp`
+- Forbidden files: all repo source/test/phase-doc edits outside the run directory, user Chrome profile mutation, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: headless Chrome screenshot of `http://localhost:3000/style-lab`; screenshot dimensions/nonempty file check; HTML smoke for Agent Chrome, Prompt Vault, Datapad, Command Palette, Window, and Modal specimen labels; `git status --porcelain=v1 -b`.
+- Commands run: Browser tool discovery attempt; local HTML smoke; headless Google Chrome screenshot with isolated user-data-dir; process cleanup for the isolated headless Chrome profile; `file /tmp/style-lab-cp163.png`; `sips -g pixelWidth -g pixelHeight /tmp/style-lab-cp163.png`; `stat -f "%z bytes" /tmp/style-lab-cp163.png`; Node `fetch` label smoke; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Browser deferred tool discovery returned no callable browser tool, so the smoke used an isolated headless Google Chrome profile instead of the user Chrome profile. The screenshot wrote `/tmp/style-lab-cp163.png` as a 1440 x 1800 nonempty PNG with 120277 bytes. Chrome emitted updater/log noise after writing the screenshot; the isolated `codex-style-lab-chrome-profile-cp163` process was cleaned up and the session exited. HTML smoke confirmed `Agent Chrome Specimen`, `Prompt Vault Specimen`, `Datapad Shell Specimen`, `Command Palette Specimen`, `Window Specimen`, and `Modal Specimen` are present. Git status remained clean before run-doc bookkeeping.
+- Rollback note: remove only this CP-163 run-doc entry and the temporary `/tmp/style-lab-cp163.png` screenshot if the visual-smoke bookkeeping must be removed.

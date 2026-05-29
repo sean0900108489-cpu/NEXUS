@@ -765,32 +765,38 @@ Run id: `20260529-163524+1000`
 - Reconciled `window-modal-recipe-system.md` and `style-lab-v1.md` with completed isolated visual specimen coverage for Modal, Window, Command Palette, Datapad shell, Prompt Vault surface, and Agent Window chrome.
 - Preserved that production visual migration for Datapad, Prompt Vault, Agent Window, modal behavior, and command palette behavior remains closed until a separate behavior-protected gate is opened.
 - Verified CP-162 with docs-only diff checks, status checks, and focused implementation-evidence/boundary review.
+- Created local checkpoint commit `4b9cde317426249cfa92085230c79facc6210bbc` for the Window Modal Specimen Suite Doc Reconciliation V1 unit.
+- Started `CP-163 - Style Lab Specimen Suite Visual Smoke V1` with source edits closed.
+- Ran `CP-163 - Style Lab Specimen Suite Visual Smoke V1`.
+- Confirmed local `/style-lab` responds with status 200.
+- Confirmed headless Chrome captured `/tmp/style-lab-cp163.png` as a 1440 x 1800 nonempty PNG with 120277 bytes.
+- Cleaned up the isolated headless Chrome profile process after Chrome wrote the screenshot and emitted updater/log noise.
+- Confirmed HTML smoke found `Agent Chrome Specimen`, `Prompt Vault Specimen`, `Datapad Shell Specimen`, `Command Palette Specimen`, `Window Specimen`, and `Modal Specimen`.
+- Confirmed git status remained clean before run-doc bookkeeping.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-162 - Window Modal Specimen Suite Doc Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-162 local commit; previous clean checkpoint commit is `6b0f834873b165db0eadc9efecf35128d1568053`.
+- Latest completed checkpoint: `CP-163 - Style Lab Specimen Suite Visual Smoke V1`.
+- Latest local checkpoint commit: pending CP-163 local commit; previous clean checkpoint commit is `4b9cde317426249cfa92085230c79facc6210bbc`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-162 verification: dirty only in CP-162 allowed docs/run-doc files.
-- Current stop reason: not stopped; CP-162 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-163 verification: dirty only in CP-163 allowed run-doc files.
+- Current stop reason: not stopped; CP-163 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-162 - Local checkpoint commit prep`.
+- `CP-163 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/window-modal-recipe-system.md`
-  - `docs/style-system/style-lab-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all `src/**` source/test edits, docs outside the listed phase docs and run directory, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all repo source/test/phase-doc edits outside the run directory, user Chrome profile mutation, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only these phase-doc reconciliation edits and this run-doc checkpoint update if the specimen-suite reconciliation must be removed.
+- Rollback: remove only this CP-163 run-doc entry and the temporary `/tmp/style-lab-cp163.png` screenshot if the visual-smoke bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-162 docs-only checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-163 source-closed visual-smoke checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

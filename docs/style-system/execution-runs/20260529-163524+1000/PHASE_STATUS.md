@@ -193,6 +193,7 @@ Run id: `20260529-163524+1000`
 | Style Lab Window Modal Adapter Coverage Row V1 | PASS | Isolated Style Lab Adapter row now displays reactFlow and windowModal coverage complete; no production wiring touched. |
 | Post Style Lab Window Modal Coverage Row Phase Gate | PASS | Full check passed on rerun after one recoverable backend runtime test timeout; side-effect scan and git diff check passed. |
 | Style System Phase Docs Reconciliation V1 | PASS | Reconciled compiler, runtime preview, Style Lab, and window/modal recipe docs with windowModal coverage and Preview/Active Vars 122 evidence. |
+| Style Lab Window Specimen Recipe Variables V1 | PASS | Isolated Window specimen now consumes `--nexus-recipe-window-*` variables with semantic fallbacks; no production wiring touched. |
 
 ## Current Gate
 
@@ -205,4 +206,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Style System Phase Docs Reconciliation V1 local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Style Lab Window Specimen Recipe Variables V1 local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

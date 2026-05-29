@@ -867,34 +867,37 @@ Run id: `20260529-163524+1000`
 - Reconciled `style-lab-v1.md` with the Adapter row `reactFlow:complete / windowModal:complete`, export metadata, and preview count evidence.
 - Reconciled `window-modal-recipe-system.md` with the pure adapter/compiler/preview pipeline while preserving no-production-migration boundaries.
 - Verified CP-177 with focused doc evidence scan, stale marker scan for current phase docs, `git diff --check`, and status check.
+- Created local checkpoint commit `f025131c4ac22c2f88a661c39cb878985995e3a2` for the Style System Phase Docs Reconciliation V1 unit.
+- Started `CP-178 - Style Lab Window Specimen Recipe Variables V1`.
+- Implemented `CP-178 - Style Lab Window Specimen Recipe Variables V1`.
+- The isolated Style Lab Window specimen now consumes `--nexus-recipe-window-surface`, `border`, `shadow`, `chrome-surface`, `chrome-border`, `chrome-text`, `body-surface`, and `handle-visual` with semantic fallbacks.
+- Confirmed style-engine pure logic, preview/compiler/governance/exchange, app routes, CSS, production components, `src/components/nexus/**`, store/sync/backend/Supabase, deploy files, and `exports/**` were not changed.
+- Verified CP-178 with source scan, targeted Style Lab lint, typecheck, build, local `/style-lab` smoke, side-effect scans, diff check, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-177 - Style System Phase Docs Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-177 local commit; previous clean checkpoint commit is `a60c96d1a645dfc4ad16815a4a98c618ee039792`.
+- Latest completed checkpoint: `CP-178 - Style Lab Window Specimen Recipe Variables V1`.
+- Latest local checkpoint commit: pending CP-178 local commit; previous clean checkpoint commit is `f025131c4ac22c2f88a661c39cb878985995e3a2`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-177 verification: dirty only in CP-177 allowed docs.
-- Current stop reason: not stopped; CP-177 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-178 verification: dirty only in CP-178 allowed Style Lab/run-doc files.
+- Current stop reason: not stopped; CP-178 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-177 - Local checkpoint commit prep`.
+- `CP-178 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/compiler-v1-contract.md`
-  - `docs/style-system/style-runtime-preview-v1.md`
-  - `docs/style-system/style-lab-v1.md`
-  - `docs/style-system/window-modal-recipe-system.md`
+  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all `src/**` files, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: style-engine pure logic, preview/compiler/governance/exchange files, app routes, CSS/global stylesheets, production components, `src/components/nexus/**`, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-177 docs/run-doc reconciliation update if it must be removed.
+- Rollback: revert only the CP-178 isolated Window specimen/run-doc update if it must be removed.
 
 ## Next
 
-1. Commit the CP-177 docs reconciliation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-178 implementation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

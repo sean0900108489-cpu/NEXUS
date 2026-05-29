@@ -167,6 +167,8 @@ const recommendedRecipeSlots = [
   ["dock", "border"],
 ] as const;
 
+const recommendedReactFlowAdapterSlots = ["minimap", "controls"] as const;
+
 export function validateNexusStyleManifestV1(
   candidate: unknown,
 ): NexusStyleValidationReportV1 {
@@ -490,6 +492,7 @@ function validateAdapters(value: unknown, report: MutableReport) {
       addError(report, "$.adapters.reactFlow", "style.invalidReactFlowAdapter", "reactFlow adapter must be an object.");
     } else {
       scanReactFlowAdapterKeys(value.reactFlow, "$.adapters.reactFlow", report);
+      validateReactFlowAdapterCompleteness(value.reactFlow, report);
     }
   }
 }
@@ -636,6 +639,24 @@ function validateRecommendedRecipeSlots(
       `$.recipes.${slot.join(".")}`,
       "style.incompleteRecipe",
       "Recommended visual recipe slot is missing.",
+    );
+  }
+}
+
+function validateReactFlowAdapterCompleteness(
+  value: Record<string, unknown>,
+  report: MutableReport,
+) {
+  for (const slot of recommendedReactFlowAdapterSlots) {
+    if (isRecord(value[slot])) {
+      continue;
+    }
+
+    addWarning(
+      report,
+      `$.adapters.reactFlow.${slot}`,
+      "style.incompleteReactFlowAdapter",
+      "Recommended React Flow visual adapter slot is missing.",
     );
   }
 }

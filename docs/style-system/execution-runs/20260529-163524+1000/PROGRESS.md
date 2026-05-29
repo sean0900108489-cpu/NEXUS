@@ -1345,30 +1345,36 @@ Run id: `20260529-163524+1000`
 - Ran full `npm run check`; lint, typecheck, 41 Vitest files / 332 tests, and build passed.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI class/style/onClick/onChange handlers, and existing React Flow/window-modal adapter forbidden-key registries and test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
+- Created local checkpoint commit `40a4a910ed8583caa2fb35e656a5a763a90d3b7c` for the Post Validator URL Guard Phase Gate.
+- Started `CP-286 - Pure Validator React Flow Visual Slot Warning V1`.
+- Added warning-only validator coverage for React Flow visual adapters that omit recommended `minimap` or `controls` visual slots.
+- Verified CP-286 with focused validator Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-285 - Post Validator URL Guard Phase Gate`.
-- Latest recorded checkpoint commit: `3755f5f9e5b2be266f2472b239de8fa6a8ae4234` for `CP-284 - Validator File Blob URL Doc Reconciliation V1`; CP-285 is being prepared for local commit.
+- Latest completed checkpoint: `CP-286 - Pure Validator React Flow Visual Slot Warning V1`.
+- Latest recorded checkpoint commit: `40a4a910ed8583caa2fb35e656a5a763a90d3b7c` for `CP-285 - Post Validator URL Guard Phase Gate`; CP-286 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-285 verification prep: dirty only in CP-285 allowed run-doc files.
-- Current stop reason: not stopped; CP-285 validator URL guard phase gate checkpoint is underway.
+- Confirmed current status after CP-286 verification prep: dirty only in CP-286 allowed validator source/test and run-doc files.
+- Current stop reason: not stopped; CP-286 React Flow visual slot warning checkpoint is underway.
 
 ## In Progress
 
-- `CP-285 - Local checkpoint commit prep`.
+- `CP-286 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, docs outside this run folder, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `npm run check`, targeted side-effect/import scan, targeted behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-285 run-doc update if this phase-gate bookkeeping must be removed.
+- Forbidden files: docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused validator Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-286 validator source/test/run-doc changes if this warning must be removed.
 
 ## Next
 
-1. Commit the CP-285 phase-gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-286 React Flow visual slot warning checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

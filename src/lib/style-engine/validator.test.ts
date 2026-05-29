@@ -639,6 +639,35 @@ describe("NEXUS Style Engine manifest validator", () => {
     );
   });
 
+  it("warns without rejecting when React Flow visual adapter slots are missing", () => {
+    const manifest = createSafeManifest({
+      adapters: {
+        reactFlow: {
+          background: {
+            color: "surface.panel",
+          },
+        },
+      },
+    });
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(true);
+    expect(report.warnings).toEqual(
+      expect.arrayContaining([
+        {
+          code: "style.incompleteReactFlowAdapter",
+          message: "Recommended React Flow visual adapter slot is missing.",
+          path: "$.adapters.reactFlow.controls",
+        },
+        {
+          code: "style.incompleteReactFlowAdapter",
+          message: "Recommended React Flow visual adapter slot is missing.",
+          path: "$.adapters.reactFlow.minimap",
+        },
+      ]),
+    );
+  });
+
   it("rejects workspace and backend top-level pollution", () => {
     const manifest = {
       ...createSafeManifest(),

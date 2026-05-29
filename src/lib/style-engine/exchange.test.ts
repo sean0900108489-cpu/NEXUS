@@ -85,6 +85,24 @@ describe("NEXUS Style Engine import/export normalization", () => {
     ]);
   });
 
+  it("refuses to create export packages for unsafe manifests", () => {
+    const manifest = createLegacyCyberpunkStyleManifestV1();
+
+    manifest.tokens.surface.app = "service_role=super-secret-value";
+
+    const result = createNexusStyleExportPackageV1(manifest);
+
+    expect(result.accepted).toBe(false);
+
+    if (result.accepted) {
+      throw new Error("Expected unsafe export package creation to fail.");
+    }
+
+    expect(result.review.rejectionCodes).toContain("style.forbidden.serviceRole");
+    expect("exportPackage" in result).toBe(false);
+    expect(JSON.stringify(result)).not.toContain("super-secret-value");
+  });
+
   it("rejects unsafe imports without returning the unsafe manifest", () => {
     const manifest = createLegacyCyberpunkStyleManifestV1();
 

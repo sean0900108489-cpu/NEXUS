@@ -267,6 +267,7 @@ Run id: `20260529-163524+1000`
 | Pure Validator VBScript URL Guard V1 | PASS | Added a pure validator guard and focused coverage for VBScript URL strings without echoing payload text. |
 | Validator VBScript URL Doc Reconciliation V1 | PASS | Reconciled manifest validator and manifest spec docs with VBScript URL guard coverage. |
 | Post URL Scheme Guard Phase Gate | PASS | Full check passed after data/VBScript URL guards and docs; side-effect scan and git diff check passed. |
+| Pure Validator External Platform Top-Level Coverage V1 | PASS | Added focused coverage for existing auth/env/secret/Supabase/Vercel/GitHub/database top-level pollution rejection. |
 
 ## Current Gate
 
@@ -279,4 +280,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post URL Scheme Guard Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Validator External Platform Top-Level Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, source implementation files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files except the focused validator test, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

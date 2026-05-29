@@ -318,6 +318,55 @@ describe("NEXUS Style Engine manifest validator", () => {
       ]),
     );
   });
+
+  it("rejects external platform top-level pollution", () => {
+    const manifest = {
+      ...createSafeManifest(),
+      authConfig: {},
+      databaseMigration: "hidden-platform-secret",
+      envVars: {},
+      githubRepo: "owner/repo",
+      secretStore: {},
+      supabaseProject: "project-ref",
+      vercelDeployment: "production",
+    };
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "style.unsafeTopLevelField",
+          path: "$.authConfig",
+        }),
+        expect.objectContaining({
+          code: "style.unsafeTopLevelField",
+          path: "$.databaseMigration",
+        }),
+        expect.objectContaining({
+          code: "style.unsafeTopLevelField",
+          path: "$.envVars",
+        }),
+        expect.objectContaining({
+          code: "style.unsafeTopLevelField",
+          path: "$.githubRepo",
+        }),
+        expect.objectContaining({
+          code: "style.unsafeTopLevelField",
+          path: "$.secretStore",
+        }),
+        expect.objectContaining({
+          code: "style.unsafeTopLevelField",
+          path: "$.supabaseProject",
+        }),
+        expect.objectContaining({
+          code: "style.unsafeTopLevelField",
+          path: "$.vercelDeployment",
+        }),
+      ]),
+    );
+    expect(JSON.stringify(report)).not.toContain("hidden-platform-secret");
+  });
 });
 
 function createSafeManifest(

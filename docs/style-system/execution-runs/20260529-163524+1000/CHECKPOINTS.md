@@ -4145,3 +4145,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 318 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, existing recipe/window adapter names, test fixtures, isolated Style Lab UI class/style/onClick handlers, and existing React Flow adapter/test coverage. No source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-251 run-doc update if the phase gate bookkeeping must be removed.
+
+## CP-252 - Pure Validator External Platform Top-Level Coverage V1
+
+- Unit: add focused validator coverage for existing unsafe top-level platform fields.
+- Allowed files:
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused validator Vitest; targeted lint for touched validator test; `npm run typecheck`; targeted side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run test -- --testTimeout 20000 src/lib/style-engine/validator.test.ts`; `npm run lint -- src/lib/style-engine/validator.test.ts`; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused validator Vitest passed 1 file / 18 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan only matched the new platform-pollution fixture strings and existing manifest window recipe names; behavior scan only matched existing recipe/React Flow behavior test fixtures. `git diff --check` passed and status showed only allowed CP-252 files.
+- Rollback note: revert only the CP-252 validator test/run-doc changes if this coverage must be removed.

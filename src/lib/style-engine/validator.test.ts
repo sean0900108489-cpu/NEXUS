@@ -158,6 +158,80 @@ describe("NEXUS Style Engine manifest validator", () => {
     );
   });
 
+  it("rejects invalid intent metadata and safety constraints", () => {
+    const manifest = createSafeManifest() as unknown as Record<string, unknown>;
+    manifest.intent = {
+      contrast: "low",
+      density: "crowded",
+      material: "glass",
+      mood: ["operational", ""],
+      motion: "chaotic",
+    };
+    manifest.constraints = {
+      allowBackendMutation: true,
+      allowDynamicTailwind: true,
+      allowJavaScript: true,
+      allowRawCss: true,
+      allowSyncMutation: true,
+      allowWorkspaceMutation: true,
+      maxCssVariableCount: Number.NaN,
+      protectedBehaviorClasses: "visual-boundary-list",
+    };
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toEqual(
+      expect.arrayContaining([
+        {
+          code: "style.invalidStringArray",
+          message: "Expected a non-empty string array.",
+          path: "$.intent.material",
+        },
+        {
+          code: "style.invalidStringArray",
+          message: "Expected a non-empty string array.",
+          path: "$.intent.mood",
+        },
+        {
+          code: "style.invalidDensity",
+          message: "density is invalid.",
+          path: "$.intent.density",
+        },
+        {
+          code: "style.invalidMotion",
+          message: "motion is invalid.",
+          path: "$.intent.motion",
+        },
+        {
+          code: "style.invalidContrast",
+          message: "contrast is invalid.",
+          path: "$.intent.contrast",
+        },
+        {
+          code: "style.invalidVariableLimit",
+          message: "maxCssVariableCount must be a positive finite number.",
+          path: "$.constraints.maxCssVariableCount",
+        },
+        {
+          code: "style.invalidConstraintFlag",
+          message: "Safety constraint flags must be explicitly false.",
+          path: "$.constraints.allowRawCss",
+        },
+        {
+          code: "style.invalidConstraintFlag",
+          message: "Safety constraint flags must be explicitly false.",
+          path: "$.constraints.allowWorkspaceMutation",
+        },
+        {
+          code: "style.invalidProtectedBehaviorClasses",
+          message: "protectedBehaviorClasses must be an array.",
+          path: "$.constraints.protectedBehaviorClasses",
+        },
+      ]),
+    );
+  });
+
   it("rejects CSS variable references outside approved namespaces", () => {
     const manifest = createSafeManifest({
       tokens: {

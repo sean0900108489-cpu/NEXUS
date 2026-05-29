@@ -209,6 +209,7 @@ Run id: `20260529-163524+1000`
 | Pure Preview Command Palette Recipe Variable Test V1 | PASS | Added pure preview coverage proving `recipes.commandPalette` feeds command palette preview variables independently from modal recipe slots. |
 | Pure Governance Window Modal Coverage Test V1 | PASS | Added pure governance/exchange assertions that `adapterCoverage.windowModal` remains complete. |
 | Pure Validator Command Palette Required Group Test V1 | PASS | Added pure validator coverage proving `recipes.commandPalette` is a required V1 recipe group. |
+| Post Pure Coverage Phase Gate | PASS | Full check passed after pure preview/governance/validator coverage additions; side-effect scan and git diff check passed. |
 
 ## Current Gate
 
@@ -221,4 +222,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Validator Command Palette Required Group Test local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post Pure Coverage Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

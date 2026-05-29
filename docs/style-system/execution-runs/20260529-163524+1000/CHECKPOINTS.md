@@ -2150,3 +2150,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Local HTML smoke found the text-only export markers `adapterCoverage` and `reactFlow:complete` in `/style-lab`. `git diff --check` passed and git status remained dirty only in CP-136 run docs.
 - Rollback note: revert only this CP-136 run-doc update if the smoke bookkeeping must be removed.
+
+## CP-137 - Style Lab Preview Variable Count Row V1
+
+- Unit: add a display-only governance row in isolated Style Lab showing the local preview patch variable count, including semantic, legacy, and graph adapter variables, without changing preview/apply behavior.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, pure compiler/preview/governance logic, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `git diff --check`; focused Vitest for `preview`, `governance`, and `exchange`; `npm run typecheck`; targeted lint for Style Lab and style-engine; `npm run build`; targeted side-effect/import scan; local smoke on `/style-lab` for the `Preview Vars` row.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/preview.test.ts src/lib/style-engine/governance.test.ts src/lib/style-engine/exchange.test.ts`; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/lib/style-engine`; `npm run build`; targeted side-effect/import scan; source-only side-effect/import scan excluding tests; local HTML smoke on `/style-lab`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 3 files and 11 tests; typecheck passed; targeted lint passed; `npm run build` passed with static `/style-lab` and the known edge-runtime warning only; `git diff --check` passed. Local HTML smoke found `Preview Vars 92`. Side-effect scans found only existing pure preview patch adapter variable emission, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import, graph behavior props, runtime provider logic change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
+- Rollback note: revert only the isolated Style Lab display row and this run-doc checkpoint update if the preview variable count row must be removed.

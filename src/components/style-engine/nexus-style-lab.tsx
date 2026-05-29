@@ -293,6 +293,9 @@ export function NexusStyleLab() {
   const compiledVariableCountLabel = compiled.accepted
     ? String(compiled.style.report.emittedVariableCount)
     : "blocked";
+  const previewVariableCountLabel = previewPatch
+    ? String(Object.keys(previewPatch.variables).length)
+    : "blocked";
   const intentProfileLabel = `${manifest.intent.contrast} / ${manifest.intent.density} / ${manifest.intent.motion}`;
   const sourceKindLabel = manifest.source?.kind ?? "unknown";
   const modeLabel = manifest.mode;
@@ -312,6 +315,7 @@ export function NexusStyleLab() {
         `${review.validation.errorCount}E / ${review.validation.warningCount}W`,
       ],
       ["Compiled Vars", compiledVariableCountLabel],
+      ["Preview Vars", previewVariableCountLabel],
       ["Manifest Checksum", review.checksums.normalizedManifest ?? "n/a"],
       ["Compiled Checksum", review.checksums.compiledOutput ?? "n/a"],
       ["Runtime Target", "scoped-provider-v1"],
@@ -331,6 +335,7 @@ export function NexusStyleLab() {
       compiledVariableCountLabel,
       intentProfileLabel,
       modeLabel,
+      previewVariableCountLabel,
       sourceKindLabel,
       review,
     ],

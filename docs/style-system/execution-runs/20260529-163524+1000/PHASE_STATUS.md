@@ -76,6 +76,7 @@ Run id: `20260529-163524+1000`
 | Post Import UI Phase Gate | PASS | Full check passed on rerun after one recoverable unrelated backend test timeout; side-effect scan and git diff check passed. |
 | Style Lab Primitive Specimen Panel V1 | PASS | Added specimen-only panel/button/input/badge preview inside isolated Style Lab; focused checks, build, side-effect scan, and Browser smoke passed. |
 | Style Lab Governance Report Panel V1 | PASS | Added local review state, permissions, issue, and checksum display inside isolated Style Lab; focused checks, build, side-effect scan, and Browser smoke passed. |
+| Post Specimen Governance Phase Gate | PASS | Full check passed after primitive specimen and governance report panels; side-effect scan and git diff check passed. |
 
 ## Current Gate
 
@@ -88,4 +89,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-CP-060 is ready for a local checkpoint commit. Production components, app shell, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, `src/components/nexus/nexus-ops.tsx`, and React Flow behavior remain closed.
+CP-061 is ready for a local checkpoint commit. Production components, app shell, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, `src/components/nexus/nexus-ops.tsx`, and React Flow behavior remain closed.

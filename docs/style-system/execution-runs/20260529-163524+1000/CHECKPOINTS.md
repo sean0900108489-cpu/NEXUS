@@ -910,3 +910,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused Vitest passed 2 files and 9 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only; side-effect scan returned no matches; Browser smoke confirmed Governance Report, compatibility/permission/checksum rows, expected high-contrast warning code, and severe browser log count is zero.
 - Rollback note: revert only `src/components/style-engine/nexus-style-lab.tsx` and this run-doc checkpoint update if the governance report panel unit must be removed.
+
+## CP-061 - Post Specimen Governance Phase Gate
+
+- Unit: run broader local verification after the isolated Style Lab primitive specimen and governance report panels.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source edits during the gate, `exports/**`, Supabase/database files, deploy/config files, package files, remote push, branch merge, store/sync/backend files, `src/components/nexus/nexus-ops.tsx`, and React Flow behavior files.
+- Verification plan: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run check`; targeted side-effect/import scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Full `npm run check` passed lint, typecheck, 37 Vitest files / 271 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scan only matched validator forbidden-string detector patterns; no live store/sync/backend/Supabase import or mutation path was found. `git diff --check` passed.
+- Rollback note: no source rollback for the gate itself. If the gate exposes a regression, fix only the responsible isolated Style Lab unit and rerun; stop if fixing would cross a forbidden boundary.

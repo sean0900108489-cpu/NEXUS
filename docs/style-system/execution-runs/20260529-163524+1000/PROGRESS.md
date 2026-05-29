@@ -332,31 +332,36 @@ Run id: `20260529-163524+1000`
 - Added a display-only apply reason row inside the isolated Style Lab governance report.
 - Kept the row derived from existing local governance permission reason codes; no apply action, save/persist path, runtime provider change, store, sync, backend, Supabase, app shell, CSS/global style, React Flow behavior, deploy config, or `exports/**` path was touched.
 - Verified CP-089 with focused import/governance/intent-manifest tests, typecheck, targeted lint, build, side-effect scans, and headless Chrome dump-DOM smoke for the apply reason row.
+- Created local checkpoint commit `95d4eb60c3e6266572991685d29ef2e79428bd2e` for the Style Lab Apply Reason Row V1 unit.
+- Started `CP-090 - Post Apply Reason Phase Gate` with source edits closed.
+- Ran `CP-090 - Post Apply Reason Phase Gate`.
+- Confirmed full `npm run check` passed: lint, typecheck, 39 Vitest files / 284 tests, and build.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live apply, save/persist, store/sync/backend/Supabase import or mutation path, React Flow behavior path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-089 - Style Lab Apply Reason Row V1`.
-- Latest local checkpoint commit: pending CP-089 local commit; previous clean checkpoint commit is `038c71912a8a1ec35ce9e05894f42c1df55c5ceb`.
+- Latest completed checkpoint: `CP-090 - Post Apply Reason Phase Gate`.
+- Latest local checkpoint commit: pending CP-090 local commit; previous clean checkpoint commit is `95d4eb60c3e6266572991685d29ef2e79428bd2e`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status before CP-089 commit prep: dirty only in CP-089 allowed files.
-- Current stop reason: not stopped; CP-089 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status before CP-090 commit prep: dirty only in CP-090 allowed files.
+- Current stop reason: not stopped; CP-090 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-089 - Local checkpoint commit prep`.
+- `CP-090 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `git diff --check`; focused import/governance/intent-manifest tests; `npm run typecheck`; targeted lint for the Style Lab component and style-engine; `npm run build`; targeted side-effect scan; headless Chrome smoke on `/style-lab`.
-- Rollback: revert only `src/components/style-engine/nexus-style-lab.tsx` and this unit's run-doc edits.
+- Forbidden files: all source edits during the gate, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Rollback: revert only this CP-090 run-doc update if the phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-089 local checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-090 docs-only checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

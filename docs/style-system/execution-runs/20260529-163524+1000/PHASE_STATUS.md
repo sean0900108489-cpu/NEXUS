@@ -275,6 +275,7 @@ Run id: `20260529-163524+1000`
 | Pure Validator Source Metadata Coverage V1 | PASS | Added focused coverage for invalid source kind/reference shape and payload redaction. |
 | Validator Source Metadata Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with source metadata shape coverage. |
 | Pure Validator Identity Metadata Coverage V1 | PASS | Added focused coverage for invalid schema, identity, description, author, and mode metadata. |
+| Validator Identity Metadata Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with identity metadata coverage. |
 
 ## Current Gate
 
@@ -287,4 +288,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Validator Identity Metadata Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, source implementation files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files except the focused validator test, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Validator Identity Metadata Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

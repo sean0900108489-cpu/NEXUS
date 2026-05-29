@@ -31,9 +31,15 @@ import { useNexusStyleRuntimeV1 } from "@/components/style-engine/nexus-style-ru
 
 type PreviewState = "idle" | "previewing" | "reverted";
 type ExportView = "manifest" | "package" | "review";
+type VisibleIssueSeverity = "error" | "question" | "warning";
 type BriefDraftResult = {
   draft: NexusStyleIntentManifestDraftResultV1 | null;
   intent: NexusStyleIntentNormalizerResultV1;
+};
+type VisibleStyleIssue = {
+  code: string;
+  path: string;
+  severity: VisibleIssueSeverity;
 };
 
 const maxVisibleImportIssues = 3;
@@ -64,6 +70,17 @@ const exportViews: Array<{ id: ExportView; label: string }> = [
   { id: "manifest", label: "Manifest" },
   { id: "review", label: "Review" },
 ];
+
+function toVisibleStyleIssue(
+  issue: { code: string; path: string },
+  severity: VisibleIssueSeverity,
+): VisibleStyleIssue {
+  return {
+    code: issue.code,
+    path: issue.path,
+    severity,
+  };
+}
 
 const surfaceStyle = {
   background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
@@ -204,7 +221,9 @@ export function NexusStyleLab() {
       return [];
     }
 
-    return importResult.errors.slice(0, maxVisibleImportIssues);
+    return importResult.errors
+      .map((issue) => toVisibleStyleIssue(issue, "error"))
+      .slice(0, maxVisibleImportIssues);
   }, [importResult]);
   const importStatus = importResult
     ? importResult.accepted
@@ -217,11 +236,22 @@ export function NexusStyleLab() {
     }
 
     const intentIssues = briefResult.intent.accepted
-      ? [...briefResult.intent.warnings, ...briefResult.intent.questions]
-      : briefResult.intent.errors;
+      ? [
+          ...briefResult.intent.warnings.map((issue) =>
+            toVisibleStyleIssue(issue, "warning"),
+          ),
+          ...briefResult.intent.questions.map((issue) =>
+            toVisibleStyleIssue(issue, "question"),
+          ),
+        ]
+      : briefResult.intent.errors.map((issue) =>
+          toVisibleStyleIssue(issue, "error"),
+        );
     const draftIssues =
       briefResult.draft && !briefResult.draft.accepted
-        ? briefResult.draft.errors
+        ? briefResult.draft.errors.map((issue) =>
+            toVisibleStyleIssue(issue, "error"),
+          )
         : [];
 
     return [...draftIssues, ...intentIssues].slice(0, maxVisibleImportIssues);
@@ -244,8 +274,12 @@ export function NexusStyleLab() {
   const governanceIssues = useMemo(
     () =>
       [
-        ...review.validation.errors,
-        ...review.validation.warnings,
+        ...review.validation.errors.map((issue) =>
+          toVisibleStyleIssue(issue, "error"),
+        ),
+        ...review.validation.warnings.map((issue) =>
+          toVisibleStyleIssue(issue, "warning"),
+        ),
       ].slice(0, maxVisibleImportIssues),
     [review],
   );
@@ -666,6 +700,9 @@ export function NexusStyleLab() {
                             key={`${issue.path}:${issue.code}`}
                             className="min-w-0 border border-white/10 bg-white/[0.03] p-2"
                           >
+                            <div className="mb-1 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                              {issue.severity}
+                            </div>
                             <div className="truncate font-mono text-[10px] text-amber-100">
                               {issue.code}
                             </div>
@@ -784,7 +821,7 @@ export function NexusStyleLab() {
                             key={`${issue.path}:${issue.code}`}
                             className="truncate font-mono text-[10px] text-rose-200"
                           >
-                            {issue.path} / {issue.code}
+                            {issue.severity} / {issue.path} / {issue.code}
                           </div>
                         ))}
                       </div>
@@ -851,7 +888,7 @@ export function NexusStyleLab() {
                           key={`${issue.path}:${issue.code}`}
                           className="truncate font-mono text-[10px] text-amber-100"
                         >
-                          {issue.path} / {issue.code}
+                          {issue.severity} / {issue.path} / {issue.code}
                         </div>
                       ))}
                     </div>

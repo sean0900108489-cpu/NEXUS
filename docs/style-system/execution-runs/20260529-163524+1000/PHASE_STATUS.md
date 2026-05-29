@@ -96,6 +96,7 @@ Run id: `20260529-163524+1000`
 | Post Brief Guard Phase Gate | PASS | Full check passed after the rejected-brief guard; side-effect scan and git diff check passed. |
 | Style Lab Preview Block Reason V1 | PASS | Surfaced local preview block reason in isolated Style Lab; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
 | Post Preview Block Reason Phase Gate | PASS | Full check passed after preview block reason; side-effect scan and git diff check passed. |
+| Style Lab Issue Severity Labels V1 | PASS | Added display-only severity labels to Style Lab issue lists; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
 
 ## Current Gate
 

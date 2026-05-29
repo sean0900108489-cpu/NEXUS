@@ -88,6 +88,7 @@ Run id: `20260529-163524+1000`
 | Style Lab Export View Selector V1 | PASS | Added display-only Package/Manifest/Review export text selector inside isolated Style Lab; focused checks, build, side-effect scan, and Browser smoke passed. |
 | Post Lab Guard Export Phase Gate | PASS | Full check passed after rejected-draft guard and export selector; side-effect scan and git diff check passed. |
 | Pure Style Intent Normalizer V1 | PASS | Added pure draft-only intent normalization for inert style brief text; focused tests, typecheck, lint, diff check, and side-effect scan passed. |
+| Pure Intent Manifest Draft V1 | PASS | Added pure manifest draft helper from normalized intent; focused tests, typecheck, lint, diff check, and side-effect scan passed. |
 
 ## Current Gate
 
@@ -100,4 +101,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-CP-072 passed local gates and is ready for a local checkpoint commit. UI/app components, runtime provider, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+CP-073 passed local gates and is ready for a local checkpoint commit. UI/app components, runtime provider, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

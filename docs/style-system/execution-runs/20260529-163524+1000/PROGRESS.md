@@ -232,33 +232,38 @@ Run id: `20260529-163524+1000`
 - Added fail-closed handling for empty, oversized, and secret-like text; unsafe instructions are omitted into safety warnings without echoing source text.
 - Kept the normalizer from producing manifests, CSS, runtime preview, apply/save/persist behavior, DOM access, storage, fetch, backend, Supabase, or React Flow behavior.
 - Verified CP-072 with diff check, focused intent-normalizer/validator/governance tests, side-effect scan, typecheck, and isolated style-engine lint.
+- Created local checkpoint commit `0004ca3f8b4b5f8ec3fe10d86c3a938619a0c721` for the Pure Style Intent Normalizer V1 unit.
+- Implemented `CP-073 - Pure Intent Manifest Draft V1`.
+- Added a pure helper that turns an accepted normalized intent into a validated manifest draft by cloning a built-in preset and overlaying safe intent metadata.
+- Kept the draft helper from inventing executable style, touching runtime/UI, previewing, applying, saving, persisting, or mutating backend/Supabase/React Flow behavior.
+- Verified CP-073 with diff check, focused intent-normalizer/intent-manifest/compiler/validator tests, side-effect scan, typecheck, and isolated style-engine lint.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-072 - Pure Style Intent Normalizer V1`.
-- Latest local checkpoint commit before the CP-072 commit: `42958e6d7fc322d78289f4e294116964e6b59912`.
+- Latest completed checkpoint: `CP-073 - Pure Intent Manifest Draft V1`.
+- Latest local checkpoint commit before the CP-073 commit: `0004ca3f8b4b5f8ec3fe10d86c3a938619a0c721`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
 - Confirmed current status during state assessment: clean before this run-doc reconciliation.
 - Current stop reason: normal context/turn checkpoint followed by explicit user-requested state assessment; not an error stop.
 
 ## In Progress
 
-- Preparing the CP-072 local checkpoint commit.
+- Preparing the CP-073 local checkpoint commit.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/intent-normalizer.ts`
-  - `src/lib/style-engine/intent-normalizer.test.ts`
+  - `src/lib/style-engine/intent-manifest.ts`
+  - `src/lib/style-engine/intent-manifest.test.ts`
   - `src/lib/style-engine/index.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: UI/app components, runtime provider files, CSS/global styles, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
-- Verification: `git diff --check`; focused intent-normalizer/validator/governance tests; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan.
-- Rollback: remove only the new intent normalizer files, the index export, and this unit's run-doc edits.
+- Verification: `git diff --check`; focused intent-normalizer/intent-manifest/compiler/validator tests; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan.
+- Rollback: remove only the new intent manifest draft files, the index export, and this unit's run-doc edits.
 
 ## Next
 
-1. Commit the CP-072 local checkpoint.
+1. Commit the CP-073 local checkpoint.
 2. Confirm branch, HEAD, and clean status.
 3. Select the next isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

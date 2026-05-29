@@ -8,6 +8,7 @@ export * from "./preview";
 export * from "./governance";
 export * from "./exchange";
 export * from "./import-text";
+export * from "./intent-manifest";
 export * from "./intent-normalizer";
 export * from "./runtime-target";
 export * from "./runtime-controller";

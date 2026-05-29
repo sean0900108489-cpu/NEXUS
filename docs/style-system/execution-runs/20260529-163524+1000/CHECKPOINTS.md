@@ -1110,3 +1110,24 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. First focused test run exposed a recoverable `.env` detector regex miss; the detector was tightened and the rerun passed 3 files and 14 tests. Typecheck passed; isolated style-engine lint passed; `git diff --check` passed. Side-effect scan found only validator/normalizer detector strings and test-only cleanup helpers; no DOM, storage, fetch, store/sync/backend/Supabase import or mutation path, React Flow behavior path, deploy path, or `exports/**` path was found.
 - Rollback note: remove only `src/lib/style-engine/intent-normalizer.ts`, `src/lib/style-engine/intent-normalizer.test.ts`, the index export, and this run-doc checkpoint update if the normalizer unit must be removed.
+
+## CP-073 - Pure Intent Manifest Draft V1
+
+- Unit: add a pure helper that converts an accepted normalized intent into a validated manifest draft by cloning a built-in preset and overlaying safe intent metadata.
+- Allowed files:
+  - `src/lib/style-engine/intent-manifest.ts`
+  - `src/lib/style-engine/intent-manifest.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: UI/app components, runtime provider files, CSS/global styles, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
+- Verification plan: `git diff --check`; `npm run test -- src/lib/style-engine/intent-normalizer.test.ts src/lib/style-engine/intent-manifest.test.ts src/lib/style-engine/compiler.test.ts src/lib/style-engine/validator.test.ts`; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/intent-normalizer.test.ts src/lib/style-engine/intent-manifest.test.ts src/lib/style-engine/compiler.test.ts src/lib/style-engine/validator.test.ts`; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan.
+- Changed files:
+  - `src/lib/style-engine/intent-manifest.ts`
+  - `src/lib/style-engine/intent-manifest.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 4 files and 20 tests; typecheck passed; isolated style-engine lint passed; `git diff --check` passed. Side-effect scan found only validator/normalizer detector strings and test-only cleanup helpers; no DOM, storage, fetch, store/sync/backend/Supabase import or mutation path, React Flow behavior path, deploy path, or `exports/**` path was found.
+- Rollback note: remove only `src/lib/style-engine/intent-manifest.ts`, `src/lib/style-engine/intent-manifest.test.ts`, the index export, and this run-doc checkpoint update if the draft helper unit must be removed.

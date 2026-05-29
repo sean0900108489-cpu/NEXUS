@@ -45,6 +45,25 @@ describe("NEXUS Style Engine manifest validator", () => {
     expect(JSON.stringify(report)).not.toContain("example.test");
   });
 
+  it("rejects CSS variable references outside approved namespaces", () => {
+    const manifest = createSafeManifest({
+      tokens: {
+        surface: {
+          app: "var(--secret-token)",
+        },
+      },
+    });
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toContainEqual({
+      code: "style.forbidden.cssVariableReference",
+      message: "Manifest contains a forbidden string value.",
+      path: "$.tokens.surface.app",
+    });
+  });
+
   it("rejects recipe behavior fields", () => {
     const manifest = createSafeManifest({
       recipes: {

@@ -3597,3 +3597,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found updated runtime preview smoke wording and CP-219 checkpoint context. Stale wording scan returned no matches for old `When V5 runtime code exists`, doc-only pass, or LEGO micro-controls wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
 - Rollback note: revert only the CP-219 docs/run-doc reconciliation if this wording must be removed.
+
+## CP-220 - Pure Validator CSS Variable Reference Guard V1
+
+- Unit: add a pure validator guard that rejects token values referencing CSS custom properties outside approved NEXUS/legacy namespaces.
+- Allowed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused validator/compiler Vitest; targeted lint for validator files; `npm run typecheck`; targeted side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `npm run test -- --testTimeout 20000 src/lib/style-engine/validator.test.ts src/lib/style-engine/compiler.test.ts`; `npm run lint -- src/lib/style-engine/validator.ts src/lib/style-engine/validator.test.ts`; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused validator/compiler Vitest passed 2 files / 18 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only existing validator safety detector strings and test-only unsafe payload strings for Supabase/deploy/themeConfig. Behavior scan found only the existing validator `zIndex` forbidden-key registry and React Flow behavior test fixture/assertion strings. `git diff --check` passed.
+- Rollback note: revert only the CP-220 validator/test/run-doc changes if the CSS variable reference guard must be removed.

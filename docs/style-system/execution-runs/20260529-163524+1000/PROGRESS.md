@@ -1072,31 +1072,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-219 - Runtime Preview Browser Smoke Doc Reconciliation V1`.
 - Reconciled `style-runtime-preview-v1.md` with existing runtime provider/Style Lab preview code and prior source-closed Preview/Revert/Refresh smoke evidence.
 - Verified CP-219 with focused runtime-smoke evidence scan, stale runtime-smoke wording scan, `git diff --check`, and status check.
+- Created local checkpoint commit `01767ff6b7f3b2c012b223ae8275002dabfb27bb` for the Runtime Preview Browser Smoke Doc Reconciliation V1 unit.
+- Started `CP-220 - Pure Validator CSS Variable Reference Guard V1`.
+- Added a pure validator guard for CSS variable references outside approved NEXUS and legacy CSS variable namespaces.
+- Verified CP-220 with focused validator/compiler Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-219 - Runtime Preview Browser Smoke Doc Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-219 local commit; previous clean checkpoint commit is `454502243a0bfc906e9265ea6db7e3fea5fabe24`.
+- Latest completed checkpoint: `CP-220 - Pure Validator CSS Variable Reference Guard V1`.
+- Latest local checkpoint commit: pending CP-220 local commit; previous clean checkpoint commit is `01767ff6b7f3b2c012b223ae8275002dabfb27bb`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-219 verification: dirty only in CP-219 allowed docs and run-doc files.
-- Current stop reason: not stopped; CP-219 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-220 verification: dirty only in CP-220 allowed validator/test/run-doc files.
+- Current stop reason: not stopped; CP-220 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-219 - Local checkpoint commit prep`.
+- `CP-220 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-runtime-preview-v1.md`
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits, UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: compiler/governance/exchange/runtime/UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-219 docs/run-doc reconciliation if this wording must be removed.
+- Rollback: revert only the CP-220 validator/test/run-doc changes if the CSS variable reference guard must be removed.
 
 ## Next
 
-1. Commit the CP-219 docs checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-220 validator checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

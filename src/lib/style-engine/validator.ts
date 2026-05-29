@@ -44,6 +44,11 @@ const forbiddenStringPatterns: Array<{ code: string; pattern: RegExp }> = [
   { code: "style.forbidden.cssBlock", pattern: /[{}]/ },
   { code: "style.forbidden.cssDeclarationList", pattern: /;\s*[-_a-z]+\s*:/i },
   { code: "style.forbidden.url", pattern: /\burl\s*\(/i },
+  {
+    code: "style.forbidden.cssVariableReference",
+    pattern:
+      /\bvar\(\s*--(?!(?:nexus-[a-z0-9-]+|bg-base|panel-bg|text-main|theme-primary|border-subtle|shadow-panel|surface-radius)\b)[^)]+\)/i,
+  },
   { code: "style.forbidden.envFile", pattern: /\.env\b/i },
   { code: "style.forbidden.processEnv", pattern: /process\.env/i },
   {

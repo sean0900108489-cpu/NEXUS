@@ -155,6 +155,7 @@ Run id: `20260529-163524+1000`
 | Style Lab Preview Variable Count Row V1 | PASS | Added display-only Preview Vars row to isolated Style Lab; focused checks, build, side-effect scan, and local smoke passed. |
 | Post Preview Variable Count Row Phase Gate | PASS | Full check passed after the Preview Vars row; side-effect scan and git diff check passed. |
 | Pure Governance Preview Variable Count Metadata V1 | PASS | Governance and exchange reviews now expose preview variable count metadata; focused checks, build, side-effect scan, and git diff check passed. |
+| Post Preview Variable Count Metadata Phase Gate | PASS | Full check passed after preview variable count metadata; side-effect scan and git diff check passed. |
 
 ## Current Gate
 
@@ -167,4 +168,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Governance Preview Variable Count Metadata V1 local checkpoint prep. Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post Preview Variable Count Metadata Phase Gate local checkpoint prep with source edits closed. Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

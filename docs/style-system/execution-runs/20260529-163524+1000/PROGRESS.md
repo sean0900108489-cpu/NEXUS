@@ -638,30 +638,39 @@ Run id: `20260529-163524+1000`
 - Started `CP-141 - Style Lab Export Preview Variable Count Smoke V1` with source edits closed.
 - Ran `CP-141 - Style Lab Export Preview Variable Count Smoke V1`.
 - Confirmed local `/style-lab` text-only export output contains `"previewVariableCount": 92` from the safe exchange review.
+- Created local checkpoint commit `d6b70ec5b5e7f49194a18885cc31e12b16df5f01` for the Style Lab Export Preview Variable Count Smoke V1 unit.
+- Started `CP-142 - Style System Phase Doc Status Reconciliation V1` with source edits closed.
+- Implemented `CP-142 - Style System Phase Doc Status Reconciliation V1`.
+- Reconciled `compiler-v1-contract.md`, `react-flow-adapter-v1.md`, and `style-lab-v1.md` status/evidence with the current local implementation checkpoints.
+- Preserved safety boundaries in those docs: compiler remains pure/local-only, React Flow adapter remains isolated from production graph/global CSS, and Style Lab remains local-only without workspace sync/backend/Supabase/persistence/export-file behavior.
+- Verified CP-142 with docs-only diff checks, status checks, and focused status/evidence review.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-141 - Style Lab Export Preview Variable Count Smoke V1`.
-- Latest local checkpoint commit: pending CP-141 local commit; previous clean checkpoint commit is `747fb99298bdbafe07a711a93e0942af32b57565`.
+- Latest completed checkpoint: `CP-142 - Style System Phase Doc Status Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-142 local commit; previous clean checkpoint commit is `d6b70ec5b5e7f49194a18885cc31e12b16df5f01`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-141 verification: dirty only in CP-141 run docs.
-- Current stop reason: not stopped; CP-141 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-142 verification: dirty only in CP-142 allowed docs.
+- Current stop reason: not stopped; CP-142 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-141 - Local checkpoint commit prep`.
+- `CP-142 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/react-flow-adapter-v1.md`
+  - `docs/style-system/style-lab-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source edits during the smoke, Style Lab UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, governance/exchange/compiler/preview changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test/package/deploy/database edits, Style Lab UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, store/sync/backend/Supabase files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only this CP-141 run-doc update if the smoke bookkeeping must be removed.
+- Rollback: revert only the phase-doc reconciliation edits and this unit's run-doc edits.
 
 ## Next
 
-1. Commit the CP-141 docs-only smoke record if final diff/status checks remain clean by scope.
+1. Commit the CP-142 docs-only reconciliation record if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

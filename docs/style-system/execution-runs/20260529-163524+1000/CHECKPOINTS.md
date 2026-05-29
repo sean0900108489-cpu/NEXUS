@@ -2235,3 +2235,24 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Local HTML smoke found the text-only export marker `"previewVariableCount": 92` in `/style-lab`. `git diff --check` passed and git status remained dirty only in CP-141 run docs.
 - Rollback note: revert only this CP-141 run-doc update if the smoke bookkeeping must be removed.
+
+## CP-142 - Style System Phase Doc Status Reconciliation V1
+
+- Unit: reconcile phase document status lines and implementation evidence for the compiler, React Flow adapter, and Style Lab docs after the local implementation checkpoints advanced past documentation-only state.
+- Allowed files:
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/react-flow-adapter-v1.md`
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test/package/deploy/database edits, Style Lab UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, store/sync/backend/Supabase files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `git diff --check`; review changed docs for accurate checkpoint references and preserved safety boundaries; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `git diff --check`; `rg -n "Status:|Implementation Evidence|CP-129|CP-132|workspace\\.themeConfig|Production|No production" docs/style-system/compiler-v1-contract.md docs/style-system/react-flow-adapter-v1.md docs/style-system/style-lab-v1.md`; `git status --porcelain=v1 -b`; `git diff --stat`.
+- Changed files:
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/react-flow-adapter-v1.md`
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. `git diff --check` passed. Reviewed changed docs for current implementation evidence and preserved safety boundaries: compiler remains pure and local-only, React Flow adapter remains isolated from production graph/global CSS, and Style Lab remains local-only without workspace sync/backend/Supabase/persistence/export-file behavior.
+- Rollback note: revert only these phase-doc reconciliation edits and this run-doc checkpoint update if the reconciliation must be removed.

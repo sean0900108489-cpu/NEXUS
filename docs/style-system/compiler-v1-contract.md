@@ -2,7 +2,14 @@
 
 Phase: V4 - Pure Compiler
 Run: `docs/style-system/execution-runs/20260529-163524+1000`
-Status: documentation-only compiler contract. No compiler code implemented.
+Status: partially implemented pure compiler contract. Current implementation is local-only and side-effect-free.
+
+## Implementation Evidence
+
+- `CP-129 - Pure Compiler React Flow Adapter Output V1` made the pure compiler emit deterministic React Flow visual adapter output and report `adapterCoverage.reactFlow` as `complete`.
+- `CP-130 - Post Compiler React Flow Adapter Output Phase Gate` passed full local verification after that compiler change.
+- Current implementation remains pure data output: no DOM writes, store writes, sync, backend, Supabase, deployment, or `exports/**` paths are part of compiler execution.
+- Production component migration and durable persistence remain outside this compiler contract.
 
 ## 0. Purpose
 
@@ -57,7 +64,7 @@ The compiler may not receive:
 
 ## 2. Output Shape
 
-Future TypeScript direction, not implemented in this phase:
+Implemented TypeScript direction:
 
 ```ts
 type NexusCompiledStyleV1 = {

@@ -2,7 +2,14 @@
 
 Phase: V11 - Style Lab
 Run: `docs/style-system/execution-runs/20260529-163524+1000`
-Status: documentation-only lab design. No UI code implemented.
+Status: partially implemented isolated local Style Lab. No production app shell or persistence integration.
+
+## Implementation Evidence
+
+- `/style-lab` is an isolated local route with validation, compiled token preview, comparison, export text views, local preview/revert controls, brief-to-draft flow, graph specimen, and governance rows.
+- Recent checkpoints added adapter coverage, preview variable counts, and text-only export/review metadata visibility without adding save/download/clipboard/backend persistence.
+- Style Lab state remains local to the route and scoped runtime provider; it does not enter `workspace.themeConfig`, workspace sync, backend routes, Supabase, or `workspace_state_entities`.
+- Production `nexus-ops.tsx`, production React Flow behavior, global CSS, deploy config, and `exports/**` remain outside the Style Lab implementation.
 
 ## 0. Purpose
 

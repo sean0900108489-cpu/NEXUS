@@ -2,7 +2,15 @@
 
 Phase: V10 - React Flow Adapter V1
 Run: `docs/style-system/execution-runs/20260529-163524+1000`
-Status: documentation-only adapter contract. No graph code or CSS changed.
+Status: partially implemented pure adapter contract. Production graph code and global CSS remain unchanged.
+
+## Implementation Evidence
+
+- `CP-120` through `CP-125` added the pure adapter shape, manifest mapping, graph-scoped CSS variable emitter, and phase gates.
+- `CP-126` through `CP-128` applied adapter variables only to the isolated Style Lab graph specimen and smoke-tested preset switching.
+- `CP-129` through `CP-131` connected adapter output to the pure compiler and verified Style Lab governance/export visibility.
+- `CP-132` through `CP-141` carried graph adapter variables and review metadata through the local preview/export boundary.
+- No production `ReactFlow` props, graph behavior handlers, global React Flow CSS, workspace sync, backend, Supabase, deploy, or `exports/**` paths were changed by these adapter units.
 
 ## 0. Purpose
 
@@ -13,7 +21,7 @@ without controlling graph behavior.
 
 ## 1. Inputs
 
-Future adapter compiler may receive:
+Adapter compiler may receive:
 
 - validated manifest
 - style contract registry
@@ -33,7 +41,7 @@ It may not receive:
 
 ## 2. Adapter Output Shape
 
-Future TypeScript direction, not implemented in this phase:
+Implemented TypeScript direction:
 
 ```ts
 type NexusReactFlowStyleAdapterV1 = {

@@ -1059,31 +1059,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-216 - Validator Secondary Contrast Doc Reconciliation V1`.
 - Reconciled `manifest-validator-rules.md` with CP-215 secondary text contrast validation.
 - Verified CP-216 with focused evidence scan, stale primary-only accessibility wording scan, `git diff --check`, and status check.
+- Created local checkpoint commit `5b36a882c72311bee4ce416ab4c5702aa604f486` for the Validator Secondary Contrast Doc Reconciliation V1 unit.
+- Started `CP-217 - Post Secondary Contrast Phase Gate` with source edits closed.
+- Ran full `npm run check`; lint, typecheck, 41 Vitest files / 307 tests, and build passed.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries/assertions, and the window/modal recipe adapter forbidden behavior key registry/assertions; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-216 - Validator Secondary Contrast Doc Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-216 local commit; previous clean checkpoint commit is `ea7031e8efc5f0d4e605d884ca2fbc07c3665704`.
+- Latest completed checkpoint: `CP-217 - Post Secondary Contrast Phase Gate`.
+- Latest local checkpoint commit: pending CP-217 local commit; previous clean checkpoint commit is `5b36a882c72311bee4ce416ab4c5702aa604f486`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-216 verification: dirty only in CP-216 allowed docs and run-doc files.
-- Current stop reason: not stopped; CP-216 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-217 verification: clean before run-doc bookkeeping; dirty only in CP-217 run-doc files after bookkeeping.
+- Current stop reason: not stopped; CP-217 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-216 - Local checkpoint commit prep`.
+- `CP-217 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits, UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test/docs outside this run folder, UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-216 docs/run-doc reconciliation if this wording must be removed.
+- Rollback: revert only the CP-217 run-doc bookkeeping if this gate record must be removed.
 
 ## Next
 
-1. Commit the CP-216 docs checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-217 phase-gate checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

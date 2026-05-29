@@ -2305,3 +2305,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. `git diff --check` passed. Focused doc scan confirmed the runtime preview doc now records pure runtime target/controller implementation evidence while keeping app-level provider, production route integration, workspace sync, backend, Supabase/database, and persistence integration explicitly out of scope. No source, test, package, deploy, database, or `exports/**` files were changed.
 - Rollback note: revert only the runtime preview doc reconciliation and this run-doc checkpoint update if the reconciliation must be removed.
+
+## CP-146 - Runtime Preview Doc Provider Evidence Repair V1
+
+- Unit: repair the runtime preview phase doc after follow-up scan confirmed the scoped `NexusStyleRuntimeProvider` already wraps `Home` and `/style-lab`, while preserving the no-persistence/no-sync/no-backend/no-Supabase boundaries.
+- Allowed files:
+  - `docs/style-system/style-runtime-preview-v1.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all `src/**` source/test edits, UI behavior changes, production graph/app shell behavior changes, `src/components/nexus/**`, CSS/global stylesheets, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `git diff --check`; focused doc scan for `NexusStyleRuntimeProvider`, `src/app/page.tsx`, `/style-lab`, and no-persistence/no-sync boundaries; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `git diff --check`; focused `rg` doc evidence scan; `git status --porcelain=v1 -b`; `git diff --stat`.
+- Changed files:
+  - `docs/style-system/style-runtime-preview-v1.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. `git diff --check` passed. Focused doc scan confirmed the runtime preview doc now records pure target/controller evidence, scoped provider wiring in `src/app/page.tsx` and `src/app/style-lab/page.tsx`, isolated Style Lab preview usage, and still-explicit no workspace sync, backend, Supabase/database, persistence, save/export-file, production React Flow behavior, or `nexus-ops.tsx` integration. No source, test, package, deploy, database, or `exports/**` files were changed.
+- Rollback note: revert only this CP-146 docs repair if the provider evidence wording must be removed.

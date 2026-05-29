@@ -161,6 +161,7 @@ Run id: `20260529-163524+1000`
 | Pure Governance Preview Count Consistency Test V1 | PASS | Added focused test proving governance preview variable count matches actual preview patch variable count. |
 | Post Governance Preview Count Test Phase Gate | PASS | Full check passed after governance preview count consistency coverage; side-effect scan and git diff check passed. |
 | Style Runtime Preview Doc Reconciliation V1 | PASS | Reconciled runtime preview doc with pure target/controller implementation evidence while preserving provider, sync, backend, Supabase, and persistence boundaries. |
+| Runtime Preview Doc Provider Evidence Repair V1 | PASS | Repaired runtime preview doc to include existing scoped provider wiring for Home and Style Lab while preserving no-persistence/no-sync/no-backend/no-Supabase boundaries. |
 
 ## Current Gate
 
@@ -173,4 +174,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Style Runtime Preview Doc Reconciliation V1 local checkpoint prep. Source logic, Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Runtime Preview Doc Provider Evidence Repair V1 local checkpoint prep. Source logic, Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

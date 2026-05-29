@@ -660,31 +660,36 @@ Run id: `20260529-163524+1000`
 - Implemented `CP-145 - Style Runtime Preview Doc Reconciliation V1`.
 - Reconciled `style-runtime-preview-v1.md` with current pure runtime-target/controller implementation evidence while preserving that app-level provider, production route integration, workspace sync, backend, Supabase/database, and persistence integration are still not implemented.
 - Verified CP-145 with docs-only diff checks, status checks, and focused status/evidence review.
+- Created local checkpoint commit `2cdcdfcd91e2f0cca854f7ce9fc1dfc3e024eaab` for the Style Runtime Preview Doc Reconciliation V1 unit.
+- Started `CP-146 - Runtime Preview Doc Provider Evidence Repair V1` after follow-up scan confirmed the scoped runtime provider already wraps `Home` and `/style-lab`.
+- Implemented `CP-146 - Runtime Preview Doc Provider Evidence Repair V1`.
+- Repaired `style-runtime-preview-v1.md` to record pure runtime target/controller helpers, scoped `NexusStyleRuntimeProvider` wiring in `src/app/page.tsx` and `src/app/style-lab/page.tsx`, isolated Style Lab preview usage, and still-closed persistence, workspace sync, backend, Supabase/database, save/export-file, production React Flow behavior, and `nexus-ops.tsx` integration.
+- Verified CP-146 with docs-only diff checks, status checks, and focused provider/boundary evidence review.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-145 - Style Runtime Preview Doc Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-145 local commit; previous clean checkpoint commit is `92df621e3b6bea8007827404caadbec03209c84c`.
+- Latest completed checkpoint: `CP-146 - Runtime Preview Doc Provider Evidence Repair V1`.
+- Latest local checkpoint commit: pending CP-146 local commit; previous clean checkpoint commit is `2cdcdfcd91e2f0cca854f7ce9fc1dfc3e024eaab`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-145 verification: dirty only in CP-145 allowed docs files.
-- Current stop reason: not stopped; CP-145 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-146 verification: dirty only in CP-146 allowed docs files.
+- Current stop reason: not stopped; CP-146 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-145 - Local checkpoint commit prep`.
+- `CP-146 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
   - `docs/style-system/style-runtime-preview-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all `src/**` source/test edits, Style Lab/UI source, production graph/app shell files, runtime provider integration code, `src/components/nexus/**`, CSS/global stylesheets, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all `src/**` source/test edits, UI behavior changes, production graph/app shell behavior changes, `src/components/nexus/**`, CSS/global stylesheets, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the runtime preview doc reconciliation and this run-doc checkpoint update if the reconciliation must be removed.
+- Rollback: revert only this CP-146 docs repair if the provider evidence wording must be removed.
 
 ## Next
 
-1. Commit the CP-145 docs-only checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-146 docs-only repair checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

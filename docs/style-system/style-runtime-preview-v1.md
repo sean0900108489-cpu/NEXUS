@@ -2,14 +2,17 @@
 
 Phase: V5 - Local-Only Runtime Preview
 Run: `docs/style-system/execution-runs/20260529-163524+1000`
-Status: partially implemented pure local preview primitives. No app-level runtime provider, production route integration, persistence, or sync integration is implemented.
+Status: partially implemented local runtime preview. Pure target/controller helpers and a scoped client runtime provider exist; persistence, workspace sync, backend, Supabase/database, save/export-file behavior, and production React Flow behavior integration are not implemented.
 
 ## Implementation Evidence
 
 - `src/lib/style-engine/runtime-target.ts` provides a pure scoped variable target helper that applies a preview patch to an explicit target and records previous inline values for revert.
 - `src/lib/style-engine/runtime-controller.ts` provides a pure preview controller over that target helper. It previews one active patch at a time, reverts the prior active session before a new preview, returns cloned active-session snapshots, and rejects mismatched revert ids.
 - `src/lib/style-engine/runtime-target.test.ts` and `src/lib/style-engine/runtime-controller.test.ts` cover apply/revert behavior using fake style targets, not the real document.
-- The current implementation remains pure/local: no `useNexusStore`, workspace sync, backend route, Supabase/database, app shell provider, production React Flow behavior, or durable persistence path is involved.
+- `src/components/style-engine/nexus-style-runtime-provider.tsx` wraps the pure controller in a client-only scoped provider with an explicit `data-nexus-style-runtime="v1"` target and local React state for the active preview session.
+- `src/app/page.tsx` wraps `NexusOps` in `NexusStyleRuntimeProvider` without editing `src/components/nexus/nexus-ops.tsx`.
+- `src/app/style-lab/page.tsx` wraps the isolated Style Lab in the same provider, and `src/components/style-engine/nexus-style-lab.tsx` uses the provider for local preview/revert controls.
+- The current implementation remains local-only: no `useNexusStore`, workspace sync, backend route, Supabase/database, production React Flow behavior props, durable persistence path, or save/export-file behavior is involved.
 
 ## 0. Purpose
 
@@ -46,15 +49,20 @@ Current App Router stack:
 src/app/layout.tsx
 -> ThemeProvider
 -> src/app/page.tsx
+-> NexusStyleRuntimeProvider
 -> NexusOps
+
+src/app/style-lab/page.tsx
+-> NexusStyleRuntimeProvider
+-> NexusStyleLab
 ```
 
-Decision for future implementation:
+Current placement decision:
 
-Place the preview controller in a client-only Style Runtime boundary near
+The preview controller is placed in a client-only Style Runtime boundary near
 `NexusOps`, not in the root Server Component itself.
 
-Candidate future shape:
+Implemented shape:
 
 ```text
 src/app/page.tsx
@@ -62,11 +70,12 @@ src/app/page.tsx
 -> NexusOps
 ```
 
-or, for even lower blast radius:
+and:
 
 ```text
-NexusOps
--> local StylePreviewController used only by a style lab/panel
+src/app/style-lab/page.tsx
+-> NexusStyleRuntimeProvider
+-> NexusStyleLab
 ```
 
 Rationale:
@@ -76,6 +85,8 @@ Rationale:
   Runtime should not replace it in V5.
 - Preview requires browser APIs and must be client-only.
 - Keeping preview close to `NexusOps` reduces risk to auth/layout/root HTML.
+- Keeping the provider as a scoped `contents` wrapper avoids changing `NexusOps`
+  internals while still giving isolated Style Lab controls a local preview target.
 
 Forbidden in V5:
 
@@ -194,9 +205,10 @@ Lowest-risk implementation order:
 
 1. Complete: pure helper for applying/removing an explicit variable map to a scoped style target.
 2. Complete: unit tests using a fake style target, not the real document.
-3. Pending: client preview controller wiring that wraps the pure helper in an isolated runtime surface.
-4. Isolated preview specimen surface.
-5. Browser smoke.
+3. Complete: client runtime provider wiring that wraps the pure helper in a scoped runtime target.
+4. Complete: isolated Style Lab preview controls using the scoped runtime provider.
+5. Pending: production-safe visual adoption units that consume compiled variables without touching `nexus-ops.tsx`, store/sync/backend, or React Flow behavior props.
+6. Pending: browser smoke for any new production visual adoption unit.
 
 Forbidden first implementation unit:
 

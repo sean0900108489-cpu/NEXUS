@@ -1,3 +1,9 @@
+import type {
+  NexusStyleManifestV1,
+  NexusStyleRecipesV1,
+  NexusStyleTokenGroupNameV1,
+} from "./manifest";
+
 export const NEXUS_WINDOW_MODAL_RECIPE_ADAPTER_VERSION =
   "nexus-window-modal-recipe-adapter-v1" as const;
 
@@ -114,4 +120,129 @@ export function createDefaultWindowModalRecipeAdapterV1(): NexusWindowModalRecip
     modal: { ...adapter.modal },
     commandPalette: { ...adapter.commandPalette },
   };
+}
+
+export function createWindowModalRecipeAdapterFromManifestV1(
+  manifest: NexusStyleManifestV1,
+): NexusWindowModalRecipeAdapterV1 {
+  const fallback = DEFAULT_NEXUS_WINDOW_MODAL_RECIPE_ADAPTER_V1;
+  const recipeToken = (
+    recipeGroup: keyof NexusStyleRecipesV1,
+    slot: string,
+    fallbackValue: string,
+  ) => readRecipeToken(manifest, recipeGroup, slot, fallbackValue);
+  const token = (
+    group: NexusStyleTokenGroupNameV1,
+    name: string,
+    fallbackValue: string,
+  ) => readManifestToken(manifest, group, name, fallbackValue);
+
+  return {
+    version: NEXUS_WINDOW_MODAL_RECIPE_ADAPTER_VERSION,
+    window: {
+      surface: recipeToken("window", "surface", fallback.window.surface),
+      bodySurface: token("surface", "workspace", fallback.window.bodySurface),
+      chromeSurface: token(
+        "surface",
+        "panelMuted",
+        fallback.window.chromeSurface,
+      ),
+      chromeBorder: recipeToken("window", "border", fallback.window.chromeBorder),
+      chromeText: recipeToken("window", "text", fallback.window.chromeText),
+      border: recipeToken("window", "border", fallback.window.border),
+      shadow: recipeToken("window", "shadow", fallback.window.shadow),
+      radius: token("radius", "surface", fallback.window.radius),
+      handleVisual: token("accent", "primary", fallback.window.handleVisual),
+      resizeVisual: token("border", "subtle", fallback.window.resizeVisual),
+      focusGlow: token("border", "glow", fallback.window.focusGlow),
+    },
+    modal: {
+      backdrop: recipeToken("modal", "backdrop", fallback.modal.backdrop),
+      surface: recipeToken("modal", "surface", fallback.modal.surface),
+      border: recipeToken("modal", "border", fallback.modal.border),
+      shadow: token("shadow", "panel", fallback.modal.shadow),
+      radius: token("radius", "surface", fallback.modal.radius),
+      headerSurface: token(
+        "surface",
+        "panelMuted",
+        fallback.modal.headerSurface,
+      ),
+      titleText: recipeToken("modal", "text", fallback.modal.titleText),
+      bodyText: token("text", "secondary", fallback.modal.bodyText),
+      footerSurface: token("surface", "panelMuted", fallback.modal.footerSurface),
+      dangerCallout: token("status", "danger", fallback.modal.dangerCallout),
+      focusRing: token("border", "glow", fallback.modal.focusRing),
+    },
+    commandPalette: {
+      overlay: recipeToken("modal", "backdrop", fallback.commandPalette.overlay),
+      surface: recipeToken("modal", "surface", fallback.commandPalette.surface),
+      input: token("surface", "input", fallback.commandPalette.input),
+      itemDefault: token(
+        "surface",
+        "panelMuted",
+        fallback.commandPalette.itemDefault,
+      ),
+      itemHover: token("surface", "raised", fallback.commandPalette.itemHover),
+      itemActive: token("accent", "primary", fallback.commandPalette.itemActive),
+      icon: token("accent", "primary", fallback.commandPalette.icon),
+      emptyState: token("text", "muted", fallback.commandPalette.emptyState),
+    },
+  };
+}
+
+function readRecipeToken(
+  manifest: NexusStyleManifestV1,
+  recipeGroup: keyof NexusStyleRecipesV1,
+  slot: string,
+  fallback: string,
+) {
+  const reference = manifest.recipes[recipeGroup][slot];
+
+  return resolveManifestTokenReference(manifest, reference, fallback);
+}
+
+function resolveManifestTokenReference(
+  manifest: NexusStyleManifestV1,
+  reference: unknown,
+  fallback: string,
+) {
+  if (typeof reference !== "string" || reference.length === 0) {
+    return fallback;
+  }
+
+  const [group, name] = reference.split(".");
+
+  if (isTokenGroup(group) && name) {
+    return readManifestToken(manifest, group, name, reference);
+  }
+
+  return reference;
+}
+
+function readManifestToken(
+  manifest: NexusStyleManifestV1,
+  group: NexusStyleTokenGroupNameV1,
+  name: string,
+  fallback: string,
+) {
+  const value = manifest.tokens[group][name];
+
+  return value === undefined ? fallback : String(value);
+}
+
+function isTokenGroup(value: string | undefined): value is NexusStyleTokenGroupNameV1 {
+  return (
+    value === "surface" ||
+    value === "text" ||
+    value === "accent" ||
+    value === "status" ||
+    value === "border" ||
+    value === "shadow" ||
+    value === "radius" ||
+    value === "blur" ||
+    value === "workspace" ||
+    value === "typography" ||
+    value === "density" ||
+    value === "motion"
+  );
 }

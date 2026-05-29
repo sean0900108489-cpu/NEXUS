@@ -786,30 +786,39 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 41 Vitest files / 295 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, React Flow adapter forbidden behavior key registries, and the new window/modal recipe adapter forbidden behavior key registry; no live React Flow import, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/preview/governance wiring, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, download/clipboard/save/export-file path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `9c9327e892b3ff987b0673f978dea53f8bd2a929` for the Post Window Modal Recipe Adapter Shape Phase Gate.
+- Started `CP-166 - Pure Window Modal Recipe Manifest Mapping V1`.
+- Implemented `CP-166 - Pure Window Modal Recipe Manifest Mapping V1`.
+- Added pure manifest-token mapping for window, modal, and command palette recipe adapter slots using validated manifest recipes/tokens with safe fallbacks.
+- Added focused tests for legacy Cyberpunk and High Contrast Carbon mapping values.
+- Confirmed compiler, preview, governance, UI, production components, persistence, backend, Supabase, deploy, and `exports/**` remained untouched.
+- Verified CP-166 with focused adapter tests, targeted lint, typecheck, side-effect scans, diff checks, and status checks.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-165 - Post Window Modal Recipe Adapter Shape Phase Gate`.
-- Latest local checkpoint commit: pending CP-165 local commit; previous clean checkpoint commit is `396a80e5ca029b032b3979dc238ee24192e35499`.
+- Latest completed checkpoint: `CP-166 - Pure Window Modal Recipe Manifest Mapping V1`.
+- Latest local checkpoint commit: pending CP-166 local commit; previous clean checkpoint commit is `9c9327e892b3ff987b0673f978dea53f8bd2a929`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-165 verification: dirty only in CP-165 allowed run-doc files.
-- Current stop reason: not stopped; CP-165 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-166 verification: dirty only in CP-166 allowed pure style-engine/run-doc files.
+- Current stop reason: not stopped; CP-166 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-165 - Local checkpoint commit prep`.
+- `CP-166 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/window-modal-recipe-adapter.ts`
+  - `src/lib/style-engine/window-modal-recipe-adapter.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, Style Lab/UI source, runtime provider internals, production graph/app shell files, `src/components/nexus/**`, CSS/global stylesheets, pure style-engine logic changes, compiler/preview/governance wiring, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, window/modal behavior semantics, download/clipboard/save/export-file behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: compiler/preview/governance wiring, all UI/app/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only this CP-165 run-doc update if the phase gate bookkeeping must be removed.
+- Rollback: revert only the manifest mapping helper/test additions and this run-doc checkpoint update if the pure adapter mapping must be removed.
 
 ## Next
 
-1. Commit the CP-165 phase-gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-166 pure adapter mapping checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

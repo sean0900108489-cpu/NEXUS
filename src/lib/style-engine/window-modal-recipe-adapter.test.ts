@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   createDefaultWindowModalRecipeAdapterV1,
+  createHighContrastCarbonStyleManifestV1,
+  createLegacyCyberpunkStyleManifestV1,
+  createWindowModalRecipeAdapterFromManifestV1,
   NEXUS_WINDOW_MODAL_RECIPE_ADAPTER_VERSION,
   NEXUS_WINDOW_MODAL_RECIPE_FORBIDDEN_BEHAVIOR_KEYS,
 } from "@/lib/style-engine";
@@ -49,6 +52,43 @@ describe("NEXUS window/modal recipe adapter", () => {
     for (const forbiddenKey of NEXUS_WINDOW_MODAL_RECIPE_FORBIDDEN_BEHAVIOR_KEYS) {
       expect(keys).not.toContain(forbiddenKey);
     }
+  });
+
+  it("maps the legacy Cyberpunk manifest to visual recipe values", () => {
+    const adapter = createWindowModalRecipeAdapterFromManifestV1(
+      createLegacyCyberpunkStyleManifestV1(),
+    );
+
+    expect(adapter).toMatchObject({
+      commandPalette: {
+        input: "rgb(15 23 42 / 0.72)",
+        itemActive: "#67e8f9",
+        overlay: "rgb(2 6 23 / 0.78)",
+      },
+      modal: {
+        backdrop: "rgb(2 6 23 / 0.78)",
+        dangerCallout: "#fda4af",
+        surface: "rgb(8 16 22 / 0.78)",
+      },
+      window: {
+        border: "rgb(226 232 240 / 0.12)",
+        bodySurface: "#020617",
+        focusGlow: "rgb(34 211 238 / 0.42)",
+        surface: "rgb(8 16 22 / 0.78)",
+      },
+    });
+  });
+
+  it("maps high contrast manifest values without reusing legacy colors", () => {
+    const adapter = createWindowModalRecipeAdapterFromManifestV1(
+      createHighContrastCarbonStyleManifestV1(),
+    );
+
+    expect(adapter.window.surface).toBe("rgb(16 16 16 / 0.94)");
+    expect(adapter.window.bodySurface).toBe("#0a0a0a");
+    expect(adapter.modal.dangerCallout).toBe("#fb7185");
+    expect(adapter.commandPalette.input).toBe("rgb(18 18 18 / 0.92)");
+    expect(adapter.commandPalette.itemActive).toBe("#38bdf8");
   });
 });
 

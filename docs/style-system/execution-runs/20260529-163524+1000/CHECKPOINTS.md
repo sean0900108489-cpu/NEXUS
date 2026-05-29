@@ -2654,3 +2654,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 295 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, React Flow adapter forbidden behavior key registries, and the new window/modal recipe adapter forbidden behavior key registry; no live React Flow import, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/preview/governance wiring, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, download/clipboard/save/export-file path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-165 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-166 - Pure Window Modal Recipe Manifest Mapping V1
+
+- Unit: map validated style manifest tokens/recipes into the pure window/modal/command palette recipe adapter without compiler, preview, UI, or production wiring.
+- Allowed files:
+  - `src/lib/style-engine/window-modal-recipe-adapter.ts`
+  - `src/lib/style-engine/window-modal-recipe-adapter.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: compiler/preview/governance wiring, all UI/app/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused adapter tests; targeted lint; `npm run typecheck`; side-effect/forbidden-surface scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `npm run test -- src/lib/style-engine/window-modal-recipe-adapter.test.ts`; `npm run lint -- src/lib/style-engine/window-modal-recipe-adapter.ts src/lib/style-engine/window-modal-recipe-adapter.test.ts`; `npm run typecheck`; side-effect/forbidden-surface scan; `git diff --check`; `git status --porcelain=v1 -b`; `git diff --stat`.
+- Changed files:
+  - `src/lib/style-engine/window-modal-recipe-adapter.ts`
+  - `src/lib/style-engine/window-modal-recipe-adapter.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 1 file / 5 tests; targeted lint passed; `npm run typecheck` passed; `git diff --check` passed. Side-effect scan only matched the intentional forbidden behavior key registry strings inside the pure adapter guard list; no DOM/storage/fetch path, React Flow import, `react-rnd`, production UI import, compiler/preview/governance wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Rollback note: revert only the manifest mapping helper/test additions and this run-doc checkpoint update if the pure adapter mapping must be removed.

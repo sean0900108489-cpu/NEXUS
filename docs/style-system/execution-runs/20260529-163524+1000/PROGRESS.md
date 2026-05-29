@@ -143,14 +143,17 @@ Run id: `20260529-163524+1000`
 - Created local checkpoint commit `379149393262860b2ebda927cada7d7befdddcd8` for the isolated Style Lab route.
 - Detected an unexpected clean branch drift to `main` before the Style Lab record update.
 - Confirmed `main` had clean status, confirmed `codex/v17-large-iteration` existed at the expected Style Lab commit, and switched back without losing local changes.
+- Created local record commit `4d8b0df8e7b97e5876bded500a16558163421029` for the Style Lab checkpoint and branch realignment.
+- Ran the post-UI phase gate with `npm run check`.
+- Confirmed full lint, typecheck, Vitest suite, and `next build` passed; static `/style-lab` was included; side-effect/import scan remained clean and git status remained clean.
 
 ## In Progress
 
-- Recording Style Lab checkpoint and branch realignment.
+- Recording post-UI phase gate.
 
 ## Next
 
-1. Commit this run-status record update.
+1. Commit this phase-gate record update.
 2. Re-confirm branch/status/HEAD.
-3. Run a broader local gate after the UI route addition.
-4. Continue only if status returns clean and the next gate is explicit.
+3. Select the next isolated unit.
+4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

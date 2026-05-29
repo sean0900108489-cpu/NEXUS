@@ -796,3 +796,12 @@ Each checkpoint records:
 - Commands run: `pwd`; `ls`; `git status --porcelain=v1 -b`; `git show --stat --oneline HEAD --`; `git branch --list codex/v17-large-iteration main`; `git log --oneline -5 codex/v17-large-iteration`; `git switch codex/v17-large-iteration`; `git status --porcelain=v1 -b`; `git rev-parse HEAD`.
 - Verification result: PASS. The worktree was unexpectedly on clean `main`, the iteration branch existed with the expected Style Lab commits, and switching back to `codex/v17-large-iteration` lost no local changes because `main` status was clean.
 - Rollback note: no source rollback. If this recurs with dirty status, stop and report dirty files before switching.
+
+## CP-054 - Post-UI Phase Gate
+
+- Unit: run broader local verification after the runtime provider and isolated Style Lab route.
+- Allowed files: none for implementation; read/build/test output only plus `docs/style-system/execution-runs/20260529-163524+1000/**` for this record.
+- Forbidden files: `exports/**`, source edits during the gate, Supabase/Vercel/GitHub mutations, deploy, push, branch merge, database mutation.
+- Commands run: `npm run check`; targeted side-effect/import scan for store/Supabase/sync/backend imports and protected behavior strings across `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git status --porcelain=v1 -b`; `git diff --check`.
+- Verification result: PASS. Full repo lint, typecheck, Vitest suite, and `next build` passed. Build included static `/style-lab` and reported the existing edge-runtime static-generation warning only. Side-effect scan returned no matches and post-gate git status was clean.
+- Rollback note: no source rollback needed for the gate itself. If later UI gate assumptions fail, revert only the relevant provider or Style Lab route commits.

@@ -68,7 +68,8 @@ Run id: `20260529-163524+1000`
 | Isolated Style Lab Route Gate | PASS | Added local-only `/style-lab`; typecheck, lint, build, marker scan, and Browser Preview/Revert smoke passed. |
 | Style Lab Route Local Checkpoint Commit | PASS | Commit `379149393262860b2ebda927cada7d7befdddcd8` created; post-commit status was clean. |
 | Branch Realignment After Context Drift | PASS | Detected clean `main`, verified iteration branch, and switched back to `codex/v17-large-iteration` without local changes lost. |
-| Post-UI Phase Gate | IN_PROGRESS | Running broader local verification after the provider and isolated lab route. |
+| Style Lab Record Commit | PASS | Commit `4d8b0df8e7b97e5876bded500a16558163421029` created; post-commit status was clean. |
+| Post-UI Phase Gate | PASS | `npm run check` passed after provider and Style Lab route; side-effect scan and git status remained clean. |
 
 ## Current Gate
 

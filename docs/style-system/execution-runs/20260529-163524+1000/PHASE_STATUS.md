@@ -74,6 +74,7 @@ Run id: `20260529-163524+1000`
 | Style Import Text Parser V1 | PASS | Added pure JSON import text parser and tests; focused Vitest, typecheck, lint, diff check, and side-effect scan passed. |
 | Style Lab Import Draft Panel V1 | PASS | Added local-only import textarea/status inside isolated Style Lab; tests, typecheck, lint, build, side-effect scan, and Browser smoke passed. |
 | Post Import UI Phase Gate | PASS | Full check passed on rerun after one recoverable unrelated backend test timeout; side-effect scan and git diff check passed. |
+| Style Lab Primitive Specimen Panel V1 | PASS | Added specimen-only panel/button/input/badge preview inside isolated Style Lab; focused checks, build, side-effect scan, and Browser smoke passed. |
 
 ## Current Gate
 
@@ -86,4 +87,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-CP-058 is ready for a local checkpoint commit. App shell, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, `src/components/nexus/nexus-ops.tsx`, and React Flow behavior remain closed.
+CP-059 is ready for a local checkpoint commit. Production components, app shell, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, `src/components/nexus/nexus-ops.tsx`, and React Flow behavior remain closed.

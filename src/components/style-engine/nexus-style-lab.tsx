@@ -39,6 +39,31 @@ const sampleStyle = {
   color: "var(--nexus-text-primary, #f8fafc)",
 };
 
+const primitivePanelStyle = {
+  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
+  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+  boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
+  color: "var(--nexus-text-primary, #f8fafc)",
+};
+
+const primitiveButtonStyle = {
+  background: "var(--nexus-accent-primary, #67e8f9)",
+  borderColor: "var(--nexus-accent-primary-strong, #22d3ee)",
+  color: "var(--nexus-text-inverse, #020617)",
+};
+
+const primitiveInputStyle = {
+  background: "var(--nexus-surface-input, rgb(15 23 42 / 0.72))",
+  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+  color: "var(--nexus-text-primary, #f8fafc)",
+};
+
+const primitiveBadgeStyle = {
+  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
+  borderColor: "var(--nexus-status-warning, #fcd34d)",
+  color: "var(--nexus-status-warning, #fcd34d)",
+};
+
 export function NexusStyleLab() {
   const runtime = useNexusStyleRuntimeV1();
   const [previewState, setPreviewState] = useState<PreviewState>("idle");
@@ -272,6 +297,57 @@ export function NexusStyleLab() {
                           {item}
                         </div>
                       ))}
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="border border-white/10 bg-black/20 p-4 lg:col-span-2">
+                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                  Primitive Specimen
+                </div>
+
+                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.75fr)]">
+                  <div className="min-w-0 border p-4" style={primitivePanelStyle}>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                      Panel
+                    </div>
+                    <div className="mt-3 truncate text-sm text-slate-200">
+                      {manifest.name}
+                    </div>
+                    <div className="mt-2 h-2 bg-white/10">
+                      <div
+                        className="h-full w-1/2"
+                        style={{
+                          background:
+                            "var(--nexus-accent-primary, #67e8f9)",
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid min-w-0 gap-2">
+                    <button
+                      className="h-10 min-w-0 border px-3 font-mono text-[10px] uppercase tracking-[0.14em]"
+                      style={primitiveButtonStyle}
+                      type="button"
+                    >
+                      Button
+                    </button>
+                    <input
+                      aria-label="Specimen input"
+                      className="h-10 min-w-0 border px-3 font-mono text-[10px] uppercase tracking-[0.12em] outline-none"
+                      readOnly
+                      style={primitiveInputStyle}
+                      value="Input"
+                    />
+                    <div className="min-w-0">
+                      <span
+                        className="inline-flex max-w-full items-center border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em]"
+                        style={primitiveBadgeStyle}
+                      >
+                        Badge
+                      </span>
                     </div>
                   </div>
                 </div>

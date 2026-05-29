@@ -176,6 +176,7 @@ Run id: `20260529-163524+1000`
 | Style Lab Static Prompt Vault Surface Specimen V1 | PASS | Added specimen-only static Prompt Vault surface visual sample to isolated Style Lab without Prompt Vault production behavior changes; focused checks, build, side-effect scan, and local smoke passed. |
 | Post Prompt Vault Specimen Phase Gate | PASS | Full check passed after the static Prompt Vault surface specimen; side-effect/Prompt Vault behavior scan and git diff check passed. |
 | Style Lab Static Agent Window Chrome Specimen V1 | PASS | Added specimen-only static Agent Window chrome visual sample to isolated Style Lab without Agent window production behavior changes; focused checks, build, side-effect scan, and local smoke passed. |
+| Post Agent Chrome Specimen Phase Gate | PASS | Full check passed after the static Agent Window chrome specimen; side-effect/Agent behavior scan and git diff check passed. |
 
 ## Current Gate
 
@@ -188,4 +189,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Style Lab Static Agent Window Chrome Specimen V1 local checkpoint prep. Production Agent window code, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post Agent Chrome Specimen Phase Gate local checkpoint prep. Source edits, production Agent window code, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

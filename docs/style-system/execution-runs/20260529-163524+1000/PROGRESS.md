@@ -753,33 +753,36 @@ Run id: `20260529-163524+1000`
 - Confirmed `src/components/nexus/nexus-ops.tsx`, `react-rnd`, `motion`, `nexus-agent-window`, `nexus-drag-handle`, drag/resize/bounds/z-index/focus/minimize/close/sandbox lock/tool handlers, sync, backend, Supabase, deploy, save/export-file behavior, and `exports/**` were not changed.
 - Reconciled `window-modal-recipe-system.md` and `style-lab-v1.md` evidence with the new Agent Window chrome specimen.
 - Verified CP-160 with focused runtime/preview tests, targeted lint, typecheck, build, side-effect/Agent window behavior scans, and static `/style-lab` smoke.
+- Created local checkpoint commit `9ef5560abbc9a7bfb99888ed677d50c69b1cef98` for the Style Lab Static Agent Window Chrome Specimen V1 unit.
+- Started `CP-161 - Post Agent Chrome Specimen Phase Gate` with source/test edits closed.
+- Ran `CP-161 - Post Agent Chrome Specimen Phase Gate`.
+- Confirmed full `npm run check` passed: lint, typecheck, 40 Vitest files / 292 tests, and build.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect/Agent behavior scans only matched existing pure preview patch adapter variable emission, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, intent motion fields, existing `src/app/page.tsx` import of `nexus-ops`, scanner function names, the visual-only Agent Chrome specimen style names, existing Style Lab controls, and test-only guard cases; no live React Flow import, graph behavior props, Agent/window/modal/Datapad/Prompt Vault/command palette behavior semantics, runtime provider logic change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, download/clipboard/save/export-file path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-160 - Style Lab Static Agent Window Chrome Specimen V1`.
-- Latest local checkpoint commit: pending CP-160 local commit; previous clean checkpoint commit is `b8170b30582ad0682a47f55fa224cf80a50fda60`.
+- Latest completed checkpoint: `CP-161 - Post Agent Chrome Specimen Phase Gate`.
+- Latest local checkpoint commit: pending CP-161 local commit; previous clean checkpoint commit is `9ef5560abbc9a7bfb99888ed677d50c69b1cef98`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-160 verification: dirty only in CP-160 allowed source/docs/run-doc files.
-- Current stop reason: not stopped; CP-160 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-161 verification: dirty only in CP-161 allowed run-doc files.
+- Current stop reason: not stopped; CP-161 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-160 - Local checkpoint commit prep`.
+- `CP-161 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/components/style-engine/nexus-style-lab.tsx`
-  - `docs/style-system/window-modal-recipe-system.md`
-  - `docs/style-system/style-lab-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: `src/components/nexus/**`, especially `src/components/nexus/nexus-ops.tsx`; `src/app/**`; runtime provider internals; `src/lib/style-engine/**`; CSS/global stylesheets; store/sync/backend/Supabase/database files; package/deploy files; AI/runtime API calls; React Flow imports or behavior props; Agent window behavior semantics; command palette/window/modal/Datapad/Prompt Vault behavior semantics; download/clipboard/save/export-file behavior; remote push; branch merge; deploy; database mutation; and `exports/**`.
+- Forbidden files: all source/test edits during the gate, Style Lab/UI source, runtime provider internals, production graph/app shell files, `src/components/nexus/**`, CSS/global stylesheets, pure style-engine logic changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, Agent/window/modal/Datapad/Prompt Vault/command palette behavior semantics, download/clipboard/save/export-file behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the isolated Style Lab Agent Window chrome specimen, related phase-doc evidence lines, and this run-doc checkpoint update if the static Agent Window chrome specimen must be removed.
+- Rollback: revert only this CP-161 run-doc update if the phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-160 isolated Style Lab checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-161 phase-gate checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

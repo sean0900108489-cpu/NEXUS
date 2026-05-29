@@ -19,6 +19,7 @@ export type NexusStyleExchangeReviewV1 = {
   compatibility: NexusStylePackCompatibilityV1;
   permissions: NexusStylePackPermissionsV1;
   adapterCoverage?: NexusStylePackReviewV1["adapterCoverage"];
+  previewVariableCount?: NexusStylePackReviewV1["previewVariableCount"];
   manifestId?: string;
   manifestVersion?: 1;
   compilerVersion?: string;
@@ -128,6 +129,9 @@ export function redactNexusStyleReviewForExchangeV1(
     ...(review.compilerVersion ? { compilerVersion: review.compilerVersion } : {}),
     ...(review.manifestId ? { manifestId: review.manifestId } : {}),
     ...(review.manifestVersion ? { manifestVersion: review.manifestVersion } : {}),
+    ...(review.previewVariableCount !== undefined
+      ? { previewVariableCount: review.previewVariableCount }
+      : {}),
     permissions: review.permissions,
     rejectionCodes: [...review.rejectionCodes].sort(),
     state: review.state,

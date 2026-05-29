@@ -9,6 +9,7 @@ import {
   type NexusStyleManifestV1,
   type NexusStyleValidationIssueV1,
 } from "./manifest";
+import { createNexusStylePreviewPatchV1 } from "./preview";
 import { validateNexusStyleManifestV1 } from "./validator";
 
 export const NEXUS_STYLE_GOVERNANCE_VERSION_V1 =
@@ -42,6 +43,7 @@ export type NexusStylePackReviewV1 = {
   compatibility: NexusStylePackCompatibilityV1;
   permissions: NexusStylePackPermissionsV1;
   adapterCoverage?: NexusCompilerReportV1["adapterCoverage"];
+  previewVariableCount?: number;
   manifestId?: string;
   manifestVersion?: typeof NEXUS_STYLE_MANIFEST_VERSION;
   compilerVersion?: typeof NEXUS_STYLE_COMPILER_VERSION;
@@ -107,6 +109,7 @@ export function reviewNexusStylePackV1(candidate: unknown): NexusStylePackReview
 
   const state: NexusStylePackLifecycleStateV1 =
     validation.warnings.length > 0 ? "warning" : "validated";
+  const previewPatch = createNexusStylePreviewPatchV1(compiled.style);
 
   return withReportChecksum({
     adapterCoverage: compiled.style.report.adapterCoverage,
@@ -121,6 +124,7 @@ export function reviewNexusStylePackV1(candidate: unknown): NexusStylePackReview
     manifestId: compiled.style.manifestId,
     manifestVersion: NEXUS_STYLE_MANIFEST_VERSION,
     permissions: getNexusStylePackPermissionsV1(state),
+    previewVariableCount: Object.keys(previewPatch.variables).length,
     rejectionCodes: [],
     state,
     validation: validationSummary,

@@ -33,9 +33,11 @@ describe("NEXUS Style Engine import/export normalization", () => {
         },
         compatibility: "compatible_with_warnings",
         manifestId: "legacy-cyberpunk",
+        previewVariableCount: expect.any(Number),
         state: "warning",
       },
     });
+    expect(result.exportPackage.review.previewVariableCount).toBeGreaterThan(0);
     expect(result.exportPackage.review.checksums.normalizedManifest).toMatch(
       /^nexus-style-fnv1a32:[0-9a-f]{8}$/,
     );
@@ -116,6 +118,7 @@ describe("NEXUS Style Engine import/export normalization", () => {
       checksums: review.checksums,
       compatibility: review.compatibility,
       manifestId: "legacy-cyberpunk",
+      previewVariableCount: expect.any(Number),
       state: "warning",
     });
   });

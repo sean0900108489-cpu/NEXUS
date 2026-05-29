@@ -622,30 +622,40 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 40 Vitest files / 291 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing pure preview patch adapter variable emission, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import, graph behavior props, runtime provider logic change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `7a4a5cb88b676d557bdcd4c8500f78b2cb4bbf12` for the Post Preview Variable Count Row Phase Gate.
+- Started `CP-139 - Pure Governance Preview Variable Count Metadata V1`.
+- Implemented `CP-139 - Pure Governance Preview Variable Count Metadata V1`.
+- Added preview patch variable count metadata to accepted governance reviews and redacted exchange reviews.
+- Confirmed rejected reviews still omit preview variable count metadata and do not echo unsafe values.
+- Verified CP-139 with focused governance/exchange/preview tests, typecheck, isolated style-engine lint, build, side-effect scans, and diff checks.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-138 - Post Preview Variable Count Row Phase Gate`.
-- Latest local checkpoint commit: pending CP-138 local commit; previous clean checkpoint commit is `e71d6241b322facecc3fb810999664bb2e4cf2fe`.
+- Latest completed checkpoint: `CP-139 - Pure Governance Preview Variable Count Metadata V1`.
+- Latest local checkpoint commit: pending CP-139 local commit; previous clean checkpoint commit is `7a4a5cb88b676d557bdcd4c8500f78b2cb4bbf12`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-138 verification: dirty only in CP-138 run docs.
-- Current stop reason: not stopped; CP-138 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-139 verification: dirty only in CP-139 allowed files.
+- Current stop reason: not stopped; CP-139 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-138 - Local checkpoint commit prep`.
+- `CP-139 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/governance.ts`
+  - `src/lib/style-engine/governance.test.ts`
+  - `src/lib/style-engine/exchange.ts`
+  - `src/lib/style-engine/exchange.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source edits during the gate, Style Lab/UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, pure style-engine logic changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: Style Lab/UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, compiler or preview behavior changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only this CP-138 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+- Rollback: revert only the governance/exchange preview variable count metadata edits and this unit's run-doc edits.
 
 ## Next
 
-1. Commit the CP-138 docs-only phase-gate record if final diff/status checks remain clean by scope.
+1. Commit the CP-139 source and run-doc checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

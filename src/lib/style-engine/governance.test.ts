@@ -24,8 +24,10 @@ describe("NEXUS Style Engine governance review", () => {
         canPreview: true,
         reasonCodes: ["style.pack.warningRequiresReview"],
       },
+      previewVariableCount: expect.any(Number),
       state: "warning",
     });
+    expect(review.previewVariableCount).toBeGreaterThan(0);
     expect(review.checksums.normalizedManifest).toMatch(
       /^nexus-style-fnv1a32:[0-9a-f]{8}$/,
     );
@@ -70,6 +72,7 @@ describe("NEXUS Style Engine governance review", () => {
     expect(review.checksums.normalizedManifest).toBeUndefined();
     expect(review.checksums.compiledOutput).toBeUndefined();
     expect(review).not.toHaveProperty("adapterCoverage");
+    expect(review).not.toHaveProperty("previewVariableCount");
     expect(JSON.stringify(review)).not.toContain("super-secret-value");
   });
 

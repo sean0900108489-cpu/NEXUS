@@ -1076,32 +1076,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-220 - Pure Validator CSS Variable Reference Guard V1`.
 - Added a pure validator guard for CSS variable references outside approved NEXUS and legacy CSS variable namespaces.
 - Verified CP-220 with focused validator/compiler Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
+- Created local checkpoint commit `5251d4a94a77110ab1f1640266449fc1e1fb6e60` for the Pure Validator CSS Variable Reference Guard V1 unit.
+- Started `CP-221 - Validator CSS Variable Guard Doc Reconciliation V1`.
+- Reconciled `manifest-validator-rules.md` with CP-220 CSS variable namespace guard and clarified that a full structured value parser remains future work.
+- Verified CP-221 with focused CSS-variable-guard evidence scan, token-parser wording scan, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-220 - Pure Validator CSS Variable Reference Guard V1`.
-- Latest local checkpoint commit: pending CP-220 local commit; previous clean checkpoint commit is `01767ff6b7f3b2c012b223ae8275002dabfb27bb`.
+- Latest completed checkpoint: `CP-221 - Validator CSS Variable Guard Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-221 local commit; previous clean checkpoint commit is `5251d4a94a77110ab1f1640266449fc1e1fb6e60`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-220 verification: dirty only in CP-220 allowed validator/test/run-doc files.
-- Current stop reason: not stopped; CP-220 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-221 verification: dirty only in CP-221 allowed docs and run-doc files.
+- Current stop reason: not stopped; CP-221 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-220 - Local checkpoint commit prep`.
+- `CP-221 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.ts`
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: compiler/governance/exchange/runtime/UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test edits, UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-220 validator/test/run-doc changes if the CSS variable reference guard must be removed.
+- Rollback: revert only the CP-221 docs/run-doc reconciliation if this wording must be removed.
 
 ## Next
 
-1. Commit the CP-220 validator checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-221 docs checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

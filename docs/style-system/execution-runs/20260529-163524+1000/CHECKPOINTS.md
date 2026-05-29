@@ -3616,3 +3616,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused validator/compiler Vitest passed 2 files / 18 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only existing validator safety detector strings and test-only unsafe payload strings for Supabase/deploy/themeConfig. Behavior scan found only the existing validator `zIndex` forbidden-key registry and React Flow behavior test fixture/assertion strings. `git diff --check` passed.
 - Rollback note: revert only the CP-220 validator/test/run-doc changes if the CSS variable reference guard must be removed.
+
+## CP-221 - Validator CSS Variable Guard Doc Reconciliation V1
+
+- Unit: reconcile manifest validator rules with CP-220 CSS variable namespace guard.
+- Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits, UI/TSX/app route/CSS files, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence scan for `style.forbidden.cssVariableReference`; token-parser wording scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused CSS-variable-guard evidence scan; token-parser wording scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found `style.forbidden.cssVariableReference` coverage in validator source/tests and CSS variable namespace guard wording in the validator rules doc. Token-parser wording scan confirmed the remaining full structured CSS/value parser gap is now explicit rather than claiming only broad pattern scanning. `git diff --check` passed and status showed only allowed docs/run-doc files.
+- Rollback note: revert only the CP-221 docs/run-doc reconciliation if this wording must be removed.

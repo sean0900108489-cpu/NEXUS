@@ -800,32 +800,36 @@ Run id: `20260529-163524+1000`
 - Added focused test coverage proving emitted keys are deterministic and include expected legacy Cyberpunk values.
 - Confirmed compiler, preview, governance, UI, production components, persistence, backend, Supabase, deploy, and `exports/**` remained untouched.
 - Verified CP-167 with focused adapter tests, targeted lint, typecheck, side-effect scans, diff checks, and status checks.
+- Created local checkpoint commit `8ec35ed442b5f52d226b8aa3ea1337d03983550d` for the Pure Window Modal Recipe CSS Variables V1 unit.
+- Started `CP-168 - Post Window Modal Recipe Variables Phase Gate` with source/test edits closed.
+- Ran `CP-168 - Post Window Modal Recipe Variables Phase Gate`.
+- Confirmed full `npm run check` passed: lint, typecheck, 41 Vitest files / 298 tests, and build.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, React Flow adapter forbidden behavior key registries, and the window/modal recipe adapter forbidden behavior key registry; no live React Flow import, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/preview/governance wiring, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, download/clipboard/save/export-file path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-167 - Pure Window Modal Recipe CSS Variables V1`.
-- Latest local checkpoint commit: pending CP-167 local commit; previous clean checkpoint commit is `896f0c9573a08dad183cff7bb1ab576d5a318f11`.
+- Latest completed checkpoint: `CP-168 - Post Window Modal Recipe Variables Phase Gate`.
+- Latest local checkpoint commit: pending CP-168 local commit; previous clean checkpoint commit is `8ec35ed442b5f52d226b8aa3ea1337d03983550d`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-167 verification: dirty only in CP-167 allowed pure style-engine/run-doc files.
-- Current stop reason: not stopped; CP-167 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-168 verification: dirty only in CP-168 allowed run-doc files.
+- Current stop reason: not stopped; CP-168 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-167 - Local checkpoint commit prep`.
+- `CP-168 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/window-modal-recipe-adapter.ts`
-  - `src/lib/style-engine/window-modal-recipe-adapter.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: compiler/preview/governance wiring, all UI/app/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test edits during the gate, compiler/preview/governance wiring changes, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CSS variable emitter/test additions and this run-doc checkpoint update if the pure adapter CSS variable emitter must be removed.
+- Rollback: revert only this CP-168 run-doc update if the phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-167 pure adapter CSS variable checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-168 phase-gate checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

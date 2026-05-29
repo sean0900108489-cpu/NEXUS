@@ -3163,3 +3163,19 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 302 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries/assertions, and the window/modal recipe adapter forbidden behavior key registry/assertions; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-194 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-195 - Style Lab Export Command Palette Smoke V1
+
+- Unit: run a source-closed local smoke proving the isolated Style Lab export text includes the new command palette recipe group alongside window/modal coverage metadata.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+  - isolated temporary Chrome profile under `${TMPDIR}/codex-style-lab-chrome-profile-cp195-*`
+- Forbidden files: all repo source/test edits, docs outside run docs, UI/CSS/production files, user Chrome profile mutation, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: static local `/style-lab` fetch smoke for `commandPalette`, `windowModal`, and `Preview Vars 122`; isolated headless Chrome textarea smoke for export payloads containing `commandPalette`, `windowModal`, and `previewVariableCount: 122`; temporary profile/process cleanup check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: static local `/style-lab` fetch smoke; isolated headless Chrome CDP textarea smoke; temporary profile/process cleanup checks; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Static local `/style-lab` fetch returned status 200 and confirmed page markup includes `commandPalette`, `windowModal`, and `Preview Vars 122`. Isolated headless Chrome loaded `/style-lab`, read 3 textareas, and confirmed export payload text includes `"commandPalette"`, `"windowModal"`, and `"previewVariableCount": 122`. Cleanup checks found no matching CP-195 Chrome process and no remaining CP-195 temporary Chrome profile. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
+- Rollback note: remove only this CP-195 run-doc checkpoint entry and any temporary CP-195 profile artifacts if the smoke bookkeeping must be removed.

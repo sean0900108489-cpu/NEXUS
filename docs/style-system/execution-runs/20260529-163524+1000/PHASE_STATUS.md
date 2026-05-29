@@ -210,6 +210,7 @@ Run id: `20260529-163524+1000`
 | Pure Governance Window Modal Coverage Test V1 | PASS | Added pure governance/exchange assertions that `adapterCoverage.windowModal` remains complete. |
 | Pure Validator Command Palette Required Group Test V1 | PASS | Added pure validator coverage proving `recipes.commandPalette` is a required V1 recipe group. |
 | Post Pure Coverage Phase Gate | PASS | Full check passed after pure preview/governance/validator coverage additions; side-effect scan and git diff check passed. |
+| Style Lab Export Command Palette Smoke V1 | PASS | Source-closed local smoke confirmed Style Lab export text includes `commandPalette`, `windowModal`, and `previewVariableCount: 122`. |
 
 ## Current Gate
 
@@ -222,4 +223,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Pure Coverage Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Style Lab Export Command Palette Smoke local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

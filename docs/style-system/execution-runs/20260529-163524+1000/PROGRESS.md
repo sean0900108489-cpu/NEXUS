@@ -793,18 +793,25 @@ Run id: `20260529-163524+1000`
 - Added focused tests for legacy Cyberpunk and High Contrast Carbon mapping values.
 - Confirmed compiler, preview, governance, UI, production components, persistence, backend, Supabase, deploy, and `exports/**` remained untouched.
 - Verified CP-166 with focused adapter tests, targeted lint, typecheck, side-effect scans, diff checks, and status checks.
+- Created local checkpoint commit `896f0c9573a08dad183cff7bb1ab576d5a318f11` for the Pure Window Modal Recipe Manifest Mapping V1 unit.
+- Started `CP-167 - Pure Window Modal Recipe CSS Variables V1`.
+- Implemented `CP-167 - Pure Window Modal Recipe CSS Variables V1`.
+- Added pure deterministic CSS variable emission for window, modal, and command palette recipe adapter values using `--nexus-recipe-*` keys.
+- Added focused test coverage proving emitted keys are deterministic and include expected legacy Cyberpunk values.
+- Confirmed compiler, preview, governance, UI, production components, persistence, backend, Supabase, deploy, and `exports/**` remained untouched.
+- Verified CP-167 with focused adapter tests, targeted lint, typecheck, side-effect scans, diff checks, and status checks.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-166 - Pure Window Modal Recipe Manifest Mapping V1`.
-- Latest local checkpoint commit: pending CP-166 local commit; previous clean checkpoint commit is `9c9327e892b3ff987b0673f978dea53f8bd2a929`.
+- Latest completed checkpoint: `CP-167 - Pure Window Modal Recipe CSS Variables V1`.
+- Latest local checkpoint commit: pending CP-167 local commit; previous clean checkpoint commit is `896f0c9573a08dad183cff7bb1ab576d5a318f11`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-166 verification: dirty only in CP-166 allowed pure style-engine/run-doc files.
-- Current stop reason: not stopped; CP-166 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-167 verification: dirty only in CP-167 allowed pure style-engine/run-doc files.
+- Current stop reason: not stopped; CP-167 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-166 - Local checkpoint commit prep`.
+- `CP-167 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
@@ -814,11 +821,11 @@ Run id: `20260529-163524+1000`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: compiler/preview/governance wiring, all UI/app/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the manifest mapping helper/test additions and this run-doc checkpoint update if the pure adapter mapping must be removed.
+- Rollback: revert only the CSS variable emitter/test additions and this run-doc checkpoint update if the pure adapter CSS variable emitter must be removed.
 
 ## Next
 
-1. Commit the CP-166 pure adapter mapping checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-167 pure adapter CSS variable checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

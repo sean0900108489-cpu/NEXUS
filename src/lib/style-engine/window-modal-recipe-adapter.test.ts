@@ -5,6 +5,7 @@ import {
   createHighContrastCarbonStyleManifestV1,
   createLegacyCyberpunkStyleManifestV1,
   createWindowModalRecipeAdapterFromManifestV1,
+  emitWindowModalRecipeCssVariablesV1,
   NEXUS_WINDOW_MODAL_RECIPE_ADAPTER_VERSION,
   NEXUS_WINDOW_MODAL_RECIPE_FORBIDDEN_BEHAVIOR_KEYS,
 } from "@/lib/style-engine";
@@ -89,6 +90,25 @@ describe("NEXUS window/modal recipe adapter", () => {
     expect(adapter.modal.dangerCallout).toBe("#fb7185");
     expect(adapter.commandPalette.input).toBe("rgb(18 18 18 / 0.92)");
     expect(adapter.commandPalette.itemActive).toBe("#38bdf8");
+  });
+
+  it("emits deterministic recipe-scoped CSS variables", () => {
+    const variables = emitWindowModalRecipeCssVariablesV1(
+      createWindowModalRecipeAdapterFromManifestV1(
+        createLegacyCyberpunkStyleManifestV1(),
+      ),
+    );
+
+    expect(Object.keys(variables)).toEqual([...Object.keys(variables)].sort());
+    expect(variables).toMatchObject({
+      "--nexus-recipe-command-palette-input": "rgb(15 23 42 / 0.72)",
+      "--nexus-recipe-command-palette-item-active": "#67e8f9",
+      "--nexus-recipe-modal-backdrop": "rgb(2 6 23 / 0.78)",
+      "--nexus-recipe-modal-danger-callout": "#fda4af",
+      "--nexus-recipe-window-body-surface": "#020617",
+      "--nexus-recipe-window-focus-glow": "rgb(34 211 238 / 0.42)",
+      "--nexus-recipe-window-surface": "rgb(8 16 22 / 0.78)",
+    });
   });
 });
 

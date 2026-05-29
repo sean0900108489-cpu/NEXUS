@@ -182,6 +182,7 @@ Run id: `20260529-163524+1000`
 | Pure Window Modal Recipe Adapter Shape V1 | PASS | Added pure visual-only window/modal/command palette recipe adapter shape and tests; no compiler, UI, production, persistence, or deploy wiring touched. |
 | Post Window Modal Recipe Adapter Shape Phase Gate | PASS | Full check passed after pure recipe adapter shape; side-effect scan and git diff check passed. |
 | Pure Window Modal Recipe Manifest Mapping V1 | PASS | Added pure manifest-token mapping for the window/modal recipe adapter with focused tests; no compiler, UI, production, persistence, or deploy wiring touched. |
+| Pure Window Modal Recipe CSS Variables V1 | PASS | Added pure deterministic recipe-scoped CSS variable emitter and focused tests; no compiler, UI, production, persistence, or deploy wiring touched. |
 
 ## Current Gate
 
@@ -194,4 +195,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Window Modal Recipe Manifest Mapping V1 local checkpoint prep. UI source, production window/modal code, production graph/app shell files, compiler/preview/governance wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Window Modal Recipe CSS Variables V1 local checkpoint prep. UI source, production window/modal code, production graph/app shell files, compiler/preview/governance wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

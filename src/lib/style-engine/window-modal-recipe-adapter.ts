@@ -71,6 +71,11 @@ export type NexusWindowModalRecipeAdapterV1 = {
   };
 };
 
+export type NexusWindowModalRecipeCssVariablesV1 = Record<
+  `--nexus-recipe-${string}`,
+  string
+>;
+
 export const DEFAULT_NEXUS_WINDOW_MODAL_RECIPE_ADAPTER_V1 = {
   version: NEXUS_WINDOW_MODAL_RECIPE_ADAPTER_VERSION,
   window: {
@@ -187,6 +192,47 @@ export function createWindowModalRecipeAdapterFromManifestV1(
       icon: token("accent", "primary", fallback.commandPalette.icon),
       emptyState: token("text", "muted", fallback.commandPalette.emptyState),
     },
+  };
+}
+
+export function emitWindowModalRecipeCssVariablesV1(
+  adapter: NexusWindowModalRecipeAdapterV1,
+): NexusWindowModalRecipeCssVariablesV1 {
+  return {
+    "--nexus-recipe-command-palette-empty-state":
+      adapter.commandPalette.emptyState,
+    "--nexus-recipe-command-palette-icon": adapter.commandPalette.icon,
+    "--nexus-recipe-command-palette-input": adapter.commandPalette.input,
+    "--nexus-recipe-command-palette-item-active":
+      adapter.commandPalette.itemActive,
+    "--nexus-recipe-command-palette-item-default":
+      adapter.commandPalette.itemDefault,
+    "--nexus-recipe-command-palette-item-hover":
+      adapter.commandPalette.itemHover,
+    "--nexus-recipe-command-palette-overlay": adapter.commandPalette.overlay,
+    "--nexus-recipe-command-palette-surface": adapter.commandPalette.surface,
+    "--nexus-recipe-modal-backdrop": adapter.modal.backdrop,
+    "--nexus-recipe-modal-body-text": adapter.modal.bodyText,
+    "--nexus-recipe-modal-border": adapter.modal.border,
+    "--nexus-recipe-modal-danger-callout": adapter.modal.dangerCallout,
+    "--nexus-recipe-modal-focus-ring": adapter.modal.focusRing,
+    "--nexus-recipe-modal-footer-surface": adapter.modal.footerSurface,
+    "--nexus-recipe-modal-header-surface": adapter.modal.headerSurface,
+    "--nexus-recipe-modal-radius": adapter.modal.radius,
+    "--nexus-recipe-modal-shadow": adapter.modal.shadow,
+    "--nexus-recipe-modal-surface": adapter.modal.surface,
+    "--nexus-recipe-modal-title-text": adapter.modal.titleText,
+    "--nexus-recipe-window-body-surface": adapter.window.bodySurface,
+    "--nexus-recipe-window-border": adapter.window.border,
+    "--nexus-recipe-window-chrome-border": adapter.window.chromeBorder,
+    "--nexus-recipe-window-chrome-surface": adapter.window.chromeSurface,
+    "--nexus-recipe-window-chrome-text": adapter.window.chromeText,
+    "--nexus-recipe-window-focus-glow": adapter.window.focusGlow,
+    "--nexus-recipe-window-handle-visual": adapter.window.handleVisual,
+    "--nexus-recipe-window-radius": adapter.window.radius,
+    "--nexus-recipe-window-resize-visual": adapter.window.resizeVisual,
+    "--nexus-recipe-window-shadow": adapter.window.shadow,
+    "--nexus-recipe-window-surface": adapter.window.surface,
   };
 }
 

@@ -8,6 +8,7 @@ Status: partially implemented isolated local Style Lab. No production app shell 
 
 - `/style-lab` is an isolated local route with validation, compiled token preview, comparison, export text views, local preview/revert controls, brief-to-draft flow, graph specimen, and governance rows.
 - Its primitive specimen gallery includes Panel, Button, Input, Badge, specimen-only static Window/Agent Chrome/Datapad/Modal/Prompt Vault visual shells, and a visual-only Command Palette specimen.
+- The isolated window/modal recipe specimen set covers the documented migration-order visual targets without migrating production Datapad, Prompt Vault, Agent Window, modal, or command palette behavior.
 - Recent checkpoints added adapter coverage, preview variable counts, and text-only export/review metadata visibility without adding save/download/clipboard/backend persistence.
 - Style Lab state remains local to the route and scoped runtime provider; it does not enter `workspace.themeConfig`, workspace sync, backend routes, Supabase, or `workspace_state_entities`.
 - Production `nexus-ops.tsx`, production React Flow behavior, global CSS, deploy config, and `exports/**` remain outside the Style Lab implementation.

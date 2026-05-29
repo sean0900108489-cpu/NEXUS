@@ -13,6 +13,7 @@ Status: partially implemented isolated Style Lab static specimens. No production
 - The Datapad shell specimen is visual-only and does not modify `DatapadWindow`, `react-rnd`, store hooks, drag handles, bounds, layer state, save/delete handlers, draft persistence, or sync behavior.
 - The Prompt Vault specimen is visual-only and does not modify `PromptVaultManager`, `motion`, fixed overlays, z-index tiers, scroll ownership, edit/copy/delete handlers, close behavior, clipboard calls, store hooks, or Supabase/backend flows.
 - The Command Palette specimen is a visual-only shell with no keyboard shortcut handling, filtering logic, command execution, focus behavior, close behavior, fixed overlay, or z-index tier change.
+- The recommended migration-order visual targets are now represented as isolated Style Lab specimens for Modal, Window, Command Palette, Datapad shell, Prompt Vault surface, and Agent Window chrome. Production visual migration has not started.
 - Production surfaces such as `src/components/nexus/nexus-ops.tsx`, `DatapadWindow`, `PromptVaultManager`, `AgentBranchModal`, and command palette behavior remain untouched.
 
 ## 0. Purpose
@@ -189,6 +190,12 @@ Recommended future order:
 4. Datapad shell visual-only migration.
 5. Prompt vault surface visual-only migration.
 6. Agent window chrome visual-only migration.
+
+Current run status:
+
+- Steps 1-6 have isolated Style Lab visual specimens.
+- Production visual migration for steps 4-6 remains closed until a separate
+  behavior-protected gate is opened.
 
 Do not start with:
 

@@ -288,6 +288,7 @@ export function NexusStyleLab() {
       ["Preview", review.permissions.canPreview ? "allowed" : "blocked"],
       ["Apply", review.permissions.canApply ? "allowed" : "blocked"],
       ["Apply Reason", review.permissions.reasonCodes.join(", ") || "none"],
+      ["Runtime Target", "scoped-provider-v1"],
       ["Active Preview", activePreviewLabel],
       ["Preview Checksum", activePreviewChecksumLabel],
       ["Export", "text-only"],

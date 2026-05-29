@@ -402,30 +402,37 @@ Run id: `20260529-163524+1000`
 - Ran `CP-101 - Style Lab Refresh Non-Persistence Smoke V1`.
 - Confirmed headless Chrome CDP can click Preview, observe active preview `legacy-cyberpunk:nexus-style-fnv1a32:39201c40` and checksum `nexus-style-fnv1a32:39201c40`, reload the page, and see both active preview rows return to `none` with `idle` visible.
 - Confirmed `git diff --check` passed and no headless Chrome process remained after the smoke.
+- Created local checkpoint commit `248afce59802748103b01e7f03f9ad9f1c181450` for the Style Lab Refresh Non-Persistence Smoke V1 unit.
+- Started `CP-102 - Style Lab Runtime Target Row V1`.
+- Implemented `CP-102 - Style Lab Runtime Target Row V1`.
+- Added a display-only `Runtime Target` row inside the isolated Style Lab governance report with value `scoped-provider-v1`.
+- Kept the row static and informational; no runtime provider internals, DOM behavior, apply/save/persist path, store, sync, backend, Supabase, app shell, CSS/global style, React Flow behavior, deploy config, or `exports/**` path was touched.
+- Verified CP-102 with focused import/governance/intent-manifest tests, typecheck, targeted lint, build, side-effect scans, and headless Chrome dump-DOM smoke for the runtime target row.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-101 - Style Lab Refresh Non-Persistence Smoke V1`.
-- Latest local checkpoint commit: pending CP-101 local commit; previous clean checkpoint commit is `18e28e93dab10aaa9a7ec65ce3f5c698d673157d`.
+- Latest completed checkpoint: `CP-102 - Style Lab Runtime Target Row V1`.
+- Latest local checkpoint commit: pending CP-102 local commit; previous clean checkpoint commit is `248afce59802748103b01e7f03f9ad9f1c181450`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status before CP-101 commit prep: dirty only in CP-101 allowed files.
-- Current stop reason: not stopped; CP-101 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status before CP-102 commit prep: dirty only in CP-102 allowed files.
+- Current stop reason: not stopped; CP-102 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-101 - Local checkpoint commit prep`.
+- `CP-102 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source edits during the smoke, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: headless Chrome CDP smoke on `/style-lab` that clicks Preview, verifies active preview rows populate, reloads, and checks `Active Preview` and `Preview Checksum` return to `none`; `git diff --check`; `git status --porcelain=v1 -b`.
-- Rollback: revert only this CP-101 run-doc update if the smoke checkpoint bookkeeping must be removed.
+- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only `src/components/style-engine/nexus-style-lab.tsx` and this unit's run-doc edits.
 
 ## Next
 
-1. Commit the CP-101 docs-only checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-102 checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

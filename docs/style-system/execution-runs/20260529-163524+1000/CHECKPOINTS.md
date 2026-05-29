@@ -2618,3 +2618,24 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Browser deferred tool discovery returned no callable browser tool, so the smoke used an isolated headless Google Chrome profile instead of the user Chrome profile. The screenshot wrote `/tmp/style-lab-cp163.png` as a 1440 x 1800 nonempty PNG with 120277 bytes. Chrome emitted updater/log noise after writing the screenshot; the isolated `codex-style-lab-chrome-profile-cp163` process was cleaned up and the session exited. HTML smoke confirmed `Agent Chrome Specimen`, `Prompt Vault Specimen`, `Datapad Shell Specimen`, `Command Palette Specimen`, `Window Specimen`, and `Modal Specimen` are present. Git status remained clean before run-doc bookkeeping.
 - Rollback note: remove only this CP-163 run-doc entry and the temporary `/tmp/style-lab-cp163.png` screenshot if the visual-smoke bookkeeping must be removed.
+
+## CP-164 - Pure Window Modal Recipe Adapter Shape V1
+
+- Unit: add a pure visual-only window/modal/command palette recipe adapter shape with default values and forbidden behavior key coverage before any compiler wiring or production migration.
+- Allowed files:
+  - `src/lib/style-engine/window-modal-recipe-adapter.ts`
+  - `src/lib/style-engine/window-modal-recipe-adapter.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all `src/components/**`, `src/app/**`, production UI, CSS/global stylesheets, compiler/preview/governance wiring, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused Vitest for the new adapter; targeted style-engine lint; `npm run typecheck`; side-effect/forbidden-surface scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `git diff --check`; side-effect scan; `npm run test -- src/lib/style-engine/window-modal-recipe-adapter.test.ts`; `npm run lint -- src/lib/style-engine`; `npm run typecheck`; targeted side-effect/forbidden-surface scan; `git status --porcelain=v1 -b`; `git diff -- src/lib/style-engine/index.ts`.
+- Changed files:
+  - `src/lib/style-engine/window-modal-recipe-adapter.ts`
+  - `src/lib/style-engine/window-modal-recipe-adapter.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 1 file / 3 tests; targeted style-engine lint passed; `npm run typecheck` passed; `git diff --check` passed. Side-effect scan only matched the intentional forbidden behavior key registry strings inside the pure adapter guard list; no DOM/storage/fetch path, React Flow import, `react-rnd`, production UI import, compiler/preview/governance wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Rollback note: remove the new adapter file, its focused test, the index export, and this run-doc checkpoint update if the pure adapter shape must be removed.

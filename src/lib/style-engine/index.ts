@@ -11,5 +11,6 @@ export * from "./import-text";
 export * from "./intent-manifest";
 export * from "./intent-normalizer";
 export * from "./react-flow-adapter";
+export * from "./window-modal-recipe-adapter";
 export * from "./runtime-target";
 export * from "./runtime-controller";

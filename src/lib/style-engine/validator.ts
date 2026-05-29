@@ -122,6 +122,8 @@ const reactFlowForbiddenKeyParts = [
   "deletekeycode",
 ];
 
+const focusCapableRecipeGroups = ["button", "input"] as const;
+
 export function validateNexusStyleManifestV1(
   candidate: unknown,
 ): NexusStyleValidationReportV1 {
@@ -393,6 +395,7 @@ function validateRecipes(value: unknown, report: MutableReport) {
   }
 
   scanRecipeKeys(value, "$.recipes", report);
+  validateFocusRecipeCompleteness(value, report);
 }
 
 function validateRecipeTokenReferences(
@@ -523,6 +526,30 @@ function scanReactFlowAdapterKeys(value: unknown, path: string, report: MutableR
     }
 
     scanReactFlowAdapterKeys(nextValue, keyPath, report);
+  }
+}
+
+function validateFocusRecipeCompleteness(
+  value: Record<string, unknown>,
+  report: MutableReport,
+) {
+  for (const group of focusCapableRecipeGroups) {
+    const recipe = value[group];
+
+    if (!isRecord(recipe)) {
+      continue;
+    }
+
+    if (isRecord(recipe.focus) && Object.keys(recipe.focus).length > 0) {
+      continue;
+    }
+
+    addWarning(
+      report,
+      `$.recipes.${group}.focus`,
+      "style.missingFocusRecipe",
+      "Focus-capable recipes should define a visual focus state.",
+    );
   }
 }
 

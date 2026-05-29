@@ -80,6 +80,22 @@ describe("NEXUS Style Engine manifest validator", () => {
     });
   });
 
+  it("warns without rejecting when a focus-capable recipe omits focus styling", () => {
+    const manifest = createSafeManifest();
+    delete (
+      manifest.recipes.button as Partial<NexusStyleManifestV1["recipes"]["button"]>
+    ).focus;
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(true);
+    expect(report.warnings).toContainEqual({
+      code: "style.missingFocusRecipe",
+      message: "Focus-capable recipes should define a visual focus state.",
+      path: "$.recipes.button.focus",
+    });
+  });
+
   it("rejects recipe references to unknown semantic tokens", () => {
     const manifest = createSafeManifest({
       recipes: {
@@ -231,7 +247,11 @@ function createSafeManifest(
       },
       commandPalette: {},
       dock: {},
-      input: {},
+      input: {
+        focus: {
+          border: "border.subtle",
+        },
+      },
       modal: {},
       panel: {
         border: "border.subtle",

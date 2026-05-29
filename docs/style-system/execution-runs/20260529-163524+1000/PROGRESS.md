@@ -1033,31 +1033,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-210 - Validator Focus Warning Doc Reconciliation V1`.
 - Reconciled `manifest-validator-rules.md` with CP-209 focus-capable recipe warnings and narrowed the remaining gap to broader optional recipe completeness warnings.
 - Verified CP-210 with focused evidence scan, stale focus-gap scan, `git diff --check`, and status check.
+- Created local checkpoint commit `ef1f73d09aa01d1e8d625148f59b88214018a9fd` for the Validator Focus Warning Doc Reconciliation V1 unit.
+- Started `CP-211 - Post Validator Focus Warning Phase Gate` with source edits closed.
+- Ran full `npm run check`; lint, typecheck, 41 Vitest files / 305 tests, and build passed.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries/assertions, and the window/modal recipe adapter forbidden behavior key registry/assertions; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-210 - Validator Focus Warning Doc Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-210 local commit; previous clean checkpoint commit is `5a1bdf646eea6a232f09c63bf7484fd743d59481`.
+- Latest completed checkpoint: `CP-211 - Post Validator Focus Warning Phase Gate`.
+- Latest local checkpoint commit: pending CP-211 local commit; previous clean checkpoint commit is `ef1f73d09aa01d1e8d625148f59b88214018a9fd`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-210 verification: dirty only in CP-210 allowed docs and run-doc files.
-- Current stop reason: not stopped; CP-210 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-211 verification: clean before run-doc bookkeeping; dirty only in CP-211 run-doc files after bookkeeping.
+- Current stop reason: not stopped; CP-211 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-210 - Local checkpoint commit prep`.
+- `CP-211 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits, UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test/docs outside this run folder, UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-210 docs/run-doc reconciliation if this wording must be removed.
+- Rollback: revert only the CP-211 run-doc bookkeeping if this gate record must be removed.
 
 ## Next
 
-1. Commit the CP-210 docs checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-211 phase-gate checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -226,6 +226,7 @@ Run id: `20260529-163524+1000`
 | Post Compiler Governance Metadata Phase Gate | PASS | Full check passed after compiler variable-limit and governance validator-version metadata units; side-effect scan and git diff check passed. |
 | Pure Validator Focus Recipe Warning V1 | PASS | Added a pure warning for focus-capable recipes that omit a visual focus state; focused tests, lint, typecheck, side-effect scan, and diff check passed. |
 | Validator Focus Warning Doc Reconciliation V1 | PASS | Reconciled validator rules docs with CP-209 focus-capable recipe warnings and narrowed the remaining optional recipe completeness gap. |
+| Post Validator Focus Warning Phase Gate | PASS | Full check passed after validator focus warning/docs; side-effect scan and git diff check passed. |
 
 ## Current Gate
 
@@ -238,4 +239,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Validator Focus Warning Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post Validator Focus Warning Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

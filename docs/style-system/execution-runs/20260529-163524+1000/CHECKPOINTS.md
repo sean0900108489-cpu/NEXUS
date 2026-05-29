@@ -4823,3 +4823,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused exchange Vitest passed 1 file / 7 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Targeted added-line side-effect/behavior scan returned no matches for workspace/sync/backend/Supabase/deploy/production Nexus/React Flow behavior paths. `git diff --check` passed.
 - Rollback note: revert only the CP-291 exchange source/test/run-doc changes if this guard must be removed.
+
+## CP-292 - Governance Unsupported Package Doc Reconciliation V1
+
+- Unit: reconcile style pack governance docs with CP-291 unsupported package-like import source rejection coverage.
+- Allowed files:
+  - `docs/style-system/style-pack-governance.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, docs outside the listed governance doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence/doc scan for unsupported package-like import source rejection coverage; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: focused evidence/doc scan for unsupported package-like import source rejection coverage; source-diff absence check; `git diff --check`.
+- Changed files:
+  - `docs/style-system/style-pack-governance.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found the CP-291 unsupported export-package shape exchange test and matching style pack governance wording. Source-diff absence check showed no source/runtime diff for this docs-only unit. `git diff --check` passed.
+- Rollback note: revert only the CP-292 doc/run-doc changes if this reconciliation must be removed.

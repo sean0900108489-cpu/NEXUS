@@ -206,6 +206,34 @@ const primitiveWindowHandleStyle = {
   background: "var(--nexus-accent-primary, #67e8f9)",
 };
 
+const primitiveDatapadSurfaceStyle = {
+  background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
+  borderColor: "var(--nexus-status-success, #6ee7b7)",
+  boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
+  color: "var(--nexus-text-primary, #f8fafc)",
+};
+
+const primitiveDatapadChromeStyle = {
+  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
+  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+  color: "var(--nexus-status-success, #6ee7b7)",
+};
+
+const primitiveDatapadBodyStyle = {
+  background: "var(--nexus-surface-input, rgb(15 23 42 / 0.72))",
+};
+
+const primitiveDatapadFooterStyle = {
+  background: "var(--nexus-surface-workspace, #020617)",
+  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+};
+
+const primitiveDatapadActionStyle = {
+  background: "var(--nexus-status-success, #6ee7b7)",
+  borderColor: "var(--nexus-status-success, #6ee7b7)",
+  color: "var(--nexus-text-inverse, #020617)",
+};
+
 const graphCanvasStyle = {
   background:
     "var(--nexus-graph-background-color, var(--nexus-surface-workspace, #020617))",
@@ -790,6 +818,48 @@ export function NexusStyleLab() {
                         </span>
                       ))}
                     </div>
+                  </div>
+                </div>
+
+                <div
+                  aria-hidden="true"
+                  className="mt-3 overflow-hidden border"
+                  style={primitiveDatapadSurfaceStyle}
+                >
+                  <div
+                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-4 py-3"
+                    style={primitiveDatapadChromeStyle}
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em]">
+                        Datapad Shell Specimen
+                      </div>
+                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Global Notes
+                      </div>
+                    </div>
+                    <span className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300">
+                      visual
+                    </span>
+                  </div>
+                  <div className="grid gap-2 p-4" style={primitiveDatapadBodyStyle}>
+                    <span className="h-2 w-3/4 bg-white/15" />
+                    <span className="h-2 w-2/3 bg-white/10" />
+                    <span className="h-2 w-5/6 bg-white/10" />
+                  </div>
+                  <div
+                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t px-4 py-3"
+                    style={primitiveDatapadFooterStyle}
+                  >
+                    <span className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                      Local shell preview
+                    </span>
+                    <span
+                      className="border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em]"
+                      style={primitiveDatapadActionStyle}
+                    >
+                      Ready
+                    </span>
                   </div>
                 </div>
 

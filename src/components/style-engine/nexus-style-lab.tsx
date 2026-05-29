@@ -284,6 +284,7 @@ export function NexusStyleLab() {
   const compiledVariableCountLabel = compiled.accepted
     ? String(compiled.style.report.emittedVariableCount)
     : "blocked";
+  const intentProfileLabel = `${manifest.intent.contrast} / ${manifest.intent.density} / ${manifest.intent.motion}`;
   const sourceKindLabel = manifest.source?.kind ?? "unknown";
   const modeLabel = manifest.mode;
   const governanceRows = useMemo(
@@ -291,6 +292,7 @@ export function NexusStyleLab() {
       ["State", review.state],
       ["Source", sourceKindLabel],
       ["Mode", modeLabel],
+      ["Intent", intentProfileLabel],
       ["Compatibility", review.compatibility],
       ["Preview", review.permissions.canPreview ? "allowed" : "blocked"],
       ["Apply", review.permissions.canApply ? "allowed" : "blocked"],
@@ -316,6 +318,7 @@ export function NexusStyleLab() {
       activePreviewChecksumLabel,
       activePreviewLabel,
       compiledVariableCountLabel,
+      intentProfileLabel,
       modeLabel,
       sourceKindLabel,
       review,

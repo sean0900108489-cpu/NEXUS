@@ -100,14 +100,15 @@ Run id: `20260529-163524+1000`
 - Added a validator gate for primary text contrast when foreground/background tokens are parseable hex colors.
 - Added focused Vitest coverage for contrast ratios, unsupported color formats, and low-contrast manifest rejection.
 - Verified the contrast unit with `git diff --check`, focused Vitest, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
+- Created local checkpoint commit `a76e1c6693313f1521dd8c6dc7b631a47e1daf02` for the pure contrast helper and validator gate.
 
 ## In Progress
 
-- Local checkpoint commit for pure accessibility contrast V1.
+- Post-commit record update for pure accessibility contrast V1.
 
 ## Next
 
-1. Stage run docs and `src/lib/style-engine/**`.
-2. Verify staged diff.
-3. Create a local checkpoint commit if checks pass.
-4. Continue with the next isolated unit only if status returns clean.
+1. Commit this run-status record update.
+2. Re-confirm branch/status/HEAD.
+3. Decide whether next step remains pure or needs UI/browser gate.
+4. Keep DOM, CSS, theme provider, components, graph, store/sync, backend route, Supabase, deploy, and `exports/**` changes out of scope unless a new gate explicitly opens them.

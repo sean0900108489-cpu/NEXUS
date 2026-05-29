@@ -540,3 +540,13 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
 - Verification result: PASS. Focused style-engine tests passed, typecheck passed, isolated lint passed, diff check passed, and targeted side-effect/import scan returned no matches. The validator now rejects low primary text contrast when token colors are parseable hex and avoids guessing unsupported color formats.
 - Rollback note: revert only `src/lib/style-engine/accessibility.ts`, `src/lib/style-engine/accessibility.test.ts`, the validator contrast gate, the index export, and this run-doc checkpoint update if this pure accessibility unit must be removed.
+
+## CP-036 - Accessibility Local Commit Completed
+
+- Unit: commit pure contrast helper and validator gate locally.
+- Allowed files: git metadata plus `docs/style-system/execution-runs/20260529-163524+1000/**` for this record.
+- Forbidden files: `exports/**`, DOM files, CSS files, theme provider files, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `git add src/lib/style-engine docs/style-system/execution-runs/20260529-163524+1000`; `git diff --cached --check`; `git diff --cached --name-only`; `git commit -m "feat: add style contrast validation"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -15`.
+- Commit created: `a76e1c6693313f1521dd8c6dc7b631a47e1daf02`.
+- Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
+- Rollback note: revert the accessibility commit only if the pure contrast unit must be removed; do not touch unrelated history.

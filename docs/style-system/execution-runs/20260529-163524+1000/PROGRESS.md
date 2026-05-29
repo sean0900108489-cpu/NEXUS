@@ -1308,31 +1308,37 @@ Run id: `20260529-163524+1000`
 - Started `CP-277 - Interpreter Fallback Draft Doc Reconciliation V1`.
 - Reconciled Style Interpreter boundary docs with CP-276 sparse fallback manifest draft validation coverage.
 - Verified CP-277 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
+- Created local checkpoint commit `a333f700b8558028fa4062072fd461cef9387aee` for the Interpreter Fallback Draft Doc Reconciliation V1 unit.
+- Started `CP-278 - Pure Intent Normalizer Executable Input Guard V1`.
+- Added a pure normalizer guard for executable code-like input such as script tags or executable URL/code patterns before draft generation.
+- Added focused normalizer coverage proving the executable-like input rejects without echoing payload text.
+- Verified CP-278 with focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-277 - Interpreter Fallback Draft Doc Reconciliation V1`.
-- Latest recorded checkpoint commit: `7d9f26b485e93e7a57f9de03e29eb32668cc7fe7` for `CP-276 - Pure Intent Manifest Fallback Draft Coverage V1`; CP-277 is being prepared for local commit.
+- Latest completed checkpoint: `CP-278 - Pure Intent Normalizer Executable Input Guard V1`.
+- Latest recorded checkpoint commit: `a333f700b8558028fa4062072fd461cef9387aee` for `CP-277 - Interpreter Fallback Draft Doc Reconciliation V1`; CP-278 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-277 verification prep: dirty only in CP-277 allowed interpreter boundary doc and run-doc files.
-- Current stop reason: not stopped; CP-277 interpreter fallback draft doc reconciliation checkpoint is underway.
+- Confirmed current status after CP-278 verification prep: dirty only in CP-278 allowed intent-normalizer source/test and run-doc files.
+- Current stop reason: not stopped; CP-278 executable input guard checkpoint is underway.
 
 ## In Progress
 
-- `CP-277 - Local checkpoint commit prep`.
+- `CP-278 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-interpreter-boundary.md`
+  - `src/lib/style-engine/intent-normalizer.ts`
+  - `src/lib/style-engine/intent-normalizer.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, docs outside the listed interpreter doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-277 interpreter boundary doc/run-doc changes if this reconciliation must be removed.
+- Forbidden files: docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-278 intent-normalizer source/test/run-doc changes if this guard must be removed.
 
 ## Next
 
-1. Commit the CP-277 interpreter fallback draft doc reconciliation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-278 executable input guard checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

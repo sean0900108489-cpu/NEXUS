@@ -139,6 +139,14 @@ const forbiddenSecretPatterns = [
   /\b(?:service[-_\s]?role|supabase[-_\s]?service[-_\s]?role[-_\s]?key)\s*[:=]\s*\S+/i,
 ];
 
+const forbiddenExecutableInputPatterns = [
+  /<script\b/i,
+  /\bjavascript\s*:/i,
+  /\beval\s*\(/i,
+  /\bFunction\s*\(/,
+  /\bimport\s*\(/i,
+];
+
 export function normalizeNexusStyleIntentV1(
   text: string,
   options: NexusStyleIntentNormalizerOptionsV1 = {},
@@ -165,6 +173,16 @@ export function normalizeNexusStyleIntentV1(
     return rejectIntent(
       "style.intent.forbiddenSecret",
       "Style brief contains a forbidden secret-like value.",
+      safety,
+    );
+  }
+
+  if (
+    forbiddenExecutableInputPatterns.some((pattern) => pattern.test(trimmed))
+  ) {
+    return rejectIntent(
+      "style.intent.forbiddenExecutableInput",
+      "Style brief contains executable code-like input.",
       safety,
     );
   }

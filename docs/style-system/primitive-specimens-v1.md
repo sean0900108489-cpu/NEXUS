@@ -2,7 +2,13 @@
 
 Phase: V7 - Primitive Specimens
 Run: `docs/style-system/execution-runs/20260529-163524+1000`
-Status: documentation-only primitive contract. No component files created.
+Status: partially implemented isolated Style Lab specimens. No reusable primitive component package or production component migration is implemented.
+
+## Implementation Evidence
+
+- `src/components/style-engine/nexus-style-lab.tsx` includes an isolated primitive specimen gallery for Panel, Button, Input, Badge, static Window, and static Modal visuals.
+- Static Window and Modal specimens are visual shells only. They do not add drag handle class names, `draggable`, resize enablement, bounds, z-index control, focus/close handlers, `role="dialog"`, `aria-modal`, or sandbox locks.
+- Production app shell, `src/components/nexus/**`, React Flow behavior, workspace store/sync, backend routes, Supabase/database, package/deploy files, and `exports/**` remain outside the primitive specimen implementation.
 
 ## 0. Purpose
 

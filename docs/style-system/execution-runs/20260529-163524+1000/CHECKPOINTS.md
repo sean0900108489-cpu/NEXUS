@@ -2418,3 +2418,24 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 40 Vitest files / 292 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing pure preview patch adapter variable emission, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, existing textarea `resize-none` classes, and test-only guard cases; no live React Flow import, graph behavior props, window/modal behavior semantics, runtime provider logic change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, download/clipboard/save/export-file path, deploy path, or `exports/**` path was found. `git diff --check` passed.
 - Rollback note: revert only this CP-152 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-153 - Primitive And Window Modal Doc Reconciliation V1
+
+- Unit: reconcile primitive, window/modal, and Style Lab phase docs with the current isolated static Window/Modal specimen implementation evidence and preserved safety boundaries.
+- Allowed files:
+  - `docs/style-system/primitive-specimens-v1.md`
+  - `docs/style-system/window-modal-recipe-system.md`
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all `src/**` source/test edits, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `git diff --check`; focused doc scan for current implementation evidence and preserved no-production/no-behavior boundaries; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `git diff --check`; focused `rg` doc evidence scan; `git status --porcelain=v1 -b`; `git diff --stat`.
+- Changed files:
+  - `docs/style-system/primitive-specimens-v1.md`
+  - `docs/style-system/window-modal-recipe-system.md`
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. `git diff --check` passed. Focused doc scan confirmed the docs now record isolated Style Lab Panel/Button/Input/Badge plus static Window/Modal specimen evidence while preserving that no production app shell, `src/components/nexus/**`, React Flow behavior, runtime provider internals, workspace store/sync, backend, Supabase/database, package/deploy, modal/window behavior semantics, or `exports/**` files were changed.
+- Rollback note: revert only these phase-doc reconciliation edits and this run-doc checkpoint update if the reconciliation must be removed.

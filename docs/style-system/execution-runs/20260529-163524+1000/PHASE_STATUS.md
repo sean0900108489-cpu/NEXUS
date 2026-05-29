@@ -168,6 +168,7 @@ Run id: `20260529-163524+1000`
 | Post Modal Specimen Phase Gate | PASS | Full check passed after the static Modal specimen; side-effect/modal-behavior scan and git diff check passed. |
 | Style Lab Static Window Specimen V1 | PASS | Added specimen-only static Window visual shell to isolated Style Lab without window behavior semantics; focused checks, build, side-effect scan, and local smoke passed. |
 | Post Window Specimen Phase Gate | PASS | Full check passed after the static Window specimen; side-effect/window-modal behavior scan and git diff check passed. |
+| Primitive And Window Modal Doc Reconciliation V1 | PASS | Reconciled primitive, window/modal, and Style Lab docs with isolated static Window/Modal specimen evidence and preserved safety boundaries. |
 
 ## Current Gate
 
@@ -180,4 +181,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Window Specimen Phase Gate local checkpoint prep. Source logic, Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Primitive And Window Modal Doc Reconciliation V1 local checkpoint prep. Source logic, Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

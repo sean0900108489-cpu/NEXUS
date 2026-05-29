@@ -701,30 +701,39 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 40 Vitest files / 292 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect/window-modal behavior scans only matched existing pure preview patch adapter variable emission, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, existing textarea `resize-none` classes, and test-only guard cases; no live React Flow import, graph behavior props, window/modal behavior semantics, runtime provider logic change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, download/clipboard/save/export-file path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `03c35d03fb907494909f9d0b6c9eccb1f30bafad` for the Post Window Specimen Phase Gate.
+- Started `CP-153 - Primitive And Window Modal Doc Reconciliation V1` after phase docs lagged behind the isolated primitive/window/modal specimens.
+- Implemented `CP-153 - Primitive And Window Modal Doc Reconciliation V1`.
+- Reconciled `primitive-specimens-v1.md`, `window-modal-recipe-system.md`, and `style-lab-v1.md` with current isolated Style Lab Panel/Button/Input/Badge plus static Window/Modal specimen evidence.
+- Preserved safety boundaries in those docs: no production app shell, `src/components/nexus/**`, React Flow behavior, runtime provider internals, workspace store/sync, backend, Supabase/database, package/deploy, modal/window behavior semantics, or `exports/**` files changed.
+- Verified CP-153 with docs-only diff checks, status checks, and focused implementation-evidence/boundary review.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-152 - Post Window Specimen Phase Gate`.
-- Latest local checkpoint commit: pending CP-152 local commit; previous clean checkpoint commit is `3e252fce17490f1cf3cde963f9a9a8871eccd894`.
+- Latest completed checkpoint: `CP-153 - Primitive And Window Modal Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-153 local commit; previous clean checkpoint commit is `03c35d03fb907494909f9d0b6c9eccb1f30bafad`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-152 verification: dirty only in CP-152 allowed run-doc files.
-- Current stop reason: not stopped; CP-152 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-153 verification: dirty only in CP-153 allowed docs files.
+- Current stop reason: not stopped; CP-153 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-152 - Local checkpoint commit prep`.
+- `CP-153 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `docs/style-system/primitive-specimens-v1.md`
+  - `docs/style-system/window-modal-recipe-system.md`
+  - `docs/style-system/style-lab-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, Style Lab/UI source, runtime provider internals, production graph/app shell files, `src/components/nexus/**`, CSS/global stylesheets, pure style-engine logic changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, window/modal behavior semantics, download/clipboard/save/export-file behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all `src/**` source/test edits, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only this CP-152 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+- Rollback: revert only these phase-doc reconciliation edits and this run-doc checkpoint update if the reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-152 run-doc checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-153 docs-only checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

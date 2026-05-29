@@ -957,3 +957,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 37 Vitest files / 271 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scan only matched validator forbidden-string detector patterns; no live React Flow/store/sync/backend/Supabase import or mutation path was found. `git diff --check` passed.
 - Rollback note: no source rollback for the gate itself. If the gate exposes a regression, fix only the responsible isolated Style Lab unit and rerun; stop if fixing would cross a forbidden boundary.
+
+## CP-064 - Style Lab Baseline Comparison Panel V1
+
+- Unit: add read-only baseline-vs-active token comparison inside the isolated Style Lab component.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: production components, `src/components/nexus/**`, app route files, CSS/global styles, React Flow behavior files, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, and `exports/**`.
+- Verification plan: `git diff --check`; `npm run test -- src/lib/style-engine/import-text.test.ts src/lib/style-engine/compiler.test.ts`; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; targeted side-effect/import scan; Browser smoke on `http://localhost:3000/style-lab`.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/import-text.test.ts src/lib/style-engine/compiler.test.ts`; targeted side-effect/import scan for store/sync/backend/Supabase/DOM/storage/React Flow behavior strings; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; Browser smoke on `http://localhost:3000/style-lab`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 2 files and 10 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only; side-effect scan returned no matches; Browser smoke confirmed Comparison, key token rows, Preview scoped variable application, Revert cleanup, and severe browser log count is zero.
+- Rollback note: revert only `src/components/style-engine/nexus-style-lab.tsx` and this run-doc checkpoint update if the comparison panel unit must be removed.

@@ -26,6 +26,14 @@ type PreviewState = "idle" | "previewing" | "reverted";
 
 const maxVisibleImportIssues = 3;
 
+const comparisonVariables = [
+  "--nexus-surface-app",
+  "--nexus-surface-panel",
+  "--nexus-text-primary",
+  "--nexus-accent-primary",
+  "--nexus-status-warning",
+];
+
 const surfaceStyle = {
   background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
   borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
@@ -84,6 +92,10 @@ const graphEdgeStyle = {
 
 export function NexusStyleLab() {
   const runtime = useNexusStyleRuntimeV1();
+  const baselineManifest = useMemo(
+    () => createLegacyCyberpunkStyleManifestV1(),
+    [],
+  );
   const [previewState, setPreviewState] = useState<PreviewState>("idle");
   const [manifest, setManifest] = useState<NexusStyleManifestV1>(() =>
     createLegacyCyberpunkStyleManifestV1(),
@@ -91,6 +103,10 @@ export function NexusStyleLab() {
   const [draftText, setDraftText] = useState("");
   const [importResult, setImportResult] =
     useState<NexusStyleImportTextResultV1 | null>(null);
+  const baselineCompiled = useMemo(
+    () => compileNexusStyleManifestV1(baselineManifest),
+    [baselineManifest],
+  );
   const compiled = useMemo(() => compileNexusStyleManifestV1(manifest), [manifest]);
   const review = useMemo(() => reviewNexusStylePackV1(manifest), [manifest]);
   const exportResult = useMemo(
@@ -162,6 +178,17 @@ export function NexusStyleLab() {
       ].slice(0, maxVisibleImportIssues),
     [review],
   );
+  const comparisonRows = useMemo(() => {
+    if (!baselineCompiled.accepted || !compiled.accepted) {
+      return [];
+    }
+
+    return comparisonVariables.map((name) => ({
+      active: compiled.style.cssVariables[name] ?? "",
+      baseline: baselineCompiled.style.cssVariables[name] ?? "",
+      name,
+    }));
+  }, [baselineCompiled, compiled]);
 
   const startPreview = () => {
     if (!previewPatch) {
@@ -335,6 +362,45 @@ export function NexusStyleLab() {
                       ))}
                     </div>
                   </div>
+                </div>
+              </section>
+
+              <section className="border border-white/10 bg-black/20 p-4 lg:col-span-2">
+                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                  Comparison
+                </div>
+
+                <div className="grid gap-2">
+                  {comparisonRows.map((row) => (
+                    <div
+                      key={row.name}
+                      className="grid gap-2 border border-white/10 bg-white/[0.03] p-2 md:grid-cols-[minmax(150px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]"
+                    >
+                      <div className="truncate font-mono text-[10px] text-slate-300">
+                        {row.name}
+                      </div>
+                      <div className="grid min-w-0 grid-cols-[24px_minmax(0,1fr)] items-center gap-2">
+                        <span
+                          aria-hidden="true"
+                          className="h-6 w-6 border border-white/15"
+                          style={{ background: row.baseline || "transparent" }}
+                        />
+                        <span className="truncate font-mono text-[9px] text-slate-500">
+                          {row.baseline || "n/a"}
+                        </span>
+                      </div>
+                      <div className="grid min-w-0 grid-cols-[24px_minmax(0,1fr)] items-center gap-2">
+                        <span
+                          aria-hidden="true"
+                          className="h-6 w-6 border border-white/15"
+                          style={{ background: row.active || "transparent" }}
+                        />
+                        <span className="truncate font-mono text-[9px] text-slate-200">
+                          {row.active || "n/a"}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </section>
 

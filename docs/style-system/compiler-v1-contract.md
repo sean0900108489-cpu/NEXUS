@@ -11,6 +11,7 @@ Status: partially implemented pure compiler contract. Current implementation is 
 - `CP-169 - Pure Compiler Window Modal Recipe Output V1` made the pure compiler emit deterministic window/modal/command palette recipe adapter output and report `adapterCoverage.windowModal` as `complete`.
 - `CP-170 - Post Compiler Window Modal Adapter Output Phase Gate` passed full local verification after that compiler change.
 - `CP-204 - Pure Compiler Variable Limit Guard V1` made the pure compiler fail closed with `style.variableCountExceeded` when emitted CSS variables exceed `constraints.maxCssVariableCount`.
+- `src/lib/style-engine/compiler.test.ts` covers exact emitted variable count reporting and preservation of optional `nextThemes` bridge data as inert adapter output.
 - Current implementation remains pure data output: no DOM writes, store writes, sync, backend, Supabase, deployment, or `exports/**` paths are part of compiler execution.
 - Production component migration and durable persistence remain outside this compiler contract.
 
@@ -278,6 +279,7 @@ Current focused compiler coverage includes:
 - legacy cyberpunk compiles to expected variables
 - validator-rejected manifests do not produce compiled output
 - emitted variable totals are reported in compiler metadata
+- optional `nextThemes` bridge data stays inert adapter output
 - emitted variable totals exceeding `maxCssVariableCount` fail closed
 - React Flow adapter output excludes protected behavior fields
 - window/modal recipe adapter output is deterministic and visual-only

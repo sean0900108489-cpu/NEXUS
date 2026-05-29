@@ -313,6 +313,7 @@ Run id: `20260529-163524+1000`
 | Governance Compiler Rejection Doc Reconciliation V1 | PASS | Reconciled style pack governance docs with compiler-failed manifest rejection coverage. |
 | Pure Compiler Report Variable Count Coverage V1 | PASS | Added focused compiler coverage that emittedVariableCount matches actual CSS variable totals. |
 | Pure Compiler NextThemes Adapter Coverage V1 | PASS | Added focused compiler coverage that nextThemes bridge data stays inert adapter output. |
+| Compiler Report Adapter Doc Reconciliation V1 | PASS | Reconciled compiler contract docs with emitted variable count and nextThemes adapter coverage. |
 
 ## Current Gate
 
@@ -325,4 +326,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Compiler NextThemes Adapter Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, source implementation files, docs outside this run folder, governance/exchange/runtime/UI/TSX/app route/CSS files outside the touched compiler test, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Compiler Report Adapter Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside the compiler contract doc and this run folder, governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

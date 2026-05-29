@@ -4923,3 +4923,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused compiler Vitest passed 1 file / 10 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Targeted added-line side-effect/behavior scan returned no matches for workspace/sync/backend/Supabase/deploy/production Nexus/React Flow behavior paths. `git diff --check` passed.
 - Rollback note: revert only the CP-297 compiler test/run-doc changes if this coverage must be removed.
+
+## CP-298 - Compiler Report Adapter Doc Reconciliation V1
+
+- Unit: reconcile compiler contract docs with CP-296 emitted variable count coverage and CP-297 `nextThemes` adapter coverage.
+- Allowed files:
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, docs outside the listed compiler contract doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence/doc scan for compiler report/adapter coverage; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: focused evidence/doc scan for compiler report/adapter coverage; source-diff absence check; `git diff --check`.
+- Changed files:
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found the CP-296 emitted variable count test, CP-297 nextThemes adapter test, and matching compiler contract wording. Source-diff absence check showed no source/runtime diff for this docs-only unit. `git diff --check` passed.
+- Rollback note: revert only the CP-298 doc/run-doc changes if this reconciliation must be removed.

@@ -6,7 +6,7 @@ Status: partially implemented pure validator. Runtime persistence, workspace syn
 
 ## Implementation Evidence
 
-- `src/lib/style-engine/validator.ts` implements pure V1 validation for top-level shape, identity, source metadata, intent, required constraints, required token groups/tokens, unsafe string patterns, recipe behavior-key scanning, focus-capable recipe warnings, recommended recipe slot warnings, React Flow behavior-key scanning, primary text contrast, and deterministic display-safe reports.
+- `src/lib/style-engine/validator.ts` implements pure V1 validation for top-level shape, identity, source metadata, intent, required constraints, required token groups/tokens, unsafe string patterns, recipe behavior-key scanning, focus-capable recipe warnings, recommended recipe slot warnings, React Flow behavior-key scanning, primary and secondary text contrast, and deterministic display-safe reports.
 - `src/lib/style-engine/validator.test.ts` covers safe manifest acceptance, unsafe string redaction, recipe behavior rejection, focus recipe warnings, recommended recipe slot warnings, unknown recipe semantic token reference rejection, React Flow behavior rejection, workspace/backend top-level pollution rejection, and required `recipes.commandPalette` group rejection.
 - The validator is used before compilation by `src/lib/style-engine/compiler.ts`; invalid manifests fail closed without partial compiled output.
 - The current implementation is local-only and pure. It does not mutate workspace state, sync queues, backend routes, Supabase/database, DOM, external services, deploy config, or `exports/**`.
@@ -14,7 +14,7 @@ Status: partially implemented pure validator. Runtime persistence, workspace syn
 Known remaining gaps:
 
 - Token value parsing is still conservative pattern scanning, not a full structured CSS/value parser.
-- Accessibility validation currently covers primary text contrast and high-contrast intent warning only.
+- Accessibility validation currently covers parseable primary text contrast, parseable secondary text contrast against panel surfaces, and high-contrast intent warnings.
 
 ## 0. Validator Purpose
 
@@ -258,6 +258,7 @@ V1-V12 Style Engine assets are not durable workspace data.
 Current implementation status:
 
 - Primary text contrast is validated against the project-defined threshold.
+- Secondary text contrast against panel surfaces is validated when both colors are parseable.
 - Missing high-contrast intent produces a warning, not a hard rejection.
 
 Future implementation requirements:
@@ -270,7 +271,7 @@ Future implementation requirements:
 
 Warning if a manifest omits high-contrast intent.
 
-Error if a recipe removes focus styles.
+Warning if a focus-capable recipe omits focus styles.
 
 ## 11. Validator Report Shape
 

@@ -1055,32 +1055,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-215 - Pure Validator Secondary Text Contrast V1`.
 - Added a pure validator accessibility gate for parseable `text.secondary` contrast against `surface.panel`.
 - Verified CP-215 with focused accessibility/validator Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
+- Created local checkpoint commit `ea7031e8efc5f0d4e605d884ca2fbc07c3665704` for the Pure Validator Secondary Text Contrast V1 unit.
+- Started `CP-216 - Validator Secondary Contrast Doc Reconciliation V1`.
+- Reconciled `manifest-validator-rules.md` with CP-215 secondary text contrast validation.
+- Verified CP-216 with focused evidence scan, stale primary-only accessibility wording scan, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-215 - Pure Validator Secondary Text Contrast V1`.
-- Latest local checkpoint commit: pending CP-215 local commit; previous clean checkpoint commit is `cdef80867b6f305e1a5c9a454f6601c8807cae1c`.
+- Latest completed checkpoint: `CP-216 - Validator Secondary Contrast Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-216 local commit; previous clean checkpoint commit is `ea7031e8efc5f0d4e605d884ca2fbc07c3665704`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-215 verification: dirty only in CP-215 allowed validator/test/run-doc files.
-- Current stop reason: not stopped; CP-215 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-216 verification: dirty only in CP-216 allowed docs and run-doc files.
+- Current stop reason: not stopped; CP-216 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-215 - Local checkpoint commit prep`.
+- `CP-216 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.ts`
-  - `src/lib/style-engine/accessibility.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: compiler/governance/exchange/runtime/UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test edits, UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-215 validator/test/run-doc changes if secondary text contrast validation must be removed.
+- Rollback: revert only the CP-216 docs/run-doc reconciliation if this wording must be removed.
 
 ## Next
 
-1. Commit the CP-215 validator checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-216 docs checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -3531,3 +3531,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused accessibility/validator Vitest passed 2 files / 13 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only existing validator safety detector strings for Supabase/deploy/themeConfig. Behavior scan found only the existing validator `zIndex` forbidden-key registry. `git diff --check` passed.
 - Rollback note: revert only the CP-215 validator/test/run-doc changes if secondary text contrast validation must be removed.
+
+## CP-216 - Validator Secondary Contrast Doc Reconciliation V1
+
+- Unit: reconcile manifest validator rules with CP-215 secondary text contrast validation.
+- Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits, UI/TSX/app route/CSS files, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence scan for `style.accessibility.secondaryTextContrast`; stale scan for old primary-only accessibility wording; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused secondary-contrast evidence scan; stale primary-only accessibility wording scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found `style.accessibility.secondaryTextContrast` coverage in validator source/tests and secondary contrast wording in the validator rules doc. Stale wording scan returned no matches for old primary-only accessibility wording or old focus-style error wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
+- Rollback note: revert only the CP-216 docs/run-doc reconciliation if this wording must be removed.

@@ -1,0 +1,220 @@
+# NEXUS Style Engine Checkpoints
+
+Run id: `20260529-163524+1000`
+
+## Checkpoint Format
+
+Each checkpoint records:
+
+- unit
+- allowed files
+- forbidden files
+- commands run
+- changed files
+- verification result
+- rollback note
+
+## CP-001 - Branch Baseline
+
+- Unit: baseline alignment inherited from branch setup.
+- Allowed files: none.
+- Forbidden files: all runtime/source/data/deploy files.
+- Commands run: `git fetch origin`, `git switch main`, `git pull --ff-only`, `git switch -c codex/v17-large-iteration`, branch/status/HEAD checks.
+- Changed files: none.
+- Verification result: branch `codex/v17-large-iteration` at `c4ab6cbc97ebdc0e11a08581d6732bc509029a8c`, clean before this run began.
+- Rollback note: no rollback needed; branch creation only.
+
+## CP-002 - Long-Run Protection Docs
+
+- Unit: create run protection document set.
+- Allowed files: `docs/style-system/execution-runs/20260529-163524+1000/**`.
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, deploy/config/remote/database mutation.
+- Commands run: `date`, `mkdir -p`, `apply_patch`, `git status --porcelain=v1 -b`, `rg --files docs/style-system/execution-runs/20260529-163524+1000`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/RUNBOOK.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/RECOVERY.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/STOP_CONDITIONS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. All six docs exist; git status shows only untracked `docs/style-system/execution-runs/` from this run.
+- Rollback note: delete only this run directory if this unit must be reverted.
+
+## CP-003 - Phase 1 Style Surface Audit Docs
+
+- Unit: create V1 audit document set and update doc index.
+- Allowed files:
+  - `docs/style-system/style-surface-audit.md`
+  - `docs/style-system/hardcoded-visual-token-inventory.md`
+  - `docs/style-system/react-flow-style-boundary.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, deploy/config/remote/database mutation.
+- Commands run: focused read-only `sed`, `rg`, `wc -l`; `apply_patch`; `git status --porcelain=v1 -b`; `git diff --check`; `rg -n "[ \t]+$"` on changed docs.
+- Changed files:
+  - `docs/style-system/style-surface-audit.md`
+  - `docs/style-system/hardcoded-visual-token-inventory.md`
+  - `docs/style-system/react-flow-style-boundary.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; no runtime/source/database files were touched.
+- Rollback note: revert only the three new Phase 1 docs plus the index/run-doc updates listed here.
+
+## CP-004 - Phase 2 Style Contract V1 Doc
+
+- Unit: create semantic token and recipe contract documentation.
+- Allowed files:
+  - `docs/style-system/style-contract-v1.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git status --porcelain=v1 -b`; `git diff --check`; `rg -n "[ \t]+$"` on changed contract/index docs; targeted `rg` for required boundary terms.
+- Changed files:
+  - `docs/style-system/style-contract-v1.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; contract includes preview/persist, Tailwind, React Flow, and `workspace.themeConfig` guardrails.
+- Rollback note: revert only `style-contract-v1.md`, the index update, and this run-doc checkpoint update.
+
+## CP-005 - Phase 3 Manifest Spec And Validator Rules
+
+- Unit: create manifest data spec and validator rulebook.
+- Allowed files:
+  - `docs/style-system/manifest-v1-spec.md`
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; `rg -n "[ \t]+$"` on changed manifest/index docs; targeted `rg` for raw CSS, JavaScript, dynamic Tailwind, workspace/sync/backend, React Flow, and gate terms; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-v1-spec.md`
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; validator docs explicitly block raw CSS, JavaScript, dynamic Tailwind, workspace/sync/backend pollution, and React Flow behavior fields.
+- Rollback note: revert only the two V3 docs, the index update, and this run-doc checkpoint update.
+
+## CP-006 - Phase 4 Pure Compiler Contract
+
+- Unit: create pure compiler contract documentation.
+- Allowed files:
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; `rg -n "[ \t]+$"` on changed compiler/index docs; targeted `rg` for pure/deterministic, DOM, `workspace.themeConfig`, Tailwind, React Flow, Supabase, and gate terms; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; compiler contract forbids DOM/store/sync/backend/Supabase/deploy side effects and dynamic Tailwind generation.
+- Rollback note: revert only `compiler-v1-contract.md`, the index update, and this run-doc checkpoint update.
+
+## CP-007 - Phase 5 Local-Only Runtime Preview Design
+
+- Unit: create runtime preview design documentation.
+- Allowed files:
+  - `docs/style-system/style-runtime-preview-v1.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, deploy/config/remote/database mutation.
+- Commands run: `sed -n '1,40p' src/app/page.tsx` read-only; `apply_patch`; `git diff --check`; `rg -n "[ \t]+$"` on changed preview/index docs; targeted `rg` for local-only, `workspace.themeConfig`, `useNexusStore`, sync, Supabase, Browser smoke, layout, and gate terms; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-runtime-preview-v1.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; preview design keeps state local-only and includes sync pollution and browser smoke checks.
+- Rollback note: revert only `style-runtime-preview-v1.md`, the index update, and this run-doc checkpoint update.
+
+## CP-008 - Phase 6 Legacy Bridge Map
+
+- Unit: create legacy CSS/data-theme/Tailwind bridge map.
+- Allowed files:
+  - `docs/style-system/legacy-bridge-v0-v1.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; `rg -n "[ \t]+$"` on changed bridge/index docs; targeted `rg` for `data-theme`, `@theme inline`, Tailwind, preset names, `workspace.themeConfig`, and gate terms; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/legacy-bridge-v0-v1.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; bridge map preserves existing presets and blocks deletion/rewrite traps.
+- Rollback note: revert only `legacy-bridge-v0-v1.md`, the index update, and this run-doc checkpoint update.
+
+## CP-009 - Phase 7 Primitive Specimens Contract
+
+- Unit: create primitive specimen contract documentation.
+- Allowed files:
+  - `docs/style-system/primitive-specimens-v1.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; `rg -n "[ \t]+$"` on changed primitive/index docs; targeted `rg` for primitive names, focus/disabled, Browser smoke, and gate terms; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/primitive-specimens-v1.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; primitive contract includes required primitive set, state matrix, behavior protection, accessibility, and browser smoke gates.
+- Rollback note: revert only `primitive-specimens-v1.md`, the index update, and this run-doc checkpoint update.
+
+## CP-010 - Phase 8 Nexus Ops Style Map
+
+- Unit: create app shell semantic mapping documentation.
+- Allowed files:
+  - `docs/style-system/nexus-ops-style-map.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, deploy/config/remote/database mutation.
+- Commands run: read-only `rg` function anchor scan for `nexus-ops.tsx`; `apply_patch`; `git diff --check`; `rg -n "[ \t]+$"` on changed map/index docs; targeted `rg` for `nexus-ops`, `NexusOps`, `react-rnd`, `workspace.themeConfig`, provider vault, LEGO, migration unit, and gate terms; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/nexus-ops-style-map.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; map splits `nexus-ops.tsx` into migration units and avoids direct rewrite as first code unit.
+- Rollback note: revert only `nexus-ops-style-map.md`, the index update, and this run-doc checkpoint update.
+
+## CP-011 - Phase 9 Window And Modal Recipe Boundary
+
+- Unit: create window/modal recipe boundary documentation.
+- Allowed files:
+  - `docs/style-system/window-modal-recipe-system.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; `rg -n "[ \t]+$"` on changed window-modal/index docs; targeted `rg` for react-rnd, drag, resize, z-index, aria/modal role, scroll, Browser smoke, and gate terms; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/window-modal-recipe-system.md`
+  - `docs/style-system/style-engine-technical-doc-pack-index.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. `git diff --check` returned no issues; trailing whitespace scan returned no matches; recipe boundary protects drag/resize/z-index/focus/scroll behavior.
+- Rollback note: revert only `window-modal-recipe-system.md`, the index update, and this run-doc checkpoint update.
+
+## CP-012 - Documentation Set Consistency And Commit Prep
+
+- Unit: verify V1-V9 documentation set before local checkpoint commit.
+- Allowed files: `docs/style-system/**`.
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, deploy/config/remote/database mutation.
+- Commands run: `git status --porcelain=v1 -b`; `git diff --check`; `git diff --name-only`; `git ls-files --others --exclude-standard`; targeted `rg` checks for doc index entries and documentation-only boundaries.
+- Changed files: no new files in this unit beyond this checkpoint/progress/status update.
+- Verification result: PASS. Dirty tracked file is `docs/style-system/style-engine-technical-doc-pack-index.md`; untracked files are all under `docs/style-system/**`; index lists all new V1-V9 documents; documentation-only boundaries are present.
+- Rollback note: revert only the docs owned by CP-002 through CP-012 if this checkpoint set must be removed.
+- Commit decision: local checkpoint commit is allowed. No push, deploy, DB mutation, branch merge, or external operation is needed.

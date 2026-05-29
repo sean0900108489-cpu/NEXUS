@@ -281,6 +281,9 @@ export function NexusStyleLab() {
   const activePreviewLabel = runtime.activePreview?.previewId ?? "none";
   const activePreviewChecksumLabel =
     runtime.activePreview?.manifestChecksum ?? "none";
+  const compiledVariableCountLabel = compiled.accepted
+    ? String(compiled.style.report.emittedVariableCount)
+    : "blocked";
   const governanceRows = useMemo(
     () => [
       ["State", review.state],
@@ -292,6 +295,7 @@ export function NexusStyleLab() {
         "Validation",
         `${review.validation.errorCount}E / ${review.validation.warningCount}W`,
       ],
+      ["Compiled Vars", compiledVariableCountLabel],
       ["Runtime Target", "scoped-provider-v1"],
       ["Active Preview", activePreviewLabel],
       ["Preview Checksum", activePreviewChecksumLabel],
@@ -302,7 +306,12 @@ export function NexusStyleLab() {
       ["Compiler", review.compilerVersion ?? "n/a"],
       ["Report", review.checksums.report],
     ],
-    [activePreviewChecksumLabel, activePreviewLabel, review],
+    [
+      activePreviewChecksumLabel,
+      activePreviewLabel,
+      compiledVariableCountLabel,
+      review,
+    ],
   );
   const governanceIssues = useMemo(
     () =>

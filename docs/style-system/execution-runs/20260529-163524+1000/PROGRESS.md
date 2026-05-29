@@ -183,31 +183,35 @@ Run id: `20260529-163524+1000`
 - Implemented `CP-062 - Style Lab Graph Visual Specimen V1`.
 - Added a static visual-only graph specimen inside the isolated Style Lab component without React Flow imports or behavior props.
 - Verified CP-062 with focused style-engine tests, typecheck, targeted lint, build, side-effect scan, and Browser smoke on `/style-lab`.
+- Created local checkpoint commit `6beb0b48b68832841bb4f29b25949c2b9c34b9c2` for the Style Lab Graph Visual Specimen V1 unit.
+- Ran `CP-063 - Post Graph Specimen Phase Gate`.
+- Confirmed full `npm run check` passed: lint, typecheck, 37 Vitest files / 271 tests, and build.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scan only matched validator forbidden-string detector patterns, not live React Flow/store/sync/backend/Supabase imports or mutations.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-062 - Style Lab Graph Visual Specimen V1`.
-- Latest local checkpoint commit: `345f8f4b1c63d93806a5626aafc43f8ae91a1278`.
+- Latest completed checkpoint: `CP-063 - Post Graph Specimen Phase Gate`.
+- Latest local checkpoint commit: `6beb0b48b68832841bb4f29b25949c2b9c34b9c2`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
 - Confirmed current status during state assessment: clean before this run-doc reconciliation.
 - Current stop reason: normal context/turn checkpoint followed by explicit user-requested state assessment; not an error stop.
 
 ## In Progress
 
-- Preparing the CP-062 local checkpoint commit.
+- Preparing the CP-063 local checkpoint commit.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: `src/components/nexus/**`, React Flow imports/behavior files, app route files, CSS/global styles, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, and `exports/**`.
-- Verification: `git diff --check`; focused style-engine tests; `npm run typecheck`; targeted lint for the Style Lab component and style-engine; `npm run build`; targeted side-effect scan including React Flow import/behavior terms; Browser smoke on `/style-lab`.
-- Rollback: revert only `src/components/style-engine/nexus-style-lab.tsx` and this unit's run-doc edits.
+- Forbidden files: all source edits during the gate, React Flow imports/behavior files, production graph files, `src/components/nexus/nexus-ops.tsx`, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, and `exports/**`.
+- Verification: `npm run check`; targeted side-effect/import scan including React Flow import and behavior terms; `git diff --check`; `git status --porcelain=v1 -b`.
+- Rollback: no source rollback for the gate itself; if a gate failure is fixable, fix only the scoped failing unit and rerun.
 
 ## Next
 
-1. Commit the CP-062 local checkpoint.
+1. Commit the CP-063 phase-gate record.
 2. Confirm branch, HEAD, and clean status.
 3. Select the next isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

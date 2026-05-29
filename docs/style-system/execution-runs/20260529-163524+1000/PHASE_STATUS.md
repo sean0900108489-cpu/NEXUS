@@ -156,6 +156,7 @@ Run id: `20260529-163524+1000`
 | Post Preview Variable Count Row Phase Gate | PASS | Full check passed after the Preview Vars row; side-effect scan and git diff check passed. |
 | Pure Governance Preview Variable Count Metadata V1 | PASS | Governance and exchange reviews now expose preview variable count metadata; focused checks, build, side-effect scan, and git diff check passed. |
 | Post Preview Variable Count Metadata Phase Gate | PASS | Full check passed after preview variable count metadata; side-effect scan and git diff check passed. |
+| Style Lab Export Preview Variable Count Smoke V1 | PASS | Source-closed local smoke confirmed Style Lab text-only export output includes `previewVariableCount=92`. |
 
 ## Current Gate
 
@@ -168,4 +169,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Preview Variable Count Metadata Phase Gate local checkpoint prep with source edits closed. Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Style Lab Export Preview Variable Count Smoke V1 local checkpoint prep with source edits closed. Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

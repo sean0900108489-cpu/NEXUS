@@ -634,30 +634,34 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 40 Vitest files / 291 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing pure preview patch adapter variable emission, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import, graph behavior props, runtime provider logic change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `747fb99298bdbafe07a711a93e0942af32b57565` for the Post Preview Variable Count Metadata Phase Gate.
+- Started `CP-141 - Style Lab Export Preview Variable Count Smoke V1` with source edits closed.
+- Ran `CP-141 - Style Lab Export Preview Variable Count Smoke V1`.
+- Confirmed local `/style-lab` text-only export output contains `"previewVariableCount": 92` from the safe exchange review.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-140 - Post Preview Variable Count Metadata Phase Gate`.
-- Latest local checkpoint commit: pending CP-140 local commit; previous clean checkpoint commit is `8d151766f1bdd125253f72dfaffc2d794f1ac741`.
+- Latest completed checkpoint: `CP-141 - Style Lab Export Preview Variable Count Smoke V1`.
+- Latest local checkpoint commit: pending CP-141 local commit; previous clean checkpoint commit is `747fb99298bdbafe07a711a93e0942af32b57565`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-140 verification: dirty only in CP-140 run docs.
-- Current stop reason: not stopped; CP-140 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-141 verification: dirty only in CP-141 run docs.
+- Current stop reason: not stopped; CP-141 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-140 - Local checkpoint commit prep`.
+- `CP-141 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source edits during the gate, Style Lab/UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, pure style-engine logic changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source edits during the smoke, Style Lab UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, governance/exchange/compiler/preview changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only this CP-140 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+- Rollback: revert only this CP-141 run-doc update if the smoke bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-140 docs-only phase-gate record if final diff/status checks remain clean by scope.
+1. Commit the CP-141 docs-only smoke record if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

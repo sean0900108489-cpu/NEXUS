@@ -419,6 +419,46 @@ describe("NEXUS Style Engine manifest validator", () => {
     });
   });
 
+  it("rejects invalid recipe and adapter container shapes", () => {
+    const invalidRecipes = createSafeManifest() as unknown as Record<
+      string,
+      unknown
+    >;
+    invalidRecipes.recipes = "not-recipe-data";
+
+    const invalidAdapters = createSafeManifest() as unknown as Record<
+      string,
+      unknown
+    >;
+    invalidAdapters.adapters = "not-adapter-data";
+
+    const invalidReactFlowAdapter = createSafeManifest() as unknown as Record<
+      string,
+      unknown
+    >;
+    invalidReactFlowAdapter.adapters = {
+      reactFlow: "not-react-flow-adapter-data",
+    };
+
+    expect(validateNexusStyleManifestV1(invalidRecipes).errors).toContainEqual({
+      code: "style.invalidRecipes",
+      message: "recipes must be an object.",
+      path: "$.recipes",
+    });
+    expect(validateNexusStyleManifestV1(invalidAdapters).errors).toContainEqual({
+      code: "style.invalidAdapters",
+      message: "adapters must be an object.",
+      path: "$.adapters",
+    });
+    expect(
+      validateNexusStyleManifestV1(invalidReactFlowAdapter).errors,
+    ).toContainEqual({
+      code: "style.invalidReactFlowAdapter",
+      message: "reactFlow adapter must be an object.",
+      path: "$.adapters.reactFlow",
+    });
+  });
+
   it("rejects recipe behavior fields", () => {
     const manifest = createSafeManifest({
       recipes: {

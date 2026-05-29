@@ -20,6 +20,7 @@ import type {
   LocalSyncQueueOperation,
   NexusAgent,
   NexusWorkspace,
+  NotebookDraftRecord,
   NotebookRecord,
   ToolStatus,
   WorkspaceGraphEdge,
@@ -506,7 +507,22 @@ function sanitizeNotebookRecord(notebook: NotebookRecord): NotebookRecord {
     title: notebook.title,
     content: notebook.content,
     created_at: notebook.created_at,
+    deleted_at: notebook.deleted_at ?? null,
+    deleted_by: notebook.deleted_by ?? null,
     updated_at: notebook.updated_at,
+  };
+}
+
+function sanitizeNotebookDraftRecord(
+  draft: NotebookDraftRecord,
+): NotebookDraftRecord {
+  return {
+    baseUpdatedAt: draft.baseUpdatedAt ?? null,
+    content: draft.content,
+    notebookId: draft.notebookId,
+    title: draft.title,
+    updatedAt: draft.updatedAt,
+    workspaceId: draft.workspaceId ?? null,
   };
 }
 
@@ -567,6 +583,8 @@ export function materializeWorkspaceFromCloudSnapshot(
 export function createWorkspaceSnapshot(
   workspace: NexusWorkspace,
   options: {
+    deletedNotebooks?: NotebookRecord[];
+    notebookDrafts?: NotebookDraftRecord[];
     notebookRecovery?: WorkspaceNotebookRecoveryMetadata;
     notebooks?: NotebookRecord[];
   } = {},
@@ -574,6 +592,8 @@ export function createWorkspaceSnapshot(
   return {
     schemaVersion: WORKSPACE_SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
+    deletedNotebooks: options.deletedNotebooks?.map(sanitizeNotebookRecord),
+    notebookDrafts: options.notebookDrafts?.map(sanitizeNotebookDraftRecord),
     notebookRecovery: options.notebookRecovery,
     notebooks: options.notebooks?.map(sanitizeNotebookRecord),
     workspace: sanitizeWorkspace(workspace),

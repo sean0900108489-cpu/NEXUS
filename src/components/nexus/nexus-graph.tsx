@@ -40,6 +40,7 @@ import type {
   WorkflowRuntimeEdge,
   WorkflowRuntimeNodeData,
   WorkflowRuntimeNodeType,
+  WorkflowRuntimeRunStatus,
   WorkspaceGraph,
   WorkspaceGraphEdge,
 } from "@/lib/nexus-types";
@@ -72,6 +73,11 @@ type AgentFlowEdge = Edge<AgentEdgeData, "blueprint">;
 type GraphNodeState = {
   signature: string;
   nodes: Array<AgentFlowNode | RuntimeFlowNode>;
+};
+type WorkflowGraphFeedback = {
+  detail?: string | null;
+  status: WorkflowRuntimeRunStatus;
+  title: string;
 };
 
 function cx(...classes: Array<string | false | null | undefined>) {
@@ -549,6 +555,7 @@ export function NexusGraph({
   onUpdateWorkflowNodeData,
   onUpdateWorkflowNodePosition,
   onUpdateNodePosition,
+  workflowFeedback,
   workflowRunning,
 }: {
   agents: NexusAgent[];
@@ -572,6 +579,7 @@ export function NexusGraph({
     position: { x: number; y: number },
   ) => void;
   onUpdateNodePosition: (agentId: string, position: { x: number; y: number }) => void;
+  workflowFeedback?: WorkflowGraphFeedback | null;
   workflowRunning?: boolean;
 }) {
   const agentById = useMemo(
@@ -888,7 +896,7 @@ export function NexusGraph({
         onPaneClick={() => setSelectedEdgeIds([])}
         proOptions={{ hideAttribution: true }}
       >
-        <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-wrap gap-2">
+        <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-24px)] flex-wrap items-start gap-2">
           <WorkflowGraphAction
             icon={<Type className="h-3.5 w-3.5" />}
             label="Add Input"
@@ -910,6 +918,7 @@ export function NexusGraph({
             label={workflowRunning ? "Running" : "Start Flow"}
             onClick={onRunWorkflow}
           />
+          <WorkflowGraphStatus feedback={workflowFeedback} />
         </div>
         <Background color="rgba(34, 211, 238, 0.22)" gap={28} size={1} />
         <MiniMap
@@ -946,5 +955,47 @@ function WorkflowGraphAction({
       {icon}
       <span>{label}</span>
     </button>
+  );
+}
+
+function WorkflowGraphStatus({
+  feedback,
+}: {
+  feedback?: WorkflowGraphFeedback | null;
+}) {
+  if (!feedback) {
+    return null;
+  }
+
+  const tone =
+    feedback.status === "success"
+      ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+      : feedback.status === "running" || feedback.status === "queued"
+        ? "border-cyan-300/35 bg-cyan-300/10 text-cyan-100"
+        : "border-rose-300/35 bg-rose-300/10 text-rose-100";
+  const statusLabel =
+    feedback.status === "failed_interrupted"
+      ? "interrupted"
+      : feedback.status;
+
+  return (
+    <div
+      aria-live="polite"
+      className={cx(
+        "pointer-events-auto max-w-[min(520px,calc(100vw-32px))] border px-3 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md",
+        tone,
+      )}
+      role="status"
+    >
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] uppercase">
+        <span>{statusLabel}</span>
+        <span className="text-slate-100">{feedback.title}</span>
+      </div>
+      {feedback.detail ? (
+        <p className="mt-1 max-w-full break-words text-xs leading-5 text-slate-100/90">
+          {feedback.detail}
+        </p>
+      ) : null}
+    </div>
   );
 }

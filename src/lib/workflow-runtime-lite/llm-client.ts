@@ -6,6 +6,7 @@ import type {
   NexusWorkspace,
   WorkflowNodeInstance,
 } from "@/lib/nexus-types";
+import { NEXUS_RUNTIME_AUTHORIZATION_HEADER } from "@/lib/api/nexus-api-client";
 import { DEFAULT_BASE_URL } from "@/lib/nexus-defaults";
 import {
   getProviderIdForModel,
@@ -161,8 +162,14 @@ export async function executeWorkflowRuntimeLlm({
   headers.set("X-User-Id", userId);
   headers.set("X-Nexus-Workflow-Runtime", "lite");
 
+  const accessToken = await resolveBrowserAccessToken();
+
+  if (accessToken) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
+  }
+
   if (apiKey) {
-    headers.set("Authorization", `Bearer ${apiKey}`);
+    headers.set(NEXUS_RUNTIME_AUTHORIZATION_HEADER, `Bearer ${apiKey}`);
   }
 
   headers.set("x-nexus-base-url", baseUrl);
@@ -195,6 +202,21 @@ export async function executeWorkflowRuntimeLlm({
     },
     text: stream.text,
   };
+}
+
+async function resolveBrowserAccessToken() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const { getNexusSupabaseClient } = await import("@/lib/supabase/client");
+    const { data } = await getNexusSupabaseClient().auth.getSession();
+
+    return data.session?.access_token ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export function buildWorkflowRuntimePrompt({

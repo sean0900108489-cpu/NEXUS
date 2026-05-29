@@ -96,12 +96,17 @@ import type {
   SystemEventRecord,
   WorkflowTemplateRecord,
   WorkspaceBranchingSettings,
+  WorkspaceRecoveryListItem,
   WorkspaceSnapshot,
   WorkspaceThemeConfig,
   WorkspaceViewMode,
 } from "@/lib/nexus-types";
-import { nexusApiClient } from "@/lib/api/nexus-api-client";
+import {
+  NEXUS_RUNTIME_AUTHORIZATION_HEADER,
+  nexusApiClient,
+} from "@/lib/api/nexus-api-client";
 import { createNotebookRecoveryMetadata, parseWorkspaceSnapshot } from "@/lib/workspace-kernel";
+import { buildLocalWorkspaceRecoveryContext } from "@/lib/workspace-recovery-local";
 import { hasToolExecutor } from "@/lib/tool-executors";
 import { fetchWithBackoff, isAbortLikeError } from "@/lib/stream-retry";
 import { supabaseStateSyncManager } from "@/lib/state-sync";
@@ -583,6 +588,20 @@ function syncSupabaseSessionUser(user: IAuthVault["user"]) {
   }));
 }
 
+async function resolveSupabaseAccessToken() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const { data } = await getNexusSupabaseClient().auth.getSession();
+
+    return data.session?.access_token ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function streamModeTone(streamMode: StreamMode) {
   if (streamMode === "live") {
     return "border-cyan-300/40 bg-cyan-300/10 text-cyan-100";
@@ -656,6 +675,10 @@ export function NexusOps() {
   const [branchAgentId, setBranchAgentId] = useState<string | null>(null);
   const [themeMounted, setThemeMounted] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [workspaceRecoveryItems, setWorkspaceRecoveryItems] = useState<
+    WorkspaceRecoveryListItem[]
+  >([]);
+  const [workspaceRecoveryLoading, setWorkspaceRecoveryLoading] = useState(false);
 
   const activeWorkspaceId = useNexusStore((state) => state.activeWorkspaceId);
   const workspaces = useNexusStore((state) => state.workspaces);
@@ -798,6 +821,44 @@ export function NexusOps() {
   const workflowRunning = Boolean(
     workspace?.graph.runtimeLite?.runs.some((run) => run.status === "running"),
   );
+  const workflowRuntimeLite = workspace?.graph.runtimeLite;
+  const workflowRuns = workflowRuntimeLite?.runs ?? [];
+  const latestWorkflowRun =
+    (workflowRuntimeLite?.lastRunId
+      ? workflowRuns.find((run) => run.runId === workflowRuntimeLite.lastRunId)
+      : undefined) ??
+    workflowRuns.at(-1) ??
+    null;
+  const workflowLastError = workflowRuntimeLite?.lastError?.trim();
+  const workflowFeedback = workflowLastError
+    ? {
+        detail: workflowLastError,
+        status: "failed" as const,
+        title: "Workflow Runtime Lite",
+      }
+    : workflowRunning
+      ? {
+          status: "running" as const,
+          title: "Workflow Runtime Lite",
+        }
+      : latestWorkflowRun?.status === "success"
+        ? {
+            status: latestWorkflowRun.status,
+            title: "Workflow Runtime Lite",
+          }
+        : latestWorkflowRun?.status === "failed" ||
+            latestWorkflowRun?.status === "failed_interrupted"
+          ? {
+              detail: latestWorkflowRun.error ?? null,
+              status: latestWorkflowRun.status,
+              title: "Workflow Runtime Lite",
+            }
+          : latestWorkflowRun
+            ? {
+                status: latestWorkflowRun.status,
+                title: "Workflow Runtime Lite",
+              }
+            : null;
   const branchAgent = agents.find((agent) => agent.id === branchAgentId);
   const activeTheme = themeMounted
     ? normalizeTheme(theme ?? resolvedTheme)
@@ -815,11 +876,23 @@ export function NexusOps() {
       state.workspaces.find((candidate) => candidate.id === state.activeWorkspaceId) ??
       state.workspaces[0];
 
-    void supabaseStateSyncManager
-      .fetchLatestWorkspaceRecoveryState({
-        localUpdatedAt: localWorkspace?.updatedAt ?? null,
-        localWorkspaceId: localWorkspace?.id ?? null,
-        userId,
+    setWorkspaceRecoveryLoading(true);
+    void buildLocalWorkspaceRecoveryContext(localWorkspace)
+      .then(async (localRecovery) => {
+        const [recovery, recoveryList] = await Promise.all([
+          supabaseStateSyncManager.fetchLatestWorkspaceRecoveryState({
+            ...localRecovery,
+            userId,
+          }),
+          supabaseStateSyncManager.fetchWorkspaceRecoveryList({
+            localChecksum: localRecovery.localChecksum,
+            userId,
+          }),
+        ]);
+
+        setWorkspaceRecoveryItems(recoveryList.items);
+
+        return recovery;
       })
       .then((recovery) => {
         const result = applyWorkspaceRecoveryState(recovery);
@@ -832,6 +905,48 @@ export function NexusOps() {
       })
       .catch((error) => {
         console.error("[Workspace Recovery Error]:", error);
+      })
+      .finally(() => {
+        setWorkspaceRecoveryLoading(false);
+      });
+  }, [applyWorkspaceRecoveryState]);
+
+  const recoverSelectedWorkspace = useCallback((workspaceId: string) => {
+    const userId = useNexusStore.getState().authVault.user?.id;
+    const state = useNexusStore.getState();
+    const localWorkspace = state.workspaces.find(
+      (candidate) => candidate.id === workspaceId,
+    );
+
+    if (!userId) {
+      return;
+    }
+
+    setWorkspaceRecoveryLoading(true);
+    void buildLocalWorkspaceRecoveryContext(localWorkspace)
+      .then((localRecovery) =>
+        supabaseStateSyncManager.fetchWorkspaceRecoveryState({
+          ...localRecovery,
+          userId,
+          workspaceId,
+        }),
+      )
+      .then((recovery) => {
+        const result = applyWorkspaceRecoveryState(recovery);
+
+        if (result.status === "applied") {
+          setNotice("Workspace recovered from cloud");
+        } else if (result.status === "conflicted") {
+          setNotice("Recovery skipped: local workspace is newer");
+        } else {
+          setNotice("Workspace recovery skipped");
+        }
+      })
+      .catch((error) => {
+        console.error("[Workspace Recovery Error]:", error);
+      })
+      .finally(() => {
+        setWorkspaceRecoveryLoading(false);
       });
   }, [applyWorkspaceRecoveryState]);
 
@@ -1138,7 +1253,13 @@ export function NexusOps() {
 
       importWorkspace({
         schemaVersion: 1,
+        deletedNotebooks: Array.isArray(snapshot.deletedNotebooks)
+          ? snapshot.deletedNotebooks
+          : undefined,
         exportedAt: new Date().toISOString(),
+        notebookDrafts: Array.isArray(snapshot.notebookDrafts)
+          ? snapshot.notebookDrafts
+          : undefined,
         notebooks: Array.isArray(snapshot.notebooks) ? snapshot.notebooks : undefined,
         workspace: result.workspace,
       });
@@ -1357,8 +1478,14 @@ export function NexusOps() {
         headers.set("X-User-Id", userId);
       }
 
+      const accessToken = await resolveSupabaseAccessToken();
+
+      if (accessToken) {
+        headers.set("Authorization", `Bearer ${accessToken}`);
+      }
+
       if (safeKey) {
-        headers.set("Authorization", `Bearer ${safeKey}`);
+        headers.set(NEXUS_RUNTIME_AUTHORIZATION_HEADER, `Bearer ${safeKey}`);
       }
       headers.set("x-nexus-base-url", safeBaseUrl);
       headers.set("x-nexus-provider-id", runtimeCredential.providerId);
@@ -1916,6 +2043,7 @@ export function NexusOps() {
           renameWorkspace(name);
           setNotice("Workspace renamed");
         }}
+        onRecoverWorkspace={recoverSelectedWorkspace}
         onSwitchWorkspace={(workspaceId) => {
           const target = workspaces.find((candidate) => candidate.id === workspaceId);
           switchWorkspace(workspaceId);
@@ -1939,6 +2067,8 @@ export function NexusOps() {
         streamMode={effectiveStreamMode}
         syncStatus={syncQueueStatus}
         viewMode={viewMode}
+        workspaceRecoveryItems={workspaceRecoveryItems}
+        workspaceRecoveryLoading={workspaceRecoveryLoading}
         onSetViewMode={setViewMode}
         workspaceName={workspaceName}
         workspaces={workspaces}
@@ -2059,6 +2189,7 @@ export function NexusOps() {
               onUpdateWorkflowNodeData={updateWorkflowRuntimeNodeData}
               onUpdateWorkflowNodePosition={updateWorkflowRuntimeNodePosition}
               onUpdateNodePosition={updateGraphNodePosition}
+              workflowFeedback={workflowFeedback}
               workflowRunning={workflowRunning}
             />
           )}
@@ -2357,6 +2488,7 @@ function TopBar({
   onSave,
   onSaveMacro,
   onRenameWorkspace,
+  onRecoverWorkspace,
   onSwitchWorkspace,
   onSyncRetry,
   onToggleSettings,
@@ -2364,6 +2496,8 @@ function TopBar({
   streamMode,
   syncStatus,
   viewMode,
+  workspaceRecoveryItems,
+  workspaceRecoveryLoading,
   onSetViewMode,
 }: {
   activeWorkspaceId: string;
@@ -2378,6 +2512,7 @@ function TopBar({
   onSave: () => void;
   onSaveMacro: () => void;
   onRenameWorkspace: (name: string) => void;
+  onRecoverWorkspace: (workspaceId: string) => void;
   onSwitchWorkspace: (workspaceId: string) => void;
   onSyncRetry: () => void;
   onToggleSettings: () => void;
@@ -2385,6 +2520,8 @@ function TopBar({
   streamMode: StreamMode;
   syncStatus: QueueStatusProjection;
   viewMode: WorkspaceViewMode;
+  workspaceRecoveryItems: WorkspaceRecoveryListItem[];
+  workspaceRecoveryLoading: boolean;
   onSetViewMode: (mode: WorkspaceViewMode) => void;
 }) {
   const [renaming, setRenaming] = useState(false);
@@ -2580,6 +2717,45 @@ function TopBar({
                   New Workspace
                 </button>
               </div>
+
+              {(workspaceRecoveryItems.length || workspaceRecoveryLoading) ? (
+                <div className="grid gap-1 border-b border-white/10 p-2">
+                  <div className="px-1 font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500">
+                    Cloud Recovery
+                  </div>
+                  {workspaceRecoveryLoading ? (
+                    <div className="border border-white/10 bg-white/[0.025] px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                      Refreshing
+                    </div>
+                  ) : null}
+                  {workspaceRecoveryItems.map((item) => (
+                    <button
+                      key={item.workspaceId}
+                      className={cx(
+                        "flex w-full items-center gap-3 border px-3 py-2 text-left transition",
+                        item.isLocalChecksumMatch
+                          ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+                          : "border-white/10 bg-white/[0.025] text-slate-300 hover:border-cyan-300/30 hover:bg-cyan-300/10",
+                      )}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onRecoverWorkspace(item.workspaceId);
+                      }}
+                      type="button"
+                    >
+                      <PackageCheck className="h-3.5 w-3.5 shrink-0" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-mono text-xs uppercase tracking-[0.14em]">
+                          {item.workspaceName}
+                        </span>
+                        <span className="mt-0.5 block truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                          {item.isLocalChecksumMatch ? "Current checksum" : item.updatedAt}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
 
               <div className="grid grid-cols-2 gap-1 p-2">
                 <TopMenuAction icon={<Command className="h-3.5 w-3.5" />} label="Palette" onClick={() => {

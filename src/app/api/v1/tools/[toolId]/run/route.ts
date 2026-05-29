@@ -4,7 +4,7 @@ import {
   validationIssue,
   type ApiValidationIssue,
 } from "@/lib/backend/api/api-request-validator";
-import { getBearerToken } from "@/lib/backend/api/memory-compress-service";
+import { getRuntimeBearerToken } from "@/lib/backend/api/memory-compress-service";
 import { createToolExecutionService } from "@/lib/backend/tools/tool-execution-service";
 import type { ToolRunRequest, ToolRunResponse } from "@/lib/nexus-types";
 
@@ -23,12 +23,15 @@ export async function POST(request: Request, context: RouteContext) {
     handler: ({ body, request, requestId, trace, traceId }) =>
       toolExecutionService.runTool(toolId, body, {
         requestId,
-        runtimeApiKey: getBearerToken(request.headers.get("authorization")),
+        runtimeApiKey: getRuntimeBearerToken(request.headers),
         traceId,
         userId: trace.userId,
       }),
     idempotency: {
       enabled: true,
+    },
+    auth: {
+      required: true,
     },
     methods: ["POST"],
     route: "/api/v1/tools/[toolId]/run",

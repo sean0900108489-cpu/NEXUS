@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST as memoryCompressPost } from "@/app/api/v1/agents/memory-compress/route";
 import { POST as legacyMemoryCompressPost } from "@/app/api/memory-compress/route";
@@ -9,9 +9,20 @@ import { POST as legacyStreamPost } from "@/app/api/agent-stream/route";
 import { GET as healthGet } from "@/app/api/v1/health/route";
 import { nexusApiClient, NexusApiError } from "@/lib/api/nexus-api-client";
 import { apiHandler } from "@/lib/backend/api/api-handler";
+import {
+  resetApiAuthSessionVerifierForTests,
+  setApiAuthSessionVerifierForTests,
+} from "@/lib/backend/api/api-auth";
+import {
+  resetAgentStreamMessageHistoryServiceFactoryForTests,
+  setAgentStreamMessageHistoryServiceFactoryForTests,
+} from "@/lib/backend/api/agent-stream-service";
 import { createRequestValidator, validationIssue } from "@/lib/backend/api/api-request-validator";
 import { InMemoryIdempotencyRepository } from "@/lib/backend/api/idempotency-repository";
 import { createRequestHash } from "@/lib/backend/api/request-hash";
+import { createMessageHistoryService } from "@/lib/backend/history/message-history-service";
+import { getInMemoryMessageRepository } from "@/lib/backend/history/message-repository";
+import type { PermissionService } from "@/lib/backend/security/permission-service";
 import type { AgentStreamRequest } from "@/lib/nexus-types";
 
 function makeJsonRequest(
@@ -35,13 +46,42 @@ async function readJson(response: Response) {
   return response.json() as Promise<Record<string, unknown>>;
 }
 
+function useTestAuthSession(userId = "local-owner") {
+  setApiAuthSessionVerifierForTests({
+    verifyRequest: vi.fn(async () => ({
+      email: `${userId}@example.test`,
+      id: userId,
+    })),
+  });
+}
+
+beforeEach(() => {
+  getInMemoryMessageRepository().clear();
+  setAgentStreamMessageHistoryServiceFactoryForTests(() =>
+    createMessageHistoryService({
+      messages: getInMemoryMessageRepository(),
+    }),
+  );
+});
+
+afterEach(() => {
+  resetApiAuthSessionVerifierForTests();
+  resetAgentStreamMessageHistoryServiceFactoryForTests();
+  getInMemoryMessageRepository().clear();
+});
+
 describe("apiHandler envelope and validation", () => {
   it("returns ApiSuccess with requestId and traceId", async () => {
+    useTestAuthSession();
+
     const response = await memoryCompressPost(
       makeJsonRequest("http://localhost/api/v1/agents/memory-compress", {
         config: {},
         payload: { message: "compress" },
         workspaceId: "workspace-a",
+      }, {
+        Authorization: "Bearer memory-session",
+        "X-User-Id": "local-owner",
       }),
     );
     const json = await readJson(response);
@@ -154,6 +194,135 @@ describe("apiHandler envelope and validation", () => {
     expect(JSON.stringify(json)).not.toContain("stack");
     expect(JSON.stringify(json)).not.toContain("boom secret stack");
   });
+
+  it("rejects protected routes when only X-User-Id is provided", async () => {
+    const permissionService = {
+      check: vi.fn(),
+    } as unknown as PermissionService;
+    let called = 0;
+    const handler = apiHandler({
+      handler: () => {
+        called += 1;
+        return { ok: true };
+      },
+      methods: ["GET"],
+      permission: {
+        action: "workspace:read",
+        permissionService,
+        resourceType: "workspace",
+      },
+      route: "/api/v1/test-protected",
+    });
+
+    const response = await handler(
+      new Request("http://localhost/api/v1/test-protected", {
+        headers: {
+          "X-User-Id": "spoofed-owner",
+          "X-Workspace-Id": "workspace-a",
+        },
+      }),
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(401);
+    expect(json).toMatchObject({
+      error: {
+        code: "AUTH_REQUIRED",
+      },
+      ok: false,
+    });
+    expect(called).toBe(0);
+    expect(permissionService.check).not.toHaveBeenCalled();
+  });
+
+  it("rejects spoofed X-User-Id that differs from the authenticated session", async () => {
+    useTestAuthSession("verified-owner");
+
+    const permissionService = {
+      check: vi.fn(),
+    } as unknown as PermissionService;
+    const handler = apiHandler({
+      handler: () => ({ ok: true }),
+      methods: ["GET"],
+      permission: {
+        action: "workspace:read",
+        permissionService,
+        resourceType: "workspace",
+      },
+      route: "/api/v1/test-spoofed",
+    });
+
+    const response = await handler(
+      new Request("http://localhost/api/v1/test-spoofed", {
+        headers: {
+          Authorization: "Bearer verified-session",
+          "X-User-Id": "spoofed-owner",
+          "X-Workspace-Id": "workspace-a",
+        },
+      }),
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(401);
+    expect(json).toMatchObject({
+      error: {
+        code: "AUTH_INVALID_CREDENTIAL",
+      },
+      ok: false,
+    });
+    expect(permissionService.check).not.toHaveBeenCalled();
+  });
+
+  it("uses the verified session actor for permission checks and trace context", async () => {
+    useTestAuthSession("verified-owner");
+
+    const permissionService = {
+      check: vi.fn(async () => ({
+        decision: "allow",
+        reasonCode: "ALLOW",
+        requiredScopes: [],
+        riskLevel: "low",
+      })),
+    } as unknown as PermissionService;
+    const handler = apiHandler({
+      handler: ({ sessionUser, trace }) => ({
+        sessionUserId: sessionUser?.id,
+        traceUserId: trace.userId,
+      }),
+      methods: ["GET"],
+      permission: {
+        action: "workspace:read",
+        permissionService,
+        resourceType: "workspace",
+      },
+      route: "/api/v1/test-verified-actor",
+    });
+
+    const response = await handler(
+      new Request("http://localhost/api/v1/test-verified-actor", {
+        headers: {
+          Authorization: "Bearer verified-session",
+          "X-Workspace-Id": "workspace-a",
+        },
+      }),
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(200);
+    expect(json).toMatchObject({
+      data: {
+        sessionUserId: "verified-owner",
+        traceUserId: "verified-owner",
+      },
+      ok: true,
+    });
+    expect(permissionService.check).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "verified-owner",
+      }),
+      expect.any(Object),
+    );
+  });
 });
 
 describe("idempotency contract", () => {
@@ -232,9 +401,14 @@ describe("idempotency contract", () => {
 
 describe("routing compatibility and health", () => {
   it("keeps v1 and legacy memory-compress routes available", async () => {
+    useTestAuthSession();
+
     const body = { config: {}, payload: { message: "compress" } };
     const v1 = await memoryCompressPost(
-      makeJsonRequest("http://localhost/api/v1/agents/memory-compress", body),
+      makeJsonRequest("http://localhost/api/v1/agents/memory-compress", body, {
+        Authorization: "Bearer memory-session",
+        "X-User-Id": "local-owner",
+      }),
     );
     const legacy = await legacyMemoryCompressPost(
       new Request("http://localhost/api/memory-compress", {
@@ -286,10 +460,13 @@ describe("streaming contract", () => {
   };
 
   it("emits standard v1 meta, token, and done events", async () => {
+    useTestAuthSession();
+
     const response = await streamPost(
       new Request("http://localhost/api/v1/agents/agent-a/stream", {
         body: JSON.stringify(streamPayload),
         headers: {
+          Authorization: "Bearer stream-session",
           "Content-Type": "application/json",
           "X-Request-Id": "req-stream",
           "X-Trace-Id": "trace-stream",

@@ -1,16 +1,29 @@
 import { readFileSync } from "node:fs";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST as createTaskPost } from "@/app/api/v1/agents/[agentId]/tasks/route";
 import { GET as getTask } from "@/app/api/v1/agents/[agentId]/tasks/[taskId]/route";
 import { POST as cancelTaskPost } from "@/app/api/v1/agents/[agentId]/tasks/[taskId]/cancel/route";
 import { POST as streamPost } from "@/app/api/v1/agents/[agentId]/stream/route";
+import {
+  resetApiAuthSessionVerifierForTests,
+  setApiAuthSessionVerifierForTests,
+} from "@/lib/backend/api/api-auth";
+import {
+  resetAgentStreamMessageHistoryServiceFactoryForTests,
+  setAgentStreamMessageHistoryServiceFactoryForTests,
+} from "@/lib/backend/api/agent-stream-service";
 import { EnvironmentValidator } from "@/lib/backend/deployment/environment-validator";
 import {
   FeatureFlagService,
   InMemoryFeatureFlagRepository,
 } from "@/lib/backend/deployment/feature-flag-service";
+import {
+  createMessageHistoryService,
+  type MessageHistoryService,
+} from "@/lib/backend/history/message-history-service";
+import { getInMemoryMessageRepository } from "@/lib/backend/history/message-repository";
 
 import { AgentRuntimeService } from "./agent-runtime-service";
 import {
@@ -25,6 +38,7 @@ function makeTaskRequest(body: unknown, userId = "local-owner") {
   return new Request("http://localhost/api/v1/agents/agent-a/tasks", {
     body: JSON.stringify(body),
     headers: {
+      Authorization: "Bearer runtime-session",
       "Content-Type": "application/json",
       "X-Idempotency-Key": `mutation_${id}`,
       "X-Request-Id": `req_${id}`,
@@ -47,6 +61,27 @@ async function readSseEvents(response: Response) {
     .filter((line) => line.startsWith("data: "))
     .map((line) => JSON.parse(line.slice(6)) as Record<string, unknown>);
 }
+
+beforeEach(() => {
+  getInMemoryMessageRepository().clear();
+  setApiAuthSessionVerifierForTests({
+    verifyRequest: vi.fn(async (request) => ({
+      email: null,
+      id: request.headers.get("X-User-Id")?.trim() || "local-owner",
+    })),
+  });
+  setAgentStreamMessageHistoryServiceFactoryForTests(() =>
+    createMessageHistoryService({
+      messages: getInMemoryMessageRepository(),
+    }),
+  );
+});
+
+afterEach(() => {
+  resetApiAuthSessionVerifierForTests();
+  resetAgentStreamMessageHistoryServiceFactoryForTests();
+  getInMemoryMessageRepository().clear();
+});
 
 describe("AgentRuntimeService", () => {
   it("creates a task for every send while reusing the active runtime session", async () => {
@@ -306,9 +341,11 @@ describe("ProviderAdapter fallback boundary", () => {
 
 describe("agent task API and migration contract", () => {
   it("runs stream lifecycle from created task through meta, first token, and completed task", async () => {
+    const outputMessageId = `message_${crypto.randomUUID()}`;
     const createResponse = await createTaskPost(
       makeTaskRequest({
         model: "gpt-4o-mini",
+        outputMessageId,
         provider: "openai-compatible",
         taskType: "chat",
         workspaceId: "workspace-runtime",
@@ -319,7 +356,7 @@ describe("agent task API and migration contract", () => {
     );
     const createJson = await readJson(createResponse);
     const createData = createJson.data as {
-      task: { id: string };
+      task: { id: string; outputMessageId?: string | null };
       session: { id: string };
     };
     const streamResponse = await streamPost(
@@ -337,11 +374,13 @@ describe("agent task API and migration contract", () => {
           },
           messages: [{ content: "hello", role: "user" }],
           model: "gpt-4o-mini",
+          outputMessageId,
           sessionId: createData.session.id,
           taskId: createData.task.id,
           workspaceId: "workspace-runtime",
         }),
         headers: {
+          Authorization: "Bearer runtime-session",
           "Content-Type": "application/json",
           "X-Request-Id": `req_${crypto.randomUUID()}`,
           "X-Trace-Id": `trace_${crypto.randomUUID()}`,
@@ -370,6 +409,7 @@ describe("agent task API and migration contract", () => {
           "?workspaceId=workspace-runtime",
         {
           headers: {
+            Authorization: "Bearer runtime-session",
             "X-User-Id": "local-owner",
           },
         },
@@ -393,6 +433,17 @@ describe("agent task API and migration contract", () => {
       ok: true,
     });
 
+    const output = await getInMemoryMessageRepository().findById(outputMessageId);
+
+    expect(output).toMatchObject({
+      agentId: "agent-stream-life",
+      id: outputMessageId,
+      role: "assistant",
+      taskId: createData.task.id,
+      workspaceId: "workspace-runtime",
+    });
+    expect(output?.content.trim()).not.toBe("");
+
     const repository = createAgentRuntimeRepository();
 
     expect(repository).toBeInstanceOf(InMemoryAgentRuntimeRepository);
@@ -405,6 +456,104 @@ describe("agent task API and migration contract", () => {
       expect.arrayContaining(["stream_started", "first_token", "stream_completed"]),
     );
     expect(milestoneTypes).not.toContain("token");
+  });
+
+  it("does not complete an output-producing task when durable output persistence fails", async () => {
+    setAgentStreamMessageHistoryServiceFactoryForTests(() =>
+      ({
+        upsertMessage: vi.fn(async () => {
+          throw new Error("durable output write failed");
+        }),
+      }) as unknown as MessageHistoryService,
+    );
+
+    const outputMessageId = `message_${crypto.randomUUID()}`;
+    const createResponse = await createTaskPost(
+      makeTaskRequest({
+        model: "gpt-4o-mini",
+        outputMessageId,
+        provider: "openai-compatible",
+        taskType: "chat",
+        workspaceId: "workspace-runtime",
+      }),
+      {
+        params: Promise.resolve({ agentId: "agent-stream-persist-fail" }),
+      },
+    );
+    const createJson = await readJson(createResponse);
+    const createData = createJson.data as {
+      task: { id: string };
+      session: { id: string };
+    };
+    const streamResponse = await streamPost(
+      new Request("http://localhost/api/v1/agents/agent-stream-persist-fail/stream", {
+        body: JSON.stringify({
+          agent: {
+            callsign: "FAIL",
+            contextNotes: [],
+            identity: "test runtime agent",
+            memory: [],
+            mission: "test failed output persistence",
+            model: "gpt-4o-mini",
+            provider: "openai-compatible",
+            title: "Persistence Failure Agent",
+          },
+          messages: [{ content: "hello", role: "user" }],
+          model: "gpt-4o-mini",
+          outputMessageId,
+          sessionId: createData.session.id,
+          taskId: createData.task.id,
+          workspaceId: "workspace-runtime",
+        }),
+        headers: {
+          Authorization: "Bearer runtime-session",
+          "Content-Type": "application/json",
+          "X-Request-Id": `req_${crypto.randomUUID()}`,
+          "X-Trace-Id": `trace_${crypto.randomUUID()}`,
+          "X-User-Id": "local-owner",
+          "X-Workspace-Id": "workspace-runtime",
+        },
+        method: "POST",
+      }),
+      {
+        params: Promise.resolve({ agentId: "agent-stream-persist-fail" }),
+      },
+    );
+    const events = await readSseEvents(streamResponse);
+
+    expect(events.some((event) => event.type === "error")).toBe(true);
+    expect(await getInMemoryMessageRepository().findById(outputMessageId)).toBeNull();
+
+    const taskResponse = await getTask(
+      new Request(
+        "http://localhost/api/v1/agents/agent-stream-persist-fail/tasks/" +
+          createData.task.id +
+          "?workspaceId=workspace-runtime",
+        {
+          headers: {
+            Authorization: "Bearer runtime-session",
+            "X-User-Id": "local-owner",
+          },
+        },
+      ),
+      {
+        params: Promise.resolve({
+          agentId: "agent-stream-persist-fail",
+          taskId: createData.task.id,
+        }),
+      },
+    );
+    const taskJson = await readJson(taskResponse);
+
+    expect(taskJson).toMatchObject({
+      data: {
+        task: {
+          id: createData.task.id,
+          status: "failed",
+        },
+      },
+      ok: true,
+    });
   });
 
   it("cancels a created task through the API without requiring a worker", async () => {

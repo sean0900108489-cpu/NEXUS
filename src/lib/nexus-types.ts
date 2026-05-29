@@ -603,6 +603,8 @@ export type WorkspaceNotebookRecoveryMetadata = {
 export type WorkspaceSnapshot = {
   schemaVersion: 1;
   exportedAt: string;
+  deletedNotebooks?: NotebookRecord[];
+  notebookDrafts?: NotebookDraftRecord[];
   notebookRecovery?: WorkspaceNotebookRecoveryMetadata;
   workspace: NexusWorkspace;
   notebooks?: NotebookRecord[];
@@ -743,6 +745,23 @@ export type WorkspaceHydrationPlan =
 export type WorkspaceRecoveryStateResponse = {
   latest: WorkspaceStateGetResponse | null;
   plan: WorkspaceHydrationPlan | null;
+  userId: string;
+};
+
+export type WorkspaceRecoveryListItem = {
+  checksum: string;
+  isLocalChecksumMatch: boolean;
+  payloadSizeBytes: number;
+  schemaVersion: number;
+  snapshotType: WorkspaceCloudSnapshotType;
+  updatedAt: string;
+  workspaceId: string;
+  workspaceName: string;
+};
+
+export type WorkspaceRecoveryListResponse = {
+  items: WorkspaceRecoveryListItem[];
+  localChecksum?: string | null;
   userId: string;
 };
 
@@ -1476,6 +1495,8 @@ export interface PromptRecord {
   content: string;
   created_at: string;
   updated_at: string;
+  deleted_at?: string | null;
+  deleted_by?: string | null;
   revisions?: PromptRevisionMetadata[];
 }
 
@@ -1497,14 +1518,38 @@ export interface PromptRevisionMetadata {
   updatedAt: string;
 }
 
+export type PromptListResponse = {
+  prompts: PromptRecord[];
+  source: "prompt_service";
+  workspaceId: string;
+};
+
 export interface NotebookRecord {
   id: string;
   workspace_id?: string | null;
   title: string;
   content: string;
   created_at?: string;
+  created_by?: string | null;
+  deleted_at?: string | null;
+  deleted_by?: string | null;
   updated_at?: string;
 }
+
+export interface NotebookDraftRecord {
+  notebookId: string;
+  workspaceId?: string | null;
+  title: string;
+  content: string;
+  baseUpdatedAt?: string | null;
+  updatedAt: string;
+}
+
+export type NotebookListResponse = {
+  notebooks: NotebookRecord[];
+  source: "notebook_service";
+  workspaceId?: string | null;
+};
 
 export type ActiveUiStateSnapshot = Pick<
   NexusWorkspace,
@@ -1583,13 +1628,28 @@ export interface IStateSyncManager {
   fetchPromptRevisions(promptId: string): Promise<PromptRevisionRecord[]>;
   fetchNotebooks(): Promise<NotebookRecord[]>;
   upsertNotebook(notebook: NotebookRecord, workspaceId?: string): Promise<void>;
-  deleteNotebook(id: string, workspaceId?: string): Promise<void>;
+  deleteNotebook(
+    id: string,
+    workspaceId?: string,
+    notebook?: NotebookRecord | null,
+  ): Promise<void>;
   fetchLatestWorkspaceRecoveryState(input: {
     localChecksum?: string | null;
     localUpdatedAt?: string | null;
     localWorkspaceId?: string | null;
     userId: string;
   }): Promise<WorkspaceRecoveryStateResponse>;
+  fetchWorkspaceRecoveryState(input: {
+    localChecksum?: string | null;
+    localUpdatedAt?: string | null;
+    localWorkspaceId?: string | null;
+    userId: string;
+    workspaceId: string;
+  }): Promise<WorkspaceRecoveryStateResponse>;
+  fetchWorkspaceRecoveryList(input: {
+    localChecksum?: string | null;
+    userId: string;
+  }): Promise<WorkspaceRecoveryListResponse>;
   syncActiveUiState(snapshot: ActiveUiStateSnapshot): Promise<StateSyncResult>;
   syncHistoricalMessage(record: HistoricalMessageRecord): Promise<StateSyncResult>;
   syncHistoricalArtifact(record: HistoricalArtifactRecord): Promise<StateSyncResult>;

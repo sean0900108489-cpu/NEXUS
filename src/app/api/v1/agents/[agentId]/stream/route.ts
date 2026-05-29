@@ -77,7 +77,6 @@ export async function POST(
         resourceType: "agent",
         source: "api",
         traceId,
-        userId: request.headers.get("X-User-Id") ?? undefined,
         workspaceId,
       },
     });

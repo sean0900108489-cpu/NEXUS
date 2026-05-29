@@ -24,6 +24,9 @@ export const GET = apiHandler<undefined, ToolRunListResponse>({
     );
   },
   methods: ["GET"],
+  auth: {
+    required: true,
+  },
   route: "/api/v1/tool-runs",
   workspaceId: (request) =>
     new URL(request.url).searchParams.get("workspaceId") ??

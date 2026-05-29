@@ -36,6 +36,9 @@ export async function POST(request: Request, context: RouteContext) {
     idempotency: {
       enabled: true,
     },
+    auth: {
+      required: true,
+    },
     methods: ["POST"],
     route: "/api/v1/tool-runs/[toolRunId]/cancel",
     validator: createRequestValidator(validateCancelRequest),

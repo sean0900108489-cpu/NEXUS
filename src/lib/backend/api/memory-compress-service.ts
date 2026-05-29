@@ -84,6 +84,13 @@ export function getBearerToken(header: string | null) {
   return scheme?.toLowerCase() === "bearer" ? sanitizeHeaderValue(token) : "";
 }
 
+export function getRuntimeBearerToken(headers: Headers) {
+  return (
+    getBearerToken(headers.get("X-Nexus-Runtime-Authorization")) ||
+    getBearerToken(headers.get("authorization"))
+  );
+}
+
 export function getCompatibleBaseUrl(value: string | null | undefined) {
   const candidate = sanitizeHeaderValue(value) || DEFAULT_BASE_URL;
 

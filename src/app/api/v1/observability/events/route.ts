@@ -34,6 +34,9 @@ export const GET = apiHandler<undefined, SystemEventListResponse>({
     });
   },
   methods: ["GET"],
+  auth: {
+    required: true,
+  },
   route: "/api/v1/observability/events",
   workspaceId: (request) => readWorkspaceId(request),
 });

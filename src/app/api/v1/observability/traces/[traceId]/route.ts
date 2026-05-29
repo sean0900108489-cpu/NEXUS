@@ -33,6 +33,9 @@ export async function GET(request: Request, context: RouteContext) {
       });
     },
     methods: ["GET"],
+    auth: {
+      required: true,
+    },
     route: "/api/v1/observability/traces/[traceId]",
     workspaceId: (routeRequest) => readWorkspaceId(routeRequest),
   })(request);

@@ -11,11 +11,14 @@ import type {
   IAsyncDataFetcher,
   IStateSyncManager,
   ITransactionLog,
+  NotebookListResponse,
   NotebookRecord,
+  PromptListResponse,
   PromptRecord,
   PromptRevisionRecord,
   StateSyncResult,
   StateSyncStatus,
+  WorkspaceRecoveryListResponse,
   WorkspaceRecoveryStateResponse,
   WorkspaceStateGetResponse,
   WorkspaceStatePutRequest,
@@ -34,9 +37,7 @@ import {
 import { localSyncQueueAdapter } from "@/lib/sync/local-sync-queue-adapter";
 import { getNexusSupabaseClient } from "@/lib/supabase/client";
 import type {
-  Notebooks,
   Prompt_Revisions,
-  Prompts,
   WorkflowTemplateInsert,
   Workflow_Templates,
 } from "@/lib/supabase/database.types";
@@ -164,6 +165,16 @@ async function resolveStateSyncUserId() {
   }
 }
 
+async function resolveStateSyncAccessToken() {
+  try {
+    const { data } = await getNexusSupabaseClient().auth.getSession();
+
+    return data.session?.access_token ?? null;
+  } catch {
+    return null;
+  }
+}
+
 type TransactionLogger = (entry: ITransactionLog) => void;
 
 type PendingWorkspaceSnapshotSync = {
@@ -195,17 +206,6 @@ function makeTransactionLog({
   };
 }
 
-function mapPrompt(row: Prompts): PromptRecord {
-  return {
-    id: row.id,
-    workspace_id: row.workspace_id,
-    title: row.title,
-    content: row.content,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
-  };
-}
-
 function mapPromptRevision(row: Prompt_Revisions): PromptRevisionRecord {
   return {
     id: row.id,
@@ -213,17 +213,6 @@ function mapPromptRevision(row: Prompt_Revisions): PromptRevisionRecord {
     previous_content: row.previous_content,
     new_content: row.new_content,
     created_at: row.created_at,
-  };
-}
-
-function mapNotebook(row: Notebooks): NotebookRecord {
-  return {
-    id: row.id,
-    workspace_id: row.workspace_id,
-    title: row.title,
-    content: row.content,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
   };
 }
 
@@ -356,9 +345,14 @@ export class MockStateSyncManager implements IStateSyncManager {
     void workspaceId;
   }
 
-  async deleteNotebook(id: string, workspaceId?: string): Promise<void> {
+  async deleteNotebook(
+    id: string,
+    workspaceId?: string,
+    notebook?: NotebookRecord | null,
+  ): Promise<void> {
     void id;
     void workspaceId;
+    void notebook;
   }
 
   async fetchLatestWorkspaceRecoveryState(input: {
@@ -366,6 +360,31 @@ export class MockStateSyncManager implements IStateSyncManager {
     localUpdatedAt?: string | null;
     localWorkspaceId?: string | null;
     userId: string;
+  }): Promise<WorkspaceRecoveryStateResponse> {
+    return {
+      latest: null,
+      plan: null,
+      userId: input.userId,
+    };
+  }
+
+  async fetchWorkspaceRecoveryList(input: {
+    localChecksum?: string | null;
+    userId: string;
+  }): Promise<WorkspaceRecoveryListResponse> {
+    return {
+      items: [],
+      localChecksum: null,
+      userId: input.userId,
+    };
+  }
+
+  async fetchWorkspaceRecoveryState(input: {
+    localChecksum?: string | null;
+    localUpdatedAt?: string | null;
+    localWorkspaceId?: string | null;
+    userId: string;
+    workspaceId: string;
   }): Promise<WorkspaceRecoveryStateResponse> {
     return {
       latest: null,
@@ -661,20 +680,27 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     this.status = "syncing";
 
     try {
-      const { data, error } = await getNexusSupabaseClient()
-        .from("prompts")
-        .select("id,workspace_id,title,content,created_at,updated_at")
-        .eq("workspace_id", workspaceId)
-        .order("updated_at", { ascending: false });
+      const accessToken = await resolveStateSyncAccessToken();
 
-      this.status = "idle";
-
-      if (error) {
-        logSupabaseSyncError(error);
+      if (!accessToken) {
+        this.status = "idle";
         return [];
       }
 
-      return (data ?? []).map((row) => mapPrompt(row as Prompts));
+      const params = new URLSearchParams({ workspaceId });
+      const response = await nexusApiClient.get<PromptListResponse>(
+        `/api/v1/prompts?${params.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          workspaceId,
+        },
+      );
+
+      this.status = "idle";
+
+      return response.prompts;
     } catch (error) {
       logSupabaseSyncError(error);
       this.status = "idle";
@@ -710,7 +736,11 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
         entityId: id,
         entityType: "prompt",
         operationType: "delete",
-        payload: { id, workspaceId },
+        payload: {
+          deleted_at: new Date().toISOString(),
+          id,
+          workspaceId,
+        },
         workspaceId,
       });
       this.status = "idle";
@@ -750,19 +780,25 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     this.status = "syncing";
 
     try {
-      const { data, error } = await getNexusSupabaseClient()
-        .from("notebooks")
-        .select("id,workspace_id,title,content,created_at,updated_at")
-        .order("updated_at", { ascending: false });
+      const accessToken = await resolveStateSyncAccessToken();
 
-      this.status = "idle";
-
-      if (error) {
-        logSupabaseSyncError(error);
+      if (!accessToken) {
+        this.status = "idle";
         return [];
       }
 
-      return (data ?? []).map((row) => mapNotebook(row as Notebooks));
+      const response = await nexusApiClient.get<NotebookListResponse>(
+        "/api/v1/notebooks",
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      this.status = "idle";
+
+      return response.notebooks;
     } catch (error) {
       logSupabaseSyncError(error);
       this.status = "idle";
@@ -793,15 +829,25 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     }
   }
 
-  async deleteNotebook(id: string, workspaceId = "__global__"): Promise<void> {
+  async deleteNotebook(
+    id: string,
+    workspaceId = "__global__",
+    notebook?: NotebookRecord | null,
+  ): Promise<void> {
     this.status = "queued";
 
     try {
+      const deletedAt = notebook?.deleted_at ?? new Date().toISOString();
       await localSyncQueueAdapter.enqueue({
         entityId: id,
         entityType: "notebook",
         operationType: "delete",
-        payload: { id, workspaceId },
+        payload: {
+          created_at: notebook?.created_at ?? null,
+          deleted_at: deletedAt,
+          id,
+          workspaceId,
+        },
         workspaceId,
       });
       this.status = "idle";
@@ -820,6 +866,7 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     this.status = "syncing";
 
     try {
+      const accessToken = await resolveStateSyncAccessToken();
       const searchParams = new URLSearchParams();
 
       if (input.localChecksum) {
@@ -838,8 +885,107 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
       const response = await nexusApiClient.get<WorkspaceRecoveryStateResponse>(
         `/api/v1/workspaces/recovery/latest${query ? `?${query}` : ""}`,
         {
-          userId: input.userId,
+          headers: accessToken
+            ? {
+                Authorization: `Bearer ${accessToken}`,
+              }
+            : undefined,
           workspaceId: input.localWorkspaceId ?? "__global__",
+        },
+      );
+
+      this.status = "idle";
+
+      return response;
+    } catch (error) {
+      logSupabaseSyncError(error);
+      this.status = "idle";
+
+      return {
+        latest: null,
+        plan: null,
+        userId: input.userId,
+      };
+    }
+  }
+
+  async fetchWorkspaceRecoveryList(input: {
+    localChecksum?: string | null;
+    userId: string;
+  }): Promise<WorkspaceRecoveryListResponse> {
+    this.status = "syncing";
+
+    try {
+      const accessToken = await resolveStateSyncAccessToken();
+      const searchParams = new URLSearchParams();
+
+      if (input.localChecksum) {
+        searchParams.set("localChecksum", input.localChecksum);
+      }
+
+      const query = searchParams.toString();
+      const response = await nexusApiClient.get<WorkspaceRecoveryListResponse>(
+        `/api/v1/workspaces/recovery${query ? `?${query}` : ""}`,
+        {
+          headers: accessToken
+            ? {
+                Authorization: `Bearer ${accessToken}`,
+              }
+            : undefined,
+          workspaceId: "__global__",
+        },
+      );
+
+      this.status = "idle";
+
+      return response;
+    } catch (error) {
+      logSupabaseSyncError(error);
+      this.status = "idle";
+
+      return {
+        items: [],
+        localChecksum: input.localChecksum ?? null,
+        userId: input.userId,
+      };
+    }
+  }
+
+  async fetchWorkspaceRecoveryState(input: {
+    localChecksum?: string | null;
+    localUpdatedAt?: string | null;
+    localWorkspaceId?: string | null;
+    userId: string;
+    workspaceId: string;
+  }): Promise<WorkspaceRecoveryStateResponse> {
+    this.status = "syncing";
+
+    try {
+      const accessToken = await resolveStateSyncAccessToken();
+      const searchParams = new URLSearchParams();
+
+      if (input.localChecksum) {
+        searchParams.set("localChecksum", input.localChecksum);
+      }
+
+      if (input.localUpdatedAt) {
+        searchParams.set("localUpdatedAt", input.localUpdatedAt);
+      }
+
+      if (input.localWorkspaceId) {
+        searchParams.set("localWorkspaceId", input.localWorkspaceId);
+      }
+
+      const query = searchParams.toString();
+      const response = await nexusApiClient.get<WorkspaceRecoveryStateResponse>(
+        `/api/v1/workspaces/recovery/${encodeURIComponent(input.workspaceId)}${query ? `?${query}` : ""}`,
+        {
+          headers: accessToken
+            ? {
+                Authorization: `Bearer ${accessToken}`,
+              }
+            : undefined,
+          workspaceId: input.workspaceId,
         },
       );
 

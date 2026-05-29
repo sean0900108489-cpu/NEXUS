@@ -29,6 +29,9 @@ export async function POST(request: Request, context: RouteContext) {
     idempotency: {
       enabled: true,
     },
+    auth: {
+      required: true,
+    },
     methods: ["POST"],
     route: "/api/v1/agents/[agentId]/messages/archive",
     validator: createRequestValidator(validateArchiveRequest),

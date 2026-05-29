@@ -15,7 +15,10 @@ import {
   createWorkflowRuntimeNode,
   normalizeWorkflowRuntimeLiteState,
 } from "./state";
-import { validateWorkflowRuntimeLiteTopology } from "./topology";
+import {
+  inferLinearWorkflowRuntimeLiteEdges,
+  validateWorkflowRuntimeLiteTopology,
+} from "./topology";
 
 describe("Workflow Runtime Spine Lite", () => {
   it("runs Input -> LLM -> Output as a linear flow", async () => {
@@ -162,13 +165,65 @@ describe("Workflow Runtime Spine Lite", () => {
     const input = node("input.text", "input");
     const llmA = node("model.llm", "llm-a");
     const llmB = node("model.llm", "llm-b");
+    const outputB = node("output.text", "output-b");
     const result = validateWorkflowRuntimeLiteTopology({
-      edges: [edge(input, llmA)],
-      nodes: [input, llmA, llmB],
+      edges: [edge(input, llmA), edge(llmB, outputB)],
+      nodes: [input, llmA, llmB, outputB],
     });
 
     expect(result.ok).toBe(false);
     expect(result.ok ? "" : result.error).toContain("沒有上游輸入");
+  });
+
+  it("ignores isolated draft nodes outside the connected runtime path", () => {
+    const input = node("input.text", "input");
+    const llm = node("model.llm", "llm");
+    const output = node("output.text", "output");
+    const draftInput = node("input.text", "draft-input");
+    const draftLlm = node("model.llm", "draft-llm");
+    const result = validateWorkflowRuntimeLiteTopology({
+      edges: [edge(input, llm), edge(llm, output)],
+      nodes: [input, llm, output, draftInput, draftLlm],
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.ok ? result.path.map((candidate) => candidate.id) : []).toEqual([
+      "input",
+      "llm",
+      "output",
+    ]);
+  });
+
+  it("runs the populated input path when blank draft inputs are still connected", async () => {
+    const input = node("input.text", "input", { text: "Primary brief" });
+    const llm = node("model.llm", "llm", { prompt: "Main" });
+    const output = node("output.text", "output");
+    const draftInput = node("input.text", "draft-input");
+    const runtime = runtimeLite(
+      [input, llm, output, draftInput],
+      [edge(input, llm), edge(llm, output), edge(draftInput, output)],
+    );
+    const state = patchableNodes(runtime.nodes);
+
+    const validation = validateWorkflowRuntimeLiteTopology(runtime);
+    const run = await runWorkflowRuntimeLite({
+      callLlm: vi.fn(async ({ prompt, upstream }) => ({
+        text: `${prompt}: ${upstream.rawText}`,
+      })),
+      onNodePatch: state.patch,
+      runtimeLite: runtime,
+      workflowId: "workspace-test",
+    });
+
+    expect(validation.ok).toBe(true);
+    expect(validation.ok ? validation.edges.map((candidate) => candidate.source) : []).toEqual([
+      "input",
+      "llm",
+    ]);
+    expect(run.status).toBe("success");
+    expect(state.get("output")?.outputSnapshot?.rawText).toBe(
+      "Main: Primary brief",
+    );
   });
 
   it("rejects cycles before execution", () => {
@@ -182,6 +237,31 @@ describe("Workflow Runtime Spine Lite", () => {
 
     expect(result.ok).toBe(false);
     expect(result.ok ? "" : result.error).toContain("迴圈");
+  });
+
+  it("can infer a linear runtime path from disconnected nodes in visual order", () => {
+    const input = { ...node("input.text", "input"), position: { x: 100, y: 0 } };
+    const llm = { ...node("model.llm", "llm"), position: { x: 300, y: 0 } };
+    const output = { ...node("output.text", "output"), position: { x: 500, y: 0 } };
+    const inferredEdges = inferLinearWorkflowRuntimeLiteEdges({
+      edges: [],
+      nodes: [output, input, llm],
+    });
+    const result = validateWorkflowRuntimeLiteTopology({
+      edges: inferredEdges,
+      nodes: [output, input, llm],
+    });
+
+    expect(inferredEdges.map((candidate) => [candidate.source, candidate.target])).toEqual([
+      ["input", "llm"],
+      ["llm", "output"],
+    ]);
+    expect(result.ok).toBe(true);
+    expect(result.ok ? result.path.map((candidate) => candidate.id) : []).toEqual([
+      "input",
+      "llm",
+      "output",
+    ]);
   });
 
   it("stops downstream nodes after a failed LLM node", async () => {

@@ -41,6 +41,11 @@ export interface WorkspaceSnapshotRepository {
   insertSnapshot(input: InsertWorkspaceSnapshotInput): Promise<WorkspaceSnapshotRecord>;
   getLatestSnapshot(workspaceId: string): Promise<WorkspaceSnapshotRecord | null>;
   getLatestSnapshotForUser(userId: string): Promise<WorkspaceSnapshotRecord | null>;
+  getLatestSnapshotForUserWorkspace(
+    userId: string,
+    workspaceId: string,
+  ): Promise<WorkspaceSnapshotRecord | null>;
+  listLatestSnapshotsForUser(userId: string, limit?: number): Promise<WorkspaceSnapshotRecord[]>;
   getLatestChecksum(workspaceId: string): Promise<string | null>;
   pruneActiveSnapshots(workspaceId: string, keep: number): Promise<number>;
 }
@@ -92,6 +97,39 @@ export class InMemoryWorkspaceSnapshotRepository implements WorkspaceSnapshotRep
         .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0] ??
       null
     );
+  }
+
+  async getLatestSnapshotForUserWorkspace(userId: string, workspaceId: string) {
+    return (
+      this.snapshots
+        .filter(
+          (snapshot) =>
+            snapshot.userId === userId &&
+            snapshot.workspaceId === workspaceId &&
+            ["active", "checkpoint"].includes(snapshot.snapshotType),
+        )
+        .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0] ??
+      null
+    );
+  }
+
+  async listLatestSnapshotsForUser(userId: string, limit = 25) {
+    const latestByWorkspace = new Map<string, WorkspaceSnapshotRecord>();
+
+    this.snapshots
+      .filter(
+        (snapshot) =>
+          snapshot.userId === userId &&
+          ["active", "checkpoint"].includes(snapshot.snapshotType),
+      )
+      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+      .forEach((snapshot) => {
+        if (!latestByWorkspace.has(snapshot.workspaceId)) {
+          latestByWorkspace.set(snapshot.workspaceId, snapshot);
+        }
+      });
+
+    return [...latestByWorkspace.values()].slice(0, Math.max(1, limit));
   }
 
   async getLatestChecksum(workspaceId: string) {
@@ -176,6 +214,48 @@ export class SupabaseWorkspaceSnapshotRepository implements WorkspaceSnapshotRep
     }
 
     return data ? mapSnapshot(data) : null;
+  }
+
+  async getLatestSnapshotForUserWorkspace(userId: string, workspaceId: string) {
+    const { data, error } = await this.client
+      .from("workspace_snapshots")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("workspace_id", workspaceId)
+      .in("snapshot_type", ["active", "checkpoint"])
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data ? mapSnapshot(data) : null;
+  }
+
+  async listLatestSnapshotsForUser(userId: string, limit = 25) {
+    const { data, error } = await this.client
+      .from("workspace_snapshots")
+      .select("*")
+      .eq("user_id", userId)
+      .in("snapshot_type", ["active", "checkpoint"])
+      .order("updated_at", { ascending: false })
+      .limit(Math.max(1, limit) * 5);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const latestByWorkspace = new Map<string, WorkspaceSnapshotRecord>();
+
+    (data ?? []).map(mapSnapshot).forEach((snapshot) => {
+      if (!latestByWorkspace.has(snapshot.workspaceId)) {
+        latestByWorkspace.set(snapshot.workspaceId, snapshot);
+      }
+    });
+
+    return [...latestByWorkspace.values()].slice(0, Math.max(1, limit));
   }
 
   async getLatestChecksum(workspaceId: string) {

@@ -2,6 +2,7 @@ import type { ApiEnvelope, ApiFailure } from "@/lib/backend/contracts/api-envelo
 import { IDEMPOTENCY_KEY_HEADER, REQUEST_ID_HEADER } from "@/lib/backend/contracts/idempotency";
 
 type NexusApiRequestOptions = {
+  accessToken?: string | null;
   headers?: HeadersInit;
   idempotencyKey?: string;
   signal?: AbortSignal;
@@ -9,6 +10,9 @@ type NexusApiRequestOptions = {
   userId?: string;
   workspaceId?: string;
 };
+
+export const NEXUS_RUNTIME_AUTHORIZATION_HEADER =
+  "X-Nexus-Runtime-Authorization";
 
 export class NexusApiError extends Error {
   readonly code: string;
@@ -111,6 +115,17 @@ export class FetchNexusApiClient implements NexusApiClient {
       headers.set("X-User-Id", options.userId);
     }
 
+    if (!headers.has("Authorization")) {
+      const accessToken =
+        options.accessToken === undefined
+          ? await resolveBrowserAccessToken()
+          : options.accessToken;
+
+      if (accessToken) {
+        headers.set("Authorization", `Bearer ${accessToken}`);
+      }
+    }
+
     if (method !== "GET") {
       headers.set("Content-Type", headers.get("Content-Type") ?? "application/json");
       headers.set(
@@ -162,6 +177,21 @@ export class FetchNexusApiClient implements NexusApiClient {
 }
 
 export const nexusApiClient = new FetchNexusApiClient();
+
+async function resolveBrowserAccessToken() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const { getNexusSupabaseClient } = await import("@/lib/supabase/client");
+    const { data } = await getNexusSupabaseClient().auth.getSession();
+
+    return data.session?.access_token ?? null;
+  } catch {
+    return null;
+  }
+}
 
 function isApiEnvelope<TResponse>(
   value: unknown,

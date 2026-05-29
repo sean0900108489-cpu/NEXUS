@@ -88,7 +88,9 @@ export type MessageInsert = Pick<
       Messages,
       | "archived_at"
       | "content_hash"
+      | "created_at"
       | "created_by"
+      | "id"
       | "is_active_window"
       | "metadata"
       | "role"
@@ -273,13 +275,20 @@ export interface Prompts {
   created_at: DatabaseTimestamp;
   updated_at: DatabaseTimestamp;
   created_by: string | null;
+  deleted_at: DatabaseTimestamp | null;
+  deleted_by: string | null;
 }
 
 export type PromptUpsert = Pick<
   Prompts,
   "content" | "id" | "title" | "workspace_id"
 > &
-  Partial<Pick<Prompts, "created_at" | "created_by" | "updated_at">>;
+  Partial<
+    Pick<
+      Prompts,
+      "created_at" | "created_by" | "deleted_at" | "deleted_by" | "updated_at"
+    >
+  >;
 
 export interface Prompt_Revisions {
   id: string;
@@ -303,11 +312,21 @@ export interface Notebooks {
   created_at: DatabaseTimestamp;
   updated_at: DatabaseTimestamp;
   created_by: string | null;
+  deleted_at: DatabaseTimestamp | null;
+  deleted_by: string | null;
 }
 
 export type NotebookUpsert = Pick<Notebooks, "content" | "id" | "title"> &
   Partial<
-    Pick<Notebooks, "created_at" | "created_by" | "updated_at" | "workspace_id">
+    Pick<
+      Notebooks,
+      | "created_at"
+      | "created_by"
+      | "deleted_at"
+      | "deleted_by"
+      | "updated_at"
+      | "workspace_id"
+    >
   >;
 
 export type WorkspaceRole = "owner" | "admin" | "editor" | "viewer";

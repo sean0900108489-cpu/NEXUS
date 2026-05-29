@@ -4,7 +4,9 @@ import { IDEMPOTENCY_KEY_HEADER, REQUEST_ID_HEADER } from "../contracts/idempote
 import type { TraceContext } from "../observability/trace-context";
 import { emitBackendEvent } from "../observability/events";
 import type { PermissionService } from "../security/permission-service";
+import type { AuthenticatedSessionUser, AuthSessionVerifier } from "../security/auth-session";
 
+import { resolveApiActor } from "./api-auth";
 import { ApiError, getApiErrorDescriptor, toApiError } from "./api-errors";
 import { assertValidRequest, type ApiRequestValidator } from "./api-request-validator";
 import { createServerIdempotencyRepository, type IdempotencyRepository } from "./idempotency-repository";
@@ -17,12 +19,17 @@ export type ApiHandlerContext<TBody> = {
   body: TBody;
   request: Request;
   requestId: string;
+  sessionUser?: AuthenticatedSessionUser;
   trace: TraceContext;
   traceId: string;
   workspaceId: string;
 };
 
 export type ApiHandlerOptions<TBody, TData> = {
+  auth?: {
+    required?: boolean;
+    verifier?: AuthSessionVerifier;
+  };
   handler: (context: ApiHandlerContext<TBody>) => Promise<TData> | TData;
   idempotency?: {
     enabled?: boolean;
@@ -77,7 +84,13 @@ export function apiHandler<TBody = unknown, TData = unknown>(
         readHeader(request.headers, "X-Workspace-Id") ??
         getWorkspaceIdFromBody(body) ??
         "__global__";
-      const actorUserId = readHeader(request.headers, "X-User-Id");
+      const declaredUserId = readHeader(request.headers, "X-User-Id");
+      const authRequired = Boolean(options.permission || options.auth?.required);
+      const { actorUserId, sessionUser } = await resolveApiActor(request, {
+        declaredUserId,
+        required: authRequired,
+        verifier: options.auth?.verifier,
+      });
       const trace: TraceContext = {
         requestId,
         source: "api",
@@ -89,6 +102,7 @@ export function apiHandler<TBody = unknown, TData = unknown>(
         body,
         request,
         requestId,
+        sessionUser,
         trace,
         traceId,
         workspaceId,

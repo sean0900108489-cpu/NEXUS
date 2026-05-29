@@ -7,13 +7,66 @@ import { getWorkflowRuntimeHandleIds } from "./registry";
 
 export type WorkflowTopologyValidationResult =
   | {
+      edges: WorkflowRuntimeEdge[];
       ok: true;
       path: WorkflowNodeInstance[];
     }
   | {
-      ok: false;
       error: string;
+      ok: false;
     };
+
+export function inferLinearWorkflowRuntimeLiteEdges({
+  edges,
+  nodes,
+}: {
+  edges: WorkflowRuntimeEdge[];
+  nodes: WorkflowNodeInstance[];
+}) {
+  if (edges.length || nodes.length < 2) {
+    return edges;
+  }
+
+  const inputNodes = nodes.filter((node) => node.type === "input.text");
+
+  if (inputNodes.length !== 1) {
+    return edges;
+  }
+
+  const sortedNodes = [...nodes].sort(compareWorkflowRuntimeNodes);
+  const [startNode] = sortedNodes;
+
+  if (!startNode || startNode.id !== inputNodes[0].id) {
+    return edges;
+  }
+
+  const inferredEdges: WorkflowRuntimeEdge[] = [];
+
+  for (let index = 0; index < sortedNodes.length - 1; index += 1) {
+    const source = sortedNodes[index];
+    const target = sortedNodes[index + 1];
+
+    if (
+      !source ||
+      !target ||
+      !getWorkflowRuntimeHandleIds(source.type, "source").includes("output") ||
+      !getWorkflowRuntimeHandleIds(target.type, "target").includes("input")
+    ) {
+      return edges;
+    }
+
+    inferredEdges.push({
+      animated: true,
+      id: `wf_edge_auto_${source.id}_${target.id}`,
+      source: source.id,
+      sourceHandle: "output",
+      target: target.id,
+      targetHandle: "input",
+    });
+  }
+
+  return inferredEdges;
+}
 
 export function validateWorkflowRuntimeLiteTopology({
   edges,
@@ -29,21 +82,32 @@ export function validateWorkflowRuntimeLiteTopology({
     };
   }
 
-  const nodeById = new Map(nodes.map((node) => [node.id, node]));
-  const handleError = validateHandles({ edges, nodeById });
+  const subgraph = selectWorkflowRuntimeSubgraph({ edges, nodes });
+
+  if (!subgraph.nodes.length) {
+    return {
+      error: "目前 Lite Runner 找不到可執行節點。",
+      ok: false,
+    };
+  }
+
+  const nodeById = new Map(subgraph.nodes.map((node) => [node.id, node]));
+  const handleError = validateHandles({ edges: subgraph.edges, nodeById });
 
   if (handleError) {
     return { error: handleError, ok: false };
   }
 
-  if (hasDirectedCycle(edges, nodeById)) {
+  if (hasDirectedCycle(subgraph.edges, nodeById)) {
     return {
       error: "目前 Lite Runner 尚未支援迴圈。",
       ok: false,
     };
   }
 
-  const inputNodes = nodes.filter((node) => node.type === "input.text");
+  const runnableNodes = subgraph.nodes;
+  const runnableEdges = subgraph.edges;
+  const inputNodes = runnableNodes.filter((node) => node.type === "input.text");
 
   if (!inputNodes.length) {
     return {
@@ -59,8 +123,8 @@ export function validateWorkflowRuntimeLiteTopology({
     };
   }
 
-  const incoming = collectEdges(edges, "target");
-  const outgoing = collectEdges(edges, "source");
+  const incoming = collectEdges(runnableEdges, "target");
+  const outgoing = collectEdges(runnableEdges, "source");
 
   const startNode = inputNodes[0];
 
@@ -71,7 +135,7 @@ export function validateWorkflowRuntimeLiteTopology({
     };
   }
 
-  for (const node of nodes) {
+  for (const node of runnableNodes) {
     if (node.id === startNode.id) {
       continue;
     }
@@ -86,14 +150,14 @@ export function validateWorkflowRuntimeLiteTopology({
 
   const reachable = collectReachableNodeIds(startNode.id, outgoing);
 
-  if (reachable.size !== nodes.length) {
+  if (reachable.size !== runnableNodes.length) {
     return {
       error: "圖上存在未連接到起始 input.text 的節點。",
       ok: false,
     };
   }
 
-  const path = topologicalSort(nodes, incoming, outgoing);
+  const path = topologicalSort(runnableNodes, incoming, outgoing);
 
   if (!path) {
     return {
@@ -103,6 +167,7 @@ export function validateWorkflowRuntimeLiteTopology({
   }
 
   return {
+    edges: runnableEdges,
     ok: true,
     path,
   };
@@ -151,6 +216,66 @@ function collectEdges(
   }
 
   return grouped;
+}
+
+function selectWorkflowRuntimeSubgraph({
+  edges,
+  nodes,
+}: {
+  edges: WorkflowRuntimeEdge[];
+  nodes: WorkflowNodeInstance[];
+}) {
+  if (!edges.length) {
+    return { edges, nodes };
+  }
+
+  const connectedNodeIds = new Set<string>();
+  const allNodeIds = new Set(nodes.map((node) => node.id));
+
+  for (const edge of edges) {
+    if (!allNodeIds.has(edge.source) || !allNodeIds.has(edge.target)) {
+      continue;
+    }
+
+    connectedNodeIds.add(edge.source);
+    connectedNodeIds.add(edge.target);
+  }
+
+  const connectedNodes = nodes.filter((node) => connectedNodeIds.has(node.id));
+  const connectedEdges = edges.filter(
+    (edge) => connectedNodeIds.has(edge.source) && connectedNodeIds.has(edge.target),
+  );
+  const inputNodes = connectedNodes.filter((node) => node.type === "input.text");
+
+  if (inputNodes.length <= 1) {
+    return { edges: connectedEdges, nodes: connectedNodes };
+  }
+
+  const populatedInputs = inputNodes.filter(hasSeedText);
+
+  if (populatedInputs.length !== 1) {
+    return { edges: connectedEdges, nodes: connectedNodes };
+  }
+
+  const outgoing = collectEdges(connectedEdges, "source");
+  const reachable = collectReachableNodeIds(populatedInputs[0].id, outgoing);
+
+  return {
+    edges: connectedEdges.filter(
+      (edge) => reachable.has(edge.source) && reachable.has(edge.target),
+    ),
+    nodes: connectedNodes.filter((node) => reachable.has(node.id)),
+  };
+}
+
+function hasSeedText(node: WorkflowNodeInstance) {
+  if (node.type !== "input.text") {
+    return false;
+  }
+
+  const data = node.data as { text?: unknown };
+
+  return typeof data.text === "string" && data.text.trim().length > 0;
 }
 
 function collectReachableNodeIds(

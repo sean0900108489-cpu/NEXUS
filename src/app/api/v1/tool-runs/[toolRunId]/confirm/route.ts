@@ -3,7 +3,7 @@ import {
   createRequestValidator,
   validationIssue,
 } from "@/lib/backend/api/api-request-validator";
-import { getBearerToken } from "@/lib/backend/api/memory-compress-service";
+import { getRuntimeBearerToken } from "@/lib/backend/api/memory-compress-service";
 import { createToolExecutionService } from "@/lib/backend/tools/tool-execution-service";
 import type {
   ToolRunConfirmRequest,
@@ -30,13 +30,16 @@ export async function POST(request: Request, context: RouteContext) {
         },
         {
           requestId,
-          runtimeApiKey: getBearerToken(request.headers.get("authorization")),
+          runtimeApiKey: getRuntimeBearerToken(request.headers),
           traceId,
           userId: trace.userId,
         },
       ),
     idempotency: {
       enabled: true,
+    },
+    auth: {
+      required: true,
     },
     methods: ["POST"],
     route: "/api/v1/tool-runs/[toolRunId]/confirm",

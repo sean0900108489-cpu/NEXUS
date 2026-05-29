@@ -71,7 +71,8 @@ export async function runWorkflowRuntimeLite({
 
   onRunUpdate?.(run);
 
-  const incomingEdgesByTarget = groupIncomingEdges(runtimeLite.edges);
+  const runtimeEdges = validation.edges;
+  const incomingEdgesByTarget = groupIncomingEdges(runtimeEdges);
   const outputPacketsByNodeId = new Map<string, ContextPacket>();
 
   for (const node of validation.path) {
@@ -113,7 +114,7 @@ export async function runWorkflowRuntimeLite({
         reason: `Skipped because upstream node ${node.id} failed.`,
         run,
         runId,
-        runtimeLite,
+        runtimeEdges,
       });
       run = {
         ...run,
@@ -228,7 +229,7 @@ export async function runWorkflowRuntimeLite({
         reason: `Skipped because upstream node ${node.id} failed.`,
         run,
         runId,
-        runtimeLite,
+        runtimeEdges,
       });
       run = {
         ...run,
@@ -349,7 +350,7 @@ function markBlockedDownstreamNodes({
   reason,
   run,
   runId,
-  runtimeLite,
+  runtimeEdges,
 }: {
   completedAt: string;
   failedNodeId: string;
@@ -357,14 +358,14 @@ function markBlockedDownstreamNodes({
   reason: string;
   run: WorkflowRun;
   runId: string;
-  runtimeLite: WorkflowRuntimeLiteState;
+  runtimeEdges: WorkflowRuntimeEdge[];
 }) {
   const executedNodeIds = new Set(
     run.nodeExecutions.map((execution) => execution.nodeId),
   );
   const downstreamNodeIds = collectDownstreamNodeIds(
     failedNodeId,
-    runtimeLite.edges,
+    runtimeEdges,
   );
   let nextRun = run;
 

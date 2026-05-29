@@ -6,6 +6,7 @@ import type {
   NexusWorkspace,
   WorkflowNodeInstance,
 } from "@/lib/nexus-types";
+import { NEXUS_RUNTIME_AUTHORIZATION_HEADER } from "@/lib/api/nexus-api-client";
 
 import { executeWorkflowRuntimeLlm } from "./llm-client";
 import { createWorkflowRuntimeNode } from "./state";
@@ -64,6 +65,8 @@ describe("workflow runtime LLM client", () => {
 
     expect(headers.get("X-User-Id")).toBe("local-owner");
     expect(headers.get("X-Nexus-Workflow-Runtime")).toBe("lite");
+    expect(headers.get(NEXUS_RUNTIME_AUTHORIZATION_HEADER)).toBe("Bearer sk-test");
+    expect(headers.get("Authorization")).toBeNull();
   });
 });
 

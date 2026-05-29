@@ -27,6 +27,9 @@ export const GET = apiHandler<undefined, UsageMetricsResponse>({
     });
   },
   methods: ["GET"],
+  auth: {
+    required: true,
+  },
   route: "/api/v1/observability/metrics",
   workspaceId: (request) => readWorkspaceId(request),
 });

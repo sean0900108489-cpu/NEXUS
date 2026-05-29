@@ -102,11 +102,14 @@ describe("FeatureFlagService", () => {
 });
 
 describe("deployment checkers", () => {
-  it("passes schema drift checks for V1-V5 additive tables and generated types", async () => {
+  it("passes schema drift checks for additive tables, repair migrations, and generated types", async () => {
     const result = await new SchemaDriftChecker().check();
 
     expect(result.status).toBe("passed");
     expect(result.details?.missingMigrations).toEqual([]);
+    expect(result.details?.missingMigrationRequirements).toEqual([]);
+    expect(result.details?.missingRepairMarkers).toEqual([]);
+    expect(result.details?.missingTypeMembers).toEqual([]);
     expect(result.details?.missingTypes).toEqual([]);
   });
 

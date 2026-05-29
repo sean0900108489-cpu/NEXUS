@@ -3,7 +3,10 @@ import type {
   ICompressedMemoryResult,
   IMemoryCompressionConfig,
 } from "@/lib/nexus-types";
-import { nexusApiClient } from "@/lib/api/nexus-api-client";
+import {
+  NEXUS_RUNTIME_AUTHORIZATION_HEADER,
+  nexusApiClient,
+} from "@/lib/api/nexus-api-client";
 
 export interface MemoryCompressionPayload {
   payload: unknown;
@@ -174,7 +177,7 @@ export class LlmMemoryCompressor {
       };
 
       if (apiKey) {
-        headers.Authorization = `Bearer ${apiKey}`;
+        headers[NEXUS_RUNTIME_AUTHORIZATION_HEADER] = `Bearer ${apiKey}`;
       }
 
       if (baseUrl) {

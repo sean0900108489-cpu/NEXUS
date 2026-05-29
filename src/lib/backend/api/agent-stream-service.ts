@@ -1,8 +1,13 @@
-import type { AgentStreamRequest } from "@/lib/nexus-types";
+import type { AgentStreamRequest, AgentTaskRecord } from "@/lib/nexus-types";
 import { buildMockReply } from "@/lib/mock-stream";
 
 import { getApiErrorDescriptor, type ApiErrorCode } from "./api-errors";
-import { getBearerToken } from "./memory-compress-service";
+import { resolveApiActor } from "./api-auth";
+import { getRuntimeBearerToken } from "./memory-compress-service";
+import {
+  createMessageHistoryService,
+  type MessageHistoryService,
+} from "../history/message-history-service";
 import { createAgentRuntimeService } from "../runtime/agent-runtime-service";
 import {
   buildOpenAICompatibleChatBody,
@@ -64,6 +69,7 @@ export type AgentStreamResponseOptions = {
 
 const encoder = new TextEncoder();
 const SAFE_DEFAULT_CHAT_MODEL = "gpt-4o-mini";
+let messageHistoryServiceFactory = () => createMessageHistoryService();
 
 export function createStreamId(prefix: string) {
   const random =
@@ -83,7 +89,7 @@ export async function createAgentStreamResponse({
   workspaceId,
 }: AgentStreamResponseOptions) {
   const payload = (await request.json()) as AgentStreamRequest;
-  const apiKey = getBearerToken(request.headers.get("authorization"));
+  const apiKey = getRuntimeBearerToken(request.headers);
   const rawBaseUrl =
     request.headers.get("x-nexus-base-url") ||
     request.headers.get("x-openai-base-url") ||
@@ -107,7 +113,11 @@ export async function createAgentStreamResponse({
     });
   }
 
-  const userId = request.headers.get("X-User-Id") ?? undefined;
+  const { actorUserId } = await resolveApiActor(request, {
+    declaredUserId: request.headers.get("X-User-Id"),
+    required: true,
+  });
+  const userId = actorUserId;
   const resolvedWorkspaceId = payload.workspaceId ?? workspaceId ?? "__global__";
   const runtimeService = createAgentRuntimeService();
   const taskScope = await runtimeService.prepareStreamTask(
@@ -190,6 +200,7 @@ export async function createAgentStreamResponse({
     async start(controller) {
       let heartbeat: ReturnType<typeof setInterval> | undefined;
       let firstTokenSeen = false;
+      let assistantOutput = "";
       const startedAt = Date.now();
 
       const emit = (event: AgentStreamEvent | LegacyStreamEvent) => {
@@ -238,12 +249,25 @@ export async function createAgentStreamResponse({
             continue;
           }
 
+          assistantOutput += chunk.delta;
           emit({
             delta: chunk.delta,
             token: chunk.delta,
             type: "token",
           });
         }
+
+        await persistTaskOutputMessage({
+          agentId,
+          content: assistantOutput,
+          model: providerStream.model,
+          provider: providerStream.provider,
+          requestId,
+          task: taskScope.task,
+          traceId,
+          userId,
+          workspaceId: resolvedWorkspaceId,
+        });
 
         await runtimeService.completeTask(
           taskScope.task.id,
@@ -331,6 +355,65 @@ export async function createAgentStreamResponse({
       "X-Agent-Task-Id": taskScope.task.id,
     },
   });
+}
+
+export function setAgentStreamMessageHistoryServiceFactoryForTests(
+  factory: () => MessageHistoryService,
+) {
+  messageHistoryServiceFactory = factory;
+}
+
+export function resetAgentStreamMessageHistoryServiceFactoryForTests() {
+  messageHistoryServiceFactory = () => createMessageHistoryService();
+}
+
+async function persistTaskOutputMessage({
+  agentId,
+  content,
+  model,
+  provider,
+  requestId,
+  task,
+  traceId,
+  userId,
+  workspaceId,
+}: {
+  agentId: string;
+  content: string;
+  model: string;
+  provider: string;
+  requestId: string;
+  task: AgentTaskRecord;
+  traceId: string;
+  userId?: string;
+  workspaceId: string;
+}) {
+  const now = new Date().toISOString();
+  const durableContent = content.trim() ? content : "Stream completed without payload.";
+  const outputMessageId = task.outputMessageId ?? `message_${task.id}`;
+
+  await messageHistoryServiceFactory().upsertMessage(
+    {
+      agentId,
+      content: durableContent,
+      createdAt: now,
+      id: outputMessageId,
+      metadata: {
+        model,
+        provider,
+        source: "agent_stream",
+      },
+      role: "assistant",
+      taskId: task.id,
+      updatedAt: now,
+      workspaceId,
+    },
+    {
+      requestId,
+      traceId,
+      userId,
+    },
+  );
 }
 
 function createImmediateV1StreamErrorResponse({

@@ -27,6 +27,9 @@ export async function GET(request: Request, context: RouteContext) {
         },
       ),
     methods: ["GET"],
+    auth: {
+      required: true,
+    },
     route: "/api/v1/tool-runs/[toolRunId]",
     workspaceId: (routeRequest) =>
       new URL(routeRequest.url).searchParams.get("workspaceId") ??

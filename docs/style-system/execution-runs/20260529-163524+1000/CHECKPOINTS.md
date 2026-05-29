@@ -3315,3 +3315,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found partially implemented pure contract/compiler status, implementation evidence for token groups, presets, compiler outputs, legacy bridge, tests, and the workspace/sync/backend/Supabase/deploy/exports boundary. Stale marker scan returned no matches for documentation-only/no-runtime-types wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
 - Rollback note: revert only the CP-203 style contract doc reconciliation and this run-doc checkpoint if the wording must be removed.
+
+## CP-204 - Pure Compiler Variable Limit Guard V1
+
+- Unit: enforce `constraints.maxCssVariableCount` against the compiler's emitted CSS variable output before returning an accepted style.
+- Allowed files:
+  - `src/lib/style-engine/compiler.ts`
+  - `src/lib/style-engine/compiler.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: UI/TSX/app route/CSS files, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused compiler/governance/exchange Vitest; targeted lint for compiler files; `npm run typecheck`; targeted side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `npm run test -- src/lib/style-engine/compiler.test.ts src/lib/style-engine/governance.test.ts src/lib/style-engine/exchange.test.ts`; `npm run test -- --testTimeout 20000 src/lib/style-engine/compiler.test.ts src/lib/style-engine/governance.test.ts src/lib/style-engine/exchange.test.ts`; `npm run lint -- src/lib/style-engine/compiler.ts src/lib/style-engine/compiler.test.ts`; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/compiler.ts`
+  - `src/lib/style-engine/compiler.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS with recoverable timeout retry. The first focused Vitest command hit the known 5s timeout pattern in one compiler, governance, and exchange test while assertions were otherwise unrelated to the new guard. The same focused files passed with `--testTimeout 20000` at 3 files / 17 tests. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found no DOM/window/document/storage/fetch/clipboard/download/store/sync/backend/Supabase/deploy/exports path. Behavior scan matched only existing React Flow forbidden-key assertions in `compiler.test.ts`. `git diff --check` passed.
+- Rollback note: revert only the CP-204 compiler/test changes and this run-doc checkpoint if the compiler variable-limit guard must be backed out.

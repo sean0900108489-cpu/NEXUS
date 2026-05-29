@@ -219,6 +219,7 @@ Run id: `20260529-163524+1000`
 | Style Interpreter Boundary Doc Reconciliation V1 | PASS | Reconciled interpreter boundary doc with current pure intent normalizer implementation and no-AI-runtime boundary. |
 | Manifest Spec Status Reconciliation V1 | PASS | Reconciled manifest V1 spec with current pure manifest types, presets, validator, and compiler implementation. |
 | Style Contract Doc Reconciliation V1 | PASS | Reconciled style contract doc with current pure contract token types, presets, compiler mapping, and legacy bridge output. |
+| Pure Compiler Variable Limit Guard V1 | PASS | Compiler now fails closed when emitted CSS variables exceed `constraints.maxCssVariableCount`; focused tests passed with recoverable 5s timeout retry. |
 
 ## Current Gate
 
@@ -231,4 +232,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Style Contract Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Compiler Variable Limit Guard local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

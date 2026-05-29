@@ -175,6 +175,28 @@ describe("NEXUS Style Engine pure compiler", () => {
       path: "$.adapters.reactFlow.nodesDraggable",
     });
   });
+
+  it("fails closed when compiled variables exceed the manifest limit", () => {
+    const manifest = createSafeManifest();
+    manifest.constraints.maxCssVariableCount = 1;
+
+    const result = compileNexusStyleManifestV1(manifest);
+
+    expect(result.accepted).toBe(false);
+
+    if (result.accepted) {
+      throw new Error("Expected compiler to reject over-limit output.");
+    }
+
+    expect(result.errors).toEqual([
+      {
+        code: "style.variableCountExceeded",
+        message: "Compiled style exceeds maxCssVariableCount.",
+        path: "$.constraints.maxCssVariableCount",
+      },
+    ]);
+    expect("style" in result).toBe(false);
+  });
 });
 
 function createSafeManifest(): NexusStyleManifestV1 {

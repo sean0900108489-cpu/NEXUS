@@ -1003,31 +1003,37 @@ Run id: `20260529-163524+1000`
 - Started `CP-203 - Style Contract Doc Reconciliation V1`.
 - Reconciled `style-contract-v1.md` with current pure contract token types, built-in presets, compiler mapping, legacy bridge output, and side-effect-free boundary.
 - Verified CP-203 with focused evidence scan, stale marker scan, `git diff --check`, diff stat, and status check.
+- Created local checkpoint commit `5faf02a81cb850b3eaa80abad60af33dee8f08fb` for the Style Contract Doc Reconciliation V1 unit.
+- Started `CP-204 - Pure Compiler Variable Limit Guard V1`.
+- Added a pure compiler guard that rejects manifests when the emitted CSS variable output exceeds `constraints.maxCssVariableCount`.
+- Added focused compiler coverage proving an over-limit compile returns `style.variableCountExceeded` and no accepted style payload.
+- Verified CP-204 with focused compiler/governance/exchange Vitest using a recoverable longer-timeout retry after the known 5s timeout pattern, targeted lint, `npm run typecheck`, targeted side-effect/behavior scans, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-203 - Style Contract Doc Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-203 local commit; previous clean checkpoint commit is `8e14107922bd70a976b010278cad3de344b0d7b0`.
+- Latest completed checkpoint: `CP-204 - Pure Compiler Variable Limit Guard V1`.
+- Latest local checkpoint commit: pending CP-204 local commit; previous clean checkpoint commit is `5faf02a81cb850b3eaa80abad60af33dee8f08fb`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-203 verification: dirty only in CP-203 allowed docs and run-doc files.
-- Current stop reason: not stopped; CP-203 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-204 verification: dirty only in CP-204 allowed compiler/test/run-doc files.
+- Current stop reason: not stopped; CP-204 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-203 - Local checkpoint commit prep`.
+- `CP-204 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-contract-v1.md`
+  - `src/lib/style-engine/compiler.ts`
+  - `src/lib/style-engine/compiler.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: all source/test edits, UI/TSX/app route/CSS files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-203 docs/run-doc update if the style contract reconciliation must be removed.
+- Rollback: revert only the CP-204 compiler/test/run-doc update if the variable-limit guard must be removed.
 
 ## Next
 
-1. Commit the CP-203 docs checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-204 pure compiler checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

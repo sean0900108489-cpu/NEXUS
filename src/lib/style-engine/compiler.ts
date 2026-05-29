@@ -88,6 +88,23 @@ export function compileNexusStyleManifestV1(
 
   const cssVariables = emitCssVariables(manifest);
   const legacyCssVariables = emitLegacyCssVariables(cssVariables);
+  const emittedVariableCount =
+    Object.keys(cssVariables).length + Object.keys(legacyCssVariables).length;
+
+  if (emittedVariableCount > manifest.constraints.maxCssVariableCount) {
+    return {
+      accepted: false,
+      errors: [
+        {
+          code: "style.variableCountExceeded",
+          message: "Compiled style exceeds maxCssVariableCount.",
+          path: "$.constraints.maxCssVariableCount",
+        },
+      ],
+      warnings: validation.warnings,
+    };
+  }
+
   const recipes = compileRecipes(manifest.recipes);
   const adapters = compileAdapters(manifest);
 
@@ -107,8 +124,7 @@ export function compileNexusStyleManifestV1(
           reactFlow: "complete",
           windowModal: "complete",
         },
-        emittedVariableCount:
-          Object.keys(cssVariables).length + Object.keys(legacyCssVariables).length,
+        emittedVariableCount,
         legacyBridgeUsed: Object.keys(legacyCssVariables).length > 0,
         warnings: validation.warnings,
       },

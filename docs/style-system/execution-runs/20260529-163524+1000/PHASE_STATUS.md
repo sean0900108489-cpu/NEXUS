@@ -201,6 +201,7 @@ Run id: `20260529-163524+1000`
 | Style Lab Datapad Shell Specimen Recipe Variables V1 | PASS | Isolated Datapad shell specimen now consumes window recipe variables; no production Datapad wiring touched. |
 | Style Lab Prompt Vault Specimen Recipe Variables V1 | PASS | Isolated Prompt Vault specimen now consumes modal recipe variables; no production Prompt Vault wiring touched. |
 | Post Secondary Recipe Specimen Hookup Phase Gate | PASS | Full check passed after Agent Chrome, Datapad, and Prompt Vault recipe specimen hookups; side-effect scan and git diff check passed. |
+| Style Lab Recipe Specimen Suite Smoke V1 | PASS | Source-closed local smoke confirmed all six isolated recipe specimens render with key recipe variable markup and captured a nonempty 1440 x 1800 PNG screenshot. |
 
 ## Current Gate
 
@@ -213,4 +214,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Secondary Recipe Specimen Hookup Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Style Lab Recipe Specimen Suite Smoke local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

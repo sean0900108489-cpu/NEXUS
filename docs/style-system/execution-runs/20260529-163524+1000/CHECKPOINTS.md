@@ -2994,3 +2994,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 299 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries, and the window/modal recipe adapter forbidden behavior key registry; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-185 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-186 - Style Lab Recipe Specimen Suite Smoke V1
+
+- Unit: run a source-closed local smoke for the full isolated Style Lab recipe specimen suite after all six specimens began consuming recipe-scoped variables.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+  - `/tmp/style-lab-cp186.png`
+  - isolated temporary Chrome profile under `/tmp/codex-style-lab-chrome-profile-cp186-*`
+- Forbidden files: all repo source/test edits, UI/CSS/production files, user Chrome profile mutation, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: static local `/style-lab` smoke for all six recipe specimen labels and key recipe variables; isolated headless Chrome screenshot smoke; screenshot dimensions/nonempty check; temporary profile/process cleanup check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: static local `/style-lab` fetch smoke; isolated headless Chrome CDP screenshot smoke; temporary profile/process cleanup; PNG file/dimension/size checks; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Static local `/style-lab` fetch returned status 200 and confirmed `Window Specimen`, `Modal Specimen`, `Command Palette Specimen`, `Agent Chrome Specimen`, `Datapad Shell Specimen`, and `Prompt Vault Specimen`, plus key recipe variables including `--nexus-recipe-window-surface`, `--nexus-recipe-modal-surface`, `--nexus-recipe-command-palette-surface`, `--nexus-recipe-window-body-surface`, and `--nexus-recipe-modal-title-text`. Isolated headless Chrome wrote `/tmp/style-lab-cp186.png` and confirmed all labels; the first harness exited nonzero only because immediate profile deletion hit `ENOTEMPTY` after Chrome shutdown, then cleanup removed the temporary profile and confirmed no matching process remained. Screenshot verification confirmed PNG image data at 1440 x 1800 and 117776 bytes. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
+- Rollback note: remove only this CP-186 run-doc checkpoint entry and the temporary screenshot/profile artifacts if the smoke bookkeeping must be removed.

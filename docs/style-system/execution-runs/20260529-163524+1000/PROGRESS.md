@@ -915,30 +915,37 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 41 Vitest files / 299 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries, and the window/modal recipe adapter forbidden behavior key registry; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `45d4347bd41ee54c90718b9f549794a62b9331eb` for the Post Secondary Recipe Specimen Hookup Phase Gate.
+- Started `CP-186 - Style Lab Recipe Specimen Suite Smoke V1` with source edits closed.
+- Ran static local `/style-lab` fetch smoke and confirmed status 200 with all six isolated recipe specimen labels: Window, Modal, Command Palette, Agent Chrome, Datapad Shell, and Prompt Vault.
+- Confirmed key recipe variables render in the page source for the specimen suite, including `--nexus-recipe-window-surface`, `--nexus-recipe-modal-surface`, `--nexus-recipe-command-palette-surface`, `--nexus-recipe-window-body-surface`, and `--nexus-recipe-modal-title-text`.
+- Ran isolated headless Chrome screenshot smoke against `/style-lab`; it wrote `/tmp/style-lab-cp186.png` and confirmed all six labels. The first harness exited nonzero only because immediate profile cleanup hit `ENOTEMPTY`; follow-up cleanup removed the temporary profile and confirmed no matching process remained.
+- Confirmed `/tmp/style-lab-cp186.png` is a nonempty PNG screenshot at 1440 x 1800 and 117776 bytes.
+- Confirmed `git diff --check` passed and status stayed clean before CP-186 run-doc bookkeeping.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-185 - Post Secondary Recipe Specimen Hookup Phase Gate`.
-- Latest local checkpoint commit: pending CP-185 local commit; previous clean checkpoint commit is `47f898416c2ea5cdf38a5093468917d7605cd99a`.
+- Latest completed checkpoint: `CP-186 - Style Lab Recipe Specimen Suite Smoke V1`.
+- Latest local checkpoint commit: pending CP-186 local commit; previous clean checkpoint commit is `45d4347bd41ee54c90718b9f549794a62b9331eb`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-185 verification: dirty only in CP-185 allowed run-doc files.
-- Current stop reason: not stopped; CP-185 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-186 verification: clean before run-doc bookkeeping; dirty only in CP-186 allowed run-doc files after this update.
+- Current stop reason: not stopped; CP-186 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-185 - Local checkpoint commit prep`.
+- `CP-186 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, UI/CSS/production component files, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test edits during the smoke checkpoint, UI/CSS/production component files, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-185 run-doc update if the phase gate bookkeeping must be removed.
+- Rollback: revert only the CP-186 run-doc update if the smoke bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-185 phase-gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-186 smoke checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

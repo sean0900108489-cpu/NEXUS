@@ -1967,3 +1967,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 40 Vitest files / 290 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only the pure React Flow adapter type/forbidden-key constants/mapper/emitter names, existing validator/normalizer detector strings, and test-only guard cases; no DOM write, CSS file edit, live React Flow import, compiler wiring, graph behavior wiring, runtime provider change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed.
 - Rollback note: revert only this CP-125 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-126 - Style Lab Graph Specimen Adapter Variables V1
+
+- Unit: apply pure React Flow adapter CSS variables to the isolated Style Lab graph specimen only, without importing React Flow or changing production graph behavior.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, compiler wiring, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `git diff --check`; focused Vitest for `react-flow-adapter`; `npm run typecheck`; targeted lint for Style Lab and style-engine; `npm run build`; targeted side-effect/import scan; headless Chrome smoke on `/style-lab`.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/react-flow-adapter.test.ts`; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; targeted side-effect/import scan; source-only side-effect/import scan excluding tests; headless Chrome dump-DOM smoke on `http://localhost:3000/style-lab`; cleanup check for the headless smoke process.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused adapter Vitest passed 1 file and 6 tests; typecheck passed; targeted lint passed; `npm run build` passed with static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, and test-only guard cases; no live React Flow import, graph behavior props, production graph/app shell file, runtime provider change, CSS/global stylesheet edit, compiler wiring, persistence, apply/save, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. Headless Chrome dump-DOM smoke verified `Graph Specimen` plus `--nexus-graph-background-color` and `--nexus-graph-node-agent-surface` markers. The smoke harness emitted the expected DOM markers before Chrome updater subprocesses stalled; the local headless smoke process was killed and a follow-up process scan found no remaining smoke process.
+- Rollback note: revert only `src/components/style-engine/nexus-style-lab.tsx` and this run-doc checkpoint update if the isolated graph specimen adapter variable unit must be removed.

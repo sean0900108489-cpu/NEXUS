@@ -8,7 +8,7 @@ import {
   RotateCcw,
   ShieldCheck,
 } from "lucide-react";
-import { useMemo, useState, type ChangeEvent } from "react";
+import { useMemo, useState, type CSSProperties, type ChangeEvent } from "react";
 
 import {
   compileNexusStyleManifestV1,
@@ -17,6 +17,8 @@ import {
   createNexusStyleManifestDraftFromIntentV1,
   createNexusStyleExportPackageV1,
   createNexusStylePreviewPatchV1,
+  createReactFlowStyleAdapterFromManifestV1,
+  emitReactFlowAdapterCssVariablesV1,
   HIGH_CONTRAST_CARBON_STYLE_ID,
   LEGACY_CYBERPUNK_STYLE_ID,
   normalizeNexusStyleIntentV1,
@@ -123,20 +125,24 @@ const primitiveBadgeStyle = {
 };
 
 const graphCanvasStyle = {
-  background: "var(--nexus-surface-workspace, #020617)",
+  background:
+    "var(--nexus-graph-background-color, var(--nexus-surface-workspace, #020617))",
   borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
 };
 
 const graphNodeStyle = {
-  background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
-  borderColor: "var(--nexus-accent-primary, #67e8f9)",
-  boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
-  color: "var(--nexus-text-primary, #f8fafc)",
+  background:
+    "var(--nexus-graph-node-agent-surface, var(--nexus-surface-panel, rgb(8 16 22 / 0.78)))",
+  borderColor:
+    "var(--nexus-graph-node-agent-border, var(--nexus-accent-primary, #67e8f9))",
+  boxShadow:
+    "var(--nexus-graph-node-runtime-shadow, var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38)))",
+  color: "var(--nexus-graph-node-agent-text, var(--nexus-text-primary, #f8fafc))",
 };
 
 const graphEdgeStyle = {
   background:
-    "linear-gradient(90deg, var(--nexus-accent-primary, #67e8f9), var(--nexus-status-success, #6ee7b7))",
+    "linear-gradient(90deg, var(--nexus-graph-edge-default-stroke, #67e8f9), var(--nexus-graph-edge-selected-stroke, #6ee7b7))",
   transform: "rotate(14deg)",
 };
 
@@ -352,6 +358,20 @@ export function NexusStyleLab() {
       name,
     }));
   }, [baselineCompiled, compiled]);
+  const graphAdapterVariableStyle = useMemo<CSSProperties>(
+    () =>
+      emitReactFlowAdapterCssVariablesV1(
+        createReactFlowStyleAdapterFromManifestV1(manifest),
+      ) as CSSProperties,
+    [manifest],
+  );
+  const graphSpecimenCanvasStyle = useMemo<CSSProperties>(
+    () => ({
+      ...graphAdapterVariableStyle,
+      ...graphCanvasStyle,
+    }),
+    [graphAdapterVariableStyle],
+  );
   const latestDraftRejected = importResult ? !importResult.accepted : false;
   const latestBriefRejected = briefResult ? !briefResult.draft?.accepted : false;
   const canPreview =
@@ -789,7 +809,7 @@ export function NexusStyleLab() {
 
                 <div
                   className="relative min-h-64 overflow-hidden border"
-                  style={graphCanvasStyle}
+                  style={graphSpecimenCanvasStyle}
                 >
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(148_163_184_/_0.16)_1px,transparent_0)] bg-[length:24px_24px]" />
                   <div
@@ -810,7 +830,7 @@ export function NexusStyleLab() {
                         className="h-full w-3/5"
                         style={{
                           background:
-                            "var(--nexus-accent-primary, #67e8f9)",
+                            "var(--nexus-graph-handle-source-fill, var(--nexus-accent-primary, #67e8f9))",
                         }}
                       />
                     </div>
@@ -829,7 +849,7 @@ export function NexusStyleLab() {
                         className="h-1.5"
                         style={{
                           background:
-                            "var(--nexus-status-success, #6ee7b7)",
+                            "var(--nexus-graph-handle-target-fill, var(--nexus-status-success, #6ee7b7))",
                         }}
                       />
                       <span className="h-1.5 bg-white/15" />

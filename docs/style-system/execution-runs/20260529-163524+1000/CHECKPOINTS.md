@@ -701,3 +701,13 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
 - Verification result: PASS. Controller previews one active patch at a time, reverts the prior active session before applying a new patch, blocks mismatched reverts, returns cloned active-session snapshots, and has no provider, real DOM, store, sync, backend, or Supabase dependency.
 - Rollback note: revert only `src/lib/style-engine/runtime-controller.ts`, `src/lib/style-engine/runtime-controller.test.ts`, the index export, and this run-doc checkpoint update if this controller unit must be removed.
+
+## CP-048 - Runtime Controller Local Commit Completed
+
+- Unit: commit runtime preview controller locally.
+- Allowed files: git metadata plus `docs/style-system/execution-runs/20260529-163524+1000/**` for this record.
+- Forbidden files: `exports/**`, real DOM entrypoints, CSS files, theme provider files, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `git add src/lib/style-engine docs/style-system/execution-runs/20260529-163524+1000`; `git diff --cached --check`; `git diff --cached --name-only`; `git commit -m "feat: add style runtime controller"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -14`.
+- Commit created: `d8d94ca0f80102019c92b0a2710c97304de7f78b`.
+- Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
+- Rollback note: revert the runtime controller commit only if the helper must be removed; do not touch unrelated history.

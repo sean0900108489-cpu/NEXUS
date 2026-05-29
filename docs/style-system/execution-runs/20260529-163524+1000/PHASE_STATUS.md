@@ -59,7 +59,8 @@ Run id: `20260529-163524+1000`
 | Pure Implementation Phase Gate | PASS | `npm run check` passed; side-effect scan and git status remained clean. |
 | Phase Gate Record Commit | PASS | Commit `f0d9fa5751696cbd044f2b50a02202c045d6ef3e` created; post-commit status was clean. |
 | Runtime Preview Controller V1 | PASS | Added local injected-target preview controller and tests; no provider, real DOM, store, sync, backend, or Supabase dependency. |
-| Runtime Controller Local Checkpoint Commit | IN_PROGRESS | Staging and committing runtime controller helper locally only. |
+| Runtime Controller Local Checkpoint Commit | PASS | Commit `d8d94ca0f80102019c92b0a2710c97304de7f78b` created; post-commit status was clean. |
+| Next Gate Decision | IN_PROGRESS | Choosing whether to stay local-only or open a React/provider gate; store/sync/backend remain closed. |
 
 ## Current Gate
 

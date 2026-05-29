@@ -131,14 +131,15 @@ Run id: `20260529-163524+1000`
 - Implemented the local runtime preview controller in `src/lib/style-engine/**`.
 - Added focused Vitest coverage for preview session cloning, prior-session cleanup, mismatch handling, and clear-all behavior.
 - Verified the controller unit with `git diff --check`, focused Vitest, full style-engine Vitest set, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
+- Created local checkpoint commit `d8d94ca0f80102019c92b0a2710c97304de7f78b` for the runtime preview controller.
 
 ## In Progress
 
-- Local checkpoint commit for runtime preview controller V1.
+- Preparing next gate decision after local-only V5 helpers.
 
 ## Next
 
-1. Stage run docs and `src/lib/style-engine/**`.
-2. Verify staged diff.
-3. Create a local checkpoint commit if checks pass.
-4. Run a focused gate before deciding whether to open a UI/provider integration gate.
+1. Commit this run-status record update.
+2. Re-confirm branch/status/HEAD.
+3. Decide whether the next step stays local-only or opens a React/provider gate.
+4. If opening React/provider gate, keep store/sync/backend/Supabase and `exports/**` closed.

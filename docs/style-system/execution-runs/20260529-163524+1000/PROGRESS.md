@@ -528,32 +528,36 @@ Run id: `20260529-163524+1000`
 - Added a pure manifest-token-to-React-Flow-visual-adapter mapper and focused coverage for legacy Cyberpunk and High Contrast Carbon values.
 - Kept the mapper disconnected from compiler/UI/runtime; no React Flow import, graph behavior wiring, production graph file, Style Lab UI, runtime provider, store, sync, backend, Supabase, CSS/global style, deploy config, or `exports/**` path was touched.
 - Verified CP-122 with focused adapter/preset/compiler tests, typecheck, isolated style-engine lint, side-effect scans, and diff checks.
+- Created local checkpoint commit `c971e1de2e46ddf3127a58a7eed1055596a57b6e` for the Pure React Flow Adapter Manifest Mapping V1 unit.
+- Started `CP-123 - Post React Flow Adapter Mapping Phase Gate` with source edits closed.
+- Ran `CP-123 - Post React Flow Adapter Mapping Phase Gate`.
+- Confirmed full `npm run check` passed: lint, typecheck, 40 Vitest files / 289 tests, and build.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched the pure React Flow adapter type/forbidden-key constants/mapper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import, compiler wiring, graph behavior wiring, runtime provider change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-122 - Pure React Flow Adapter Manifest Mapping V1`.
-- Latest local checkpoint commit: pending CP-122 local commit; previous clean checkpoint commit is `d60430903d574c2660cef2ef486b97b9cefd1940`.
+- Latest completed checkpoint: `CP-123 - Post React Flow Adapter Mapping Phase Gate`.
+- Latest local checkpoint commit: pending CP-123 local commit; previous clean checkpoint commit is `c971e1de2e46ddf3127a58a7eed1055596a57b6e`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status before CP-122 commit prep: dirty only in CP-122 allowed files.
-- Current stop reason: not stopped; CP-122 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status before CP-123 commit prep: dirty only in CP-123 allowed files.
+- Current stop reason: not stopped; CP-123 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-122 - Local checkpoint commit prep`.
+- `CP-123 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/react-flow-adapter.ts`
-  - `src/lib/style-engine/react-flow-adapter.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: compiler wiring, preset factories, production graph/app shell files, Style Lab UI, runtime provider internals, `src/components/nexus/**`, CSS/global styles, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source edits during the gate, compiler wiring, production graph/app shell files, Style Lab UI, runtime provider internals, `src/components/nexus/**`, CSS/global styles, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the adapter mapper/test edits and this unit's run-doc edits.
+- Rollback: revert only this CP-123 run-doc update if the phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-122 checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-123 docs-only phase-gate record if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

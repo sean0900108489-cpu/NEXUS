@@ -732,6 +732,8 @@ Each checkpoint records:
 
 ## CP-049 - React Runtime Provider Gate V1
 
+- Numbering note: this heading duplicates `CP-049` after the earlier runtime-provider draft checkpoint. The duplicate is historical run-doc bookkeeping, not an additional source drift or repeated implementation unit.
+
 - Unit: add a minimal client runtime provider and wrap the app page without touching `nexus-ops.tsx`.
 - Allowed files:
   - `src/app/page.tsx`
@@ -805,3 +807,19 @@ Each checkpoint records:
 - Commands run: `npm run check`; targeted side-effect/import scan for store/Supabase/sync/backend imports and protected behavior strings across `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git status --porcelain=v1 -b`; `git diff --check`.
 - Verification result: PASS. Full repo lint, typecheck, Vitest suite, and `next build` passed. Build included static `/style-lab` and reported the existing edge-runtime static-generation warning only. Side-effect scan returned no matches and post-gate git status was clean.
 - Rollback note: no source rollback needed for the gate itself. If later UI gate assumptions fail, revert only the relevant provider or Style Lab route commits.
+
+## CP-055 - Run Docs Current-State Reconciliation
+
+- Unit: reconcile current run-doc state after the state assessment scan.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, deploy/config files, store/sync/backend files, `src/components/nexus/nexus-ops.tsx`, React Flow behavior files, remote push, branch merge, and database mutation.
+- Commands run: `sed`/`tail` read-only scans of run docs; `git status --short`; `apply_patch`; `git diff --check`; targeted `rg` scan for stale post-UI recording text; targeted `rg` scan for CP-055 and duplicate CP-049 note.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+- Verification result: PASS. `git diff --check` returned no issues; stale post-UI recording text scan returned no matches; CP-055 and duplicate CP-049 note are present; only the three allowed run-doc files are dirty.
+- Rollback note: revert only this run-doc reconciliation diff if this checkpoint must be removed.

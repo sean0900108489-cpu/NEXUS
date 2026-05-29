@@ -70,6 +70,7 @@ Run id: `20260529-163524+1000`
 | Branch Realignment After Context Drift | PASS | Detected clean `main`, verified iteration branch, and switched back to `codex/v17-large-iteration` without local changes lost. |
 | Style Lab Record Commit | PASS | Commit `4d8b0df8e7b97e5876bded500a16558163421029` created; post-commit status was clean. |
 | Post-UI Phase Gate | PASS | `npm run check` passed after provider and Style Lab route; side-effect scan and git status remained clean. |
+| Run Docs Current-State Reconciliation | PASS | Current-state docs now align with committed CP-054/CP-055; duplicate CP-049 is explicitly noted; no source/runtime files touched. |
 
 ## Current Gate
 
@@ -82,4 +83,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Continue pure Style Engine implementation inside `src/lib/style-engine/**` only. Runtime DOM, CSS, component, graph, sync, backend, database, deploy, and `exports/**` changes remain blocked until an explicit implementation gate is clean.
+Current implementation is held while run-doc state is reconciled with committed `CP-054`. The next code or UI unit must declare allowed files, forbidden files, verification, and rollback before editing. Workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, `src/components/nexus/nexus-ops.tsx`, and React Flow behavior remain closed.

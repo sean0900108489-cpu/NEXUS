@@ -146,14 +146,25 @@ Run id: `20260529-163524+1000`
 - Created local record commit `4d8b0df8e7b97e5876bded500a16558163421029` for the Style Lab checkpoint and branch realignment.
 - Ran the post-UI phase gate with `npm run check`.
 - Confirmed full lint, typecheck, Vitest suite, and `next build` passed; static `/style-lab` was included; side-effect/import scan remained clean and git status remained clean.
+- Reconciled run-doc current state after the user-requested assessment scan.
+- Marked `CP-054 - Post-UI Phase Gate` as the latest completed implementation checkpoint.
+- Added an explicit numbering note for the historical duplicate `CP-049` heading.
+- Verified stale post-UI recording text was removed and the run-doc diff passed lightweight documentation checks.
+
+## Current Checkpoint
+
+- Latest completed checkpoint: `CP-055 - Run Docs Current-State Reconciliation`.
+- Latest implementation gate commit before this docs-only reconciliation: `14ae17a17208c8ff5ffaa78f958e86ffc0dbb851`.
+- Confirmed current branch during state assessment: `codex/v17-large-iteration`.
+- Confirmed current status during state assessment: clean before this run-doc reconciliation.
+- Current stop reason: normal context/turn checkpoint followed by explicit user-requested state assessment; not an error stop.
 
 ## In Progress
 
-- Recording post-UI phase gate.
+- Selecting the next isolated unit after run-doc reconciliation.
 
 ## Next
 
-1. Commit this phase-gate record update.
-2. Re-confirm branch/status/HEAD.
-3. Select the next isolated unit.
-4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.
+1. Verify this run-doc reconciliation with lightweight documentation checks.
+2. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.
+3. Select the next isolated unit only after the run-doc state is coherent and the allowed/forbidden file range is explicit.

@@ -150,10 +150,14 @@ Run id: `20260529-163524+1000`
 - Marked `CP-054 - Post-UI Phase Gate` as the latest completed implementation checkpoint.
 - Added an explicit numbering note for the historical duplicate `CP-049` heading.
 - Verified stale post-UI recording text was removed and the run-doc diff passed lightweight documentation checks.
+- Implemented `CP-056 - Style Import Text Parser V1`.
+- Added pure JSON import text parsing that delegates parsed manifests/packages to existing import normalization.
+- Added focused tests for manifest JSON, export package JSON, invalid JSON redaction, unsafe parsed payload rejection, and empty/oversized text rejection.
+- Verified CP-056 with diff check, focused Vitest, targeted side-effect scan, typecheck, and isolated style-engine lint.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-055 - Run Docs Current-State Reconciliation`.
+- Latest completed checkpoint: `CP-056 - Style Import Text Parser V1`.
 - Latest implementation gate commit before this docs-only reconciliation: `14ae17a17208c8ff5ffaa78f958e86ffc0dbb851`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
 - Confirmed current status during state assessment: clean before this run-doc reconciliation.
@@ -161,10 +165,22 @@ Run id: `20260529-163524+1000`
 
 ## In Progress
 
-- Selecting the next isolated unit after run-doc reconciliation.
+- Preparing the CP-056 local checkpoint commit.
+
+## Current Unit Scope
+
+- Allowed files:
+  - `src/lib/style-engine/import-text.ts`
+  - `src/lib/style-engine/import-text.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: app/component UI files, `src/components/nexus/nexus-ops.tsx`, CSS files, React Flow behavior files, store/sync/backend/Supabase/database files, package files, deploy/config files, remote push, branch merge, and `exports/**`.
+- Verification: `git diff --check`; focused Vitest for import text, exchange, and validator; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan.
+- Rollback: remove only the import text parser/test/export plus this unit's run-doc edits.
 
 ## Next
 
-1. Verify this run-doc reconciliation with lightweight documentation checks.
-2. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.
-3. Select the next isolated unit only after the run-doc state is coherent and the allowed/forbidden file range is explicit.
+1. Commit the CP-056 local checkpoint.
+2. Confirm branch, HEAD, and clean status.
+3. Select the next isolated unit.
+4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -823,3 +823,24 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
 - Verification result: PASS. `git diff --check` returned no issues; stale post-UI recording text scan returned no matches; CP-055 and duplicate CP-049 note are present; only the three allowed run-doc files are dirty.
 - Rollback note: revert only this run-doc reconciliation diff if this checkpoint must be removed.
+
+## CP-056 - Style Import Text Parser V1
+
+- Unit: implement a pure inert-text parser that accepts JSON text and delegates manifest/package safety to import normalization.
+- Allowed files:
+  - `src/lib/style-engine/import-text.ts`
+  - `src/lib/style-engine/import-text.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: app/component UI files, `src/components/nexus/nexus-ops.tsx`, CSS files, React Flow behavior files, store/sync/backend/Supabase/database files, package files, deploy/config files, remote push, branch merge, and `exports/**`.
+- Verification plan: `git diff --check`; `npm run test -- src/lib/style-engine/import-text.test.ts src/lib/style-engine/exchange.test.ts src/lib/style-engine/validator.test.ts`; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/import-text.test.ts src/lib/style-engine/exchange.test.ts src/lib/style-engine/validator.test.ts`; targeted side-effect/import scan for store/sync/backend/Supabase/DOM/React Flow behavior strings; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/import-text.ts`
+  - `src/lib/style-engine/import-text.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 3 files and 14 tests; typecheck passed; isolated style-engine lint passed; `git diff --check` passed; targeted side-effect/import scan returned no matches.
+- Rollback note: remove only `src/lib/style-engine/import-text.ts`, `src/lib/style-engine/import-text.test.ts`, the index export, and this run-doc checkpoint update if this parser unit must be removed.

@@ -2962,3 +2962,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Source scan found Datapad shell style constants using `--nexus-recipe-window-surface`, `border`, `shadow`, `chrome-surface`, `chrome-border`, and `body-surface`. Targeted lint passed; `npm run typecheck` passed; `npm run build` passed with static `/style-lab` and the known edge-runtime warning only; local fetch smoke returned status 200 and confirmed `Datapad Shell Specimen`, `--nexus-recipe-window-surface`, and `--nexus-recipe-window-body-surface` in rendered markup. Targeted side-effect/behavior scans in the Style Lab/app scope had no matches for DOM/storage/fetch/clipboard/download path, `react-rnd`, live React Flow import, production UI import/edit, store/sync/backend/Supabase import or mutation path, deploy path, `exports/**`, or forbidden behavior keys. `git diff --check` passed.
 - Rollback note: revert only the isolated Datapad shell specimen recipe variable substitutions and this CP-183 run-doc checkpoint update if the specimen hookup must be removed.
+
+## CP-184 - Style Lab Prompt Vault Specimen Recipe Variables V1
+
+- Unit: make the isolated Style Lab Prompt Vault specimen consume `--nexus-recipe-modal-*` CSS variables with existing semantic fallbacks, without editing production Prompt Vault code or behavior.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: style-engine pure logic, preview/compiler/governance/exchange files, app routes, CSS/global stylesheets, production components including `PromptVaultManager`, `src/components/nexus/**`, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: source scan for Prompt Vault `--nexus-recipe-modal-*`; targeted Style Lab lint; `npm run typecheck`; `npm run build`; local `/style-lab` text smoke for Prompt Vault specimen recipe variable markup; side-effect/forbidden-surface scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused `rg` source scan; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx`; `npm run typecheck`; `npm run build`; local `/style-lab` fetch smoke; targeted side-effect/forbidden-surface scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Source scan found Prompt Vault style constants using `--nexus-recipe-modal-surface`, `border`, `shadow`, `body-text`, `header-surface`, `title-text`, `backdrop`, `footer-surface`, and `focus-ring`. Targeted lint passed; `npm run typecheck` passed; `npm run build` passed with static `/style-lab` and the known edge-runtime warning only; local fetch smoke returned status 200 and confirmed `Prompt Vault Specimen`, `--nexus-recipe-modal-surface`, and `--nexus-recipe-modal-title-text` in rendered markup. Targeted side-effect/behavior scans in the Style Lab/app scope had no matches for DOM/storage/fetch/clipboard/download path, `react-rnd`, live React Flow import, production UI import/edit, store/sync/backend/Supabase import or mutation path, deploy path, `exports/**`, or forbidden behavior keys. `git diff --check` passed.
+- Rollback note: revert only the isolated Prompt Vault specimen recipe variable substitutions and this CP-184 run-doc checkpoint update if the specimen hookup must be removed.

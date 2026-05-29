@@ -201,31 +201,42 @@ const primitiveCommandPaletteIconStyle = {
 };
 
 const primitivePromptVaultSurfaceStyle = {
-  background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
-  borderColor: "var(--nexus-border-strong, rgb(226 232 240 / 0.18))",
-  boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
-  color: "var(--nexus-text-primary, #f8fafc)",
+  background:
+    "var(--nexus-recipe-modal-surface, var(--nexus-surface-panel, rgb(8 16 22 / 0.78)))",
+  borderColor:
+    "var(--nexus-recipe-modal-border, var(--nexus-border-strong, rgb(226 232 240 / 0.18)))",
+  boxShadow:
+    "var(--nexus-recipe-modal-shadow, var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38)))",
+  color: "var(--nexus-recipe-modal-body-text, var(--nexus-text-primary, #f8fafc))",
 };
 
 const primitivePromptVaultHeaderStyle = {
-  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
-  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
-  color: "var(--nexus-accent-primary, #67e8f9)",
+  background:
+    "var(--nexus-recipe-modal-header-surface, var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62)))",
+  borderColor:
+    "var(--nexus-recipe-modal-border, var(--nexus-border-subtle, rgb(226 232 240 / 0.12)))",
+  color: "var(--nexus-recipe-modal-title-text, var(--nexus-accent-primary, #67e8f9))",
 };
 
 const primitivePromptVaultSidebarStyle = {
-  background: "var(--nexus-surface-workspace, #020617)",
-  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+  background:
+    "var(--nexus-recipe-modal-backdrop, var(--nexus-surface-workspace, #020617))",
+  borderColor:
+    "var(--nexus-recipe-modal-border, var(--nexus-border-subtle, rgb(226 232 240 / 0.12)))",
 };
 
 const primitivePromptVaultRecordStyle = {
-  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
-  borderColor: "var(--nexus-accent-primary, #67e8f9)",
+  background:
+    "var(--nexus-recipe-modal-footer-surface, var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62)))",
+  borderColor:
+    "var(--nexus-recipe-modal-focus-ring, var(--nexus-accent-primary, #67e8f9))",
 };
 
 const primitivePromptVaultContentStyle = {
-  background: "var(--nexus-surface-input, rgb(15 23 42 / 0.72))",
-  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+  background:
+    "var(--nexus-recipe-modal-header-surface, var(--nexus-surface-input, rgb(15 23 42 / 0.72)))",
+  borderColor:
+    "var(--nexus-recipe-modal-border, var(--nexus-border-subtle, rgb(226 232 240 / 0.12)))",
 };
 
 const primitiveWindowSurfaceStyle = {

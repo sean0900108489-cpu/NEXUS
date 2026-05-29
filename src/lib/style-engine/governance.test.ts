@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  compileNexusStyleManifestV1,
   createLegacyCyberpunkStyleManifestV1,
+  createNexusStylePreviewPatchV1,
   getNexusStylePackPermissionsV1,
   reviewNexusStylePackV1,
 } from "@/lib/style-engine";
@@ -52,6 +54,20 @@ describe("NEXUS Style Engine governance review", () => {
       reasonCodes: [],
     });
     expect(review.validation.warningCount).toBe(0);
+  });
+
+  it("keeps preview variable count aligned with the actual preview patch", () => {
+    const manifest = createLegacyCyberpunkStyleManifestV1();
+    const review = reviewNexusStylePackV1(manifest);
+    const compiled = compileNexusStyleManifestV1(manifest);
+
+    if (!compiled.accepted) {
+      throw new Error("Expected preset to compile.");
+    }
+
+    const patch = createNexusStylePreviewPatchV1(compiled.style);
+
+    expect(review.previewVariableCount).toBe(Object.keys(patch.variables).length);
   });
 
   it("rejects unsafe manifests without echoing unsafe values", () => {

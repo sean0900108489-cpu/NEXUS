@@ -2256,3 +2256,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. `git diff --check` passed. Reviewed changed docs for current implementation evidence and preserved safety boundaries: compiler remains pure and local-only, React Flow adapter remains isolated from production graph/global CSS, and Style Lab remains local-only without workspace sync/backend/Supabase/persistence/export-file behavior.
 - Rollback note: revert only these phase-doc reconciliation edits and this run-doc checkpoint update if the reconciliation must be removed.
+
+## CP-143 - Pure Governance Preview Count Consistency Test V1
+
+- Unit: add focused pure test coverage proving governance `previewVariableCount` matches the actual local preview patch variable count.
+- Allowed files:
+  - `src/lib/style-engine/governance.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: source logic edits, Style Lab/UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `git diff --check`; focused Vitest for `governance` and `preview`; `npm run typecheck`; isolated style-engine lint; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/governance.test.ts src/lib/style-engine/preview.test.ts`; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; `git status --porcelain=v1 -b`; `git diff --stat`.
+- Changed files:
+  - `src/lib/style-engine/governance.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 2 files and 8 tests; typecheck passed; isolated style-engine lint passed; `git diff --check` passed. No source logic, UI, runtime provider, production graph, store/sync/backend/Supabase, deploy, package, or `exports/**` file was changed.
+- Rollback note: revert only the governance test edit and this run-doc checkpoint update if the consistency test must be removed.

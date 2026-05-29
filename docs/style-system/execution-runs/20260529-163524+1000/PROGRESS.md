@@ -644,33 +644,36 @@ Run id: `20260529-163524+1000`
 - Reconciled `compiler-v1-contract.md`, `react-flow-adapter-v1.md`, and `style-lab-v1.md` status/evidence with the current local implementation checkpoints.
 - Preserved safety boundaries in those docs: compiler remains pure/local-only, React Flow adapter remains isolated from production graph/global CSS, and Style Lab remains local-only without workspace sync/backend/Supabase/persistence/export-file behavior.
 - Verified CP-142 with docs-only diff checks, status checks, and focused status/evidence review.
+- Created local checkpoint commit `e81681d6e4c58c301b74d7c32a431f3cae9312f1` for the Style System Phase Doc Status Reconciliation V1 unit.
+- Started `CP-143 - Pure Governance Preview Count Consistency Test V1`.
+- Implemented `CP-143 - Pure Governance Preview Count Consistency Test V1`.
+- Added focused pure test coverage proving governance `previewVariableCount` matches the actual local preview patch variable count.
+- Verified CP-143 with focused governance/preview tests, typecheck, isolated style-engine lint, status checks, and diff checks.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-142 - Style System Phase Doc Status Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-142 local commit; previous clean checkpoint commit is `d6b70ec5b5e7f49194a18885cc31e12b16df5f01`.
+- Latest completed checkpoint: `CP-143 - Pure Governance Preview Count Consistency Test V1`.
+- Latest local checkpoint commit: pending CP-143 local commit; previous clean checkpoint commit is `e81681d6e4c58c301b74d7c32a431f3cae9312f1`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-142 verification: dirty only in CP-142 allowed docs.
-- Current stop reason: not stopped; CP-142 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-143 verification: dirty only in CP-143 allowed files.
+- Current stop reason: not stopped; CP-143 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-142 - Local checkpoint commit prep`.
+- `CP-143 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/compiler-v1-contract.md`
-  - `docs/style-system/react-flow-adapter-v1.md`
-  - `docs/style-system/style-lab-v1.md`
+  - `src/lib/style-engine/governance.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test/package/deploy/database edits, Style Lab UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, store/sync/backend/Supabase files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: source logic edits, Style Lab/UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the phase-doc reconciliation edits and this unit's run-doc edits.
+- Rollback: revert only the governance test edit and this unit's run-doc edits.
 
 ## Next
 
-1. Commit the CP-142 docs-only reconciliation record if final diff/status checks remain clean by scope.
+1. Commit the CP-143 test and run-doc checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

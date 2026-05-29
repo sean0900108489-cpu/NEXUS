@@ -158,6 +158,7 @@ Run id: `20260529-163524+1000`
 | Post Preview Variable Count Metadata Phase Gate | PASS | Full check passed after preview variable count metadata; side-effect scan and git diff check passed. |
 | Style Lab Export Preview Variable Count Smoke V1 | PASS | Source-closed local smoke confirmed Style Lab text-only export output includes `previewVariableCount=92`. |
 | Style System Phase Doc Status Reconciliation V1 | PASS | Reconciled compiler, React Flow adapter, and Style Lab phase docs with current implementation evidence and safety boundaries. |
+| Pure Governance Preview Count Consistency Test V1 | PASS | Added focused test proving governance preview variable count matches actual preview patch variable count. |
 
 ## Current Gate
 
@@ -170,4 +171,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Style System Phase Doc Status Reconciliation V1 local checkpoint prep with source edits closed. Source/test/package/deploy/database files, Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Governance Preview Count Consistency Test V1 local checkpoint prep. Source logic, Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

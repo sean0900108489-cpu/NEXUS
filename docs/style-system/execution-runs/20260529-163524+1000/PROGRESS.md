@@ -124,14 +124,17 @@ Run id: `20260529-163524+1000`
 - Added focused Vitest coverage for previous-value capture, revert behavior, and unrelated variable preservation.
 - Verified the runtime target unit with `git diff --check`, focused Vitest, full style-engine Vitest set, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
 - Created local checkpoint commit `82b6b0e4910e632308235997aedb59360381a32d` for the runtime target helper.
+- Created local record commit `a47a5879c0970a3f652e3fdbd05cf541f84ea759` for the runtime target checkpoint metadata.
+- Ran the pure implementation phase gate with `npm run check`.
+- Confirmed full lint, typecheck, Vitest suite, and `next build` passed; side-effect/import scan remained clean and git status remained clean.
 
 ## In Progress
 
-- Preparing pure implementation phase gate.
+- Recording pure implementation phase gate.
 
 ## Next
 
-1. Commit this run-status record update.
+1. Commit this phase-gate record update.
 2. Re-confirm branch/status/HEAD.
-3. Run a pure-style phase gate before any broader UI/provider integration.
-4. Only open a broader UI/provider gate if the phase gate passes cleanly.
+3. Continue with the next V5 preview-controller unit only if it can stay local-only and avoid provider/store/sync/backend changes.
+4. Keep UI/provider/component integration behind a new explicit gate.

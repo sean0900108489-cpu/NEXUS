@@ -146,6 +146,27 @@ const primitiveModalCalloutStyle = {
   color: "var(--nexus-status-warning, #fcd34d)",
 };
 
+const primitiveWindowSurfaceStyle = {
+  background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
+  borderColor: "var(--nexus-border-strong, rgb(226 232 240 / 0.18))",
+  boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
+  color: "var(--nexus-text-primary, #f8fafc)",
+};
+
+const primitiveWindowChromeStyle = {
+  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
+  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+  color: "var(--nexus-text-secondary, #cbd5e1)",
+};
+
+const primitiveWindowBodyStyle = {
+  background: "var(--nexus-surface-workspace, #020617)",
+};
+
+const primitiveWindowHandleStyle = {
+  background: "var(--nexus-accent-primary, #67e8f9)",
+};
+
 const graphCanvasStyle = {
   background:
     "var(--nexus-graph-background-color, var(--nexus-surface-workspace, #020617))",
@@ -681,6 +702,53 @@ export function NexusStyleLab() {
                         >
                           {item}
                         </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  aria-hidden="true"
+                  className="mt-3 overflow-hidden border"
+                  style={primitiveWindowSurfaceStyle}
+                >
+                  <div
+                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-4 py-3"
+                    style={primitiveWindowChromeStyle}
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                        Window Specimen
+                      </div>
+                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        {manifest.name}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {[0, 1, 2].map((item) => (
+                        <span
+                          key={item}
+                          className="h-2 w-2 rounded-full border border-white/15"
+                          style={primitiveWindowHandleStyle}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid gap-3 p-4" style={primitiveWindowBodyStyle}>
+                    <div className="h-2 w-2/3 bg-white/10">
+                      <div
+                        className="h-full w-1/2"
+                        style={primitiveWindowHandleStyle}
+                      />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {["agent", "tool", "log"].map((item) => (
+                        <span
+                          key={item}
+                          className="truncate border border-white/10 bg-white/[0.04] px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.12em] text-slate-300"
+                        >
+                          {item}
+                        </span>
                       ))}
                     </div>
                   </div>

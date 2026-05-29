@@ -288,6 +288,7 @@ Run id: `20260529-163524+1000`
 | Validator Recipe Adapter Shape Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with recipe and adapter container shape coverage. |
 | Pure Validator Non-Empty Intent Arrays V1 | PASS | Validator now rejects empty intent mood/material arrays and focused coverage confirms it. |
 | Validator Non-Empty Intent Arrays Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with non-empty intent array validation. |
+| Post Validator Container Intent Phase Gate | PASS | Full check passed after root/container coverage and non-empty intent array fix/docs; side-effect scan and git diff check passed. |
 
 ## Current Gate
 
@@ -300,4 +301,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Validator Non-Empty Intent Arrays Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside the listed validator doc and run folder, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post Validator Container Intent Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

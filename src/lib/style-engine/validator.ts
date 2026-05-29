@@ -7,6 +7,7 @@ import {
   type NexusStyleValidationIssueV1,
   type NexusStyleValidationReportV1,
 } from "./manifest";
+import { evaluateNexusStyleTextContrast } from "./accessibility";
 
 type MutableReport = {
   manifestId?: string;
@@ -141,6 +142,7 @@ export function validateNexusStyleManifestV1(
   validateIntent(candidate.intent, report);
   validateConstraints(candidate.constraints, report);
   validateTokens(candidate.tokens, report);
+  validateAccessibility(candidate.tokens, report);
   validateRecipes(candidate.recipes, report);
   validateAdapters(candidate.adapters, report);
   scanUnsafeStrings(candidate, "$", report);
@@ -347,6 +349,30 @@ function validateTokens(value: unknown, report: MutableReport) {
         );
       }
     }
+  }
+}
+
+function validateAccessibility(value: unknown, report: MutableReport) {
+  if (!isRecord(value) || !isRecord(value.text) || !isRecord(value.surface)) {
+    return;
+  }
+
+  const primaryText = value.text.primary;
+  const appSurface = value.surface.app;
+
+  if (typeof primaryText !== "string" || typeof appSurface !== "string") {
+    return;
+  }
+
+  const contrast = evaluateNexusStyleTextContrast(primaryText, appSurface);
+
+  if (contrast && !contrast.passes) {
+    addError(
+      report,
+      "$.tokens.text.primary",
+      "style.accessibility.primaryTextContrast",
+      "Primary text contrast against app surface is below the required ratio.",
+    );
   }
 }
 

@@ -38,7 +38,9 @@ Run id: `20260529-163524+1000`
 | Legacy Preset Record Update | PASS | Commit `62a01218cd92f5061ebbf63d1b7820f1704b59c8` created; post-commit status was clean. |
 | Pure Preview Patch V1 | PASS | Added reversible record-based preview helper and focused tests; Vitest, typecheck, lint, side-effect scan, and diff checks passed. |
 | Preview Patch Local Checkpoint Commit | PASS | Commit `ad16707c82cc173ec7d7060e0124e923ecfc4383` created; post-commit status was clean. |
-| Preview Patch Record Update | IN_PROGRESS | Recording pure preview patch checkpoint metadata. |
+| Preview Patch Record Update | PASS | Commit `628efb43822584e5362b5045694e4ad5ede2774d` created; post-commit status was clean. |
+| Pure Accessibility Contrast V1 | PASS | Added contrast helper, validator gate, and focused tests; Vitest, typecheck, lint, side-effect scan, and diff checks passed. |
+| Accessibility Local Checkpoint Commit | IN_PROGRESS | Staging and committing accessibility unit locally only. |
 
 ## Current Gate
 

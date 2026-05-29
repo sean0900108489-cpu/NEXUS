@@ -146,6 +146,7 @@ Run id: `20260529-163524+1000`
 | Style Lab Graph Adapter Preset Switch Smoke V1 | PASS | Source-closed CDP smoke confirmed graph adapter variables update after High Contrast preset switch. |
 | Pure Compiler React Flow Adapter Output V1 | PASS | Compiler now emits deterministic pure React Flow visual adapter output and reports React Flow adapter coverage complete; focused checks, build, side-effect scan, and git diff check passed. |
 | Post Compiler React Flow Adapter Output Phase Gate | PASS | Full check passed after compiler adapter output; side-effect scan and git diff check passed. |
+| Style Lab Adapter Coverage Complete Smoke V1 | PASS | Source-closed local smoke confirmed the isolated Style Lab Adapter governance row renders `reactFlow:complete`. |
 
 ## Current Gate
 
@@ -158,4 +159,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Compiler React Flow Adapter Output Phase Gate local checkpoint prep with source edits closed. Style Lab/UI files, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Style Lab Adapter Coverage Complete Smoke V1 local checkpoint prep with source edits closed. Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

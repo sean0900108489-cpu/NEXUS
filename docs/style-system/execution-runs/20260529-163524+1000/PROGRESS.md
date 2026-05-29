@@ -1038,30 +1038,36 @@ Run id: `20260529-163524+1000`
 - Ran full `npm run check`; lint, typecheck, 41 Vitest files / 305 tests, and build passed.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries/assertions, and the window/modal recipe adapter forbidden behavior key registry/assertions; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `c33d08a6f284af22e5b88ee6bb8e3eb1597131a1` for the Post Validator Focus Warning Phase Gate.
+- Started `CP-212 - Pure Validator Recipe Completeness Warning V1`.
+- Added pure validator warnings for missing recommended visual recipe slots across primitive, window/modal, command palette, and dock recipe groups.
+- Verified CP-212 with focused validator/compiler Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-211 - Post Validator Focus Warning Phase Gate`.
-- Latest local checkpoint commit: pending CP-211 local commit; previous clean checkpoint commit is `ef1f73d09aa01d1e8d625148f59b88214018a9fd`.
+- Latest completed checkpoint: `CP-212 - Pure Validator Recipe Completeness Warning V1`.
+- Latest local checkpoint commit: pending CP-212 local commit; previous clean checkpoint commit is `c33d08a6f284af22e5b88ee6bb8e3eb1597131a1`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-211 verification: clean before run-doc bookkeeping; dirty only in CP-211 run-doc files after bookkeeping.
-- Current stop reason: not stopped; CP-211 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-212 verification: dirty only in CP-212 allowed validator/test/run-doc files.
+- Current stop reason: not stopped; CP-212 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-211 - Local checkpoint commit prep`.
+- `CP-212 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test/docs outside this run folder, UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: compiler/governance/exchange/runtime/UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-211 run-doc bookkeeping if this gate record must be removed.
+- Rollback: revert only the CP-212 validator/test/run-doc changes if recommended recipe-slot warnings must be removed.
 
 ## Next
 
-1. Commit the CP-211 phase-gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-212 validator checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

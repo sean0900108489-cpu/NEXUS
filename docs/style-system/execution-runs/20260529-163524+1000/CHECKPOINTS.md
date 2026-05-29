@@ -3461,3 +3461,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 305 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries/assertions, and the window/modal recipe adapter forbidden behavior key registry/assertions; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-211 run-doc update if the phase gate bookkeeping must be removed. If future verification exposes an actual source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-212 - Pure Validator Recipe Completeness Warning V1
+
+- Unit: add pure validator warnings when recommended visual recipe slots are missing.
+- Allowed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused validator/compiler Vitest; targeted lint for validator files; `npm run typecheck`; targeted side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `npm run test -- --testTimeout 20000 src/lib/style-engine/validator.test.ts src/lib/style-engine/compiler.test.ts`; `npm run lint -- src/lib/style-engine/validator.ts src/lib/style-engine/validator.test.ts`; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused validator/compiler Vitest passed 2 files / 17 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only existing validator safety detector strings and test-only unsafe payload strings for Supabase/deploy/themeConfig. Behavior scan found only the existing validator `zIndex` forbidden-key registry and React Flow behavior test fixture/assertion strings. `git diff --check` passed.
+- Rollback note: revert only the CP-212 validator/test/run-doc changes if recommended recipe-slot warnings must be removed.

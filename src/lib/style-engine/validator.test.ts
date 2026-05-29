@@ -96,6 +96,20 @@ describe("NEXUS Style Engine manifest validator", () => {
     });
   });
 
+  it("warns without rejecting when a recommended recipe slot is missing", () => {
+    const manifest = createSafeManifest();
+    delete manifest.recipes.panel.text;
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(true);
+    expect(report.warnings).toContainEqual({
+      code: "style.incompleteRecipe",
+      message: "Recommended visual recipe slot is missing.",
+      path: "$.recipes.panel.text",
+    });
+  });
+
   it("rejects recipe references to unknown semantic tokens", () => {
     const manifest = createSafeManifest({
       recipes: {
@@ -234,7 +248,13 @@ function createSafeManifest(
       },
     },
     recipes: {
-      badge: {},
+      badge: {
+        default: {
+          border: "border.subtle",
+          surface: "surface.panel",
+          text: "text.secondary",
+        },
+      },
       button: {
         default: {
           border: "border.subtle",
@@ -245,20 +265,42 @@ function createSafeManifest(
           ring: "border.subtle",
         },
       },
-      commandPalette: {},
-      dock: {},
+      commandPalette: {
+        input: "surface.panel",
+        itemActive: "accent.primary",
+        itemDefault: "surface.panel",
+        itemHover: "surface.panel",
+        surface: "surface.panel",
+      },
+      dock: {
+        border: "border.subtle",
+        surface: "surface.panel",
+      },
       input: {
+        default: {
+          border: "border.subtle",
+          surface: "surface.panel",
+          text: "text.primary",
+        },
         focus: {
           border: "border.subtle",
         },
       },
-      modal: {},
+      modal: {
+        border: "border.subtle",
+        surface: "surface.panel",
+        text: "text.primary",
+      },
       panel: {
         border: "border.subtle",
         surface: "surface.panel",
         text: "text.primary",
       },
-      window: {},
+      window: {
+        border: "border.subtle",
+        surface: "surface.panel",
+        text: "text.primary",
+      },
     },
     adapters: {
       nextThemes: {

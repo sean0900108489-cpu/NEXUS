@@ -124,6 +124,34 @@ const reactFlowForbiddenKeyParts = [
 
 const focusCapableRecipeGroups = ["button", "input"] as const;
 
+const recommendedRecipeSlots = [
+  ["panel", "surface"],
+  ["panel", "text"],
+  ["panel", "border"],
+  ["button", "default", "surface"],
+  ["button", "default", "text"],
+  ["button", "default", "border"],
+  ["input", "default", "surface"],
+  ["input", "default", "text"],
+  ["input", "default", "border"],
+  ["badge", "default", "surface"],
+  ["badge", "default", "text"],
+  ["badge", "default", "border"],
+  ["window", "surface"],
+  ["window", "text"],
+  ["window", "border"],
+  ["modal", "surface"],
+  ["modal", "text"],
+  ["modal", "border"],
+  ["commandPalette", "surface"],
+  ["commandPalette", "input"],
+  ["commandPalette", "itemDefault"],
+  ["commandPalette", "itemHover"],
+  ["commandPalette", "itemActive"],
+  ["dock", "surface"],
+  ["dock", "border"],
+] as const;
+
 export function validateNexusStyleManifestV1(
   candidate: unknown,
 ): NexusStyleValidationReportV1 {
@@ -396,6 +424,7 @@ function validateRecipes(value: unknown, report: MutableReport) {
 
   scanRecipeKeys(value, "$.recipes", report);
   validateFocusRecipeCompleteness(value, report);
+  validateRecommendedRecipeSlots(value, report);
 }
 
 function validateRecipeTokenReferences(
@@ -551,6 +580,38 @@ function validateFocusRecipeCompleteness(
       "Focus-capable recipes should define a visual focus state.",
     );
   }
+}
+
+function validateRecommendedRecipeSlots(
+  value: Record<string, unknown>,
+  report: MutableReport,
+) {
+  for (const slot of recommendedRecipeSlots) {
+    if (getRecipeSlotValue(value, slot) !== undefined) {
+      continue;
+    }
+
+    addWarning(
+      report,
+      `$.recipes.${slot.join(".")}`,
+      "style.incompleteRecipe",
+      "Recommended visual recipe slot is missing.",
+    );
+  }
+}
+
+function getRecipeSlotValue(value: unknown, path: readonly string[]) {
+  let current = value;
+
+  for (const key of path) {
+    if (!isRecord(current) || !(key in current)) {
+      return undefined;
+    }
+
+    current = current[key];
+  }
+
+  return typeof current === "string" ? current : undefined;
 }
 
 function scanUnsafeStrings(value: unknown, path: string, report: MutableReport) {

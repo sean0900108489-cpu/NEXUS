@@ -1226,31 +1226,34 @@ Run id: `20260529-163524+1000`
 - Started `CP-257 - Pure Validator Source Metadata Coverage V1`.
 - Added focused validator coverage for invalid `source.kind` and non-text `source.reference` without echoing nested reference payloads.
 - Verified CP-257 with focused validator Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
+- Created local checkpoint commit `1e94d0cb8c12260ebc26720d91aa56d4b09af1f7` for the Pure Validator Source Metadata Coverage V1 unit.
+- Started `CP-258 - Validator Source Metadata Doc Reconciliation V1`.
+- Reconciled manifest validator rules with CP-257 source metadata shape coverage.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-257 - Pure Validator Source Metadata Coverage V1`.
-- Latest recorded checkpoint commit: `197ea6c4a899a16b7f11d11d5132d19ea66ef261` for `CP-256 - Post Top-Level Validator Coverage Phase Gate`; CP-257 is being prepared for local commit.
+- Latest completed checkpoint: `CP-258 - Validator Source Metadata Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `1e94d0cb8c12260ebc26720d91aa56d4b09af1f7` for `CP-257 - Pure Validator Source Metadata Coverage V1`; CP-258 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-257 verification: dirty only in CP-257 allowed files.
-- Current stop reason: not stopped; CP-257 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-258 verification prep: dirty only in CP-258 allowed docs files.
+- Current stop reason: not stopped; CP-258 doc reconciliation is underway.
 
 ## In Progress
 
-- `CP-257 - Local checkpoint commit prep`.
+- `CP-258 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-257 validator test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, docs outside the listed style-system doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-258 doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-257 validator coverage checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-258 doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

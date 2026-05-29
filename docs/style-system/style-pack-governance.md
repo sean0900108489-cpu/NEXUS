@@ -6,15 +6,14 @@ Status: partially implemented pure governance/exchange contract. Persistence sch
 
 ## Implementation Evidence
 
-- `src/lib/style-engine/governance.ts` implements pure local review states, compatibility, permissions, redacted checksums, adapter coverage metadata, and preview variable count metadata for validated or warning style packs.
-- `src/lib/style-engine/exchange.ts` implements pure text-safe export/import package normalization and redacted exchange review output.
-- `src/lib/style-engine/governance.test.ts` and `src/lib/style-engine/exchange.test.ts` cover warning/validated/rejected states, conservative permissions, checksum shapes, `adapterCoverage.reactFlow = complete`, `adapterCoverage.windowModal = complete`, preview variable counts, and unsafe value redaction.
+- `src/lib/style-engine/governance.ts` implements pure local review states, compatibility, permissions, validator/compiler/governance version metadata, redacted checksums, adapter coverage metadata, and preview variable count metadata for validated or warning style packs.
+- `src/lib/style-engine/exchange.ts` implements pure text-safe export/import package normalization and redacted exchange review output, including validator version metadata while excluding the internal governance version.
+- `src/lib/style-engine/governance.test.ts` and `src/lib/style-engine/exchange.test.ts` cover warning/validated/rejected states, conservative permissions, checksum shapes, validator version metadata, `adapterCoverage.reactFlow = complete`, `adapterCoverage.windowModal = complete`, preview variable counts, and unsafe value redaction.
 - Governance remains local-only and pure. It does not create schema, write persistence, mutate `workspace.themeConfig`, touch sync queues, call backend routes, use Supabase/database, deploy, publish, or touch `exports/**`.
 
 Known remaining gaps:
 
 - Saved pack lifecycle storage, upgrade/downgrade migrations, marketplace review, and production apply policy are not implemented.
-- Governance does not yet expose a durable validator version field separate from compiler/governance versions.
 
 ## 0. Purpose
 

@@ -3378,3 +3378,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused governance/exchange/validator Vitest passed 3 files / 16 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only existing validator safety detector strings for Supabase/deploy/themeConfig; behavior scan found only the existing validator `zIndex` forbidden-key registry. `git diff --check` passed.
 - Rollback note: revert only the CP-206 pure metadata/test/run-doc changes if validator version metadata must be removed.
+
+## CP-207 - Governance Validator Version Doc Reconciliation V1
+
+- Unit: reconcile the style pack governance doc with CP-206 validator version metadata.
+- Allowed files:
+  - `docs/style-system/style-pack-governance.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits, UI/TSX/app route/CSS files, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence scan for validator version metadata in source/tests/docs; stale gap scan for old no-validator-version wording; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused validator-version evidence scan; stale gap scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-pack-governance.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found validator version metadata in governance source, exchange source, focused tests, validator constant, and governance docs. Stale gap scan returned no matches for old no-validator-version wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
+- Rollback note: revert only the CP-207 docs/run-doc reconciliation if this wording must be removed.

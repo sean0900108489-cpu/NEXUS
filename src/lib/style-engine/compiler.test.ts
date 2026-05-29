@@ -57,6 +57,22 @@ describe("NEXUS Style Engine pure compiler", () => {
     });
   });
 
+  it("reports the exact emitted CSS variable total", () => {
+    const result = compileNexusStyleManifestV1(createSafeManifest());
+
+    expect(result.accepted).toBe(true);
+
+    if (!result.accepted) {
+      throw new Error("Expected compiler to accept manifest.");
+    }
+
+    const emittedVariableCount =
+      Object.keys(result.style.cssVariables).length +
+      Object.keys(result.style.legacyCssVariables).length;
+
+    expect(result.style.report.emittedVariableCount).toBe(emittedVariableCount);
+  });
+
   it("compiles recipe token references to CSS variable references", () => {
     const result = compileNexusStyleManifestV1(createSafeManifest());
 

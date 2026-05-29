@@ -247,31 +247,36 @@ Run id: `20260529-163524+1000`
 - Added a local-only brief input panel inside isolated Style Lab using the pure V12 intent normalizer and manifest draft helper.
 - Kept brief drafting in-memory only; no AI call, save/apply/persist path, store/sync/backend/Supabase file, app shell file, CSS/global style, React Flow behavior, deploy config, or `exports/**` path was touched.
 - Verified CP-075 with diff check, focused intent tests, typecheck, targeted lint, build, side-effect scans, in-app Browser load smoke, and headless Chrome CDP interaction smoke for brief text entry, draft generation, Preview, and Revert.
+- Created local checkpoint commit `cc52cafb8443844911ecae6936df2dbb72ec7f78` for the Style Lab Brief Draft Panel V1 unit.
+- Started `CP-076 - Post Brief Draft UI Phase Gate` with source edits closed.
+- Ran `CP-076 - Post Brief Draft UI Phase Gate`.
+- Confirmed full `npm run check` passed: lint, typecheck, 39 Vitest files / 284 tests, and build.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live AI call, store/sync/backend/Supabase import or mutation path, React Flow behavior path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-075 - Style Lab Brief Draft Panel V1`.
-- Latest local checkpoint commit: pending CP-075 local commit; previous clean checkpoint commit is `e567c0c38d1f43d6fd832803a43a7e6cd140fc4e`.
+- Latest completed checkpoint: `CP-076 - Post Brief Draft UI Phase Gate`.
+- Latest local checkpoint commit: pending CP-076 local commit; previous clean checkpoint commit is `cc52cafb8443844911ecae6936df2dbb72ec7f78`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status before CP-075 commit prep: dirty only in CP-075 allowed files.
-- Current stop reason: not stopped; CP-075 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status before CP-076 commit prep: dirty only in CP-076 allowed run-doc files.
+- Current stop reason: not stopped; CP-076 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-075 - Local checkpoint commit prep`.
+- `CP-076 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, remote push, branch merge, and `exports/**`.
-- Verification: `git diff --check`; focused intent-normalizer/intent-manifest tests; `npm run typecheck`; targeted lint for the Style Lab component and style-engine; `npm run build`; targeted side-effect scan; Browser smoke on `/style-lab`.
-- Rollback: revert only `src/components/style-engine/nexus-style-lab.tsx` and this unit's run-doc edits.
+- Forbidden files: all source edits during the gate, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Rollback: revert only the CP-076 run-doc updates. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
 
 ## Next
 
-1. Commit the CP-075 local checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-076 local checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
-3. Select the next lowest-risk isolated unit, likely a post-brief UI phase gate before any new implementation.
+3. Select the next lowest-risk isolated unit from the V12/UI-local path.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

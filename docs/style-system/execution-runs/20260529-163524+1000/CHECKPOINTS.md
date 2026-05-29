@@ -1163,3 +1163,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused Vitest passed 2 files and 10 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only. Side-effect scans found only validator/normalizer detector strings and test-only cleanup helpers, with no live AI call, DOM/storage/fetch mutation path, store/sync/backend/Supabase import or mutation path, React Flow behavior path, deploy path, or `exports/**` path. In-app Browser confirmed Brief Input and Draft Manifest render with zero severe logs. Chrome Computer Use was abandoned after Chrome focused a user-owned external tab; no local Style Lab interaction was performed there. Headless Chrome CDP then verified real text entry into the brief textarea, `Draft Manifest` enabling, `intent-draft-*` loading, high-contrast token output, Preview, Revert, and zero severe browser log events. Two earlier smoke-script failures were recoverable verification harness issues: one CDP navigation context reset and one DOM setter injection that did not update React controlled textarea state.
 - Rollback note: revert only `src/components/style-engine/nexus-style-lab.tsx` and this run-doc checkpoint update if the brief draft panel unit must be removed.
+
+## CP-076 - Post Brief Draft UI Phase Gate
+
+- Unit: run broader local verification after the Style Lab brief draft panel before selecting another implementation unit.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source edits during the gate, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; source-only side-effect/import scan excluding tests; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Full `npm run check` passed lint, typecheck, 39 Vitest files / 284 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only validator/normalizer detector strings and test-only guard cases; source-only matches were limited to inert type literals, forbidden-string detector patterns, and validator scanner function names. No live AI call, store/sync/backend/Supabase import or mutation path, React Flow behavior path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed.
+- Rollback note: revert only this CP-076 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.

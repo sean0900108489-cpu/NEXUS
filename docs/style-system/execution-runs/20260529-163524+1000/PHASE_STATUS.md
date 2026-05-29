@@ -48,7 +48,7 @@ Run id: `20260529-163524+1000`
 | Checksum Record Update | PASS | This run-doc update records the pure checksum checkpoint metadata before the next unit starts. |
 | Checksum Record Commit | PASS | Commit `5e900375d66398f20d30b7346aaa8ce9b180f94f` created; post-commit status was clean. |
 | Pure Governance Review V1 | PASS | Added pure local lifecycle review, permissions, redacted checksums, and tests; no persistence/apply/external calls. |
-| Governance Local Checkpoint Commit | IN_PROGRESS | Staging and committing governance unit locally only. |
+| Governance Local Checkpoint Commit | PASS | Commit `28468a4a19691edf5b805d00d1662a4b0bb1d4ae` created; post-commit status was clean. |
 
 ## Current Gate
 

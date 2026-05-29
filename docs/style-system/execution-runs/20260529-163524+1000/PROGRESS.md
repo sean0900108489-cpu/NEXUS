@@ -995,31 +995,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-201 - Style Interpreter Boundary Doc Reconciliation V1`.
 - Reconciled `style-interpreter-boundary.md` with the current pure intent normalizer implementation, draft-only output, no-token/no-recipe evidence, no-AI-provider-runtime boundary, and remaining gaps.
 - Verified CP-201 with focused evidence scan, stale marker scan, `git diff --check`, diff stat, and status check.
+- Created local checkpoint commit `e4f67031f21038b86f25b045c197eb76a2030df2` for the Style Interpreter Boundary Doc Reconciliation V1 unit.
+- Started `CP-202 - Manifest Spec Status Reconciliation V1`.
+- Reconciled `manifest-v1-spec.md` with current pure manifest types, presets, validator, compiler, command palette recipe group, unknown recipe token reference guard, and data-only boundary.
+- Verified CP-202 with focused evidence scan, stale marker scan, `git diff --check`, diff stat, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-201 - Style Interpreter Boundary Doc Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-201 local commit; previous clean checkpoint commit is `99a61c5761749f489ca9afad17cae659f6433e56`.
+- Latest completed checkpoint: `CP-202 - Manifest Spec Status Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-202 local commit; previous clean checkpoint commit is `e4f67031f21038b86f25b045c197eb76a2030df2`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-201 verification: dirty only in CP-201 allowed docs and run-doc files.
-- Current stop reason: not stopped; CP-201 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-202 verification: dirty only in CP-202 allowed docs and run-doc files.
+- Current stop reason: not stopped; CP-202 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-201 - Local checkpoint commit prep`.
+- `CP-202 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-interpreter-boundary.md`
+  - `docs/style-system/manifest-v1-spec.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: all source/test edits, UI/TSX/app route/CSS files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-201 docs/run-doc update if the interpreter doc reconciliation must be removed.
+- Rollback: revert only the CP-202 docs/run-doc update if the manifest spec reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-201 docs checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-202 docs checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

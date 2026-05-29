@@ -217,6 +217,7 @@ Run id: `20260529-163524+1000`
 | Post Validator Token Reference Phase Gate | PASS | Decomposed phase gate passed after unrelated 5s backend/workspace timeouts in full `npm run check`; full Vitest with longer timeout, build, side-effect scan, and git diff check passed. |
 | Style Pack Governance Doc Reconciliation V1 | PASS | Reconciled governance doc with current pure governance/exchange implementation and metadata coverage. |
 | Style Interpreter Boundary Doc Reconciliation V1 | PASS | Reconciled interpreter boundary doc with current pure intent normalizer implementation and no-AI-runtime boundary. |
+| Manifest Spec Status Reconciliation V1 | PASS | Reconciled manifest V1 spec with current pure manifest types, presets, validator, and compiler implementation. |
 
 ## Current Gate
 
@@ -229,4 +230,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Style Interpreter Boundary Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Manifest Spec Status Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

@@ -2,7 +2,15 @@
 
 Phase: V3 - Manifest Schema
 Run: `docs/style-system/execution-runs/20260529-163524+1000`
-Status: documentation-only spec. No runtime schema library, validator, compiler, provider, DB, or deploy changes.
+Status: partially implemented pure manifest schema/types and local validation/compiler pipeline. Provider integration, workspace persistence, backend, Supabase/database, deploy, and production component consumption are not implemented.
+
+## Implementation Evidence
+
+- `src/lib/style-engine/manifest.ts` defines `NexusStyleManifestV1`, token groups, required tokens, recipe groups, validation report types, and manifest version constants.
+- `src/lib/style-engine/presets.ts` provides built-in V1 manifests for legacy Cyberpunk and High Contrast Carbon.
+- `src/lib/style-engine/validator.ts` validates candidate shape and safety before compilation, including command palette recipe group presence and unknown recipe semantic token references.
+- `src/lib/style-engine/compiler.ts` accepts only validator-approved manifests and emits deterministic CSS variables, recipes, React Flow adapter output, window/modal recipe adapter output, and report metadata.
+- The manifest remains data-only. It is not consumed directly by components, workspace state, sync queues, backend routes, Supabase/database, deploy config, or `exports/**`.
 
 ## 0. Purpose
 
@@ -46,7 +54,7 @@ manifest candidate before validation.
 
 ## 2. Top-Level Shape
 
-Future TypeScript direction, not implemented in this phase:
+Current TypeScript shape:
 
 ```ts
 type NexusStyleManifestV1 = {
@@ -420,4 +428,5 @@ This spec is acceptable when:
 - It blocks raw CSS, JS, workspace, sync, backend, and dynamic Tailwind instructions.
 - It references the V2 style contract and React Flow adapter boundary.
 - It provides valid and invalid examples.
-- It does not authorize implementation or persistence.
+- It authorizes only pure local schema/types, validation, compiler, preset, and exchange code.
+- It does not authorize component consumption, workspace persistence, backend routes, Supabase/database, deploy, package, or `exports/**` changes.

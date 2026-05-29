@@ -616,31 +616,36 @@ Run id: `20260529-163524+1000`
 - Added a display-only `Preview Vars` row inside the isolated Style Lab governance report.
 - Confirmed the row reads from the local preview patch variable count and does not change preview/apply behavior, runtime provider internals, production graph, store, sync, backend, Supabase, deploy, or `exports/**`.
 - Verified CP-137 with focused tests, typecheck, targeted lint, build, side-effect scans, local HTML smoke, and diff checks.
+- Created local checkpoint commit `e71d6241b322facecc3fb810999664bb2e4cf2fe` for the Style Lab Preview Variable Count Row V1 unit.
+- Started `CP-138 - Post Preview Variable Count Row Phase Gate` with source edits closed.
+- Ran `CP-138 - Post Preview Variable Count Row Phase Gate`.
+- Confirmed full `npm run check` passed: lint, typecheck, 40 Vitest files / 291 tests, and build.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched existing pure preview patch adapter variable emission, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import, graph behavior props, runtime provider logic change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-137 - Style Lab Preview Variable Count Row V1`.
-- Latest local checkpoint commit: pending CP-137 local commit; previous clean checkpoint commit is `cd5606c9ff4187e17bd0f716f0858ab999aba6c9`.
+- Latest completed checkpoint: `CP-138 - Post Preview Variable Count Row Phase Gate`.
+- Latest local checkpoint commit: pending CP-138 local commit; previous clean checkpoint commit is `e71d6241b322facecc3fb810999664bb2e4cf2fe`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-137 verification: dirty only in CP-137 allowed files.
-- Current stop reason: not stopped; CP-137 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-138 verification: dirty only in CP-138 run docs.
+- Current stop reason: not stopped; CP-138 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-137 - Local checkpoint commit prep`.
+- `CP-138 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, pure compiler/preview/governance logic, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source edits during the gate, Style Lab/UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, pure style-engine logic changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the isolated Style Lab display row and this unit's run-doc edits.
+- Rollback: revert only this CP-138 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
 
 ## Next
 
-1. Commit the CP-137 source and run-doc checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-138 docs-only phase-gate record if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

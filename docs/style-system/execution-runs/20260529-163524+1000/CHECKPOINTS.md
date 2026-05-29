@@ -2167,3 +2167,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused Vitest passed 3 files and 11 tests; typecheck passed; targeted lint passed; `npm run build` passed with static `/style-lab` and the known edge-runtime warning only; `git diff --check` passed. Local HTML smoke found `Preview Vars 92`. Side-effect scans found only existing pure preview patch adapter variable emission, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import, graph behavior props, runtime provider logic change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
 - Rollback note: revert only the isolated Style Lab display row and this run-doc checkpoint update if the preview variable count row must be removed.
+
+## CP-138 - Post Preview Variable Count Row Phase Gate
+
+- Unit: run broader local verification after the isolated Style Lab preview variable count row before selecting another implementation unit.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source edits during the gate, Style Lab/UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, pure style-engine logic changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; source-only side-effect/import scan excluding tests; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; source-only side-effect/import scan excluding tests; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Full `npm run check` passed lint, typecheck, 40 Vitest files / 291 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing pure preview patch adapter variable emission, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import, graph behavior props, runtime provider logic change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed.
+- Rollback note: revert only this CP-138 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.

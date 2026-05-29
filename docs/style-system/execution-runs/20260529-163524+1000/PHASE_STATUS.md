@@ -299,6 +299,7 @@ Run id: `20260529-163524+1000`
 | Pure Validator Direct URL Guard V1 | PASS | Added a pure validator guard for direct URL strings without private host echo. |
 | Validator Direct URL Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with direct URL rejection coverage. |
 | Pure Validator File Blob URL Guard V1 | PASS | Added a pure validator guard for file/blob URL strings without payload echo. |
+| Validator File Blob URL Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with file/blob URL rejection coverage. |
 
 ## Current Gate
 
@@ -311,4 +312,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Validator File Blob URL Guard local checkpoint prep. Production window/modal code, production graph/app shell files, docs outside this run folder, compiler/governance/exchange/runtime/UI/TSX/app route/CSS files outside the touched validator files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Validator File Blob URL Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside the manifest validator rules doc and this run folder, compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

@@ -1042,32 +1042,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-212 - Pure Validator Recipe Completeness Warning V1`.
 - Added pure validator warnings for missing recommended visual recipe slots across primitive, window/modal, command palette, and dock recipe groups.
 - Verified CP-212 with focused validator/compiler Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
+- Created local checkpoint commit `ed22f04b8cdf2a189b8338d6957a8c748a9a461b` for the Pure Validator Recipe Completeness Warning V1 unit.
+- Started `CP-213 - Validator Recipe Completeness Doc Reconciliation V1`.
+- Reconciled `manifest-validator-rules.md` with CP-212 recommended recipe slot warnings and removed the stale recipe completeness gap note.
+- Verified CP-213 with focused evidence scan, stale recipe-completeness gap scan, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-212 - Pure Validator Recipe Completeness Warning V1`.
-- Latest local checkpoint commit: pending CP-212 local commit; previous clean checkpoint commit is `c33d08a6f284af22e5b88ee6bb8e3eb1597131a1`.
+- Latest completed checkpoint: `CP-213 - Validator Recipe Completeness Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-213 local commit; previous clean checkpoint commit is `ed22f04b8cdf2a189b8338d6957a8c748a9a461b`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-212 verification: dirty only in CP-212 allowed validator/test/run-doc files.
-- Current stop reason: not stopped; CP-212 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-213 verification: dirty only in CP-213 allowed docs and run-doc files.
+- Current stop reason: not stopped; CP-213 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-212 - Local checkpoint commit prep`.
+- `CP-213 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.ts`
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: compiler/governance/exchange/runtime/UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test edits, UI/TSX/CSS/app route files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-212 validator/test/run-doc changes if recommended recipe-slot warnings must be removed.
+- Rollback: revert only the CP-213 docs/run-doc reconciliation if this wording must be removed.
 
 ## Next
 
-1. Commit the CP-212 validator checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-213 docs checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -3480,3 +3480,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused validator/compiler Vitest passed 2 files / 17 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only existing validator safety detector strings and test-only unsafe payload strings for Supabase/deploy/themeConfig. Behavior scan found only the existing validator `zIndex` forbidden-key registry and React Flow behavior test fixture/assertion strings. `git diff --check` passed.
 - Rollback note: revert only the CP-212 validator/test/run-doc changes if recommended recipe-slot warnings must be removed.
+
+## CP-213 - Validator Recipe Completeness Doc Reconciliation V1
+
+- Unit: reconcile manifest validator rules with CP-212 recommended recipe slot warnings.
+- Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits, UI/TSX/app route/CSS files, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence scan for `style.incompleteRecipe`; stale gap scan for old recipe-completeness-not-implemented wording; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused recipe-completeness evidence scan; stale recipe-completeness gap scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found `style.incompleteRecipe` coverage in validator source/tests and recommended recipe slot warning wording in the validator rules doc. Stale gap scan returned no matches for old recipe-completeness-not-implemented wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
+- Rollback note: revert only the CP-213 docs/run-doc reconciliation if this wording must be removed.

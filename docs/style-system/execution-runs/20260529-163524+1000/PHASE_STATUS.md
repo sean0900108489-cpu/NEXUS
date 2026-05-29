@@ -228,6 +228,7 @@ Run id: `20260529-163524+1000`
 | Validator Focus Warning Doc Reconciliation V1 | PASS | Reconciled validator rules docs with CP-209 focus-capable recipe warnings and narrowed the remaining optional recipe completeness gap. |
 | Post Validator Focus Warning Phase Gate | PASS | Full check passed after validator focus warning/docs; side-effect scan and git diff check passed. |
 | Pure Validator Recipe Completeness Warning V1 | PASS | Added pure warnings for missing recommended visual recipe slots; focused tests, lint, typecheck, side-effect scan, and diff check passed. |
+| Validator Recipe Completeness Doc Reconciliation V1 | PASS | Reconciled validator rules docs with CP-212 recommended recipe slot warnings and removed the stale recipe-completeness gap note. |
 
 ## Current Gate
 
@@ -240,4 +241,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Validator Recipe Completeness Warning local checkpoint prep. Production window/modal code, production graph/app shell files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Validator Recipe Completeness Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

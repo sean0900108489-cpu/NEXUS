@@ -38,6 +38,7 @@ type BriefDraftResult = {
 };
 type VisibleStyleIssue = {
   code: string;
+  message: string;
   path: string;
   severity: VisibleIssueSeverity;
 };
@@ -72,11 +73,12 @@ const exportViews: Array<{ id: ExportView; label: string }> = [
 ];
 
 function toVisibleStyleIssue(
-  issue: { code: string; path: string },
+  issue: { code: string; message: string; path: string },
   severity: VisibleIssueSeverity,
 ): VisibleStyleIssue {
   return {
     code: issue.code,
+    message: issue.message,
     path: issue.path,
     severity,
   };
@@ -706,6 +708,9 @@ export function NexusStyleLab() {
                             <div className="truncate font-mono text-[10px] text-amber-100">
                               {issue.code}
                             </div>
+                            <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+                              {issue.message}
+                            </div>
                             <div className="mt-1 truncate font-mono text-[9px] text-slate-500">
                               {issue.path}
                             </div>
@@ -819,9 +824,14 @@ export function NexusStyleLab() {
                         {importIssues.map((issue) => (
                           <div
                             key={`${issue.path}:${issue.code}`}
-                            className="truncate font-mono text-[10px] text-rose-200"
+                            className="min-w-0"
                           >
-                            {issue.severity} / {issue.path} / {issue.code}
+                            <div className="truncate font-mono text-[10px] text-rose-200">
+                              {issue.severity} / {issue.code}
+                            </div>
+                            <div className="mt-1 truncate font-mono text-[9px] text-slate-500">
+                              {issue.path} / {issue.message}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -886,9 +896,14 @@ export function NexusStyleLab() {
                       {briefIssues.map((issue) => (
                         <div
                           key={`${issue.path}:${issue.code}`}
-                          className="truncate font-mono text-[10px] text-amber-100"
+                          className="min-w-0"
                         >
-                          {issue.severity} / {issue.path} / {issue.code}
+                          <div className="truncate font-mono text-[10px] text-amber-100">
+                            {issue.severity} / {issue.code}
+                          </div>
+                          <div className="mt-1 truncate font-mono text-[9px] text-slate-500">
+                            {issue.path} / {issue.message}
+                          </div>
                         </div>
                       ))}
                     </div>

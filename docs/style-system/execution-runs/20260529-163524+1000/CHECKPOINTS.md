@@ -4328,3 +4328,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused validator Vitest passed 1 file / 22 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Targeted side-effect/behavior scan on the CP-262 diff returned no matches for runtime/store/sync/backend/Supabase/deploy/UI behavior paths. `git diff --check` passed.
 - Rollback note: revert only the CP-262 validator test/run-doc changes if this coverage must be removed.
+
+## CP-263 - Validator Intent Constraints Doc Reconciliation V1
+
+- Unit: reconcile manifest validator docs with CP-262 intent metadata and safety constraints coverage.
+- Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, docs outside the listed style-system doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence/doc scan for intent/constraint coverage; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: focused evidence/doc scan for intent/constraint coverage; source-diff absence check; `git diff --check`.
+- Changed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found the CP-262 invalid intent/constraints test and matching manifest validator rules wording. Source-diff absence check showed no source/runtime diff for this docs-only unit. `git diff --check` passed.
+- Rollback note: revert only the CP-263 doc/run-doc changes if this reconciliation must be removed.

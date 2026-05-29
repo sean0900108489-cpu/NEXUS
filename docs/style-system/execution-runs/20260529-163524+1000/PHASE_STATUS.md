@@ -310,6 +310,7 @@ Run id: `20260529-163524+1000`
 | Governance Unsupported Package Doc Reconciliation V1 | PASS | Reconciled style pack governance docs with unsupported package-like import source rejection coverage. |
 | Post Exchange Import Guard Phase Gate | PASS | Decomposed full gate passed after exchange import guard coverage; side-effect scan and git diff check passed. |
 | Pure Governance Compiler Rejection Coverage V1 | PASS | Added focused governance coverage that compiler-failed manifests reject without preview metadata. |
+| Governance Compiler Rejection Doc Reconciliation V1 | PASS | Reconciled style pack governance docs with compiler-failed manifest rejection coverage. |
 
 ## Current Gate
 
@@ -322,4 +323,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Governance Compiler Rejection Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, source implementation files, docs outside this run folder, compiler/exchange/runtime/UI/TSX/app route/CSS files outside the touched governance test, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Governance Compiler Rejection Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside the style pack governance doc and this run folder, compiler/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

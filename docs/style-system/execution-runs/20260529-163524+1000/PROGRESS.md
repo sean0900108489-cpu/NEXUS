@@ -1385,31 +1385,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-294 - Pure Governance Compiler Rejection Coverage V1`.
 - Added focused governance coverage proving compiler-failed manifests reject without preview metadata or compiled checksums.
 - Verified CP-294 with focused governance Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, and `git diff --check`.
+- Created local checkpoint commit `839b02445cec06fd72829f0a4364cf1b69b8a96f` for the Pure Governance Compiler Rejection Coverage V1 unit.
+- Started `CP-295 - Governance Compiler Rejection Doc Reconciliation V1`.
+- Reconciled style pack governance docs with CP-294 compiler-failed manifest rejection coverage.
+- Verified CP-295 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-294 - Pure Governance Compiler Rejection Coverage V1`.
-- Latest recorded checkpoint commit: `1e1710b88286e0a066b60e886d71a8a5d5030195` for `CP-293 - Post Exchange Import Guard Phase Gate`; CP-294 is being prepared for local commit.
+- Latest completed checkpoint: `CP-295 - Governance Compiler Rejection Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `839b02445cec06fd72829f0a4364cf1b69b8a96f` for `CP-294 - Pure Governance Compiler Rejection Coverage V1`; CP-295 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-294 verification prep: dirty only in CP-294 allowed governance test and run-doc files.
-- Current stop reason: not stopped; CP-294 governance compiler rejection coverage checkpoint is underway.
+- Confirmed current status after CP-295 verification prep: dirty only in CP-295 allowed style pack governance doc and run-doc files.
+- Current stop reason: not stopped; CP-295 governance compiler rejection doc reconciliation checkpoint is underway.
 
 ## In Progress
 
-- `CP-294 - Local checkpoint commit prep`.
+- `CP-295 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/governance.test.ts`
+  - `docs/style-system/style-pack-governance.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused governance Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-294 governance test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, docs outside the listed governance doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-295 style pack governance doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-294 governance compiler rejection coverage checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-295 governance compiler rejection doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

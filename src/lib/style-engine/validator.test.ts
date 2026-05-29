@@ -81,6 +81,35 @@ describe("NEXUS Style Engine manifest validator", () => {
     expect(JSON.stringify(report)).not.toContain("hidden-payload");
   });
 
+  it("rejects invalid source metadata without echoing reference payloads", () => {
+    const manifest = createSafeManifest() as unknown as Record<string, unknown>;
+    manifest.source = {
+      kind: "remote-url",
+      reference: {
+        note: "hidden-source-reference",
+      },
+    };
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toEqual(
+      expect.arrayContaining([
+        {
+          code: "style.invalidSourceKind",
+          message: "source.kind is invalid.",
+          path: "$.source.kind",
+        },
+        {
+          code: "style.invalidSourceReference",
+          message: "source.reference must be text.",
+          path: "$.source.reference",
+        },
+      ]),
+    );
+    expect(JSON.stringify(report)).not.toContain("hidden-source-reference");
+  });
+
   it("rejects CSS variable references outside approved namespaces", () => {
     const manifest = createSafeManifest({
       tokens: {

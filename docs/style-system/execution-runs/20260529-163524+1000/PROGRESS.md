@@ -1222,30 +1222,35 @@ Run id: `20260529-163524+1000`
 - Ran full `npm run check`; lint, typecheck, 41 Vitest files / 320 tests, and build passed.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, existing recipe/window adapter names, test fixtures, Style Lab UI class/style/onClick handlers inside the isolated lab, and existing React Flow adapter/test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
+- Created local checkpoint commit `197ea6c4a899a16b7f11d11d5132d19ea66ef261` for the Post Top-Level Validator Coverage Phase Gate.
+- Started `CP-257 - Pure Validator Source Metadata Coverage V1`.
+- Added focused validator coverage for invalid `source.kind` and non-text `source.reference` without echoing nested reference payloads.
+- Verified CP-257 with focused validator Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-256 - Post Top-Level Validator Coverage Phase Gate`.
-- Latest recorded checkpoint commit: `55127996143d889684ad51f9c069f5b8277a23cc` for `CP-255 - Validator Unknown Top-Level Doc Reconciliation V1`; CP-256 is being prepared for local commit.
+- Latest completed checkpoint: `CP-257 - Pure Validator Source Metadata Coverage V1`.
+- Latest recorded checkpoint commit: `197ea6c4a899a16b7f11d11d5132d19ea66ef261` for `CP-256 - Post Top-Level Validator Coverage Phase Gate`; CP-257 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-256 verification: clean before run-doc bookkeeping.
-- Current stop reason: not stopped; CP-256 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-257 verification: dirty only in CP-257 allowed files.
+- Current stop reason: not stopped; CP-257 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-256 - Local checkpoint commit prep`.
+- `CP-257 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, docs outside this run folder, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; targeted behavior scan across the same paths; `git diff --check`; `git status --porcelain=v1 -b`; commit metadata check.
-- Rollback: revert only the CP-256 run-doc update if the phase gate bookkeeping must be removed.
+- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-257 validator test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-256 phase-gate run-doc checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-257 validator coverage checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

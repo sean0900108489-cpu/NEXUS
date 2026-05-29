@@ -116,6 +116,7 @@ Run id: `20260529-163524+1000`
 | Post Governance Version Phase Gate | PASS | Full check passed after the governance version rows; side-effect scan and git diff check passed. |
 | Style Lab Active Preview Interaction Smoke V1 | PASS | Headless Chrome CDP verified active preview rows update after local Preview interaction; source edits stayed closed. |
 | Style Lab Revert Interaction Smoke V1 | PASS | Headless Chrome CDP verified Revert clears active preview rows after local Preview interaction; source edits stayed closed. |
+| Style Lab Refresh Non-Persistence Smoke V1 | PASS | Headless Chrome CDP verified page refresh does not restore unsaved local preview session; source edits stayed closed. |
 
 ## Current Gate
 

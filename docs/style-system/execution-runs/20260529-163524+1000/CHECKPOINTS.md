@@ -1560,3 +1560,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. CDP smoke clicked Preview, observed active preview `legacy-cyberpunk:nexus-style-fnv1a32:39201c40` and checksum `nexus-style-fnv1a32:39201c40`, clicked Revert, and verified the UI showed `reverted` while `Active Preview` and `Preview Checksum` returned to `none`. `git diff --check` passed and no headless Chrome process remained.
 - Rollback note: revert only this CP-100 run-doc update if the smoke checkpoint bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-101 - Style Lab Refresh Non-Persistence Smoke V1
+
+- Unit: verify refreshing the isolated Style Lab does not restore an unsaved local preview session, without changing source code.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source edits during the smoke, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: headless Chrome CDP smoke on `http://localhost:3000/style-lab` that clicks Preview, verifies active preview rows are populated, reloads the page, and checks `Active Preview` and `Preview Checksum` return to `none`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: headless Chrome CDP smoke on `http://localhost:3000/style-lab`; `git diff --check`; `git status --porcelain=v1 -b`; headless Chrome process scan.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. CDP smoke clicked Preview, observed active preview `legacy-cyberpunk:nexus-style-fnv1a32:39201c40` and checksum `nexus-style-fnv1a32:39201c40`, reloaded the page, and verified `Active Preview` and `Preview Checksum` returned to `none` while `idle` was visible. `git diff --check` passed and no headless Chrome process remained.
+- Rollback note: revert only this CP-101 run-doc update if the smoke checkpoint bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.

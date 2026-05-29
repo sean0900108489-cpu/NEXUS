@@ -4024,3 +4024,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found unsafe export rejection and unsafe import rejection tests plus matching governance doc wording for unsafe import/export redaction. Source-diff absence check showed only the governance doc changed before run-doc bookkeeping. `git diff --check` passed and status showed only allowed docs files.
 - Rollback note: revert only the CP-244 governance doc/run-doc reconciliation if this wording must be removed.
+
+## CP-245 - Post Governance Exchange Coverage Phase Gate
+
+- Unit: run broader verification after governance retired-permission coverage and exchange unsafe-export coverage/docs.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits during the gate, docs outside this run folder, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `npm run check`; if known short-timeout flakes recur, focused rerun of failed files plus full Vitest with longer timeout and separate build; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; targeted behavior scan across the same paths; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; targeted behavior scan across the same paths; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 316 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings and test-only unsafe prompt/payload strings; behavior scan found only existing validator and adapter forbidden-key registries plus test assertions/fixtures. No real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
+- Rollback note: revert only this CP-245 run-doc update if the phase gate bookkeeping must be removed. If future verification exposes an actual source regression, open a separate focused repair unit with its own allowed file range.

@@ -296,6 +296,7 @@ Run id: `20260529-163524+1000`
 | Pure Intent Normalizer Executable Input Guard V1 | PASS | Added a pure normalizer guard for executable code-like input without payload echo. |
 | Interpreter Executable Input Doc Reconciliation V1 | PASS | Reconciled Style Interpreter docs with executable input rejection coverage. |
 | Post Interpreter Guard Coverage Phase Gate | PASS | Full check passed after fallback/executable interpreter guard coverage; side-effect scan and git diff check passed. |
+| Pure Validator Direct URL Guard V1 | PASS | Added a pure validator guard for direct URL strings without private host echo. |
 
 ## Current Gate
 
@@ -308,4 +309,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Interpreter Guard Coverage Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside this run folder, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Validator Direct URL Guard local checkpoint prep. Production window/modal code, production graph/app shell files, docs outside this run folder, compiler/governance/exchange/runtime/UI/TSX/app route/CSS files outside the touched validator files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

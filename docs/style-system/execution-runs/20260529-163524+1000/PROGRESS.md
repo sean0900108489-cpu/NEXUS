@@ -94,14 +94,15 @@ Run id: `20260529-163524+1000`
 - Implemented pure local-only preview patch helper in `src/lib/style-engine/**`.
 - Added focused Vitest coverage proving deterministic patch creation, non-mutating apply/revert, and deletion of newly introduced preview variables on revert.
 - Verified the preview helper with `git diff --check`, focused Vitest, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
+- Created local checkpoint commit `ad16707c82cc173ec7d7060e0124e923ecfc4383` for the pure preview patch helper.
 
 ## In Progress
 
-- Local checkpoint commit for pure preview patch V1.
+- Post-commit record update for pure preview patch V1.
 
 ## Next
 
-1. Stage run docs and `src/lib/style-engine/**`.
-2. Verify staged diff.
-3. Create a local checkpoint commit if checks pass.
-4. Continue with the next isolated unit only if status returns clean.
+1. Commit this run-status record update.
+2. Re-confirm branch/status/HEAD.
+3. Decide whether the next safe unit can remain isolated or whether UI/browser verification is required.
+4. Keep DOM, CSS, theme provider, components, graph, store/sync, backend route, Supabase, deploy, and `exports/**` changes out of scope unless a new gate explicitly opens them.

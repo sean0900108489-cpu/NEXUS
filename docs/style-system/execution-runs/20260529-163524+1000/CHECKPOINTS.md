@@ -501,3 +501,13 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
 - Verification result: PASS. Focused style-engine tests passed, typecheck passed, isolated lint passed, diff check passed, and targeted side-effect/import scan returned no matches. Preview patch is record-based and does not touch DOM, store, sync, backend, or Supabase.
 - Rollback note: revert only `src/lib/style-engine/preview.ts`, `src/lib/style-engine/preview.test.ts`, the index export, and this run-doc checkpoint update if this pure preview helper must be removed.
+
+## CP-033 - Preview Patch Local Commit Completed
+
+- Unit: commit pure preview patch helper locally.
+- Allowed files: git metadata plus `docs/style-system/execution-runs/20260529-163524+1000/**` for this record.
+- Forbidden files: `exports/**`, DOM files, CSS files, theme provider files, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `git add src/lib/style-engine docs/style-system/execution-runs/20260529-163524+1000`; `git diff --cached --check`; `git diff --cached --name-only`; `git commit -m "feat: add pure style preview patch"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -13`.
+- Commit created: `ad16707c82cc173ec7d7060e0124e923ecfc4383`.
+- Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
+- Rollback note: revert the preview helper commit only if the pure preview unit must be removed; do not touch unrelated history.

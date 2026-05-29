@@ -37,7 +37,8 @@ Run id: `20260529-163524+1000`
 | Legacy Preset Local Checkpoint Commit | PASS | Commit `5279b6149bc1a29690e71afda98eceb13bc05953` created; post-commit status was clean. |
 | Legacy Preset Record Update | PASS | Commit `62a01218cd92f5061ebbf63d1b7820f1704b59c8` created; post-commit status was clean. |
 | Pure Preview Patch V1 | PASS | Added reversible record-based preview helper and focused tests; Vitest, typecheck, lint, side-effect scan, and diff checks passed. |
-| Preview Patch Local Checkpoint Commit | IN_PROGRESS | Staging and committing preview patch unit locally only. |
+| Preview Patch Local Checkpoint Commit | PASS | Commit `ad16707c82cc173ec7d7060e0124e923ecfc4383` created; post-commit status was clean. |
+| Preview Patch Record Update | IN_PROGRESS | Recording pure preview patch checkpoint metadata. |
 
 ## Current Gate
 

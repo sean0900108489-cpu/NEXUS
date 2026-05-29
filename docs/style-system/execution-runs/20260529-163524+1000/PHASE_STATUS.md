@@ -303,6 +303,7 @@ Run id: `20260529-163524+1000`
 | Post Validator URL Guard Phase Gate | PASS | Full check passed after direct/file/blob URL guards and docs; side-effect scan and git diff check passed. |
 | Pure Validator React Flow Visual Slot Warning V1 | PASS | Added warning-only validator coverage for missing React Flow minimap/controls visual adapter slots. |
 | Validator React Flow Slot Warning Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with React Flow visual adapter warning coverage. |
+| Post React Flow Adapter Warning Phase Gate | PASS | Decomposed gate passed after two known default-timeout backend streaming tests; full longer-timeout Vitest, build, side-effect scan, and git diff check passed. |
 
 ## Current Gate
 
@@ -315,4 +316,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Validator React Flow Slot Warning Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside the manifest validator rules doc and this run folder, compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post React Flow Adapter Warning Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside this run folder, compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

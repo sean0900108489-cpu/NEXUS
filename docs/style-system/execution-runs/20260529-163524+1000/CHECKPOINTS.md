@@ -4755,3 +4755,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found the CP-286 React Flow visual adapter slot warning test and matching manifest validator rules wording. Source-diff absence check showed no source/runtime diff for this docs-only unit. `git diff --check` passed.
 - Rollback note: revert only the CP-287 doc/run-doc changes if this reconciliation must be removed.
+
+## CP-288 - Post React Flow Adapter Warning Phase Gate
+
+- Unit: run broader verification after React Flow visual adapter warning coverage and doc reconciliation.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits during the gate, docs outside this run folder, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `npm run check`; if known 5s backend streaming tests time out, rerun full Vitest with longer timeout and run `npm run build`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; targeted behavior scan across the same paths; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run check` (lint/typecheck passed, default-timeout Vitest hit two known backend streaming 5s timeouts before build); `npm run test -- --testTimeout 20000`; `npm run build`; targeted side-effect/import scan; targeted behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS after recoverable timeout rerun. Initial `npm run check` reached Vitest and timed out on two existing backend streaming tests at the default 5s timeout. Full Vitest rerun with `--testTimeout 20000` passed 41 files / 333 tests. `npm run build` passed with static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI class/style/onClick/onChange handlers, and existing React Flow/window-modal adapter forbidden-key registries and test coverage. No source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
+- Rollback note: revert only this CP-288 run-doc update if the phase gate bookkeeping must be removed.

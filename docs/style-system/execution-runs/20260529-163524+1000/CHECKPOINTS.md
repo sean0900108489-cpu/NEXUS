@@ -3924,3 +3924,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused intent-normalizer Vitest passed 1 file / 7 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only existing normalizer safety detector strings and test-only unsafe prompt/assertion strings. Behavior scan found only existing React Flow behavior omission detector/test fixture strings. `git diff --check` passed and status showed only allowed CP-238 files.
 - Rollback note: revert only the CP-238 intent-normalizer source/test/run-doc changes if this omission rule must be removed.
+
+## CP-239 - Interpreter Validation Bypass Doc Reconciliation V1
+
+- Unit: reconcile the interpreter boundary doc with CP-238 validation-bypass omission coverage.
+- Allowed files:
+  - `docs/style-system/style-interpreter-boundary.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, pure engine implementation files, workspace store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence scan for `style.intent.omittedValidationBypassInstruction`, doc wording scan for validation-bypass omission, source-diff absence check, `git diff --check`, and `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused evidence scan for `style.intent.omittedValidationBypassInstruction`; doc wording scan for validation-bypass omission; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-interpreter-boundary.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found `style.intent.omittedValidationBypassInstruction` in normalizer source/tests and matching validation-bypass omission wording in the interpreter boundary doc. Source-diff absence check showed only the interpreter boundary doc changed before run-doc bookkeeping. `git diff --check` passed and status showed only allowed docs files.
+- Rollback note: revert only the CP-239 interpreter boundary doc/run-doc reconciliation if this wording must be removed.

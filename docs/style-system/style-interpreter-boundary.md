@@ -7,7 +7,7 @@ Status: partially implemented pure intent normalizer and manifest draft helper. 
 ## Implementation Evidence
 
 - `src/lib/style-engine/intent-normalizer.ts` implements a pure draft-only normalizer for inert human/AI/imported style brief text.
-- `src/lib/style-engine/intent-normalizer.test.ts` covers deterministic normalized intent metadata, draft-only safety flags, empty/oversized input rejection, secret-like value redaction, unsafe instruction omission, workspace persistence instruction omission, and React Flow behavior instruction omission.
+- `src/lib/style-engine/intent-normalizer.test.ts` covers deterministic normalized intent metadata, draft-only safety flags, empty/oversized input rejection, secret-like value redaction, unsafe instruction omission, workspace persistence instruction omission, validation-bypass instruction omission, and React Flow behavior instruction omission.
 - `src/lib/style-engine/intent-manifest.ts` implements a pure helper that converts accepted normalized intent into a validated manifest draft based on built-in presets.
 - `src/lib/style-engine/intent-manifest.test.ts` covers high-contrast and standard-contrast manifest drafts, rejected intent fail-closed behavior, invalid draft identity rejection, deterministic fresh draft output, and compile smoke for accepted drafts.
 - Normalizer output remains intent metadata only; manifest draft generation is a separate pure helper that does not call AI/runtime systems.

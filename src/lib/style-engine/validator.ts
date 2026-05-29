@@ -393,9 +393,11 @@ function validateAccessibility(value: unknown, report: MutableReport) {
 
   const primaryText = value.text.primary;
   const appSurface = value.surface.app;
+  const secondaryText = value.text.secondary;
+  const panelSurface = value.surface.panel;
 
   if (typeof primaryText !== "string" || typeof appSurface !== "string") {
-    return;
+    return validateSecondaryTextContrast(secondaryText, panelSurface, report);
   }
 
   const contrast = evaluateNexusStyleTextContrast(primaryText, appSurface);
@@ -406,6 +408,29 @@ function validateAccessibility(value: unknown, report: MutableReport) {
       "$.tokens.text.primary",
       "style.accessibility.primaryTextContrast",
       "Primary text contrast against app surface is below the required ratio.",
+    );
+  }
+
+  validateSecondaryTextContrast(secondaryText, panelSurface, report);
+}
+
+function validateSecondaryTextContrast(
+  secondaryText: unknown,
+  panelSurface: unknown,
+  report: MutableReport,
+) {
+  if (typeof secondaryText !== "string" || typeof panelSurface !== "string") {
+    return;
+  }
+
+  const contrast = evaluateNexusStyleTextContrast(secondaryText, panelSurface);
+
+  if (contrast && !contrast.passes) {
+    addError(
+      report,
+      "$.tokens.text.secondary",
+      "style.accessibility.secondaryTextContrast",
+      "Secondary text contrast against panel surface is below the required ratio.",
     );
   }
 }

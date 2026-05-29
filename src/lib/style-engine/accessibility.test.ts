@@ -33,6 +33,23 @@ describe("NEXUS Style Engine accessibility helpers", () => {
       path: "$.tokens.text.primary",
     });
   });
+
+  it("rejects low secondary text contrast against panels when token colors are parseable", () => {
+    const manifest = createContrastManifest();
+
+    manifest.tokens.text.secondary = "#333333";
+    manifest.tokens.surface.panel = "#222222";
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toContainEqual({
+      code: "style.accessibility.secondaryTextContrast",
+      message:
+        "Secondary text contrast against panel surface is below the required ratio.",
+      path: "$.tokens.text.secondary",
+    });
+  });
 });
 
 function createContrastManifest(): NexusStyleManifestV1 {

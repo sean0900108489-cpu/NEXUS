@@ -150,6 +150,7 @@ Run id: `20260529-163524+1000`
 | Pure Preview Patch Graph Adapter Variables V1 | PASS | Preview patches now include pure React Flow adapter CSS variables; focused checks, build, side-effect scan, and git diff check passed. |
 | Post Preview Patch Graph Adapter Variables Phase Gate | PASS | Full check passed after preview patch graph variables; side-effect scan and git diff check passed. |
 | Pure Governance Adapter Coverage Metadata V1 | PASS | Governance and exchange reviews now expose compiler adapter coverage metadata; focused checks, build, side-effect scan, and git diff check passed. |
+| Post Governance Adapter Coverage Phase Gate | PASS | Full check passed after governance/exchange adapter coverage metadata; side-effect scan and git diff check passed. |
 
 ## Current Gate
 
@@ -162,4 +163,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Governance Adapter Coverage Metadata V1 local checkpoint prep. Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post Governance Adapter Coverage Phase Gate local checkpoint prep with source edits closed. Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

@@ -600,34 +600,36 @@ Run id: `20260529-163524+1000`
 - Added compiler adapter coverage metadata to accepted governance reviews and redacted exchange reviews.
 - Confirmed rejected governance reviews still omit adapter coverage metadata and do not echo unsafe manifest values.
 - Verified CP-134 with focused governance/exchange/compiler/adapter tests, typecheck, isolated style-engine lint, build, side-effect scans, and diff checks.
+- Created local checkpoint commit `38fd984245549575d0d0cc14a4bd2b9f797f65d2` for the Pure Governance Adapter Coverage Metadata V1 unit.
+- Started `CP-135 - Post Governance Adapter Coverage Phase Gate` with source edits closed.
+- Ran `CP-135 - Post Governance Adapter Coverage Phase Gate`.
+- Confirmed full `npm run check` passed: lint, typecheck, 40 Vitest files / 291 tests, and build.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched existing pure preview patch adapter variable emission, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import, graph behavior props, runtime provider change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-134 - Pure Governance Adapter Coverage Metadata V1`.
-- Latest local checkpoint commit: pending CP-134 local commit; previous clean checkpoint commit is `ce8f1f34833d8a5db7a7961d7651ab989d6d244c`.
+- Latest completed checkpoint: `CP-135 - Post Governance Adapter Coverage Phase Gate`.
+- Latest local checkpoint commit: pending CP-135 local commit; previous clean checkpoint commit is `38fd984245549575d0d0cc14a4bd2b9f797f65d2`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-134 verification: dirty only in CP-134 allowed files.
-- Current stop reason: not stopped; CP-134 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-135 verification: dirty only in CP-135 run docs.
+- Current stop reason: not stopped; CP-135 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-134 - Local checkpoint commit prep`.
+- `CP-135 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/governance.ts`
-  - `src/lib/style-engine/governance.test.ts`
-  - `src/lib/style-engine/exchange.ts`
-  - `src/lib/style-engine/exchange.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: Style Lab/UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, compiler or preview logic changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source edits during the gate, Style Lab/UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, governance/exchange/compiler/preview changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the governance/exchange adapter coverage metadata edits and this unit's run-doc edits.
+- Rollback: revert only this CP-135 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
 
 ## Next
 
-1. Commit the CP-134 source and run-doc checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-135 docs-only phase-gate record if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

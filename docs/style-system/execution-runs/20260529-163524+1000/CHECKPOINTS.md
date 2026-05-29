@@ -4007,3 +4007,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused exchange Vitest passed 1 file / 5 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan and behavior scan found no matches in the touched exchange test file. `git diff --check` passed and status showed only allowed CP-243 files.
 - Rollback note: revert only the CP-243 exchange test/run-doc changes if this coverage must be removed.
+
+## CP-244 - Governance Unsafe Export Doc Reconciliation V1
+
+- Unit: reconcile the governance doc with CP-243 unsafe export package rejection and redaction coverage.
+- Allowed files:
+  - `docs/style-system/style-pack-governance.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, pure engine implementation files, workspace store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence scan for unsafe export/import redaction coverage and doc wording; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused evidence scan for unsafe export/import redaction coverage and doc wording; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-pack-governance.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found unsafe export rejection and unsafe import rejection tests plus matching governance doc wording for unsafe import/export redaction. Source-diff absence check showed only the governance doc changed before run-doc bookkeeping. `git diff --check` passed and status showed only allowed docs files.
+- Rollback note: revert only the CP-244 governance doc/run-doc reconciliation if this wording must be removed.

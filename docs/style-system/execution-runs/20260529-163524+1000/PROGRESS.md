@@ -1172,31 +1172,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-243 - Pure Exchange Unsafe Export Coverage V1`.
 - Added focused exchange coverage that unsafe manifests cannot create export packages and unsafe values remain redacted.
 - Verified CP-243 with focused exchange Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
+- Created local checkpoint commit `6c6e98e8ddfedca7db6e6ebb40dae48577c03a93` for the Pure Exchange Unsafe Export Coverage V1 unit.
+- Started `CP-244 - Governance Unsafe Export Doc Reconciliation V1`.
+- Reconciled `style-pack-governance.md` with CP-243 unsafe export package rejection and import/export redaction coverage.
+- Verified CP-244 with focused evidence/doc scans, source-diff absence check, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-243 - Pure Exchange Unsafe Export Coverage V1`.
-- Latest local checkpoint commit: pending CP-243 local commit; previous clean checkpoint commit is `f3c61200962cf15d041e459084ea61cb285ef330`.
+- Latest completed checkpoint: `CP-244 - Governance Unsafe Export Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-244 local commit; previous clean checkpoint commit is `6c6e98e8ddfedca7db6e6ebb40dae48577c03a93`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-243 verification: dirty only in CP-243 allowed exchange test/run-doc files.
-- Current stop reason: not stopped; CP-243 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-244 verification: dirty only in CP-244 allowed docs/run-doc files.
+- Current stop reason: not stopped; CP-244 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-243 - Local checkpoint commit prep`.
+- `CP-244 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/exchange.test.ts`
+  - `docs/style-system/style-pack-governance.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: source implementation files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, production Nexus components, docs outside this run folder, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, production Nexus components, docs outside this run folder, package/deploy/database/backend/store/sync/Supabase files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-243 exchange test/run-doc changes if this coverage must be removed.
+- Rollback: revert only the CP-244 governance doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-243 exchange test checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-244 governance doc checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

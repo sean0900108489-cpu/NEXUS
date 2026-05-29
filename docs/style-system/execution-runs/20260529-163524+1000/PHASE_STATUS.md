@@ -259,6 +259,7 @@ Run id: `20260529-163524+1000`
 | Pure Governance Retired Permission Coverage V1 | PASS | Added focused governance coverage for the existing retired lifecycle permission mapping; focused test, lint, typecheck, side-effect scan, and diff check passed. |
 | Governance Retired Permission Doc Reconciliation V1 | PASS | Reconciled governance docs with retired lifecycle permission coverage. |
 | Pure Exchange Unsafe Export Coverage V1 | PASS | Added focused exchange coverage that unsafe manifests cannot create export packages; focused test, lint, typecheck, side-effect scan, and diff check passed. |
+| Governance Unsafe Export Doc Reconciliation V1 | PASS | Reconciled governance docs with unsafe export rejection and import/export redaction coverage. |
 
 ## Current Gate
 
@@ -271,4 +272,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Exchange Unsafe Export Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, source implementation files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Governance Unsafe Export Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

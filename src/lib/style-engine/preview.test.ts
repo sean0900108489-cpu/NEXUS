@@ -21,10 +21,14 @@ describe("NEXUS Style Engine local preview patch", () => {
       "--nexus-graph-background-color": "rgb(34 211 238 / 0.12)",
       "--nexus-graph-edge-selected-stroke": "#22d3ee",
       "--nexus-graph-node-agent-surface": "rgb(8 16 22 / 0.78)",
+      "--nexus-recipe-command-palette-item-active": "#67e8f9",
+      "--nexus-recipe-modal-surface": "rgb(8 16 22 / 0.78)",
+      "--nexus-recipe-window-surface": "rgb(8 16 22 / 0.78)",
       "--nexus-surface-app": "#030712",
       "--nexus-text-primary": "#f8fafc",
     });
     expect(Object.keys(first.variables)).not.toContain("nodesDraggable");
+    expect(Object.keys(first.variables)).not.toContain("dragHandleClassName");
   });
 
   it("applies and reverts without mutating the current variable record", () => {

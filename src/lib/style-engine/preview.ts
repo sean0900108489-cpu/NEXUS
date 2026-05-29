@@ -1,5 +1,6 @@
 import type { NexusCompiledStyleV1 } from "./compiler";
 import { emitReactFlowAdapterCssVariablesV1 } from "./react-flow-adapter";
+import { emitWindowModalRecipeCssVariablesV1 } from "./window-modal-recipe-adapter";
 
 export type NexusStylePreviewPatchV1 = {
   previewId: string;
@@ -20,6 +21,7 @@ export function createNexusStylePreviewPatchV1(
     ...style.cssVariables,
     ...style.legacyCssVariables,
     ...emitReactFlowAdapterCssVariablesV1(style.adapters.reactFlow),
+    ...emitWindowModalRecipeCssVariablesV1(style.adapters.windowModal),
   });
 
   return {

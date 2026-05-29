@@ -820,30 +820,39 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 41 Vitest files / 299 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries, and the window/modal recipe adapter forbidden behavior key registry; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, preview/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `854b69f70d567b1cf759b478493d4fd64e91469c` for the Post Compiler Window Modal Adapter Output Phase Gate.
+- Started `CP-171 - Pure Preview Patch Window Modal Recipe Variables V1`.
+- Implemented `CP-171 - Pure Preview Patch Window Modal Recipe Variables V1`.
+- Preview patches now include deterministic `--nexus-recipe-*` variables emitted from the pure window/modal recipe adapter.
+- Added focused preview patch assertions for window, modal, and command palette recipe variables plus forbidden behavior-key absence.
+- Confirmed UI source, production window/modal/Datapad/Prompt Vault/Agent code, governance/exchange wiring, persistence, store/sync/backend/Supabase, deploy files, and `exports/**` were not changed.
+- Verified CP-171 with focused preview/compiler/adapter tests, targeted lint, typecheck, side-effect scans, diff check, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-170 - Post Compiler Window Modal Adapter Output Phase Gate`.
-- Latest local checkpoint commit: pending CP-170 local commit; previous clean checkpoint commit is `13486e97bb4dc634cf828b98a45771c0dbc51bd7`.
+- Latest completed checkpoint: `CP-171 - Pure Preview Patch Window Modal Recipe Variables V1`.
+- Latest local checkpoint commit: pending CP-171 local commit; previous clean checkpoint commit is `854b69f70d567b1cf759b478493d4fd64e91469c`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-170 verification: dirty only in CP-170 allowed run-doc files.
-- Current stop reason: not stopped; CP-170 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-171 verification: dirty only in CP-171 allowed preview/test/run-doc files.
+- Current stop reason: not stopped; CP-171 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-170 - Local checkpoint commit prep`.
+- `CP-171 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/preview.ts`
+  - `src/lib/style-engine/preview.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, preview/runtime/governance wiring, UI/CSS/production component files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: compiler changes, governance/exchange wiring, UI/CSS/production component files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-170 run-doc update if the phase gate bookkeeping must be removed.
+- Rollback: revert only the CP-171 preview/test/run-doc updates if the recipe variable preview patch output must be removed.
 
 ## Next
 
-1. Commit the CP-170 phase-gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-171 implementation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -2741,3 +2741,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 299 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries, and the window/modal recipe adapter forbidden behavior key registry; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, preview/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-170 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-171 - Pure Preview Patch Window Modal Recipe Variables V1
+
+- Unit: include the pure window/modal recipe adapter CSS variables in the local preview patch without UI, production, persistence, governance, or external mutation wiring.
+- Allowed files:
+  - `src/lib/style-engine/preview.ts`
+  - `src/lib/style-engine/preview.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: compiler changes, governance/exchange wiring, all UI/app/CSS/production component files, production window/modal/Datapad/Prompt Vault/Agent behavior files, React Flow behavior files, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused preview, compiler, and window/modal adapter tests; targeted lint; `npm run typecheck`; side-effect/forbidden-surface scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `npm run test -- src/lib/style-engine/preview.test.ts src/lib/style-engine/compiler.test.ts src/lib/style-engine/window-modal-recipe-adapter.test.ts`; `npm run lint -- src/lib/style-engine/preview.ts src/lib/style-engine/preview.test.ts src/lib/style-engine/compiler.ts src/lib/style-engine/window-modal-recipe-adapter.ts`; `npm run typecheck`; targeted side-effect/forbidden-surface scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/preview.ts`
+  - `src/lib/style-engine/preview.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 3 files / 16 tests; targeted lint passed; `npm run typecheck` passed; `git diff --check` passed. Preview patches now include deterministic `--nexus-recipe-*` variables from `style.adapters.windowModal` alongside semantic, legacy, and graph variables. Side-effect scans found no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, live React Flow import, production UI import/edit, runtime provider logic change, governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path; behavior-key matches were limited to preview guard assertions and pure adapter forbidden-key registry strings.
+- Rollback note: revert only the preview patch variable spread, focused preview test assertions, and this CP-171 run-doc checkpoint update if the recipe variable preview patch output must be removed.

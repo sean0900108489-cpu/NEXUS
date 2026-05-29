@@ -1359,30 +1359,35 @@ Run id: `20260529-163524+1000`
 - Recovered the gate by running full Vitest with `--testTimeout 20000`; 41 files / 333 tests passed.
 - Ran `npm run build`; build passed with static `/style-lab` and the known edge-runtime warning.
 - Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI class/style/onClick/onChange handlers, and existing React Flow/window-modal adapter forbidden-key registries and test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
+- Created local checkpoint commit `04580296acecb9a31046979bf91c6ab9586c355f` for the Post React Flow Adapter Warning Phase Gate.
+- Started `CP-289 - Pure Exchange Unknown Import Source Coverage V1`.
+- Added focused exchange coverage proving unknown import candidates fail closed with `source: "unknown"`, no returned manifest, and no input echo.
+- Verified CP-289 with focused exchange Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-288 - Post React Flow Adapter Warning Phase Gate`.
-- Latest recorded checkpoint commit: `19f8e6b4a1991f631ba4d930e4fff78a1d05f7ab` for `CP-287 - Validator React Flow Slot Warning Doc Reconciliation V1`; CP-288 is being prepared for local commit.
+- Latest completed checkpoint: `CP-289 - Pure Exchange Unknown Import Source Coverage V1`.
+- Latest recorded checkpoint commit: `04580296acecb9a31046979bf91c6ab9586c355f` for `CP-288 - Post React Flow Adapter Warning Phase Gate`; CP-289 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-288 verification prep: dirty only in CP-288 allowed run-doc files.
-- Current stop reason: not stopped; CP-288 recovered phase gate checkpoint is underway.
+- Confirmed current status after CP-289 verification prep: dirty only in CP-289 allowed exchange test and run-doc files.
+- Current stop reason: not stopped; CP-289 unknown import source coverage checkpoint is underway.
 
 ## In Progress
 
-- `CP-288 - Local checkpoint commit prep`.
+- `CP-289 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/exchange.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, docs outside this run folder, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: recovered phase gate with full longer-timeout Vitest, build, targeted side-effect/import scan, targeted behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-288 run-doc update if this phase-gate bookkeeping must be removed.
+- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused exchange Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-289 exchange test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-288 recovered phase-gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-289 unknown import source coverage checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

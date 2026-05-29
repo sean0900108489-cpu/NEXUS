@@ -4770,3 +4770,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS after recoverable timeout rerun. Initial `npm run check` reached Vitest and timed out on two existing backend streaming tests at the default 5s timeout. Full Vitest rerun with `--testTimeout 20000` passed 41 files / 333 tests. `npm run build` passed with static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI class/style/onClick/onChange handlers, and existing React Flow/window-modal adapter forbidden-key registries and test coverage. No source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-288 run-doc update if the phase gate bookkeeping must be removed.
+
+## CP-289 - Pure Exchange Unknown Import Source Coverage V1
+
+- Unit: add focused exchange coverage that unknown import sources fail closed without returning a manifest or echoing the input string.
+- Allowed files:
+  - `src/lib/style-engine/exchange.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused exchange Vitest; targeted lint for touched exchange test; `npm run typecheck`; targeted added-line side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run test -- --testTimeout 20000 src/lib/style-engine/exchange.test.ts`; `npm run lint -- src/lib/style-engine/exchange.test.ts`; `npm run typecheck`; targeted added-line side-effect/behavior scan on the CP-289 diff; `git diff --check`.
+- Changed files:
+  - `src/lib/style-engine/exchange.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused exchange Vitest passed 1 file / 6 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Targeted added-line side-effect/behavior scan returned no matches for workspace/sync/backend/Supabase/deploy/production Nexus/React Flow behavior paths. `git diff --check` passed.
+- Rollback note: revert only the CP-289 exchange test/run-doc changes if this coverage must be removed.

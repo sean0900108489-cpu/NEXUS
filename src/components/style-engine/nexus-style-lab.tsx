@@ -64,6 +64,24 @@ const primitiveBadgeStyle = {
   color: "var(--nexus-status-warning, #fcd34d)",
 };
 
+const graphCanvasStyle = {
+  background: "var(--nexus-surface-workspace, #020617)",
+  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+};
+
+const graphNodeStyle = {
+  background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
+  borderColor: "var(--nexus-accent-primary, #67e8f9)",
+  boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
+  color: "var(--nexus-text-primary, #f8fafc)",
+};
+
+const graphEdgeStyle = {
+  background:
+    "linear-gradient(90deg, var(--nexus-accent-primary, #67e8f9), var(--nexus-status-success, #6ee7b7))",
+  transform: "rotate(14deg)",
+};
+
 export function NexusStyleLab() {
   const runtime = useNexusStyleRuntimeV1();
   const [previewState, setPreviewState] = useState<PreviewState>("idle");
@@ -418,6 +436,69 @@ export function NexusStyleLab() {
                         none
                       </div>
                     )}
+                  </div>
+                </div>
+              </section>
+
+              <section className="border border-white/10 bg-black/20 p-4 lg:col-span-2">
+                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                  Graph Specimen
+                </div>
+
+                <div
+                  className="relative min-h-64 overflow-hidden border"
+                  style={graphCanvasStyle}
+                >
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(148_163_184_/_0.16)_1px,transparent_0)] bg-[length:24px_24px]" />
+                  <div
+                    aria-hidden="true"
+                    className="absolute left-[31%] top-[45%] h-1 w-[38%] origin-left rounded-full"
+                    style={graphEdgeStyle}
+                  />
+
+                  <div
+                    className="absolute left-5 top-8 w-40 max-w-[42%] border p-3"
+                    style={graphNodeStyle}
+                  >
+                    <div className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-cyan-100">
+                      Source
+                    </div>
+                    <div className="mt-2 h-1.5 bg-white/10">
+                      <div
+                        className="h-full w-3/5"
+                        style={{
+                          background:
+                            "var(--nexus-accent-primary, #67e8f9)",
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    className="absolute bottom-8 right-5 w-44 max-w-[46%] border p-3"
+                    style={graphNodeStyle}
+                  >
+                    <div className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-emerald-100">
+                      Target
+                    </div>
+                    <div className="mt-2 grid grid-cols-3 gap-1">
+                      <span className="h-1.5 bg-white/15" />
+                      <span
+                        className="h-1.5"
+                        style={{
+                          background:
+                            "var(--nexus-status-success, #6ee7b7)",
+                        }}
+                      />
+                      <span className="h-1.5 bg-white/15" />
+                    </div>
+                  </div>
+
+                  <div
+                    className="absolute right-12 top-8 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em]"
+                    style={primitiveBadgeStyle}
+                  >
+                    Visual
                   </div>
                 </div>
               </section>

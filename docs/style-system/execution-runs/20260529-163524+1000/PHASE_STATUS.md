@@ -77,6 +77,7 @@ Run id: `20260529-163524+1000`
 | Style Lab Primitive Specimen Panel V1 | PASS | Added specimen-only panel/button/input/badge preview inside isolated Style Lab; focused checks, build, side-effect scan, and Browser smoke passed. |
 | Style Lab Governance Report Panel V1 | PASS | Added local review state, permissions, issue, and checksum display inside isolated Style Lab; focused checks, build, side-effect scan, and Browser smoke passed. |
 | Post Specimen Governance Phase Gate | PASS | Full check passed after primitive specimen and governance report panels; side-effect scan and git diff check passed. |
+| Style Lab Graph Visual Specimen V1 | PASS | Added static visual-only graph specimen inside isolated Style Lab; no React Flow imports or behavior changes; focused checks, build, side-effect scan, and Browser smoke passed. |
 
 ## Current Gate
 
@@ -89,4 +90,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-CP-061 is ready for a local checkpoint commit. Production components, app shell, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, `src/components/nexus/nexus-ops.tsx`, and React Flow behavior remain closed.
+CP-062 is ready for a local checkpoint commit. React Flow imports, graph behavior, production components, app shell, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

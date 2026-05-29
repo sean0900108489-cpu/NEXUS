@@ -925,3 +925,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 37 Vitest files / 271 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scan only matched validator forbidden-string detector patterns; no live store/sync/backend/Supabase import or mutation path was found. `git diff --check` passed.
 - Rollback note: no source rollback for the gate itself. If the gate exposes a regression, fix only the responsible isolated Style Lab unit and rerun; stop if fixing would cross a forbidden boundary.
+
+## CP-062 - Style Lab Graph Visual Specimen V1
+
+- Unit: add a static visual-only graph specimen inside the isolated Style Lab component without React Flow imports or behavior props.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `src/components/nexus/**`, React Flow imports/behavior files, app route files, CSS/global styles, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, and `exports/**`.
+- Verification plan: `git diff --check`; `npm run test -- src/lib/style-engine/import-text.test.ts src/lib/style-engine/exchange.test.ts`; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; targeted side-effect/import scan including React Flow import/behavior strings; Browser smoke on `http://localhost:3000/style-lab`.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/import-text.test.ts src/lib/style-engine/exchange.test.ts`; targeted side-effect/import scan for store/sync/backend/Supabase/DOM/storage/React Flow import and behavior strings; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; Browser smoke on `http://localhost:3000/style-lab`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 2 files and 9 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only; side-effect scan returned no matches; Browser smoke confirmed Graph Specimen, Source, Target, and Visual render, Preview sets scoped runtime variables, Revert clears them, and severe browser log count is zero.
+- Rollback note: revert only `src/components/style-engine/nexus-style-lab.tsx` and this run-doc checkpoint update if the graph visual specimen unit must be removed.

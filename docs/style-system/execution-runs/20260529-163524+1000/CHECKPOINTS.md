@@ -2928,3 +2928,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 299 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries, and the window/modal recipe adapter forbidden behavior key registry; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-181 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-182 - Style Lab Agent Chrome Specimen Recipe Variables V1
+
+- Unit: make the isolated Style Lab Agent Chrome specimen consume `--nexus-recipe-window-*` CSS variables with existing semantic fallbacks, without editing production Agent Window code or behavior.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: style-engine pure logic, preview/compiler/governance/exchange files, app routes, CSS/global stylesheets, production components, `src/components/nexus/**`, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: source scan for Agent Chrome `--nexus-recipe-window-*`; targeted Style Lab lint; `npm run typecheck`; `npm run build`; local `/style-lab` text smoke for Agent Chrome specimen recipe variable markup; side-effect/forbidden-surface scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused `rg` source scan; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx`; `npm run typecheck`; `npm run build`; local `/style-lab` fetch smoke; targeted side-effect/forbidden-surface scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Source scan found Agent Chrome style constants using `--nexus-recipe-window-surface`, `border`, `shadow`, `handle-visual`, `chrome-surface`, `chrome-border`, and `body-surface`. Targeted lint passed; `npm run typecheck` passed; `npm run build` passed with static `/style-lab` and the known edge-runtime warning only; local fetch smoke returned status 200 and confirmed `Agent Chrome Specimen`, `--nexus-recipe-window-surface`, and `--nexus-recipe-window-handle-visual` in rendered markup. Targeted side-effect/behavior scans in the Style Lab/app scope had no matches for DOM/storage/fetch/clipboard/download path, `react-rnd`, live React Flow import, production UI import/edit, store/sync/backend/Supabase import or mutation path, deploy path, `exports/**`, or forbidden behavior keys. `git diff --check` passed.
+- Rollback note: revert only the isolated Agent Chrome specimen recipe variable substitutions and this CP-182 run-doc checkpoint update if the specimen hookup must be removed.

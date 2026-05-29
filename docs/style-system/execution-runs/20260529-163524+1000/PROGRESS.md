@@ -891,30 +891,37 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 41 Vitest files / 299 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries, and the window/modal recipe adapter forbidden behavior key registry; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `546324a43ede3215df40f93fcdfd85f19370d302` for the Post Recipe Specimen Variable Hookup Phase Gate.
+- Started `CP-182 - Style Lab Agent Chrome Specimen Recipe Variables V1`.
+- Implemented `CP-182 - Style Lab Agent Chrome Specimen Recipe Variables V1`.
+- The isolated Style Lab Agent Chrome specimen now consumes `--nexus-recipe-window-surface`, `border`, `shadow`, `handle-visual`, `chrome-surface`, `chrome-border`, and `body-surface` with semantic fallbacks.
+- Confirmed style-engine pure logic, preview/compiler/governance/exchange, app routes, CSS, production components, `src/components/nexus/**`, store/sync/backend/Supabase, deploy files, and `exports/**` were not changed.
+- Verified CP-182 with source scan, targeted Style Lab lint, typecheck, build, local `/style-lab` smoke, side-effect scans, diff check, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-181 - Post Recipe Specimen Variable Hookup Phase Gate`.
-- Latest local checkpoint commit: pending CP-181 local commit; previous clean checkpoint commit is `47dec953cdeee8cc4ef9d0c14bd04d2d399b6a1d`.
+- Latest completed checkpoint: `CP-182 - Style Lab Agent Chrome Specimen Recipe Variables V1`.
+- Latest local checkpoint commit: pending CP-182 local commit; previous clean checkpoint commit is `546324a43ede3215df40f93fcdfd85f19370d302`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-181 verification: dirty only in CP-181 allowed run-doc files.
-- Current stop reason: not stopped; CP-181 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-182 verification: dirty only in CP-182 allowed Style Lab/run-doc files.
+- Current stop reason: not stopped; CP-182 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-181 - Local checkpoint commit prep`.
+- `CP-182 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, UI/CSS/production component files, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: style-engine pure logic, preview/compiler/governance/exchange files, app routes, CSS/global stylesheets, production components, `src/components/nexus/**`, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-181 run-doc update if the phase gate bookkeeping must be removed.
+- Rollback: revert only the CP-182 isolated Agent Chrome specimen/run-doc update if it must be removed.
 
 ## Next
 
-1. Commit the CP-181 phase-gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-182 implementation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

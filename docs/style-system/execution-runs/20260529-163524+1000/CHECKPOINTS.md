@@ -4073,3 +4073,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused validator Vitest passed 1 file / 16 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed after a local test narrowing fix. Side-effect scan only matched existing safety detector strings, existing manifest window recipe names, and test fixture strings; behavior scan only matched existing forbidden-key registries and test assertions/fixtures. `git diff --check` passed and status showed only allowed CP-247 files.
 - Rollback note: revert only the CP-247 validator/test/run-doc changes if this data URL guard must be removed.
+
+## CP-248 - Validator Data URL Doc Reconciliation V1
+
+- Unit: reconcile manifest validator and manifest spec docs with CP-247 data URL guard coverage.
+- Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/manifest-v1-spec.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, docs outside the two listed style-system docs and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence scan for data URL guard/test/docs; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: focused evidence scan for data URL guard/test/docs; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/manifest-v1-spec.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found `style.forbidden.dataUrl` in the validator/test and matching data URL wording in the validator rules and manifest spec docs. Source-diff absence check showed only allowed docs changed after the CP-247 source checkpoint. `git diff --check` passed and status showed only allowed CP-248 docs files.
+- Rollback note: revert only the CP-248 doc/run-doc changes if this reconciliation must be removed.

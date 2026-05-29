@@ -263,6 +263,7 @@ Run id: `20260529-163524+1000`
 | Post Governance Exchange Coverage Phase Gate | PASS | Full check passed after governance retired-permission and exchange unsafe-export coverage; side-effect scan and git diff check passed. |
 | Phase Gate Commit Metadata Reconciliation V1 | PASS | Recorded CP-245 local checkpoint commit `ff09efcfe1a12671eee7f8110b2c42fc251e8285` and clean post-commit status. |
 | Pure Validator Data URL Guard V1 | PASS | Added a pure validator guard and focused coverage for data URL strings without echoing payload text. |
+| Validator Data URL Doc Reconciliation V1 | PASS | Reconciled manifest validator and manifest spec docs with data URL guard coverage. |
 
 ## Current Gate
 
@@ -275,4 +276,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Validator Data URL Guard local checkpoint prep. Production window/modal code, production graph/app shell files, compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Validator Data URL Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

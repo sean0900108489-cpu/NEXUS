@@ -27,6 +27,7 @@ describe("NEXUS Style Engine pure compiler", () => {
         accepted: true,
         adapterCoverage: {
           reactFlow: "complete",
+          windowModal: "complete",
         },
         legacyBridgeUsed: true,
       },
@@ -102,6 +103,37 @@ describe("NEXUS Style Engine pure compiler", () => {
     });
     expect(JSON.stringify(result.style.adapters.reactFlow)).not.toContain(
       "nodesDraggable",
+    );
+  });
+
+  it("emits deterministic window/modal recipe adapter output", () => {
+    const result = compileNexusStyleManifestV1(createSafeManifest());
+
+    expect(result.accepted).toBe(true);
+
+    if (!result.accepted) {
+      throw new Error("Expected compiler to accept manifest.");
+    }
+
+    expect(result.style.adapters.windowModal).toMatchObject({
+      commandPalette: {
+        itemActive: "#67e8f9",
+        emptyState: "#64748b",
+      },
+      modal: {
+        dangerCallout: "#fda4af",
+        surface: "var(--nexus-surface-panel)",
+      },
+      window: {
+        bodySurface: "#020617",
+        surface: "var(--nexus-surface-panel)",
+      },
+    });
+    expect(JSON.stringify(result.style.adapters.windowModal)).not.toContain(
+      "dragHandleClassName",
+    );
+    expect(JSON.stringify(result.style.adapters.windowModal)).not.toContain(
+      "zIndex",
     );
   });
 

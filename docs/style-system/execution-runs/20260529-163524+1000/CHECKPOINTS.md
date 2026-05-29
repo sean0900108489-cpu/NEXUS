@@ -2707,3 +2707,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 298 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, React Flow adapter forbidden behavior key registries, and the window/modal recipe adapter forbidden behavior key registry; no live React Flow import, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/preview/governance wiring, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, download/clipboard/save/export-file path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-168 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-169 - Pure Compiler Window Modal Recipe Output V1
+
+- Unit: wire the pure window/modal recipe adapter into the compiler output and compiler adapter coverage report without preview, runtime, UI, production, governance, persistence, or external mutation wiring.
+- Allowed files:
+  - `src/lib/style-engine/compiler.ts`
+  - `src/lib/style-engine/compiler.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `src/lib/style-engine/preview.ts`, governance/exchange wiring, all UI/app/CSS/production component files, production window/modal/Datapad/Prompt Vault/Agent behavior files, React Flow behavior files, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused compiler and window/modal adapter tests; targeted compiler/adapter lint; `npm run typecheck`; side-effect/forbidden-surface scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `npm run test -- src/lib/style-engine/compiler.test.ts src/lib/style-engine/window-modal-recipe-adapter.test.ts`; `npm run lint -- src/lib/style-engine/compiler.ts src/lib/style-engine/compiler.test.ts src/lib/style-engine/window-modal-recipe-adapter.ts src/lib/style-engine/window-modal-recipe-adapter.test.ts`; `npm run typecheck`; targeted side-effect/forbidden-surface scans; `git diff --check`; `git status --porcelain=v1 -b`; `git diff --name-only`.
+- Changed files:
+  - `src/lib/style-engine/compiler.ts`
+  - `src/lib/style-engine/compiler.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 2 files / 13 tests; targeted lint passed; `npm run typecheck` passed; `git diff --check` passed. The compiler now emits `adapters.windowModal` from the pure manifest mapper and reports `adapterCoverage.windowModal = complete`. Side-effect scans found only expected React Flow adapter compiler references, the existing React Flow validator test code string, pure window/modal adapter object/property names, and forbidden-key test/registry strings; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, live React Flow import, production UI import/edit, preview/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Rollback note: revert only the compiler adapter output additions, focused compiler test additions, and this CP-169 run-doc checkpoint update if the compiler window/modal adapter output must be removed.

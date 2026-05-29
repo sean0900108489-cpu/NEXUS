@@ -11,6 +11,10 @@ import {
   type NexusReactFlowStyleAdapterV1,
 } from "./react-flow-adapter";
 import { validateNexusStyleManifestV1 } from "./validator";
+import {
+  createWindowModalRecipeAdapterFromManifestV1,
+  type NexusWindowModalRecipeAdapterV1,
+} from "./window-modal-recipe-adapter";
 
 export const NEXUS_STYLE_COMPILER_VERSION = "nexus-style-compiler-v1" as const;
 
@@ -23,6 +27,7 @@ export type NexusCompiledStyleV1 = {
   recipes: NexusStyleRecipesV1;
   adapters: {
     reactFlow: NexusReactFlowStyleAdapterV1;
+    windowModal: NexusWindowModalRecipeAdapterV1;
     nextThemes?: NexusStyleAdaptersV1["nextThemes"];
   };
   report: NexusCompilerReportV1;
@@ -35,6 +40,7 @@ export type NexusCompilerReportV1 = {
   legacyBridgeUsed: boolean;
   adapterCoverage: {
     reactFlow: "none" | "partial" | "complete";
+    windowModal: "none" | "partial" | "complete";
   };
 };
 
@@ -99,6 +105,7 @@ export function compileNexusStyleManifestV1(
         accepted: true,
         adapterCoverage: {
           reactFlow: "complete",
+          windowModal: "complete",
         },
         emittedVariableCount:
           Object.keys(cssVariables).length + Object.keys(legacyCssVariables).length,
@@ -153,6 +160,7 @@ function compileAdapters(manifest: NexusStyleManifestV1) {
   return sortRecord({
     ...(adapters.nextThemes ? { nextThemes: sortRecord(adapters.nextThemes) } : {}),
     reactFlow: createReactFlowStyleAdapterFromManifestV1(manifest),
+    windowModal: createWindowModalRecipeAdapterFromManifestV1(manifest),
   }) as NexusCompiledStyleV1["adapters"];
 }
 

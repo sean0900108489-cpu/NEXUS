@@ -1296,31 +1296,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-274 - Pure Intent Normalizer Fallback Intent Coverage V1`.
 - Added focused intent-normalizer coverage proving sparse benign briefs still produce non-empty fallback `mood` and `material` tags, preserve draft-only safety, and do not output tokens or recipes.
 - Verified CP-274 with focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, targeted side-effect/behavior scan on the CP-274 diff, and `git diff --check`.
+- Created local checkpoint commit `422fcd61b3306184791b1f32011df73e2f269765` for the Pure Intent Normalizer Fallback Intent Coverage V1 unit.
+- Started `CP-275 - Interpreter Fallback Intent Doc Reconciliation V1`.
+- Reconciled Style Interpreter boundary docs with CP-274 fallback intent tag coverage.
+- Verified CP-275 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-274 - Pure Intent Normalizer Fallback Intent Coverage V1`.
-- Latest recorded checkpoint commit: `788660fe06c2bcba0ac941d7cb580945a70912cf` for `CP-273 - Post Validator Container Intent Phase Gate`; CP-274 is being prepared for local commit.
+- Latest completed checkpoint: `CP-275 - Interpreter Fallback Intent Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `422fcd61b3306184791b1f32011df73e2f269765` for `CP-274 - Pure Intent Normalizer Fallback Intent Coverage V1`; CP-275 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-274 verification prep: dirty only in CP-274 allowed intent-normalizer test and run-doc files.
-- Current stop reason: not stopped; CP-274 intent normalizer coverage checkpoint is underway.
+- Confirmed current status after CP-275 verification prep: dirty only in CP-275 allowed docs files.
+- Current stop reason: not stopped; CP-275 doc reconciliation checkpoint is underway.
 
 ## In Progress
 
-- `CP-274 - Local checkpoint commit prep`.
+- `CP-275 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/intent-normalizer.test.ts`
+  - `docs/style-system/style-interpreter-boundary.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, targeted side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-274 intent-normalizer test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, docs outside the listed interpreter doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-275 doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-274 intent normalizer coverage checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-275 doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

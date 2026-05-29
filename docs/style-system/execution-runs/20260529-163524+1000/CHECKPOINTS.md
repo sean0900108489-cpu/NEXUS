@@ -4196,3 +4196,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused validator Vitest passed 1 file / 19 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan only matched existing platform-pollution fixture strings and manifest window recipe names; behavior scan only matched existing recipe/React Flow behavior test fixtures. `git diff --check` passed and status showed only allowed CP-254 files.
 - Rollback note: revert only the CP-254 validator test/run-doc changes if this coverage must be removed.
+
+## CP-255 - Validator Unknown Top-Level Doc Reconciliation V1
+
+- Unit: reconcile manifest validator docs with CP-254 benign unknown top-level field coverage.
+- Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, docs outside the listed style-system doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence/doc scan for benign unknown top-level field coverage; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: focused evidence/doc scan for benign unknown top-level field coverage; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found the CP-254 unknown top-level field test and matching manifest validator rules wording. Source-diff absence check showed only allowed docs changed after the CP-254 source checkpoint. `git diff --check` passed and status showed only allowed CP-255 docs files.
+- Rollback note: revert only the CP-255 doc/run-doc changes if this reconciliation must be removed.

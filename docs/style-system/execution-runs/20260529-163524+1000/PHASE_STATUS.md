@@ -270,6 +270,7 @@ Run id: `20260529-163524+1000`
 | Pure Validator External Platform Top-Level Coverage V1 | PASS | Added focused coverage for existing auth/env/secret/Supabase/Vercel/GitHub/database top-level pollution rejection. |
 | Validator Platform Pollution Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with external platform top-level pollution coverage. |
 | Pure Validator Unknown Top-Level Coverage V1 | PASS | Added focused coverage distinguishing unsupported top-level fields from unsafe platform fields. |
+| Validator Unknown Top-Level Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with benign unknown top-level field coverage. |
 
 ## Current Gate
 
@@ -282,4 +283,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Validator Unknown Top-Level Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, source implementation files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files except the focused validator test, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Validator Unknown Top-Level Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

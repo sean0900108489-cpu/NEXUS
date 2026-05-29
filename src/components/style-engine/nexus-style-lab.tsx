@@ -284,9 +284,11 @@ export function NexusStyleLab() {
   const compiledVariableCountLabel = compiled.accepted
     ? String(compiled.style.report.emittedVariableCount)
     : "blocked";
+  const sourceKindLabel = manifest.source?.kind ?? "unknown";
   const governanceRows = useMemo(
     () => [
       ["State", review.state],
+      ["Source", sourceKindLabel],
       ["Compatibility", review.compatibility],
       ["Preview", review.permissions.canPreview ? "allowed" : "blocked"],
       ["Apply", review.permissions.canApply ? "allowed" : "blocked"],
@@ -312,6 +314,7 @@ export function NexusStyleLab() {
       activePreviewChecksumLabel,
       activePreviewLabel,
       compiledVariableCountLabel,
+      sourceKindLabel,
       review,
     ],
   );

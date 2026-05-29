@@ -170,18 +170,22 @@ Run id: `20260529-163524+1000`
 - Implemented `CP-059 - Style Lab Primitive Specimen Panel V1`.
 - Added specimen-only panel/button/input/badge visuals inside the isolated Style Lab component.
 - Verified CP-059 with focused style-engine tests, typecheck, targeted lint, build, side-effect scan, and Browser smoke on `/style-lab`.
+- Created local checkpoint commit `df243eb9b023fbe13f760be0c3f537a82b6687f4` for the Style Lab Primitive Specimen Panel V1 unit.
+- Implemented `CP-060 - Style Lab Governance Report Panel V1`.
+- Added local review state, compatibility, preview/apply permissions, report checksum, and issue code display inside the isolated Style Lab component.
+- Verified CP-060 with focused governance/import tests, typecheck, targeted lint, build, side-effect scan, and Browser smoke on `/style-lab`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-059 - Style Lab Primitive Specimen Panel V1`.
-- Latest local checkpoint commit: `d590873189aa12e1d975e34b750c14d9b34bc4fb`.
+- Latest completed checkpoint: `CP-060 - Style Lab Governance Report Panel V1`.
+- Latest local checkpoint commit: `df243eb9b023fbe13f760be0c3f537a82b6687f4`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
 - Confirmed current status during state assessment: clean before this run-doc reconciliation.
 - Current stop reason: normal context/turn checkpoint followed by explicit user-requested state assessment; not an error stop.
 
 ## In Progress
 
-- Preparing the CP-059 local checkpoint commit.
+- Preparing the CP-060 local checkpoint commit.
 
 ## Current Unit Scope
 
@@ -194,7 +198,7 @@ Run id: `20260529-163524+1000`
 
 ## Next
 
-1. Commit the CP-059 local checkpoint.
+1. Commit the CP-060 local checkpoint.
 2. Confirm branch, HEAD, and clean status.
 3. Select the next isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

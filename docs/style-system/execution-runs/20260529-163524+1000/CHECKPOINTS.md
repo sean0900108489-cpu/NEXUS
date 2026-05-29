@@ -893,3 +893,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused Vitest passed 2 files and 9 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only; side-effect scan returned no matches; Browser smoke confirmed Primitive Specimen, Button, Input, and Badge render, Preview sets scoped runtime variables, Revert clears them, and severe browser log count is zero.
 - Rollback note: revert only `src/components/style-engine/nexus-style-lab.tsx` and this run-doc checkpoint update if the specimen panel unit must be removed.
+
+## CP-060 - Style Lab Governance Report Panel V1
+
+- Unit: add local governance report display for active Style Lab manifest review state, permissions, issues, and checksums.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: production components, `src/components/nexus/**`, app route files, CSS/global styles, React Flow behavior files, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, and `exports/**`.
+- Verification plan: `git diff --check`; `npm run test -- src/lib/style-engine/governance.test.ts src/lib/style-engine/import-text.test.ts`; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; targeted side-effect/import scan; Browser smoke on `http://localhost:3000/style-lab`.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/governance.test.ts src/lib/style-engine/import-text.test.ts`; targeted side-effect/import scan for store/sync/backend/Supabase/DOM/storage/React Flow behavior strings; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; Browser smoke on `http://localhost:3000/style-lab`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 2 files and 9 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only; side-effect scan returned no matches; Browser smoke confirmed Governance Report, compatibility/permission/checksum rows, expected high-contrast warning code, and severe browser log count is zero.
+- Rollback note: revert only `src/components/style-engine/nexus-style-lab.tsx` and this run-doc checkpoint update if the governance report panel unit must be removed.

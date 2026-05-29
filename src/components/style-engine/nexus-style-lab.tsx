@@ -126,6 +126,24 @@ export function NexusStyleLab() {
       ? `${importResult.source} accepted`
       : `${importResult.source} rejected`
     : "no draft";
+  const governanceRows = useMemo(
+    () => [
+      ["State", review.state],
+      ["Compatibility", review.compatibility],
+      ["Preview", review.permissions.canPreview ? "allowed" : "blocked"],
+      ["Apply", review.permissions.canApply ? "allowed" : "blocked"],
+      ["Report", review.checksums.report],
+    ],
+    [review],
+  );
+  const governanceIssues = useMemo(
+    () =>
+      [
+        ...review.validation.errors,
+        ...review.validation.warnings,
+      ].slice(0, maxVisibleImportIssues),
+    [review],
+  );
 
   const startPreview = () => {
     if (!previewPatch) {
@@ -349,6 +367,57 @@ export function NexusStyleLab() {
                         Badge
                       </span>
                     </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="border border-white/10 bg-black/20 p-4 lg:col-span-2">
+                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                  Governance Report
+                </div>
+
+                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.75fr)]">
+                  <div className="grid gap-2">
+                    {governanceRows.map(([label, value]) => (
+                      <div
+                        key={label}
+                        className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 border border-white/10 bg-white/[0.03] p-2"
+                      >
+                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                          {label}
+                        </span>
+                        <span className="truncate font-mono text-[10px] text-slate-200">
+                          {value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="min-w-0 border border-white/10 bg-black/20 p-3">
+                    <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">
+                      Issues
+                    </div>
+                    {governanceIssues.length > 0 ? (
+                      <div className="grid gap-2">
+                        {governanceIssues.map((issue) => (
+                          <div
+                            key={`${issue.path}:${issue.code}`}
+                            className="min-w-0 border border-white/10 bg-white/[0.03] p-2"
+                          >
+                            <div className="truncate font-mono text-[10px] text-amber-100">
+                              {issue.code}
+                            </div>
+                            <div className="mt-1 truncate font-mono text-[9px] text-slate-500">
+                              {issue.path}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-200">
+                        none
+                      </div>
+                    )}
                   </div>
                 </div>
               </section>

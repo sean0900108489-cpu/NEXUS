@@ -160,6 +160,7 @@ Run id: `20260529-163524+1000`
 | Style System Phase Doc Status Reconciliation V1 | PASS | Reconciled compiler, React Flow adapter, and Style Lab phase docs with current implementation evidence and safety boundaries. |
 | Pure Governance Preview Count Consistency Test V1 | PASS | Added focused test proving governance preview variable count matches actual preview patch variable count. |
 | Post Governance Preview Count Test Phase Gate | PASS | Full check passed after governance preview count consistency coverage; side-effect scan and git diff check passed. |
+| Style Runtime Preview Doc Reconciliation V1 | PASS | Reconciled runtime preview doc with pure target/controller implementation evidence while preserving provider, sync, backend, Supabase, and persistence boundaries. |
 
 ## Current Gate
 
@@ -172,4 +173,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Governance Preview Count Test Phase Gate local checkpoint prep. Source logic, Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Style Runtime Preview Doc Reconciliation V1 local checkpoint prep. Source logic, Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

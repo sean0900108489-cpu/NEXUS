@@ -2,7 +2,14 @@
 
 Phase: V5 - Local-Only Runtime Preview
 Run: `docs/style-system/execution-runs/20260529-163524+1000`
-Status: documentation-only runtime preview design. No provider or preview code implemented.
+Status: partially implemented pure local preview primitives. No app-level runtime provider, production route integration, persistence, or sync integration is implemented.
+
+## Implementation Evidence
+
+- `src/lib/style-engine/runtime-target.ts` provides a pure scoped variable target helper that applies a preview patch to an explicit target and records previous inline values for revert.
+- `src/lib/style-engine/runtime-controller.ts` provides a pure preview controller over that target helper. It previews one active patch at a time, reverts the prior active session before a new preview, returns cloned active-session snapshots, and rejects mismatched revert ids.
+- `src/lib/style-engine/runtime-target.test.ts` and `src/lib/style-engine/runtime-controller.test.ts` cover apply/revert behavior using fake style targets, not the real document.
+- The current implementation remains pure/local: no `useNexusStore`, workspace sync, backend route, Supabase/database, app shell provider, production React Flow behavior, or durable persistence path is involved.
 
 ## 0. Purpose
 
@@ -79,27 +86,27 @@ Forbidden in V5:
 
 ## 3. Preview Controller Contract
 
-Future controller responsibilities:
+Implemented pure controller responsibilities:
 
-- Accept `NexusCompiledStyleV1`.
+- Accept `NexusStylePreviewPatchV1` generated from safe compiled output.
 - Snapshot previous inline preview variables.
 - Apply compiled CSS variables to a scoped preview target.
 - Revert to the previous state.
-- Report active preview id/checksum and warnings.
+- Report active preview id/checksum through an active-session snapshot.
 
-Future direction, not implemented now:
+Current pure shape:
 
 ```ts
 type NexusStylePreviewControllerV1 = {
-  preview(compiled: NexusCompiledStyleV1): NexusStylePreviewSessionV1;
-  revert(sessionId: string): void;
+  preview(patch: NexusStylePreviewPatchV1): NexusStyleVariablePreviewSessionV1;
+  revert(previewId?: string): NexusStylePreviewControllerResultV1;
   clearAll(): void;
-  getActivePreview(): NexusStylePreviewSessionV1 | null;
+  getActivePreview(): NexusStyleVariablePreviewSessionV1 | null;
 };
 ```
 
-The controller must not accept raw manifest candidates. It accepts only compiled
-output from a safe manifest.
+The controller must not accept raw manifest candidates. It accepts only preview
+patches created from compiled output from a safe manifest.
 
 ## 4. CSS Injection Strategy
 
@@ -185,9 +192,9 @@ No browser smoke is required for this documentation-only pass.
 
 Lowest-risk implementation order:
 
-1. Pure helper for applying/removing an explicit variable map to a DOM element.
-2. Unit tests using a fake element, not the real document.
-3. Client preview controller that wraps the pure helper.
+1. Complete: pure helper for applying/removing an explicit variable map to a scoped style target.
+2. Complete: unit tests using a fake style target, not the real document.
+3. Pending: client preview controller wiring that wraps the pure helper in an isolated runtime surface.
 4. Isolated preview specimen surface.
 5. Browser smoke.
 

@@ -655,30 +655,36 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 40 Vitest files / 292 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing pure preview patch adapter variable emission, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import, graph behavior props, runtime provider logic change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `92df621e3b6bea8007827404caadbec03209c84c` for the Post Governance Preview Count Test Phase Gate.
+- Started `CP-145 - Style Runtime Preview Doc Reconciliation V1` after finding the runtime preview phase doc still described pure preview code as unimplemented.
+- Implemented `CP-145 - Style Runtime Preview Doc Reconciliation V1`.
+- Reconciled `style-runtime-preview-v1.md` with current pure runtime-target/controller implementation evidence while preserving that app-level provider, production route integration, workspace sync, backend, Supabase/database, and persistence integration are still not implemented.
+- Verified CP-145 with docs-only diff checks, status checks, and focused status/evidence review.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-144 - Post Governance Preview Count Test Phase Gate`.
-- Latest local checkpoint commit: pending CP-144 local commit; previous clean checkpoint commit is `c5ce07dacc5587656b1dca175f1f08db2e233845`.
+- Latest completed checkpoint: `CP-145 - Style Runtime Preview Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-145 local commit; previous clean checkpoint commit is `92df621e3b6bea8007827404caadbec03209c84c`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-144 verification: dirty only in CP-144 allowed run-doc files.
-- Current stop reason: not stopped; CP-144 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-145 verification: dirty only in CP-145 allowed docs files.
+- Current stop reason: not stopped; CP-145 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-144 - Local checkpoint commit prep`.
+- `CP-145 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `docs/style-system/style-runtime-preview-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, Style Lab/UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, pure style-engine logic changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all `src/**` source/test edits, Style Lab/UI source, production graph/app shell files, runtime provider integration code, `src/components/nexus/**`, CSS/global stylesheets, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only this CP-144 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+- Rollback: revert only the runtime preview doc reconciliation and this run-doc checkpoint update if the reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-144 run-doc checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-145 docs-only checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

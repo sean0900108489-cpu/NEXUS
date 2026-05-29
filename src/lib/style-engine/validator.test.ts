@@ -108,6 +108,37 @@ describe("NEXUS Style Engine manifest validator", () => {
     expect(JSON.stringify(report)).not.toContain("private.example");
   });
 
+  it("rejects file and blob URL strings without echoing payloads", () => {
+    const fileManifest = createSafeManifest();
+    fileManifest.source = {
+      kind: "imported-draft",
+      reference: "file:///Users/private/style-pack.json",
+    };
+    const blobManifest = createSafeManifest();
+    blobManifest.source = {
+      kind: "imported-draft",
+      reference: "blob:private-payload",
+    };
+
+    const fileReport = validateNexusStyleManifestV1(fileManifest);
+    const blobReport = validateNexusStyleManifestV1(blobManifest);
+
+    expect(fileReport.accepted).toBe(false);
+    expect(blobReport.accepted).toBe(false);
+    expect(fileReport.errors).toContainEqual({
+      code: "style.forbidden.url",
+      message: "Manifest contains a forbidden string value.",
+      path: "$.source.reference",
+    });
+    expect(blobReport.errors).toContainEqual({
+      code: "style.forbidden.url",
+      message: "Manifest contains a forbidden string value.",
+      path: "$.source.reference",
+    });
+    expect(JSON.stringify(fileReport)).not.toContain("/Users/private");
+    expect(JSON.stringify(blobReport)).not.toContain("private-payload");
+  });
+
   it("rejects data URL strings without echoing payloads", () => {
     const manifest = createSafeManifest();
     manifest.source = {

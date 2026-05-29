@@ -1331,31 +1331,37 @@ Run id: `20260529-163524+1000`
 - Started `CP-282 - Validator Direct URL Doc Reconciliation V1`.
 - Reconciled manifest validator rules with CP-281 direct URL rejection coverage.
 - Verified CP-282 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
+- Created local checkpoint commit `d575224862097b1226c2ca22679e4bfd78aae9d3` for the Validator Direct URL Doc Reconciliation V1 unit.
+- Started `CP-283 - Pure Validator File Blob URL Guard V1`.
+- Added a pure validator guard for `file:` and `blob:` URL strings.
+- Added focused validator coverage proving file/blob URL rejection does not echo local path or blob payload text.
+- Verified CP-283 with focused validator Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-282 - Validator Direct URL Doc Reconciliation V1`.
-- Latest recorded checkpoint commit: `99b949dc147bbb81cc07e0ef20e6f3a5dda8e47e` for `CP-281 - Pure Validator Direct URL Guard V1`; CP-282 is being prepared for local commit.
+- Latest completed checkpoint: `CP-283 - Pure Validator File Blob URL Guard V1`.
+- Latest recorded checkpoint commit: `d575224862097b1226c2ca22679e4bfd78aae9d3` for `CP-282 - Validator Direct URL Doc Reconciliation V1`; CP-283 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-282 verification prep: dirty only in CP-282 allowed manifest validator rules doc and run-doc files.
-- Current stop reason: not stopped; CP-282 direct URL doc reconciliation checkpoint is underway.
+- Confirmed current status after CP-283 verification prep: dirty only in CP-283 allowed validator source/test and run-doc files.
+- Current stop reason: not stopped; CP-283 file/blob URL guard checkpoint is underway.
 
 ## In Progress
 
-- `CP-282 - Local checkpoint commit prep`.
+- `CP-283 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/manifest-validator-rules.md`
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, docs outside the listed validator rules doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-282 manifest validator rules doc/run-doc changes if this reconciliation must be removed.
+- Forbidden files: docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused validator Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-283 validator source/test/run-doc changes if this guard must be removed.
 
 ## Next
 
-1. Commit the CP-282 direct URL doc reconciliation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-283 file/blob URL guard checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

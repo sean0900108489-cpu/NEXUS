@@ -4668,3 +4668,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found the CP-281 direct URL validator test and matching manifest validator rules wording. Source-diff absence check showed no source/runtime diff for this docs-only unit. `git diff --check` passed.
 - Rollback note: revert only the CP-282 doc/run-doc changes if this reconciliation must be removed.
+
+## CP-283 - Pure Validator File Blob URL Guard V1
+
+- Unit: add a pure validator guard for `file:` and `blob:` URL strings so executable or local URL references fail closed without echoing payload text.
+- Allowed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused validator Vitest; targeted lint for touched validator files; `npm run typecheck`; targeted added-line side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run test -- --testTimeout 20000 src/lib/style-engine/validator.test.ts`; `npm run lint -- src/lib/style-engine/validator.ts src/lib/style-engine/validator.test.ts`; `npm run typecheck`; targeted added-line side-effect/behavior scan on the CP-283 diff; `git diff --check`.
+- Changed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused validator Vitest passed 1 file / 28 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Targeted added-line side-effect/behavior scan returned no matches for workspace/sync/backend/Supabase/deploy/production Nexus/React Flow behavior paths. `git diff --check` passed.
+- Rollback note: revert only the CP-283 validator source/test/run-doc changes if this guard must be removed.

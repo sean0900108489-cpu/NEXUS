@@ -49,6 +49,7 @@ const forbiddenStringPatterns: Array<{ code: string; pattern: RegExp }> = [
   { code: "style.forbidden.cssDeclarationList", pattern: /;\s*[-_a-z]+\s*:/i },
   { code: "style.forbidden.url", pattern: /\burl\s*\(/i },
   { code: "style.forbidden.url", pattern: /\b(?:https?|ftp):\/\//i },
+  { code: "style.forbidden.url", pattern: /\b(?:blob|file):/i },
   {
     code: "style.forbidden.cssVariableReference",
     pattern:

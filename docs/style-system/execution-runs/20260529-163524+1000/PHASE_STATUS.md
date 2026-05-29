@@ -25,7 +25,10 @@ Run id: `20260529-163524+1000`
 | V15 - Personal UI Factory | PASS | Added `personal-ui-factory.md`; no AI runtime, UI code, schema, marketplace, or deploy changes touched. |
 | V10-V15 Checkpoint Commit Prep | PASS | Consistency scan clean by scope; local checkpoint commit allowed. |
 | V10-V15 Local Checkpoint Commit | PASS | Commit `819c011f72bc39ae120f8479f760d92239515253` created; post-commit status was clean. |
-| Post-Commit Record Update | IN_PROGRESS | Recording V10-V15 checkpoint commit metadata. |
+| Post-Commit Record Update | PASS | Commit `934b13f2df5f0a8de2cdf9eb1f336eb2beeba911` created; post-commit status was clean. |
+| Pure Style Engine Implementation Gate | PASS | Source scope limited to `src/lib/style-engine/**`; no component, graph, store/sync, backend route, Supabase, package, deploy, or `exports/**` files touched. |
+| Pure Manifest Validator V1 | PASS | Added pure manifest types, validator, exports, and focused tests; Vitest, typecheck, lint, and diff checks passed. |
+| Pure Validator Local Checkpoint Commit | IN_PROGRESS | Staging and committing validator unit locally only. |
 
 ## Current Gate
 

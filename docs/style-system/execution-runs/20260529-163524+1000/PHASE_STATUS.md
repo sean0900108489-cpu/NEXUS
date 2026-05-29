@@ -142,6 +142,7 @@ Run id: `20260529-163524+1000`
 | Pure React Flow Adapter CSS Variables V1 | PASS | Added pure graph-scoped CSS variable emitter and tests; focused tests, typecheck, lint, diff check, and side-effect scan passed. |
 | Post React Flow Adapter Variables Phase Gate | PASS | Full check passed after the pure adapter variable emitter; side-effect scan and git diff check passed. |
 | Style Lab Graph Specimen Adapter Variables V1 | PASS | Applied pure adapter variables to isolated Style Lab graph specimen; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
+| Post Graph Adapter Specimen Phase Gate | PASS | Full check passed after isolated graph specimen adapter variables; side-effect scan and git diff check passed. |
 
 ## Current Gate
 
@@ -154,4 +155,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Style Lab Graph Specimen Adapter Variables V1 local checkpoint prep. Production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post Graph Adapter Specimen Phase Gate local checkpoint prep with source edits closed. Production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

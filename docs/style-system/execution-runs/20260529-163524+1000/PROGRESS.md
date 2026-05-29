@@ -553,31 +553,36 @@ Run id: `20260529-163524+1000`
 - Kept the change visual-only and local to `/style-lab`; no React Flow import, graph behavior prop, production graph/app shell file, runtime provider, CSS/global stylesheet, compiler wiring, store, sync, backend, Supabase, deploy config, or `exports/**` path was touched.
 - Verified CP-126 with focused adapter tests, typecheck, targeted lint, build, side-effect scans, and headless Chrome DOM smoke for graph adapter variables.
 - Cleaned up a stalled headless Chrome smoke process after the required DOM markers were captured; follow-up process scan found no remaining smoke process.
+- Created local checkpoint commit `aea8413ad66474838b624caa9b3879524b5aa72f` for the Style Lab Graph Specimen Adapter Variables V1 unit.
+- Started `CP-127 - Post Graph Adapter Specimen Phase Gate` with source edits closed.
+- Ran `CP-127 - Post Graph Adapter Specimen Phase Gate`.
+- Confirmed full `npm run check` passed: lint, typecheck, 40 Vitest files / 290 tests, and build.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import, graph behavior props, production graph/app shell file, runtime provider change, CSS/global stylesheet edit, compiler wiring, persistence, apply/save, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-126 - Style Lab Graph Specimen Adapter Variables V1`.
-- Latest local checkpoint commit: pending CP-126 local commit; previous clean checkpoint commit is `d21ec477ce4a3284d26e3b75ab48231d0866e24b`.
+- Latest completed checkpoint: `CP-127 - Post Graph Adapter Specimen Phase Gate`.
+- Latest local checkpoint commit: pending CP-127 local commit; previous clean checkpoint commit is `aea8413ad66474838b624caa9b3879524b5aa72f`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status before CP-126 commit prep: dirty only in CP-126 allowed files.
-- Current stop reason: not stopped; CP-126 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status before CP-127 commit prep: dirty only in CP-127 allowed files.
+- Current stop reason: not stopped; CP-127 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-126 - Local checkpoint commit prep`.
+- `CP-127 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, compiler wiring, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source edits during the gate, production graph/app shell files, Style Lab UI, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, compiler wiring, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only `src/components/style-engine/nexus-style-lab.tsx` and this unit's run-doc edits.
+- Rollback: revert only this CP-127 run-doc update if the phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-126 checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-127 docs-only phase-gate record if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

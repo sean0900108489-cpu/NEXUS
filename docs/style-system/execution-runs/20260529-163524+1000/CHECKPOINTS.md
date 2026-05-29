@@ -2807,3 +2807,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Static fetch returned status 200 and confirmed the page still exposes `Preview Vars 122`. Hydrated CDP smoke confirmed both Package and Review export textarea values contain `"reactFlow": "complete"`, `"windowModal": "complete"`, and `"previewVariableCount": 122`. No `codex-style-lab-chrome-profile-cp174` process remained afterward. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-174 run-doc update and remove any leftover `/tmp/codex-style-lab-chrome-profile-cp174*` artifact if the smoke bookkeeping must be removed.
+
+## CP-175 - Style Lab Window Modal Adapter Coverage Row V1
+
+- Unit: show `windowModal:complete` in the isolated Style Lab governance Adapter row, using existing compiler adapter coverage metadata without adding behavior or production wiring.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: style-engine pure logic, preview/compiler/governance/exchange files, app routes, CSS/global stylesheets, production components, `src/components/nexus/**`, store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: targeted Style Lab lint; `npm run typecheck`; `npm run build`; local `/style-lab` text smoke for `Adapter reactFlow:complete / windowModal:complete`; side-effect/forbidden-surface scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: local Next docs read for Client Components and `use client`; `apply_patch`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx`; `npm run typecheck`; `npm run build`; local `/style-lab` fetch smoke; targeted side-effect/forbidden-surface scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Targeted lint passed; `npm run typecheck` passed; `npm run build` passed with static `/style-lab` and the known edge-runtime warning only; local fetch smoke returned status 200 and confirmed `Adapter reactFlow:complete / windowModal:complete` plus `Preview Vars 122`. Targeted side-effect/behavior scans in the Style Lab/app scope had no matches for DOM/storage/fetch/clipboard/download path, `react-rnd`, live React Flow import, production UI import/edit, store/sync/backend/Supabase import or mutation path, deploy path, `exports/**`, or forbidden behavior keys. `git diff --check` passed.
+- Rollback note: revert only the Adapter row label change and this CP-175 run-doc checkpoint update if the Style Lab adapter coverage display must be removed.

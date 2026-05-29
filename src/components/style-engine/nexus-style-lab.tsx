@@ -449,7 +449,10 @@ export function NexusStyleLab() {
     ? String(Object.keys(runtime.activePreview.appliedVariables).length)
     : "none";
   const adapterCoverageLabel = compiled.accepted
-    ? `reactFlow:${compiled.style.report.adapterCoverage.reactFlow}`
+    ? [
+        `reactFlow:${compiled.style.report.adapterCoverage.reactFlow}`,
+        `windowModal:${compiled.style.report.adapterCoverage.windowModal}`,
+      ].join(" / ")
     : "blocked";
   const compiledVariableCountLabel = compiled.accepted
     ? String(compiled.style.report.emittedVariableCount)

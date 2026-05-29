@@ -845,30 +845,38 @@ Run id: `20260529-163524+1000`
 - Ran isolated headless Chrome CDP smoke against hydrated Export Text textarea values.
 - Confirmed Package and Review export text both include `adapterCoverage.reactFlow = complete`, `adapterCoverage.windowModal = complete`, and `previewVariableCount = 122`.
 - Confirmed no isolated `codex-style-lab-chrome-profile-cp174` process remained afterward.
+- Created local checkpoint commit `f04005379812340b3b9672041d9b5e76a600b340` for the Style Lab Export Window Modal Metadata Smoke V1 unit.
+- Started `CP-175 - Style Lab Window Modal Adapter Coverage Row V1`.
+- Re-read local Next docs for Server/Client Components and the `use client` directive before editing the client component.
+- Implemented `CP-175 - Style Lab Window Modal Adapter Coverage Row V1`.
+- The isolated Style Lab governance Adapter row now displays `reactFlow:complete / windowModal:complete`.
+- Confirmed style-engine pure logic, preview/compiler/governance/exchange, app routes, CSS, production components, `src/components/nexus/**`, store/sync/backend/Supabase, deploy files, and `exports/**` were not changed.
+- Verified CP-175 with targeted Style Lab lint, typecheck, build, local `/style-lab` text smoke, side-effect scans, diff check, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-174 - Style Lab Export Window Modal Metadata Smoke V1`.
-- Latest local checkpoint commit: pending CP-174 local commit; previous clean checkpoint commit is `04f1e2d1462a827a3f08ee76c5a5db1dc25be9e9`.
+- Latest completed checkpoint: `CP-175 - Style Lab Window Modal Adapter Coverage Row V1`.
+- Latest local checkpoint commit: pending CP-175 local commit; previous clean checkpoint commit is `f04005379812340b3b9672041d9b5e76a600b340`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-174 verification: dirty only in CP-174 allowed run-doc files.
-- Current stop reason: not stopped; CP-174 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-175 verification: dirty only in CP-175 allowed Style Lab/run-doc files.
+- Current stop reason: not stopped; CP-175 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-174 - Local checkpoint commit prep`.
+- `CP-175 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all repo source/test edits, user Chrome profile mutation, UI/CSS/production component files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: style-engine pure logic, preview/compiler/governance/exchange files, app routes, CSS/global stylesheets, production components, `src/components/nexus/**`, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-174 run-doc update if the smoke bookkeeping must be removed.
+- Rollback: revert only the CP-175 Style Lab Adapter row/run-doc update if the display change must be removed.
 
 ## Next
 
-1. Commit the CP-174 smoke checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-175 implementation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

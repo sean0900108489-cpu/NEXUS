@@ -2,7 +2,20 @@
 
 Phase: V3 - Safety Validator
 Run: `docs/style-system/execution-runs/20260529-163524+1000`
-Status: documentation-only validator rulebook. No validator code implemented.
+Status: partially implemented pure validator. Runtime persistence, workspace sync, backend, Supabase/database, deploy, and production UI integration are not implemented.
+
+## Implementation Evidence
+
+- `src/lib/style-engine/validator.ts` implements pure V1 validation for top-level shape, identity, source metadata, intent, required constraints, required token groups/tokens, unsafe string patterns, recipe behavior-key scanning, React Flow behavior-key scanning, primary text contrast, and deterministic display-safe reports.
+- `src/lib/style-engine/validator.test.ts` covers safe manifest acceptance, unsafe string redaction, recipe behavior rejection, React Flow behavior rejection, workspace/backend top-level pollution rejection, and required `recipes.commandPalette` group rejection.
+- The validator is used before compilation by `src/lib/style-engine/compiler.ts`; invalid manifests fail closed without partial compiled output.
+- The current implementation is local-only and pure. It does not mutate workspace state, sync queues, backend routes, Supabase/database, DOM, external services, deploy config, or `exports/**`.
+
+Known remaining gaps:
+
+- Token value parsing is still conservative pattern scanning, not a full structured CSS/value parser.
+- Optional recipe completeness warnings and focus-style recipe analysis are not implemented.
+- Accessibility validation currently covers primary text contrast and high-contrast intent warning only.
 
 ## 0. Validator Purpose
 
@@ -158,6 +171,9 @@ Warning if optional recipe groups are empty.
 
 Error if required semantic references point to unknown tokens.
 
+Current required recipe groups include `panel`, `button`, `input`, `badge`,
+`window`, `modal`, `commandPalette`, and `dock`.
+
 ## 7. Recipe Rules
 
 Reject recipes that include:
@@ -235,9 +251,13 @@ V1-V12 Style Engine assets are not durable workspace data.
 
 ## 10. Accessibility Rules
 
-At V3 documentation stage these are rule requirements for future implementation:
+Current implementation status:
 
-- Primary text contrast must pass the project-defined threshold.
+- Primary text contrast is validated against the project-defined threshold.
+- Missing high-contrast intent produces a warning, not a hard rejection.
+
+Future implementation requirements:
+
 - Focus state must be present for buttons and inputs.
 - Disabled state must be distinguishable from default state.
 - Destructive state must not rely on color alone where labels/icons exist.
@@ -250,7 +270,7 @@ Error if a recipe removes focus styles.
 
 ## 11. Validator Report Shape
 
-Future report direction:
+Current pure report shape:
 
 ```ts
 type NexusStyleValidationReportV1 = {

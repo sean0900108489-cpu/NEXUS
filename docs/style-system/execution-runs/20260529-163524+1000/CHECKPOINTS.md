@@ -3179,3 +3179,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Static local `/style-lab` fetch returned status 200 and confirmed page markup includes `commandPalette`, `windowModal`, and `Preview Vars 122`. Isolated headless Chrome loaded `/style-lab`, read 3 textareas, and confirmed export payload text includes `"commandPalette"`, `"windowModal"`, and `"previewVariableCount": 122`. Cleanup checks found no matching CP-195 Chrome process and no remaining CP-195 temporary Chrome profile. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: remove only this CP-195 run-doc checkpoint entry and any temporary CP-195 profile artifacts if the smoke bookkeeping must be removed.
+
+## CP-196 - Manifest Validator Rules Doc Reconciliation V1
+
+- Unit: reconcile the manifest validator rules doc with the current pure validator implementation and CP-193 command palette required-group coverage.
+- Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all `src/**`, tests, UI/CSS/app routes, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused doc evidence scan for current validator implementation, command palette group coverage, and remaining gaps; stale marker scan for old documentation-only/no-code wording; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused `rg` evidence scan; focused `rg` stale marker scan; `git diff --check`; `git diff --stat`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found the partially implemented pure validator status, implementation evidence, `recipes.commandPalette` coverage, remaining-gaps note, and current pure report shape. Stale marker scan returned no matches for the old documentation-only/no-code/future-report wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
+- Rollback note: revert only the CP-196 validator doc reconciliation and this run-doc checkpoint if the wording must be removed.

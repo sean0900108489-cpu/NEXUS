@@ -967,30 +967,35 @@ Run id: `20260529-163524+1000`
 - Ran static local `/style-lab` fetch smoke and confirmed status 200 with `commandPalette`, `windowModal`, and `Preview Vars 122` present.
 - Ran isolated headless Chrome CDP textarea smoke and confirmed 3 textareas with export payload text containing `"commandPalette"`, `"windowModal"`, and `"previewVariableCount": 122`.
 - Confirmed no matching CP-195 Chrome process or temporary Chrome profile remained after cleanup.
+- Created local checkpoint commit `3d03c8cc7f97bea5c5f82a40163c3f1e856ed757` for the Style Lab Export Command Palette Smoke V1 unit.
+- Started `CP-196 - Manifest Validator Rules Doc Reconciliation V1`.
+- Reconciled `manifest-validator-rules.md` with the current pure validator implementation evidence, command palette required-group coverage, current report shape, and remaining gaps.
+- Verified CP-196 with focused evidence scan, stale marker scan, `git diff --check`, diff stat, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-195 - Style Lab Export Command Palette Smoke V1`.
-- Latest local checkpoint commit: pending CP-195 local commit; previous clean checkpoint commit is `cd841d4260b0a38788c8e8056e8f5832c2b95f96`.
+- Latest completed checkpoint: `CP-196 - Manifest Validator Rules Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-196 local commit; previous clean checkpoint commit is `3d03c8cc7f97bea5c5f82a40163c3f1e856ed757`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-195 verification: clean before run-doc bookkeeping; dirty only in CP-195 allowed run-doc files after this update.
-- Current stop reason: not stopped; CP-195 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-196 verification: dirty only in CP-196 allowed docs and run-doc files.
+- Current stop reason: not stopped; CP-196 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-195 - Local checkpoint commit prep`.
+- `CP-196 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the smoke, UI/CSS/production component files, docs outside run docs, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, user Chrome profile mutation, and `exports/**`.
+- Forbidden files: all source/test edits, UI/CSS/production component files, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-195 run-doc update if the smoke bookkeeping must be removed.
+- Rollback: revert only the CP-196 docs/run-doc update if the validator doc reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-195 smoke checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-196 docs checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

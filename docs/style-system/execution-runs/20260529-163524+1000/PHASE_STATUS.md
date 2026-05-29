@@ -211,6 +211,7 @@ Run id: `20260529-163524+1000`
 | Pure Validator Command Palette Required Group Test V1 | PASS | Added pure validator coverage proving `recipes.commandPalette` is a required V1 recipe group. |
 | Post Pure Coverage Phase Gate | PASS | Full check passed after pure preview/governance/validator coverage additions; side-effect scan and git diff check passed. |
 | Style Lab Export Command Palette Smoke V1 | PASS | Source-closed local smoke confirmed Style Lab export text includes `commandPalette`, `windowModal`, and `previewVariableCount: 122`. |
+| Manifest Validator Rules Doc Reconciliation V1 | PASS | Reconciled validator rules doc with current pure validator implementation, command palette required-group coverage, and remaining gaps. |
 
 ## Current Gate
 
@@ -223,4 +224,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Style Lab Export Command Palette Smoke local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Manifest Validator Rules Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

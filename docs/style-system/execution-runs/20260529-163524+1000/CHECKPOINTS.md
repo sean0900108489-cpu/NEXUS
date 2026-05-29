@@ -2063,3 +2063,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. `style-lab` returned HTTP 200. The first headless Chrome dump-DOM attempt hit a harness timeout without product evidence; a process scan found no lingering smoke process. The lighter local HTML smoke then passed and found the rendered marker `Adapter reactFlow:complete`. `git diff --check` passed and git status remained dirty only in CP-131 run docs.
 - Rollback note: revert only this CP-131 run-doc update if the smoke bookkeeping must be removed.
+
+## CP-132 - Pure Preview Patch Graph Adapter Variables V1
+
+- Unit: include pure React Flow adapter CSS variables in local preview patches so compiled graph visual output can travel through the existing runtime-local preview boundary without touching UI or production graph behavior.
+- Allowed files:
+  - `src/lib/style-engine/preview.ts`
+  - `src/lib/style-engine/preview.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: Style Lab/UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, compiler changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `git diff --check`; focused Vitest for `preview`, `react-flow-adapter`, `compiler`, and `runtime-controller`; `npm run typecheck`; isolated style-engine lint; `npm run build`; targeted side-effect/import scan.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/preview.test.ts src/lib/style-engine/react-flow-adapter.test.ts src/lib/style-engine/compiler.test.ts src/lib/style-engine/runtime-controller.test.ts`; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; `npm run build`; targeted side-effect/import scan; source-only side-effect/import scan excluding tests.
+- Changed files:
+  - `src/lib/style-engine/preview.ts`
+  - `src/lib/style-engine/preview.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 4 files and 18 tests; typecheck passed; isolated style-engine lint passed; `npm run build` passed with static `/style-lab` and the known edge-runtime warning only; `git diff --check` passed. Side-effect scans found only the pure preview patch consumption of the adapter CSS-variable emitter, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import, graph behavior props, runtime provider change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
+- Rollback note: revert only the preview patch graph-variable edits and this run-doc checkpoint update if the pure preview patch adapter-variable unit must be removed.

@@ -1,4 +1,5 @@
 import type { NexusCompiledStyleV1 } from "./compiler";
+import { emitReactFlowAdapterCssVariablesV1 } from "./react-flow-adapter";
 
 export type NexusStylePreviewPatchV1 = {
   previewId: string;
@@ -18,6 +19,7 @@ export function createNexusStylePreviewPatchV1(
   const variables = sortStringRecord({
     ...style.cssVariables,
     ...style.legacyCssVariables,
+    ...emitReactFlowAdapterCssVariablesV1(style.adapters.reactFlow),
   });
 
   return {

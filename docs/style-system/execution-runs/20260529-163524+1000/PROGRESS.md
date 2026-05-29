@@ -386,30 +386,36 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 39 Vitest files / 284 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live validation behavior change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, React Flow behavior path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `6a32794bb8186e155190e8433f257b1e3d5b253d` for the Post Governance Version Phase Gate.
+- Started `CP-099 - Style Lab Active Preview Interaction Smoke V1` with source edits closed.
+- Ran `CP-099 - Style Lab Active Preview Interaction Smoke V1`.
+- Confirmed headless Chrome CDP can click Preview and see runtime status `previewing`, `Active Preview`, `Preview Checksum`, and active preview excerpt `legacy-cyberpunk:nexus-style-fnv1a32:39201c40`.
+- Repaired two smoke harness issues while keeping source edits closed: an early execution-context timing retry and an `innerText`/CSS-uppercase case-sensitive id assertion.
+- Confirmed `git diff --check` passed and no headless Chrome process remained after the smoke.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-098 - Post Governance Version Phase Gate`.
-- Latest local checkpoint commit: pending CP-098 local commit; previous clean checkpoint commit is `3308b44b65e5c6db558469327c5e5158b7e3426e`.
+- Latest completed checkpoint: `CP-099 - Style Lab Active Preview Interaction Smoke V1`.
+- Latest local checkpoint commit: pending CP-099 local commit; previous clean checkpoint commit is `6a32794bb8186e155190e8433f257b1e3d5b253d`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status before CP-098 commit prep: dirty only in CP-098 allowed files.
-- Current stop reason: not stopped; CP-098 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status before CP-099 commit prep: dirty only in CP-099 allowed files.
+- Current stop reason: not stopped; CP-099 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-098 - Local checkpoint commit prep`.
+- `CP-099 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source edits during the gate, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
-- Rollback: revert only this CP-098 run-doc update if the phase gate bookkeeping must be removed.
+- Forbidden files: all source edits during the smoke, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: headless Chrome CDP smoke on `/style-lab` that clicks Preview and checks `previewing`, `Active Preview`, and `Preview Checksum`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Rollback: revert only this CP-099 run-doc update if the smoke checkpoint bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-098 docs-only checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-099 docs-only checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

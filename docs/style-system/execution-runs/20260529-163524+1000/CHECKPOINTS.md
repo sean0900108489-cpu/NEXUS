@@ -1530,3 +1530,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 39 Vitest files / 284 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only validator/normalizer detector strings and test-only guard cases; source-only matches were limited to inert type literals, forbidden-string detector patterns, and validator scanner function names. No live validation behavior change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, React Flow behavior path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed.
 - Rollback note: revert only this CP-098 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-099 - Style Lab Active Preview Interaction Smoke V1
+
+- Unit: verify the isolated Style Lab active preview rows update after a local Preview interaction, without changing source code.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source edits during the smoke, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: headless Chrome CDP smoke on `http://localhost:3000/style-lab` that clicks Preview and checks `previewing`, `Active Preview`, and `Preview Checksum`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: headless Chrome CDP smoke on `http://localhost:3000/style-lab`; `git diff --check`; `git status --porcelain=v1 -b`; headless Chrome process scan.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Final CDP smoke clicked Preview and verified `previewing`, active preview visibility, checksum visibility, and active preview excerpt `legacy-cyberpunk:nexus-style-fnv1a32:39201c40`. The first harness attempt hit an early destroyed execution context during page load, and the second confirmed Preview changed state but used `innerText` with CSS-uppercase text for a case-sensitive id assertion; both were harness issues and the final `textContent`-based smoke passed. `git diff --check` passed and no headless Chrome process remained.
+- Rollback note: revert only this CP-099 run-doc update if the smoke checkpoint bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.

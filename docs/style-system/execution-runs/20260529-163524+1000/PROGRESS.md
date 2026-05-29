@@ -1008,32 +1008,36 @@ Run id: `20260529-163524+1000`
 - Added a pure compiler guard that rejects manifests when the emitted CSS variable output exceeds `constraints.maxCssVariableCount`.
 - Added focused compiler coverage proving an over-limit compile returns `style.variableCountExceeded` and no accepted style payload.
 - Verified CP-204 with focused compiler/governance/exchange Vitest using a recoverable longer-timeout retry after the known 5s timeout pattern, targeted lint, `npm run typecheck`, targeted side-effect/behavior scans, `git diff --check`, and status check.
+- Created local checkpoint commit `4d09b9fad20b29e1077cd7b7b6b2a5ee00dd776d` for the Pure Compiler Variable Limit Guard V1 unit.
+- Started `CP-205 - Compiler Variable Limit Doc Reconciliation V1`.
+- Reconciled `compiler-v1-contract.md` and `manifest-v1-spec.md` with the CP-204 emitted CSS variable count guard.
+- Verified CP-205 with focused evidence scan, stale wording scan, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-204 - Pure Compiler Variable Limit Guard V1`.
-- Latest local checkpoint commit: pending CP-204 local commit; previous clean checkpoint commit is `5faf02a81cb850b3eaa80abad60af33dee8f08fb`.
+- Latest completed checkpoint: `CP-205 - Compiler Variable Limit Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-205 local commit; previous clean checkpoint commit is `4d09b9fad20b29e1077cd7b7b6b2a5ee00dd776d`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-204 verification: dirty only in CP-204 allowed compiler/test/run-doc files.
-- Current stop reason: not stopped; CP-204 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-205 verification: dirty only in CP-205 allowed docs and run-doc files.
+- Current stop reason: not stopped; CP-205 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-204 - Local checkpoint commit prep`.
+- `CP-205 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/compiler.ts`
-  - `src/lib/style-engine/compiler.test.ts`
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/manifest-v1-spec.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: all source/test edits, UI/TSX/app route/CSS files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-204 compiler/test/run-doc update if the variable-limit guard must be removed.
+- Rollback: revert only the CP-205 docs/run-doc reconciliation if this wording must be removed.
 
 ## Next
 
-1. Commit the CP-204 pure compiler checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-205 docs checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

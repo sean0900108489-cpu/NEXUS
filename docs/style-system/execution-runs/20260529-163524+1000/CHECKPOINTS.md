@@ -3334,3 +3334,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS with recoverable timeout retry. The first focused Vitest command hit the known 5s timeout pattern in one compiler, governance, and exchange test while assertions were otherwise unrelated to the new guard. The same focused files passed with `--testTimeout 20000` at 3 files / 17 tests. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found no DOM/window/document/storage/fetch/clipboard/download/store/sync/backend/Supabase/deploy/exports path. Behavior scan matched only existing React Flow forbidden-key assertions in `compiler.test.ts`. `git diff --check` passed.
 - Rollback note: revert only the CP-204 compiler/test changes and this run-doc checkpoint if the compiler variable-limit guard must be backed out.
+
+## CP-205 - Compiler Variable Limit Doc Reconciliation V1
+
+- Unit: reconcile compiler and manifest docs with the CP-204 emitted variable count guard.
+- Allowed files:
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/manifest-v1-spec.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits, UI/TSX/app route/CSS files, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused doc evidence scan for CP-204 variable-limit behavior; stale wording scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused evidence scan; stale wording scan; `git diff --check`; `git diff --stat`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/manifest-v1-spec.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found the CP-204 `maxCssVariableCount` guard in compiler source, focused compiler test coverage, compiler contract wording, and manifest spec wording. Stale wording scan returned no matches for old V4 implementation-begins/future-only variable count wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
+- Rollback note: revert only the CP-205 docs/run-doc reconciliation if this wording must be backed out.

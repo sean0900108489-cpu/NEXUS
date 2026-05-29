@@ -10,6 +10,7 @@ Status: partially implemented pure compiler contract. Current implementation is 
 - `CP-130 - Post Compiler React Flow Adapter Output Phase Gate` passed full local verification after that compiler change.
 - `CP-169 - Pure Compiler Window Modal Recipe Output V1` made the pure compiler emit deterministic window/modal/command palette recipe adapter output and report `adapterCoverage.windowModal` as `complete`.
 - `CP-170 - Post Compiler Window Modal Adapter Output Phase Gate` passed full local verification after that compiler change.
+- `CP-204 - Pure Compiler Variable Limit Guard V1` made the pure compiler fail closed with `style.variableCountExceeded` when emitted CSS variables exceed `constraints.maxCssVariableCount`.
 - Current implementation remains pure data output: no DOM writes, store writes, sync, backend, Supabase, deployment, or `exports/**` paths are part of compiler execution.
 - Production component migration and durable persistence remain outside this compiler contract.
 
@@ -152,6 +153,11 @@ Bridge variables may mirror semantic outputs while migration is incomplete.
 They must not delete or reinterpret the existing `data-theme` presets until a
 later coverage gate proves compatibility.
 
+The compiler must count both namespaced CSS variables and legacy bridge
+variables before accepting output. If the emitted total is greater than
+`manifest.constraints.maxCssVariableCount`, compilation fails closed with
+`style.variableCountExceeded` and returns no compiled style payload.
+
 ## 5. Recipe Compilation Rules
 
 Compiler maps manifest recipes into component recipe variables.
@@ -259,18 +265,26 @@ If called with invalid input anyway, it should fail closed:
 
 It must not partially emit output for unsafe manifests.
 
-## 10. Future Test Plan
+Current fail-closed guardrails include:
 
-When V4 implementation begins, add focused unit tests only:
+- validator rejection propagation
+- emitted CSS variable count exceeding `constraints.maxCssVariableCount`
 
-- same manifest produces same output
+## 10. Current And Future Test Coverage
+
+Current focused compiler coverage includes:
+
+- same manifest produces deterministic output
 - legacy cyberpunk compiles to expected variables
-- soft OS sample compiles without cyberpunk-specific token names
-- raw CSS cannot reach compiler because validator rejects it
-- compiler emits no DOM/store/backend side effects
+- validator-rejected manifests do not produce compiled output
+- emitted variable totals are reported in compiler metadata
+- emitted variable totals exceeding `maxCssVariableCount` fail closed
 - React Flow adapter output excludes protected behavior fields
+- window/modal recipe adapter output is deterministic and visual-only
 
-No browser test is required for pure compiler implementation until preview/provider code exists.
+Future compiler-only coverage may add additional built-in preset fixtures, but
+browser tests remain outside this pure compiler contract unless preview/provider
+code is the unit under test.
 
 ## 11. Acceptance Gate
 

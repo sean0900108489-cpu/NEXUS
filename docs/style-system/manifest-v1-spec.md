@@ -9,7 +9,7 @@ Status: partially implemented pure manifest schema/types and local validation/co
 - `src/lib/style-engine/manifest.ts` defines `NexusStyleManifestV1`, token groups, required tokens, recipe groups, validation report types, and manifest version constants.
 - `src/lib/style-engine/presets.ts` provides built-in V1 manifests for legacy Cyberpunk and High Contrast Carbon.
 - `src/lib/style-engine/validator.ts` validates candidate shape and safety before compilation, including command palette recipe group presence and unknown recipe semantic token references.
-- `src/lib/style-engine/compiler.ts` accepts only validator-approved manifests and emits deterministic CSS variables, recipes, React Flow adapter output, window/modal recipe adapter output, and report metadata.
+- `src/lib/style-engine/compiler.ts` accepts only validator-approved manifests, emits deterministic CSS variables, recipes, React Flow adapter output, window/modal recipe adapter output, and report metadata, and fails closed if emitted CSS variables exceed `constraints.maxCssVariableCount`.
 - The manifest remains data-only. It is not consumed directly by components, workspace state, sync queues, backend routes, Supabase/database, deploy config, or `exports/**`.
 
 ## 0. Purpose
@@ -240,6 +240,7 @@ type NexusStyleConstraintsV1 = {
 
 Required values for V1:
 
+- `maxCssVariableCount` must be high enough for the compiler's namespaced variables plus legacy bridge variables, or compilation rejects the manifest with `style.variableCountExceeded`.
 - `allowRawCss: false`
 - `allowJavaScript: false`
 - `allowDynamicTailwind: false`

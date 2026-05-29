@@ -1349,32 +1349,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-286 - Pure Validator React Flow Visual Slot Warning V1`.
 - Added warning-only validator coverage for React Flow visual adapters that omit recommended `minimap` or `controls` visual slots.
 - Verified CP-286 with focused validator Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, and `git diff --check`.
+- Created local checkpoint commit `8985fbab7c73a9c060ec33d4b40a1669bb9c7ee3` for the Pure Validator React Flow Visual Slot Warning V1 unit.
+- Started `CP-287 - Validator React Flow Slot Warning Doc Reconciliation V1`.
+- Reconciled manifest validator rules with CP-286 React Flow visual adapter slot warning coverage.
+- Verified CP-287 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-286 - Pure Validator React Flow Visual Slot Warning V1`.
-- Latest recorded checkpoint commit: `40a4a910ed8583caa2fb35e656a5a763a90d3b7c` for `CP-285 - Post Validator URL Guard Phase Gate`; CP-286 is being prepared for local commit.
+- Latest completed checkpoint: `CP-287 - Validator React Flow Slot Warning Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `8985fbab7c73a9c060ec33d4b40a1669bb9c7ee3` for `CP-286 - Pure Validator React Flow Visual Slot Warning V1`; CP-287 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-286 verification prep: dirty only in CP-286 allowed validator source/test and run-doc files.
-- Current stop reason: not stopped; CP-286 React Flow visual slot warning checkpoint is underway.
+- Confirmed current status after CP-287 verification prep: dirty only in CP-287 allowed manifest validator rules doc and run-doc files.
+- Current stop reason: not stopped; CP-287 React Flow warning doc reconciliation checkpoint is underway.
 
 ## In Progress
 
-- `CP-286 - Local checkpoint commit prep`.
+- `CP-287 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.ts`
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused validator Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-286 validator source/test/run-doc changes if this warning must be removed.
+- Forbidden files: all source/test files, docs outside the listed validator rules doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-287 manifest validator rules doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-286 React Flow visual slot warning checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-287 React Flow warning doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

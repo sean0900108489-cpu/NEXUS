@@ -90,14 +90,18 @@ Run id: `20260529-163524+1000`
 - Added focused Vitest coverage proving the preset factory returns fresh manifests, validates, and compiles through the pure compiler.
 - Verified the preset unit with `git diff --check`, focused Vitest, `npm run typecheck`, isolated ESLint, and side-effect/import scans.
 - Created local checkpoint commit `5279b6149bc1a29690e71afda98eceb13bc05953` for the legacy Cyberpunk manifest factory.
+- Created local record commit `62a01218cd92f5061ebbf63d1b7820f1704b59c8` for the legacy preset checkpoint metadata.
+- Implemented pure local-only preview patch helper in `src/lib/style-engine/**`.
+- Added focused Vitest coverage proving deterministic patch creation, non-mutating apply/revert, and deletion of newly introduced preview variables on revert.
+- Verified the preview helper with `git diff --check`, focused Vitest, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
 
 ## In Progress
 
-- Post-commit record update for legacy Cyberpunk manifest factory.
+- Local checkpoint commit for pure preview patch V1.
 
 ## Next
 
-1. Commit this run-status record update.
-2. Re-confirm branch/status/HEAD.
-3. Continue with the next isolated unit only if status returns clean.
-4. Keep CSS, theme provider, components, graph, store/sync, backend route, Supabase, deploy, and `exports/**` changes out of scope.
+1. Stage run docs and `src/lib/style-engine/**`.
+2. Verify staged diff.
+3. Create a local checkpoint commit if checks pass.
+4. Continue with the next isolated unit only if status returns clean.

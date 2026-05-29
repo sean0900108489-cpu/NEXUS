@@ -5,6 +5,7 @@ import {
   type NexusStyleRecipesV1,
   type NexusStyleValidationIssueV1,
 } from "./manifest";
+import { createNexusStyleChecksumV1 } from "./checksum";
 import { validateNexusStyleManifestV1 } from "./validator";
 
 export const NEXUS_STYLE_COMPILER_VERSION = "nexus-style-compiler-v1" as const;
@@ -87,7 +88,7 @@ export function compileNexusStyleManifestV1(
       compilerVersion: NEXUS_STYLE_COMPILER_VERSION,
       cssVariables,
       legacyCssVariables,
-      manifestChecksum: stableChecksum(manifest),
+      manifestChecksum: createNexusStyleChecksumV1(manifest),
       manifestId: manifest.id,
       recipes,
       report: {
@@ -207,34 +208,6 @@ function sortRecord<T extends Record<string, unknown>>(record: T): T {
         isRecord(value) ? sortRecord(value) : value,
       ]),
   ) as T;
-}
-
-function stableChecksum(value: unknown) {
-  const canonical = JSON.stringify(stabilize(value));
-  let hash = 0x811c9dc5;
-
-  for (let index = 0; index < canonical.length; index += 1) {
-    hash ^= canonical.charCodeAt(index);
-    hash = Math.imul(hash, 0x01000193);
-  }
-
-  return `nexus-style-fnv1a32:${(hash >>> 0).toString(16).padStart(8, "0")}`;
-}
-
-function stabilize(value: unknown): unknown {
-  if (value === null || typeof value !== "object") {
-    return value;
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(stabilize);
-  }
-
-  return Object.fromEntries(
-    Object.entries(value as Record<string, unknown>)
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, nextValue]) => [key, stabilize(nextValue)]),
-  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

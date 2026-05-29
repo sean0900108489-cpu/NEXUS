@@ -42,7 +42,9 @@ Run id: `20260529-163524+1000`
 | Pure Accessibility Contrast V1 | PASS | Added contrast helper, validator gate, and focused tests; Vitest, typecheck, lint, side-effect scan, and diff checks passed. |
 | Accessibility Local Checkpoint Commit | PASS | Commit `a76e1c6693313f1521dd8c6dc7b631a47e1daf02` created; post-commit status was clean. |
 | Accessibility Record Update | PASS | Commit `4171fb93eb551d866d5bc3015508ed16e123b4cd` created; post-commit status was clean. |
-| Next Pure Unit Selection | IN_PROGRESS | Choosing the next low-risk helper inside `src/lib/style-engine/**`; broader runtime surfaces remain closed. |
+| Next Pure Unit Selection | PASS | Selected pure checksum/canonical JSON helper inside `src/lib/style-engine/**`; broader runtime surfaces remain closed. |
+| Pure Checksum Canonicalization V1 | PASS | Added shared checksum/canonical JSON helpers and tests; compiler uses the helper while preserving checksum prefix. |
+| Checksum Local Checkpoint Commit | IN_PROGRESS | Staging and committing checksum unit locally only. |
 
 ## Current Gate
 

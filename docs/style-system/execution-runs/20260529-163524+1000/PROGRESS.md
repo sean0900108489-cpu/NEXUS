@@ -102,14 +102,19 @@ Run id: `20260529-163524+1000`
 - Verified the contrast unit with `git diff --check`, focused Vitest, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
 - Created local checkpoint commit `a76e1c6693313f1521dd8c6dc7b631a47e1daf02` for the pure contrast helper and validator gate.
 - Created local record commit `4171fb93eb551d866d5bc3015508ed16e123b4cd` for the pure contrast checkpoint metadata.
+- Created local post-checkpoint record commit `1ef44e8c4ead2169f2addb2af68d60deff325682` before starting the next pure unit.
+- Implemented pure canonical JSON and checksum helpers in `src/lib/style-engine/**`.
+- Updated the compiler to use the shared checksum helper without changing the checksum prefix.
+- Added focused Vitest coverage for deterministic canonicalization and checksum output.
+- Verified the checksum unit with `git diff --check`, focused Vitest, full style-engine Vitest set, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
 
 ## In Progress
 
-- Selecting the next low-risk pure Style Engine unit.
+- Local checkpoint commit for pure checksum canonicalization V1.
 
 ## Next
 
-1. Keep the next implementation step inside `src/lib/style-engine/**` plus run docs unless a new gate opens a broader surface.
-2. Prefer pure import/export normalization or governance helpers before touching UI, DOM, CSS, graph, sync, backend, or Supabase paths.
-3. Reuse focused style-engine tests and side-effect scans for small units; reserve heavier checks for phase gates.
-4. Keep DOM, CSS, theme provider, components, graph, store/sync, backend route, Supabase, deploy, and `exports/**` changes out of scope unless a new gate explicitly opens them.
+1. Stage run docs and `src/lib/style-engine/**`.
+2. Verify staged diff.
+3. Create a local checkpoint commit if checks pass.
+4. Continue with a pure governance/import-export helper only if status returns clean.

@@ -1,4 +1,5 @@
 export * from "./accessibility";
+export * from "./checksum";
 export * from "./manifest";
 export * from "./validator";
 export * from "./compiler";

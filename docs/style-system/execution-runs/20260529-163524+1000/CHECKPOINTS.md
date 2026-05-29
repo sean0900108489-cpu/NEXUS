@@ -560,3 +560,22 @@ Each checkpoint records:
 - Commit created: `4171fb93eb551d866d5bc3015508ed16e123b4cd`.
 - Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
 - Rollback note: revert this metadata commit only if the checkpoint record must be corrected; do not touch unrelated history.
+
+## CP-038 - Pure Checksum Canonicalization V1
+
+- Unit: extract deterministic checksum and canonical JSON helpers for future import/export governance.
+- Allowed files:
+  - `src/lib/style-engine/**`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, DOM files, CSS files, theme provider files, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; targeted side-effect/import scan for DOM/store/Supabase/sync/React Flow imports, protected behavior class strings, and forbidden literals; `npm run test -- src/lib/style-engine/checksum.test.ts src/lib/style-engine/compiler.test.ts`; `npm run test -- src/lib/style-engine/validator.test.ts src/lib/style-engine/compiler.test.ts src/lib/style-engine/presets.test.ts src/lib/style-engine/preview.test.ts src/lib/style-engine/accessibility.test.ts src/lib/style-engine/checksum.test.ts`; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/checksum.ts`
+  - `src/lib/style-engine/checksum.test.ts`
+  - `src/lib/style-engine/compiler.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. Focused checksum/compiler tests passed, full style-engine test set passed, typecheck passed, isolated lint passed, diff check passed, and targeted side-effect/import scan returned no matches. Compiler checksum output remains on the existing `nexus-style-fnv1a32:` prefix.
+- Rollback note: revert only `src/lib/style-engine/checksum.ts`, `src/lib/style-engine/checksum.test.ts`, the compiler checksum import/call, the index export, and this run-doc checkpoint update if this pure checksum unit must be removed.

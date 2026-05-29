@@ -261,9 +261,17 @@ export function NexusStyleLab() {
     }));
   }, [baselineCompiled, compiled]);
   const latestDraftRejected = importResult ? !importResult.accepted : false;
+  const latestBriefRejected = briefResult ? !briefResult.draft?.accepted : false;
   const canPreview =
-    Boolean(previewPatch) && review.permissions.canPreview && !latestDraftRejected;
-  const runtimeStatus = latestDraftRejected ? "draft rejected" : previewState;
+    Boolean(previewPatch) &&
+    review.permissions.canPreview &&
+    !latestDraftRejected &&
+    !latestBriefRejected;
+  const runtimeStatus = latestDraftRejected
+    ? "draft rejected"
+    : latestBriefRejected
+      ? "brief rejected"
+      : previewState;
 
   const startPreview = () => {
     if (!previewPatch || !canPreview) {

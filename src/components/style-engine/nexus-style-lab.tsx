@@ -287,6 +287,9 @@ export function NexusStyleLab() {
   const activePreviewLabel = runtime.activePreview?.previewId ?? "none";
   const activePreviewChecksumLabel =
     runtime.activePreview?.manifestChecksum ?? "none";
+  const activePreviewVariableCountLabel = runtime.activePreview
+    ? String(Object.keys(runtime.activePreview.appliedVariables).length)
+    : "none";
   const adapterCoverageLabel = compiled.accepted
     ? `reactFlow:${compiled.style.report.adapterCoverage.reactFlow}`
     : "blocked";
@@ -320,6 +323,7 @@ export function NexusStyleLab() {
       ["Compiled Checksum", review.checksums.compiledOutput ?? "n/a"],
       ["Runtime Target", "scoped-provider-v1"],
       ["Active Preview", activePreviewLabel],
+      ["Active Vars", activePreviewVariableCountLabel],
       ["Preview Checksum", activePreviewChecksumLabel],
       ["Export", "text-only"],
       ["Persistence", "not-persistent"],
@@ -331,6 +335,7 @@ export function NexusStyleLab() {
     [
       activePreviewChecksumLabel,
       activePreviewLabel,
+      activePreviewVariableCountLabel,
       adapterCoverageLabel,
       compiledVariableCountLabel,
       intentProfileLabel,

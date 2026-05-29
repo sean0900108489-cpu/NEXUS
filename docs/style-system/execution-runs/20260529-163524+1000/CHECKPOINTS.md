@@ -2322,3 +2322,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. `git diff --check` passed. Focused doc scan confirmed the runtime preview doc now records pure target/controller evidence, scoped provider wiring in `src/app/page.tsx` and `src/app/style-lab/page.tsx`, isolated Style Lab preview usage, and still-explicit no workspace sync, backend, Supabase/database, persistence, save/export-file, production React Flow behavior, or `nexus-ops.tsx` integration. No source, test, package, deploy, database, or `exports/**` files were changed.
 - Rollback note: revert only this CP-146 docs repair if the provider evidence wording must be removed.
+
+## CP-147 - Style Lab Active Preview Variable Count Row V1
+
+- Unit: add a display-only governance row in the isolated Style Lab showing the current active preview session's applied variable count after local Preview runs.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `src/app/**`, `src/components/nexus/**`, `src/components/style-engine/nexus-style-runtime-provider.tsx`, `src/lib/style-engine/**`, CSS/global stylesheets, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save/export-file behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `git diff --check`; focused runtime/preview tests; targeted lint; `npm run typecheck`; `npm run build`; targeted side-effect/import scan; local `/style-lab` smoke for the new display row.
+- Commands run: `apply_patch`; `git diff --check`; targeted side-effect/import scan; `npm run test -- src/lib/style-engine/runtime-controller.test.ts src/lib/style-engine/preview.test.ts`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run typecheck`; `npm run build`; Node `fetch` HTML smoke on `http://localhost:3000/style-lab`; headless Chrome CDP interaction smoke on `http://localhost:3000/style-lab`; process cleanup scan; `git status --porcelain=v1 -b`; `git diff --stat`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 2 files and 6 tests; targeted lint passed; typecheck passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only; `git diff --check` passed. Side-effect scan found only existing isolated pure React Flow adapter helper usage in Style Lab; no live React Flow behavior props, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, download/clipboard/save/export-file path, deploy path, or `exports/**` path was found. Static local smoke found `Active Vars` and `Preview Vars`; final headless Chrome CDP smoke clicked Preview and confirmed `Active Vars` reached `92` with `previewing` visible. Earlier CDP smoke attempts failed only due harness cleanup/session timing issues and were rerun successfully; no lingering smoke process remained.
+- Rollback note: revert only the isolated Style Lab display row and this run-doc checkpoint update if the active preview variable count row must be removed.

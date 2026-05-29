@@ -665,31 +665,37 @@ Run id: `20260529-163524+1000`
 - Implemented `CP-146 - Runtime Preview Doc Provider Evidence Repair V1`.
 - Repaired `style-runtime-preview-v1.md` to record pure runtime target/controller helpers, scoped `NexusStyleRuntimeProvider` wiring in `src/app/page.tsx` and `src/app/style-lab/page.tsx`, isolated Style Lab preview usage, and still-closed persistence, workspace sync, backend, Supabase/database, save/export-file, production React Flow behavior, and `nexus-ops.tsx` integration.
 - Verified CP-146 with docs-only diff checks, status checks, and focused provider/boundary evidence review.
+- Created local checkpoint commit `262b78ab1f762e0e2701a1574897f1969d854f82` for the Runtime Preview Doc Provider Evidence Repair V1 unit.
+- Started `CP-147 - Style Lab Active Preview Variable Count Row V1`.
+- Implemented `CP-147 - Style Lab Active Preview Variable Count Row V1`.
+- Added a display-only `Active Vars` row inside the isolated Style Lab governance report, derived from the current runtime active preview session's `appliedVariables` count.
+- Confirmed the row does not change preview/revert behavior, runtime provider internals, production graph, store, sync, backend, Supabase, deploy, save/export-file, or `exports/**`.
+- Verified CP-147 with focused runtime/preview tests, targeted lint, typecheck, build, side-effect scan, static `/style-lab` smoke, and headless Chrome CDP interaction smoke.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-146 - Runtime Preview Doc Provider Evidence Repair V1`.
-- Latest local checkpoint commit: pending CP-146 local commit; previous clean checkpoint commit is `2cdcdfcd91e2f0cca854f7ce9fc1dfc3e024eaab`.
+- Latest completed checkpoint: `CP-147 - Style Lab Active Preview Variable Count Row V1`.
+- Latest local checkpoint commit: pending CP-147 local commit; previous clean checkpoint commit is `262b78ab1f762e0e2701a1574897f1969d854f82`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-146 verification: dirty only in CP-146 allowed docs files.
-- Current stop reason: not stopped; CP-146 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-147 verification: dirty only in CP-147 allowed files.
+- Current stop reason: not stopped; CP-147 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-146 - Local checkpoint commit prep`.
+- `CP-147 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-runtime-preview-v1.md`
+  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all `src/**` source/test edits, UI behavior changes, production graph/app shell behavior changes, `src/components/nexus/**`, CSS/global stylesheets, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: `src/app/**`, `src/components/nexus/**`, `src/components/style-engine/nexus-style-runtime-provider.tsx`, `src/lib/style-engine/**`, CSS/global stylesheets, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save/export-file behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only this CP-146 docs repair if the provider evidence wording must be removed.
+- Rollback: revert only the isolated Style Lab display row and this run-doc checkpoint update if the active preview variable count row must be removed.
 
 ## Next
 
-1. Commit the CP-146 docs-only repair checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-147 source+run-doc checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

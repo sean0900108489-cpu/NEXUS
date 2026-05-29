@@ -1253,31 +1253,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-264 - Pure Validator Token Shape Coverage V1`.
 - Added focused validator coverage for missing token groups, missing semantic tokens, and invalid token values without changing validator implementation.
 - Verified CP-264 with focused validator Vitest, targeted lint, `npm run typecheck`, targeted side-effect/behavior scan on the CP-264 diff, and `git diff --check`.
+- Created local checkpoint commit `de176b3067d16e7f0bafd0a4f43e6630edece039` for the Pure Validator Token Shape Coverage V1 unit.
+- Started `CP-265 - Validator Token Shape Doc Reconciliation V1`.
+- Reconciled manifest validator rules with CP-264 token group/token/value coverage.
+- Verified CP-265 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-264 - Pure Validator Token Shape Coverage V1`.
-- Latest recorded checkpoint commit: `eb3324bec5abc8c196eba10963ba69a7c8a8a849` for `CP-263 - Validator Intent Constraints Doc Reconciliation V1`; CP-264 is being prepared for local commit.
+- Latest completed checkpoint: `CP-265 - Validator Token Shape Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `de176b3067d16e7f0bafd0a4f43e6630edece039` for `CP-264 - Pure Validator Token Shape Coverage V1`; CP-265 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-264 verification prep: dirty only in CP-264 allowed validator test and run-doc files.
-- Current stop reason: not stopped; CP-264 validator test coverage checkpoint is underway.
+- Confirmed current status after CP-265 verification prep: dirty only in CP-265 allowed docs files.
+- Current stop reason: not stopped; CP-265 doc reconciliation checkpoint is underway.
 
 ## In Progress
 
-- `CP-264 - Local checkpoint commit prep`.
+- `CP-265 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused validator Vitest, targeted lint, `npm run typecheck`, targeted side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-264 validator test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, docs outside the listed style-system doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-265 doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-264 validator coverage checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-265 doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

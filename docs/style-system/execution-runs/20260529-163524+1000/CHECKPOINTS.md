@@ -1210,3 +1210,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 39 Vitest files / 284 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only validator/normalizer detector strings and test-only guard cases; source-only matches were limited to inert type literals, forbidden-string detector patterns, and validator scanner function names. No live AI call, store/sync/backend/Supabase import or mutation path, React Flow behavior path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed.
 - Rollback note: revert only this CP-078 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-079 - Style Lab Preview Block Reason V1
+
+- Unit: make the local Style Lab preview blocked reason visible when Preview is disabled by rejected draft/brief or validation/governance state.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `git diff --check`; `npm run test -- src/lib/style-engine/intent-normalizer.test.ts src/lib/style-engine/intent-manifest.test.ts src/lib/style-engine/import-text.test.ts src/lib/style-engine/governance.test.ts`; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; targeted side-effect/import scan; headless Chrome smoke on `http://localhost:3000/style-lab`.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/intent-normalizer.test.ts src/lib/style-engine/intent-manifest.test.ts src/lib/style-engine/import-text.test.ts src/lib/style-engine/governance.test.ts`; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; targeted side-effect/import scan; source-only side-effect/import scan excluding tests; headless Chrome CDP smoke on `http://localhost:3000/style-lab`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 4 files and 19 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only. Side-effect scans found only validator/normalizer detector strings, inert type literals, scanner names, and test-only guard cases; no live AI call, store/sync/backend/Supabase import or mutation path, React Flow behavior path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found. Headless Chrome CDP verified rejected brief status shows `brief rejected`, the explicit `blocked / rejected brief` reason is visible, Preview is disabled, editing the brief clears the block reason and re-enables Preview, and a safe high-contrast brief loads without the block reason.
+- Rollback note: revert only `src/components/style-engine/nexus-style-lab.tsx` and this run-doc checkpoint update if the preview block reason unit must be removed.

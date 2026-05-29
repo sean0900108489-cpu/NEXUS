@@ -272,6 +272,17 @@ export function NexusStyleLab() {
     : latestBriefRejected
       ? "brief rejected"
       : previewState;
+  const previewBlockReason = canPreview
+    ? null
+    : latestDraftRejected
+      ? "blocked / rejected draft"
+      : latestBriefRejected
+        ? "blocked / rejected brief"
+        : !previewPatch
+          ? "blocked / compile"
+          : !review.permissions.canPreview
+            ? `blocked / ${review.permissions.reasonCodes[0] ?? review.state}`
+            : null;
 
   const startPreview = () => {
     if (!previewPatch || !canPreview) {
@@ -456,8 +467,15 @@ export function NexusStyleLab() {
                 {statusIcon}
                 {review.compatibility}
               </div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
-                {runtimeStatus}
+              <div className="grid justify-items-end gap-1">
+                <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                  {runtimeStatus}
+                </div>
+                {previewBlockReason ? (
+                  <div className="max-w-64 truncate font-mono text-[10px] uppercase tracking-[0.14em] text-amber-200">
+                    {previewBlockReason}
+                  </div>
+                ) : null}
               </div>
             </div>
 

@@ -104,6 +104,7 @@ Run id: `20260529-163524+1000`
 | Post Brief Intent Summary Phase Gate | PASS | Full check passed on rerun after one recoverable unrelated backend test timeout; side-effect scan and git diff check passed. |
 | Style Lab Persistence Boundary Row V1 | PASS | Added display-only not-persistent row to isolated Style Lab governance report; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
 | Post Persistence Boundary Phase Gate | PASS | Full check passed after the persistence boundary row; side-effect scan and git diff check passed. |
+| Style Lab Apply Reason Row V1 | PASS | Added display-only apply reason row to isolated Style Lab governance report; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
 
 ## Current Gate
 

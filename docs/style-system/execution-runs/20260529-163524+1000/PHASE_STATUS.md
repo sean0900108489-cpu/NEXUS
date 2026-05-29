@@ -151,6 +151,7 @@ Run id: `20260529-163524+1000`
 | Post Preview Patch Graph Adapter Variables Phase Gate | PASS | Full check passed after preview patch graph variables; side-effect scan and git diff check passed. |
 | Pure Governance Adapter Coverage Metadata V1 | PASS | Governance and exchange reviews now expose compiler adapter coverage metadata; focused checks, build, side-effect scan, and git diff check passed. |
 | Post Governance Adapter Coverage Phase Gate | PASS | Full check passed after governance/exchange adapter coverage metadata; side-effect scan and git diff check passed. |
+| Style Lab Export Adapter Coverage Smoke V1 | PASS | Source-closed local smoke confirmed Style Lab text-only export output includes `adapterCoverage.reactFlow=complete`. |
 
 ## Current Gate
 
@@ -163,4 +164,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Governance Adapter Coverage Phase Gate local checkpoint prep with source edits closed. Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Style Lab Export Adapter Coverage Smoke V1 local checkpoint prep with source edits closed. Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

@@ -3215,3 +3215,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused validator/compiler Vitest passed 2 files / 14 tests. Targeted lint passed. `npm run typecheck` passed. Side-effect/behavior scans matched only existing validator safety detector strings and test-only unsafe fixture strings for Supabase/deploy/themeConfig/nodesDraggable/zIndex. `git diff --check` passed.
 - Rollback note: revert only the CP-197 validator/test changes and this run-doc checkpoint if the unknown-token-reference guard must be backed out.
+
+## CP-198 - Validator Token Reference Doc Reconciliation V1
+
+- Unit: reconcile the manifest validator rules doc with the CP-197 unknown recipe token reference guard.
+- Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits, UI/CSS/app routes, production Nexus components, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused doc evidence scan for unknown recipe token reference coverage; stale marker scan for old required-reference wording; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused `rg` evidence scan; focused `rg` stale marker scan; `git diff --check`; `git diff --stat`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found validator test coverage for unknown recipe semantic token reference rejection and the updated rule that recipe semantic token references pointing to unknown tokens are errors. Stale marker scan returned no matches for the old required-reference wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
+- Rollback note: revert only the CP-198 validator doc reconciliation and this run-doc checkpoint if the wording must be removed.

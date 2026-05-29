@@ -7,7 +7,7 @@ Status: partially implemented pure validator. Runtime persistence, workspace syn
 ## Implementation Evidence
 
 - `src/lib/style-engine/validator.ts` implements pure V1 validation for top-level shape, identity, source metadata, intent, required constraints, required token groups/tokens, unsafe string patterns, recipe behavior-key scanning, React Flow behavior-key scanning, primary text contrast, and deterministic display-safe reports.
-- `src/lib/style-engine/validator.test.ts` covers safe manifest acceptance, unsafe string redaction, recipe behavior rejection, React Flow behavior rejection, workspace/backend top-level pollution rejection, and required `recipes.commandPalette` group rejection.
+- `src/lib/style-engine/validator.test.ts` covers safe manifest acceptance, unsafe string redaction, recipe behavior rejection, unknown recipe semantic token reference rejection, React Flow behavior rejection, workspace/backend top-level pollution rejection, and required `recipes.commandPalette` group rejection.
 - The validator is used before compilation by `src/lib/style-engine/compiler.ts`; invalid manifests fail closed without partial compiled output.
 - The current implementation is local-only and pure. It does not mutate workspace state, sync queues, backend routes, Supabase/database, DOM, external services, deploy config, or `exports/**`.
 
@@ -169,7 +169,7 @@ Minimum required semantic tokens:
 
 Warning if optional recipe groups are empty.
 
-Error if required semantic references point to unknown tokens.
+Error if recipe semantic token references point to unknown tokens.
 
 Current required recipe groups include `panel`, `button`, `input`, `badge`,
 `window`, `modal`, `commandPalette`, and `dock`.

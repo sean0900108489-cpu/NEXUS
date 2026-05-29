@@ -9,9 +9,11 @@ Status: partially implemented local runtime preview. Pure target/controller help
 - `src/lib/style-engine/runtime-target.ts` provides a pure scoped variable target helper that applies a preview patch to an explicit target and records previous inline values for revert.
 - `src/lib/style-engine/runtime-controller.ts` provides a pure preview controller over that target helper. It previews one active patch at a time, reverts the prior active session before a new preview, returns cloned active-session snapshots, and rejects mismatched revert ids.
 - `src/lib/style-engine/runtime-target.test.ts` and `src/lib/style-engine/runtime-controller.test.ts` cover apply/revert behavior using fake style targets, not the real document.
+- `src/lib/style-engine/preview.ts` creates deterministic local preview patches from compiled semantic variables, legacy bridge variables, React Flow adapter variables, and window/modal recipe adapter variables.
 - `src/components/style-engine/nexus-style-runtime-provider.tsx` wraps the pure controller in a client-only scoped provider with an explicit `data-nexus-style-runtime="v1"` target and local React state for the active preview session.
 - `src/app/page.tsx` wraps `NexusOps` in `NexusStyleRuntimeProvider` without editing `src/components/nexus/nexus-ops.tsx`.
 - `src/app/style-lab/page.tsx` wraps the isolated Style Lab in the same provider, and `src/components/style-engine/nexus-style-lab.tsx` uses the provider for local preview/revert controls.
+- `CP-173 - Style Lab Preview Recipe Variable Count Smoke V1` confirmed local Style Lab preview patches now expose `Preview Vars 122` and `Active Vars 122` after Preview is clicked.
 - The current implementation remains local-only: no `useNexusStore`, workspace sync, backend route, Supabase/database, production React Flow behavior props, durable persistence path, or save/export-file behavior is involved.
 
 ## 0. Purpose

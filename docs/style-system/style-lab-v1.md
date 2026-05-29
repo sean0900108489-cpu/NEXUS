@@ -10,6 +10,8 @@ Status: partially implemented isolated local Style Lab. No production app shell 
 - Its primitive specimen gallery includes Panel, Button, Input, Badge, specimen-only static Window/Agent Chrome/Datapad/Modal/Prompt Vault visual shells, and a visual-only Command Palette specimen.
 - The isolated window/modal recipe specimen set covers the documented migration-order visual targets without migrating production Datapad, Prompt Vault, Agent Window, modal, or command palette behavior.
 - Recent checkpoints added adapter coverage, preview variable counts, and text-only export/review metadata visibility without adding save/download/clipboard/backend persistence.
+- The governance Adapter row now displays `reactFlow:complete / windowModal:complete`; source-closed smoke confirmed Export Package and Review text include `adapterCoverage.windowModal = complete`.
+- The local preview patch now includes semantic, legacy, graph adapter, and window/modal recipe variables; source-closed smoke confirmed `Preview Vars 122` and `Active Vars 122`.
 - Style Lab state remains local to the route and scoped runtime provider; it does not enter `workspace.themeConfig`, workspace sync, backend routes, Supabase, or `workspace_state_entities`.
 - Production `nexus-ops.tsx`, production React Flow behavior, global CSS, deploy config, and `exports/**` remain outside the Style Lab implementation.
 

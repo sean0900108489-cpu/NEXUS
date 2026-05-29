@@ -2839,3 +2839,26 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS on rerun. The first full `npm run check` passed lint/typecheck but hit a known-style recoverable 5s timeout in `src/lib/backend/runtime/agent-runtime.test.ts`; a focused rerun of that file passed 12/12. The second full `npm run check` passed lint, typecheck, 41 Vitest files / 299 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries, and the window/modal recipe adapter forbidden behavior key registry; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-176 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-177 - Style System Phase Docs Reconciliation V1
+
+- Unit: reconcile phase-level docs with current window/modal recipe adapter compiler, preview, Style Lab, and smoke evidence after CP-169 through CP-176.
+- Allowed files:
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/style-runtime-preview-v1.md`
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/window-modal-recipe-system.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all `src/**` files, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused doc evidence scan for `adapterCoverage.windowModal`, `windowModal:complete`, `Preview Vars 122`, `Active Vars 122`, and updated compiler output shape; stale marker scan for current phase docs; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: focused phase-doc reads; `apply_patch`; focused `rg` evidence scan; stale `92` marker scan for current phase docs; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/style-runtime-preview-v1.md`
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/window-modal-recipe-system.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Phase docs now record compiler `adapters.windowModal`, `adapterCoverage.windowModal`, preview recipe variables, Style Lab `Preview Vars 122`, `Active Vars 122`, export metadata with `windowModal: complete`, and the Adapter row `reactFlow:complete / windowModal:complete`. Stale marker scan found no `Preview Vars 92`, `previewVariableCount=92`, or old single-adapter row marker in the reconciled phase docs. `git diff --check` passed and git status stayed dirty only in CP-177 allowed docs.
+- Rollback note: revert only these phase-doc reconciliation edits and this CP-177 run-doc checkpoint update if the docs reconciliation must be removed.

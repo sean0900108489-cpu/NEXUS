@@ -8,6 +8,8 @@ Status: partially implemented pure compiler contract. Current implementation is 
 
 - `CP-129 - Pure Compiler React Flow Adapter Output V1` made the pure compiler emit deterministic React Flow visual adapter output and report `adapterCoverage.reactFlow` as `complete`.
 - `CP-130 - Post Compiler React Flow Adapter Output Phase Gate` passed full local verification after that compiler change.
+- `CP-169 - Pure Compiler Window Modal Recipe Output V1` made the pure compiler emit deterministic window/modal/command palette recipe adapter output and report `adapterCoverage.windowModal` as `complete`.
+- `CP-170 - Post Compiler Window Modal Adapter Output Phase Gate` passed full local verification after that compiler change.
 - Current implementation remains pure data output: no DOM writes, store writes, sync, backend, Supabase, deployment, or `exports/**` paths are part of compiler execution.
 - Production component migration and durable persistence remain outside this compiler contract.
 
@@ -83,7 +85,8 @@ type NexusCompiledStyleV1 = {
     dock: Record<string, string>;
   };
   adapters: {
-    reactFlow?: NexusReactFlowStyleAdapterV1;
+    reactFlow: NexusReactFlowStyleAdapterV1;
+    windowModal: NexusWindowModalRecipeAdapterV1;
     nextThemes?: {
       dataTheme?: "cyberpunk" | "apple" | "tesla" | "terminal";
       colorScheme: "dark" | "light";
@@ -107,6 +110,7 @@ type NexusCompilerReportV1 = {
   legacyBridgeUsed: boolean;
   adapterCoverage: {
     reactFlow: "none" | "partial" | "complete";
+    windowModal: "none" | "partial" | "complete";
   };
 };
 ```

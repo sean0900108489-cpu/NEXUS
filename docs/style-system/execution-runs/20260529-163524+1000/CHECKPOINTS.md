@@ -3011,3 +3011,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Static local `/style-lab` fetch returned status 200 and confirmed `Window Specimen`, `Modal Specimen`, `Command Palette Specimen`, `Agent Chrome Specimen`, `Datapad Shell Specimen`, and `Prompt Vault Specimen`, plus key recipe variables including `--nexus-recipe-window-surface`, `--nexus-recipe-modal-surface`, `--nexus-recipe-command-palette-surface`, `--nexus-recipe-window-body-surface`, and `--nexus-recipe-modal-title-text`. Isolated headless Chrome wrote `/tmp/style-lab-cp186.png` and confirmed all labels; the first harness exited nonzero only because immediate profile deletion hit `ENOTEMPTY` after Chrome shutdown, then cleanup removed the temporary profile and confirmed no matching process remained. Screenshot verification confirmed PNG image data at 1440 x 1800 and 117776 bytes. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: remove only this CP-186 run-doc checkpoint entry and the temporary screenshot/profile artifacts if the smoke bookkeeping must be removed.
+
+## CP-187 - Style Lab Recipe Specimen Docs Reconciliation V1
+
+- Unit: reconcile the Style Lab and window/modal recipe phase docs with the latest evidence that all six isolated recipe specimens consume recipe-scoped variables and passed source-closed suite smoke.
+- Allowed files:
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/window-modal-recipe-system.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all `src/**`, tests, package/deploy/database/backend/store/sync/Supabase files, production component files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused doc evidence scan for recipe specimen variable consumption and CP-186 screenshot evidence; stale marker scan for old specimen/static wording and 92-count references; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: focused `rg` evidence scan; focused `rg` stale marker scan; `git diff --check`; `git diff --stat`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/window-modal-recipe-system.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found the six isolated recipe specimen variable-consumption statements, `Preview Vars 122` / `Active Vars 122`, `windowModal: complete`, and the nonempty 1440 x 1800 screenshot evidence in the Style Lab and window/modal recipe docs. Stale marker scan returned no matches for the old static-specimen status wording, old step-status wording, `Preview Vars 92`, `Active Vars 92`, or `previewVariableCount=92`. `git diff --check` passed and status showed only the two phase docs plus allowed run-doc updates.
+- Rollback note: revert only this CP-187 doc reconciliation and run-doc checkpoint if the evidence wording must be removed.

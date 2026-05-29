@@ -922,30 +922,37 @@ Run id: `20260529-163524+1000`
 - Ran isolated headless Chrome screenshot smoke against `/style-lab`; it wrote `/tmp/style-lab-cp186.png` and confirmed all six labels. The first harness exited nonzero only because immediate profile cleanup hit `ENOTEMPTY`; follow-up cleanup removed the temporary profile and confirmed no matching process remained.
 - Confirmed `/tmp/style-lab-cp186.png` is a nonempty PNG screenshot at 1440 x 1800 and 117776 bytes.
 - Confirmed `git diff --check` passed and status stayed clean before CP-186 run-doc bookkeeping.
+- Created local checkpoint commit `bb7becc145d98ce1c7f0eed835a429a8e21ec055` for the Style Lab Recipe Specimen Suite Smoke V1 unit.
+- Started `CP-187 - Style Lab Recipe Specimen Docs Reconciliation V1`.
+- Reconciled `style-lab-v1.md` with the fact that all six isolated recipe specimens now consume recipe-scoped CSS variables in the Style Lab specimen layer.
+- Reconciled `window-modal-recipe-system.md` with the recipe-variable specimen status, migration-order status, and CP-186 source-closed screenshot smoke evidence.
+- Verified CP-187 with focused evidence scan, stale marker scan, `git diff --check`, diff stat, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-186 - Style Lab Recipe Specimen Suite Smoke V1`.
-- Latest local checkpoint commit: pending CP-186 local commit; previous clean checkpoint commit is `45d4347bd41ee54c90718b9f549794a62b9331eb`.
+- Latest completed checkpoint: `CP-187 - Style Lab Recipe Specimen Docs Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-187 local commit; previous clean checkpoint commit is `bb7becc145d98ce1c7f0eed835a429a8e21ec055`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-186 verification: clean before run-doc bookkeeping; dirty only in CP-186 allowed run-doc files after this update.
-- Current stop reason: not stopped; CP-186 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-187 verification: dirty only in CP-187 allowed docs and run-doc files.
+- Current stop reason: not stopped; CP-187 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-186 - Local checkpoint commit prep`.
+- `CP-187 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/window-modal-recipe-system.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the smoke checkpoint, UI/CSS/production component files, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test edits during the doc reconciliation, UI/CSS/production component files, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-186 run-doc update if the smoke bookkeeping must be removed.
+- Rollback: revert only the CP-187 doc/run-doc update if the reconciliation bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-186 smoke checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-187 doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

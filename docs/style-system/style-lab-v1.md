@@ -9,9 +9,11 @@ Status: partially implemented isolated local Style Lab. No production app shell 
 - `/style-lab` is an isolated local route with validation, compiled token preview, comparison, export text views, local preview/revert controls, brief-to-draft flow, graph specimen, and governance rows.
 - Its primitive specimen gallery includes Panel, Button, Input, Badge, specimen-only static Window/Agent Chrome/Datapad/Modal/Prompt Vault visual shells, and a visual-only Command Palette specimen.
 - The isolated window/modal recipe specimen set covers the documented migration-order visual targets without migrating production Datapad, Prompt Vault, Agent Window, modal, or command palette behavior.
+- The six isolated recipe specimens now consume recipe-scoped CSS variables in the Style Lab specimen layer: Window and Agent Chrome/Datapad shell use `--nexus-recipe-window-*`, Modal and Prompt Vault use `--nexus-recipe-modal-*`, and Command Palette uses `--nexus-recipe-command-palette-*`.
 - Recent checkpoints added adapter coverage, preview variable counts, and text-only export/review metadata visibility without adding save/download/clipboard/backend persistence.
 - The governance Adapter row now displays `reactFlow:complete / windowModal:complete`; source-closed smoke confirmed Export Package and Review text include `adapterCoverage.windowModal = complete`.
 - The local preview patch now includes semantic, legacy, graph adapter, and window/modal recipe variables; source-closed smoke confirmed `Preview Vars 122` and `Active Vars 122`.
+- Source-closed recipe specimen suite smoke confirmed all six isolated recipe specimens render with key recipe variable markup and captured a nonempty 1440 x 1800 local screenshot.
 - Style Lab state remains local to the route and scoped runtime provider; it does not enter `workspace.themeConfig`, workspace sync, backend routes, Supabase, or `workspace_state_entities`.
 - Production `nexus-ops.tsx`, production React Flow behavior, global CSS, deploy config, and `exports/**` remain outside the Style Lab implementation.
 
@@ -51,7 +53,7 @@ Style Lab state must not enter:
 | Draft input | Paste/import style document or manifest candidate. | Does not execute or apply input. |
 | Validation report | Shows errors/warnings/info from validator. | Invalid manifests cannot preview. |
 | Token preview | Shows compiled semantic and legacy variables. | Output is display-safe. |
-| Primitive gallery | Shows Panel/Button/Input/Badge/Window/Agent Chrome/Datapad/Modal/Prompt Vault/Command Palette specimens. | Specimen-only, no production component migration. |
+| Primitive gallery | Shows Panel/Button/Input/Badge/Window/Agent Chrome/Datapad/Modal/Prompt Vault/Command Palette specimens with isolated recipe variable consumption for the window/modal recipe targets. | Specimen-only, no production component migration. |
 | Graph specimen | Shows adapter visuals in isolated graph sample. | No production graph behavior changes. |
 | Comparison | Compare baseline vs preview. | Revert is always available. |
 | Export | Export safe manifest/report text later. | No backend save in V11. |

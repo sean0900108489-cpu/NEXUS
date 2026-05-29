@@ -2,7 +2,7 @@
 
 Phase: V9 - Window And Modal Recipe System
 Run: `docs/style-system/execution-runs/20260529-163524+1000`
-Status: partially implemented isolated Style Lab static specimens plus pure recipe adapter/compiler/preview output. No production window/modal, Agent Window, Datapad, Prompt Vault, or command palette code changed.
+Status: partially implemented isolated Style Lab recipe-variable specimens plus pure recipe adapter/compiler/preview output. No production window/modal, Agent Window, Datapad, Prompt Vault, or command palette code changed.
 
 ## Implementation Evidence
 
@@ -14,9 +14,11 @@ Status: partially implemented isolated Style Lab static specimens plus pure reci
 - The Prompt Vault specimen is visual-only and does not modify `PromptVaultManager`, `motion`, fixed overlays, z-index tiers, scroll ownership, edit/copy/delete handlers, close behavior, clipboard calls, store hooks, or Supabase/backend flows.
 - The Command Palette specimen is a visual-only shell with no keyboard shortcut handling, filtering logic, command execution, focus behavior, close behavior, fixed overlay, or z-index tier change.
 - The recommended migration-order visual targets are now represented as isolated Style Lab specimens for Modal, Window, Command Palette, Datapad shell, Prompt Vault surface, and Agent Window chrome. Production visual migration has not started.
+- The isolated specimen layer now consumes recipe-scoped variables for all six migration-order targets: Window and Agent Chrome/Datapad shell use `--nexus-recipe-window-*`, Modal and Prompt Vault use `--nexus-recipe-modal-*`, and Command Palette uses `--nexus-recipe-command-palette-*`.
 - `src/lib/style-engine/window-modal-recipe-adapter.ts` provides a pure visual adapter for window, modal, and command palette recipe slots, plus deterministic `--nexus-recipe-*` variable emission.
 - `src/lib/style-engine/compiler.ts` emits `adapters.windowModal` and reports `adapterCoverage.windowModal = complete`.
 - `src/lib/style-engine/preview.ts` includes the window/modal recipe variables in local preview patches; source-closed Style Lab smoke confirmed `Preview Vars 122`, `Active Vars 122`, and export metadata with `windowModal: complete`.
+- Source-closed recipe specimen suite smoke confirmed all six isolated recipe specimens render with key recipe variable markup and captured a nonempty 1440 x 1800 local screenshot.
 - Production surfaces such as `src/components/nexus/nexus-ops.tsx`, `DatapadWindow`, `PromptVaultManager`, `AgentBranchModal`, and command palette behavior remain untouched.
 
 ## 0. Purpose
@@ -196,7 +198,7 @@ Recommended future order:
 
 Current run status:
 
-- Steps 1-6 have isolated Style Lab visual specimens.
+- Steps 1-6 have isolated Style Lab visual specimens consuming recipe-scoped variables in the specimen layer.
 - Production visual migration for steps 4-6 remains closed until a separate
   behavior-protected gate is opened.
 

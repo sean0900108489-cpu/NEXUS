@@ -285,6 +285,7 @@ export function NexusStyleLab() {
       ["Preview", review.permissions.canPreview ? "allowed" : "blocked"],
       ["Apply", review.permissions.canApply ? "allowed" : "blocked"],
       ["Apply Reason", review.permissions.reasonCodes.join(", ") || "none"],
+      ["Export", "text-only"],
       ["Persistence", "not-persistent"],
       ["Report", review.checksums.report],
     ],

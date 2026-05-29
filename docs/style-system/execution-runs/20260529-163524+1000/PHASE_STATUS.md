@@ -110,6 +110,7 @@ Run id: `20260529-163524+1000`
 | Post Export Boundary Phase Gate | PASS | Full check passed after the export boundary row; side-effect scan and git diff check passed. |
 | Style Lab Active Preview Row V1 | PASS | Added display-only active preview row to isolated Style Lab governance report; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
 | Post Active Preview Phase Gate | PASS | Full check passed after the active preview row; side-effect scan and git diff check passed. |
+| Style Lab Active Preview Checksum Row V1 | PASS | Added display-only active preview checksum row to isolated Style Lab governance report; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
 
 ## Current Gate
 

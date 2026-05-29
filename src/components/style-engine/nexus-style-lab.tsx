@@ -279,6 +279,8 @@ export function NexusStyleLab() {
     ];
   }, [briefResult]);
   const activePreviewLabel = runtime.activePreview?.previewId ?? "none";
+  const activePreviewChecksumLabel =
+    runtime.activePreview?.manifestChecksum ?? "none";
   const governanceRows = useMemo(
     () => [
       ["State", review.state],
@@ -287,11 +289,12 @@ export function NexusStyleLab() {
       ["Apply", review.permissions.canApply ? "allowed" : "blocked"],
       ["Apply Reason", review.permissions.reasonCodes.join(", ") || "none"],
       ["Active Preview", activePreviewLabel],
+      ["Preview Checksum", activePreviewChecksumLabel],
       ["Export", "text-only"],
       ["Persistence", "not-persistent"],
       ["Report", review.checksums.report],
     ],
-    [activePreviewLabel, review],
+    [activePreviewChecksumLabel, activePreviewLabel, review],
   );
   const governanceIssues = useMemo(
     () =>

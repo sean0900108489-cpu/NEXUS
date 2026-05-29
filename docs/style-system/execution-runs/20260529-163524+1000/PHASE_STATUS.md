@@ -57,6 +57,9 @@ Run id: `20260529-163524+1000`
 | Runtime Target Local Checkpoint Commit | PASS | Commit `82b6b0e4910e632308235997aedb59360381a32d` created; post-commit status was clean. |
 | Runtime Target Record Commit | PASS | Commit `a47a5879c0970a3f652e3fdbd05cf541f84ea759` created; post-commit status was clean. |
 | Pure Implementation Phase Gate | PASS | `npm run check` passed; side-effect scan and git status remained clean. |
+| Phase Gate Record Commit | PASS | Commit `f0d9fa5751696cbd044f2b50a02202c045d6ef3e` created; post-commit status was clean. |
+| Runtime Preview Controller V1 | PASS | Added local injected-target preview controller and tests; no provider, real DOM, store, sync, backend, or Supabase dependency. |
+| Runtime Controller Local Checkpoint Commit | IN_PROGRESS | Staging and committing runtime controller helper locally only. |
 
 ## Current Gate
 

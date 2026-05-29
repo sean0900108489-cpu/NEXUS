@@ -683,3 +683,21 @@ Each checkpoint records:
 - Commands run: `npm run check`; targeted side-effect/import scan for DOM/store/Supabase/sync/React Flow imports, protected behavior class strings, and forbidden literals; `git status --porcelain=v1 -b`; `git diff --check`.
 - Verification result: PASS. Full repo lint, typecheck, Vitest suite, and `next build` passed. Build reported the existing edge-runtime static-generation warning only. Side-effect scan returned no matches and post-gate git status was clean.
 - Rollback note: no source rollback needed for the gate itself. If later gate assumptions fail, revert only the relevant implementation unit commits, not unrelated history.
+
+## CP-047 - Runtime Preview Controller V1
+
+- Unit: implement local preview controller around the runtime target helper.
+- Allowed files:
+  - `src/lib/style-engine/**`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, real DOM entrypoints, CSS files, theme provider files, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; targeted side-effect/import scan for real DOM globals, store/Supabase/sync/React Flow imports, protected behavior class strings, and forbidden literals; `npm run test -- src/lib/style-engine/runtime-controller.test.ts src/lib/style-engine/runtime-target.test.ts src/lib/style-engine/preview.test.ts`; `npm run test -- src/lib/style-engine/validator.test.ts src/lib/style-engine/compiler.test.ts src/lib/style-engine/presets.test.ts src/lib/style-engine/preview.test.ts src/lib/style-engine/accessibility.test.ts src/lib/style-engine/checksum.test.ts src/lib/style-engine/governance.test.ts src/lib/style-engine/exchange.test.ts src/lib/style-engine/runtime-target.test.ts src/lib/style-engine/runtime-controller.test.ts`; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/runtime-controller.ts`
+  - `src/lib/style-engine/runtime-controller.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. Controller previews one active patch at a time, reverts the prior active session before applying a new patch, blocks mismatched reverts, returns cloned active-session snapshots, and has no provider, real DOM, store, sync, backend, or Supabase dependency.
+- Rollback note: revert only `src/lib/style-engine/runtime-controller.ts`, `src/lib/style-engine/runtime-controller.test.ts`, the index export, and this run-doc checkpoint update if this controller unit must be removed.

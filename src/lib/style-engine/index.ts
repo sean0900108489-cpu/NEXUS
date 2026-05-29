@@ -8,3 +8,4 @@ export * from "./preview";
 export * from "./governance";
 export * from "./exchange";
 export * from "./runtime-target";
+export * from "./runtime-controller";

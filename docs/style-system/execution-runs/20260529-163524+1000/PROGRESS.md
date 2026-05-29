@@ -127,14 +127,18 @@ Run id: `20260529-163524+1000`
 - Created local record commit `a47a5879c0970a3f652e3fdbd05cf541f84ea759` for the runtime target checkpoint metadata.
 - Ran the pure implementation phase gate with `npm run check`.
 - Confirmed full lint, typecheck, Vitest suite, and `next build` passed; side-effect/import scan remained clean and git status remained clean.
+- Created local record commit `f0d9fa5751696cbd044f2b50a02202c045d6ef3e` for the pure implementation phase gate.
+- Implemented the local runtime preview controller in `src/lib/style-engine/**`.
+- Added focused Vitest coverage for preview session cloning, prior-session cleanup, mismatch handling, and clear-all behavior.
+- Verified the controller unit with `git diff --check`, focused Vitest, full style-engine Vitest set, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
 
 ## In Progress
 
-- Recording pure implementation phase gate.
+- Local checkpoint commit for runtime preview controller V1.
 
 ## Next
 
-1. Commit this phase-gate record update.
-2. Re-confirm branch/status/HEAD.
-3. Continue with the next V5 preview-controller unit only if it can stay local-only and avoid provider/store/sync/backend changes.
-4. Keep UI/provider/component integration behind a new explicit gate.
+1. Stage run docs and `src/lib/style-engine/**`.
+2. Verify staged diff.
+3. Create a local checkpoint commit if checks pass.
+4. Run a focused gate before deciding whether to open a UI/provider integration gate.

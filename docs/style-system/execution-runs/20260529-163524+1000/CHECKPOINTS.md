@@ -386,3 +386,13 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
 - Verification result: PASS. Focused validator tests passed, typecheck passed, isolated lint passed, diff check passed, and targeted side-effect/import scan returned no matches after replacing a literal service-role env var name with a generic service-role detector.
 - Rollback note: revert only `src/lib/style-engine/**` and this run-doc checkpoint update if this pure validator unit must be removed.
+
+## CP-024 - Pure Manifest Validator Local Commit Completed
+
+- Unit: commit pure manifest validator implementation locally.
+- Allowed files: git metadata plus `docs/style-system/execution-runs/20260529-163524+1000/**` for this record.
+- Forbidden files: `exports/**`, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `git add src/lib/style-engine docs/style-system/execution-runs/20260529-163524+1000`; `git diff --cached --check`; `git diff --cached --name-only`; `git commit -m "feat: add pure style manifest validator"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -7`.
+- Commit created: `02ee83cca662d5f8601b87c566172262f4ee3369`.
+- Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
+- Rollback note: revert the validator commit only if the pure validator unit must be removed; do not touch unrelated history.

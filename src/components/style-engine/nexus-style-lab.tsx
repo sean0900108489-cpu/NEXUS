@@ -8,7 +8,7 @@ import {
   RotateCcw,
   ShieldCheck,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ChangeEvent } from "react";
 
 import {
   compileNexusStyleManifestV1,
@@ -208,9 +208,13 @@ export function NexusStyleLab() {
       name,
     }));
   }, [baselineCompiled, compiled]);
+  const latestDraftRejected = importResult ? !importResult.accepted : false;
+  const canPreview =
+    Boolean(previewPatch) && review.permissions.canPreview && !latestDraftRejected;
+  const runtimeStatus = latestDraftRejected ? "draft rejected" : previewState;
 
   const startPreview = () => {
-    if (!previewPatch) {
+    if (!previewPatch || !canPreview) {
       return;
     }
 
@@ -228,6 +232,13 @@ export function NexusStyleLab() {
 
   const loadCurrentExport = () => {
     setDraftText(exportText);
+    setImportResult(null);
+  };
+
+  const handleDraftTextChange = (
+    event: ChangeEvent<HTMLTextAreaElement>,
+  ) => {
+    setDraftText(event.target.value);
     setImportResult(null);
   };
 
@@ -318,7 +329,7 @@ export function NexusStyleLab() {
             <div className="flex items-center gap-2">
               <button
                 className="inline-flex h-9 items-center gap-2 border border-cyan-300/35 bg-cyan-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
-                disabled={!previewPatch}
+                disabled={!canPreview}
                 onClick={startPreview}
                 type="button"
               >
@@ -356,7 +367,7 @@ export function NexusStyleLab() {
                 {review.compatibility}
               </div>
               <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
-                {previewState}
+                {runtimeStatus}
               </div>
             </div>
 
@@ -645,7 +656,7 @@ export function NexusStyleLab() {
               <textarea
                 aria-label="Style import JSON"
                 className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-slate-300 outline-none placeholder:text-slate-700"
-                onChange={(event) => setDraftText(event.target.value)}
+                onChange={handleDraftTextChange}
                 placeholder="{}"
                 spellCheck={false}
                 value={draftText}

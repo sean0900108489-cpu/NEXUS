@@ -1040,3 +1040,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 37 Vitest files / 274 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only validator forbidden-string detector patterns and test-only in-memory cleanup helpers; no live store/sync/backend/Supabase import or mutation path was found. `git diff --check` passed.
 - Rollback note: no source rollback for the gate itself. If the gate exposes a regression, fix only the responsible isolated unit and rerun; stop if fixing would cross a forbidden boundary.
+
+## CP-069 - Style Lab Rejected Draft Preview Guard V1
+
+- Unit: block local preview while the latest loaded draft import is rejected, keeping invalid style text from previewing through a stale active manifest.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
+- Verification plan: `git diff --check`; `npm run test -- src/lib/style-engine/import-text.test.ts src/lib/style-engine/governance.test.ts`; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; targeted side-effect/import scan; Browser smoke on `http://localhost:3000/style-lab`.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/import-text.test.ts src/lib/style-engine/governance.test.ts`; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; targeted side-effect/import scan; source-only side-effect/import scan excluding tests; in-app Browser load/console smoke; Chrome Computer Use interaction smoke.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 2 files and 9 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only; side-effect scans found only validator detector strings and test-only cleanup helpers. In-app Browser loaded `/style-lab` with zero console errors; its text-entry path was blocked by the tool virtual clipboard, so Chrome Computer Use verified invalid JSON shows `style.importText.invalidJson`, status becomes `draft rejected`, Preview is disabled, editing clears the rejection, Preview re-enables, and Revert works.
+- Rollback note: revert only `src/components/style-engine/nexus-style-lab.tsx` and this run-doc checkpoint update if the rejected-draft guard unit must be removed.

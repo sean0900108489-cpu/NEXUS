@@ -84,6 +84,7 @@ Run id: `20260529-163524+1000`
 | Built-In High Contrast Preset V1 | PASS | Added pure high-contrast built-in manifest factory and tests; focused tests, typecheck, lint, diff check, and side-effect scan passed. |
 | Style Lab Built-In Preset Selector V1 | PASS | Added local built-in preset selector inside isolated Style Lab; focused checks, build, side-effect scan, and Browser smoke passed. |
 | Post Preset Selector Phase Gate | PASS | Full check passed after Style Lab preset switching; side-effect scan and git diff check passed. |
+| Style Lab Rejected Draft Preview Guard V1 | PASS | Blocked local preview while the latest loaded draft import is rejected; focused checks, build, side-effect scan, and browser interaction smoke passed. |
 
 ## Current Gate
 
@@ -96,4 +97,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-CP-068 passed local gates and is ready for a local checkpoint commit. Source edits, app shell, production components, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+CP-069 passed local gates and is ready for a local checkpoint commit. App shell, production components, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

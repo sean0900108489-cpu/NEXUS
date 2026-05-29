@@ -579,3 +579,13 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
 - Verification result: PASS. Focused checksum/compiler tests passed, full style-engine test set passed, typecheck passed, isolated lint passed, diff check passed, and targeted side-effect/import scan returned no matches. Compiler checksum output remains on the existing `nexus-style-fnv1a32:` prefix.
 - Rollback note: revert only `src/lib/style-engine/checksum.ts`, `src/lib/style-engine/checksum.test.ts`, the compiler checksum import/call, the index export, and this run-doc checkpoint update if this pure checksum unit must be removed.
+
+## CP-039 - Checksum Local Commit Completed
+
+- Unit: commit pure checksum helper locally.
+- Allowed files: git metadata plus `docs/style-system/execution-runs/20260529-163524+1000/**` for this record.
+- Forbidden files: `exports/**`, DOM files, CSS files, theme provider files, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `git add src/lib/style-engine docs/style-system/execution-runs/20260529-163524+1000`; `git diff --cached --check`; `git diff --cached --name-only`; `git commit -m "feat: add style checksum helpers"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -10`.
+- Commit created: `62cc51b95e939801bc435b9c5203b69cff83cccc`.
+- Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
+- Rollback note: revert the checksum commit only if the pure checksum unit must be removed; do not touch unrelated history.

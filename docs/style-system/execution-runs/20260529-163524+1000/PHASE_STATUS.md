@@ -44,7 +44,8 @@ Run id: `20260529-163524+1000`
 | Accessibility Record Update | PASS | Commit `4171fb93eb551d866d5bc3015508ed16e123b4cd` created; post-commit status was clean. |
 | Next Pure Unit Selection | PASS | Selected pure checksum/canonical JSON helper inside `src/lib/style-engine/**`; broader runtime surfaces remain closed. |
 | Pure Checksum Canonicalization V1 | PASS | Added shared checksum/canonical JSON helpers and tests; compiler uses the helper while preserving checksum prefix. |
-| Checksum Local Checkpoint Commit | IN_PROGRESS | Staging and committing checksum unit locally only. |
+| Checksum Local Checkpoint Commit | PASS | Commit `62cc51b95e939801bc435b9c5203b69cff83cccc` created; post-commit status was clean. |
+| Checksum Record Update | PASS | This run-doc update records the pure checksum checkpoint metadata before the next unit starts. |
 
 ## Current Gate
 

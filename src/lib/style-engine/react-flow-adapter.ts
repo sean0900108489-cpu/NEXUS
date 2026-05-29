@@ -1,3 +1,8 @@
+import type {
+  NexusStyleManifestV1,
+  NexusStyleTokenGroupNameV1,
+} from "./manifest";
+
 export const NEXUS_REACT_FLOW_ADAPTER_VERSION =
   "nexus-react-flow-adapter-v1" as const;
 
@@ -169,4 +174,102 @@ export function createDefaultReactFlowStyleAdapterV1(): NexusReactFlowStyleAdapt
     minimap: { ...adapter.minimap },
     controls: { ...adapter.controls },
   };
+}
+
+export function createReactFlowStyleAdapterFromManifestV1(
+  manifest: NexusStyleManifestV1,
+): NexusReactFlowStyleAdapterV1 {
+  const fallback = DEFAULT_NEXUS_REACT_FLOW_STYLE_ADAPTER_V1;
+  const token = (
+    group: NexusStyleTokenGroupNameV1,
+    name: string,
+    fallbackValue: string,
+  ) => readManifestToken(manifest, group, name, fallbackValue);
+
+  return {
+    version: NEXUS_REACT_FLOW_ADAPTER_VERSION,
+    background: {
+      color: token("workspace", "gridPrimary", fallback.background.color),
+      gap: fallback.background.gap,
+      size: fallback.background.size,
+    },
+    node: {
+      agent: {
+        surface: token("surface", "panel", fallback.node.agent.surface),
+        border: token("border", "subtle", fallback.node.agent.border),
+        text: token("text", "primary", fallback.node.agent.text),
+        mutedText: token("text", "muted", fallback.node.agent.mutedText),
+        activeGlow: token("border", "glow", fallback.node.agent.activeGlow),
+        selectedGlow: token("accent", "primary", fallback.node.agent.selectedGlow),
+      },
+      runtime: {
+        surface: token("surface", "raised", fallback.node.runtime.surface),
+        border: token("border", "subtle", fallback.node.runtime.border),
+        selectedBorder: token(
+          "accent",
+          "primaryStrong",
+          fallback.node.runtime.selectedBorder,
+        ),
+        text: token("text", "primary", fallback.node.runtime.text),
+        mutedText: token("text", "muted", fallback.node.runtime.mutedText),
+        shadow: token("shadow", "panel", fallback.node.runtime.shadow),
+      },
+    },
+    handle: {
+      source: {
+        fill: token("accent", "primary", fallback.handle.source.fill),
+        border: token("surface", "app", fallback.handle.source.border),
+        glow: token("border", "glow", fallback.handle.source.glow),
+      },
+      target: {
+        fill: token("accent", "secondary", fallback.handle.target.fill),
+        border: token("surface", "app", fallback.handle.target.border),
+        glow: token("border", "glow", fallback.handle.target.glow),
+      },
+    },
+    edge: {
+      defaultStroke: token("text", "muted", fallback.edge.defaultStroke),
+      runtimeStroke: token("accent", "primary", fallback.edge.runtimeStroke),
+      selectedStroke: token(
+        "accent",
+        "primaryStrong",
+        fallback.edge.selectedStroke,
+      ),
+      glow: token("border", "glow", fallback.edge.glow),
+      animatedDash: fallback.edge.animatedDash,
+      deleteButton: {
+        surface: token("surface", "panel", fallback.edge.deleteButton.surface),
+        border: token("border", "subtle", fallback.edge.deleteButton.border),
+        text: token("text", "primary", fallback.edge.deleteButton.text),
+        hoverSurface: token(
+          "surface",
+          "raised",
+          fallback.edge.deleteButton.hoverSurface,
+        ),
+      },
+    },
+    minimap: {
+      surface: token("surface", "panelMuted", fallback.minimap.surface),
+      mask: token("surface", "overlay", fallback.minimap.mask),
+      nodeFallback: token("accent", "primary", fallback.minimap.nodeFallback),
+      nodeStrokeWidth: fallback.minimap.nodeStrokeWidth,
+    },
+    controls: {
+      surface: token("surface", "panel", fallback.controls.surface),
+      border: token("border", "subtle", fallback.controls.border),
+      icon: token("text", "primary", fallback.controls.icon),
+      hoverSurface: token("surface", "raised", fallback.controls.hoverSurface),
+    },
+  };
+}
+
+function readManifestToken(
+  manifest: NexusStyleManifestV1,
+  group: NexusStyleTokenGroupNameV1,
+  name: string,
+  fallback: string,
+) {
+  const value = manifest.tokens[group][name];
+
+  return value === undefined ? fallback : String(value);
 }

@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   createDefaultReactFlowStyleAdapterV1,
+  createHighContrastCarbonStyleManifestV1,
+  createLegacyCyberpunkStyleManifestV1,
+  createReactFlowStyleAdapterFromManifestV1,
   NEXUS_REACT_FLOW_ADAPTER_FORBIDDEN_BEHAVIOR_KEYS,
   NEXUS_REACT_FLOW_ADAPTER_VERSION,
 } from "@/lib/style-engine";
@@ -61,6 +64,59 @@ describe("NEXUS React Flow visual adapter", () => {
     for (const forbiddenKey of NEXUS_REACT_FLOW_ADAPTER_FORBIDDEN_BEHAVIOR_KEYS) {
       expect(keys).not.toContain(forbiddenKey);
     }
+  });
+
+  it("maps the legacy Cyberpunk manifest to visual adapter values", () => {
+    const adapter = createReactFlowStyleAdapterFromManifestV1(
+      createLegacyCyberpunkStyleManifestV1(),
+    );
+
+    expect(adapter).toMatchObject({
+      background: {
+        color: "rgb(34 211 238 / 0.12)",
+      },
+      controls: {
+        hoverSurface: "#0f172a",
+        icon: "#f8fafc",
+      },
+      edge: {
+        defaultStroke: "#64748b",
+        runtimeStroke: "#67e8f9",
+        selectedStroke: "#22d3ee",
+      },
+      handle: {
+        source: {
+          border: "#030712",
+          fill: "#67e8f9",
+        },
+        target: {
+          fill: "#f0abfc",
+        },
+      },
+      node: {
+        agent: {
+          surface: "rgb(8 16 22 / 0.78)",
+          text: "#f8fafc",
+        },
+        runtime: {
+          selectedBorder: "#22d3ee",
+          surface: "#0f172a",
+        },
+      },
+    });
+  });
+
+  it("maps high contrast manifest values without reusing legacy colors", () => {
+    const adapter = createReactFlowStyleAdapterFromManifestV1(
+      createHighContrastCarbonStyleManifestV1(),
+    );
+
+    expect(adapter.background.color).toBe("rgb(56 189 248 / 0.16)");
+    expect(adapter.node.agent.surface).toBe("rgb(16 16 16 / 0.94)");
+    expect(adapter.node.runtime.surface).toBe("#18181b");
+    expect(adapter.handle.target.fill).toBe("#facc15");
+    expect(adapter.edge.selectedStroke).toBe("#0ea5e9");
+    expect(adapter.controls.icon).toBe("#ffffff");
   });
 });
 

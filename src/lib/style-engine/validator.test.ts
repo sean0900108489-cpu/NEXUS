@@ -79,6 +79,25 @@ describe("NEXUS Style Engine manifest validator", () => {
     expect(report.errors).toEqual([]);
   });
 
+  it("rejects dynamic Tailwind arbitrary value classes", () => {
+    const manifest = createSafeManifest({
+      tokens: {
+        surface: {
+          app: "bg-[#0f172a]",
+        },
+      },
+    });
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toContainEqual({
+      code: "style.forbidden.dynamicTailwind",
+      message: "Manifest contains a forbidden string value.",
+      path: "$.tokens.surface.app",
+    });
+  });
+
   it("rejects recipe behavior fields", () => {
     const manifest = createSafeManifest({
       recipes: {

@@ -3699,3 +3699,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found the Style Lab doc version-visibility wording and the CP-224 `Validator` row in `nexus-style-lab.tsx`. Source-diff absence check showed only docs changed before run-doc bookkeeping. `git diff --check` passed and status showed only allowed docs files.
 - Rollback note: revert only the CP-225 Style Lab doc/run-doc changes if this reconciliation must be removed.
+
+## CP-226 - Pure Validator Dynamic Tailwind Arbitrary Class Guard V1
+
+- Unit: add a pure validator guard for dynamic Tailwind arbitrary value classes in manifest string values.
+- Allowed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: UI/TSX/app route/CSS files, production Nexus components, compiler/governance/exchange/runtime wiring, docs outside this run folder, workspace store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused validator Vitest; targeted lint for validator files; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; `npm run test -- --testTimeout 20000 src/lib/style-engine/validator.test.ts`; `npm run lint -- src/lib/style-engine/validator.ts src/lib/style-engine/validator.test.ts`; `npm run typecheck`; targeted side-effect/behavior scans; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused validator Vitest passed 1 file / 12 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only existing validator safety detector strings and an existing test-only `themeConfig` unsafe payload string. Behavior scan found only existing validator `zIndex` forbidden-key registry and React Flow behavior test fixture/assertion strings. `git diff --check` passed and status showed only allowed CP-226 files.
+- Rollback note: revert only the CP-226 validator/test/run-doc changes if this guard must be removed.

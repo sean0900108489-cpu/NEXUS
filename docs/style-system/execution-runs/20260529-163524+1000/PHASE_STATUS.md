@@ -241,6 +241,7 @@ Run id: `20260529-163524+1000`
 | Pure Validator Approved CSS Variable Reference Coverage V1 | PASS | Added focused positive coverage for approved `--nexus-*` CSS variable references; focused test, lint, typecheck, side-effect scan, and diff check passed. |
 | Style Lab Validator Version Row V1 | PASS | Added a display-only Validator version row to the isolated Style Lab governance report; lint, typecheck, build, local smoke, side-effect scan, and diff check passed. |
 | Style Lab Validator Row Doc Reconciliation V1 | PASS | Reconciled the Style Lab doc with validator/compiler/governance version visibility and the CP-224 Validator row. |
+| Pure Validator Dynamic Tailwind Arbitrary Class Guard V1 | PASS | Added a pure validator guard for dynamic Tailwind arbitrary value classes; focused test, lint, typecheck, side-effect scan, and diff check passed. |
 
 ## Current Gate
 
@@ -253,4 +254,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Style Lab Validator Row Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, pure engine logic, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Validator Dynamic Tailwind Arbitrary Class Guard local checkpoint prep. Production window/modal code, production graph/app shell files, UI/TSX/app route/CSS files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

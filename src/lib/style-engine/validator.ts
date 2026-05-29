@@ -62,6 +62,10 @@ const forbiddenStringPatterns: Array<{ code: string; pattern: RegExp }> = [
   { code: "style.forbidden.workspaceProjection", pattern: /workspace_state_entities/i },
   { code: "style.forbidden.dynamicZIndex", pattern: /\bz-\[/i },
   {
+    code: "style.forbidden.dynamicTailwind",
+    pattern: /\b(?!z-\[)[a-z][a-z0-9]*(?:-[a-z0-9]+)*-\[[^\]]+\]/i,
+  },
+  {
     code: "style.forbidden.protectedBehaviorClass",
     pattern: new RegExp(["pointer", "events"].join("-"), "i"),
   },

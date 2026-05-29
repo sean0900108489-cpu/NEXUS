@@ -1097,31 +1097,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-225 - Style Lab Validator Row Doc Reconciliation V1`.
 - Reconciled `style-lab-v1.md` with CP-224 validator/compiler/governance version visibility.
 - Verified CP-225 with focused evidence scan, source-diff absence check, `git diff --check`, and status check.
+- Created local checkpoint commit `dc2db32c43d86e64ff9de69e2406b7e86d2fe5f4` for the Style Lab Validator Row Doc Reconciliation V1 unit.
+- Started `CP-226 - Pure Validator Dynamic Tailwind Arbitrary Class Guard V1`.
+- Added a pure validator guard and focused coverage for dynamic Tailwind arbitrary value classes in manifest string values.
+- Verified CP-226 with focused validator Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-225 - Style Lab Validator Row Doc Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-225 local commit; previous clean checkpoint commit is `d1f34705a5fd34cf5322bd6805601c9bb9e89ecf`.
+- Latest completed checkpoint: `CP-226 - Pure Validator Dynamic Tailwind Arbitrary Class Guard V1`.
+- Latest local checkpoint commit: pending CP-226 local commit; previous clean checkpoint commit is `dc2db32c43d86e64ff9de69e2406b7e86d2fe5f4`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-225 verification: dirty only in CP-225 allowed docs/run-doc files.
-- Current stop reason: not stopped; CP-225 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-226 verification: dirty only in CP-226 allowed validator/test/run-doc files.
+- Current stop reason: not stopped; CP-226 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-225 - Local checkpoint commit prep`.
+- `CP-226 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-lab-v1.md`
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, app routes, CSS/global stylesheets, production Nexus components, pure engine logic, package/deploy/database/backend/store/sync/Supabase files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: UI/TSX/app route/CSS files, production Nexus components, compiler/governance/exchange/runtime wiring, docs outside this run folder, package/deploy/database/backend/store/sync/Supabase files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-225 Style Lab doc/run-doc changes if this reconciliation must be removed.
+- Rollback: revert only the CP-226 validator/test/run-doc changes if this guard must be removed.
 
 ## Next
 
-1. Commit the CP-225 doc reconciliation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-226 validator checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

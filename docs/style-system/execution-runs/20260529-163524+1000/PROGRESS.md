@@ -140,14 +140,17 @@ Run id: `20260529-163524+1000`
 - Created local record commit `e0c0309e5329db1f62cb99c6a74b73070a4f464e` for the runtime provider checkpoint metadata.
 - Added an isolated `/style-lab` route and local Style Lab component.
 - Verified the lab route with typecheck, targeted lint, `next build`, static marker scan, and Browser smoke for Preview/Revert.
+- Created local checkpoint commit `379149393262860b2ebda927cada7d7befdddcd8` for the isolated Style Lab route.
+- Detected an unexpected clean branch drift to `main` before the Style Lab record update.
+- Confirmed `main` had clean status, confirmed `codex/v17-large-iteration` existed at the expected Style Lab commit, and switched back without losing local changes.
 
 ## In Progress
 
-- Local checkpoint commit for isolated Style Lab route V1.
+- Recording Style Lab checkpoint and branch realignment.
 
 ## Next
 
-1. Stage run docs plus the Style Lab route files.
-2. Verify staged diff.
-3. Create a local checkpoint commit if checks pass.
+1. Commit this run-status record update.
+2. Re-confirm branch/status/HEAD.
+3. Run a broader local gate after the UI route addition.
 4. Continue only if status returns clean and the next gate is explicit.

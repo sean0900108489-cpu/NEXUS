@@ -66,7 +66,9 @@ Run id: `20260529-163524+1000`
 | React Runtime Provider Local Checkpoint Commit | PASS | Commit `f57cd68c315f244a7bc36703fa547a38c22df1ba` created; post-commit status was clean. |
 | React Runtime Provider Record Commit | PASS | Commit `e0c0309e5329db1f62cb99c6a74b73070a4f464e` created; post-commit status was clean. |
 | Isolated Style Lab Route Gate | PASS | Added local-only `/style-lab`; typecheck, lint, build, marker scan, and Browser Preview/Revert smoke passed. |
-| Style Lab Route Local Checkpoint Commit | IN_PROGRESS | Staging and committing isolated Style Lab route locally only. |
+| Style Lab Route Local Checkpoint Commit | PASS | Commit `379149393262860b2ebda927cada7d7befdddcd8` created; post-commit status was clean. |
+| Branch Realignment After Context Drift | PASS | Detected clean `main`, verified iteration branch, and switched back to `codex/v17-large-iteration` without local changes lost. |
+| Post-UI Phase Gate | IN_PROGRESS | Running broader local verification after the provider and isolated lab route. |
 
 ## Current Gate
 

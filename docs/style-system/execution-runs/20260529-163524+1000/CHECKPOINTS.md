@@ -777,3 +777,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
 - Verification result: PASS. Route builds as static `/style-lab`; Browser smoke confirmed runtime wrapper, heading, export package text, preview button, scoped variable application after Preview, variable removal after Revert, reverted status, and zero captured browser console errors.
 - Rollback note: revert only `src/app/style-lab/page.tsx`, `src/components/style-engine/nexus-style-lab.tsx`, and this run-doc checkpoint update if the isolated lab route must be removed.
+
+## CP-052 - Style Lab Route Commit Completed
+
+- Unit: commit isolated Style Lab route locally.
+- Allowed files: git metadata plus `docs/style-system/execution-runs/20260529-163524+1000/**` for this record.
+- Forbidden files: `exports/**`, `src/components/nexus/nexus-ops.tsx`, CSS files, theme provider changes, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `git add src/app/style-lab/page.tsx src/components/style-engine/nexus-style-lab.tsx docs/style-system/execution-runs/20260529-163524+1000`; `git diff --cached --check`; `git diff --cached --name-only`; `git commit -m "feat: add isolated style lab route"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -16`.
+- Commit created: `379149393262860b2ebda927cada7d7befdddcd8`.
+- Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
+- Rollback note: revert the Style Lab route commit only if the isolated lab route must be removed; do not touch unrelated history.
+
+## CP-053 - Branch Realignment After Context Drift
+
+- Unit: recover from unexpected clean worktree branch drift before editing run docs.
+- Allowed files: git metadata inspection and branch switch only; no source edits before returning to `codex/v17-large-iteration`.
+- Forbidden files: all source/docs edits while on `main`, destructive git commands, reset, checkout, merge, push, deploy, database mutation.
+- Commands run: `pwd`; `ls`; `git status --porcelain=v1 -b`; `git show --stat --oneline HEAD --`; `git branch --list codex/v17-large-iteration main`; `git log --oneline -5 codex/v17-large-iteration`; `git switch codex/v17-large-iteration`; `git status --porcelain=v1 -b`; `git rev-parse HEAD`.
+- Verification result: PASS. The worktree was unexpectedly on clean `main`, the iteration branch existed with the expected Style Lab commits, and switching back to `codex/v17-large-iteration` lost no local changes because `main` status was clean.
+- Rollback note: no source rollback. If this recurs with dirty status, stop and report dirty files before switching.

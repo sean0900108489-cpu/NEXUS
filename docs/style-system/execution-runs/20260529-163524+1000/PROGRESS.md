@@ -940,33 +940,35 @@ Run id: `20260529-163524+1000`
 - Reconciled `compiler-v1-contract.md` with `commandPalette` in compiled recipes.
 - Reconciled `window-modal-recipe-system.md` with evidence that the pure adapter now maps command palette slots from `recipes.commandPalette`.
 - Verified CP-189 with focused evidence scans, corrected stale/evidence scans after one invalid multiline regex harness attempt, `git diff --check`, diff stat, and status check.
+- Created local checkpoint commit `3dd7f1deb81095449f0ef2832043815b3b62fcc2` for the Command Palette Recipe Docs Reconciliation V1 unit.
+- Started `CP-190 - Post Command Palette Recipe Group Phase Gate` with source/test edits closed.
+- Ran full `npm run check`; lint, typecheck, 41 Vitest files / 300 tests, and build passed.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries/assertions, and the window/modal recipe adapter forbidden behavior key registry/assertions; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-189 - Command Palette Recipe Docs Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-189 local commit; previous clean checkpoint commit is `f7d2cdb1d05307e5ab4834bdafa42494164b6b41`.
+- Latest completed checkpoint: `CP-190 - Post Command Palette Recipe Group Phase Gate`.
+- Latest local checkpoint commit: pending CP-190 local commit; previous clean checkpoint commit is `3dd7f1deb81095449f0ef2832043815b3b62fcc2`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-189 verification: dirty only in CP-189 allowed docs and run-doc files.
-- Current stop reason: not stopped; CP-189 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-190 verification: clean before run-doc bookkeeping; dirty only in CP-190 allowed run-doc files after this update.
+- Current stop reason: not stopped; CP-190 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-189 - Local checkpoint commit prep`.
+- `CP-190 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/manifest-v1-spec.md`
-  - `docs/style-system/compiler-v1-contract.md`
-  - `docs/style-system/window-modal-recipe-system.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test/UI/TSX/app route/CSS files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test edits during the phase gate, UI/CSS/production component files, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-189 doc/run-doc update if the command palette doc reconciliation must be removed.
+- Rollback: revert only the CP-190 run-doc update if the phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-189 docs checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-190 phase gate checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

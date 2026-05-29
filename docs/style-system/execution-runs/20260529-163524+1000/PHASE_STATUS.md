@@ -205,6 +205,7 @@ Run id: `20260529-163524+1000`
 | Style Lab Recipe Specimen Docs Reconciliation V1 | PASS | Reconciled Style Lab and window/modal recipe docs with six-specimen recipe-variable consumption and CP-186 smoke evidence. |
 | Pure Command Palette Recipe Group V1 | PASS | Added pure V1 `commandPalette` recipe group and mapped command palette adapter slots from it; focused tests, style-engine tests, lint, typecheck, side-effect scan, and diff check passed. |
 | Command Palette Recipe Docs Reconciliation V1 | PASS | Reconciled manifest spec, compiler contract, and window/modal recipe docs with the pure `commandPalette` recipe group. |
+| Post Command Palette Recipe Group Phase Gate | PASS | Full check passed after command palette recipe group/docs; side-effect scan and git diff check passed. |
 
 ## Current Gate
 
@@ -217,4 +218,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Command Palette Recipe Docs Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post Command Palette Recipe Group Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

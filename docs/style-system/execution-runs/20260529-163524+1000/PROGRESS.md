@@ -1278,31 +1278,37 @@ Run id: `20260529-163524+1000`
 - Started `CP-270 - Validator Recipe Adapter Shape Doc Reconciliation V1`.
 - Reconciled manifest validator rules with CP-269 recipe and adapter container shape coverage.
 - Verified CP-270 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
+- Created local checkpoint commit `98390b3dede4ecab76a8792608191794cde1a2de` for the Validator Recipe Adapter Shape Doc Reconciliation V1 unit.
+- Started `CP-271 - Pure Validator Non-Empty Intent Arrays V1`.
+- Updated pure validator string-array validation so intent `mood` and `material` reject empty arrays, matching the existing non-empty error message.
+- Added focused validator coverage for empty intent `mood` and `material` arrays.
+- Verified CP-271 with focused validator Vitest, targeted lint for touched validator files, `npm run typecheck`, targeted side-effect/behavior scan on the CP-271 diff, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-270 - Validator Recipe Adapter Shape Doc Reconciliation V1`.
-- Latest recorded checkpoint commit: `facbef146952dc55ff3af9f53da2294f26d2090d` for `CP-269 - Pure Validator Recipe Adapter Shape Coverage V1`; CP-270 is being prepared for local commit.
+- Latest completed checkpoint: `CP-271 - Pure Validator Non-Empty Intent Arrays V1`.
+- Latest recorded checkpoint commit: `98390b3dede4ecab76a8792608191794cde1a2de` for `CP-270 - Validator Recipe Adapter Shape Doc Reconciliation V1`; CP-271 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-270 verification prep: dirty only in CP-270 allowed docs files.
-- Current stop reason: not stopped; CP-270 doc reconciliation checkpoint is underway.
+- Confirmed current status after CP-271 verification prep: dirty only in CP-271 allowed validator source/test and run-doc files.
+- Current stop reason: not stopped; CP-271 validator fix checkpoint is underway.
 
 ## In Progress
 
-- `CP-270 - Local checkpoint commit prep`.
+- `CP-271 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/manifest-validator-rules.md`
+  - `src/lib/style-engine/validator.ts`
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, docs outside the listed style-system doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-270 doc/run-doc changes if this reconciliation must be removed.
+- Forbidden files: docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused validator Vitest, targeted lint for touched validator files, `npm run typecheck`, targeted side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-271 validator source/test/run-doc changes if this fix must be removed.
 
 ## Next
 
-1. Commit the CP-270 doc reconciliation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-271 validator fix checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

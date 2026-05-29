@@ -684,6 +684,7 @@ function validateStringArray(
 ) {
   if (
     !Array.isArray(value) ||
+    value.length === 0 ||
     value.some((item) => typeof item !== "string" || item.length === 0)
   ) {
     addError(report, path, "style.invalidStringArray", "Expected a non-empty string array.");

@@ -277,6 +277,30 @@ describe("NEXUS Style Engine manifest validator", () => {
     );
   });
 
+  it("rejects empty intent mood and material arrays", () => {
+    const manifest = createSafeManifest();
+    manifest.intent.mood = [];
+    manifest.intent.material = [];
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toEqual(
+      expect.arrayContaining([
+        {
+          code: "style.invalidStringArray",
+          message: "Expected a non-empty string array.",
+          path: "$.intent.material",
+        },
+        {
+          code: "style.invalidStringArray",
+          message: "Expected a non-empty string array.",
+          path: "$.intent.mood",
+        },
+      ]),
+    );
+  });
+
   it("rejects missing token groups, semantic tokens, and invalid token values", () => {
     const manifest = createSafeManifest();
     const tokens = manifest.tokens as unknown as Record<

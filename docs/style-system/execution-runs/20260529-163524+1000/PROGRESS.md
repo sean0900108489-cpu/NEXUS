@@ -1160,30 +1160,35 @@ Run id: `20260529-163524+1000`
 - Ran full `npm run check`; lint, typecheck, 41 Vitest files / 315 tests, and build passed.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe prompt/payload strings, adapter forbidden behavior key registries/assertions, and React Flow behavior test fixture/assertion strings; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `15e5159b3ee6afeeabf8f6dc9ead1f669c1bb6b4` for the Post Interpreter Safety Omission Phase Gate.
+- Started `CP-241 - Pure Governance Retired Permission Coverage V1`.
+- Added focused governance test coverage for the existing retired lifecycle permission mapping.
+- Verified CP-241 with focused governance Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-240 - Post Interpreter Safety Omission Phase Gate`.
-- Latest local checkpoint commit: pending CP-240 local commit; previous clean checkpoint commit is `d75a786df798bcf07441f4d6dc2d976eaa5dbd9d`.
+- Latest completed checkpoint: `CP-241 - Pure Governance Retired Permission Coverage V1`.
+- Latest local checkpoint commit: pending CP-241 local commit; previous clean checkpoint commit is `15e5159b3ee6afeeabf8f6dc9ead1f669c1bb6b4`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-240 verification: dirty only in CP-240 run-doc files.
-- Current stop reason: not stopped; CP-240 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-241 verification: dirty only in CP-241 allowed governance test/run-doc files.
+- Current stop reason: not stopped; CP-241 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-240 - Local checkpoint commit prep`.
+- `CP-241 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/governance.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, docs outside this run folder, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: source implementation files, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, production Nexus components, docs outside this run folder, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-240 run-doc update if the phase gate bookkeeping must be removed.
+- Rollback: revert only the CP-241 governance test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-240 phase-gate run-doc checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-241 governance test checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

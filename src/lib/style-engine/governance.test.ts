@@ -107,6 +107,11 @@ describe("NEXUS Style Engine governance review", () => {
       canPreview: true,
       reasonCodes: ["style.pack.deprecated"],
     });
+    expect(getNexusStylePackPermissionsV1("retired")).toEqual({
+      canApply: false,
+      canPreview: false,
+      reasonCodes: ["style.pack.retired"],
+    });
     expect(getNexusStylePackPermissionsV1("quarantined")).toEqual({
       canApply: false,
       canPreview: false,

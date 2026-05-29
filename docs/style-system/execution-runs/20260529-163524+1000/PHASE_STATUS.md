@@ -285,6 +285,7 @@ Run id: `20260529-163524+1000`
 | Pure Validator Root Shape Coverage V1 | PASS | Added focused coverage for non-object roots and missing required top-level fields. |
 | Validator Root Shape Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with root shape and required top-level field coverage. |
 | Pure Validator Recipe Adapter Shape Coverage V1 | PASS | Added focused coverage for invalid recipe and adapter container shapes. |
+| Validator Recipe Adapter Shape Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with recipe and adapter container shape coverage. |
 
 ## Current Gate
 
@@ -297,4 +298,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Validator Recipe Adapter Shape Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, source implementation files, docs outside this run folder, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files outside the touched validator test, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Validator Recipe Adapter Shape Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside the listed validator doc and run folder, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

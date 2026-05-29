@@ -81,6 +81,7 @@ Run id: `20260529-163524+1000`
 | Post Graph Specimen Phase Gate | PASS | Full check passed after graph visual specimen; React Flow/side-effect scan and git diff check passed. |
 | Style Lab Baseline Comparison Panel V1 | PASS | Added read-only baseline-vs-active token comparison inside isolated Style Lab; focused checks, build, side-effect scan, and Browser smoke passed. |
 | Post Comparison Phase Gate | PASS | Full check passed after comparison panel; side-effect scan and git diff check passed. |
+| Built-In High Contrast Preset V1 | PASS | Added pure high-contrast built-in manifest factory and tests; focused tests, typecheck, lint, diff check, and side-effect scan passed. |
 
 ## Current Gate
 
@@ -93,4 +94,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-CP-065 is ready for a local checkpoint commit. Production components, app shell, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+CP-066 is ready for a local checkpoint commit. UI/runtime files, production components, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

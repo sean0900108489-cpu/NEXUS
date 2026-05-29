@@ -1,6 +1,8 @@
 import type { NexusStyleManifestV1 } from "./manifest";
 
 export const LEGACY_CYBERPUNK_STYLE_ID = "legacy-cyberpunk" as const;
+export const HIGH_CONTRAST_CARBON_STYLE_ID =
+  "high-contrast-carbon" as const;
 
 export function createLegacyCyberpunkStyleManifestV1(): NexusStyleManifestV1 {
   return {
@@ -161,6 +163,98 @@ export function createLegacyCyberpunkStyleManifestV1(): NexusStyleManifestV1 {
       allowWorkspaceMutation: false,
       maxCssVariableCount: 180,
       protectedBehaviorClasses: [],
+    },
+  };
+}
+
+export function createHighContrastCarbonStyleManifestV1(): NexusStyleManifestV1 {
+  const manifest = createLegacyCyberpunkStyleManifestV1();
+
+  return {
+    ...manifest,
+    adapters: {
+      ...manifest.adapters,
+      nextThemes: {
+        colorScheme: "dark",
+        dataTheme: "terminal",
+      },
+    },
+    description:
+      "High-contrast V1 manifest for dense operational review surfaces.",
+    id: HIGH_CONTRAST_CARBON_STYLE_ID,
+    intent: {
+      contrast: "high",
+      density: "comfortable",
+      material: ["carbon", "matte-glass"],
+      mood: ["focused", "legible", "low-glare"],
+      motion: "minimal",
+    },
+    name: "High Contrast Carbon",
+    source: {
+      kind: "legacy-preset",
+      reference: "built-in high contrast carbon preset",
+    },
+    tokens: {
+      ...manifest.tokens,
+      accent: {
+        primary: "#38bdf8",
+        primaryStrong: "#0ea5e9",
+        secondary: "#facc15",
+      },
+      blur: {
+        backdrop: "10px",
+        glass: "4px",
+      },
+      border: {
+        glow: "rgb(56 189 248 / 0.36)",
+        subtle: "rgb(255 255 255 / 0.24)",
+      },
+      density: {
+        control: "comfortable",
+        panel: "comfortable",
+      },
+      motion: {
+        durationFast: "90ms",
+        durationNormal: "140ms",
+      },
+      radius: {
+        base: "3px",
+        surface: "3px",
+      },
+      shadow: {
+        glow: "0 0 22px rgb(56 189 248 / 0.18)",
+        panel: "0 18px 52px rgb(0 0 0 / 0.46)",
+      },
+      status: {
+        danger: "#fb7185",
+        info: "#38bdf8",
+        success: "#22c55e",
+        warning: "#facc15",
+      },
+      surface: {
+        app: "#050505",
+        input: "rgb(18 18 18 / 0.92)",
+        overlay: "rgb(0 0 0 / 0.82)",
+        panel: "rgb(16 16 16 / 0.94)",
+        panelMuted: "rgb(28 28 28 / 0.88)",
+        raised: "#18181b",
+        shell: "rgb(8 8 8 / 0.96)",
+        workspace: "#0a0a0a",
+      },
+      text: {
+        danger: "#fecdd3",
+        inverse: "#050505",
+        muted: "#a1a1aa",
+        primary: "#ffffff",
+        secondary: "#e4e4e7",
+        success: "#bbf7d0",
+        warning: "#fef08a",
+      },
+      workspace: {
+        gridPrimary: "rgb(56 189 248 / 0.16)",
+        gridSecondary: "rgb(250 204 21 / 0.12)",
+        wash: "rgb(255 255 255 / 0.04)",
+      },
     },
   };
 }

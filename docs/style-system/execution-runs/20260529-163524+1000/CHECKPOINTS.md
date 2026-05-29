@@ -989,3 +989,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 37 Vitest files / 271 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scan only matched validator forbidden-string detector patterns; no live store/sync/backend/Supabase import or mutation path was found. `git diff --check` passed.
 - Rollback note: no source rollback for the gate itself. If the gate exposes a regression, fix only the responsible isolated Style Lab unit and rerun; stop if fixing would cross a forbidden boundary.
+
+## CP-066 - Built-In High Contrast Preset V1
+
+- Unit: add a second pure built-in manifest factory for a high-contrast preset.
+- Allowed files:
+  - `src/lib/style-engine/presets.ts`
+  - `src/lib/style-engine/presets.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: UI/app components, CSS/global styles, runtime provider files, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
+- Verification plan: `git diff --check`; `npm run test -- src/lib/style-engine/presets.test.ts src/lib/style-engine/compiler.test.ts src/lib/style-engine/validator.test.ts`; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/presets.test.ts src/lib/style-engine/compiler.test.ts src/lib/style-engine/validator.test.ts`; targeted side-effect/import scan; `npm run typecheck`; `npm run lint -- src/lib/style-engine`.
+- Changed files:
+  - `src/lib/style-engine/presets.ts`
+  - `src/lib/style-engine/presets.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 3 files and 16 tests; typecheck passed; isolated style-engine lint passed; `git diff --check` passed; targeted side-effect/import scan returned no matches.
+- Rollback note: remove only the high contrast preset factory/test assertions and this run-doc checkpoint update if the preset unit must be removed.

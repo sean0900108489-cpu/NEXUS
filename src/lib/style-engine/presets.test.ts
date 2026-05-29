@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createHighContrastCarbonStyleManifestV1,
   compileNexusStyleManifestV1,
   createLegacyCyberpunkStyleManifestV1,
+  HIGH_CONTRAST_CARBON_STYLE_ID,
   LEGACY_CYBERPUNK_STYLE_ID,
   validateNexusStyleManifestV1,
 } from "@/lib/style-engine";
@@ -56,6 +58,54 @@ describe("NEXUS Style Engine built-in presets", () => {
     expect(result.style.adapters.nextThemes).toEqual({
       colorScheme: "dark",
       dataTheme: "cyberpunk",
+    });
+  });
+
+  it("creates a fresh high contrast manifest without mutating legacy output", () => {
+    const highContrast = createHighContrastCarbonStyleManifestV1();
+    const legacy = createLegacyCyberpunkStyleManifestV1();
+
+    highContrast.tokens.surface.app = "#111111";
+
+    expect(highContrast.id).toBe(HIGH_CONTRAST_CARBON_STYLE_ID);
+    expect(legacy.tokens.surface.app).toBe("#030712");
+    expect(createHighContrastCarbonStyleManifestV1().tokens.surface.app).toBe(
+      "#050505",
+    );
+  });
+
+  it("validates the high contrast manifest without accessibility warnings", () => {
+    const report = validateNexusStyleManifestV1(
+      createHighContrastCarbonStyleManifestV1(),
+    );
+
+    expect(report).toMatchObject({
+      accepted: true,
+      errors: [],
+      warnings: [],
+    });
+  });
+
+  it("compiles the high contrast manifest through the pure compiler", () => {
+    const result = compileNexusStyleManifestV1(
+      createHighContrastCarbonStyleManifestV1(),
+    );
+
+    expect(result.accepted).toBe(true);
+
+    if (!result.accepted) {
+      throw new Error("Expected high contrast preset to compile.");
+    }
+
+    expect(result.style.cssVariables).toMatchObject({
+      "--nexus-accent-primary": "#38bdf8",
+      "--nexus-surface-app": "#050505",
+      "--nexus-surface-panel": "rgb(16 16 16 / 0.94)",
+      "--nexus-text-primary": "#ffffff",
+    });
+    expect(result.style.adapters.nextThemes).toEqual({
+      colorScheme: "dark",
+      dataTheme: "terminal",
     });
   });
 });

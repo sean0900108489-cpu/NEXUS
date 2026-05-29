@@ -263,6 +263,21 @@ export function NexusStyleLab() {
       ? "draft loaded"
       : "brief rejected"
     : "no brief";
+  const briefIntentRows = useMemo(() => {
+    if (!briefResult || !briefResult.intent.accepted) {
+      return [];
+    }
+
+    const intent = briefResult.intent.draft.intent;
+
+    return [
+      ["Contrast", intent.contrast],
+      ["Motion", intent.motion],
+      ["Density", intent.density],
+      ["Mood", intent.mood.join(", ")],
+      ["Material", intent.material.join(", ")],
+    ];
+  }, [briefResult]);
   const governanceRows = useMemo(
     () => [
       ["State", review.state],
@@ -888,8 +903,25 @@ export function NexusStyleLab() {
               <footer className="border-t border-white/10 p-3">
                 <div className="mb-3 min-h-12 border border-white/10 bg-white/[0.03] p-2">
                   {briefResult?.draft?.accepted ? (
-                    <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-200">
-                      {briefResult.draft.manifest.id} loaded
+                    <div className="grid gap-2">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-200">
+                        {briefResult.draft.manifest.id} loaded
+                      </div>
+                      <div className="grid gap-1">
+                        {briefIntentRows.map(([label, value]) => (
+                          <div
+                            key={label}
+                            className="grid grid-cols-[72px_minmax(0,1fr)] gap-2"
+                          >
+                            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                              {label}
+                            </span>
+                            <span className="truncate font-mono text-[9px] text-slate-300">
+                              {value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ) : briefIssues.length > 0 ? (
                     <div className="grid gap-1">

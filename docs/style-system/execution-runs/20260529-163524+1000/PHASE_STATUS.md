@@ -101,6 +101,7 @@ Run id: `20260529-163524+1000`
 | Style Lab Issue Message Lines V1 | PASS | Added display-only safe issue message lines to Style Lab issue lists; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
 | Post Issue Message Phase Gate | PASS | Full check passed after issue message lines; side-effect scan and git diff check passed. |
 | Style Lab Brief Intent Summary V1 | PASS | Showed display-only normalized intent summary for accepted brief drafts; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
+| Post Brief Intent Summary Phase Gate | PASS | Full check passed on rerun after one recoverable unrelated backend test timeout; side-effect scan and git diff check passed. |
 
 ## Current Gate
 

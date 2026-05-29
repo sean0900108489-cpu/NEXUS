@@ -307,31 +307,37 @@ Run id: `20260529-163524+1000`
 - Added display-only normalized intent summary rows for accepted brief-to-draft results inside isolated Style Lab.
 - Kept the summary derived from pure normalizer output; no AI call, generated CSS injection, preview/apply/save/persist behavior, runtime provider, store, sync, backend, Supabase, app shell, CSS/global style, React Flow behavior, deploy config, or `exports/**` path was touched.
 - Verified CP-085 with focused intent/import/governance tests, typecheck, targeted lint, build, side-effect scans, and headless Chrome CDP smoke for normalized intent summary visibility.
+- Created local checkpoint commit `14260e9f8076e86f6df60daa91715bec43ee5a56` for the Style Lab Brief Intent Summary V1 unit.
+- Started `CP-086 - Post Brief Intent Summary Phase Gate` with source edits closed.
+- Ran `CP-086 - Post Brief Intent Summary Phase Gate`.
+- First full `npm run check` hit a single timeout in unrelated `src/lib/backend/runtime/agent-runtime.test.ts`; focused rerun of that file passed 12/12 tests.
+- Reran full `npm run check`; lint, typecheck, 39 Vitest files / 284 tests, and build passed.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live AI call, store/sync/backend/Supabase import or mutation path, React Flow behavior path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-085 - Style Lab Brief Intent Summary V1`.
-- Latest local checkpoint commit: pending CP-085 local commit; previous clean checkpoint commit is `5a4be14b91a1d5649543222805c01a84c30b7312`.
+- Latest completed checkpoint: `CP-086 - Post Brief Intent Summary Phase Gate`.
+- Latest local checkpoint commit: pending CP-086 local commit; previous clean checkpoint commit is `14260e9f8076e86f6df60daa91715bec43ee5a56`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status before CP-085 commit prep: dirty only in CP-085 allowed files.
-- Current stop reason: not stopped; CP-085 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status before CP-086 commit prep: dirty only in CP-086 allowed run-doc files.
+- Current stop reason: not stopped; CP-086 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-085 - Local checkpoint commit prep`.
+- `CP-086 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `git diff --check`; focused intent/import/governance tests; `npm run typecheck`; targeted lint for the Style Lab component and style-engine; `npm run build`; targeted side-effect scan; headless Chrome smoke on `/style-lab`.
-- Rollback: revert only `src/components/style-engine/nexus-style-lab.tsx` and this unit's run-doc edits.
+- Forbidden files: all source edits during the gate, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Rollback: revert only the CP-086 run-doc updates. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
 
 ## Next
 
-1. Commit the CP-085 local checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-086 local checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -2760,3 +2760,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused Vitest passed 3 files / 16 tests; targeted lint passed; `npm run typecheck` passed; `git diff --check` passed. Preview patches now include deterministic `--nexus-recipe-*` variables from `style.adapters.windowModal` alongside semantic, legacy, and graph variables. Side-effect scans found no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, live React Flow import, production UI import/edit, runtime provider logic change, governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path; behavior-key matches were limited to preview guard assertions and pure adapter forbidden-key registry strings.
 - Rollback note: revert only the preview patch variable spread, focused preview test assertions, and this CP-171 run-doc checkpoint update if the recipe variable preview patch output must be removed.
+
+## CP-172 - Post Preview Window Modal Variables Phase Gate
+
+- Unit: run broader local verification after preview patches began emitting window/modal recipe variables before selecting another implementation unit.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits during the gate, compiler/runtime/governance wiring changes, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 299 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries, and the window/modal recipe adapter forbidden behavior key registry; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
+- Rollback note: revert only this CP-172 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.

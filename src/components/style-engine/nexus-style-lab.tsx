@@ -281,6 +281,9 @@ export function NexusStyleLab() {
   const activePreviewLabel = runtime.activePreview?.previewId ?? "none";
   const activePreviewChecksumLabel =
     runtime.activePreview?.manifestChecksum ?? "none";
+  const adapterCoverageLabel = compiled.accepted
+    ? `reactFlow:${compiled.style.report.adapterCoverage.reactFlow}`
+    : "blocked";
   const compiledVariableCountLabel = compiled.accepted
     ? String(compiled.style.report.emittedVariableCount)
     : "blocked";
@@ -294,6 +297,7 @@ export function NexusStyleLab() {
       ["Mode", modeLabel],
       ["Intent", intentProfileLabel],
       ["Compatibility", review.compatibility],
+      ["Adapter", adapterCoverageLabel],
       ["Preview", review.permissions.canPreview ? "allowed" : "blocked"],
       ["Apply", review.permissions.canApply ? "allowed" : "blocked"],
       ["Apply Reason", review.permissions.reasonCodes.join(", ") || "none"],
@@ -317,6 +321,7 @@ export function NexusStyleLab() {
     [
       activePreviewChecksumLabel,
       activePreviewLabel,
+      adapterCoverageLabel,
       compiledVariableCountLabel,
       intentProfileLabel,
       modeLabel,

@@ -498,30 +498,37 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 39 Vitest files / 284 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live normalizer, draft generation, preview, persistence, apply/save, store/sync/backend/Supabase import or mutation path, React Flow behavior path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `b48c976b7951210b7393ef66bf59e733dccc5fe5` for the Post Intent Profile Phase Gate.
+- Started `CP-118 - Style Lab Adapter Coverage Row V1`.
+- Implemented `CP-118 - Style Lab Adapter Coverage Row V1`.
+- Added a display-only React Flow adapter coverage row inside the isolated Style Lab governance report.
+- Kept the row informational only; no React Flow import, graph behavior change, runtime provider change, persistence, apply/save, store, sync, backend, Supabase, app shell, CSS/global style, deploy config, or `exports/**` path was touched.
+- Verified CP-118 with focused import/governance/intent-manifest tests, typecheck, targeted lint, build, side-effect scans, and headless Chrome dump-DOM smoke for the adapter row.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-117 - Post Intent Profile Phase Gate`.
-- Latest local checkpoint commit: pending CP-117 local commit; previous clean checkpoint commit is `ddad77c8828b09f2d252f77277ae43e04bad0d56`.
+- Latest completed checkpoint: `CP-118 - Style Lab Adapter Coverage Row V1`.
+- Latest local checkpoint commit: pending CP-118 local commit; previous clean checkpoint commit is `b48c976b7951210b7393ef66bf59e733dccc5fe5`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status before CP-117 commit prep: dirty only in CP-117 allowed files.
-- Current stop reason: not stopped; CP-117 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status before CP-118 commit prep: dirty only in CP-118 allowed files.
+- Current stop reason: not stopped; CP-118 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-117 - Local checkpoint commit prep`.
+- `CP-118 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source edits during the gate, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only this CP-117 run-doc update if the phase gate bookkeeping must be removed.
+- Rollback: revert only `src/components/style-engine/nexus-style-lab.tsx` and this unit's run-doc edits.
 
 ## Next
 
-1. Commit the CP-117 docs-only checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-118 checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

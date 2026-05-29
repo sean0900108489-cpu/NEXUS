@@ -63,7 +63,8 @@ Run id: `20260529-163524+1000`
 | Runtime Controller Record Commit | PASS | Commit `302ab30ebe7961c91c3ecdae5f0142575913d3d0` created; post-commit status was clean. |
 | Next Gate Decision | PASS | Opened a minimal React/provider gate; store/sync/backend/Supabase and `exports/**` stayed closed. |
 | React Runtime Provider Gate V1 | PASS | Wrapped `Home` in a scoped client runtime provider; typecheck, lint, build, focused tests, marker scan, and Browser smoke passed. |
-| React Runtime Provider Local Checkpoint Commit | IN_PROGRESS | Staging and committing provider gate locally only. |
+| React Runtime Provider Local Checkpoint Commit | PASS | Commit `f57cd68c315f244a7bc36703fa547a38c22df1ba` created; post-commit status was clean. |
+| Isolated Style Lab Route Gate | IN_PROGRESS | Preparing a local-only lab route; workspace store/sync/backend/Supabase remain closed. |
 
 ## Current Gate
 

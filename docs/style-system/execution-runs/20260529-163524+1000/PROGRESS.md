@@ -136,14 +136,15 @@ Run id: `20260529-163524+1000`
 - Opened a minimal React/provider gate without editing `nexus-ops.tsx`.
 - Added `NexusStyleRuntimeProvider` and wrapped `Home` so future preview variables have a scoped runtime target.
 - Verified the provider gate with typecheck, targeted lint, focused runtime tests, `next build`, runtime marker scans, and Browser smoke on the existing local dev server.
+- Created local checkpoint commit `f57cd68c315f244a7bc36703fa547a38c22df1ba` for the React runtime provider gate.
 
 ## In Progress
 
-- Local checkpoint commit for React runtime provider gate V1.
+- Preparing isolated Style Lab route gate.
 
 ## Next
 
-1. Stage run docs plus the provider gate files.
-2. Verify staged diff.
-3. Create a local checkpoint commit if checks pass.
-4. Continue only if status returns clean.
+1. Commit this run-status record update.
+2. Re-confirm branch/status/HEAD.
+3. If clean, add an isolated local-only Style Lab route without touching workspace store, sync, backend, Supabase, graph behavior, or `exports/**`.
+4. Verify with build and Browser smoke before committing any UI route.

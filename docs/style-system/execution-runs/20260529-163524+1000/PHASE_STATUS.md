@@ -135,6 +135,7 @@ Run id: `20260529-163524+1000`
 | Post Intent Profile Phase Gate | PASS | Full check passed after the intent profile row; side-effect scan and git diff check passed. |
 | Style Lab Adapter Coverage Row V1 | PASS | Added display-only React Flow adapter coverage row to isolated Style Lab governance report; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
 | Post Adapter Coverage Phase Gate | PASS | Full check passed after the adapter coverage row; side-effect scan and git diff check passed. |
+| Pure React Flow Adapter Shape V1 | PASS | Added pure visual adapter type/default object and tests; focused tests, typecheck, lint, diff check, and side-effect scan passed. |
 
 ## Current Gate
 
@@ -147,4 +148,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Adapter Coverage Phase Gate local checkpoint prep with source edits closed. App shell, production components, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure React Flow Adapter Shape V1 local checkpoint prep. Production graph/app shell files, Style Lab UI, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

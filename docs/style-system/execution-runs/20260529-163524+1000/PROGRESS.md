@@ -510,30 +510,39 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 39 Vitest files / 284 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import or graph behavior change, runtime provider change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `daf56690a575f213afc68453e97a0e6a065a24c4` for the Post Adapter Coverage Phase Gate.
+- Started `CP-120 - Pure React Flow Adapter Shape V1`.
+- Implemented `CP-120 - Pure React Flow Adapter Shape V1`.
+- Added a pure React Flow visual adapter type, default object, fresh factory, forbidden behavior key ledger, and barrel export under `src/lib/style-engine/**`.
+- Kept the adapter disconnected from compiler/UI/runtime; no React Flow import, graph behavior wiring, production graph file, Style Lab UI, runtime provider, store, sync, backend, Supabase, CSS/global style, deploy config, or `exports/**` path was touched.
+- Verified CP-120 with focused adapter/validator/compiler tests, typecheck, isolated style-engine lint, side-effect scans, and diff checks including new files.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-119 - Post Adapter Coverage Phase Gate`.
-- Latest local checkpoint commit: pending CP-119 local commit; previous clean checkpoint commit is `e94770639b8bcc04da007168b03822989a83616f`.
+- Latest completed checkpoint: `CP-120 - Pure React Flow Adapter Shape V1`.
+- Latest local checkpoint commit: pending CP-120 local commit; previous clean checkpoint commit is `daf56690a575f213afc68453e97a0e6a065a24c4`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status before CP-119 commit prep: dirty only in CP-119 allowed files.
-- Current stop reason: not stopped; CP-119 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status before CP-120 commit prep: dirty only in CP-120 allowed files.
+- Current stop reason: not stopped; CP-120 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-119 - Local checkpoint commit prep`.
+- `CP-120 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/react-flow-adapter.ts`
+  - `src/lib/style-engine/react-flow-adapter.test.ts`
+  - `src/lib/style-engine/index.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source edits during the gate, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: production graph/app shell files, Style Lab UI, runtime provider internals, `src/components/nexus/**`, CSS/global styles, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only this CP-119 run-doc update if the phase gate bookkeeping must be removed.
+- Rollback: remove `src/lib/style-engine/react-flow-adapter.ts`, `src/lib/style-engine/react-flow-adapter.test.ts`, the barrel export, and this unit's run-doc edits.
 
 ## Next
 
-1. Commit the CP-119 docs-only phase-gate record if final diff/status checks remain clean by scope.
+1. Commit the CP-120 checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

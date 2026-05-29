@@ -1863,3 +1863,24 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Full `npm run check` passed lint, typecheck, 39 Vitest files / 284 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only validator/normalizer detector strings and test-only guard cases; source-only matches were limited to inert type literals, forbidden-string detector patterns, and validator scanner function names. No live React Flow import or graph behavior change, runtime provider change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed.
 - Rollback note: revert only this CP-119 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
+
+## CP-120 - Pure React Flow Adapter Shape V1
+
+- Unit: add a pure React Flow visual adapter shape/default object in `src/lib/style-engine/**` without importing React Flow or touching production graph behavior.
+- Allowed files:
+  - `src/lib/style-engine/react-flow-adapter.ts`
+  - `src/lib/style-engine/react-flow-adapter.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: production graph/app shell files, Style Lab UI, runtime provider internals, `src/components/nexus/**`, CSS/global styles, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `git diff --check`; focused Vitest for `react-flow-adapter`, `validator`, and `compiler`; `npm run typecheck`; isolated style-engine lint; targeted side-effect/import scan.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/react-flow-adapter.test.ts src/lib/style-engine/validator.test.ts src/lib/style-engine/compiler.test.ts`; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan; source-only side-effect/import scan excluding tests; `git add -N` for new-file diff checking; `git diff --check`.
+- Changed files:
+  - `src/lib/style-engine/react-flow-adapter.ts`
+  - `src/lib/style-engine/react-flow-adapter.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 3 files and 13 tests; typecheck passed; isolated style-engine lint passed; `git diff --check` passed including the new adapter files. Side-effect scans found only the new pure React Flow adapter type/forbidden-key constants plus existing validator/normalizer detector strings and test-only guard cases; no live React Flow import, graph behavior wiring, runtime provider change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
+- Rollback note: remove `src/lib/style-engine/react-flow-adapter.ts`, `src/lib/style-engine/react-flow-adapter.test.ts`, the barrel export, and this run-doc checkpoint update if the pure adapter shape unit must be removed.

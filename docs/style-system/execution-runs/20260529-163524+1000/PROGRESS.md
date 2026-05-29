@@ -84,14 +84,15 @@ Run id: `20260529-163524+1000`
 - Implemented isolated pure Style Engine compiler in `src/lib/style-engine/**`.
 - Added focused Vitest coverage for deterministic output, immutability, semantic/legacy CSS variables, recipe token reference compilation, invalid-manifest fail-closed behavior, and React Flow behavior rejection through the validator gate.
 - Verified the pure compiler unit with `git diff --check`, focused Vitest, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
+- Created local checkpoint commit `fe6a2b3a57949b368f9d9cc6696de05bfd7a4f40` for the pure compiler.
 
 ## In Progress
 
-- Local checkpoint commit for pure compiler V1.
+- Post-commit record update for pure compiler V1.
 
 ## Next
 
-1. Stage run docs and `src/lib/style-engine/**`.
-2. Verify staged diff.
-3. Create a local checkpoint commit if checks pass.
-4. Continue with the next isolated pure unit only if status returns clean.
+1. Commit this run-status record update.
+2. Re-confirm branch/status/HEAD.
+3. Continue with the next isolated pure unit only if status returns clean.
+4. Keep component, graph, store/sync, backend route, Supabase, deploy, and `exports/**` changes out of scope.

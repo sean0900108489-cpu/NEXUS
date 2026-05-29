@@ -31,7 +31,8 @@ Run id: `20260529-163524+1000`
 | Pure Validator Local Checkpoint Commit | PASS | Commit `02ee83cca662d5f8601b87c566172262f4ee3369` created; post-commit status was clean. |
 | Pure Validator Record Update | PASS | Commit `fe737bc64310c8822274b87546f7c87dcba12dca` created; post-commit status was clean. |
 | Pure Compiler V1 | PASS | Added deterministic compiler and focused tests; Vitest, typecheck, lint, side-effect scan, and diff checks passed. |
-| Pure Compiler Local Checkpoint Commit | IN_PROGRESS | Staging and committing compiler unit locally only. |
+| Pure Compiler Local Checkpoint Commit | PASS | Commit `fe6a2b3a57949b368f9d9cc6696de05bfd7a4f40` created; post-commit status was clean. |
+| Pure Compiler Record Update | IN_PROGRESS | Recording pure compiler checkpoint metadata. |
 
 ## Current Gate
 

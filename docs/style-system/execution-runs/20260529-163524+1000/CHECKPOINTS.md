@@ -424,3 +424,13 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
 - Verification result: PASS. Focused compiler and validator tests passed, typecheck passed, isolated lint passed, diff check passed, and targeted side-effect/import scan returned no matches.
 - Rollback note: revert only `src/lib/style-engine/compiler.ts`, `src/lib/style-engine/compiler.test.ts`, the index export, and this run-doc checkpoint update if this pure compiler unit must be removed.
+
+## CP-027 - Pure Compiler Local Commit Completed
+
+- Unit: commit pure compiler implementation locally.
+- Allowed files: git metadata plus `docs/style-system/execution-runs/20260529-163524+1000/**` for this record.
+- Forbidden files: `exports/**`, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `git add src/lib/style-engine docs/style-system/execution-runs/20260529-163524+1000`; `git diff --cached --check`; `git diff --cached --name-only`; `git commit -m "feat: add pure style compiler"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -9`.
+- Commit created: `fe6a2b3a57949b368f9d9cc6696de05bfd7a4f40`.
+- Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
+- Rollback note: revert the compiler commit only if the pure compiler unit must be removed; do not touch unrelated history.

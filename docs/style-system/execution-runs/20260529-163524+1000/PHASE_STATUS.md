@@ -15,7 +15,8 @@ Run id: `20260529-163524+1000`
 | V8 - App Shell Semantic Mapping | PASS | Added `nexus-ops-style-map.md`; no component files touched. |
 | V9 - Window And Modal Recipe System | PASS | Added `window-modal-recipe-system.md`; no component files touched. |
 | Checkpoint Commit Prep | PASS | Consistency scan clean by scope; local checkpoint commit allowed. |
-| Local Checkpoint Commit | IN_PROGRESS | Staging owned docs only. |
+| Local Checkpoint Commit | PASS | Commit `87a8dedd42876219b6b490c9874c295b2ecc0632` created; post-commit status was clean. |
+| Post-Commit Record Update | IN_PROGRESS | Recording checkpoint commit hash for recovery. |
 | V10+ Graph And Component Migration | PENDING | No runtime/component work until earlier docs and gates remain clean. |
 
 ## Current Gate

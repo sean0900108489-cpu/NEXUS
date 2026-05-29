@@ -55,13 +55,13 @@ Run id: `20260529-163524+1000`
 - Updated the doc-pack index so the V9 window/modal recipe boundary is part of the current pack.
 - Verified V9 recipe doc with `git diff --check`, trailing whitespace scan, and targeted window/modal behavior scan.
 - Ran documentation set consistency scan before local checkpoint commit.
+- Created local checkpoint commit `87a8dedd42876219b6b490c9874c295b2ecc0632` with V1-V9 documentation and run protection docs.
 
 ## In Progress
 
-- Local checkpoint commit for V1-V9 documentation set.
+- Post-commit recovery record update.
 
 ## Next
 
-1. Stage only owned `docs/style-system/**` changes.
-2. Commit the V1-V9 documentation checkpoint locally.
-3. Resume with V10+ planning or implementation gate assessment.
+1. Commit this post-commit record update locally.
+2. Resume with V10+ planning or implementation gate assessment.

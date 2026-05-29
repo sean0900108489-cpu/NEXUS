@@ -218,3 +218,13 @@ Each checkpoint records:
 - Verification result: PASS. Dirty tracked file is `docs/style-system/style-engine-technical-doc-pack-index.md`; untracked files are all under `docs/style-system/**`; index lists all new V1-V9 documents; documentation-only boundaries are present.
 - Rollback note: revert only the docs owned by CP-002 through CP-012 if this checkpoint set must be removed.
 - Commit decision: local checkpoint commit is allowed. No push, deploy, DB mutation, branch merge, or external operation is needed.
+
+## CP-013 - Local Checkpoint Commit Completed
+
+- Unit: commit V1-V9 documentation checkpoint locally.
+- Allowed files: git metadata plus `docs/style-system/execution-runs/20260529-163524+1000/**` for this record.
+- Forbidden files: `exports/**`, `src/**`, `supabase/**`, package files, deploy/config/remote/database mutation.
+- Commands run: `git add docs/style-system`; `git diff --cached --check`; mechanical EOF whitespace cleanup for new Markdown docs; `git commit -m "docs: checkpoint style engine V1-V9 planning"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -3`.
+- Commit created: `87a8dedd42876219b6b490c9874c295b2ecc0632`.
+- Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
+- Rollback note: revert the checkpoint commit only if the whole V1-V9 documentation checkpoint must be removed; do not touch unrelated history.

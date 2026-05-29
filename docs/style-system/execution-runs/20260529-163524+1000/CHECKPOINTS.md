@@ -3854,3 +3854,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused validator Vitest passed 1 file / 15 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only an existing test-only `themeConfig` unsafe payload string. Behavior scan found only existing React Flow behavior test fixture/assertion strings. `git diff --check` passed and status showed only allowed CP-234 files.
 - Rollback note: revert only the CP-234 validator test/run-doc changes if this coverage must be removed.
+
+## CP-235 - Validator Legacy CSS Variable Coverage Doc Reconciliation V1
+
+- Unit: reconcile the validator rulebook evidence with CP-234 legacy bridge CSS variable reference coverage.
+- Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, pure engine implementation files, workspace store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence scan for legacy bridge CSS variable reference coverage and doc wording; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused evidence scan for legacy bridge CSS variable reference coverage and doc wording; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found the approved NEXUS and legacy bridge CSS variable reference tests plus matching validator rulebook wording. Source-diff absence check showed only the validator rules doc changed before run-doc bookkeeping. `git diff --check` passed and status showed only allowed docs files.
+- Rollback note: revert only the CP-235 validator rules doc/run-doc reconciliation if this wording must be removed.

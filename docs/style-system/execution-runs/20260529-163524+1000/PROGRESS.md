@@ -1135,31 +1135,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-234 - Pure Validator Legacy CSS Variable Reference Coverage V1`.
 - Added focused validator test coverage that approved legacy bridge CSS variable references are allowed.
 - Verified CP-234 with focused validator Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
+- Created local checkpoint commit `d8f14ffeb2321934e448aa593e8625382e4ddfc4` for the Pure Validator Legacy CSS Variable Reference Coverage V1 unit.
+- Started `CP-235 - Validator Legacy CSS Variable Coverage Doc Reconciliation V1`.
+- Reconciled `manifest-validator-rules.md` with CP-234 approved NEXUS and legacy bridge CSS variable reference coverage.
+- Verified CP-235 with focused evidence/doc scans, source-diff absence check, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-234 - Pure Validator Legacy CSS Variable Reference Coverage V1`.
-- Latest local checkpoint commit: pending CP-234 local commit; previous clean checkpoint commit is `b14e51a994c3b910ce347e8ba1cf58ead8239860`.
+- Latest completed checkpoint: `CP-235 - Validator Legacy CSS Variable Coverage Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-235 local commit; previous clean checkpoint commit is `d8f14ffeb2321934e448aa593e8625382e4ddfc4`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-234 verification: dirty only in CP-234 allowed validator test/run-doc files.
-- Current stop reason: not stopped; CP-234 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-235 verification: dirty only in CP-235 allowed docs/run-doc files.
+- Current stop reason: not stopped; CP-235 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-234 - Local checkpoint commit prep`.
+- `CP-235 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: source implementation files, compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, production Nexus components, docs outside this run folder, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, pure engine implementation files, package/deploy/database/backend/store/sync/Supabase files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-234 validator test/run-doc changes if this coverage must be removed.
+- Rollback: revert only the CP-235 validator rules doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-234 validator test checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-235 validator rules doc checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

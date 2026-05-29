@@ -250,6 +250,7 @@ Run id: `20260529-163524+1000`
 | Validator HTML Tag Doc Reconciliation V1 | PASS | Reconciled validator rules docs with CP-231 generic HTML tag guard. |
 | Post HTML And CSS Expression Guard Phase Gate | PASS | Full check passed after CSS expression and generic HTML tag guards/docs; side-effect scan and git diff check passed. |
 | Pure Validator Legacy CSS Variable Reference Coverage V1 | PASS | Added focused positive coverage for approved legacy bridge CSS variable references; focused test, lint, typecheck, side-effect scan, and diff check passed. |
+| Validator Legacy CSS Variable Coverage Doc Reconciliation V1 | PASS | Reconciled validator rules docs with approved NEXUS and legacy bridge CSS variable reference coverage. |
 
 ## Current Gate
 
@@ -262,4 +263,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Validator Legacy CSS Variable Reference Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, source implementation files, UI/TSX/app route/CSS files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Validator Legacy CSS Variable Coverage Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, UI/TSX/app route/CSS files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

@@ -3232,3 +3232,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found validator test coverage for unknown recipe semantic token reference rejection and the updated rule that recipe semantic token references pointing to unknown tokens are errors. Stale marker scan returned no matches for the old required-reference wording. `git diff --check` passed and status showed only allowed docs/run-doc files.
 - Rollback note: revert only the CP-198 validator doc reconciliation and this run-doc checkpoint if the wording must be removed.
+
+## CP-199 - Post Validator Token Reference Phase Gate
+
+- Unit: run broader local verification after the pure validator unknown-token-reference guard and docs reconciliation.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits during the gate, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `npm run check`; if unrelated 5s timeout flakes recur, focused rerun of failed files plus full Vitest with longer timeout and separate build; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run check` twice; focused rerun for failed backend/workspace files; `npm run test -- --testTimeout 20000`; `npm run build`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS with recoverable timeout fallback. Two full `npm run check` attempts passed lint/typecheck but hit unrelated 5s timeout failures in backend/workspace streaming/recovery tests under load before build. Focused rerun of the failed backend/workspace files passed 3 files / 51 tests. Full Vitest with `--testTimeout 20000` passed 41 files / 303 tests. Separate `npm run build` passed with static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries/assertions, and the window/modal recipe adapter forbidden behavior key registry/assertions; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
+- Rollback note: revert only this CP-199 run-doc update if the phase gate bookkeeping must be removed. If future verification exposes an actual source regression, open a separate focused repair unit with its own allowed file range.

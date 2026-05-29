@@ -980,31 +980,37 @@ Run id: `20260529-163524+1000`
 - Started `CP-198 - Validator Token Reference Doc Reconciliation V1`.
 - Reconciled `manifest-validator-rules.md` with the CP-197 unknown recipe semantic token reference guard and test coverage.
 - Verified CP-198 with focused evidence scan, stale marker scan, `git diff --check`, diff stat, and status check.
+- Created local checkpoint commit `c742c822bebb67f6c533c81529558b8596940504` for the Validator Token Reference Doc Reconciliation V1 unit.
+- Started `CP-199 - Post Validator Token Reference Phase Gate` with source/test edits closed.
+- Ran `npm run check` twice. Both attempts passed lint/typecheck but hit unrelated 5s timeout failures in backend/workspace streaming/recovery tests before build.
+- Focused rerun of failed backend/workspace files passed 3 files / 51 tests.
+- Full Vitest with `--testTimeout 20000` passed 41 files / 303 tests.
+- Separate `npm run build` passed with `/style-lab` static and the known edge-runtime warning unchanged.
+- Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries/assertions, and the window/modal recipe adapter forbidden behavior key registry/assertions; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-198 - Validator Token Reference Doc Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-198 local commit; previous clean checkpoint commit is `3dea35f25399bc9ee6e1cbaea33e91574940d8f0`.
+- Latest completed checkpoint: `CP-199 - Post Validator Token Reference Phase Gate`.
+- Latest local checkpoint commit: pending CP-199 local commit; previous clean checkpoint commit is `c742c822bebb67f6c533c81529558b8596940504`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-198 verification: dirty only in CP-198 allowed docs and run-doc files.
-- Current stop reason: not stopped; CP-198 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-199 verification: clean before run-doc bookkeeping; dirty only in CP-199 allowed run-doc files after this update.
+- Current stop reason: not stopped; CP-199 verification passed with decomposed timeout fallback and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-198 - Local checkpoint commit prep`.
+- `CP-199 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits, UI/TSX/app route/CSS files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test edits during the phase gate, UI/CSS/production component files, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-198 docs/run-doc update if the validator doc reconciliation must be removed.
+- Rollback: revert only the CP-199 run-doc update if the phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-198 docs checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-199 phase gate checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

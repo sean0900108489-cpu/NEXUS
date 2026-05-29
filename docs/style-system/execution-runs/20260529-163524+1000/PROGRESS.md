@@ -1210,31 +1210,35 @@ Run id: `20260529-163524+1000`
 - Created local checkpoint commit `aef304e6aca390a65837feb043506a8ef50c0927` for the Pure Validator External Platform Top-Level Coverage V1 unit.
 - Started `CP-253 - Validator Platform Pollution Doc Reconciliation V1`.
 - Reconciled manifest validator rules with CP-252 external platform top-level pollution coverage.
+- Created local checkpoint commit `54bc99218cd2d6af2ebac9a4e56b0e8975227c7f` for the Validator Platform Pollution Doc Reconciliation V1 unit.
+- Started `CP-254 - Pure Validator Unknown Top-Level Coverage V1`.
+- Added focused validator coverage that benign unsupported top-level fields report `style.unknownTopLevelField` rather than the unsafe platform-field code.
+- Verified CP-254 with focused validator Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-253 - Validator Platform Pollution Doc Reconciliation V1`.
-- Latest recorded checkpoint commit: `aef304e6aca390a65837feb043506a8ef50c0927` for `CP-252 - Pure Validator External Platform Top-Level Coverage V1`; CP-253 is being prepared for local commit.
+- Latest completed checkpoint: `CP-254 - Pure Validator Unknown Top-Level Coverage V1`.
+- Latest recorded checkpoint commit: `54bc99218cd2d6af2ebac9a4e56b0e8975227c7f` for `CP-253 - Validator Platform Pollution Doc Reconciliation V1`; CP-254 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-253 verification prep: dirty only in CP-253 allowed docs files.
-- Current stop reason: not stopped; CP-253 doc reconciliation is underway.
+- Confirmed current status after CP-254 verification: dirty only in CP-254 allowed files.
+- Current stop reason: not stopped; CP-254 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-253 - Local checkpoint commit prep`.
+- `CP-254 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/manifest-validator-rules.md`
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, docs outside the listed style-system doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-253 doc/run-doc changes if this reconciliation must be removed.
+- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-254 validator test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-253 doc reconciliation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-254 validator coverage checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

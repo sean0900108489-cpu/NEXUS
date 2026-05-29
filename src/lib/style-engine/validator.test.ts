@@ -367,6 +367,27 @@ describe("NEXUS Style Engine manifest validator", () => {
     );
     expect(JSON.stringify(report)).not.toContain("hidden-platform-secret");
   });
+
+  it("distinguishes unsupported top-level fields from unsafe platform fields", () => {
+    const manifest = {
+      ...createSafeManifest(),
+      visualNotes: "keep panels quiet",
+    };
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toContainEqual({
+      code: "style.unknownTopLevelField",
+      message: "Unknown top-level fields are not allowed in a V1 style manifest.",
+      path: "$.visualNotes",
+    });
+    expect(report.errors).not.toContainEqual(
+      expect.objectContaining({
+        code: "style.unsafeTopLevelField",
+        path: "$.visualNotes",
+      }),
+    );
+  });
 });
 
 function createSafeManifest(

@@ -2439,3 +2439,24 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. `git diff --check` passed. Focused doc scan confirmed the docs now record isolated Style Lab Panel/Button/Input/Badge plus static Window/Modal specimen evidence while preserving that no production app shell, `src/components/nexus/**`, React Flow behavior, runtime provider internals, workspace store/sync, backend, Supabase/database, package/deploy, modal/window behavior semantics, or `exports/**` files were changed.
 - Rollback note: revert only these phase-doc reconciliation edits and this run-doc checkpoint update if the reconciliation must be removed.
+
+## CP-154 - Style Lab Static Command Palette Specimen V1
+
+- Unit: add a specimen-only static command palette visual shell to the isolated Style Lab preview surface, following the documented migration order after static Modal and Window specimens without adding command palette behavior semantics.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/window-modal-recipe-system.md`
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `src/app/**`, `src/components/nexus/**`, runtime provider internals, `src/lib/style-engine/**`, CSS/global stylesheets, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, command palette behavior semantics such as keyboard shortcut handling, filtering logic, command execution, focus behavior, close behavior, fixed overlay, z-index changes, download/clipboard/save/export-file behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `git diff --check`; focused runtime/preview tests; targeted lint; `npm run typecheck`; `npm run build`; targeted side-effect/import and command-palette behavior scan; local `/style-lab` smoke for `Command Palette Specimen`.
+- Commands run: `apply_patch`; `git diff --check`; targeted diff-only command-palette behavior scan; `npm run test -- src/lib/style-engine/runtime-controller.test.ts src/lib/style-engine/preview.test.ts`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run typecheck`; `npm run build`; Node `fetch` HTML smoke on `http://localhost:3000/style-lab`; targeted side-effect/import scan; `git status --porcelain=v1 -b`; `git diff --stat`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/window-modal-recipe-system.md`
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 2 files and 6 tests; targeted lint passed; typecheck passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only; `git diff --check` passed. Local HTML smoke found `Command Palette Specimen`, `Window Specimen`, and `Modal Specimen`. Diff-only command-palette behavior scan found no new handlers, keyboard handling, filtering, execution, focus/close, fixed overlay, z-index, modal role, aria-modal, drag/resize, React Flow behavior, or pointer-event changes; the only diff hit was the inert style constant name for the visual input shell. Broader side-effect scan found only existing pure adapter helper wiring, validator/normalizer detector strings, test-only unsafe payloads, and isolated Style Lab pure adapter consumption; no store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, download/clipboard/save/export-file path, deploy path, or `exports/**` path was found.
+- Rollback note: revert only the isolated Style Lab command palette specimen, related phase-doc evidence lines, and this run-doc checkpoint update if the static command palette specimen must be removed.

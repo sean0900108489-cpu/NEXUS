@@ -707,33 +707,40 @@ Run id: `20260529-163524+1000`
 - Reconciled `primitive-specimens-v1.md`, `window-modal-recipe-system.md`, and `style-lab-v1.md` with current isolated Style Lab Panel/Button/Input/Badge plus static Window/Modal specimen evidence.
 - Preserved safety boundaries in those docs: no production app shell, `src/components/nexus/**`, React Flow behavior, runtime provider internals, workspace store/sync, backend, Supabase/database, package/deploy, modal/window behavior semantics, or `exports/**` files changed.
 - Verified CP-153 with docs-only diff checks, status checks, and focused implementation-evidence/boundary review.
+- Created local checkpoint commit `4a6f7398ed7d6afe39c40d3f8f4ab7bd705a16e3` for the Primitive And Window Modal Doc Reconciliation V1 unit.
+- Started `CP-154 - Style Lab Static Command Palette Specimen V1`.
+- Implemented `CP-154 - Style Lab Static Command Palette Specimen V1`.
+- Added a specimen-only static command palette visual shell to the isolated Style Lab preview surface, following the documented migration order after static Modal and Window specimens.
+- Confirmed the specimen does not add keyboard shortcut handling, filtering logic, command execution, focus behavior, close behavior, fixed overlay, z-index changes, runtime provider changes, production graph behavior, store, sync, backend, Supabase, deploy, save/export-file behavior, or `exports/**`.
+- Reconciled `window-modal-recipe-system.md` and `style-lab-v1.md` evidence with the new command palette specimen.
+- Verified CP-154 with focused runtime/preview tests, targeted lint, typecheck, build, side-effect/command-palette behavior scans, and static `/style-lab` smoke.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-153 - Primitive And Window Modal Doc Reconciliation V1`.
-- Latest local checkpoint commit: pending CP-153 local commit; previous clean checkpoint commit is `03c35d03fb907494909f9d0b6c9eccb1f30bafad`.
+- Latest completed checkpoint: `CP-154 - Style Lab Static Command Palette Specimen V1`.
+- Latest local checkpoint commit: pending CP-154 local commit; previous clean checkpoint commit is `4a6f7398ed7d6afe39c40d3f8f4ab7bd705a16e3`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-153 verification: dirty only in CP-153 allowed docs files.
-- Current stop reason: not stopped; CP-153 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-154 verification: dirty only in CP-154 allowed source/docs/run-doc files.
+- Current stop reason: not stopped; CP-154 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-153 - Local checkpoint commit prep`.
+- `CP-154 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/primitive-specimens-v1.md`
+  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/window-modal-recipe-system.md`
   - `docs/style-system/style-lab-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all `src/**` source/test edits, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: `src/app/**`, `src/components/nexus/**`, runtime provider internals, `src/lib/style-engine/**`, CSS/global stylesheets, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, command palette behavior semantics, download/clipboard/save/export-file behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only these phase-doc reconciliation edits and this run-doc checkpoint update if the reconciliation must be removed.
+- Rollback: revert only the isolated Style Lab command palette specimen, related phase-doc evidence lines, and this run-doc checkpoint update if the static command palette specimen must be removed.
 
 ## Next
 
-1. Commit the CP-153 docs-only checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-154 isolated Style Lab checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

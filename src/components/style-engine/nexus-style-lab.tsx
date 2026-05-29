@@ -146,6 +146,45 @@ const primitiveModalCalloutStyle = {
   color: "var(--nexus-status-warning, #fcd34d)",
 };
 
+const primitiveCommandPaletteItems = [
+  "Open Agent",
+  "Toggle Dock",
+  "Review Style",
+];
+
+const primitiveCommandPaletteOverlayStyle = {
+  background: "rgb(2 6 23 / 0.76)",
+};
+
+const primitiveCommandPaletteSurfaceStyle = {
+  background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
+  borderColor: "var(--nexus-border-strong, rgb(226 232 240 / 0.18))",
+  boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
+  color: "var(--nexus-text-primary, #f8fafc)",
+};
+
+const primitiveCommandPaletteInputStyle = {
+  background: "var(--nexus-surface-input, rgb(15 23 42 / 0.72))",
+  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+  color: "var(--nexus-text-secondary, #cbd5e1)",
+};
+
+const primitiveCommandPaletteItemStyle = {
+  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
+  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+  color: "var(--nexus-text-primary, #f8fafc)",
+};
+
+const primitiveCommandPaletteActiveItemStyle = {
+  background: "var(--nexus-accent-primary, #67e8f9)",
+  borderColor: "var(--nexus-accent-primary-strong, #22d3ee)",
+  color: "var(--nexus-text-inverse, #020617)",
+};
+
+const primitiveCommandPaletteIconStyle = {
+  background: "var(--nexus-accent-primary, #67e8f9)",
+};
+
 const primitiveWindowSurfaceStyle = {
   background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
   borderColor: "var(--nexus-border-strong, rgb(226 232 240 / 0.18))",
@@ -788,6 +827,51 @@ export function NexusStyleLab() {
                       >
                         Apply
                       </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  aria-hidden="true"
+                  className="mt-3 min-h-48 overflow-hidden border p-4"
+                  style={primitiveCommandPaletteOverlayStyle}
+                >
+                  <div
+                    className="mx-auto grid max-w-md gap-3 border p-3"
+                    style={primitiveCommandPaletteSurfaceStyle}
+                  >
+                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                      Command Palette Specimen
+                    </div>
+                    <div
+                      className="truncate border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em]"
+                      style={primitiveCommandPaletteInputStyle}
+                    >
+                      Search command
+                    </div>
+                    <div className="grid gap-2">
+                      {primitiveCommandPaletteItems.map((item, index) => (
+                        <div
+                          key={item}
+                          className="grid min-w-0 grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-3 border px-3 py-2"
+                          style={
+                            index === 0
+                              ? primitiveCommandPaletteActiveItemStyle
+                              : primitiveCommandPaletteItemStyle
+                          }
+                        >
+                          <span
+                            className="h-2 w-2"
+                            style={primitiveCommandPaletteIconStyle}
+                          />
+                          <span className="truncate font-mono text-[10px] uppercase tracking-[0.12em]">
+                            {item}
+                          </span>
+                          <span className="font-mono text-[9px] uppercase tracking-[0.1em] opacity-70">
+                            visual
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>

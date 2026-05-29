@@ -2,13 +2,14 @@
 
 Phase: V9 - Window And Modal Recipe System
 Run: `docs/style-system/execution-runs/20260529-163524+1000`
-Status: partially implemented isolated Style Lab static specimens. No production window/modal code changed.
+Status: partially implemented isolated Style Lab static specimens. No production window/modal or command palette code changed.
 
 ## Implementation Evidence
 
 - `src/components/style-engine/nexus-style-lab.tsx` includes specimen-only static Modal and Window visual shells inside the isolated Style Lab primitive specimen gallery.
 - The Modal specimen has no `role="dialog"`, `aria-modal`, focus trap, close handler, fixed overlay, z-index tier, backend save, or persistence behavior.
 - The Window specimen has no drag handle class names, `draggable`, resize enablement, bounds, z-index state, focus/close handlers, sandbox interaction lock, or `react-rnd` usage.
+- The Command Palette specimen is a visual-only shell with no keyboard shortcut handling, filtering logic, command execution, focus behavior, close behavior, fixed overlay, or z-index tier change.
 - Production surfaces such as `src/components/nexus/nexus-ops.tsx`, `DatapadWindow`, `PromptVaultManager`, `AgentBranchModal`, and command palette behavior remain untouched.
 
 ## 0. Purpose

@@ -201,32 +201,36 @@ Run id: `20260529-163524+1000`
 - Implemented `CP-066 - Built-In High Contrast Preset V1`.
 - Added pure `High Contrast Carbon` manifest factory and focused validation/compile/freshness tests.
 - Verified CP-066 with diff check, focused preset/compiler/validator tests, side-effect scan, typecheck, and isolated style-engine lint.
+- Created local checkpoint commit `a54721e73c9d436a9f3acea93dab28e16e1ae04e` for the Built-In High Contrast Preset V1 unit.
+- Implemented `CP-067 - Style Lab Built-In Preset Selector V1`.
+- Added local built-in preset controls for Cyberpunk and High Contrast inside the isolated Style Lab header.
+- Kept preset switching local and in-memory only; no persistence, store, sync, backend, Supabase, app shell, CSS, or React Flow behavior files were touched.
+- Verified CP-067 with diff check, focused preset/import tests, side-effect scan, typecheck, targeted lint, build, and Browser smoke.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-066 - Built-In High Contrast Preset V1`.
-- Latest local checkpoint commit: `12bef44b695b5cb0acde6bc21e163f5998d4cce5`.
+- Latest completed checkpoint: `CP-067 - Style Lab Built-In Preset Selector V1`.
+- Latest local checkpoint commit before the CP-067 commit: `a54721e73c9d436a9f3acea93dab28e16e1ae04e`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
 - Confirmed current status during state assessment: clean before this run-doc reconciliation.
 - Current stop reason: normal context/turn checkpoint followed by explicit user-requested state assessment; not an error stop.
 
 ## In Progress
 
-- Preparing the CP-066 local checkpoint commit.
+- Preparing the CP-067 local checkpoint commit.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/presets.ts`
-  - `src/lib/style-engine/presets.test.ts`
+  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: UI/app components, CSS/global styles, runtime provider files, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
-- Verification: `git diff --check`; focused preset/compiler/validator tests; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan.
-- Rollback: remove only the new preset/test assertions and this unit's run-doc edits.
+- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
+- Verification: `git diff --check`; focused preset/import tests; `npm run typecheck`; targeted lint for the Style Lab component and style-engine; `npm run build`; targeted side-effect scan; Browser smoke on `/style-lab`.
+- Rollback: revert only `src/components/style-engine/nexus-style-lab.tsx` and this unit's run-doc edits.
 
 ## Next
 
-1. Commit the CP-066 local checkpoint.
+1. Commit the CP-067 local checkpoint.
 2. Confirm branch, HEAD, and clean status.
 3. Select the next isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

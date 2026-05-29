@@ -1008,3 +1008,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused Vitest passed 3 files and 16 tests; typecheck passed; isolated style-engine lint passed; `git diff --check` passed; targeted side-effect/import scan returned no matches.
 - Rollback note: remove only the high contrast preset factory/test assertions and this run-doc checkpoint update if the preset unit must be removed.
+
+## CP-067 - Style Lab Built-In Preset Selector V1
+
+- Unit: add a local selector for built-in Style Lab manifests so specimens and comparison can switch between baseline and high contrast without persistence.
+- Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
+- Verification plan: `git diff --check`; `npm run test -- src/lib/style-engine/presets.test.ts src/lib/style-engine/import-text.test.ts`; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; targeted side-effect/import scan; Browser smoke on `http://localhost:3000/style-lab`.
+- Commands run: `apply_patch`; `git diff --check`; `npm run test -- src/lib/style-engine/presets.test.ts src/lib/style-engine/import-text.test.ts`; targeted side-effect/import scan for store/sync/backend/Supabase/DOM/storage/React Flow behavior strings; `npm run typecheck`; `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; Browser smoke on `http://localhost:3000/style-lab`.
+- Changed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused Vitest passed 2 files and 11 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only; side-effect scan returned no matches; Browser smoke confirmed High Contrast selection, scoped Preview/Revert behavior, return to Cyberpunk, and severe browser log count is zero.
+- Rollback note: revert only `src/components/style-engine/nexus-style-lab.tsx` and this run-doc checkpoint update if the selector unit must be removed.

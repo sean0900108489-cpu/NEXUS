@@ -12,9 +12,12 @@ import { useMemo, useState } from "react";
 
 import {
   compileNexusStyleManifestV1,
+  createHighContrastCarbonStyleManifestV1,
   createLegacyCyberpunkStyleManifestV1,
   createNexusStyleExportPackageV1,
   createNexusStylePreviewPatchV1,
+  HIGH_CONTRAST_CARBON_STYLE_ID,
+  LEGACY_CYBERPUNK_STYLE_ID,
   parseNexusStyleImportTextV1,
   reviewNexusStylePackV1,
   type NexusStyleImportTextResultV1,
@@ -32,6 +35,19 @@ const comparisonVariables = [
   "--nexus-text-primary",
   "--nexus-accent-primary",
   "--nexus-status-warning",
+];
+
+const builtInPresets = [
+  {
+    create: createLegacyCyberpunkStyleManifestV1,
+    id: LEGACY_CYBERPUNK_STYLE_ID,
+    label: "Cyberpunk",
+  },
+  {
+    create: createHighContrastCarbonStyleManifestV1,
+    id: HIGH_CONTRAST_CARBON_STYLE_ID,
+    label: "High Contrast",
+  },
 ];
 
 const surfaceStyle = {
@@ -97,6 +113,9 @@ export function NexusStyleLab() {
     [],
   );
   const [previewState, setPreviewState] = useState<PreviewState>("idle");
+  const [selectedBuiltInPreset, setSelectedBuiltInPreset] = useState<string>(
+    LEGACY_CYBERPUNK_STYLE_ID,
+  );
   const [manifest, setManifest] = useState<NexusStyleManifestV1>(() =>
     createLegacyCyberpunkStyleManifestV1(),
   );
@@ -212,11 +231,22 @@ export function NexusStyleLab() {
     setImportResult(null);
   };
 
-  const resetToBaseline = () => {
+  const loadBuiltInPreset = (presetId: string) => {
+    const preset = builtInPresets.find((candidate) => candidate.id === presetId);
+
+    if (!preset) {
+      return;
+    }
+
     runtime.clearPreview();
-    setManifest(createLegacyCyberpunkStyleManifestV1());
+    setManifest(preset.create());
     setImportResult(null);
     setPreviewState("idle");
+    setSelectedBuiltInPreset(preset.id);
+  };
+
+  const resetToBaseline = () => {
+    loadBuiltInPreset(LEGACY_CYBERPUNK_STYLE_ID);
   };
 
   const loadDraft = () => {
@@ -230,6 +260,11 @@ export function NexusStyleLab() {
 
     runtime.clearPreview();
     setManifest(result.manifest);
+    setSelectedBuiltInPreset(
+      builtInPresets.some((preset) => preset.id === result.manifest.id)
+        ? result.manifest.id
+        : "imported-draft",
+    );
     setPreviewState("idle");
   };
 
@@ -247,14 +282,38 @@ export function NexusStyleLab() {
       <section className="grid min-h-dvh grid-rows-[auto_1fr]">
         <header className="border-b border-white/10 bg-black/30 px-5 py-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="font-mono text-sm uppercase tracking-[0.22em] text-cyan-100">
-                NEXUS Style Lab
-              </h1>
-              <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                {manifest.id} / {review.state}
+              <div>
+                <h1 className="font-mono text-sm uppercase tracking-[0.22em] text-cyan-100">
+                  NEXUS Style Lab
+                </h1>
+                <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                  {manifest.id} / {review.state}
+                </div>
+                <div
+                  aria-label="Built-in style presets"
+                  className="mt-3 flex flex-wrap gap-2"
+                >
+                  {builtInPresets.map((preset) => {
+                    const active = selectedBuiltInPreset === preset.id;
+
+                    return (
+                      <button
+                        key={preset.id}
+                        className={[
+                          "h-8 border px-3 font-mono text-[10px] uppercase tracking-[0.12em] transition",
+                          active
+                            ? "border-cyan-300/45 bg-cyan-300/15 text-cyan-100"
+                            : "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/25 hover:bg-white/10",
+                        ].join(" ")}
+                        onClick={() => loadBuiltInPreset(preset.id)}
+                        type="button"
+                      >
+                        {preset.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
 
             <div className="flex items-center gap-2">
               <button

@@ -3633,3 +3633,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found `style.forbidden.cssVariableReference` coverage in validator source/tests and CSS variable namespace guard wording in the validator rules doc. Token-parser wording scan confirmed the remaining full structured CSS/value parser gap is now explicit rather than claiming only broad pattern scanning. `git diff --check` passed and status showed only allowed docs/run-doc files.
 - Rollback note: revert only the CP-221 docs/run-doc reconciliation if this wording must be removed.
+
+## CP-222 - Post CSS Variable Guard Phase Gate
+
+- Unit: run broader verification after the pure CSS variable namespace guard and docs reconciliation.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits during the gate, docs outside this run folder, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `npm run check`; if known 5s timeout flakes recur, focused rerun of failed files plus full Vitest with longer timeout and separate build; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 308 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries/assertions, and the window/modal recipe adapter forbidden behavior key registry/assertions; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
+- Rollback note: revert only this CP-222 run-doc update if the phase gate bookkeeping must be removed. If future verification exposes an actual source regression, open a separate focused repair unit with its own allowed file range.

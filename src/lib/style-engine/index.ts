@@ -5,3 +5,4 @@ export * from "./validator";
 export * from "./compiler";
 export * from "./presets";
 export * from "./preview";
+export * from "./governance";

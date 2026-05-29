@@ -3888,3 +3888,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused intent-normalizer Vitest passed 1 file / 6 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan found only test-only unsafe prompt strings and an assertion that `workspace.themeConfig` is redacted. Behavior scan found only existing React Flow behavior omission fixture/assertion strings. `git diff --check` passed and status showed only allowed CP-236 files.
 - Rollback note: revert only the CP-236 intent-normalizer test/run-doc changes if this coverage must be removed.
+
+## CP-237 - Interpreter Persistence Omission Doc Reconciliation V1
+
+- Unit: reconcile the interpreter boundary doc with CP-236 workspace persistence omission coverage.
+- Allowed files:
+  - `docs/style-system/style-interpreter-boundary.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, pure engine implementation files, workspace store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence scan for workspace persistence omission coverage and doc wording; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused evidence scan for workspace persistence omission coverage and doc wording; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-interpreter-boundary.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found `style.intent.omittedWorkspacePersistenceInstruction` in normalizer source/tests and matching workspace persistence omission wording in the interpreter boundary doc. Source-diff absence check showed only the interpreter boundary doc changed before run-doc bookkeeping. `git diff --check` passed and status showed only allowed docs files.
+- Rollback note: revert only the CP-237 interpreter boundary doc/run-doc reconciliation if this wording must be removed.

@@ -4547,3 +4547,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found the CP-274 fallback intent normalizer test and matching Style Interpreter boundary wording. Source-diff absence check showed no source/runtime diff for this docs-only unit. `git diff --check` passed.
 - Rollback note: revert only the CP-275 doc/run-doc changes if this reconciliation must be removed.
+
+## CP-276 - Pure Intent Manifest Fallback Draft Coverage V1
+
+- Unit: add focused manifest draft coverage proving sparse fallback intent can produce a validated draft.
+- Allowed files:
+  - `src/lib/style-engine/intent-manifest.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused intent-manifest Vitest; targeted lint for touched intent-manifest test; `npm run typecheck`; targeted side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run test -- --testTimeout 20000 src/lib/style-engine/intent-manifest.test.ts`; `npm run lint -- src/lib/style-engine/intent-manifest.test.ts`; `npm run typecheck`; targeted side-effect/behavior scan on the CP-276 diff; `git diff --check`.
+- Changed files:
+  - `src/lib/style-engine/intent-manifest.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused intent-manifest Vitest passed 1 file / 6 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Targeted side-effect/behavior scan on the CP-276 diff returned no matches for runtime/store/sync/backend/Supabase/deploy/UI behavior paths. `git diff --check` passed.
+- Rollback note: revert only the CP-276 intent-manifest test/run-doc changes if this coverage must be removed.

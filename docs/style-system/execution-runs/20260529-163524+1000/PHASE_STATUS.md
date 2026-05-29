@@ -291,6 +291,7 @@ Run id: `20260529-163524+1000`
 | Post Validator Container Intent Phase Gate | PASS | Full check passed after root/container coverage and non-empty intent array fix/docs; side-effect scan and git diff check passed. |
 | Pure Intent Normalizer Fallback Intent Coverage V1 | PASS | Added focused coverage that sparse benign briefs produce non-empty fallback mood/material intent tags. |
 | Interpreter Fallback Intent Doc Reconciliation V1 | PASS | Reconciled Style Interpreter docs with fallback intent tag coverage. |
+| Pure Intent Manifest Fallback Draft Coverage V1 | PASS | Added focused coverage that sparse fallback intent produces a validated manifest draft. |
 
 ## Current Gate
 
@@ -303,4 +304,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Interpreter Fallback Intent Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside the listed interpreter doc and run folder, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Intent Manifest Fallback Draft Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, source implementation files, docs outside this run folder, validator/compiler/governance/exchange/runtime/UI/TSX/app route/CSS files outside the touched intent-manifest test, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

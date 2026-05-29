@@ -54,6 +54,22 @@ describe("NEXUS Style Engine intent manifest drafts", () => {
     );
   });
 
+  it("creates a validated draft from sparse fallback intent", () => {
+    const intent = normalizeNexusStyleIntentV1("Make the interface feel better.");
+    const draft = createNexusStyleManifestDraftFromIntentV1(intent);
+
+    expect(draft.accepted).toBe(true);
+
+    if (!draft.accepted) {
+      throw new Error("Expected accepted fallback manifest draft.");
+    }
+
+    expect(draft.manifest.intent.mood).toEqual(["operational"]);
+    expect(draft.manifest.intent.material).toEqual(["dark-metal"]);
+    expect(draft.validation.accepted).toBe(true);
+    expect(validateNexusStyleManifestV1(draft.manifest).accepted).toBe(true);
+  });
+
   it("fails closed when the normalized intent was rejected", () => {
     const intent = normalizeNexusStyleIntentV1(
       "service_role=super-secret-value",

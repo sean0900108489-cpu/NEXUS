@@ -1114,32 +1114,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-229 - Pure Validator CSS Expression Guard V1`.
 - Added a pure validator guard and focused coverage for legacy CSS `expression(...)` strings in manifest values.
 - Verified CP-229 with focused validator Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
+- Created local checkpoint commit `024eda2b1a91a42b8508f0d0fd1e86f628c5ff7f` for the Pure Validator CSS Expression Guard V1 unit.
+- Started `CP-230 - Validator CSS Expression Doc Reconciliation V1`.
+- Reconciled `manifest-validator-rules.md` with CP-229 legacy CSS expression guard evidence.
+- Verified CP-230 with focused evidence/doc scans, source-diff absence check, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-229 - Pure Validator CSS Expression Guard V1`.
-- Latest local checkpoint commit: pending CP-229 local commit; previous clean checkpoint commit is `82cca91ec84ff9e1b5279732c7580f8c528eefc0`.
+- Latest completed checkpoint: `CP-230 - Validator CSS Expression Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-230 local commit; previous clean checkpoint commit is `024eda2b1a91a42b8508f0d0fd1e86f628c5ff7f`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-229 verification: dirty only in CP-229 allowed validator/test/run-doc files.
-- Current stop reason: not stopped; CP-229 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-230 verification: dirty only in CP-230 allowed docs/run-doc files.
+- Current stop reason: not stopped; CP-230 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-229 - Local checkpoint commit prep`.
+- `CP-230 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.ts`
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: UI/TSX/app route/CSS files, production Nexus components, compiler/governance/exchange/runtime wiring, docs outside this run folder, package/deploy/database/backend/store/sync/Supabase files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, pure engine implementation files, package/deploy/database/backend/store/sync/Supabase files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-229 validator/test/run-doc changes if this guard must be removed.
+- Rollback: revert only the CP-230 validator rules doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-229 validator checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-230 validator rules doc checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

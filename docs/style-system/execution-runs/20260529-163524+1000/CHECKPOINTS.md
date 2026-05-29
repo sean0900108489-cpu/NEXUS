@@ -4296,3 +4296,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found the CP-259 identity metadata test and matching manifest validator rules wording. Source-diff absence check showed only allowed docs changed after the CP-259 source checkpoint. `git diff --check` passed and status showed only allowed CP-260 docs files.
 - Rollback note: revert only the CP-260 doc/run-doc changes if this reconciliation must be removed.
+
+## CP-261 - Post Metadata Validator Coverage Phase Gate
+
+- Unit: run broader verification after source metadata and identity metadata validator coverage plus doc reconciliations.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits during the gate, docs outside this run folder, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; targeted behavior scan across the same paths; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; targeted behavior scan across the same paths; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Full `npm run check` passed lint, typecheck, 41 Vitest files / 322 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing validator/normalizer safety detector strings, existing recipe/window adapter names, test fixtures, isolated Style Lab UI class/style/onClick handlers, and existing React Flow adapter/test coverage. No source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
+- Rollback note: revert only this CP-261 run-doc update if the phase gate bookkeeping must be removed.

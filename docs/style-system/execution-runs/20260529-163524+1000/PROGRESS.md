@@ -1236,31 +1236,35 @@ Run id: `20260529-163524+1000`
 - Created local checkpoint commit `5c076cb9a9102672d3e271b99a0afb70a7bdd3f9` for the Pure Validator Identity Metadata Coverage V1 unit.
 - Started `CP-260 - Validator Identity Metadata Doc Reconciliation V1`.
 - Reconciled manifest validator rules with CP-259 identity metadata coverage.
+- Created local checkpoint commit `99634e6bad82329c1b9091559ac62e15acf3ce4c` for the Validator Identity Metadata Doc Reconciliation V1 unit.
+- Started `CP-261 - Post Metadata Validator Coverage Phase Gate` with source edits closed.
+- Ran full `npm run check`; lint, typecheck, 41 Vitest files / 322 tests, and build passed.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, existing recipe/window adapter names, test fixtures, Style Lab UI class/style/onClick handlers inside the isolated lab, and existing React Flow adapter/test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-260 - Validator Identity Metadata Doc Reconciliation V1`.
-- Latest recorded checkpoint commit: `5c076cb9a9102672d3e271b99a0afb70a7bdd3f9` for `CP-259 - Pure Validator Identity Metadata Coverage V1`; CP-260 is being prepared for local commit.
+- Latest completed checkpoint: `CP-261 - Post Metadata Validator Coverage Phase Gate`.
+- Latest recorded checkpoint commit: `99634e6bad82329c1b9091559ac62e15acf3ce4c` for `CP-260 - Validator Identity Metadata Doc Reconciliation V1`; CP-261 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-260 verification prep: dirty only in CP-260 allowed docs files.
-- Current stop reason: not stopped; CP-260 doc reconciliation is underway.
+- Confirmed current status after CP-261 verification prep: dirty only in CP-261 allowed run-doc files.
+- Current stop reason: not stopped; CP-261 phase-gate bookkeeping is underway.
 
 ## In Progress
 
-- `CP-260 - Local checkpoint commit prep`.
+- `CP-261 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, docs outside the listed style-system doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-260 doc/run-doc changes if this reconciliation must be removed.
+- Forbidden files: all source/test files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: run-doc scope check, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-261 run-doc changes if this phase-gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-260 doc reconciliation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-261 phase-gate checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

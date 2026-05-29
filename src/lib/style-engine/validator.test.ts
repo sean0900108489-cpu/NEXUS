@@ -23,6 +23,51 @@ describe("NEXUS Style Engine manifest validator", () => {
     ]);
   });
 
+  it("rejects non-object roots and missing required top-level fields", () => {
+    const invalidRoot = validateNexusStyleManifestV1("not-a-manifest");
+
+    expect(invalidRoot.accepted).toBe(false);
+    expect(invalidRoot.errors).toEqual([
+      {
+        code: "style.invalidRoot",
+        message: "Manifest candidate must be an object.",
+        path: "$",
+      },
+    ]);
+
+    const manifest = createSafeManifest() as unknown as Record<string, unknown>;
+    delete manifest.intent;
+    delete manifest.constraints;
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toEqual(
+      expect.arrayContaining([
+        {
+          code: "style.missingField",
+          message: "Required field is missing.",
+          path: "$.constraints",
+        },
+        {
+          code: "style.missingField",
+          message: "Required field is missing.",
+          path: "$.intent",
+        },
+        {
+          code: "style.invalidConstraints",
+          message: "constraints must be an object.",
+          path: "$.constraints",
+        },
+        {
+          code: "style.invalidIntent",
+          message: "intent must be an object.",
+          path: "$.intent",
+        },
+      ]),
+    );
+  });
+
   it("rejects raw CSS, URLs, and service-role strings without echoing values", () => {
     const manifest = createSafeManifest({
       tokens: {

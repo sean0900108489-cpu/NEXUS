@@ -125,25 +125,34 @@ const primitiveBadgeStyle = {
 };
 
 const primitiveModalBackdropStyle = {
-  background: "rgb(2 6 23 / 0.72)",
+  background:
+    "var(--nexus-recipe-modal-backdrop, rgb(2 6 23 / 0.72))",
 };
 
 const primitiveModalSurfaceStyle = {
-  background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
-  borderColor: "var(--nexus-border-strong, rgb(226 232 240 / 0.18))",
-  boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
-  color: "var(--nexus-text-primary, #f8fafc)",
+  background:
+    "var(--nexus-recipe-modal-surface, var(--nexus-surface-panel, rgb(8 16 22 / 0.78)))",
+  borderColor:
+    "var(--nexus-recipe-modal-border, var(--nexus-border-strong, rgb(226 232 240 / 0.18)))",
+  boxShadow:
+    "var(--nexus-recipe-modal-shadow, var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38)))",
+  color: "var(--nexus-recipe-modal-body-text, var(--nexus-text-primary, #f8fafc))",
 };
 
 const primitiveModalFooterStyle = {
-  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
-  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+  background:
+    "var(--nexus-recipe-modal-footer-surface, var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62)))",
+  borderColor:
+    "var(--nexus-recipe-modal-border, var(--nexus-border-subtle, rgb(226 232 240 / 0.12)))",
 };
 
 const primitiveModalCalloutStyle = {
-  background: "var(--nexus-surface-input, rgb(15 23 42 / 0.72))",
-  borderColor: "var(--nexus-status-warning, #fcd34d)",
-  color: "var(--nexus-status-warning, #fcd34d)",
+  background:
+    "var(--nexus-recipe-modal-header-surface, var(--nexus-surface-input, rgb(15 23 42 / 0.72)))",
+  borderColor:
+    "var(--nexus-recipe-modal-danger-callout, var(--nexus-status-warning, #fcd34d))",
+  color:
+    "var(--nexus-recipe-modal-danger-callout, var(--nexus-status-warning, #fcd34d))",
 };
 
 const primitiveCommandPaletteItems = [

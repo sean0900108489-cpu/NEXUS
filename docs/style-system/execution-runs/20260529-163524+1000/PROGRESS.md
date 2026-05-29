@@ -350,30 +350,37 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 39 Vitest files / 284 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live download, clipboard, save/persist, store/sync/backend/Supabase import or mutation path, React Flow behavior path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `487969c00fd68b997b2368c90d0cf9d4718bdd66` for the Post Export Boundary Phase Gate.
+- Started `CP-093 - Style Lab Active Preview Row V1`.
+- Implemented `CP-093 - Style Lab Active Preview Row V1`.
+- Added a display-only active preview row inside the isolated Style Lab governance report.
+- Kept the row derived from existing local runtime context state; no preview behavior change, runtime provider change, apply/save/persist path, store, sync, backend, Supabase, app shell, CSS/global style, React Flow behavior, deploy config, or `exports/**` path was touched.
+- Verified CP-093 with focused import/governance/intent-manifest tests, typecheck, targeted lint, build, side-effect scans, and headless Chrome dump-DOM smoke for the active preview row.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-092 - Post Export Boundary Phase Gate`.
-- Latest local checkpoint commit: pending CP-092 local commit; previous clean checkpoint commit is `fb060d12e8e1d8cba631aad213d7657ec8f2f3cb`.
+- Latest completed checkpoint: `CP-093 - Style Lab Active Preview Row V1`.
+- Latest local checkpoint commit: pending CP-093 local commit; previous clean checkpoint commit is `487969c00fd68b997b2368c90d0cf9d4718bdd66`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status before CP-092 commit prep: dirty only in CP-092 allowed files.
-- Current stop reason: not stopped; CP-092 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status before CP-093 commit prep: dirty only in CP-093 allowed files.
+- Current stop reason: not stopped; CP-093 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-092 - Local checkpoint commit prep`.
+- `CP-093 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source edits during the gate, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
-- Rollback: revert only this CP-092 run-doc update if the phase gate bookkeeping must be removed.
+- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: `git diff --check`; focused import/governance/intent-manifest tests; `npm run typecheck`; targeted lint for the Style Lab component and style-engine; `npm run build`; targeted side-effect scan; headless Chrome smoke on `/style-lab`.
+- Rollback: revert only `src/components/style-engine/nexus-style-lab.tsx` and this unit's run-doc edits.
 
 ## Next
 
-1. Commit the CP-092 docs-only checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-093 local checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

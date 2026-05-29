@@ -278,6 +278,7 @@ export function NexusStyleLab() {
       ["Material", intent.material.join(", ")],
     ];
   }, [briefResult]);
+  const activePreviewLabel = runtime.activePreview?.previewId ?? "none";
   const governanceRows = useMemo(
     () => [
       ["State", review.state],
@@ -285,11 +286,12 @@ export function NexusStyleLab() {
       ["Preview", review.permissions.canPreview ? "allowed" : "blocked"],
       ["Apply", review.permissions.canApply ? "allowed" : "blocked"],
       ["Apply Reason", review.permissions.reasonCodes.join(", ") || "none"],
+      ["Active Preview", activePreviewLabel],
       ["Export", "text-only"],
       ["Persistence", "not-persistent"],
       ["Report", review.checksums.report],
     ],
-    [review],
+    [activePreviewLabel, review],
   );
   const governanceIssues = useMemo(
     () =>

@@ -64,7 +64,9 @@ Run id: `20260529-163524+1000`
 | Next Gate Decision | PASS | Opened a minimal React/provider gate; store/sync/backend/Supabase and `exports/**` stayed closed. |
 | React Runtime Provider Gate V1 | PASS | Wrapped `Home` in a scoped client runtime provider; typecheck, lint, build, focused tests, marker scan, and Browser smoke passed. |
 | React Runtime Provider Local Checkpoint Commit | PASS | Commit `f57cd68c315f244a7bc36703fa547a38c22df1ba` created; post-commit status was clean. |
-| Isolated Style Lab Route Gate | IN_PROGRESS | Preparing a local-only lab route; workspace store/sync/backend/Supabase remain closed. |
+| React Runtime Provider Record Commit | PASS | Commit `e0c0309e5329db1f62cb99c6a74b73070a4f464e` created; post-commit status was clean. |
+| Isolated Style Lab Route Gate | PASS | Added local-only `/style-lab`; typecheck, lint, build, marker scan, and Browser Preview/Revert smoke passed. |
+| Style Lab Route Local Checkpoint Commit | IN_PROGRESS | Staging and committing isolated Style Lab route locally only. |
 
 ## Current Gate
 

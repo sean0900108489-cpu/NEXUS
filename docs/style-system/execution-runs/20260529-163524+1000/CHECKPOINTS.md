@@ -758,3 +758,22 @@ Each checkpoint records:
 - Commit created: `f57cd68c315f244a7bc36703fa547a38c22df1ba`.
 - Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
 - Rollback note: revert the provider commit only if the React runtime gate must be removed; do not touch unrelated history.
+
+## CP-051 - Isolated Style Lab Route V1
+
+- Unit: add a local-only `/style-lab` route for built-in manifest review, preview, revert, and export package inspection.
+- Allowed files:
+  - `src/app/style-lab/**`
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, `src/components/nexus/nexus-ops.tsx`, CSS files, theme provider changes, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; targeted scans for store/sync/backend/Supabase imports and protected behavior strings; `npm run typecheck`; `npm run lint -- src/app/style-lab/page.tsx src/components/style-engine/nexus-style-lab.tsx src/components/style-engine/nexus-style-runtime-provider.tsx src/lib/style-engine`; `npm run build`; Browser smoke on `/style-lab`; screenshot capture; `git status --porcelain=v1 -b`.
+- Browser note: `http://127.0.0.1:3000/style-lab` loaded statically but interactive preview testing used `http://localhost:3000/style-lab` because the existing Next dev server warned that 127.0.0.1 was not in `allowedDevOrigins` for dev resources.
+- Changed files:
+  - `src/app/style-lab/page.tsx`
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. Route builds as static `/style-lab`; Browser smoke confirmed runtime wrapper, heading, export package text, preview button, scoped variable application after Preview, variable removal after Revert, reverted status, and zero captured browser console errors.
+- Rollback note: revert only `src/app/style-lab/page.tsx`, `src/components/style-engine/nexus-style-lab.tsx`, and this run-doc checkpoint update if the isolated lab route must be removed.

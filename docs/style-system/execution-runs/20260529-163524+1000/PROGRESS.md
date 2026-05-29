@@ -137,14 +137,17 @@ Run id: `20260529-163524+1000`
 - Added `NexusStyleRuntimeProvider` and wrapped `Home` so future preview variables have a scoped runtime target.
 - Verified the provider gate with typecheck, targeted lint, focused runtime tests, `next build`, runtime marker scans, and Browser smoke on the existing local dev server.
 - Created local checkpoint commit `f57cd68c315f244a7bc36703fa547a38c22df1ba` for the React runtime provider gate.
+- Created local record commit `e0c0309e5329db1f62cb99c6a74b73070a4f464e` for the runtime provider checkpoint metadata.
+- Added an isolated `/style-lab` route and local Style Lab component.
+- Verified the lab route with typecheck, targeted lint, `next build`, static marker scan, and Browser smoke for Preview/Revert.
 
 ## In Progress
 
-- Preparing isolated Style Lab route gate.
+- Local checkpoint commit for isolated Style Lab route V1.
 
 ## Next
 
-1. Commit this run-status record update.
-2. Re-confirm branch/status/HEAD.
-3. If clean, add an isolated local-only Style Lab route without touching workspace store, sync, backend, Supabase, graph behavior, or `exports/**`.
-4. Verify with build and Browser smoke before committing any UI route.
+1. Stage run docs plus the Style Lab route files.
+2. Verify staged diff.
+3. Create a local checkpoint commit if checks pass.
+4. Continue only if status returns clean and the next gate is explicit.

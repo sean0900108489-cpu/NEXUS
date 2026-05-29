@@ -185,6 +185,34 @@ const primitiveCommandPaletteIconStyle = {
   background: "var(--nexus-accent-primary, #67e8f9)",
 };
 
+const primitivePromptVaultSurfaceStyle = {
+  background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
+  borderColor: "var(--nexus-border-strong, rgb(226 232 240 / 0.18))",
+  boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
+  color: "var(--nexus-text-primary, #f8fafc)",
+};
+
+const primitivePromptVaultHeaderStyle = {
+  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
+  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+  color: "var(--nexus-accent-primary, #67e8f9)",
+};
+
+const primitivePromptVaultSidebarStyle = {
+  background: "var(--nexus-surface-workspace, #020617)",
+  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+};
+
+const primitivePromptVaultRecordStyle = {
+  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
+  borderColor: "var(--nexus-accent-primary, #67e8f9)",
+};
+
+const primitivePromptVaultContentStyle = {
+  background: "var(--nexus-surface-input, rgb(15 23 42 / 0.72))",
+  borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
+};
+
 const primitiveWindowSurfaceStyle = {
   background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
   borderColor: "var(--nexus-border-strong, rgb(226 232 240 / 0.18))",
@@ -897,6 +925,67 @@ export function NexusStyleLab() {
                       >
                         Apply
                       </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  aria-hidden="true"
+                  className="mt-3 overflow-hidden border"
+                  style={primitivePromptVaultSurfaceStyle}
+                >
+                  <div
+                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-4 py-3"
+                    style={primitivePromptVaultHeaderStyle}
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em]">
+                        Prompt Vault Specimen
+                      </div>
+                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Surface Preview
+                      </div>
+                    </div>
+                    <span className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300">
+                      visual
+                    </span>
+                  </div>
+                  <div className="grid min-h-44 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+                    <div
+                      className="grid gap-2 border-b p-3 md:border-b-0 md:border-r"
+                      style={primitivePromptVaultSidebarStyle}
+                    >
+                      {["Agent Brief", "Style Notes", "Review Log"].map(
+                        (item) => (
+                          <span
+                            key={item}
+                            className="min-w-0 border px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100"
+                            style={primitivePromptVaultRecordStyle}
+                          >
+                            {item}
+                          </span>
+                        ),
+                      )}
+                    </div>
+                    <div className="grid gap-3 p-4" style={primitivePromptVaultContentStyle}>
+                      <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-fuchsia-100">
+                        Selected Prompt
+                      </div>
+                      <div className="grid gap-2">
+                        <span className="h-2 w-4/5 bg-white/15" />
+                        <span className="h-2 w-2/3 bg-white/10" />
+                        <span className="h-2 w-5/6 bg-white/10" />
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {["view", "meta", "state"].map((item) => (
+                          <span
+                            key={item}
+                            className="truncate border border-white/10 bg-white/[0.04] px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300"
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>

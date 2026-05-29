@@ -733,30 +733,40 @@ Run id: `20260529-163524+1000`
 - Confirmed full `npm run check` passed: lint, typecheck, 40 Vitest files / 292 tests, and build.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect/Datapad behavior scans only matched existing pure preview patch adapter variable emission, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert scanner function names, the new visual-only Datapad specimen style names, existing Style Lab controls, and test-only guard cases; no live React Flow import, graph behavior props, Datapad/command palette/window/modal behavior semantics, runtime provider logic change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, download/clipboard/save/export-file path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `3ff6e14b1bad572bba420ba02df495043320428d` for the Post Datapad Specimen Phase Gate.
+- Started `CP-158 - Style Lab Static Prompt Vault Surface Specimen V1`.
+- Implemented `CP-158 - Style Lab Static Prompt Vault Surface Specimen V1`.
+- Added a specimen-only static Prompt Vault surface visual sample to the isolated Style Lab preview surface.
+- Confirmed `src/components/nexus/PromptVaultManager.tsx`, `motion`, fixed overlay, z-index tiers, focus/close behavior, edit/copy/delete handlers, clipboard calls, store hooks, scroll ownership, sync, backend, Supabase, deploy, save/export-file behavior, and `exports/**` were not changed.
+- Reconciled `window-modal-recipe-system.md` and `style-lab-v1.md` evidence with the new Prompt Vault surface specimen.
+- Verified CP-158 with focused runtime/preview tests, targeted lint, typecheck, build, side-effect/Prompt Vault behavior scans, and static `/style-lab` smoke.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-157 - Post Datapad Specimen Phase Gate`.
-- Latest local checkpoint commit: pending CP-157 local commit; previous clean checkpoint commit is `ab633b22987ff224f31540e411ab2c7379ec37fb`.
+- Latest completed checkpoint: `CP-158 - Style Lab Static Prompt Vault Surface Specimen V1`.
+- Latest local checkpoint commit: pending CP-158 local commit; previous clean checkpoint commit is `3ff6e14b1bad572bba420ba02df495043320428d`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-157 verification: dirty only in CP-157 allowed run-doc files.
-- Current stop reason: not stopped; CP-157 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-158 verification: dirty only in CP-158 allowed source/docs/run-doc files.
+- Current stop reason: not stopped; CP-158 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-157 - Local checkpoint commit prep`.
+- `CP-158 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/window-modal-recipe-system.md`
+  - `docs/style-system/style-lab-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, Style Lab/UI source, runtime provider internals, production graph/app shell files, `src/components/nexus/**`, CSS/global stylesheets, pure style-engine logic changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, Datapad/command palette/window/modal behavior semantics, download/clipboard/save/export-file behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: `src/components/nexus/**`, especially `src/components/nexus/PromptVaultManager.tsx`; `src/app/**`; runtime provider internals; `src/lib/style-engine/**`; CSS/global stylesheets; store/sync/backend/Supabase/database files; package/deploy files; AI/runtime API calls; React Flow imports or behavior props; Prompt Vault behavior semantics; command palette/window/modal behavior semantics; download/clipboard/save/export-file behavior; remote push; branch merge; deploy; database mutation; and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only this CP-157 run-doc update if the phase gate bookkeeping must be removed.
+- Rollback: revert only the isolated Style Lab Prompt Vault surface specimen, related phase-doc evidence lines, and this run-doc checkpoint update if the static Prompt Vault surface specimen must be removed.
 
 ## Next
 
-1. Commit the CP-157 phase-gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-158 isolated Style Lab checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

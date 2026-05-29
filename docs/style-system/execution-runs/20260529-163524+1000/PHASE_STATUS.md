@@ -173,6 +173,7 @@ Run id: `20260529-163524+1000`
 | Post Command Palette Specimen Phase Gate | PASS | Full check passed after the static Command Palette specimen; side-effect/command-palette/window/modal behavior scan and git diff check passed. |
 | Style Lab Static Datapad Shell Specimen V1 | PASS | Added specimen-only static Datapad shell visual sample to isolated Style Lab without Datapad production behavior changes; focused checks, build, side-effect scan, and local smoke passed. |
 | Post Datapad Specimen Phase Gate | PASS | Full check passed after the static Datapad shell specimen; side-effect/Datapad behavior scan and git diff check passed. |
+| Style Lab Static Prompt Vault Surface Specimen V1 | PASS | Added specimen-only static Prompt Vault surface visual sample to isolated Style Lab without Prompt Vault production behavior changes; focused checks, build, side-effect scan, and local smoke passed. |
 
 ## Current Gate
 
@@ -185,4 +186,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Datapad Specimen Phase Gate local checkpoint prep. Source edits, production Datapad code, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Style Lab Static Prompt Vault Surface Specimen V1 local checkpoint prep. Production Prompt Vault code, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

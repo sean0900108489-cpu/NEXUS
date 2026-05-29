@@ -31,6 +31,31 @@ describe("NEXUS Style Engine local preview patch", () => {
     expect(Object.keys(first.variables)).not.toContain("dragHandleClassName");
   });
 
+  it("emits command palette variables from the command palette recipe group", () => {
+    const manifest = createLegacyCyberpunkStyleManifestV1();
+    manifest.recipes.modal.surface = "surface.app";
+    manifest.recipes.commandPalette.surface = "surface.panelMuted";
+    manifest.recipes.commandPalette.itemActive = "accent.secondary";
+
+    const result = compileNexusStyleManifestV1(manifest);
+
+    expect(result.accepted).toBe(true);
+
+    if (!result.accepted) {
+      throw new Error("Expected preset to compile.");
+    }
+
+    const patch = createNexusStylePreviewPatchV1(result.style);
+
+    expect(patch.variables["--nexus-recipe-modal-surface"]).toBe("#030712");
+    expect(patch.variables["--nexus-recipe-command-palette-surface"]).toBe(
+      "rgb(15 23 42 / 0.62)",
+    );
+    expect(patch.variables["--nexus-recipe-command-palette-item-active"]).toBe(
+      "#f0abfc",
+    );
+  });
+
   it("applies and reverts without mutating the current variable record", () => {
     const patch = createNexusStylePreviewPatchV1(compilePreset());
     const current = {

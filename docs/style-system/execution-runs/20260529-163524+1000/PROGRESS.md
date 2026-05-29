@@ -945,30 +945,35 @@ Run id: `20260529-163524+1000`
 - Ran full `npm run check`; lint, typecheck, 41 Vitest files / 300 tests, and build passed.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries/assertions, and the window/modal recipe adapter forbidden behavior key registry/assertions; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `f5bab8c77210ead3e7371db119b73efcd111b900` for the Post Command Palette Recipe Group Phase Gate.
+- Started `CP-191 - Pure Preview Command Palette Recipe Variable Test V1`.
+- Added a preview test proving command palette recipe variables come from `recipes.commandPalette` independently from modal recipe slots.
+- Verified CP-191 with focused preview Vitest, targeted lint, `npm run typecheck`, targeted side-effect/behavior scans, `git diff --check`, diff stat, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-190 - Post Command Palette Recipe Group Phase Gate`.
-- Latest local checkpoint commit: pending CP-190 local commit; previous clean checkpoint commit is `3dd7f1deb81095449f0ef2832043815b3b62fcc2`.
+- Latest completed checkpoint: `CP-191 - Pure Preview Command Palette Recipe Variable Test V1`.
+- Latest local checkpoint commit: pending CP-191 local commit; previous clean checkpoint commit is `f5bab8c77210ead3e7371db119b73efcd111b900`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-190 verification: clean before run-doc bookkeeping; dirty only in CP-190 allowed run-doc files after this update.
-- Current stop reason: not stopped; CP-190 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-191 verification: dirty only in CP-191 allowed test and run-doc files.
+- Current stop reason: not stopped; CP-191 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-190 - Local checkpoint commit prep`.
+- `CP-191 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/preview.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the phase gate, UI/CSS/production component files, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: implementation source, UI/TSX/app route/CSS files, production Nexus components, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-190 run-doc update if the phase gate bookkeeping must be removed.
+- Rollback: revert only the CP-191 test/run-doc update if the preview coverage must be removed.
 
 ## Next
 
-1. Commit the CP-190 phase gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-191 preview test checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

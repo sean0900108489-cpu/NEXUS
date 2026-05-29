@@ -28,6 +28,9 @@ describe("NEXUS Style Engine import/export normalization", () => {
         schemaVersion: 1,
       },
       review: {
+        adapterCoverage: {
+          reactFlow: "complete",
+        },
         compatibility: "compatible_with_warnings",
         manifestId: "legacy-cyberpunk",
         state: "warning",
@@ -107,6 +110,9 @@ describe("NEXUS Style Engine import/export normalization", () => {
 
     expect(redacted).not.toHaveProperty("governanceVersion");
     expect(redacted).toMatchObject({
+      adapterCoverage: {
+        reactFlow: "complete",
+      },
       checksums: review.checksums,
       compatibility: review.compatibility,
       manifestId: "legacy-cyberpunk",

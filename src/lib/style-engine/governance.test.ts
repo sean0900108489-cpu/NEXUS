@@ -11,6 +11,9 @@ describe("NEXUS Style Engine governance review", () => {
     const review = reviewNexusStylePackV1(createLegacyCyberpunkStyleManifestV1());
 
     expect(review).toMatchObject({
+      adapterCoverage: {
+        reactFlow: "complete",
+      },
       compatibility: "compatible_with_warnings",
       compilerVersion: "nexus-style-compiler-v1",
       governanceVersion: "nexus-style-governance-v1",
@@ -66,6 +69,7 @@ describe("NEXUS Style Engine governance review", () => {
     expect(review.rejectionCodes).toContain("style.forbidden.serviceRole");
     expect(review.checksums.normalizedManifest).toBeUndefined();
     expect(review.checksums.compiledOutput).toBeUndefined();
+    expect(review).not.toHaveProperty("adapterCoverage");
     expect(JSON.stringify(review)).not.toContain("super-secret-value");
   });
 

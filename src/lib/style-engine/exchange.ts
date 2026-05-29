@@ -18,6 +18,7 @@ export type NexusStyleExchangeReviewV1 = {
   state: NexusStylePackLifecycleStateV1;
   compatibility: NexusStylePackCompatibilityV1;
   permissions: NexusStylePackPermissionsV1;
+  adapterCoverage?: NexusStylePackReviewV1["adapterCoverage"];
   manifestId?: string;
   manifestVersion?: 1;
   compilerVersion?: string;
@@ -122,6 +123,7 @@ export function redactNexusStyleReviewForExchangeV1(
 ): NexusStyleExchangeReviewV1 {
   return {
     checksums: review.checksums,
+    ...(review.adapterCoverage ? { adapterCoverage: review.adapterCoverage } : {}),
     compatibility: review.compatibility,
     ...(review.compilerVersion ? { compilerVersion: review.compilerVersion } : {}),
     ...(review.manifestId ? { manifestId: review.manifestId } : {}),

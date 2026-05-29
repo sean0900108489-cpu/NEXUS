@@ -1,6 +1,7 @@
 import {
   NEXUS_STYLE_COMPILER_VERSION,
   compileNexusStyleManifestV1,
+  type NexusCompilerReportV1,
 } from "./compiler";
 import { createNexusStyleChecksumV1 } from "./checksum";
 import {
@@ -40,6 +41,7 @@ export type NexusStylePackReviewV1 = {
   state: NexusStylePackLifecycleStateV1;
   compatibility: NexusStylePackCompatibilityV1;
   permissions: NexusStylePackPermissionsV1;
+  adapterCoverage?: NexusCompilerReportV1["adapterCoverage"];
   manifestId?: string;
   manifestVersion?: typeof NEXUS_STYLE_MANIFEST_VERSION;
   compilerVersion?: typeof NEXUS_STYLE_COMPILER_VERSION;
@@ -107,6 +109,7 @@ export function reviewNexusStylePackV1(candidate: unknown): NexusStylePackReview
     validation.warnings.length > 0 ? "warning" : "validated";
 
   return withReportChecksum({
+    adapterCoverage: compiled.style.report.adapterCoverage,
     checksums: {
       compiledOutput: createNexusStyleChecksumV1(compiled.style),
       normalizedManifest: compiled.style.manifestChecksum,

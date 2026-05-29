@@ -115,6 +115,7 @@ Run id: `20260529-163524+1000`
 | Style Lab Governance Version Rows V1 | PASS | Added display-only governance, manifest, and compiler version rows to isolated Style Lab governance report; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
 | Post Governance Version Phase Gate | PASS | Full check passed after the governance version rows; side-effect scan and git diff check passed. |
 | Style Lab Active Preview Interaction Smoke V1 | PASS | Headless Chrome CDP verified active preview rows update after local Preview interaction; source edits stayed closed. |
+| Style Lab Revert Interaction Smoke V1 | PASS | Headless Chrome CDP verified Revert clears active preview rows after local Preview interaction; source edits stayed closed. |
 
 ## Current Gate
 

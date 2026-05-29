@@ -392,30 +392,35 @@ Run id: `20260529-163524+1000`
 - Confirmed headless Chrome CDP can click Preview and see runtime status `previewing`, `Active Preview`, `Preview Checksum`, and active preview excerpt `legacy-cyberpunk:nexus-style-fnv1a32:39201c40`.
 - Repaired two smoke harness issues while keeping source edits closed: an early execution-context timing retry and an `innerText`/CSS-uppercase case-sensitive id assertion.
 - Confirmed `git diff --check` passed and no headless Chrome process remained after the smoke.
+- Created local checkpoint commit `f5050845c9a8d86e173a5b0eaf3ebce2ac75ad71` for the Style Lab Active Preview Interaction Smoke V1 unit.
+- Started `CP-100 - Style Lab Revert Interaction Smoke V1` with source edits closed.
+- Ran `CP-100 - Style Lab Revert Interaction Smoke V1`.
+- Confirmed headless Chrome CDP can click Preview, observe active preview `legacy-cyberpunk:nexus-style-fnv1a32:39201c40` and checksum `nexus-style-fnv1a32:39201c40`, click Revert, and see both active preview rows return to `none` while status becomes `reverted`.
+- Confirmed `git diff --check` passed and no headless Chrome process remained after the smoke.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-099 - Style Lab Active Preview Interaction Smoke V1`.
-- Latest local checkpoint commit: pending CP-099 local commit; previous clean checkpoint commit is `6a32794bb8186e155190e8433f257b1e3d5b253d`.
+- Latest completed checkpoint: `CP-100 - Style Lab Revert Interaction Smoke V1`.
+- Latest local checkpoint commit: pending CP-100 local commit; previous clean checkpoint commit is `f5050845c9a8d86e173a5b0eaf3ebce2ac75ad71`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status before CP-099 commit prep: dirty only in CP-099 allowed files.
-- Current stop reason: not stopped; CP-099 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status before CP-100 commit prep: dirty only in CP-100 allowed files.
+- Current stop reason: not stopped; CP-100 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-099 - Local checkpoint commit prep`.
+- `CP-100 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: all source edits during the smoke, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow behavior files, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: headless Chrome CDP smoke on `/style-lab` that clicks Preview and checks `previewing`, `Active Preview`, and `Preview Checksum`; `git diff --check`; `git status --porcelain=v1 -b`.
-- Rollback: revert only this CP-099 run-doc update if the smoke checkpoint bookkeeping must be removed.
+- Verification: headless Chrome CDP smoke on `/style-lab` that clicks Preview, clicks Revert, and checks `reverted`, `Active Preview`, `Preview Checksum`, and `none`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Rollback: revert only this CP-100 run-doc update if the smoke checkpoint bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-099 docs-only checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-100 docs-only checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

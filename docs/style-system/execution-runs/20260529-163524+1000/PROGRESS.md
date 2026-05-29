@@ -237,33 +237,35 @@ Run id: `20260529-163524+1000`
 - Added a pure helper that turns an accepted normalized intent into a validated manifest draft by cloning a built-in preset and overlaying safe intent metadata.
 - Kept the draft helper from inventing executable style, touching runtime/UI, previewing, applying, saving, persisting, or mutating backend/Supabase/React Flow behavior.
 - Verified CP-073 with diff check, focused intent-normalizer/intent-manifest/compiler/validator tests, side-effect scan, typecheck, and isolated style-engine lint.
+- Created local checkpoint commit `a909762850a8fdc27807a4177b9a21ac9d3bbd37` for the Pure Intent Manifest Draft V1 unit.
+- Ran `CP-074 - Post V12 Pure Interpreter Phase Gate`.
+- Confirmed full `npm run check` passed: lint, typecheck, 39 Vitest files / 284 tests, and build.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched validator/normalizer detector strings and test-only cleanup helpers, not live store/sync/backend/Supabase imports or mutations, React Flow behavior, DOM/storage/fetch, deploy, or `exports/**` paths.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-073 - Pure Intent Manifest Draft V1`.
-- Latest local checkpoint commit before the CP-073 commit: `0004ca3f8b4b5f8ec3fe10d86c3a938619a0c721`.
+- Latest completed checkpoint: `CP-074 - Post V12 Pure Interpreter Phase Gate`.
+- Latest local checkpoint commit before the CP-074 commit: `a909762850a8fdc27807a4177b9a21ac9d3bbd37`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
 - Confirmed current status during state assessment: clean before this run-doc reconciliation.
 - Current stop reason: normal context/turn checkpoint followed by explicit user-requested state assessment; not an error stop.
 
 ## In Progress
 
-- Preparing the CP-073 local checkpoint commit.
+- Preparing the CP-074 local checkpoint commit.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/intent-manifest.ts`
-  - `src/lib/style-engine/intent-manifest.test.ts`
-  - `src/lib/style-engine/index.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: UI/app components, runtime provider files, CSS/global styles, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
-- Verification: `git diff --check`; focused intent-normalizer/intent-manifest/compiler/validator tests; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; targeted side-effect/import scan.
-- Rollback: remove only the new intent manifest draft files, the index export, and this unit's run-doc edits.
+- Forbidden files: all source edits during the gate, UI/app components, runtime provider files, CSS/global styles, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
+- Verification: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Rollback: revert only this phase-gate run-doc update. If the gate exposes a regression, fix only the responsible pure V12 unit and rerun; stop if fixing would cross a forbidden boundary.
 
 ## Next
 
-1. Commit the CP-073 local checkpoint.
+1. Commit the CP-074 local checkpoint.
 2. Confirm branch, HEAD, and clean status.
 3. Select the next isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -1131,3 +1131,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused Vitest passed 4 files and 20 tests; typecheck passed; isolated style-engine lint passed; `git diff --check` passed. Side-effect scan found only validator/normalizer detector strings and test-only cleanup helpers; no DOM, storage, fetch, store/sync/backend/Supabase import or mutation path, React Flow behavior path, deploy path, or `exports/**` path was found.
 - Rollback note: remove only `src/lib/style-engine/intent-manifest.ts`, `src/lib/style-engine/intent-manifest.test.ts`, the index export, and this run-doc checkpoint update if the draft helper unit must be removed.
+
+## CP-074 - Post V12 Pure Interpreter Phase Gate
+
+- Unit: run broader local verification after the pure intent normalizer and manifest draft helper.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source edits during the gate, UI/app components, runtime provider files, CSS/global styles, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
+- Verification plan: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; source-only side-effect/import scan excluding tests; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Full `npm run check` passed lint, typecheck, 39 Vitest files / 284 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only validator/normalizer detector strings and test-only cleanup helpers; no live store/sync/backend/Supabase import or mutation path, React Flow behavior path, DOM/storage/fetch path, deploy path, or `exports/**` path was found. `git diff --check` passed.
+- Rollback note: no source rollback for the gate itself. If the gate exposes a regression, fix only the responsible pure V12 unit and rerun; stop if fixing would cross a forbidden boundary.

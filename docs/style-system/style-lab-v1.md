@@ -10,7 +10,7 @@ Status: partially implemented isolated local Style Lab. No production app shell 
 - Its primitive specimen gallery includes Panel, Button, Input, Badge, specimen-only static Window/Agent Chrome/Datapad/Modal/Prompt Vault visual shells, and a visual-only Command Palette specimen.
 - The isolated window/modal recipe specimen set covers the documented migration-order visual targets without migrating production Datapad, Prompt Vault, Agent Window, modal, or command palette behavior.
 - The six isolated recipe specimens now consume recipe-scoped CSS variables in the Style Lab specimen layer: Window and Agent Chrome/Datapad shell use `--nexus-recipe-window-*`, Modal and Prompt Vault use `--nexus-recipe-modal-*`, and Command Palette uses `--nexus-recipe-command-palette-*`.
-- Recent checkpoints added adapter coverage, preview variable counts, and text-only export/review metadata visibility without adding save/download/clipboard/backend persistence.
+- Recent checkpoints added adapter coverage, preview variable counts, validator/compiler/governance version visibility, and text-only export/review metadata visibility without adding save/download/clipboard/backend persistence.
 - The governance Adapter row now displays `reactFlow:complete / windowModal:complete`; source-closed smoke confirmed Export Package and Review text include `adapterCoverage.windowModal = complete`.
 - The local preview patch now includes semantic, legacy, graph adapter, and window/modal recipe variables; source-closed smoke confirmed `Preview Vars 122` and `Active Vars 122`.
 - Source-closed recipe specimen suite smoke confirmed all six isolated recipe specimens render with key recipe variable markup and captured a nonempty 1440 x 1800 local screenshot.

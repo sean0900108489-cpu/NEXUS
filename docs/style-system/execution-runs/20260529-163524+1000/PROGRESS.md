@@ -1093,31 +1093,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-224 - Style Lab Validator Version Row V1`.
 - Added a display-only `Validator` row to the isolated Style Lab governance report using existing pure governance metadata.
 - Verified CP-224 with targeted lint, `npm run typecheck`, `npm run build`, focused localhost `/style-lab` smoke, side-effect/behavior scans, `git diff --check`, and status check.
+- Created local checkpoint commit `d1f34705a5fd34cf5322bd6805601c9bb9e89ecf` for the Style Lab Validator Version Row V1 unit.
+- Started `CP-225 - Style Lab Validator Row Doc Reconciliation V1`.
+- Reconciled `style-lab-v1.md` with CP-224 validator/compiler/governance version visibility.
+- Verified CP-225 with focused evidence scan, source-diff absence check, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-224 - Style Lab Validator Version Row V1`.
-- Latest local checkpoint commit: pending CP-224 local commit; previous clean checkpoint commit is `d087a5ee298a4b9b37a6a8cf1b4b4268fefb345b`.
+- Latest completed checkpoint: `CP-225 - Style Lab Validator Row Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-225 local commit; previous clean checkpoint commit is `d1f34705a5fd34cf5322bd6805601c9bb9e89ecf`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-224 verification: dirty only in CP-224 allowed component/run-doc files.
-- Current stop reason: not stopped; CP-224 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-225 verification: dirty only in CP-225 allowed docs/run-doc files.
+- Current stop reason: not stopped; CP-225 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-224 - Local checkpoint commit prep`.
+- `CP-225 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/components/style-engine/nexus-style-lab.tsx`
+  - `docs/style-system/style-lab-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: `src/components/nexus/**`, app routes, CSS/global stylesheets, pure engine logic, package/deploy/database/backend/store/sync/Supabase files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test files, app routes, CSS/global stylesheets, production Nexus components, pure engine logic, package/deploy/database/backend/store/sync/Supabase files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-224 Style Lab row/run-doc changes if this display row must be removed.
+- Rollback: revert only the CP-225 Style Lab doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-224 display-row checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-225 doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

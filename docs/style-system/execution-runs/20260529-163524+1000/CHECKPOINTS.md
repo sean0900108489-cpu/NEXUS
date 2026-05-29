@@ -3682,3 +3682,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Targeted lint passed. `npm run typecheck` passed. `npm run build` passed, including static `/style-lab` and the known edge-runtime warning only. Focused localhost `/style-lab` smoke found `Validator` once and `nexus-style-validator-v1` twice in rendered output. Side-effect scan and behavior scan found no matches in the touched Style Lab component. `git diff --check` passed and status showed only allowed CP-224 files.
 - Rollback note: revert only the CP-224 Style Lab row/run-doc changes if this display row must be removed.
+
+## CP-225 - Style Lab Validator Row Doc Reconciliation V1
+
+- Unit: reconcile the Style Lab doc with the CP-224 validator-version governance row.
+- Allowed files:
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, app routes, CSS/global stylesheets, production Nexus components, pure engine logic, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence scan for Style Lab version-visibility wording and the `Validator` row; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `apply_patch`; focused evidence scan for Style Lab version-visibility wording and the `Validator` row; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-lab-v1.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found the Style Lab doc version-visibility wording and the CP-224 `Validator` row in `nexus-style-lab.tsx`. Source-diff absence check showed only docs changed before run-doc bookkeeping. `git diff --check` passed and status showed only allowed docs files.
+- Rollback note: revert only the CP-225 Style Lab doc/run-doc changes if this reconciliation must be removed.

@@ -617,3 +617,22 @@ Each checkpoint records:
 - Commit created: `28468a4a19691edf5b805d00d1662a4b0bb1d4ae`.
 - Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
 - Rollback note: revert the governance commit only if the pure governance unit must be removed; do not touch unrelated history.
+
+## CP-042 - Pure Import Export Normalization V1
+
+- Unit: implement pure import/export package normalization for previewable style manifests.
+- Allowed files:
+  - `src/lib/style-engine/**`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, DOM files, CSS files, theme provider files, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; targeted side-effect/import scan for DOM/store/Supabase/sync/React Flow imports, protected behavior class strings, and forbidden literals; `npm run test -- src/lib/style-engine/exchange.test.ts src/lib/style-engine/governance.test.ts src/lib/style-engine/checksum.test.ts src/lib/style-engine/compiler.test.ts`; `npm run test -- src/lib/style-engine/validator.test.ts src/lib/style-engine/compiler.test.ts src/lib/style-engine/presets.test.ts src/lib/style-engine/preview.test.ts src/lib/style-engine/accessibility.test.ts src/lib/style-engine/checksum.test.ts src/lib/style-engine/governance.test.ts src/lib/style-engine/exchange.test.ts`; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; `git status --porcelain=v1 -b`.
+- Repair loop: initial typecheck caught an impossible successful `source: "unknown"` union; focused tests then caught the guard accidentally placed in export creation instead of import normalization. Both were fixed and the focused tests, full style-engine test set, typecheck, lint, diff check, and side-effect scan were rerun successfully.
+- Changed files:
+  - `src/lib/style-engine/exchange.ts`
+  - `src/lib/style-engine/exchange.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. Export packages are created only for previewable manifests; import normalization rejects unsafe payloads without returning the unsafe manifest; exchange review output is redacted and local-only.
+- Rollback note: revert only `src/lib/style-engine/exchange.ts`, `src/lib/style-engine/exchange.test.ts`, the index export, and this run-doc checkpoint update if this pure exchange unit must be removed.

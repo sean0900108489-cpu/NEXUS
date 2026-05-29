@@ -6,3 +6,4 @@ export * from "./compiler";
 export * from "./presets";
 export * from "./preview";
 export * from "./governance";
+export * from "./exchange";

@@ -130,6 +130,7 @@ Run id: `20260529-163524+1000`
 | Style Lab Source Kind Row V1 | PASS | Added display-only manifest source kind row to isolated Style Lab governance report; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
 | Post Source Kind Phase Gate | PASS | Full check passed after the source kind row; side-effect scan and git diff check passed. |
 | Style Lab Manifest Mode Row V1 | PASS | Added display-only manifest mode row to isolated Style Lab governance report; focused checks, build, side-effect scan, and headless Chrome smoke passed. |
+| Post Manifest Mode Phase Gate | PASS | Full check passed after the manifest mode row; side-effect scan and git diff check passed. |
 
 ## Current Gate
 
@@ -142,4 +143,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Style Lab Manifest Mode Row V1 local checkpoint prep. App shell, production components, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post Manifest Mode Phase Gate local checkpoint prep with source edits closed. App shell, production components, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

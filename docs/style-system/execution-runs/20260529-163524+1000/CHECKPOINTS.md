@@ -4111,3 +4111,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused validator Vitest passed 1 file / 17 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Side-effect scan only matched existing safety detector strings, existing manifest window recipe names, and test fixture strings; behavior scan only matched existing forbidden-key registries and test assertions/fixtures. `git diff --check` passed and status showed only allowed CP-249 files.
 - Rollback note: revert only the CP-249 validator/test/run-doc changes if this VBScript URL guard must be removed.
+
+## CP-250 - Validator VBScript URL Doc Reconciliation V1
+
+- Unit: reconcile manifest validator and manifest spec docs with CP-249 VBScript URL guard coverage.
+- Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/manifest-v1-spec.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, docs outside the two listed style-system docs and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence scan for VBScript URL guard/test/docs; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: focused evidence scan for VBScript URL guard/test/docs; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/manifest-v1-spec.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found `style.forbidden.vbscriptUrl` in the validator/test and matching VBScript URL wording in the validator rules and manifest spec docs. Source-diff absence check showed only allowed docs changed after the CP-249 source checkpoint. `git diff --check` passed and status showed only allowed CP-250 docs files.
+- Rollback note: revert only the CP-250 doc/run-doc changes if this reconciliation must be removed.

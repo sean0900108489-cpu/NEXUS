@@ -1195,32 +1195,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-249 - Pure Validator VBScript URL Guard V1`.
 - Added a pure forbidden string guard for VBScript URL schemes and focused coverage that a VBScript URL in `source.reference` is rejected without echoing payload text.
 - Verified CP-249 with focused validator Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
+- Created local checkpoint commit `0fe5d3745700f82f43bbc8b13d5e82afd009dd59` for the Pure Validator VBScript URL Guard V1 unit.
+- Started `CP-250 - Validator VBScript URL Doc Reconciliation V1`.
+- Reconciled manifest validator rules and manifest spec docs with CP-249 VBScript URL guard coverage.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-249 - Pure Validator VBScript URL Guard V1`.
-- Latest recorded checkpoint commit: `860de0a9b7cd1e0f0fbc0ff552292ad994ee671a` for `CP-248 - Validator Data URL Doc Reconciliation V1`; CP-249 is being prepared for local commit.
+- Latest completed checkpoint: `CP-250 - Validator VBScript URL Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `0fe5d3745700f82f43bbc8b13d5e82afd009dd59` for `CP-249 - Pure Validator VBScript URL Guard V1`; CP-250 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-249 verification: dirty only in CP-249 allowed files.
-- Current stop reason: not stopped; CP-249 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-250 verification prep: dirty only in CP-250 allowed docs files.
+- Current stop reason: not stopped; CP-250 doc reconciliation is underway.
 
 ## In Progress
 
-- `CP-249 - Local checkpoint commit prep`.
+- `CP-250 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.ts`
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/manifest-v1-spec.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring beyond pure validator imports, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-249 validator/test/run-doc changes if this guard must be removed.
+- Forbidden files: all source/test files, docs outside the two listed style-system docs and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-250 doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-249 pure validator checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-250 doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

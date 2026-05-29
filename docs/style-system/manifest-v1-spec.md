@@ -97,7 +97,7 @@ Required fields:
 | `name` | Human-readable, 1-80 chars. |
 | `description` | Optional, 0-280 chars. |
 | `author` | Optional display string only; no identity/auth semantics. |
-| `source.reference` | Optional note only; must not be a script, CSS, env var, secret, data URL, or executable URL. |
+| `source.reference` | Optional note only; must not be a script, CSS, env var, secret, data URL, VBScript URL, or other executable URL. |
 
 ## 4. Intent Shape
 
@@ -150,6 +150,7 @@ Forbidden token values:
 
 - `url(...)`
 - `@import`
+- `vbscript:`
 - `data:`
 - `{` or `}`
 - semicolon-delimited CSS declarations

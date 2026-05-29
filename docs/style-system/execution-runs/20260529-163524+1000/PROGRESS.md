@@ -206,31 +206,35 @@ Run id: `20260529-163524+1000`
 - Added local built-in preset controls for Cyberpunk and High Contrast inside the isolated Style Lab header.
 - Kept preset switching local and in-memory only; no persistence, store, sync, backend, Supabase, app shell, CSS, or React Flow behavior files were touched.
 - Verified CP-067 with diff check, focused preset/import tests, side-effect scan, typecheck, targeted lint, build, and Browser smoke.
+- Created local checkpoint commit `2b69b1f79069800ce77f207faea68f45dadc8b77` for the Style Lab Built-In Preset Selector V1 unit.
+- Ran `CP-068 - Post Preset Selector Phase Gate`.
+- Confirmed full `npm run check` passed: lint, typecheck, 37 Vitest files / 274 tests, and build.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched validator forbidden-string detector patterns and test-only in-memory cleanup helpers, not live store/sync/backend/Supabase imports or mutations.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-067 - Style Lab Built-In Preset Selector V1`.
-- Latest local checkpoint commit before the CP-067 commit: `a54721e73c9d436a9f3acea93dab28e16e1ae04e`.
+- Latest completed checkpoint: `CP-068 - Post Preset Selector Phase Gate`.
+- Latest local checkpoint commit before the CP-068 commit: `2b69b1f79069800ce77f207faea68f45dadc8b77`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
 - Confirmed current status during state assessment: clean before this run-doc reconciliation.
 - Current stop reason: normal context/turn checkpoint followed by explicit user-requested state assessment; not an error stop.
 
 ## In Progress
 
-- Preparing the CP-067 local checkpoint commit.
+- Preparing the CP-068 local checkpoint commit.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/components/style-engine/nexus-style-lab.tsx`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
-- Verification: `git diff --check`; focused preset/import tests; `npm run typecheck`; targeted lint for the Style Lab component and style-engine; `npm run build`; targeted side-effect scan; Browser smoke on `/style-lab`.
-- Rollback: revert only `src/components/style-engine/nexus-style-lab.tsx` and this unit's run-doc edits.
+- Forbidden files: all source edits during the gate, app route files, production components, `src/components/nexus/**`, CSS/global styles, runtime provider internals, store/sync/backend/Supabase/database files, package/deploy files, React Flow behavior files, remote push, branch merge, and `exports/**`.
+- Verification: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Rollback: revert only this phase-gate run-doc update. If the gate exposes a regression, fix only the responsible isolated unit and rerun; stop if fixing would cross a forbidden boundary.
 
 ## Next
 
-1. Commit the CP-067 local checkpoint.
+1. Commit the CP-068 local checkpoint.
 2. Confirm branch, HEAD, and clean status.
 3. Select the next isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -247,6 +247,7 @@ Run id: `20260529-163524+1000`
 | Pure Validator CSS Expression Guard V1 | PASS | Added a pure validator guard for legacy CSS expression strings; focused test, lint, typecheck, side-effect scan, and diff check passed. |
 | Validator CSS Expression Doc Reconciliation V1 | PASS | Reconciled validator rules docs with CP-229 legacy CSS expression guard. |
 | Pure Validator HTML Tag Guard V1 | PASS | Added a pure validator guard for generic HTML tag strings; focused test, lint, typecheck, side-effect scan, and diff check passed. |
+| Validator HTML Tag Doc Reconciliation V1 | PASS | Reconciled validator rules docs with CP-231 generic HTML tag guard. |
 
 ## Current Gate
 
@@ -259,4 +260,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Validator HTML Tag Guard local checkpoint prep. Production window/modal code, production graph/app shell files, UI/TSX/app route/CSS files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Validator HTML Tag Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, UI/TSX/app route/CSS files, compiler/governance/exchange/runtime wiring, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

@@ -1122,32 +1122,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-231 - Pure Validator HTML Tag Guard V1`.
 - Added a pure validator guard and focused coverage for generic HTML tag strings in manifest values.
 - Verified CP-231 with focused validator Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
+- Created local checkpoint commit `710f56fc2fcd01085882d0fc45dad1c38e9be4bd` for the Pure Validator HTML Tag Guard V1 unit.
+- Started `CP-232 - Validator HTML Tag Doc Reconciliation V1`.
+- Reconciled `manifest-validator-rules.md` with CP-231 generic HTML tag guard evidence.
+- Verified CP-232 with focused evidence/doc scans, source-diff absence check, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-231 - Pure Validator HTML Tag Guard V1`.
-- Latest local checkpoint commit: pending CP-231 local commit; previous clean checkpoint commit is `6205442d05df06f06d5db31ff7bfd24b1444c5d4`.
+- Latest completed checkpoint: `CP-232 - Validator HTML Tag Doc Reconciliation V1`.
+- Latest local checkpoint commit: pending CP-232 local commit; previous clean checkpoint commit is `710f56fc2fcd01085882d0fc45dad1c38e9be4bd`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-231 verification: dirty only in CP-231 allowed validator/test/run-doc files.
-- Current stop reason: not stopped; CP-231 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-232 verification: dirty only in CP-232 allowed docs/run-doc files.
+- Current stop reason: not stopped; CP-232 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-231 - Local checkpoint commit prep`.
+- `CP-232 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.ts`
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: UI/TSX/app route/CSS files, production Nexus components, compiler/governance/exchange/runtime wiring, docs outside this run folder, package/deploy/database/backend/store/sync/Supabase files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, pure engine implementation files, package/deploy/database/backend/store/sync/Supabase files, React Flow behavior surfaces, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-231 validator/test/run-doc changes if this guard must be removed.
+- Rollback: revert only the CP-232 validator rules doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-231 validator checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-232 validator rules doc checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -2791,3 +2791,19 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Static fetch returned status 200 and confirmed `Preview Vars 122`. The first CDP interaction harness clicked the Preview button but used `innerText` and a brittle wait condition, producing a false negative and requiring isolated Chrome cleanup. The second CDP smoke used `textContent`, confirmed initial `Preview Vars 122`, clicked Preview, and confirmed `Active Vars 122` with `previewing` visible. No `codex-style-lab-chrome-profile-cp173` process remained afterward. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-173 run-doc update and remove any leftover `/tmp/codex-style-lab-chrome-profile-cp173*` artifact if the smoke bookkeeping must be removed.
+
+## CP-174 - Style Lab Export Window Modal Metadata Smoke V1
+
+- Unit: run source-closed local smoke to confirm Style Lab export metadata includes window/modal adapter coverage and updated preview variable count after the pure compiler and preview patch changes.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+  - temporary isolated Chrome profile under `/tmp`
+- Forbidden files: all repo source/test edits, user Chrome profile mutation, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: fetch `http://localhost:3000/style-lab` for basic availability; use isolated headless Chrome CDP to read hydrated Export Text textarea values and confirm Package and Review views include `adapterCoverage.reactFlow = complete`, `adapterCoverage.windowModal = complete`, and `previewVariableCount = 122`; cleanup isolated Chrome process/profile; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: Node fetch smoke against local `/style-lab`; isolated headless Google Chrome CDP smoke; `pgrep -fl codex-style-lab-chrome-profile-cp174`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Static fetch returned status 200 and confirmed the page still exposes `Preview Vars 122`. Hydrated CDP smoke confirmed both Package and Review export textarea values contain `"reactFlow": "complete"`, `"windowModal": "complete"`, and `"previewVariableCount": 122`. No `codex-style-lab-chrome-profile-cp174` process remained afterward. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
+- Rollback note: revert only this CP-174 run-doc update and remove any leftover `/tmp/codex-style-lab-chrome-profile-cp174*` artifact if the smoke bookkeeping must be removed.

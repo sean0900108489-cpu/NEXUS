@@ -189,6 +189,7 @@ Run id: `20260529-163524+1000`
 | Pure Preview Patch Window Modal Recipe Variables V1 | PASS | Preview patches include pure window/modal recipe CSS variables; no UI, production, persistence, or deploy wiring touched. |
 | Post Preview Window Modal Variables Phase Gate | PASS | Full check passed after preview recipe variables; side-effect scan and git diff check passed. |
 | Style Lab Preview Recipe Variable Count Smoke V1 | PASS | Source-closed local smoke confirmed Preview Vars and Active Vars now show 122 after recipe preview variables. |
+| Style Lab Export Window Modal Metadata Smoke V1 | PASS | Source-closed local smoke confirmed export metadata includes windowModal coverage complete and previewVariableCount 122. |
 
 ## Current Gate
 
@@ -201,4 +202,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Style Lab Preview Recipe Variable Count Smoke V1 local checkpoint prep. UI source, production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Style Lab Export Window Modal Metadata Smoke V1 local checkpoint prep. UI source, production window/modal code, production graph/app shell files, governance/persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

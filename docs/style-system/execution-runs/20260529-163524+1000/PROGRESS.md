@@ -839,18 +839,24 @@ Run id: `20260529-163524+1000`
 - Ran isolated headless Chrome CDP interaction smoke. The first harness clicked Preview but used `innerText` and a brittle wait condition, so it produced a false negative and was cleaned up as a harness issue.
 - Reran CDP smoke with `textContent`; confirmed initial `Preview Vars 122`, clicked Preview, and confirmed `Active Vars 122` with `previewing` visible.
 - Confirmed no isolated `codex-style-lab-chrome-profile-cp173` process remained afterward.
+- Created local checkpoint commit `04f1e2d1462a827a3f08ee76c5a5db1dc25be9e9` for the Style Lab Preview Recipe Variable Count Smoke V1 unit.
+- Started `CP-174 - Style Lab Export Window Modal Metadata Smoke V1` with source edits closed.
+- Ran static fetch smoke against local `/style-lab` and confirmed status 200 with `Preview Vars 122`.
+- Ran isolated headless Chrome CDP smoke against hydrated Export Text textarea values.
+- Confirmed Package and Review export text both include `adapterCoverage.reactFlow = complete`, `adapterCoverage.windowModal = complete`, and `previewVariableCount = 122`.
+- Confirmed no isolated `codex-style-lab-chrome-profile-cp174` process remained afterward.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-173 - Style Lab Preview Recipe Variable Count Smoke V1`.
-- Latest local checkpoint commit: pending CP-173 local commit; previous clean checkpoint commit is `9d8264a9b2a59295828cb4143c50076426cb2a5d`.
+- Latest completed checkpoint: `CP-174 - Style Lab Export Window Modal Metadata Smoke V1`.
+- Latest local checkpoint commit: pending CP-174 local commit; previous clean checkpoint commit is `04f1e2d1462a827a3f08ee76c5a5db1dc25be9e9`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-173 verification: dirty only in CP-173 allowed run-doc files.
-- Current stop reason: not stopped; CP-173 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-174 verification: dirty only in CP-174 allowed run-doc files.
+- Current stop reason: not stopped; CP-174 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-173 - Local checkpoint commit prep`.
+- `CP-174 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
@@ -858,11 +864,11 @@ Run id: `20260529-163524+1000`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: all repo source/test edits, user Chrome profile mutation, UI/CSS/production component files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-173 run-doc update if the smoke bookkeeping must be removed.
+- Rollback: revert only the CP-174 run-doc update if the smoke bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-173 smoke checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-174 smoke checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

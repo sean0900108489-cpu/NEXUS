@@ -79,6 +79,21 @@ describe("NEXUS Style Engine manifest validator", () => {
     expect(report.errors).toEqual([]);
   });
 
+  it("allows CSS variable references inside the legacy bridge namespace", () => {
+    const manifest = createSafeManifest({
+      tokens: {
+        surface: {
+          app: "var(--bg-base)",
+        },
+      },
+    });
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(true);
+    expect(report.errors).toEqual([]);
+  });
+
   it("rejects dynamic Tailwind arbitrary value classes", () => {
     const manifest = createSafeManifest({
       tokens: {

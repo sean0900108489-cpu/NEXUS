@@ -1131,30 +1131,35 @@ Run id: `20260529-163524+1000`
 - Ran full `npm run check`; lint, typecheck, 41 Vitest files / 312 tests, and build passed.
 - Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
 - Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe prompt/payload strings, adapter forbidden behavior key registries/assertions, and React Flow behavior test fixture/assertion strings; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, compiler/runtime/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
+- Created local checkpoint commit `b14e51a994c3b910ce347e8ba1cf58ead8239860` for the Post HTML And CSS Expression Guard Phase Gate.
+- Started `CP-234 - Pure Validator Legacy CSS Variable Reference Coverage V1`.
+- Added focused validator test coverage that approved legacy bridge CSS variable references are allowed.
+- Verified CP-234 with focused validator Vitest, targeted lint, `npm run typecheck`, side-effect/behavior scans, `git diff --check`, and status check.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-233 - Post HTML And CSS Expression Guard Phase Gate`.
-- Latest local checkpoint commit: pending CP-233 local commit; previous clean checkpoint commit is `51d1e7b1f69c6b9efd7d568b280b85e8d100887d`.
+- Latest completed checkpoint: `CP-234 - Pure Validator Legacy CSS Variable Reference Coverage V1`.
+- Latest local checkpoint commit: pending CP-234 local commit; previous clean checkpoint commit is `b14e51a994c3b910ce347e8ba1cf58ead8239860`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-233 verification: dirty only in CP-233 run-doc files.
-- Current stop reason: not stopped; CP-233 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-234 verification: dirty only in CP-234 allowed validator test/run-doc files.
+- Current stop reason: not stopped; CP-234 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-233 - Local checkpoint commit prep`.
+- `CP-234 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test edits during the gate, docs outside this run folder, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: source implementation files, compiler/governance/exchange/runtime/UI/TSX/app route/CSS files, production Nexus components, docs outside this run folder, package/deploy/database/backend/store/sync/Supabase files, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-233 run-doc update if the phase gate bookkeeping must be removed.
+- Rollback: revert only the CP-234 validator test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-233 phase-gate run-doc checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-234 validator test checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

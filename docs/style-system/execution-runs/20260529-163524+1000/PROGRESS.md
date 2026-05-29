@@ -565,30 +565,38 @@ Run id: `20260529-163524+1000`
 - Repaired CDP smoke harness timing without source edits; final retry waited for hydration before interaction.
 - Confirmed the isolated graph specimen switches `--nexus-graph-*` values from legacy Cyberpunk to High Contrast after clicking the built-in High Contrast preset.
 - Confirmed no lingering headless Chrome smoke process remained after the smoke.
+- Created local checkpoint commit `cde611259bdb9592feaa9b28a9915e5f6562a344` for the Style Lab Graph Adapter Preset Switch Smoke V1 unit.
+- Started `CP-129 - Pure Compiler React Flow Adapter Output V1`.
+- Implemented `CP-129 - Pure Compiler React Flow Adapter Output V1`.
+- Updated the pure compiler to emit deterministic React Flow visual adapter output from validated manifest tokens and report React Flow adapter coverage as complete.
+- Added focused compiler coverage proving deterministic adapter values and absence of behavior keys such as `nodesDraggable`.
+- Verified CP-129 with focused compiler/adapter/governance tests, typecheck, isolated style-engine lint, build, side-effect scans, and diff checks.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-128 - Style Lab Graph Adapter Preset Switch Smoke V1`.
-- Latest local checkpoint commit: pending CP-128 local commit; previous clean checkpoint commit is `fd9ee61d7e110c81fff90344116c09e80884b0be`.
+- Latest completed checkpoint: `CP-129 - Pure Compiler React Flow Adapter Output V1`.
+- Latest local checkpoint commit: pending CP-129 local commit; previous clean checkpoint commit is `cde611259bdb9592feaa9b28a9915e5f6562a344`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status before CP-128 commit prep: dirty only in CP-128 allowed files.
-- Current stop reason: not stopped; CP-128 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-129 verification: dirty only in CP-129 allowed files.
+- Current stop reason: not stopped; CP-129 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-128 - Local checkpoint commit prep`.
+- `CP-129 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/compiler.ts`
+  - `src/lib/style-engine/compiler.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source edits during the gate, production graph/app shell files, Style Lab UI, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, compiler wiring, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: Style Lab/UI files, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only this CP-128 run-doc update if the smoke bookkeeping must be removed.
+- Rollback: revert only the compiler adapter output/test edits and this unit's run-doc edits.
 
 ## Next
 
-1. Commit the CP-128 docs-only smoke record if final diff/status checks remain clean by scope.
+1. Commit the CP-129 source and run-doc checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

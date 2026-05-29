@@ -6,6 +6,10 @@ import {
   type NexusStyleValidationIssueV1,
 } from "./manifest";
 import { createNexusStyleChecksumV1 } from "./checksum";
+import {
+  createReactFlowStyleAdapterFromManifestV1,
+  type NexusReactFlowStyleAdapterV1,
+} from "./react-flow-adapter";
 import { validateNexusStyleManifestV1 } from "./validator";
 
 export const NEXUS_STYLE_COMPILER_VERSION = "nexus-style-compiler-v1" as const;
@@ -18,7 +22,7 @@ export type NexusCompiledStyleV1 = {
   legacyCssVariables: Record<string, string>;
   recipes: NexusStyleRecipesV1;
   adapters: {
-    reactFlow?: NexusStyleAdaptersV1["reactFlow"];
+    reactFlow: NexusReactFlowStyleAdapterV1;
     nextThemes?: NexusStyleAdaptersV1["nextThemes"];
   };
   report: NexusCompilerReportV1;
@@ -79,7 +83,7 @@ export function compileNexusStyleManifestV1(
   const cssVariables = emitCssVariables(manifest);
   const legacyCssVariables = emitLegacyCssVariables(cssVariables);
   const recipes = compileRecipes(manifest.recipes);
-  const adapters = compileAdapters(manifest.adapters);
+  const adapters = compileAdapters(manifest);
 
   return {
     accepted: true,
@@ -94,7 +98,7 @@ export function compileNexusStyleManifestV1(
       report: {
         accepted: true,
         adapterCoverage: {
-          reactFlow: adapters.reactFlow ? "partial" : "none",
+          reactFlow: "complete",
         },
         emittedVariableCount:
           Object.keys(cssVariables).length + Object.keys(legacyCssVariables).length,
@@ -143,10 +147,12 @@ function compileRecipes(recipes: NexusStyleRecipesV1): NexusStyleRecipesV1 {
   return sortRecord(compiled) as NexusStyleRecipesV1;
 }
 
-function compileAdapters(adapters: NexusStyleManifestV1["adapters"]) {
+function compileAdapters(manifest: NexusStyleManifestV1) {
+  const adapters = manifest.adapters;
+
   return sortRecord({
     ...(adapters.nextThemes ? { nextThemes: sortRecord(adapters.nextThemes) } : {}),
-    ...(adapters.reactFlow ? { reactFlow: sortRecord(adapters.reactFlow) } : {}),
+    reactFlow: createReactFlowStyleAdapterFromManifestV1(manifest),
   }) as NexusCompiledStyleV1["adapters"];
 }
 

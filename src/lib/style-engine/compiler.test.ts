@@ -25,6 +25,9 @@ describe("NEXUS Style Engine pure compiler", () => {
       manifestId: "legacy-cyberpunk",
       report: {
         accepted: true,
+        adapterCoverage: {
+          reactFlow: "complete",
+        },
         legacyBridgeUsed: true,
       },
     });
@@ -72,6 +75,34 @@ describe("NEXUS Style Engine pure compiler", () => {
       surface: "var(--nexus-surface-panel)",
       text: "var(--nexus-text-primary)",
     });
+  });
+
+  it("emits deterministic React Flow visual adapter output", () => {
+    const result = compileNexusStyleManifestV1(createSafeManifest());
+
+    expect(result.accepted).toBe(true);
+
+    if (!result.accepted) {
+      throw new Error("Expected compiler to accept manifest.");
+    }
+
+    expect(result.style.adapters.reactFlow).toMatchObject({
+      background: {
+        color: "rgb(34 211 238 / 0.12)",
+      },
+      edge: {
+        selectedStroke: "#22d3ee",
+      },
+      node: {
+        agent: {
+          surface: "rgb(8 16 22 / 0.78)",
+          text: "#f8fafc",
+        },
+      },
+    });
+    expect(JSON.stringify(result.style.adapters.reactFlow)).not.toContain(
+      "nodesDraggable",
+    );
   });
 
   it("fails closed for invalid manifests without partial compiled output", () => {

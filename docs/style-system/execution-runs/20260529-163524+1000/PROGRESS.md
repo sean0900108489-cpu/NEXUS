@@ -1367,31 +1367,37 @@ Run id: `20260529-163524+1000`
 - Started `CP-290 - Governance Unknown Import Doc Reconciliation V1`.
 - Reconciled style pack governance docs with CP-289 unknown import source rejection coverage.
 - Verified CP-290 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
+- Created local checkpoint commit `523b26b13346f5dae522db3f583f0b5c339ea953` for the Governance Unknown Import Doc Reconciliation V1 unit.
+- Started `CP-291 - Pure Exchange Unsupported Package Source Guard V1`.
+- Updated import-source classification so package-like inputs with unsupported export package shape are classified as `unknown` instead of ordinary manifest imports.
+- Added focused exchange coverage proving unsupported package-like import candidates fail closed without returning a manifest.
+- Verified CP-291 with focused exchange Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-290 - Governance Unknown Import Doc Reconciliation V1`.
-- Latest recorded checkpoint commit: `98863494f47f1209d7bac01b3c93ae2aaa24edfe` for `CP-289 - Pure Exchange Unknown Import Source Coverage V1`; CP-290 is being prepared for local commit.
+- Latest completed checkpoint: `CP-291 - Pure Exchange Unsupported Package Source Guard V1`.
+- Latest recorded checkpoint commit: `523b26b13346f5dae522db3f583f0b5c339ea953` for `CP-290 - Governance Unknown Import Doc Reconciliation V1`; CP-291 is being prepared for local commit.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-290 verification prep: dirty only in CP-290 allowed style pack governance doc and run-doc files.
-- Current stop reason: not stopped; CP-290 governance unknown import doc reconciliation checkpoint is underway.
+- Confirmed current status after CP-291 verification prep: dirty only in CP-291 allowed exchange source/test and run-doc files.
+- Current stop reason: not stopped; CP-291 unsupported package source guard checkpoint is underway.
 
 ## In Progress
 
-- `CP-290 - Local checkpoint commit prep`.
+- `CP-291 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-pack-governance.md`
+  - `src/lib/style-engine/exchange.ts`
+  - `src/lib/style-engine/exchange.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, docs outside the listed governance doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-290 style pack governance doc/run-doc changes if this reconciliation must be removed.
+- Forbidden files: docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused exchange Vitest, targeted lint, `npm run typecheck`, targeted added-line side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-291 exchange source/test/run-doc changes if this guard must be removed.
 
 ## Next
 
-1. Commit the CP-290 governance unknown import doc reconciliation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-291 unsupported package source guard checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

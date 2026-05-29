@@ -162,6 +162,10 @@ function getImportSource(
     return "export-package";
   }
 
+  if (candidate.kind === NEXUS_STYLE_EXPORT_KIND_V1) {
+    return "unknown";
+  }
+
   return "manifest";
 }
 

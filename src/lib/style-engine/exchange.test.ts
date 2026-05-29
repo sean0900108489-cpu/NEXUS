@@ -141,6 +141,23 @@ describe("NEXUS Style Engine import/export normalization", () => {
     expect(JSON.stringify(imported)).not.toContain("not-a-style-pack");
   });
 
+  it("rejects unsupported export-package shapes as unknown sources", () => {
+    const imported = normalizeNexusStyleImportCandidateV1({
+      formatVersion: 999,
+      kind: "nexus-style-pack",
+      manifest: createLegacyCyberpunkStyleManifestV1(),
+    });
+
+    expect(imported.accepted).toBe(false);
+
+    if (imported.accepted) {
+      throw new Error("Expected unsupported export package to fail.");
+    }
+
+    expect(imported.source).toBe("unknown");
+    expect("manifest" in imported).toBe(false);
+  });
+
   it("redacts governance review fields for exchange output", () => {
     const review = reviewNexusStylePackV1(createLegacyCyberpunkStyleManifestV1());
     const redacted = redactNexusStyleReviewForExchangeV1(review);

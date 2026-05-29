@@ -2273,3 +2273,18 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused Vitest passed 2 files and 8 tests; typecheck passed; isolated style-engine lint passed; `git diff --check` passed. No source logic, UI, runtime provider, production graph, store/sync/backend/Supabase, deploy, package, or `exports/**` file was changed.
 - Rollback note: revert only the governance test edit and this run-doc checkpoint update if the consistency test must be removed.
+
+## CP-144 - Post Governance Preview Count Test Phase Gate
+
+- Unit: run broader local verification after adding governance preview count consistency coverage before selecting another implementation unit.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test edits during the gate, Style Lab/UI source, production graph/app shell files, runtime provider internals, `src/components/nexus/**`, CSS/global stylesheets, pure style-engine logic changes, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, React Flow imports or behavior props, download/clipboard/save behavior, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; source-only side-effect/import scan excluding tests; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run check`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; source-only side-effect/import scan excluding tests; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Full `npm run check` passed lint, typecheck, 40 Vitest files / 292 tests, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only existing pure preview patch adapter variable emission, pure compiler adapter helper wiring, isolated Style Lab consumption of pure adapter helpers, pure adapter type/helper names, existing validator/normalizer detector strings, inert `ai-draft` type literals, scanner function names, and test-only guard cases; no live React Flow import, graph behavior props, runtime provider logic change, persistence, apply/save, store/sync/backend/Supabase import or mutation path, DOM/storage/fetch mutation path, deploy path, or `exports/**` path was found. `git diff --check` passed.
+- Rollback note: revert only this CP-144 run-doc update if the phase gate bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.

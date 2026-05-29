@@ -148,6 +148,7 @@ Run id: `20260529-163524+1000`
 | Post Compiler React Flow Adapter Output Phase Gate | PASS | Full check passed after compiler adapter output; side-effect scan and git diff check passed. |
 | Style Lab Adapter Coverage Complete Smoke V1 | PASS | Source-closed local smoke confirmed the isolated Style Lab Adapter governance row renders `reactFlow:complete`. |
 | Pure Preview Patch Graph Adapter Variables V1 | PASS | Preview patches now include pure React Flow adapter CSS variables; focused checks, build, side-effect scan, and git diff check passed. |
+| Post Preview Patch Graph Adapter Variables Phase Gate | PASS | Full check passed after preview patch graph variables; side-effect scan and git diff check passed. |
 
 ## Current Gate
 
@@ -160,4 +161,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Preview Patch Graph Adapter Variables V1 local checkpoint prep. Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post Preview Patch Graph Adapter Variables Phase Gate local checkpoint prep with source edits closed. Style Lab UI source, production graph/app shell files, runtime provider internals, workspace store, sync, backend, Supabase, deploy, branch merge, push, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

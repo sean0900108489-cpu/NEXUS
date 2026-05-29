@@ -52,6 +52,9 @@ Run id: `20260529-163524+1000`
 | Governance Record Commit | PASS | Commit `f308088169031394bde3a1e647a9a2b7cb44b380` created; post-commit status was clean. |
 | Pure Import Export Normalization V1 | PASS | Added pure local exchange package creation/import normalization and tests; unsafe imports do not return manifest payloads. |
 | Exchange Local Checkpoint Commit | PASS | Commit `6b4c7b10244ef27408621d3a27548229356bf2fe` created; post-commit status was clean. |
+| Exchange Record Commit | PASS | Commit `5e3ffb4125625aadc582dec2408b4e3aac4cc23f` created; post-commit status was clean. |
+| Runtime Variable Target V1 | PASS | Added provided-target preview variable apply/revert helper and tests; no real DOM/store/sync/backend dependencies. |
+| Runtime Target Local Checkpoint Commit | IN_PROGRESS | Staging and committing runtime target helper locally only. |
 
 ## Current Gate
 

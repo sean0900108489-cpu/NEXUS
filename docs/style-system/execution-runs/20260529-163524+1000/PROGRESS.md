@@ -119,14 +119,18 @@ Run id: `20260529-163524+1000`
 - Repaired one type narrowing issue and one misplaced guard caught by focused tests.
 - Verified the exchange unit with `git diff --check`, focused Vitest, full style-engine Vitest set, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
 - Created local checkpoint commit `6b4c7b10244ef27408621d3a27548229356bf2fe` for pure import/export normalization.
+- Created local record commit `5e3ffb4125625aadc582dec2408b4e3aac4cc23f` for the pure exchange checkpoint metadata.
+- Implemented the first runtime target helper for applying/reverting preview variables on a provided style-like target.
+- Added focused Vitest coverage for previous-value capture, revert behavior, and unrelated variable preservation.
+- Verified the runtime target unit with `git diff --check`, focused Vitest, full style-engine Vitest set, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
 
 ## In Progress
 
-- Reviewing master-plan next step after pure implementation units.
+- Local checkpoint commit for runtime variable target V1.
 
 ## Next
 
-1. Commit this run-status record update.
-2. Re-confirm branch/status/HEAD.
-3. Run a pure-style phase gate or open a broader UI gate only if the plan and status support it.
-4. Keep runtime DOM, CSS, component, graph, sync, backend, Supabase, deploy, and `exports/**` changes out of scope until a new gate is explicit.
+1. Stage run docs and `src/lib/style-engine/**`.
+2. Verify staged diff.
+3. Create a local checkpoint commit if checks pass.
+4. Run a pure-style phase gate before any broader UI/provider integration.

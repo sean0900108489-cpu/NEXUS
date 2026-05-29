@@ -646,3 +646,21 @@ Each checkpoint records:
 - Commit created: `6b4c7b10244ef27408621d3a27548229356bf2fe`.
 - Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
 - Rollback note: revert the exchange commit only if the pure exchange unit must be removed; do not touch unrelated history.
+
+## CP-044 - Runtime Variable Target V1
+
+- Unit: implement the first local runtime preview helper for applying and reverting CSS variable patches on a provided style target.
+- Allowed files:
+  - `src/lib/style-engine/**`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: `exports/**`, real DOM entrypoints, CSS files, theme provider files, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
+- Commands run: `apply_patch`; `git diff --check`; targeted side-effect/import scan for real DOM globals, store/Supabase/sync/React Flow imports, protected behavior class strings, and forbidden literals; `npm run test -- src/lib/style-engine/runtime-target.test.ts src/lib/style-engine/preview.test.ts src/lib/style-engine/exchange.test.ts`; `npm run test -- src/lib/style-engine/validator.test.ts src/lib/style-engine/compiler.test.ts src/lib/style-engine/presets.test.ts src/lib/style-engine/preview.test.ts src/lib/style-engine/accessibility.test.ts src/lib/style-engine/checksum.test.ts src/lib/style-engine/governance.test.ts src/lib/style-engine/exchange.test.ts src/lib/style-engine/runtime-target.test.ts`; `npm run typecheck`; `npm run lint -- src/lib/style-engine`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/runtime-target.ts`
+  - `src/lib/style-engine/runtime-target.test.ts`
+  - `src/lib/style-engine/index.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+- Verification result: PASS. Helper mutates only the provided style-like target, records previous CSS variable values, reverts without touching unrelated variables, and has no `document`, `window`, store, sync, backend, or Supabase dependency.
+- Rollback note: revert only `src/lib/style-engine/runtime-target.ts`, `src/lib/style-engine/runtime-target.test.ts`, the index export, and this run-doc checkpoint update if this runtime target unit must be removed.

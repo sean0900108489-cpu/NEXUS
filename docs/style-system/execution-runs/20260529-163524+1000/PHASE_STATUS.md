@@ -185,6 +185,7 @@ Run id: `20260529-163524+1000`
 | Pure Window Modal Recipe CSS Variables V1 | PASS | Added pure deterministic recipe-scoped CSS variable emitter and focused tests; no compiler, UI, production, persistence, or deploy wiring touched. |
 | Post Window Modal Recipe Variables Phase Gate | PASS | Full check passed after pure recipe mapping and variable emission; side-effect scan and git diff check passed. |
 | Pure Compiler Window Modal Recipe Output V1 | PASS | Compiler emits deterministic pure window/modal recipe adapter output and reports window/modal adapter coverage complete; no preview, UI, production, persistence, or deploy wiring touched. |
+| Post Compiler Window Modal Adapter Output Phase Gate | PASS | Full check passed after compiler window/modal adapter output; side-effect scan and git diff check passed. |
 
 ## Current Gate
 
@@ -197,4 +198,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Compiler Window Modal Recipe Output V1 local checkpoint prep. Preview/runtime/governance wiring, UI source, production window/modal code, production graph/app shell files, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post Compiler Window Modal Adapter Output Phase Gate local checkpoint prep. Preview/runtime/governance wiring, UI source, production window/modal code, production graph/app shell files, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

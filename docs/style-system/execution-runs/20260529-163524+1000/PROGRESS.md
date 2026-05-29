@@ -814,32 +814,36 @@ Run id: `20260529-163524+1000`
 - Added focused compiler test coverage for the emitted window/modal recipe adapter output and forbidden behavior key absence.
 - Confirmed preview/runtime/UI source, production window/modal/Datapad/Prompt Vault/Agent code, governance/exchange wiring, persistence, store/sync/backend/Supabase, deploy files, and `exports/**` were not changed.
 - Verified CP-169 with focused compiler + adapter tests, targeted lint, typecheck, side-effect scans, diff check, and status check.
+- Created local checkpoint commit `13486e97bb4dc634cf828b98a45771c0dbc51bd7` for the Pure Compiler Window Modal Recipe Output V1 unit.
+- Started `CP-170 - Post Compiler Window Modal Adapter Output Phase Gate` with source/test edits closed.
+- Ran `CP-170 - Post Compiler Window Modal Adapter Output Phase Gate`.
+- Confirmed full `npm run check` passed: lint, typecheck, 41 Vitest files / 299 tests, and build.
+- Confirmed `/style-lab` remains static in the build and the known edge-runtime warning is unchanged.
+- Confirmed phase-gate side-effect scans only matched existing validator/normalizer safety detector strings, test-only unsafe payloads, React Flow adapter forbidden behavior key registries, and the window/modal recipe adapter forbidden behavior key registry; no real DOM/window/document usage, storage/fetch/clipboard/download path, `react-rnd`, production UI import/edit, runtime provider logic change, preview/governance/persistence wiring, store/sync/backend/Supabase import or mutation path, deploy path, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-169 - Pure Compiler Window Modal Recipe Output V1`.
-- Latest local checkpoint commit: pending CP-169 local commit; previous clean checkpoint record commit is `187e79aa9b76b00c942547e8448d01a0e686dc8e`.
+- Latest completed checkpoint: `CP-170 - Post Compiler Window Modal Adapter Output Phase Gate`.
+- Latest local checkpoint commit: pending CP-170 local commit; previous clean checkpoint commit is `13486e97bb4dc634cf828b98a45771c0dbc51bd7`.
 - Confirmed current branch during state assessment: `codex/v17-large-iteration`.
-- Confirmed current status after CP-169 verification: dirty only in CP-169 allowed compiler/test/run-doc files.
-- Current stop reason: not stopped; CP-169 verification passed and local checkpoint commit prep is underway.
+- Confirmed current status after CP-170 verification: dirty only in CP-170 allowed run-doc files.
+- Current stop reason: not stopped; CP-170 verification passed and local checkpoint commit prep is underway.
 
 ## In Progress
 
-- `CP-169 - Local checkpoint commit prep`.
+- `CP-170 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/compiler.ts`
-  - `src/lib/style-engine/compiler.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: preview/runtime/governance wiring, UI/CSS/production component files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Forbidden files: all source/test edits during the gate, preview/runtime/governance wiring, UI/CSS/production component files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
 - Verification: final `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-169 compiler/test/run-doc updates if the compiler window/modal adapter output must be removed.
+- Rollback: revert only the CP-170 run-doc update if the phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-169 implementation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-170 phase-gate checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -272,6 +272,12 @@ button {
   background-size: 44px 44px, 44px 44px, 100% 100%;
 }
 
+.nexus-shell .nexus-workspace {
+  border-color: var(--nexus-workspace-border, var(--nexus-panel-border, rgb(255 255 255 / 0.1)));
+  border-radius: var(--nexus-workspace-radius, var(--nexus-panel-radius, var(--surface-radius)));
+  box-shadow: var(--nexus-workspace-shadow, var(--nexus-panel-shadow, 0 25px 50px -12px rgb(0 0 0 / 0.25)));
+}
+
 .nexus-scanline {
   position: relative;
 }

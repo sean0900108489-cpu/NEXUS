@@ -484,3 +484,76 @@ Remaining No-Go zones:
 - feature placement and layout preset production adoption
 - runtime token apply or persistence
 - store/sync/backend/Supabase/API paths
+
+## 14. V19 Production Skinning 20-to-40 ROI Loop 02
+
+Implemented during
+`20260531-v19-production-skinning-20-to-40-roi-loop-02`.
+
+Target:
+
+- `.nexus-workspace` production primitive
+
+Candidate decision:
+
+- selected `.nexus-workspace` because it is the highest-visibility production
+  primitive that can be expanded in CSS only
+- rejected `.nexus-agent-window` because it is inside Rnd and has stateful
+  inline background, border, shadow, selected, and sandbox visual logic tied to
+  window behavior
+- rejected `.nexus-message-bubble` because safe high-quality adoption likely
+  needs role-specific stable selectors; a generic override would flatten
+  user/tool/agent visual semantics
+- rejected `.nexus-panel` because it is already aliased for background, border,
+  text, radius, shadow, and blur
+- rejected command palette, modal, datapad, and settings chrome as
+  extraction-first candidates due focus, z-index, modal, Rnd, or provider state
+  ownership
+
+Token alias status:
+
+- expanded for workspace chrome while preserving the existing workspace
+  behavior-owned element
+- no production token runtime apply was introduced
+- no store/sync/backend/Supabase/API path was touched
+- no `nexus-ops.tsx` behavior, refs, child order, React Flow branch, or window
+  rendering was changed
+
+Aliases added:
+
+- `--nexus-workspace-border`
+- `--nexus-workspace-shadow`
+- `--nexus-workspace-radius`
+
+Existing workspace aliases kept:
+
+- `--nexus-workspace-bg`
+- `--nexus-workspace-grid-primary`
+- `--nexus-workspace-grid-secondary`
+- `--nexus-workspace-wash`
+
+Fallback chain:
+
+- dedicated workspace alias
+- existing panel alias where applicable
+- cyberpunk/Tailwind baseline value
+
+Intentionally not tokenized:
+
+- workspace layout, sizing, overflow, isolation, z-index, responsive behavior,
+  or positioning
+- workspace refs and measurement
+- panel-vs-graph branch
+- React Flow nodes, edges, controls, minimap, or graph behavior
+- floating windows, drag, resize, focus, z-index, or modal behavior
+- child button, input, dropdown, status, label, or active states
+
+Remaining No-Go zones:
+
+- `NexusOpsWorkspaceFrame` extraction while the wrapper owns `workspaceRef` and
+  panel/graph conditionals
+- React Flow and graph files
+- drag/resize/focus/z-index/window/modal behavior
+- feature placement and layout preset production adoption
+- runtime token apply or persistence
+- store/sync/backend/Supabase/API paths

@@ -1553,32 +1553,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-333 - Pure Intent Normalizer Eval Guard Coverage V1`.
 - Added focused intent-normalizer coverage proving `eval(...)` executable input is rejected without echoing the payload.
 - Verified CP-333 with focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, and `git diff --check`.
+- Created local checkpoint commit `e302546b380c15075df63afd9b70203f4ec40b83` for the Pure Intent Normalizer Eval Guard Coverage V1 unit.
+- Started `CP-334 - Interpreter Eval Input Doc Reconciliation V1`.
+- Reconciled interpreter boundary docs with CP-333 `eval(...)` executable input rejection coverage.
+- Verified CP-334 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-333 - Pure Intent Normalizer Eval Guard Coverage V1`.
-- Latest recorded checkpoint commit: `dc0ac708b339012ab305d9954161a91c48d70530` for `CP-332 - Post Intent JavaScript Guard Phase Gate`.
-- Confirmed current branch before CP-333: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-333: `dc0ac708b339012ab305d9954161a91c48d70530`.
-- Confirmed current status before CP-333: clean.
-- Current stop reason: not stopped; CP-333 pure intent-normalizer eval guard coverage is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-334 - Interpreter Eval Input Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `e302546b380c15075df63afd9b70203f4ec40b83` for `CP-333 - Pure Intent Normalizer Eval Guard Coverage V1`.
+- Confirmed current branch before CP-334: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-334: `e302546b380c15075df63afd9b70203f4ec40b83`.
+- Confirmed current status before CP-334: clean.
+- Current stop reason: not stopped; CP-334 interpreter eval input doc reconciliation is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-333 - Local checkpoint commit`.
+- `CP-334 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/intent-normalizer.test.ts`
+  - `docs/style-system/style-interpreter-boundary.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime/provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-333 intent-normalizer test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime/provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside the listed interpreter boundary doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-334 interpreter boundary doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-333 pure intent-normalizer eval guard coverage if final diff/status checks remain clean by scope.
+1. Commit the CP-334 interpreter eval input doc reconciliation if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
-3. Select `CP-334 - Interpreter Eval Input Doc Reconciliation V1` unless a lower-risk reconciliation is discovered.
+3. Select the next lowest-risk isolated unit, likely a post intent eval guard phase gate.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

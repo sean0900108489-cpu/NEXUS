@@ -7,8 +7,8 @@ Date: 2026-05-31
 | Phase | Checkpoint | Commit | Status |
 | --- | --- | --- | --- |
 | Initial docs | `TECHNICAL_RUNBOOK.md`, `PHASE_STATUS.md`, `CHECKPOINTS.md`, `RECOVERY.md` | `2d1405a` | Complete |
-| Phase 0 | `PHASE_0_RECOVERY_PREFLIGHT.md` | Pending | Complete, awaiting commit |
-| Phase 1 | Pending | Pending | Pending |
+| Phase 0 | `PHASE_0_RECOVERY_PREFLIGHT.md` | `897b8a5` | Complete |
+| Phase 1 | `PHASE_1_STATIC_FRAME_BATCH.md` | Pending | Complete, awaiting commit |
 | Phase 2 | Pending | Pending | Pending |
 | Phase 3 | Pending | Pending | Pending |
 | Phase 4 | Pending | Pending | Pending |

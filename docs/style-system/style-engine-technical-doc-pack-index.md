@@ -47,6 +47,7 @@ Only read `/Users/sean/Downloads/nexusstyle總升級.md` for long-term ambition.
 | `layout-preset-boundary-v1.md` | V2 Layout Preset boundary prep | Layout safety owner | Protected behavior ledger, Protocol 94 audit | Allowed density/slot/surface/visibility/decor hints and forbidden behavior authority | Layout presets preserve the unified functional skeleton. |
 | `performance-budget-validator-v1.md` | V2/V3 Performance Budget prep | Performance owner | Compiler variable budget, asset contract, Protocol 94 audit | Static V2 gates and deferred V3 runtime/asset gates | V2 can enforce pure static budgets without loading assets or changing runtime UI. |
 | `v2-style-pack-implementation-gates.md` | V2 implementation gate map | Execution owner | All V2 contract-prep docs and governance docs | Go/No-Go gates, first implementation batch rules, protocol trigger matrix | Broad implementation is blocked until pure contract validators and fixtures exist. |
+| `skin-pack-render-optimization-pipeline-v1.md` | V2/V3 Skin Pack render optimization pipeline | Performance owner | V2 contracts, token-only preview checkpoint, Style Lab review source | Receive-to-RenderPlan pipeline, scheduler design, diagnostics, dependency policy | Next implementation gate is pure Render Plan IR types/tests, not asset preview. |
 
 ## 2. Phase Docs To Create Later
 

@@ -314,6 +314,7 @@ Run id: `20260529-163524+1000`
 | Pure Compiler Report Variable Count Coverage V1 | PASS | Added focused compiler coverage that emittedVariableCount matches actual CSS variable totals. |
 | Pure Compiler NextThemes Adapter Coverage V1 | PASS | Added focused compiler coverage that nextThemes bridge data stays inert adapter output. |
 | Compiler Report Adapter Doc Reconciliation V1 | PASS | Reconciled compiler contract docs with emitted variable count and nextThemes adapter coverage. |
+| Post Compiler Report Adapter Phase Gate | PASS | Decomposed full gate passed after compiler report/adapter coverage; side-effect scan, build, and git diff check passed. |
 
 ## Current Gate
 
@@ -326,4 +327,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Compiler Report Adapter Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside the compiler contract doc and this run folder, governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Post Compiler Report Adapter Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside this run folder, governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

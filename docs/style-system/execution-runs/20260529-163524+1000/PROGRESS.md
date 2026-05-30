@@ -1497,31 +1497,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-320 - Runtime Controller Revert Doc Reconciliation V1`.
 - Reconciled runtime preview docs with CP-319 unqualified active-session revert coverage.
 - Verified CP-320 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
+- Created local checkpoint commit `770c2fc70bbc8547b07f3174ba748cda72acaa51` for the Runtime Controller Revert Doc Reconciliation V1 unit.
+- Started `CP-321 - Post Runtime Controller Revert Phase Gate` with source edits closed.
+- Ran decomposed full gate: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, and `npm run build`.
+- Confirmed full Vitest passed 41 files / 344 tests and build passed with static `/style-lab` plus the known edge-runtime warning.
+- Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, and existing React Flow/window-modal adapter forbidden-key registries and test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-320 - Runtime Controller Revert Doc Reconciliation V1`.
-- Latest recorded checkpoint commit: `e5e8368d70b5c0f5849981b278df22fcc8e8bac4` for `CP-319 - Pure Runtime Controller Unqualified Revert Coverage V1`; CP-320 is being prepared for local commit.
-- Confirmed current branch during CP-320: `codex/v17-large-iteration`.
-- Confirmed current status after CP-320 verification prep: dirty only in CP-320 allowed runtime preview doc and run-doc files.
-- Current stop reason: not stopped; CP-320 runtime controller revert doc reconciliation checkpoint is underway.
+- Latest completed checkpoint: `CP-321 - Post Runtime Controller Revert Phase Gate`.
+- Latest recorded checkpoint commit: `770c2fc70bbc8547b07f3174ba748cda72acaa51` for `CP-320 - Runtime Controller Revert Doc Reconciliation V1`; CP-321 is being prepared for local commit.
+- Confirmed current branch during CP-321: `codex/v17-large-iteration`.
+- Confirmed current status after CP-321 verification prep: clean before run-doc bookkeeping; dirty only in CP-321 run-doc files during this update.
+- Current stop reason: not stopped; CP-321 post runtime controller revert phase gate checkpoint is underway.
 
 ## In Progress
 
-- `CP-320 - Local checkpoint commit prep`.
+- `CP-321 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-runtime-preview-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, docs outside the listed runtime preview doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-320 runtime preview doc/run-doc changes if this reconciliation must be removed.
+- Forbidden files: all source/test/product docs, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, `npm run build`, side-effect/import scan, behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-321 run-doc changes if this phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-320 runtime controller revert doc reconciliation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-321 post runtime controller revert phase gate checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

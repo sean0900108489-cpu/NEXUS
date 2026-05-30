@@ -1614,31 +1614,36 @@ Run id: `20260529-163524+1000`
 - Ran decomposed full gate: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, and `npm run build`.
 - Confirmed full Vitest passed 41 files / 352 tests and build passed with static `/style-lab` plus the known edge-runtime warning.
 - Confirmed phase-gate side-effect scans only matched expected validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, pure adapter guard strings, and existing React Flow/window-modal adapter guard/test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
+- Created local checkpoint commit `9e6781fd8c5d2b7b6e5bdc6da800dcaf1f84d241` for the Post Validator Executable String Guard Phase Gate.
+- Started `CP-348 - Pure Validator Behavior Class String Guard Coverage V1`.
+- Added focused validator coverage proving dynamic z-index and protected behavior class string values are rejected.
+- Verified CP-348 with focused validator Vitest, `npm run lint`, `npm run typecheck`, touched-file side-effect/behavior scan, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-347 - Post Validator Executable String Guard Phase Gate`.
-- Latest recorded checkpoint commit: `fa6558bfe142692298c9d9b7ede44ddc5e8b323d` for `CP-346 - Validator Executable String Doc Reconciliation V1`.
-- Confirmed current branch before CP-347: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-347: `fa6558bfe142692298c9d9b7ede44ddc5e8b323d`.
-- Confirmed current status before CP-347: clean.
-- Current stop reason: not stopped; CP-347 post validator executable string guard phase gate is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-348 - Pure Validator Behavior Class String Guard Coverage V1`.
+- Latest recorded checkpoint commit: `9e6781fd8c5d2b7b6e5bdc6da800dcaf1f84d241` for `CP-347 - Post Validator Executable String Guard Phase Gate`.
+- Confirmed current branch before CP-348: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-348: `9e6781fd8c5d2b7b6e5bdc6da800dcaf1f84d241`.
+- Confirmed current status before CP-348: clean.
+- Current stop reason: not stopped; CP-348 pure validator behavior class string guard coverage is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-347 - Local checkpoint commit`.
+- `CP-348 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test/product docs, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, `npm run build`, side-effect/import scan, behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-347 run-doc update if this phase gate bookkeeping must be removed.
+- Forbidden files: validator implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused validator Vitest, `npm run lint`, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-348 validator test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-347 post validator executable string guard phase gate if final diff/status checks remain clean by scope.
+1. Commit the CP-348 pure validator behavior class string guard coverage if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

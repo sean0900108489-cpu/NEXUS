@@ -652,6 +652,58 @@ describe("NEXUS Style Engine manifest validator", () => {
     });
   });
 
+  it("rejects dynamic z-index and protected behavior class strings", () => {
+    const manifest = createSafeManifest({
+      tokens: {
+        status: {
+          danger: "nowheel",
+          warning: "nopan",
+        },
+        surface: {
+          app: "z-[9999]",
+        },
+        text: {
+          primary: "pointer-events-none",
+          secondary: "nodrag",
+        },
+      },
+    });
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toEqual(
+      expect.arrayContaining([
+        {
+          code: "style.forbidden.dynamicZIndex",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.surface.app",
+        },
+        {
+          code: "style.forbidden.protectedBehaviorClass",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.status.danger",
+        },
+        {
+          code: "style.forbidden.protectedBehaviorClass",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.status.warning",
+        },
+        {
+          code: "style.forbidden.protectedBehaviorClass",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.text.primary",
+        },
+        {
+          code: "style.forbidden.protectedBehaviorClass",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.text.secondary",
+        },
+      ]),
+    );
+    expect(JSON.stringify(report)).not.toContain("9999");
+  });
+
   it("rejects legacy CSS expression strings", () => {
     const manifest = createSafeManifest({
       tokens: {

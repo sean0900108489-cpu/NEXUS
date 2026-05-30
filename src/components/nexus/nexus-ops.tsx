@@ -139,6 +139,7 @@ import { DatapadWindow } from "@/components/nexus/DatapadWindow";
 import { NexusGraph } from "@/components/nexus/nexus-graph";
 import { NexusOpsBodyFrame } from "@/components/nexus/nexus-ops-body-frame";
 import { NexusOpsOuterShellFrame } from "@/components/nexus/nexus-ops-outer-shell-frame";
+import { NexusOpsTopBarFrame } from "@/components/nexus/nexus-ops-top-bar-frame";
 import { PromptVaultManager } from "@/components/nexus/PromptVaultManager";
 
 const Rnd = dynamic(() => import("react-rnd").then((module) => module.Rnd), {
@@ -2552,7 +2553,7 @@ function TopBar({
   }
 
   return (
-    <header className="flex h-11 shrink-0 items-center border-b border-white/10 bg-black/20 px-3">
+    <NexusOpsTopBarFrame>
       <div className="relative">
         <button
           aria-expanded={menuOpen}
@@ -2803,7 +2804,7 @@ function TopBar({
       <div className="ml-auto flex min-w-0 items-center gap-2">
         <SyncBadge status={syncStatus} onRetry={onSyncRetry} />
       </div>
-    </header>
+    </NexusOpsTopBarFrame>
   );
 }
 

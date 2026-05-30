@@ -14,6 +14,11 @@ around the left dock/workspace siblings. It accepts only `children` and keeps
 all child order, collapse animation, workspace measurement, graph/window
 conditionals, and behavior callbacks in `src/components/nexus/nexus-ops.tsx`.
 
+Update: `NexusOpsTopBarFrame` now owns only the original top bar/header visual
+wrapper. It accepts only `children` and keeps workspace menu state, rename form
+state, action callbacks, buttons, sync badge behavior, and all conditionals in
+`src/components/nexus/nexus-ops.tsx`.
+
 ## 1. Scope And Non-Goals
 
 This document started as the read-only map for the first real production shell
@@ -49,7 +54,7 @@ and persistence authority in `NexusOps` or in an already-owned behavior module.
 | --- | --- | --- | --- | --- | --- |
 | `NexusOps` outer visual shell frame | `src/components/nexus/nexus-ops-outer-shell-frame.tsx:7`; callsite `src/components/nexus/nexus-ops.tsx:2021` to `src/components/nexus/nexus-ops.tsx:2310` | It is the broadest visual frame around the existing shell after the auth gate. It already sits inside the inert route-edge wrapper and now accepts only `children`. | Auth gate, store selectors, effects, keyboard shortcuts, import/export, persistence, graph, windows, modals, layout geometry, feature placement. | Landed as `NexusOpsOuterShellFrame`; no further extraction is implied by this map. | Page renders, wrapper boundary still exists, `NexusOps` visible, no console/hydration errors, no pointer/focus regression. |
 | Main chrome/body container | `src/components/nexus/nexus-ops-body-frame.tsx:7`; callsite `src/components/nexus/nexus-ops.tsx` around the left dock/workspace row | The flex row that contains left dock and workspace is visually identifiable and does not itself make decisions beyond existing child placement. It now accepts only `children`. | Left/right swapping, layout preset intent, scroll/overflow changes, React Flow behavior, workspace sizing, drag/drop, slot registry. | Landed as `NexusOpsBodyFrame`; no further body-row extraction is implied by this map. | Workspace visible, left rail still opens/closes, graph/panels view unchanged, no layout shift. |
-| Top shell chrome frame | `<TopBar />` call at `src/components/nexus/nexus-ops.tsx:2032`; component body starts at `src/components/nexus/nexus-ops.tsx:2478`; header root at line 2553 | The header has a clear visual boundary and stable placement above the workspace body. | Workspace menu state, rename form state, save/import/export actions, view-mode toggles, sync retry, recovery actions, keyboard behavior. | Extract only a `TopBarFrame` or primitive visual wrapper first; leave `TopBar` behavior in place. | Workspace menu opens, rename cancel/commit still works, view toggle still works, import/export buttons still reachable. |
+| Top shell chrome frame | `src/components/nexus/nexus-ops-top-bar-frame.tsx:7`; used inside `TopBar` in `src/components/nexus/nexus-ops.tsx` | The header has a clear visual boundary and stable placement above the workspace body. It now accepts only `children`. | Workspace menu state, rename form state, save/import/export actions, view-mode toggles, sync retry, recovery actions, keyboard behavior. | Landed as `NexusOpsTopBarFrame`; no behavior moved. | Workspace menu opens, rename cancel/commit still works, view toggle still works, import/export buttons still reachable. |
 | Left dock visual wrapper | `<LeftDock />` call at `src/components/nexus/nexus-ops.tsx:2099`; `LeftDock` starts at `src/components/nexus/nexus-ops.tsx:4591`; root `.nexus-panel` at line 4626 | The expanded left dock is already a `.nexus-panel` visual primitive and is separate from workspace canvas content. | Agent spawn/select/focus/restore logic, template profile editing, model selection, collapse animation state. | Extract a left dock frame wrapper around the existing `LeftDock` render tree, or first move only the `.nexus-panel` frame class to a named wrapper. | Expand/collapse left rail, spawn from template, select agent, restore minimized agent, no focus regression. |
 | Collapsed sidebar rail frame | `CollapsedSidebarRail` starts at `src/components/nexus/nexus-ops.tsx:2349`; `.nexus-panel` root at line 2359 | It is visually small and has no direct click handler inside the rail body; the toggle button remains separate. | Toggle ownership, animation orchestration, side swapping, layout preset behavior. | Extract `CollapsedSidebarRailFrame` only if it remains a fixed label/side display primitive. | Collapse/expand still works; label orientation and hit target are unchanged. |
 | Right floating dock visual frame | `<RightFloatingDock />` call at `src/components/nexus/nexus-ops.tsx:2206`; component starts at line 2442; root `nav` at line 2450 | The rail is visually isolated and fixed-position; its contents are simple panel buttons. | Active panel state, button callbacks, z-index changes, pointer-event semantics, panel placement authority. | Extract `RightFloatingDockFrame` after preserving current `pointer-events-none`/`pointer-events-auto` semantics exactly. | Open/close every right panel tab, panel selection unchanged, no pointer regression over workspace. |
@@ -60,6 +65,7 @@ Completed static frame extractions:
 
 - `NexusOpsOuterShellFrame`
 - `NexusOpsBodyFrame`
+- `NexusOpsTopBarFrame`
 
 Skipped in the Body Frame First round:
 
@@ -132,9 +138,11 @@ The next extraction smoke must prove behavior did not move or regress:
 
 ## 6. First Recommended Extraction Target
 
-Recommended next target after the landed outer/body frames: a static TopBar
-header frame, or smaller, only if it can preserve `TopBar` state/handlers inside
-`TopBar` and move only a static wrapper element.
+Recommended next target after the landed outer/body/top-bar frames: a static
+frame smaller than behavior-bearing surfaces, such as a right dock visual frame
+only if it can preserve current pointer-event semantics and active-panel
+behavior. Do not retry left dock or workspace frame extraction until their
+dynamic animation/measurement responsibilities are separated.
 
 Minimum acceptable future unit:
 

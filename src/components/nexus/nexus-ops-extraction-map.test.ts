@@ -45,6 +45,7 @@ describe("NexusOps extraction map markers", () => {
     const source = readNexusOpsSource();
     const bodyFrameSource = readBodyFrameSource();
     const outerShellFrameSource = readOuterShellFrameSource();
+    const topBarFrameSource = readTopBarFrameSource();
 
     expect(source).toContain(
       'import { NexusOpsBodyFrame } from "@/components/nexus/nexus-ops-body-frame";',
@@ -52,12 +53,20 @@ describe("NexusOps extraction map markers", () => {
     expect(source).toContain(
       'import { NexusOpsOuterShellFrame } from "@/components/nexus/nexus-ops-outer-shell-frame";',
     );
+    expect(source).toContain(
+      'import { NexusOpsTopBarFrame } from "@/components/nexus/nexus-ops-top-bar-frame";',
+    );
     expect(source).toContain("<NexusOpsBodyFrame>");
     expect(source).toContain("</NexusOpsBodyFrame>");
     expect(source).toContain("<NexusOpsOuterShellFrame>");
     expect(source).toContain("</NexusOpsOuterShellFrame>");
+    expect(source).toContain("<NexusOpsTopBarFrame>");
+    expect(source).toContain("</NexusOpsTopBarFrame>");
     expect(bodyFrameSource).toContain('className="flex min-h-0 flex-1 gap-2 p-2"');
     expect(outerShellFrameSource).toContain('className="nexus-shell');
+    expect(topBarFrameSource).toContain(
+      'className="flex h-11 shrink-0 items-center border-b border-white/10 bg-black/20 px-3"',
+    );
     expect(source).toContain('className="nexus-workspace');
     expect(source).toContain('className="nexus-panel');
     expect(source).toContain("<TopBar");
@@ -79,6 +88,13 @@ function readBodyFrameSource() {
 function readOuterShellFrameSource() {
   return readFileSync(
     new URL("nexus-ops-outer-shell-frame.tsx", import.meta.url),
+    "utf8",
+  );
+}
+
+function readTopBarFrameSource() {
+  return readFileSync(
+    new URL("nexus-ops-top-bar-frame.tsx", import.meta.url),
     "utf8",
   );
 }

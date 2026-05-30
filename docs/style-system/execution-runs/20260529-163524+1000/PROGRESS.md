@@ -1425,32 +1425,35 @@ Run id: `20260529-163524+1000`
 - Added entry-level validation for `constraints.protectedBehaviorClasses` so non-string or empty entries fail with per-index paths.
 - Added focused validator coverage for invalid protected behavior class entries.
 - Verified CP-303 with focused validator Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scans, and `git diff --check`.
+- Created local checkpoint commit `7b07ae531fac1eb31488efe146216369dc1acc25` for the Pure Validator Protected Behavior Class Entry Guard V1 unit.
+- Started `CP-304 - Validator Protected Behavior Class Doc Reconciliation V1`.
+- Reconciled manifest validator rules docs with CP-303 protected behavior class entry validation.
+- Verified CP-304 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-303 - Pure Validator Protected Behavior Class Entry Guard V1`.
-- Latest recorded checkpoint commit: `95d7eb38a7d662d797b38a2741fd4ce27d622832` for `CP-302 - Post Accessibility RGB Contrast Phase Gate`; CP-303 is being prepared for local commit.
-- Confirmed current branch during CP-303: `codex/v17-large-iteration`.
-- Confirmed current status after CP-303 verification prep: dirty only in CP-303 allowed validator source/test and run-doc files.
-- Current stop reason: not stopped; CP-303 protected behavior class entry guard checkpoint is underway.
+- Latest completed checkpoint: `CP-304 - Validator Protected Behavior Class Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `7b07ae531fac1eb31488efe146216369dc1acc25` for `CP-303 - Pure Validator Protected Behavior Class Entry Guard V1`; CP-304 is being prepared for local commit.
+- Confirmed current branch during CP-304: `codex/v17-large-iteration`.
+- Confirmed current status after CP-304 verification prep: dirty only in CP-304 allowed manifest validator doc and run-doc files.
+- Current stop reason: not stopped; CP-304 protected behavior class doc reconciliation checkpoint is underway.
 
 ## In Progress
 
-- `CP-303 - Local checkpoint commit prep`.
+- `CP-304 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.ts`
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused validator Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-303 validator source/test/run-doc changes if this guard must be removed.
+- Forbidden files: all source/test files, docs outside the listed validator doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-304 validator doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-303 protected behavior class entry guard checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-304 protected behavior class doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

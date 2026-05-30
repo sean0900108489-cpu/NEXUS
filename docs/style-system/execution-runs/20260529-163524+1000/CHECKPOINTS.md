@@ -5025,3 +5025,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused validator Vitest passed 1 file / 30 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Touched-file side-effect/behavior scans found only pre-existing validator safety registries and existing behavior guard fixtures, with no new store/sync/backend/Supabase/deploy or React Flow behavior implementation path. `git diff --check` passed.
 - Rollback note: revert only the CP-303 validator source/test/run-doc changes if this guard must be removed.
+
+## CP-304 - Validator Protected Behavior Class Doc Reconciliation V1
+
+- Unit: reconcile manifest validator rules docs with CP-303 protected behavior class entry validation.
+- Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, docs outside the listed validator doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence/doc scan for protected behavior class entry validation; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: focused evidence/doc scan for protected behavior class entry validation; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found CP-303 protected behavior class entry guard coverage and matching manifest validator wording. Source-diff absence check showed no source/runtime diff for this docs-only unit. `git diff --check` passed.
+- Rollback note: revert only the CP-304 validator doc/run-doc changes if this reconciliation must be removed.

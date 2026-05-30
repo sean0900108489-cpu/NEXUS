@@ -319,6 +319,7 @@ Run id: `20260529-163524+1000`
 | Validator RGB Contrast Doc Reconciliation V1 | PASS | Reconciled validator docs with opaque RGB contrast coverage and translucent-color non-guessing. |
 | Post Accessibility RGB Contrast Phase Gate | PASS | Decomposed full gate passed after opaque RGB contrast parsing and docs; side-effect scan, build, and git diff check passed. |
 | Pure Validator Protected Behavior Class Entry Guard V1 | PASS | Validator now rejects non-string or empty protectedBehaviorClasses entries with per-index errors. |
+| Validator Protected Behavior Class Doc Reconciliation V1 | PASS | Reconciled validator docs with protectedBehaviorClasses entry validation. |
 
 ## Current Gate
 
@@ -331,4 +332,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Validator Protected Behavior Class Entry Guard local checkpoint prep. Production window/modal code, production graph/app shell files, docs outside this run folder, governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Validator Protected Behavior Class Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside the validator doc and this run folder, governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

@@ -52,11 +52,11 @@ These V2 token variables may bridge to legacy production CSS variables because
 they already represent visual-only color, radius, blur, shadow, or workspace
 surface values.
 
-| V2 source variable | Legacy target variable | Risk | Notes |
+| V2 source variable | Legacy/surface target variable | Risk | Notes |
 | --- | --- | --- | --- |
 | `--nexus-surface-app` | `--bg-base` | Low | Root background color only. |
 | `--nexus-surface-raised` | `--bg-elevated` | Low | Elevated neutral surface. |
-| `--nexus-surface-workspace` | `--bg-workspace` | Low | Workspace base color, not layout. |
+| `--nexus-surface-workspace` | `--bg-workspace`, `--nexus-workspace-bg` | Low | Workspace base color, not layout. |
 | `--nexus-surface-panel` | `--panel-bg` | Low | Panel fill. |
 | `--nexus-surface-panel-muted` | `--panel-muted` | Low | Muted panel fill. |
 | `--nexus-border-subtle` | `--border-subtle` | Low | Border color only. |
@@ -76,9 +76,9 @@ surface values.
 | `--nexus-radius-surface` | `--surface-radius` | Low | Surface radius only. |
 | `--nexus-blur-backdrop` | `--backdrop-blur` | Medium | Blur can be expensive; diagnostics must show budget status. |
 | `--nexus-blur-glass` | `--glass-blur` | Medium | Blur can be expensive; isolated preview only in V2. |
-| `--nexus-workspace-grid-primary` | `--workspace-grid-primary` | Low | Grid color only. |
-| `--nexus-workspace-grid-secondary` | `--workspace-grid-secondary` | Low | Grid color only. |
-| `--nexus-workspace-wash` | `--workspace-wash` | Medium | Visual background value only; no URL allowed. |
+| `--nexus-workspace-grid-primary` | `--workspace-grid-primary`, `--nexus-workspace-grid-primary` | Low | Grid color only. |
+| `--nexus-workspace-grid-secondary` | `--workspace-grid-secondary`, `--nexus-workspace-grid-secondary` | Low | Grid color only. |
+| `--nexus-workspace-wash` | `--workspace-wash`, `--nexus-workspace-wash` | Medium | Color-only source is converted into a controlled solid gradient layer; no URL allowed. |
 
 ## 4. Legacy Variables To Preserve
 

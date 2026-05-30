@@ -250,11 +250,11 @@ button {
 }
 
 .nexus-workspace {
-  background-color: color-mix(in srgb, var(--bg-workspace) 82%, transparent);
+  background-color: color-mix(in srgb, var(--nexus-workspace-bg, var(--bg-workspace)) 82%, transparent);
   background-image:
-    linear-gradient(var(--workspace-grid-primary) 1px, transparent 1px),
-    linear-gradient(90deg, var(--workspace-grid-secondary) 1px, transparent 1px),
-    var(--workspace-wash);
+    linear-gradient(var(--nexus-workspace-grid-primary, var(--workspace-grid-primary)) 1px, transparent 1px),
+    linear-gradient(90deg, var(--nexus-workspace-grid-secondary, var(--workspace-grid-secondary)) 1px, transparent 1px),
+    var(--nexus-workspace-wash, var(--workspace-wash));
   background-size: 44px 44px, 44px 44px, 100% 100%;
 }
 

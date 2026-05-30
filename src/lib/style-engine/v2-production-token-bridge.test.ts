@@ -44,6 +44,18 @@ describe("NEXUS Style Engine V2 Production Token Bridge", () => {
     expect(bridgeResult.bridgePlan.skinPackId).toBe("pixel-workshop-skin");
     expect(bridgeResult.bridgePlan.variables["--panel-bg"]).toBe("#26331a");
     expect(bridgeResult.bridgePlan.variables["--theme-primary"]).toBe("#45f0d7");
+    expect(bridgeResult.bridgePlan.variables["--nexus-workspace-bg"]).toBe(
+      "#1f2717",
+    );
+    expect(
+      bridgeResult.bridgePlan.variables["--nexus-workspace-grid-primary"],
+    ).toBe("rgb(99 210 71 / 0.22)");
+    expect(bridgeResult.bridgePlan.variables["--nexus-workspace-wash"]).toBe(
+      "linear-gradient(rgb(123 191 42 / 0.12), rgb(123 191 42 / 0.12))",
+    );
+    expect(bridgeResult.bridgePlan.variables["--workspace-wash"]).toBe(
+      "linear-gradient(rgb(123 191 42 / 0.12), rgb(123 191 42 / 0.12))",
+    );
     expect(bridgeResult.bridgePlan.scopedVariables["--nexus-surface-panel"]).toBe(
       "#26331a",
     );

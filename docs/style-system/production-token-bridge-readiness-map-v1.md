@@ -90,6 +90,24 @@ Second spike status:
 - Style Lab contains an isolated `.nexus-glass` compatibility specimen for
   bridge preview/revert smoke.
 
+Third spike status:
+
+- `Production .nexus-workspace Color-Only Token Bridge Spike` is the third
+  primitive surface.
+- `.nexus-workspace` may consume surface-specific aliases
+  `--nexus-workspace-bg`, `--nexus-workspace-grid-primary`,
+  `--nexus-workspace-grid-secondary`, and `--nexus-workspace-wash`.
+- The aliases fall back to existing legacy workspace variables, so the
+  cyberpunk baseline remains the fallback when no bridge variables are scoped.
+- The current bridge helper emits the workspace wash as a controlled solid
+  gradient layer generated from the validated color token, keeping
+  `background-image` valid without accepting raw CSS or URLs.
+- Style Lab contains an isolated `.nexus-workspace` compatibility specimen for
+  bridge preview/revert smoke.
+- The spike is color/background/grid/wash only. It does not change workspace
+  layout, sizing, scroll, overflow, React Flow, canvas behavior, or workspace
+  state.
+
 Why:
 
 - It already consumes `--panel-bg`, `--border-subtle`,
@@ -115,7 +133,7 @@ Do not start with:
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Panel primitive | `src/app/globals.css:280` | CSS class `.nexus-panel` uses legacy vars | `--panel-bg`, `--border-subtle`, `--surface-radius`, `--shadow-panel`, `--glass-blur` | Low | Adopt bridge variables in an isolated provider scope around a test panel first | Unit target helper, `/style-lab` bridge smoke, production page visual smoke | Remove scoped bridge wrapper; legacy theme vars remain |
 | Glass primitive | `src/app/globals.css:289` | CSS class `.nexus-glass` uses bridge aliases with legacy fallback | `--nexus-glass-bg`, `--nexus-glass-border`, `--nexus-glass-text`, `--nexus-glass-radius`, `--nexus-glass-blur` | Low-Medium | Isolated Style Lab compatibility specimen first; no production TSX behavior | `/style-lab` bridge smoke verifies change/revert | Remove glass aliases/specimen; legacy theme vars remain |
-| Workspace canvas | `src/app/globals.css:253`, `src/components/nexus/nexus-ops.tsx:2127` | `.nexus-workspace` grid and wash vars plus hardcoded Tailwind classes | `--bg-workspace`, `--workspace-grid-primary`, `--workspace-grid-secondary`, `--workspace-wash` | Medium | Token bridge only for colors/wash; no geometry, overflow, pointer, or z-index | Production smoke for pan/zoom unchanged, no console errors | Revert workspace token scope |
+| Workspace canvas | `src/app/globals.css:253`, `src/components/nexus/nexus-ops.tsx:2127` | `.nexus-workspace` uses bridge aliases with legacy workspace variable fallback plus hardcoded Tailwind layout classes | `--nexus-workspace-bg`, `--nexus-workspace-grid-primary`, `--nexus-workspace-grid-secondary`, `--nexus-workspace-wash` | Medium | Color/background/grid/wash only; no geometry, overflow, scroll, pointer, z-index, React Flow, canvas behavior, or workspace state | `/style-lab` bridge smoke verifies change/revert; future production smoke must confirm pan/zoom unchanged and no console errors | Remove workspace aliases/specimen; legacy workspace vars remain |
 | Shell root | `src/app/globals.css:246`, `src/components/nexus/nexus-ops.tsx:2020` | `.nexus-shell` uses shell surface and asset background | `--bg-base`, `--text-main`; defer `--shell-surface` and asset image | Medium-High | Text/base color only; no asset background | Home load smoke, auth smoke, no background URL from Skin Pack | Remove shell bridge variables |
 | Topbar and command palette entry | `src/components/nexus/nexus-ops.tsx:2553` | Tailwind classes with cyan/black hardcoded colors | `--panel-muted`, `--border-subtle`, `--theme-primary`, `--text-main` | Medium | Extract visual primitive class or CSS var-backed inline style | Keyboard command smoke, click/search unchanged | Revert primitive extraction |
 | Right dock rail | `src/components/nexus/nexus-ops.tsx:2454` | Tailwind hardcoded bg/border/shadow | `--panel-bg`, `--border-subtle`, `--theme-primary`, `--shadow-panel` | Medium | Visual-only dock recipe adapter after Style Lab coverage | Dock open/close smoke, panel selection unchanged | Remove dock recipe bridge |

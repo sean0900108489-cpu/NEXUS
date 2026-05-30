@@ -87,39 +87,53 @@ export type NexusProductionTokenBridgeResultV1 =
 
 type BridgeVariableMapping = {
   source: string;
-  target: string;
+  targets: string[];
+  transform?: (value: string) => string;
 };
 
 const bridgeVariableMappings: BridgeVariableMapping[] = [
-  { source: "--nexus-accent-primary", target: "--theme-primary" },
-  { source: "--nexus-accent-primary-strong", target: "--theme-primary-strong" },
-  { source: "--nexus-accent-secondary", target: "--theme-secondary" },
-  { source: "--nexus-blur-backdrop", target: "--backdrop-blur" },
-  { source: "--nexus-blur-glass", target: "--glass-blur" },
-  { source: "--nexus-border-glow", target: "--border-glow" },
-  { source: "--nexus-border-subtle", target: "--border-subtle" },
-  { source: "--nexus-radius-base", target: "--radius-base" },
-  { source: "--nexus-radius-surface", target: "--surface-radius" },
-  { source: "--nexus-shadow-glow", target: "--shadow-glow" },
-  { source: "--nexus-shadow-panel", target: "--shadow-panel" },
-  { source: "--nexus-status-danger", target: "--theme-danger" },
-  { source: "--nexus-status-success", target: "--theme-success" },
-  { source: "--nexus-status-warning", target: "--theme-warning" },
-  { source: "--nexus-surface-app", target: "--bg-base" },
-  { source: "--nexus-surface-panel", target: "--panel-bg" },
-  { source: "--nexus-surface-panel-muted", target: "--panel-muted" },
-  { source: "--nexus-surface-raised", target: "--bg-elevated" },
-  { source: "--nexus-surface-workspace", target: "--bg-workspace" },
-  { source: "--nexus-text-muted", target: "--text-muted" },
-  { source: "--nexus-text-primary", target: "--text-main" },
-  { source: "--nexus-text-secondary", target: "--text-soft" },
-  { source: "--nexus-workspace-grid-primary", target: "--workspace-grid-primary" },
-  { source: "--nexus-workspace-grid-secondary", target: "--workspace-grid-secondary" },
-  { source: "--nexus-workspace-wash", target: "--workspace-wash" },
+  { source: "--nexus-accent-primary", targets: ["--theme-primary"] },
+  { source: "--nexus-accent-primary-strong", targets: ["--theme-primary-strong"] },
+  { source: "--nexus-accent-secondary", targets: ["--theme-secondary"] },
+  { source: "--nexus-blur-backdrop", targets: ["--backdrop-blur"] },
+  { source: "--nexus-blur-glass", targets: ["--glass-blur"] },
+  { source: "--nexus-border-glow", targets: ["--border-glow"] },
+  { source: "--nexus-border-subtle", targets: ["--border-subtle"] },
+  { source: "--nexus-radius-base", targets: ["--radius-base"] },
+  { source: "--nexus-radius-surface", targets: ["--surface-radius"] },
+  { source: "--nexus-shadow-glow", targets: ["--shadow-glow"] },
+  { source: "--nexus-shadow-panel", targets: ["--shadow-panel"] },
+  { source: "--nexus-status-danger", targets: ["--theme-danger"] },
+  { source: "--nexus-status-success", targets: ["--theme-success"] },
+  { source: "--nexus-status-warning", targets: ["--theme-warning"] },
+  { source: "--nexus-surface-app", targets: ["--bg-base"] },
+  { source: "--nexus-surface-panel", targets: ["--panel-bg"] },
+  { source: "--nexus-surface-panel-muted", targets: ["--panel-muted"] },
+  { source: "--nexus-surface-raised", targets: ["--bg-elevated"] },
+  {
+    source: "--nexus-surface-workspace",
+    targets: ["--bg-workspace", "--nexus-workspace-bg"],
+  },
+  { source: "--nexus-text-muted", targets: ["--text-muted"] },
+  { source: "--nexus-text-primary", targets: ["--text-main"] },
+  { source: "--nexus-text-secondary", targets: ["--text-soft"] },
+  {
+    source: "--nexus-workspace-grid-primary",
+    targets: ["--workspace-grid-primary", "--nexus-workspace-grid-primary"],
+  },
+  {
+    source: "--nexus-workspace-grid-secondary",
+    targets: ["--workspace-grid-secondary", "--nexus-workspace-grid-secondary"],
+  },
+  {
+    source: "--nexus-workspace-wash",
+    targets: ["--workspace-wash", "--nexus-workspace-wash"],
+    transform: createSolidBackgroundLayer,
+  },
 ];
 
 const bridgeVariableMap = new Map(
-  bridgeVariableMappings.map((mapping) => [mapping.source, mapping.target]),
+  bridgeVariableMappings.map((mapping) => [mapping.source, mapping]),
 );
 
 const styleLabOnlyVariables = new Set([
@@ -203,11 +217,27 @@ export function createNexusProductionTokenBridgePlanV1(
       ]);
     }
 
-    const target = bridgeVariableMap.get(source);
+    const mapping = bridgeVariableMap.get(source);
 
-    if (target) {
+    if (mapping) {
+      const targetValue = mapping.transform ? mapping.transform(value) : value;
+
+      if (isUnsafeBridgeVariableValue(targetValue)) {
+        return rejectProductionTokenBridge([
+          {
+            code: "productionTokenBridge.unsafeVariableValue",
+            message: "Production token bridge rejected unsafe variable output.",
+            path: `$.renderPlan.tokenVariables.${source}`,
+          },
+        ]);
+      }
+
       scopedVariables[source] = value;
-      variables[target] = value;
+
+      for (const target of mapping.targets) {
+        variables[target] = targetValue;
+      }
+
       continue;
     }
 
@@ -416,4 +446,8 @@ function sortStringRecord(record: Record<string, string>) {
   return Object.fromEntries(
     Object.entries(record).sort(([left], [right]) => left.localeCompare(right)),
   );
+}
+
+function createSolidBackgroundLayer(value: string) {
+  return `linear-gradient(${value}, ${value})`;
 }

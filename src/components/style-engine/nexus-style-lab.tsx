@@ -1882,6 +1882,26 @@ export function NexusStyleLab() {
                           ))}
                         </div>
                       </div>
+                      <div
+                        className="nexus-workspace mt-3 min-h-24 min-w-0 overflow-hidden border border-white/10 p-3"
+                        data-testid="v2-production-bridge-nexus-workspace"
+                      >
+                        <div className="nexus-panel max-w-xs p-3">
+                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em]">
+                            .nexus-workspace compatibility
+                          </div>
+                          <div className="mt-2 grid grid-cols-2 gap-2">
+                            {["grid", "wash"].map((item) => (
+                              <span
+                                key={`workspace-compat:${item}`}
+                                className="truncate border border-white/10 bg-black/20 px-2 py-1.5 text-center font-mono text-[8px] uppercase tracking-[0.1em]"
+                              >
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                       <div className="mt-3 grid grid-cols-3 gap-2">
                         <span
                           className="truncate border px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.1em]"

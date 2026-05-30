@@ -17,6 +17,9 @@ export const NEXUS_PERFORMANCE_BUDGET_KIND_V1 =
 export const NEXUS_PERFORMANCE_BUDGET_SCHEMA_VERSION_V1 = 1 as const;
 
 export type NexusV2ValidationIssueCode =
+  | "stylePack.reviewTextEmpty"
+  | "stylePack.reviewTextTooLarge"
+  | "stylePack.reviewInvalidJson"
   | "stylePack.invalidRoot"
   | "stylePack.missingField"
   | "stylePack.unknownTopLevelField"

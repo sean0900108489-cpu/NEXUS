@@ -12,18 +12,23 @@ import { useMemo, useState, type CSSProperties, type ChangeEvent } from "react";
 
 import {
   compileNexusStyleManifestV1,
+  createCyberpunkCompatibleSkinPackV2,
   createHighContrastCarbonStyleManifestV1,
   createLegacyCyberpunkStyleManifestV1,
   createNexusStyleManifestDraftFromIntentV1,
   createNexusStyleExportPackageV1,
   createNexusStylePreviewPatchV1,
+  createOverBudgetSkinPackV2,
   createReactFlowStyleAdapterFromManifestV1,
   emitReactFlowAdapterCssVariablesV1,
   HIGH_CONTRAST_CARBON_STYLE_ID,
   LEGACY_CYBERPUNK_STYLE_ID,
   normalizeNexusStyleIntentV1,
+  parseNexusSkinPackReviewImportTextV2,
   parseNexusStyleImportTextV1,
   reviewNexusStylePackV1,
+  type NexusSkinPackReviewImportResultV2,
+  type NexusSkinPackReviewSummarySectionV2,
   type NexusStyleIntentManifestDraftResultV1,
   type NexusStyleIntentNormalizerResultV1,
   type NexusStyleImportTextResultV1,
@@ -46,6 +51,7 @@ type VisibleStyleIssue = {
 };
 
 const maxVisibleImportIssues = 3;
+const maxVisibleSkinPackIssues = 5;
 
 const comparisonVariables = [
   "--nexus-surface-app",
@@ -371,6 +377,9 @@ export function NexusStyleLab() {
   const [exportView, setExportView] = useState<ExportView>("package");
   const [importResult, setImportResult] =
     useState<NexusStyleImportTextResultV1 | null>(null);
+  const [skinPackText, setSkinPackText] = useState("");
+  const [skinPackReviewResult, setSkinPackReviewResult] =
+    useState<NexusSkinPackReviewImportResultV2 | null>(null);
   const baselineCompiled = useMemo(
     () => compileNexusStyleManifestV1(baselineManifest),
     [baselineManifest],
@@ -444,6 +453,33 @@ export function NexusStyleLab() {
       ? `${importResult.source} accepted`
       : `${importResult.source} rejected`
     : "no draft";
+  const skinPackReviewStatus = skinPackReviewResult
+    ? skinPackReviewResult.accepted
+      ? "accepted"
+      : "rejected"
+    : "no review";
+  const skinPackReviewSections = useMemo<
+    NexusSkinPackReviewSummarySectionV2[]
+  >(() => {
+    if (!skinPackReviewResult) {
+      return [];
+    }
+
+    return [
+      skinPackReviewResult.summary.metadata,
+      skinPackReviewResult.summary.assets,
+      skinPackReviewResult.summary.recipes,
+      skinPackReviewResult.summary.layoutPreset,
+      skinPackReviewResult.summary.performanceBudget,
+    ];
+  }, [skinPackReviewResult]);
+  const skinPackReviewIssues = useMemo(() => {
+    if (!skinPackReviewResult) {
+      return [];
+    }
+
+    return skinPackReviewResult.issues.slice(0, maxVisibleSkinPackIssues);
+  }, [skinPackReviewResult]);
   const briefIssues = useMemo(() => {
     if (!briefResult) {
       return [];
@@ -645,6 +681,13 @@ export function NexusStyleLab() {
     setImportResult(null);
   };
 
+  const handleSkinPackTextChange = (
+    event: ChangeEvent<HTMLTextAreaElement>,
+  ) => {
+    setSkinPackText(event.target.value);
+    setSkinPackReviewResult(null);
+  };
+
   const handleBriefTextChange = (
     event: ChangeEvent<HTMLTextAreaElement>,
   ) => {
@@ -710,6 +753,24 @@ export function NexusStyleLab() {
         : "imported-draft",
     );
     setPreviewState("idle");
+  };
+
+  const loadValidSkinPackFixture = () => {
+    setSkinPackText(
+      JSON.stringify(createCyberpunkCompatibleSkinPackV2(), null, 2),
+    );
+    setSkinPackReviewResult(null);
+  };
+
+  const loadInvalidSkinPackFixture = () => {
+    setSkinPackText(JSON.stringify(createOverBudgetSkinPackV2(), null, 2));
+    setSkinPackReviewResult(null);
+  };
+
+  const reviewSkinPackText = () => {
+    setSkinPackReviewResult(
+      parseNexusSkinPackReviewImportTextV2(skinPackText),
+    );
   };
 
   const statusIcon =
@@ -1373,8 +1434,8 @@ export function NexusStyleLab() {
             </div>
           </section>
 
-          <aside className="grid min-h-0 gap-4 overflow-hidden lg:grid-rows-[minmax(220px,0.75fr)_minmax(220px,0.75fr)_minmax(260px,1fr)]">
-            <section className="grid min-h-0 grid-rows-[auto_1fr_auto] overflow-hidden border border-white/10 bg-black/30">
+          <aside className="grid min-h-0 auto-rows-min gap-4 overflow-y-auto pr-1">
+            <section className="grid min-h-[260px] grid-rows-[auto_1fr_auto] overflow-hidden border border-white/10 bg-black/30">
               <header className="flex items-center justify-between gap-3 border-b border-white/10 p-4">
                 <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
                   <FileJson className="h-4 w-4 shrink-0" />
@@ -1447,7 +1508,147 @@ export function NexusStyleLab() {
               </footer>
             </section>
 
-            <section className="grid min-h-0 grid-rows-[auto_1fr_auto] overflow-hidden border border-white/10 bg-black/30">
+            <section
+              className="grid min-h-[360px] grid-rows-[auto_minmax(130px,0.55fr)_auto] overflow-hidden border border-cyan-300/15 bg-black/30"
+              data-testid="v2-skin-pack-review"
+            >
+              <header className="flex items-center justify-between gap-3 border-b border-white/10 p-4">
+                <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                  <FileJson className="h-4 w-4 shrink-0" />
+                  <span className="truncate">V2 Skin Pack Review</span>
+                </div>
+                <span
+                  className={[
+                    "shrink-0 font-mono text-[10px] uppercase tracking-[0.12em]",
+                    skinPackReviewResult?.accepted
+                      ? "text-emerald-200"
+                      : skinPackReviewResult
+                        ? "text-rose-200"
+                        : "text-slate-500",
+                  ].join(" ")}
+                >
+                  {skinPackReviewStatus}
+                </span>
+              </header>
+
+              <textarea
+                aria-label="V2 skin pack JSON"
+                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-slate-300 outline-none placeholder:text-slate-700"
+                data-testid="v2-skin-pack-json"
+                onChange={handleSkinPackTextChange}
+                placeholder="{}"
+                spellCheck={false}
+                value={skinPackText}
+              />
+
+              <footer className="border-t border-white/10 p-3">
+                <div className="mb-3 max-h-72 overflow-y-auto border border-white/10 bg-white/[0.03] p-2">
+                  {skinPackReviewResult ? (
+                    <div className="grid gap-3">
+                      <div
+                        className={[
+                          "font-mono text-[10px] uppercase tracking-[0.12em]",
+                          skinPackReviewResult.accepted
+                            ? "text-emerald-200"
+                            : "text-rose-200",
+                        ].join(" ")}
+                      >
+                        V2 skin pack {skinPackReviewStatus}
+                      </div>
+
+                      <div className="grid gap-3">
+                        {skinPackReviewSections.map((section) => (
+                          <div
+                            key={section.title}
+                            className="min-w-0 border border-white/10 bg-black/20 p-2"
+                          >
+                            <div className="mb-2 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                              {section.title}
+                            </div>
+                            <div className="grid gap-1">
+                              {section.rows.map((row) => (
+                                <div
+                                  key={`${section.title}:${row.label}`}
+                                  className="grid grid-cols-[88px_minmax(0,1fr)] gap-2"
+                                >
+                                  <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                                    {row.label}
+                                  </span>
+                                  <span className="truncate font-mono text-[9px] text-slate-300">
+                                    {row.value}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="min-w-0 border border-white/10 bg-black/20 p-2">
+                        <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                          Redacted Issues
+                        </div>
+                        {skinPackReviewIssues.length > 0 ? (
+                          <div className="grid gap-2">
+                            {skinPackReviewIssues.map((issue) => (
+                              <div
+                                key={`${issue.path}:${issue.code}`}
+                                className="min-w-0 border border-white/10 bg-white/[0.03] p-2"
+                              >
+                                <div className="truncate font-mono text-[10px] text-amber-100">
+                                  {issue.code}
+                                </div>
+                                <div className="mt-1 truncate font-mono text-[9px] text-slate-500">
+                                  {issue.path} / {issue.message}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-200">
+                            none
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                      idle
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    className="inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                    data-testid="v2-skin-pack-valid-fixture"
+                    onClick={loadValidSkinPackFixture}
+                    type="button"
+                  >
+                    Valid
+                  </button>
+                  <button
+                    className="inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                    data-testid="v2-skin-pack-invalid-fixture"
+                    onClick={loadInvalidSkinPackFixture}
+                    type="button"
+                  >
+                    Invalid
+                  </button>
+                  <button
+                    className="inline-flex h-9 items-center justify-center gap-2 border border-cyan-300/35 bg-cyan-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+                    data-testid="v2-skin-pack-review-button"
+                    disabled={skinPackText.trim().length === 0}
+                    onClick={reviewSkinPackText}
+                    type="button"
+                  >
+                    Review
+                  </button>
+                </div>
+              </footer>
+            </section>
+
+            <section className="grid min-h-[260px] grid-rows-[auto_1fr_auto] overflow-hidden border border-white/10 bg-black/30">
               <header className="flex items-center justify-between gap-3 border-b border-white/10 p-4">
                 <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
                   <FileJson className="h-4 w-4 shrink-0" />
@@ -1525,7 +1726,7 @@ export function NexusStyleLab() {
               </footer>
             </section>
 
-            <section className="grid min-h-0 grid-rows-[auto_1fr] overflow-hidden border border-white/10 bg-black/30">
+            <section className="grid min-h-[320px] grid-rows-[auto_1fr] overflow-hidden border border-white/10 bg-black/30">
               <header className="grid gap-3 border-b border-white/10 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-fuchsia-100">

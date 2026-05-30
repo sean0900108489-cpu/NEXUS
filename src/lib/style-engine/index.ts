@@ -16,4 +16,5 @@ export * from "./runtime-target";
 export * from "./runtime-controller";
 export * from "./v2-contracts";
 export * from "./v2-fixtures";
+export * from "./v2-review-import";
 export * from "./v2-validators";

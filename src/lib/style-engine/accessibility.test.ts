@@ -8,13 +8,18 @@ import {
 } from "@/lib/style-engine";
 
 describe("NEXUS Style Engine accessibility helpers", () => {
-  it("calculates WCAG-style contrast ratios for hex colors", () => {
+  it("calculates WCAG-style contrast ratios for hex and opaque rgb colors", () => {
     expect(getNexusStyleContrastRatio("#000000", "#ffffff")).toBe(21);
     expect(getNexusStyleContrastRatio("#777777", "#ffffff")).toBe(4.48);
+    expect(getNexusStyleContrastRatio("rgb(0 0 0)", "#ffffff")).toBe(21);
+    expect(getNexusStyleContrastRatio("rgb(119, 119, 119)", "#ffffff")).toBe(
+      4.48,
+    );
+    expect(getNexusStyleContrastRatio("rgba(0, 0, 0, 1)", "#ffffff")).toBe(21);
   });
 
-  it("returns null for unsupported color formats instead of guessing", () => {
-    expect(getNexusStyleContrastRatio("rgb(0 0 0)", "#ffffff")).toBeNull();
+  it("returns null for unsupported or translucent color formats instead of guessing", () => {
+    expect(getNexusStyleContrastRatio("rgb(0 0 0 / 0.5)", "#ffffff")).toBeNull();
     expect(evaluateNexusStyleTextContrast("#ffffff", "var(--bg-base)")).toBeNull();
   });
 
@@ -38,7 +43,7 @@ describe("NEXUS Style Engine accessibility helpers", () => {
     const manifest = createContrastManifest();
 
     manifest.tokens.text.secondary = "#333333";
-    manifest.tokens.surface.panel = "#222222";
+    manifest.tokens.surface.panel = "rgb(34 34 34)";
 
     const report = validateNexusStyleManifestV1(manifest);
 

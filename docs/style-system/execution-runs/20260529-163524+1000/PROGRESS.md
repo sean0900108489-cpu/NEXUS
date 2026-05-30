@@ -1406,30 +1406,37 @@ Run id: `20260529-163524+1000`
 - Ran decomposed full gate: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, and `npm run build`.
 - Confirmed full Vitest passed 41 files / 338 tests and build passed with static `/style-lab` plus the known edge-runtime warning.
 - Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, and existing React Flow/window-modal adapter forbidden-key registries and test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
+- Created local checkpoint commit `08da263954b2977721f3508fe8bd99fe179f1ff1` for the Post Compiler Report Adapter Phase Gate.
+- Started `CP-300 - Pure Accessibility Opaque RGB Contrast Coverage V1`.
+- Extended the pure accessibility helper to parse opaque `rgb()`/`rgba()` colors for contrast checks while returning `null` for translucent or unknown color formats.
+- Added focused accessibility coverage for opaque RGB ratios, translucent RGB non-guessing, and secondary text contrast rejection against an opaque RGB panel surface.
+- Verified CP-300 with focused accessibility Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scans, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-299 - Post Compiler Report Adapter Phase Gate`.
-- Latest recorded checkpoint commit: `598e75ae75a9656d4009de2a6ab417f2d9f63c2c` for `CP-298 - Compiler Report Adapter Doc Reconciliation V1`; CP-299 is being prepared for local commit.
-- Confirmed current branch during phase gate: `codex/v17-large-iteration`.
-- Confirmed current status after CP-299 verification prep: clean before run-doc bookkeeping; dirty only in CP-299 run-doc files during this update.
-- Current stop reason: not stopped; CP-299 post compiler report adapter phase gate checkpoint is underway.
+- Latest completed checkpoint: `CP-300 - Pure Accessibility Opaque RGB Contrast Coverage V1`.
+- Latest recorded checkpoint commit: `08da263954b2977721f3508fe8bd99fe179f1ff1` for `CP-299 - Post Compiler Report Adapter Phase Gate`; CP-300 is being prepared for local commit.
+- Confirmed current branch during CP-300: `codex/v17-large-iteration`.
+- Confirmed current status after CP-300 verification prep: dirty only in CP-300 allowed accessibility helper/test and run-doc files.
+- Current stop reason: not stopped; CP-300 pure accessibility opaque RGB contrast checkpoint is underway.
 
 ## In Progress
 
-- `CP-299 - Local checkpoint commit prep`.
+- `CP-300 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/accessibility.ts`
+  - `src/lib/style-engine/accessibility.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, `npm run build`, side-effect/import scan, behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-299 run-doc changes if this phase gate bookkeeping must be removed.
+- Forbidden files: docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused accessibility Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-300 accessibility helper/test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-299 post compiler report adapter phase gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-300 pure accessibility opaque RGB contrast checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

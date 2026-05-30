@@ -1480,31 +1480,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-316 - Pure Import Text Unknown JSON Coverage V1`.
 - Added focused import-text coverage proving valid JSON with an unknown non-style source fails closed without returning a manifest or echoing imported text.
 - Verified CP-316 with focused import-text Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scans, and `git diff --check`.
+- Created local checkpoint commit `f14570de657e66316e1d6ac10f386ee197a730c3` for the Pure Import Text Unknown JSON Coverage V1 unit.
+- Started `CP-317 - Style Lab Import Text Doc Reconciliation V1`.
+- Reconciled Style Lab docs with CP-316 import-text unknown JSON fail-closed coverage and existing invalid/unsafe/empty/oversized import text coverage.
+- Verified CP-317 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-316 - Pure Import Text Unknown JSON Coverage V1`.
-- Latest recorded checkpoint commit: `8c126829d2789db09b6a0a26ed2afea492e98c29` for `CP-315 - Post Exchange Import Clone Phase Gate`; CP-316 is being prepared for local commit.
-- Confirmed current branch during CP-316: `codex/v17-large-iteration`.
-- Confirmed current status after CP-316 verification prep: dirty only in CP-316 allowed import-text test and run-doc files.
-- Current stop reason: not stopped; CP-316 import-text unknown JSON coverage checkpoint is underway.
+- Latest completed checkpoint: `CP-317 - Style Lab Import Text Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `f14570de657e66316e1d6ac10f386ee197a730c3` for `CP-316 - Pure Import Text Unknown JSON Coverage V1`; CP-317 is being prepared for local commit.
+- Confirmed current branch during CP-317: `codex/v17-large-iteration`.
+- Confirmed current status after CP-317 verification prep: dirty only in CP-317 allowed Style Lab doc and run-doc files.
+- Current stop reason: not stopped; CP-317 Style Lab import text doc reconciliation checkpoint is underway.
 
 ## In Progress
 
-- `CP-316 - Local checkpoint commit prep`.
+- `CP-317 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/import-text.test.ts`
+  - `docs/style-system/style-lab-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused import-text Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-316 import-text test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, docs outside the listed Style Lab doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-317 Style Lab doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-316 import-text unknown JSON coverage checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-317 Style Lab import text doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

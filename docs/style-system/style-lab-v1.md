@@ -7,6 +7,7 @@ Status: partially implemented isolated local Style Lab. No production app shell 
 ## Implementation Evidence
 
 - `/style-lab` is an isolated local route with validation, compiled token preview, comparison, export text views, local preview/revert controls, brief-to-draft flow, graph specimen, and governance rows.
+- Its pure import text parser accepts JSON manifests and export packages, rejects invalid JSON, unknown parsed JSON, unsafe manifests, empty input, and oversized input without returning unsafe manifests or echoing rejected imported text.
 - Its primitive specimen gallery includes Panel, Button, Input, Badge, specimen-only static Window/Agent Chrome/Datapad/Modal/Prompt Vault visual shells, and a visual-only Command Palette specimen.
 - The isolated window/modal recipe specimen set covers the documented migration-order visual targets without migrating production Datapad, Prompt Vault, Agent Window, modal, or command palette behavior.
 - The six isolated recipe specimens now consume recipe-scoped CSS variables in the Style Lab specimen layer: Window and Agent Chrome/Datapad shell use `--nexus-recipe-window-*`, Modal and Prompt Vault use `--nexus-recipe-modal-*`, and Command Palette uses `--nexus-recipe-command-palette-*`.

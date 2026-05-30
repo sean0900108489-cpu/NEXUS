@@ -351,6 +351,7 @@ Run id: `20260529-163524+1000`
 | Pure Intent Normalizer Eval Guard Coverage V1 | PASS | Added focused intent-normalizer coverage for `eval(...)` executable input rejection without payload echo. |
 | Interpreter Eval Input Doc Reconciliation V1 | PASS | Reconciled interpreter docs with `eval(...)` executable input rejection coverage. |
 | Post Intent Eval Guard Phase Gate | PASS | Decomposed full gate passed after intent eval guard coverage/docs; side-effect scan, build, and git diff check passed. |
+| Pure Intent Normalizer Dynamic Function Guard Coverage V1 | PASS | Added focused intent-normalizer coverage for `Function(...)` and `import(...)` executable input rejection without payload echo. |
 
 ## Current Gate
 
@@ -363,4 +364,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is CP-335 Post Intent Eval Guard Phase Gate local checkpoint commit. CP-334 is committed at `2215614502af6584e981e8cf2aa9f1f4fb258954`, and the decomposed full gate after intent eval guard coverage/docs has passed. Production window/modal code, production graph/app shell files, source/test files, product docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is CP-336 Pure Intent Normalizer Dynamic Function Guard Coverage V1 local checkpoint commit. CP-335 is committed at `172d2f6b41b180146a992306f08c7e3610bb39f4`, and focused dynamic `Function(...)` / `import(...)` executable input rejection coverage has passed. Production window/modal code, production graph/app shell files, implementation files, product docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

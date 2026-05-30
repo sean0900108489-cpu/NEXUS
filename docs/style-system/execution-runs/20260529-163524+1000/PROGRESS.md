@@ -1562,31 +1562,36 @@ Run id: `20260529-163524+1000`
 - Ran decomposed full gate: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, and `npm run build`.
 - Confirmed full Vitest passed 41 files / 348 tests and build passed with static `/style-lab` plus the known edge-runtime warning.
 - Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, pure adapter/token references, and existing React Flow/window-modal adapter guard/test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
+- Created local checkpoint commit `172d2f6b41b180146a992306f08c7e3610bb39f4` for the Post Intent Eval Guard Phase Gate.
+- Started `CP-336 - Pure Intent Normalizer Dynamic Function Guard Coverage V1`.
+- Added focused intent-normalizer coverage proving dynamic `Function(...)` and `import(...)` executable inputs are rejected without echoing payloads.
+- Verified CP-336 with focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-335 - Post Intent Eval Guard Phase Gate`.
-- Latest recorded checkpoint commit: `2215614502af6584e981e8cf2aa9f1f4fb258954` for `CP-334 - Interpreter Eval Input Doc Reconciliation V1`.
-- Confirmed current branch before CP-335: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-335: `2215614502af6584e981e8cf2aa9f1f4fb258954`.
-- Confirmed current status before CP-335: clean.
-- Current stop reason: not stopped; CP-335 post intent eval guard phase gate is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-336 - Pure Intent Normalizer Dynamic Function Guard Coverage V1`.
+- Latest recorded checkpoint commit: `172d2f6b41b180146a992306f08c7e3610bb39f4` for `CP-335 - Post Intent Eval Guard Phase Gate`.
+- Confirmed current branch before CP-336: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-336: `172d2f6b41b180146a992306f08c7e3610bb39f4`.
+- Confirmed current status before CP-336: clean.
+- Current stop reason: not stopped; CP-336 pure intent-normalizer dynamic function guard coverage is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-335 - Local checkpoint commit`.
+- `CP-336 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/intent-normalizer.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test/product docs, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, `npm run build`, side-effect/import scan, behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-335 run-doc update if this phase gate bookkeeping must be removed.
+- Forbidden files: implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime/provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-336 intent-normalizer test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-335 post intent eval guard phase gate if final diff/status checks remain clean by scope.
+1. Commit the CP-336 pure intent-normalizer dynamic function guard coverage if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
-3. Select the next lowest-risk isolated implementation or coverage unit.
+3. Select `CP-337 - Interpreter Dynamic Function Input Doc Reconciliation V1` unless a lower-risk reconciliation is discovered.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

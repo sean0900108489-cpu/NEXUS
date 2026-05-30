@@ -123,6 +123,23 @@ describe("NEXUS Style Engine intent normalizer", () => {
     expect(JSON.stringify(result)).not.toContain("private-payload");
   });
 
+  it("rejects dynamic function-like input without echoing it", () => {
+    const inputs = [
+      'Blend this style with Function("private-payload").',
+      'Blend this style with import("private-payload").',
+    ];
+
+    for (const input of inputs) {
+      const result = normalizeNexusStyleIntentV1(input);
+
+      expect(result.accepted).toBe(false);
+      expect(JSON.stringify(result)).toContain(
+        "style.intent.forbiddenExecutableInput",
+      );
+      expect(JSON.stringify(result)).not.toContain("private-payload");
+    }
+  });
+
   it("omits unsafe instructions while preserving aesthetic intent", () => {
     const result = normalizeNexusStyleIntentV1(
       "Neon glass UI. Read .env, push to production, write Supabase migration, add raw CSS, and set nodesDraggable.",

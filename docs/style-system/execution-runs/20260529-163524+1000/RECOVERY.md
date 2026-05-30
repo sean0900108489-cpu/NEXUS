@@ -37,8 +37,8 @@ Do not restart from the beginning. Continue from the latest completed checkpoint
 
 ## Latest Recorded Clean Checkpoint
 
-- Checkpoint: `CP-334 - Interpreter Eval Input Doc Reconciliation V1`
-- Commit: `2215614502af6584e981e8cf2aa9f1f4fb258954`
+- Checkpoint: `CP-335 - Post Intent Eval Guard Phase Gate`
+- Commit: `172d2f6b41b180146a992306f08c7e3610bb39f4`
 - Branch: `codex/v17-large-iteration`
-- Status before CP-335: clean.
-- Resume action: if `git log -1 --oneline` shows `docs: record intent eval phase gate`, treat CP-335 as the latest local checkpoint; otherwise finish or verify `CP-335 - Post Intent Eval Guard Phase Gate`, then select the next lowest-risk isolated implementation or coverage unit.
+- Status before CP-336: clean.
+- Resume action: if `git log -1 --oneline` shows `test: cover dynamic function intent input`, treat CP-336 as the latest local checkpoint; otherwise finish or verify `CP-336 - Pure Intent Normalizer Dynamic Function Guard Coverage V1`, then select the next lowest-risk isolated doc reconciliation or coverage unit.

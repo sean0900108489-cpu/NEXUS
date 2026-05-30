@@ -137,6 +137,7 @@ import { AgentBranchModal } from "@/components/nexus/AgentBranchModal";
 import { AuthScreen } from "@/components/nexus/auth-screen";
 import { DatapadWindow } from "@/components/nexus/DatapadWindow";
 import { NexusGraph } from "@/components/nexus/nexus-graph";
+import { NexusOpsBodyFrame } from "@/components/nexus/nexus-ops-body-frame";
 import { NexusOpsOuterShellFrame } from "@/components/nexus/nexus-ops-outer-shell-frame";
 import { PromptVaultManager } from "@/components/nexus/PromptVaultManager";
 
@@ -2075,7 +2076,7 @@ export function NexusOps() {
         workspaces={workspaces}
       />
 
-      <section className="flex min-h-0 flex-1 gap-2 p-2">
+      <NexusOpsBodyFrame>
         <motion.aside
           animate={{ width: leftDockOpen ? 266 : 44 }}
           className="relative hidden h-full min-h-0 shrink-0 overflow-hidden xl:block"
@@ -2202,7 +2203,7 @@ export function NexusOps() {
           </AnimatePresence>
         </section>
 
-      </section>
+      </NexusOpsBodyFrame>
 
       <RightFloatingDock
         activePanel={activeRightPanel}

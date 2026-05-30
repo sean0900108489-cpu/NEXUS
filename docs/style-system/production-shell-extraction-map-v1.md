@@ -279,3 +279,35 @@ Skipped second-level candidates remain skipped:
 - command palette: focus, query state, overlay close, command execution
 - settings sidebar: overlay, provider/auth/theme/artifact/memory behavior
 - sync badge/top menu actions: interactive controls
+
+## 10. V18 Long-Run Review Gate
+
+Reviewed during
+`20260531-v18-low-intensity-production-shell-long-run` Phase 5.
+
+Current extracted shell frame set:
+
+- `NexusOpsOuterShellFrame`
+- `NexusOpsBodyFrame`
+- `NexusOpsTopBarFrame`
+- `NexusOpsRightFloatingDockFrame`
+
+The behavior core remains in `NexusOps`. This includes store/sync/backend/API
+paths, workspace measurement, React Flow, agent streaming/tool execution,
+workflow runtime, Rnd windows, modals, command palette execution, and right
+settings/provider/auth/theme behavior.
+
+Next recommended unit:
+
+- a focused token-adoption assessment for one already-extracted visual frame,
+  or a read-only assessment for the next static frame candidate
+
+Do not proceed next with:
+
+- layout preset production adoption
+- feature placement production adoption
+- workspace/React Flow extraction
+- window manager extraction
+- command palette extraction
+- modal/settings extraction
+- broad production token application

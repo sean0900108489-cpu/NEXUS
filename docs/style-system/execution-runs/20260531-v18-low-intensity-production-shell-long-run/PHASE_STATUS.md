@@ -18,7 +18,7 @@ Date: 2026-05-31
 | Phase 2 | Extraction Map Reconciliation | Completed | Map updated with extracted frames, skipped candidates, protected core, next assessment candidates, and No-Go zones. |
 | Phase 3 | Second-Level Static Frame Assessment | Completed | Right floating dock outer frame is the only safe optional Phase 4 candidate; command palette/sidebar/collapsed rail/control micro-frames skipped. |
 | Phase 4 | Optional Second Static Frame Extraction | Completed | `NexusOpsRightFloatingDockFrame` extracted and verified. |
-| Phase 5 | Long-Run Integration Review Gate | Pending | Final docs review and health checks. |
+| Phase 5 | Long-Run Integration Review Gate | Completed | Final review doc created; final diff/typecheck/build passed; browser smoke recorded with auth-gate limitation. |
 
 ## Latest Notes
 
@@ -43,3 +43,9 @@ Date: 2026-05-31
   `localhost:3000/` server. Headless CDP could only verify the route-edge
   wrapper due missing auth session; existing Chrome session covered NexusOps UI
   smoke.
+- Phase 5 started as docs-only integration review. No additional source
+  extraction is planned in this run.
+- Phase 5 final gate passed `git diff --check`, `npm run typecheck`, and
+  `npm run build`. Final browser reload reached the local auth gate, so the
+  Phase 4 NexusOps smoke remains the NexusOps UI coverage for the final source
+  state. No login was performed.

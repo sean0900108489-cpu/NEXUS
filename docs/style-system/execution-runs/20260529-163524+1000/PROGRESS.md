@@ -1493,31 +1493,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-319 - Pure Runtime Controller Unqualified Revert Coverage V1`.
 - Added focused runtime-controller coverage proving `revert()` without a preview id reverts the active local preview session and clears the active preview.
 - Verified CP-319 with focused runtime-controller Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scans, and `git diff --check`.
+- Created local checkpoint commit `e5e8368d70b5c0f5849981b278df22fcc8e8bac4` for the Pure Runtime Controller Unqualified Revert Coverage V1 unit.
+- Started `CP-320 - Runtime Controller Revert Doc Reconciliation V1`.
+- Reconciled runtime preview docs with CP-319 unqualified active-session revert coverage.
+- Verified CP-320 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-319 - Pure Runtime Controller Unqualified Revert Coverage V1`.
-- Latest recorded checkpoint commit: `dcb3f337b7abbdd8e6252e32900c8f9ec87956c1` for `CP-318 - Post Import Text Coverage Phase Gate`; CP-319 is being prepared for local commit.
-- Confirmed current branch during CP-319: `codex/v17-large-iteration`.
-- Confirmed current status after CP-319 verification prep: dirty only in CP-319 allowed runtime-controller test and run-doc files.
-- Current stop reason: not stopped; CP-319 runtime-controller unqualified revert coverage checkpoint is underway.
+- Latest completed checkpoint: `CP-320 - Runtime Controller Revert Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `e5e8368d70b5c0f5849981b278df22fcc8e8bac4` for `CP-319 - Pure Runtime Controller Unqualified Revert Coverage V1`; CP-320 is being prepared for local commit.
+- Confirmed current branch during CP-320: `codex/v17-large-iteration`.
+- Confirmed current status after CP-320 verification prep: dirty only in CP-320 allowed runtime preview doc and run-doc files.
+- Current stop reason: not stopped; CP-320 runtime controller revert doc reconciliation checkpoint is underway.
 
 ## In Progress
 
-- `CP-319 - Local checkpoint commit prep`.
+- `CP-320 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/runtime-controller.test.ts`
+  - `docs/style-system/style-runtime-preview-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused runtime-controller Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-319 runtime-controller test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, docs outside the listed runtime preview doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-320 runtime preview doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-319 runtime-controller unqualified revert coverage checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-320 runtime controller revert doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

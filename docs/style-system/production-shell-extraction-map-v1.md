@@ -424,3 +424,63 @@ Remaining No-Go zones:
 - feature placement and layout preset production adoption
 - runtime token apply or persistence
 - store/sync/backend/Supabase/API paths
+
+## 13. V19 Production Skinning 20-to-40 ROI Loop 01
+
+Implemented during
+`20260531-v19-production-skinning-20-to-40-roi-loop-01`.
+
+Target:
+
+- `NexusOpsOuterShellFrame`
+
+Candidate decision:
+
+- selected `NexusOpsOuterShellFrame` because it is the broadest already
+  extracted inert production shell surface and covers the full application
+  background/surface without moving behavior
+- rejected `NexusOpsBodyFrame` because it currently has no visual surface beyond
+  layout spacing and adding one would introduce new visual semantics
+- rejected `.nexus-workspace` and Workspace wrappers because they remain tied to
+  `workspaceRef`, view-mode conditionals, React Flow, and window ownership
+- kept LeftDock, controls, modals, settings panels, and graph surfaces out of
+  scope because they are behavior-bearing
+
+Token alias status:
+
+- completed for the outer shell background/surface only
+- no production token runtime apply was introduced
+- no store/sync/backend/Supabase/API path was touched
+- no `nexus-ops.tsx` behavior or child rendering was changed
+
+Selector and alias added:
+
+- `.nexus-outer-shell-frame`
+- `--nexus-outer-shell-bg`
+
+Fallback chain:
+
+- dedicated outer-shell alias
+- existing `--shell-surface`
+- cyberpunk baseline shell gradients
+
+Intentionally not tokenized:
+
+- asset background URL
+- text or icon colors
+- child button/control states
+- borders, shadows, blur, radius, or glow not already owned by this frame
+- pointer events
+- z-index
+- height, spacing, layout, overflow, or responsive behavior
+- handlers, callbacks, maps, conditionals, refs, or state transitions
+
+Remaining No-Go zones:
+
+- `src/components/nexus/nexus-ops.tsx` broad refactor
+- LeftDock and Workspace wrappers
+- React Flow and graph files
+- drag/resize/focus/z-index/window/modal behavior
+- feature placement and layout preset production adoption
+- runtime token apply or persistence
+- store/sync/backend/Supabase/API paths

@@ -30,8 +30,26 @@ describe("NexusOpsOuterShellFrame", () => {
     );
 
     expect(html).toContain(
-      'class="nexus-shell flex h-dvh min-h-0 flex-col overflow-hidden text-slate-100"',
+      'class="nexus-shell nexus-outer-shell-frame flex h-dvh min-h-0 flex-col overflow-hidden text-slate-100"',
     );
+  });
+
+  it("has a stable outer shell selector for token alias adoption", () => {
+    const source = readOuterShellFrameSource();
+
+    expect(source).toContain("nexus-outer-shell-frame");
+  });
+
+  it("has a dedicated outer shell background alias with shell and cyberpunk fallbacks", () => {
+    const css = readGlobalsCssSource();
+
+    expect(css).toContain(".nexus-shell.nexus-outer-shell-frame");
+    expect(css).toContain("--nexus-outer-shell-bg");
+    expect(css).toContain("--shell-surface");
+    expect(css).toContain("rgb(4 12 16 / 0.98)");
+    expect(css).toContain("rgb(19 11 27 / 0.97)");
+    expect(css).toContain("rgb(8 17 15 / 0.98)");
+    expect(css).toContain("var(--asset-background-image)");
   });
 
   it("does not expose behavior authority through props", () => {
@@ -103,4 +121,8 @@ function readOuterShellFrameSource() {
     new URL("nexus-ops-outer-shell-frame.tsx", import.meta.url),
     "utf8",
   );
+}
+
+function readGlobalsCssSource() {
+  return readFileSync(new URL("../../app/globals.css", import.meta.url), "utf8");
 }

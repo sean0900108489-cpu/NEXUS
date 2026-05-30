@@ -85,6 +85,27 @@ describe("NEXUS Style Engine import/export normalization", () => {
     ]);
   });
 
+  it("normalizes a direct manifest candidate without an export package wrapper", () => {
+    const imported = normalizeNexusStyleImportCandidateV1(
+      createLegacyCyberpunkStyleManifestV1(),
+    );
+
+    expect(imported.accepted).toBe(true);
+
+    if (!imported.accepted) {
+      throw new Error("Expected direct manifest import to pass.");
+    }
+
+    expect(imported.source).toBe("manifest");
+    expect(imported.manifest.id).toBe("legacy-cyberpunk");
+    expect(imported.review).toMatchObject({
+      compatibility: "compatible_with_warnings",
+      manifestId: "legacy-cyberpunk",
+      state: "warning",
+      validatorVersion: "nexus-style-validator-v1",
+    });
+  });
+
   it("refuses to create export packages for unsafe manifests", () => {
     const manifest = createLegacyCyberpunkStyleManifestV1();
 

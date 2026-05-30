@@ -323,6 +323,7 @@ Run id: `20260529-163524+1000`
 | Post Protected Behavior Class Guard Phase Gate | PASS | Decomposed full gate passed after protectedBehaviorClasses entry guard/docs; side-effect scan, build, and git diff check passed. |
 | Pure Governance Rejected Permission Coverage V1 | PASS | Added direct governance coverage for rejected lifecycle permissions. |
 | Governance Rejected Permission Doc Reconciliation V1 | PASS | Reconciled governance docs with rejected lifecycle permission coverage. |
+| Pure Exchange Direct Manifest Import Coverage V1 | PASS | Added focused exchange coverage for direct safe manifest import normalization. |
 
 ## Current Gate
 
@@ -335,4 +336,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Governance Rejected Permission Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside the governance doc and this run folder, runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Exchange Direct Manifest Import Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, source implementation files, docs outside this run folder, runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

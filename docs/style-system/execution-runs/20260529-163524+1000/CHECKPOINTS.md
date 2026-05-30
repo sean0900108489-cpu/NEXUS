@@ -5091,3 +5091,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Evidence scan found CP-306 rejected lifecycle permission coverage and matching style pack governance wording. Source-diff absence check showed no source/runtime diff for this docs-only unit. `git diff --check` passed.
 - Rollback note: revert only the CP-307 governance doc/run-doc changes if this reconciliation must be removed.
+
+## CP-308 - Pure Exchange Direct Manifest Import Coverage V1
+
+- Unit: add direct exchange coverage that a raw safe manifest candidate imports as `source: "manifest"` without an export package wrapper.
+- Allowed files:
+  - `src/lib/style-engine/exchange.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: source implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused exchange Vitest; targeted lint for touched exchange test; `npm run typecheck`; touched-file side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run test -- --testTimeout 20000 src/lib/style-engine/exchange.test.ts`; `npm run lint -- src/lib/style-engine/exchange.test.ts`; `npm run typecheck`; touched-file side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/exchange.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused exchange Vitest passed 1 file / 8 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Touched-file side-effect/behavior scans returned no matches for workspace/sync/backend/Supabase/deploy/production Nexus/React Flow behavior paths. `git diff --check` passed.
+- Rollback note: revert only the CP-308 exchange test/run-doc changes if this coverage must be removed.

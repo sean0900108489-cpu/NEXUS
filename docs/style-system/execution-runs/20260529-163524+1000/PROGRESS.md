@@ -1442,31 +1442,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-307 - Governance Rejected Permission Doc Reconciliation V1`.
 - Reconciled style pack governance docs with CP-306 direct rejected lifecycle permission coverage.
 - Verified CP-307 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
+- Created local checkpoint commit `8f7896cb762340530d438656ea0b29f8f882edc3` for the Governance Rejected Permission Doc Reconciliation V1 unit.
+- Started `CP-308 - Pure Exchange Direct Manifest Import Coverage V1`.
+- Added focused exchange coverage proving a direct safe manifest candidate normalizes as `source: "manifest"` without an export package wrapper.
+- Verified CP-308 with focused exchange Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scans, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-307 - Governance Rejected Permission Doc Reconciliation V1`.
-- Latest recorded checkpoint commit: `940a25b11fc58b4cca23980f2edfe2daad884e67` for `CP-306 - Pure Governance Rejected Permission Coverage V1`; CP-307 is being prepared for local commit.
-- Confirmed current branch during CP-307: `codex/v17-large-iteration`.
-- Confirmed current status after CP-307 verification prep: dirty only in CP-307 allowed style pack governance doc and run-doc files.
-- Current stop reason: not stopped; CP-307 governance rejected permission doc reconciliation checkpoint is underway.
+- Latest completed checkpoint: `CP-308 - Pure Exchange Direct Manifest Import Coverage V1`.
+- Latest recorded checkpoint commit: `8f7896cb762340530d438656ea0b29f8f882edc3` for `CP-307 - Governance Rejected Permission Doc Reconciliation V1`; CP-308 is being prepared for local commit.
+- Confirmed current branch during CP-308: `codex/v17-large-iteration`.
+- Confirmed current status after CP-308 verification prep: dirty only in CP-308 allowed exchange test and run-doc files.
+- Current stop reason: not stopped; CP-308 exchange direct manifest import coverage checkpoint is underway.
 
 ## In Progress
 
-- `CP-307 - Local checkpoint commit prep`.
+- `CP-308 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-pack-governance.md`
+  - `src/lib/style-engine/exchange.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, docs outside the listed governance doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-307 governance doc/run-doc changes if this reconciliation must be removed.
+- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused exchange Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-308 exchange test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-307 governance rejected permission doc reconciliation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-308 exchange direct manifest import coverage checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

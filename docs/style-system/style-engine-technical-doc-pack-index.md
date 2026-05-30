@@ -41,10 +41,19 @@ Only read `/Users/sean/Downloads/nexusstyle總升級.md` for long-term ambition.
 | `style-persistence-contract.md` | Phase V13 persistence contract | Persistence owner | Supabase docs, workspace snapshot flow, API/backend/security scan | Durable style pack model, RLS/Auth/key boundary, migration gate | Style packs are separated from workspace snapshots before any DB work. |
 | `style-pack-governance.md` | Phase V14 style pack governance | Governance owner | Persistence contract, manifest spec, validator rules, master plan | Lifecycle states, version axes, compatibility matrix, safety reports, fallback rules | Packs can be rejected, upgraded, downgraded, retired, or quarantined without breaking workspaces. |
 | `personal-ui-factory.md` | Phase V15 personal UI factory | Product safety owner | Interpreter boundary, governance, accessibility gates, master plan | Product pipeline, approval boundary, privacy scope, fail-closed rules | Personalized generation creates governed assets, not executable UI. |
+| `skin-pack-v2-contract.md` | V2 Skin Pack contract prep | Pack contract owner | V1 manifest, validator rules, governance, Protocol 94 audit | Skin pack envelope, metadata, V1 manifest binding, compatibility, fallback | V2 pack work starts as pure types/validators/fixtures/tests only. |
+| `asset-pack-v1-contract.md` | V2 Asset Pack boundary prep | Asset safety owner | Protocol 94 audit, validator URL rejection rules, performance boundaries | Asset descriptor shape, type/role/mime/hash/loading policy, fallback | Assets remain ID-based and cannot introduce remote executable or unbounded URL channels. |
+| `recipe-registry-v1-contract.md` | V2 Recipe Registry prep | Recipe owner | Manifest recipes, validator rules, adapter docs, protected ledger | Central visual slot registry and compatibility tests | Recipe expansion goes through registry slots, not scattered runtime conditions. |
+| `layout-preset-boundary-v1.md` | V2 Layout Preset boundary prep | Layout safety owner | Protected behavior ledger, Protocol 94 audit | Allowed density/slot/surface/visibility/decor hints and forbidden behavior authority | Layout presets preserve the unified functional skeleton. |
+| `performance-budget-validator-v1.md` | V2/V3 Performance Budget prep | Performance owner | Compiler variable budget, asset contract, Protocol 94 audit | Static V2 gates and deferred V3 runtime/asset gates | V2 can enforce pure static budgets without loading assets or changing runtime UI. |
+| `v2-style-pack-implementation-gates.md` | V2 implementation gate map | Execution owner | All V2 contract-prep docs and governance docs | Go/No-Go gates, first implementation batch rules, protocol trigger matrix | Broad implementation is blocked until pure contract validators and fixtures exist. |
 
 ## 2. Phase Docs To Create Later
 
-No phase docs are currently queued in this run. Future implementation docs should be added here only after a new clean gate.
+No additional phase docs are queued from the 2026-05-30 V2 contract-prep run.
+The next work should implement only the first pure local gate from
+`v2-style-pack-implementation-gates.md`, or add a new cleanly scoped doc if the
+requested phase changes.
 
 ## 3. Context Sharding Protocol
 
@@ -67,6 +76,8 @@ Recommended phase read sets:
 | V5 preview | boundary, compiler contract, primitive specimens | provider candidate files and no store/sync/backend |
 | V10 graph adapter | React Flow boundary, ledger | `nexus-graph.tsx`, `globals.css` React Flow selectors only |
 | V13 persistence | boundary, persistence contract | `/api/v1` patterns, backend services, Supabase migrations, generated types |
+| V2 Skin Pack contract prep | Protocol 94 audit, manifest spec, validator rules, governance, protected ledger, V2 contract-prep docs | no app source scan unless implementation begins |
+| V2 pure implementation first batch | V2 implementation gates, skin pack contract, recipe registry, asset contract, layout boundary, performance budget | `src/lib/style-engine/**` only after a separate implementation authorization |
 
 ## 4. Dependency Decision Log
 

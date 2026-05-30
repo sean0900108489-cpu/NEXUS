@@ -473,6 +473,79 @@ describe("NEXUS Style Engine manifest validator", () => {
     });
   });
 
+  it("rejects environment and workspace persistence references without echoing payloads", () => {
+    const manifest = createSafeManifest({
+      tokens: {
+        surface: {
+          app: "process.env.PRIVATE_STYLE_TOKEN",
+          panel: "NEXT_PUBLIC_SUPABASE_ANON_KEY=hidden-anon-payload",
+        },
+        text: {
+          muted: "serializeActiveUiStateSnapshot hidden-snapshot-payload",
+          primary: "workspace.themeConfig hidden-theme-payload",
+          secondary: "queueThemeConfigCloudSync hidden-sync-payload",
+        },
+        workspace: {
+          gridPrimary: "workspace_state_entities hidden-projection-payload",
+        },
+      },
+    });
+    manifest.source = {
+      kind: "imported-draft",
+      reference: ".env.local hidden-env-payload",
+    };
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toEqual(
+      expect.arrayContaining([
+        {
+          code: "style.forbidden.envFile",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.source.reference",
+        },
+        {
+          code: "style.forbidden.processEnv",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.surface.app",
+        },
+        {
+          code: "style.forbidden.anonKey",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.surface.panel",
+        },
+        {
+          code: "style.forbidden.snapshotSerializer",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.text.muted",
+        },
+        {
+          code: "style.forbidden.themeConfig",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.text.primary",
+        },
+        {
+          code: "style.forbidden.syncQueue",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.text.secondary",
+        },
+        {
+          code: "style.forbidden.workspaceProjection",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.workspace.gridPrimary",
+        },
+      ]),
+    );
+    expect(JSON.stringify(report)).not.toContain("hidden-env-payload");
+    expect(JSON.stringify(report)).not.toContain("PRIVATE_STYLE_TOKEN");
+    expect(JSON.stringify(report)).not.toContain("hidden-anon-payload");
+    expect(JSON.stringify(report)).not.toContain("hidden-snapshot-payload");
+    expect(JSON.stringify(report)).not.toContain("hidden-theme-payload");
+    expect(JSON.stringify(report)).not.toContain("hidden-sync-payload");
+    expect(JSON.stringify(report)).not.toContain("hidden-projection-payload");
+  });
+
   it("allows CSS variable references inside the approved NEXUS namespace", () => {
     const manifest = createSafeManifest({
       tokens: {

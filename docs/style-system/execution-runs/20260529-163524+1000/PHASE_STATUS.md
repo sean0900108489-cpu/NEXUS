@@ -357,6 +357,7 @@ Run id: `20260529-163524+1000`
 | Pure Validator CSS Syntax Guard Coverage V1 | PASS | Added focused validator coverage for CSS `@import`, block braces, and declaration-list rejection without payload echo. |
 | Validator CSS Syntax Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with CSS syntax rejection coverage. |
 | Post Validator CSS Syntax Guard Phase Gate | PASS | Decomposed full gate passed after validator CSS syntax coverage/docs; side-effect scan, build, and git diff check passed. |
+| Pure Validator Environment Reference Guard Coverage V1 | PASS | Added focused validator coverage for env, Supabase anon-key, workspace persistence, sync queue, snapshot serializer, and workspace projection string rejection without payload echo. |
 
 ## Current Gate
 
@@ -369,4 +370,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is CP-341 Post Validator CSS Syntax Guard Phase Gate local checkpoint commit. CP-340 is committed at `361ddee57c0a9dcdbbdca583a7ac9e7b0cfc379c`, and the decomposed full gate after validator CSS syntax coverage/docs has passed. Production window/modal code, production graph/app shell files, source/test files, product docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is CP-342 Pure Validator Environment Reference Guard Coverage V1 local checkpoint commit. CP-341 is committed at `0e219f192a26c2d7695dd1dd89e279fa79daff84`, and focused validator coverage now proves environment/workspace persistence string references are rejected without payload echo. Production window/modal code, production graph/app shell files, validator implementation files, product docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

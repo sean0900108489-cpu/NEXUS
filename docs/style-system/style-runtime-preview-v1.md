@@ -106,6 +106,7 @@ Implemented pure controller responsibilities:
 - Snapshot previous inline preview variables.
 - Apply compiled CSS variables to a scoped preview target.
 - Revert to the previous state.
+- Return `style.preview.noActiveSession` without target mutation when `revert()` or `clearAll()` is called before any active preview exists.
 - Report active preview id/checksum through an active-session snapshot.
 
 Current pure shape:

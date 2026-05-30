@@ -1523,32 +1523,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-326 - Pure Runtime Controller No-Active Revert Coverage V1`.
 - Added focused runtime-controller coverage proving `revert()` before any preview returns `style.preview.noActiveSession`, leaves the target unchanged, and keeps active preview empty.
 - Verified CP-326 with focused runtime-controller Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, and `git diff --check`.
+- Created local checkpoint commit `07f57b0771c56e3f824a457fdf2a30727bf1ee27` for the Pure Runtime Controller No-Active Revert Coverage V1 unit.
+- Started `CP-327 - Runtime Controller No-Active Revert Doc Reconciliation V1`.
+- Reconciled runtime preview docs with CP-326 no-active `revert()` coverage and the no-mutation `style.preview.noActiveSession` result.
+- Verified CP-327 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-326 - Pure Runtime Controller No-Active Revert Coverage V1`.
-- Latest recorded checkpoint commit: `34b332e26427c957c2bc3c836f8647055c4e47a5` for `CP-325 - Post Runtime Controller ClearAll Phase Gate`.
-- Confirmed current branch before CP-326: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-326: `34b332e26427c957c2bc3c836f8647055c4e47a5`.
-- Confirmed current status before CP-326: clean.
-- Current stop reason: not stopped; CP-326 pure runtime-controller no-active revert coverage is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-327 - Runtime Controller No-Active Revert Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `07f57b0771c56e3f824a457fdf2a30727bf1ee27` for `CP-326 - Pure Runtime Controller No-Active Revert Coverage V1`.
+- Confirmed current branch before CP-327: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-327: `07f57b0771c56e3f824a457fdf2a30727bf1ee27`.
+- Confirmed current status before CP-327: clean.
+- Current stop reason: not stopped; CP-327 runtime preview doc reconciliation is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-326 - Local checkpoint commit`.
+- `CP-327 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/runtime-controller.test.ts`
+  - `docs/style-system/style-runtime-preview-v1.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: runtime implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused runtime-controller Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-326 runtime-controller test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside the listed runtime preview doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-327 runtime preview doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-326 pure runtime-controller no-active revert coverage if final diff/status checks remain clean by scope.
+1. Commit the CP-327 runtime preview doc reconciliation if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
-3. Select `CP-327 - Runtime Controller No-Active Revert Doc Reconciliation V1` unless a lower-risk reconciliation is discovered.
+3. Select the next lowest-risk isolated unit, likely a post no-active revert phase gate.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

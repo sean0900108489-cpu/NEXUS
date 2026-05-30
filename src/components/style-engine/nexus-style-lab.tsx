@@ -13,6 +13,7 @@ import { useMemo, useState, type CSSProperties, type ChangeEvent } from "react";
 
 import {
   compileNexusStyleManifestV1,
+  createNexusSkinPackAuthoringContextV1,
   createCyberpunkCompatibleSkinPackV2,
   createHighContrastCarbonStyleManifestV1,
   createLegacyCyberpunkStyleManifestV1,
@@ -20,8 +21,10 @@ import {
   createNexusStyleExportPackageV1,
   createNexusStylePreviewPatchV1,
   createOverBudgetSkinPackV2,
+  createPixelWorkshopSkinPackV2,
   createReactFlowStyleAdapterFromManifestV1,
   emitReactFlowAdapterCssVariablesV1,
+  getNexusSkinPackIssueRepairHintV1,
   HIGH_CONTRAST_CARBON_STYLE_ID,
   LEGACY_CYBERPUNK_STYLE_ID,
   compileNexusSkinPackTokenPreviewTextV2,
@@ -42,6 +45,7 @@ import { useNexusStyleRuntimeV1 } from "@/components/style-engine/nexus-style-ru
 type PreviewState = "idle" | "previewing" | "reverted";
 type SkinPackTokenPreviewState = "idle" | "previewing" | "reverted" | "blocked";
 type ExportView = "manifest" | "package" | "review";
+type AuthoringContextView = "context" | "prompt" | "minimal" | "pixel";
 type VisibleIssueSeverity = "error" | "question" | "warning";
 type BriefDraftResult = {
   draft: NexusStyleIntentManifestDraftResultV1 | null;
@@ -83,6 +87,14 @@ const exportViews: Array<{ id: ExportView; label: string }> = [
   { id: "manifest", label: "Manifest" },
   { id: "review", label: "Review" },
 ];
+
+const authoringContextViews: Array<{ id: AuthoringContextView; label: string }> =
+  [
+    { id: "prompt", label: "Prompt" },
+    { id: "context", label: "Context" },
+    { id: "minimal", label: "Minimal" },
+    { id: "pixel", label: "Pixel" },
+  ];
 
 function toVisibleStyleIssue(
   issue: { code: string; message: string; path: string },
@@ -379,6 +391,8 @@ export function NexusStyleLab() {
   const [briefText, setBriefText] = useState("");
   const [briefResult, setBriefResult] = useState<BriefDraftResult | null>(null);
   const [exportView, setExportView] = useState<ExportView>("package");
+  const [authoringContextView, setAuthoringContextView] =
+    useState<AuthoringContextView>("prompt");
   const [importResult, setImportResult] =
     useState<NexusStyleImportTextResultV1 | null>(null);
   const [skinPackText, setSkinPackText] = useState("");
@@ -397,6 +411,33 @@ export function NexusStyleLab() {
   const exportResult = useMemo(
     () => createNexusStyleExportPackageV1(manifest),
     [manifest],
+  );
+  const skinPackAuthoringContext = useMemo(
+    () => createNexusSkinPackAuthoringContextV1(),
+    [],
+  );
+  const authoringPanelText = useMemo(() => {
+    switch (authoringContextView) {
+      case "context":
+        return skinPackAuthoringContext.contextText;
+      case "minimal":
+        return skinPackAuthoringContext.minimalJson;
+      case "pixel":
+        return skinPackAuthoringContext.pixelWorkshopJson;
+      case "prompt":
+      default:
+        return skinPackAuthoringContext.promptTemplate;
+    }
+  }, [authoringContextView, skinPackAuthoringContext]);
+  const authoringOverviewRows = useMemo(
+    () => [
+      ["Required", String(skinPackAuthoringContext.requiredTopLevelFields.length)],
+      ["Editable", String(skinPackAuthoringContext.editableFields.length)],
+      ["Review Only", String(skinPackAuthoringContext.reviewOnlyFields.length)],
+      ["Forbidden", String(skinPackAuthoringContext.forbiddenOutputs.length)],
+      ["Preview", "scoped CSS variables only"],
+    ],
+    [skinPackAuthoringContext],
   );
   const previewPatch = useMemo(() => {
     if (!compiled.accepted) {
@@ -488,6 +529,14 @@ export function NexusStyleLab() {
 
     return skinPackReviewResult.issues.slice(0, maxVisibleSkinPackIssues);
   }, [skinPackReviewResult]);
+  const skinPackReviewIssueRows = useMemo(
+    () =>
+      skinPackReviewIssues.map((issue) => ({
+        ...issue,
+        repair: getNexusSkinPackIssueRepairHintV1(issue.code),
+      })),
+    [skinPackReviewIssues],
+  );
   const canPreviewSkinPackTokens =
     skinPackReviewResult?.tokenPreview.canPreviewTokens === true;
   const canRevertSkinPackTokens =
@@ -534,6 +583,15 @@ export function NexusStyleLab() {
     skinPackTokenPreviewResult,
     skinPackTokenPreviewStatus,
   ]);
+  const skinPackTokenPreviewVariables = useMemo(() => {
+    if (!skinPackTokenPreviewResult?.accepted) {
+      return [];
+    }
+
+    return Object.entries(skinPackTokenPreviewResult.patch.variables)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .slice(0, 16);
+  }, [skinPackTokenPreviewResult]);
   const briefIssues = useMemo(() => {
     if (!briefResult) {
       return [];
@@ -825,6 +883,22 @@ export function NexusStyleLab() {
   const loadValidSkinPackFixture = () => {
     setSkinPackText(
       JSON.stringify(createCyberpunkCompatibleSkinPackV2(), null, 2),
+    );
+    setSkinPackReviewResult(null);
+    setSkinPackTokenPreviewResult(null);
+    setSkinPackTokenPreviewState("idle");
+  };
+
+  const loadMinimalSkinPackFixture = () => {
+    setSkinPackText(skinPackAuthoringContext.minimalJson);
+    setSkinPackReviewResult(null);
+    setSkinPackTokenPreviewResult(null);
+    setSkinPackTokenPreviewState("idle");
+  };
+
+  const loadPixelSkinPackFixture = () => {
+    setSkinPackText(
+      JSON.stringify(createPixelWorkshopSkinPackV2(), null, 2),
     );
     setSkinPackReviewResult(null);
     setSkinPackTokenPreviewResult(null);
@@ -1613,6 +1687,91 @@ export function NexusStyleLab() {
             </section>
 
             <section
+              className="grid min-h-[420px] grid-rows-[auto_auto_1fr_auto] overflow-hidden border border-emerald-300/15 bg-black/30"
+              data-testid="v2-authoring-context"
+            >
+              <header className="grid gap-3 border-b border-white/10 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
+                    <FileJson className="h-4 w-4 shrink-0" />
+                    <span className="truncate">V2 Authoring Context</span>
+                  </div>
+                  <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                    token-only
+                  </span>
+                </div>
+                <div
+                  aria-label="Authoring context view"
+                  className="grid grid-cols-4 gap-2"
+                >
+                  {authoringContextViews.map((view) => {
+                    const active = authoringContextView === view.id;
+
+                    return (
+                      <button
+                        key={view.id}
+                        className={[
+                          "h-8 min-w-0 border px-2 font-mono text-[9px] uppercase tracking-[0.1em] transition",
+                          active
+                            ? "border-emerald-300/45 bg-emerald-300/15 text-emerald-100"
+                            : "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/25 hover:bg-white/10",
+                        ].join(" ")}
+                        onClick={() => setAuthoringContextView(view.id)}
+                        type="button"
+                      >
+                        <span className="truncate">{view.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </header>
+
+              <div className="grid gap-2 border-b border-white/10 p-3">
+                {authoringOverviewRows.map(([label, value]) => (
+                  <div
+                    key={`authoring:${label}`}
+                    className="grid grid-cols-[88px_minmax(0,1fr)] gap-2 border border-white/10 bg-white/[0.03] p-2"
+                  >
+                    <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                      {label}
+                    </span>
+                    <span className="truncate font-mono text-[9px] text-slate-300">
+                      {value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <textarea
+                aria-label="V2 authoring context text"
+                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[10px] leading-5 text-slate-300 outline-none"
+                data-testid="v2-authoring-context-text"
+                readOnly
+                spellCheck={false}
+                value={authoringPanelText}
+              />
+
+              <footer className="grid grid-cols-2 gap-2 border-t border-white/10 p-3">
+                <button
+                  className="inline-flex h-9 min-w-0 items-center justify-center border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                  data-testid="v2-skin-pack-minimal-fixture"
+                  onClick={loadMinimalSkinPackFixture}
+                  type="button"
+                >
+                  <span className="truncate">Use Minimal</span>
+                </button>
+                <button
+                  className="inline-flex h-9 min-w-0 items-center justify-center border border-emerald-300/35 bg-emerald-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-emerald-100 transition hover:bg-emerald-300/20"
+                  data-testid="v2-skin-pack-pixel-fixture"
+                  onClick={loadPixelSkinPackFixture}
+                  type="button"
+                >
+                  <span className="truncate">Use Pixel</span>
+                </button>
+              </footer>
+            </section>
+
+            <section
               className="grid min-h-[360px] grid-rows-[auto_minmax(130px,0.55fr)_auto] overflow-hidden border border-cyan-300/15 bg-black/30"
               data-testid="v2-skin-pack-review"
             >
@@ -1692,9 +1851,9 @@ export function NexusStyleLab() {
                         <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
                           Redacted Issues
                         </div>
-                        {skinPackReviewIssues.length > 0 ? (
+                        {skinPackReviewIssueRows.length > 0 ? (
                           <div className="grid gap-2">
-                            {skinPackReviewIssues.map((issue) => (
+                            {skinPackReviewIssueRows.map((issue) => (
                               <div
                                 key={`${issue.path}:${issue.code}`}
                                 className="min-w-0 border border-white/10 bg-white/[0.03] p-2"
@@ -1704,6 +1863,9 @@ export function NexusStyleLab() {
                                 </div>
                                 <div className="mt-1 truncate font-mono text-[9px] text-slate-500">
                                   {issue.path} / {issue.message}
+                                </div>
+                                <div className="mt-1 max-h-8 overflow-hidden font-mono text-[9px] leading-4 text-slate-300">
+                                  {issue.repair}
                                 </div>
                               </div>
                             ))}
@@ -1751,6 +1913,37 @@ export function NexusStyleLab() {
                             </div>
                           ))}
                         </div>
+                        <div
+                          className="mt-3 border border-white/10 bg-black/20 p-2"
+                          data-testid="v2-token-preview-variables"
+                        >
+                          <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                            Scoped Variables
+                          </div>
+                          {skinPackTokenPreviewVariables.length > 0 ? (
+                            <div className="grid gap-1">
+                              {skinPackTokenPreviewVariables.map(
+                                ([name, value]) => (
+                                  <div
+                                    key={`token-preview-variable:${name}`}
+                                    className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] gap-2"
+                                  >
+                                    <span className="truncate font-mono text-[9px] text-cyan-100">
+                                      {name}
+                                    </span>
+                                    <span className="truncate font-mono text-[9px] text-slate-300">
+                                      {value}
+                                    </span>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          ) : (
+                            <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                              preview tokens to inspect emitted variables
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -1760,7 +1953,7 @@ export function NexusStyleLab() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   <button
                     className="inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
                     data-testid="v2-skin-pack-valid-fixture"
@@ -1768,6 +1961,13 @@ export function NexusStyleLab() {
                     type="button"
                   >
                     Valid
+                  </button>
+                  <button
+                    className="inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                    onClick={loadPixelSkinPackFixture}
+                    type="button"
+                  >
+                    Pixel
                   </button>
                   <button
                     className="inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"

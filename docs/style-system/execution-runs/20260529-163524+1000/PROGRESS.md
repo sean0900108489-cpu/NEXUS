@@ -1467,31 +1467,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-313 - Pure Exchange Export Package Import Clone Coverage V1`.
 - Added focused exchange coverage proving export-package import normalization returns a cloned manifest and does not expose the export package manifest object for mutation.
 - Verified CP-313 with focused exchange Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scans, and `git diff --check`.
+- Created local checkpoint commit `7e11bdafe16ea30332397c31e482b6707a6ad772` for the Pure Exchange Export Package Import Clone Coverage V1 unit.
+- Started `CP-314 - Governance Export Package Import Clone Doc Reconciliation V1`.
+- Reconciled style pack governance docs with CP-310 direct import clone coverage and CP-313 export-package import clone coverage.
+- Verified CP-314 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-313 - Pure Exchange Export Package Import Clone Coverage V1`.
-- Latest recorded checkpoint commit: `cd8d52c4fcd312c6db489518f851a5991535ce97` for `CP-312 - Post Exchange Governance Coverage Phase Gate`; CP-313 is being prepared for local commit.
-- Confirmed current branch during CP-313: `codex/v17-large-iteration`.
-- Confirmed current status after CP-313 verification prep: dirty only in CP-313 allowed exchange test and run-doc files.
-- Current stop reason: not stopped; CP-313 exchange export-package import clone coverage checkpoint is underway.
+- Latest completed checkpoint: `CP-314 - Governance Export Package Import Clone Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `7e11bdafe16ea30332397c31e482b6707a6ad772` for `CP-313 - Pure Exchange Export Package Import Clone Coverage V1`; CP-314 is being prepared for local commit.
+- Confirmed current branch during CP-314: `codex/v17-large-iteration`.
+- Confirmed current status after CP-314 verification prep: dirty only in CP-314 allowed style pack governance doc and run-doc files.
+- Current stop reason: not stopped; CP-314 governance export-package import clone doc reconciliation checkpoint is underway.
 
 ## In Progress
 
-- `CP-313 - Local checkpoint commit prep`.
+- `CP-314 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/exchange.test.ts`
+  - `docs/style-system/style-pack-governance.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused exchange Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-313 exchange test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, docs outside the listed governance doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-314 governance doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-313 exchange export-package import clone coverage checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-314 governance export-package import clone doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

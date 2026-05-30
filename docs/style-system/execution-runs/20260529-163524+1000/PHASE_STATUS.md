@@ -356,6 +356,7 @@ Run id: `20260529-163524+1000`
 | Post Dynamic Function Intent Guard Phase Gate | PASS | Decomposed full gate passed after dynamic function/import guard coverage/docs; side-effect scan, build, and git diff check passed. |
 | Pure Validator CSS Syntax Guard Coverage V1 | PASS | Added focused validator coverage for CSS `@import`, block braces, and declaration-list rejection without payload echo. |
 | Validator CSS Syntax Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with CSS syntax rejection coverage. |
+| Post Validator CSS Syntax Guard Phase Gate | PASS | Decomposed full gate passed after validator CSS syntax coverage/docs; side-effect scan, build, and git diff check passed. |
 
 ## Current Gate
 
@@ -368,4 +369,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is CP-340 Validator CSS Syntax Doc Reconciliation V1 local checkpoint commit. CP-339 is committed at `ef3a5269f5f3c8b8a75dfba70f94b189027327f9`, and manifest validator docs now reflect CSS syntax rejection coverage. Production window/modal code, production graph/app shell files, source/test files, product docs outside the validator rules doc and this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is CP-341 Post Validator CSS Syntax Guard Phase Gate local checkpoint commit. CP-340 is committed at `361ddee57c0a9dcdbbdca583a7ac9e7b0cfc379c`, and the decomposed full gate after validator CSS syntax coverage/docs has passed. Production window/modal code, production graph/app shell files, source/test files, product docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

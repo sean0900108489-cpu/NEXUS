@@ -37,8 +37,8 @@ Do not restart from the beginning. Continue from the latest completed checkpoint
 
 ## Latest Recorded Clean Checkpoint
 
-- Checkpoint: `CP-339 - Pure Validator CSS Syntax Guard Coverage V1`
-- Commit: `ef3a5269f5f3c8b8a75dfba70f94b189027327f9`
+- Checkpoint: `CP-340 - Validator CSS Syntax Doc Reconciliation V1`
+- Commit: `361ddee57c0a9dcdbbdca583a7ac9e7b0cfc379c`
 - Branch: `codex/v17-large-iteration`
-- Status before CP-340: clean.
-- Resume action: if `git log -1 --oneline` shows `docs: reconcile css syntax validator docs`, treat CP-340 as the latest local checkpoint; otherwise finish or verify `CP-340 - Validator CSS Syntax Doc Reconciliation V1`, then select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.
+- Status before CP-341: clean.
+- Resume action: if `git log -1 --oneline` shows `docs: record css syntax validator phase gate`, treat CP-341 as the latest local checkpoint; otherwise finish or verify `CP-341 - Post Validator CSS Syntax Guard Phase Gate`, then select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.

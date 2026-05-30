@@ -106,6 +106,21 @@ describe("NEXUS Style Engine import/export normalization", () => {
     });
   });
 
+  it("returns a cloned manifest for direct manifest imports", () => {
+    const manifest = createLegacyCyberpunkStyleManifestV1();
+    const imported = normalizeNexusStyleImportCandidateV1(manifest);
+
+    expect(imported.accepted).toBe(true);
+
+    if (!imported.accepted) {
+      throw new Error("Expected direct manifest import to pass.");
+    }
+
+    imported.manifest.tokens.surface.app = "#000000";
+
+    expect(manifest.tokens.surface.app).toBe("#030712");
+  });
+
   it("refuses to create export packages for unsafe manifests", () => {
     const manifest = createLegacyCyberpunkStyleManifestV1();
 

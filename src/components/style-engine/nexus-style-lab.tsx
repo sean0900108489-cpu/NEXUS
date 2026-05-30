@@ -9,7 +9,13 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import { useMemo, useState, type CSSProperties, type ChangeEvent } from "react";
+import {
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ChangeEvent,
+} from "react";
 
 import {
   compileNexusStyleManifestV1,
@@ -20,6 +26,7 @@ import {
   createNexusStyleManifestDraftFromIntentV1,
   createNexusStyleExportPackageV1,
   createNexusStylePreviewPatchV1,
+  createNexusProductionTokenBridgePlanV1,
   createOverBudgetSkinPackV2,
   createPixelWorkshopSkinPackV2,
   createReactFlowStyleAdapterFromManifestV1,
@@ -32,7 +39,10 @@ import {
   normalizeNexusStyleIntentV1,
   parseNexusSkinPackReviewImportTextV2,
   parseNexusStyleImportTextV1,
+  previewNexusProductionTokenBridgePlanOnTargetV1,
   reviewNexusStylePackV1,
+  revertNexusProductionTokenBridgePreviewOnTargetV1,
+  type NexusProductionTokenBridgePreviewSessionV1,
   type NexusSkinPackReviewImportResultV2,
   type NexusSkinPackReviewSummarySectionV2,
   type NexusSkinPackTokenPreviewResultV2,
@@ -45,6 +55,11 @@ import { useNexusStyleRuntimeV1 } from "@/components/style-engine/nexus-style-ru
 
 type PreviewState = "idle" | "previewing" | "reverted";
 type SkinPackTokenPreviewState = "idle" | "previewing" | "reverted" | "blocked";
+type ProductionBridgePreviewState =
+  | "idle"
+  | "previewing"
+  | "reverted"
+  | "blocked";
 type ExportView = "manifest" | "package" | "review";
 type AuthoringContextView = "context" | "prompt" | "minimal" | "pixel";
 type VisibleIssueSeverity = "error" | "question" | "warning";
@@ -62,6 +77,9 @@ type VisibleStyleIssue = {
 const maxVisibleImportIssues = 3;
 const maxVisibleSkinPackIssues = 5;
 const maxVisibleSpecimenFallbacks = 4;
+const maxVisibleBridgeVariables = 10;
+const maxVisibleBridgePreserveVariables = 8;
+const maxVisibleBridgeUnsupportedVariables = 6;
 
 const comparisonVariables = [
   "--nexus-surface-app",
@@ -376,8 +394,29 @@ const graphEdgeStyle = {
   transform: "rotate(14deg)",
 };
 
+const productionBridgeTargetSurfaceStyle = {
+  background: "var(--panel-bg, rgb(8 16 22 / 0.78))",
+  borderColor: "var(--border-subtle, rgb(226 232 240 / 0.12))",
+  borderRadius: "var(--surface-radius, 4px)",
+  boxShadow: "var(--shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
+  color: "var(--text-main, #f8fafc)",
+};
+
+const productionBridgeTargetButtonStyle = {
+  background: "var(--theme-primary, #67e8f9)",
+  borderColor: "var(--theme-primary-strong, #22d3ee)",
+  color: "var(--bg-base, #020617)",
+};
+
+const productionBridgeTargetMutedStyle = {
+  background: "var(--panel-muted, rgb(255 255 255 / 0.04))",
+  borderColor: "var(--border-glow, rgb(34 211 238 / 0.42))",
+  color: "var(--text-soft, #cbd5e1)",
+};
+
 export function NexusStyleLab() {
   const runtime = useNexusStyleRuntimeV1();
+  const productionBridgeTargetRef = useRef<HTMLDivElement | null>(null);
   const baselineManifest = useMemo(
     () => createLegacyCyberpunkStyleManifestV1(),
     [],
@@ -404,6 +443,14 @@ export function NexusStyleLab() {
     useState<NexusSkinPackTokenPreviewResultV2 | null>(null);
   const [skinPackTokenPreviewState, setSkinPackTokenPreviewState] =
     useState<SkinPackTokenPreviewState>("idle");
+  const [
+    productionBridgePreviewState,
+    setProductionBridgePreviewState,
+  ] = useState<ProductionBridgePreviewState>("idle");
+  const [
+    productionBridgePreviewSession,
+    setProductionBridgePreviewSession,
+  ] = useState<NexusProductionTokenBridgePreviewSessionV1 | null>(null);
   const baselineCompiled = useMemo(
     () => compileNexusStyleManifestV1(baselineManifest),
     [baselineManifest],
@@ -578,6 +625,17 @@ export function NexusStyleLab() {
     skinPackRenderPlanResult?.accepted === true
       ? skinPackRenderPlanResult.renderPlan
       : null;
+  const productionBridgePlanResult = useMemo(() => {
+    if (!renderPlan) {
+      return null;
+    }
+
+    return createNexusProductionTokenBridgePlanV1(renderPlan);
+  }, [renderPlan]);
+  const productionBridgePlan =
+    productionBridgePlanResult?.accepted === true
+      ? productionBridgePlanResult.bridgePlan
+      : null;
   const specimenGallery =
     renderPlan?.specimenGallery ?? null;
   const hasRejectedSkinPackReview = skinPackReviewResult?.accepted === false;
@@ -591,6 +649,18 @@ export function NexusStyleLab() {
     : canPreviewSkinPackTokens || hasRejectedSkinPackReview
       ? "gallery blocked"
       : "review required";
+  const productionBridgeStatus =
+    productionBridgePreviewState === "previewing"
+      ? "bridge previewing"
+      : productionBridgePreviewState === "reverted"
+        ? "bridge reverted"
+        : productionBridgePreviewState === "blocked"
+          ? "bridge blocked"
+          : productionBridgePlan
+            ? "bridge ready"
+            : renderPlan || hasRejectedSkinPackReview
+              ? "bridge blocked"
+              : "review required";
   const renderPlanRows = useMemo(
     () => [
       ["Status", renderPlanStatus],
@@ -602,6 +672,61 @@ export function NexusStyleLab() {
       ["Production", renderPlan?.eligibility.canApplyProduction ? "allowed" : "blocked"],
     ],
     [renderPlan, renderPlanStatus],
+  );
+  const productionBridgeRows = useMemo(
+    () => [
+      ["Status", productionBridgeStatus],
+      ["Plan", productionBridgePlan?.bridgePlanId ?? "none"],
+      ["Mode", productionBridgePlan?.renderMode ?? "blocked"],
+      [
+        "Bridge Vars",
+        String(productionBridgePlan?.fallbackSummary.bridgedVariableCount ?? 0),
+      ],
+      [
+        "Preserve",
+        String(productionBridgePlan?.fallbackSummary.preservedVariableCount ?? 0),
+      ],
+      [
+        "Unsupported",
+        String(
+          productionBridgePlan?.fallbackSummary.unsupportedVariableCount ?? 0,
+        ),
+      ],
+      [
+        "Fallbacks",
+        String(productionBridgePlan?.fallbackSummary.renderPlanFallbackCount ?? 0),
+      ],
+      ["Production", "blocked"],
+    ],
+    [productionBridgePlan, productionBridgeStatus],
+  );
+  const productionBridgeVariableRows = useMemo(
+    () =>
+      productionBridgePlan
+        ? Object.entries(productionBridgePlan.variables)
+            .sort(([left], [right]) => left.localeCompare(right))
+            .slice(0, maxVisibleBridgeVariables)
+        : [],
+    [productionBridgePlan],
+  );
+  const productionBridgePreserveRows = useMemo(
+    () =>
+      productionBridgePlan
+        ? Object.entries(productionBridgePlan.legacyPreserveMap)
+            .sort(([left], [right]) => left.localeCompare(right))
+            .slice(0, maxVisibleBridgePreserveVariables)
+        : [],
+    [productionBridgePlan],
+  );
+  const productionBridgeUnsupportedRows = useMemo(
+    () =>
+      productionBridgePlan
+        ? productionBridgePlan.unsupportedVariables.slice(
+            0,
+            maxVisibleBridgeUnsupportedVariables,
+          )
+        : [],
+    [productionBridgePlan],
   );
   const specimenGalleryRows = useMemo(
     () => [
@@ -839,6 +964,54 @@ export function NexusStyleLab() {
             ? `blocked / ${review.permissions.reasonCodes[0] ?? review.state}`
             : null;
 
+  const clearProductionBridgePreview = () => {
+    if (productionBridgePreviewSession) {
+      revertNexusProductionTokenBridgePreviewOnTargetV1({
+        session: productionBridgePreviewSession,
+        target: productionBridgeTargetRef.current,
+      });
+    }
+
+    setProductionBridgePreviewSession(null);
+    setProductionBridgePreviewState("idle");
+  };
+
+  const previewProductionBridge = () => {
+    if (!productionBridgePlan) {
+      setProductionBridgePreviewState("blocked");
+      return;
+    }
+
+    const result = previewNexusProductionTokenBridgePlanOnTargetV1({
+      bridgePlan: productionBridgePlan,
+      currentSession: productionBridgePreviewSession,
+      target: productionBridgeTargetRef.current,
+    });
+
+    if (!result.accepted) {
+      setProductionBridgePreviewState("blocked");
+      return;
+    }
+
+    setProductionBridgePreviewSession(result.session);
+    setProductionBridgePreviewState("previewing");
+  };
+
+  const revertProductionBridgePreview = () => {
+    if (!productionBridgePreviewSession) {
+      setProductionBridgePreviewState("reverted");
+      return;
+    }
+
+    revertNexusProductionTokenBridgePreviewOnTargetV1({
+      session: productionBridgePreviewSession,
+      target: productionBridgeTargetRef.current,
+    });
+
+    setProductionBridgePreviewSession(null);
+    setProductionBridgePreviewState("reverted");
+  };
+
   const startPreview = () => {
     if (!previewPatch || !canPreview) {
       return;
@@ -876,6 +1049,7 @@ export function NexusStyleLab() {
       runtime.revertPreview(skinPackTokenPreviewResult.patch.previewId);
     }
 
+    clearProductionBridgePreview();
     setSkinPackText(event.target.value);
     setSkinPackReviewResult(null);
     setSkinPackTokenPreviewResult(null);
@@ -956,6 +1130,7 @@ export function NexusStyleLab() {
   };
 
   const loadValidSkinPackFixture = () => {
+    clearProductionBridgePreview();
     setSkinPackText(
       JSON.stringify(createCyberpunkCompatibleSkinPackV2(), null, 2),
     );
@@ -965,6 +1140,7 @@ export function NexusStyleLab() {
   };
 
   const loadMinimalSkinPackFixture = () => {
+    clearProductionBridgePreview();
     setSkinPackText(skinPackAuthoringContext.minimalJson);
     setSkinPackReviewResult(null);
     setSkinPackTokenPreviewResult(null);
@@ -972,6 +1148,7 @@ export function NexusStyleLab() {
   };
 
   const loadPixelSkinPackFixture = () => {
+    clearProductionBridgePreview();
     setSkinPackText(
       JSON.stringify(createPixelWorkshopSkinPackV2(), null, 2),
     );
@@ -981,6 +1158,7 @@ export function NexusStyleLab() {
   };
 
   const loadInvalidSkinPackFixture = () => {
+    clearProductionBridgePreview();
     setSkinPackText(JSON.stringify(createOverBudgetSkinPackV2(), null, 2));
     setSkinPackReviewResult(null);
     setSkinPackTokenPreviewResult(null);
@@ -988,6 +1166,7 @@ export function NexusStyleLab() {
   };
 
   const reviewSkinPackText = () => {
+    clearProductionBridgePreview();
     setSkinPackReviewResult(
       parseNexusSkinPackReviewImportTextV2(skinPackText),
     );
@@ -1617,6 +1796,190 @@ export function NexusStyleLab() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </div>
+
+                <div
+                  className="mb-4 border border-sky-300/15 bg-sky-300/[0.035] p-3"
+                  data-testid="v2-production-bridge-readiness"
+                >
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-sky-100">
+                      Production Bridge Readiness
+                    </div>
+                    <div
+                      className={[
+                        "font-mono text-[10px] uppercase tracking-[0.12em]",
+                        productionBridgePlan ? "text-sky-200" : "text-slate-500",
+                      ].join(" ")}
+                      data-testid="v2-production-bridge-status"
+                    >
+                      {productionBridgeStatus}
+                    </div>
+                  </div>
+
+                  <div className="mb-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                    {productionBridgeRows.map(([label, value]) => (
+                      <div
+                        key={`production-bridge:${label}`}
+                        className="min-w-0 border border-white/10 bg-black/20 p-2"
+                      >
+                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                          {label}
+                        </div>
+                        <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+                          {value}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid gap-3 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                    <div
+                      ref={productionBridgeTargetRef}
+                      className="min-w-0 border p-4"
+                      data-testid="v2-production-bridge-target"
+                      style={productionBridgeTargetSurfaceStyle}
+                    >
+                      <div className="font-mono text-[10px] uppercase tracking-[0.16em]">
+                        Isolated Bridge Target
+                      </div>
+                      <div className="mt-3 truncate text-sm">
+                        legacy variable scope only
+                      </div>
+                      <div className="mt-3 grid grid-cols-3 gap-2">
+                        <span
+                          className="truncate border px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.1em]"
+                          style={productionBridgeTargetMutedStyle}
+                        >
+                          panel
+                        </span>
+                        <span
+                          className="truncate border px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.1em]"
+                          style={productionBridgeTargetButtonStyle}
+                        >
+                          accent
+                        </span>
+                        <span
+                          className="truncate border px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.1em]"
+                          style={productionBridgeTargetMutedStyle}
+                        >
+                          text
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid min-w-0 gap-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-sky-300/35 bg-sky-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-sky-100 transition hover:bg-sky-300/20 disabled:opacity-40"
+                          data-testid="v2-production-bridge-preview"
+                          disabled={!productionBridgePlan}
+                          onClick={previewProductionBridge}
+                          type="button"
+                        >
+                          <Sparkles className="h-4 w-4 shrink-0" />
+                          <span className="truncate">Preview Bridge</span>
+                        </button>
+                        <button
+                          className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10 disabled:opacity-40"
+                          data-testid="v2-production-bridge-revert"
+                          disabled={!productionBridgePreviewSession}
+                          onClick={revertProductionBridgePreview}
+                          type="button"
+                        >
+                          <RotateCcw className="h-4 w-4 shrink-0" />
+                          <span className="truncate">Revert Bridge</span>
+                        </button>
+                      </div>
+
+                      <div className="grid gap-2 md:grid-cols-3">
+                        <div className="min-w-0 border border-white/10 bg-black/20 p-2">
+                          <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                            Bridge Variables
+                          </div>
+                          {productionBridgeVariableRows.length > 0 ? (
+                            <div className="grid gap-1">
+                              {productionBridgeVariableRows.map(
+                                ([name, value]) => (
+                                  <div
+                                    key={`production-bridge-variable:${name}`}
+                                    className="grid grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] gap-2"
+                                  >
+                                    <span className="truncate font-mono text-[9px] text-sky-100">
+                                      {name}
+                                    </span>
+                                    <span className="truncate font-mono text-[9px] text-slate-300">
+                                      {value}
+                                    </span>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          ) : (
+                            <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                              accepted render plan required
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="min-w-0 border border-white/10 bg-black/20 p-2">
+                          <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                            Preserve
+                          </div>
+                          {productionBridgePreserveRows.length > 0 ? (
+                            <div className="grid gap-1">
+                              {productionBridgePreserveRows.map(
+                                ([name, reason]) => (
+                                  <div
+                                    key={`production-bridge-preserve:${name}`}
+                                    className="grid grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] gap-2"
+                                  >
+                                    <span className="truncate font-mono text-[9px] text-sky-100">
+                                      {name}
+                                    </span>
+                                    <span className="truncate font-mono text-[9px] text-slate-300">
+                                      {reason}
+                                    </span>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          ) : (
+                            <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                              none
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="min-w-0 border border-white/10 bg-black/20 p-2">
+                          <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                            Unsupported
+                          </div>
+                          {productionBridgeUnsupportedRows.length > 0 ? (
+                            <div className="grid gap-1">
+                              {productionBridgeUnsupportedRows.map((row) => (
+                                <div
+                                  key={`production-bridge-unsupported:${row.name}`}
+                                  className="min-w-0"
+                                >
+                                  <div className="truncate font-mono text-[9px] text-amber-100">
+                                    {row.name}
+                                  </div>
+                                  <div className="truncate font-mono text-[9px] text-slate-500">
+                                    {row.reasonCode}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-emerald-200">
+                              none
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

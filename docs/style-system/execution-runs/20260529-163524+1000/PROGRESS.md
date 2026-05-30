@@ -1631,27 +1631,28 @@ Run id: `20260529-163524+1000`
 ## Current Checkpoint
 
 - Latest completed checkpoint: `CP-350 - Post Validator Behavior Class Guard Phase Gate`.
-- Latest recorded checkpoint commit: `b35acf9ca37fe6465586029838ddd183d5631bd5` for `CP-349 - Validator Behavior Class String Doc Reconciliation V1`.
-- Confirmed current branch before CP-350: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-350: `b35acf9ca37fe6465586029838ddd183d5631bd5`.
-- Confirmed current status before CP-350: clean.
-- Current stop reason: not stopped; CP-350 post validator behavior class guard phase gate is verified and ready for local checkpoint commit.
+- Latest recorded checkpoint commit: `9cb549441f1477389fa20fb80676a42798796806` for `CP-350 - Post Validator Behavior Class Guard Phase Gate`.
+- Confirmed current branch at closeout: `codex/v17-large-iteration`.
+- Confirmed current HEAD at closeout: `9cb549441f1477389fa20fb80676a42798796806`.
+- Confirmed current status at closeout before final summary edits: clean.
+- Current stop reason: user-requested final summary closeout; normal checkpoint stop, not an error stop.
 
 ## In Progress
 
-- `CP-350 - Local checkpoint commit`.
+- Final summary closeout only. No CP-351 or new feature unit is in progress.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/FINAL_SUMMARY.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
 - Forbidden files: all source/test/product docs, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, `npm run build`, side-effect/import scan, behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-350 run-doc update if this phase gate bookkeeping must be removed.
+- Verification: `git diff --check`, `git status --short`, and diff path check limited to allowed run docs.
+- Rollback: revert only the final summary closeout doc changes if this closeout must be removed.
 
 ## Next
 
-1. Commit the CP-350 post validator behavior class guard phase gate if final diff/status checks remain clean by scope.
-2. Confirm branch, HEAD, and clean status after the commit.
-3. Select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.
+1. Commit the final summary closeout if final diff/status checks remain clean by scope.
+2. Do not start CP-351 or a new feature unit from this closeout.
+3. For the next phase, run Protocol 94 first, then reassess V2 Skin Pack / Asset Pack / Recipe System work.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

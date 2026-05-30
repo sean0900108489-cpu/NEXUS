@@ -78,6 +78,18 @@ Spike status:
 - Style Lab contains an isolated `.nexus-panel` compatibility specimen for
   bridge preview/revert smoke.
 
+Second spike status:
+
+- `Production .nexus-glass Token Bridge Spike` is the second primitive surface.
+- `.nexus-glass` may consume surface-specific aliases
+  `--nexus-glass-bg`, `--nexus-glass-border`, `--nexus-glass-text`,
+  `--nexus-glass-radius`, and `--nexus-glass-blur`.
+- The aliases fall back first to panel aliases where useful, then to existing
+  legacy variables, so the cyberpunk baseline remains the fallback when no
+  bridge variables are scoped.
+- Style Lab contains an isolated `.nexus-glass` compatibility specimen for
+  bridge preview/revert smoke.
+
 Why:
 
 - It already consumes `--panel-bg`, `--border-subtle`,
@@ -102,7 +114,7 @@ Do not start with:
 | Production surface | Source anchor | Current style mechanism | Target bridge variable | Risk | Proposed migration unit | Required tests/smoke | Rollback |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Panel primitive | `src/app/globals.css:280` | CSS class `.nexus-panel` uses legacy vars | `--panel-bg`, `--border-subtle`, `--surface-radius`, `--shadow-panel`, `--glass-blur` | Low | Adopt bridge variables in an isolated provider scope around a test panel first | Unit target helper, `/style-lab` bridge smoke, production page visual smoke | Remove scoped bridge wrapper; legacy theme vars remain |
-| Glass primitive | `src/app/globals.css:288` | CSS class `.nexus-glass` uses legacy vars and blur | `--panel-bg`, `--border-subtle`, `--surface-radius`, `--glass-blur` | Low-Medium | Follow after panel; cap blur through budget summary | Visual smoke with reduced blur fixture | Remove bridge scope for glass |
+| Glass primitive | `src/app/globals.css:289` | CSS class `.nexus-glass` uses bridge aliases with legacy fallback | `--nexus-glass-bg`, `--nexus-glass-border`, `--nexus-glass-text`, `--nexus-glass-radius`, `--nexus-glass-blur` | Low-Medium | Isolated Style Lab compatibility specimen first; no production TSX behavior | `/style-lab` bridge smoke verifies change/revert | Remove glass aliases/specimen; legacy theme vars remain |
 | Workspace canvas | `src/app/globals.css:253`, `src/components/nexus/nexus-ops.tsx:2127` | `.nexus-workspace` grid and wash vars plus hardcoded Tailwind classes | `--bg-workspace`, `--workspace-grid-primary`, `--workspace-grid-secondary`, `--workspace-wash` | Medium | Token bridge only for colors/wash; no geometry, overflow, pointer, or z-index | Production smoke for pan/zoom unchanged, no console errors | Revert workspace token scope |
 | Shell root | `src/app/globals.css:246`, `src/components/nexus/nexus-ops.tsx:2020` | `.nexus-shell` uses shell surface and asset background | `--bg-base`, `--text-main`; defer `--shell-surface` and asset image | Medium-High | Text/base color only; no asset background | Home load smoke, auth smoke, no background URL from Skin Pack | Remove shell bridge variables |
 | Topbar and command palette entry | `src/components/nexus/nexus-ops.tsx:2553` | Tailwind classes with cyan/black hardcoded colors | `--panel-muted`, `--border-subtle`, `--theme-primary`, `--text-main` | Medium | Extract visual primitive class or CSS var-backed inline style | Keyboard command smoke, click/search unchanged | Revert primitive extraction |

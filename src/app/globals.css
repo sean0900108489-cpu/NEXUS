@@ -287,10 +287,12 @@ button {
 }
 
 .nexus-glass {
-  background: color-mix(in srgb, var(--panel-bg) 82%, transparent);
-  border: var(--border-width) solid var(--border-subtle);
-  border-radius: var(--surface-radius);
-  backdrop-filter: blur(var(--glass-blur));
+  background:
+    var(--nexus-glass-bg, color-mix(in srgb, var(--nexus-panel-bg, var(--panel-bg)) 82%, transparent));
+  border: var(--border-width) solid var(--nexus-glass-border, var(--nexus-panel-border, var(--border-subtle)));
+  border-radius: var(--nexus-glass-radius, var(--nexus-panel-radius, var(--surface-radius)));
+  color: var(--nexus-glass-text, var(--nexus-panel-text, var(--text-main)));
+  backdrop-filter: blur(var(--nexus-glass-blur, var(--nexus-panel-blur, var(--glass-blur))));
 }
 
 .nexus-shell,

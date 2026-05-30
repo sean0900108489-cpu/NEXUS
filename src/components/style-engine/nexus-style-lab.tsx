@@ -1864,6 +1864,24 @@ export function NexusStyleLab() {
                           />
                         </div>
                       </div>
+                      <div
+                        className="nexus-glass mt-3 min-w-0 p-3"
+                        data-testid="v2-production-bridge-nexus-glass"
+                      >
+                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em]">
+                          .nexus-glass compatibility
+                        </div>
+                        <div className="mt-2 grid grid-cols-3 gap-2">
+                          {["surface", "blur", "border"].map((item) => (
+                            <span
+                              key={`glass-compat:${item}`}
+                              className="truncate border border-white/10 bg-white/[0.04] px-2 py-1.5 text-center font-mono text-[8px] uppercase tracking-[0.1em]"
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                       <div className="mt-3 grid grid-cols-3 gap-2">
                         <span
                           className="truncate border px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.1em]"

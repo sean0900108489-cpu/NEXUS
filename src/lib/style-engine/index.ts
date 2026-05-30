@@ -19,5 +19,6 @@ export * from "./v2-fixtures";
 export * from "./v2-authoring-context";
 export * from "./v2-review-import";
 export * from "./v2-recipe-specimen-preview";
+export * from "./v2-render-plan";
 export * from "./v2-token-preview";
 export * from "./v2-validators";

@@ -23,7 +23,7 @@ import {
   createOverBudgetSkinPackV2,
   createPixelWorkshopSkinPackV2,
   createReactFlowStyleAdapterFromManifestV1,
-  compileNexusSkinPackSpecimenPreviewTextV2,
+  compileNexusSkinPackRenderPlanTextV2,
   emitReactFlowAdapterCssVariablesV1,
   getNexusSkinPackIssueRepairHintV1,
   HIGH_CONTRAST_CARBON_STYLE_ID,
@@ -567,24 +567,45 @@ export function NexusStyleLab() {
       : skinPackGalleryTokenPreviewResult?.accepted
         ? skinPackGalleryTokenPreviewResult
         : null;
-  const skinPackSpecimenPreviewResult = useMemo(() => {
+  const skinPackRenderPlanResult = useMemo(() => {
     if (!acceptedSkinPackTokenPreviewResult) {
       return null;
     }
 
-    return compileNexusSkinPackSpecimenPreviewTextV2(skinPackText);
+    return compileNexusSkinPackRenderPlanTextV2(skinPackText);
   }, [acceptedSkinPackTokenPreviewResult, skinPackText]);
-  const specimenGallery =
-    skinPackSpecimenPreviewResult?.accepted === true
-      ? skinPackSpecimenPreviewResult.gallery
+  const renderPlan =
+    skinPackRenderPlanResult?.accepted === true
+      ? skinPackRenderPlanResult.renderPlan
       : null;
+  const specimenGallery =
+    renderPlan?.specimenGallery ?? null;
+  const hasRejectedSkinPackReview = skinPackReviewResult?.accepted === false;
+  const renderPlanStatus = renderPlan
+    ? "render plan ready"
+    : canPreviewSkinPackTokens || hasRejectedSkinPackReview
+      ? "render plan blocked"
+      : "review required";
   const specimenGalleryStatus = specimenGallery
     ? "isolated gallery ready"
-    : canPreviewSkinPackTokens
+    : canPreviewSkinPackTokens || hasRejectedSkinPackReview
       ? "gallery blocked"
       : "review required";
+  const renderPlanRows = useMemo(
+    () => [
+      ["Status", renderPlanStatus],
+      ["Plan", renderPlan?.planId ?? "none"],
+      ["Mode", renderPlan?.renderMode ?? "blocked"],
+      ["Token Vars", String(renderPlan?.diagnostics.tokenVariableCount ?? 0)],
+      ["Specimens", String(renderPlan?.diagnostics.specimenCount ?? 0)],
+      ["Budget", renderPlan?.performanceBudget.status ?? "blocked"],
+      ["Production", renderPlan?.eligibility.canApplyProduction ? "allowed" : "blocked"],
+    ],
+    [renderPlan, renderPlanStatus],
+  );
   const specimenGalleryRows = useMemo(
     () => [
+      ["Render Plan", renderPlan ? "ready" : "blocked"],
       ["Token Preview", acceptedSkinPackTokenPreviewResult ? "accepted" : "blocked"],
       ["Recipe Specimen", specimenGallery ? "isolated visual objects" : "blocked"],
       ["Production Apply", "blocked"],
@@ -596,7 +617,7 @@ export function NexusStyleLab() {
       ],
       ["Fallbacks", String(specimenGallery?.coverage.fallbackCount ?? 0)],
     ],
-    [acceptedSkinPackTokenPreviewResult, specimenGallery],
+    [acceptedSkinPackTokenPreviewResult, renderPlan, specimenGallery],
   );
   const specimenFallbackRows = useMemo(
     () => specimenGallery?.fallbacks.slice(0, maxVisibleSpecimenFallbacks) ?? [],
@@ -621,6 +642,7 @@ export function NexusStyleLab() {
         "Preview Id",
         previewResult?.accepted ? previewResult.patch.previewId : "none",
       ],
+      ["Render Plan", renderPlanStatus],
       [
         "Blocked By",
         eligibility && eligibility.reasonCodes.length > 0
@@ -632,6 +654,7 @@ export function NexusStyleLab() {
   }, [
     skinPackReviewResult,
     skinPackTokenPreviewResult,
+    renderPlanStatus,
     specimenGalleryStatus,
     skinPackTokenPreviewStatus,
   ]);
@@ -1558,6 +1581,42 @@ export function NexusStyleLab() {
                     data-testid="v2-specimen-gallery-status"
                   >
                     {specimenGalleryStatus}
+                  </div>
+                </div>
+
+                <div
+                  className="mb-4 border border-emerald-300/15 bg-emerald-300/[0.035] p-3"
+                  data-testid="v2-render-plan-summary"
+                >
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
+                      Render Plan IR
+                    </div>
+                    <div
+                      className={[
+                        "font-mono text-[10px] uppercase tracking-[0.12em]",
+                        renderPlan ? "text-emerald-200" : "text-slate-500",
+                      ].join(" ")}
+                      data-testid="v2-render-plan-status"
+                    >
+                      {renderPlanStatus}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                    {renderPlanRows.map(([label, value]) => (
+                      <div
+                        key={`render-plan:${label}`}
+                        className="min-w-0 border border-white/10 bg-black/20 p-2"
+                      >
+                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                          {label}
+                        </div>
+                        <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+                          {value}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 

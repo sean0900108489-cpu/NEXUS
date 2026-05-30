@@ -361,3 +361,66 @@ Remaining No-Go zones:
 - feature placement and layout preset production adoption
 - runtime token apply or persistence
 - store/sync/backend/Supabase/API paths
+
+## 12. V19 TopBar Frame Token Alias Spike
+
+Implemented during
+`20260531-v19-top-bar-frame-token-alias-spike`.
+
+Target:
+
+- `NexusOpsTopBarFrame`
+
+Pre-update scan result:
+
+- route-edge wrapper remains in `src/app/page.tsx`
+- runtime preview provider remains scoped and does not persist style variables
+- `NexusOpsTopBarFrame` remains a children-only presentation wrapper
+- TopBar state, workspace menu, rename form, dropdown, button handlers,
+  sync badge, recovery list, and view-mode actions remain in
+  `src/components/nexus/nexus-ops.tsx`
+- no store/sync/backend/Supabase/API, React Flow, window/modal, drag/resize,
+  focus, z-index, feature placement, or layout preset boundary is required
+
+Token alias status:
+
+- completed for the TopBar frame visual surface only
+- no production token runtime apply was introduced
+- no store/sync/backend/Supabase/API path was touched
+- no `nexus-ops.tsx` behavior or child rendering was changed
+
+Aliases added:
+
+- `--nexus-top-bar-bg`
+- `--nexus-top-bar-border`
+- `--nexus-top-bar-shadow`
+- `--nexus-top-bar-blur`
+- `--nexus-top-bar-radius`
+
+Fallback chain:
+
+- dedicated TopBar alias
+- existing panel bridge alias
+- cyberpunk baseline value
+
+Intentionally not tokenized:
+
+- TopBar child button active/inactive/hover states
+- workspace menu and dropdown contents
+- sync badge, status counters, latency/status labels
+- text/icon colors
+- focus rings
+- pointer events
+- z-index
+- sticky/fixed positioning
+- height, spacing, layout, overflow, or responsive behavior
+- handlers, callbacks, maps, conditionals, state transitions
+
+Remaining No-Go zones:
+
+- LeftDock and Workspace wrappers
+- React Flow and graph files
+- drag/resize/focus/z-index/window/modal behavior
+- feature placement and layout preset production adoption
+- runtime token apply or persistence
+- store/sync/backend/Supabase/API paths

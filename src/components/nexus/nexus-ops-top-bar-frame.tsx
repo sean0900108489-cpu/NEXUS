@@ -6,7 +6,7 @@ export type NexusOpsTopBarFrameProps = {
 
 export function NexusOpsTopBarFrame({ children }: NexusOpsTopBarFrameProps) {
   return (
-    <header className="flex h-11 shrink-0 items-center border-b border-white/10 bg-black/20 px-3">
+    <header className="nexus-top-bar-frame flex h-11 shrink-0 items-center border-b border-white/10 bg-black/20 px-3">
       {children}
     </header>
   );

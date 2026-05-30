@@ -29,9 +29,28 @@ describe("NexusOpsTopBarFrame", () => {
       </NexusOpsTopBarFrame>,
     );
 
+    expect(html).toContain("nexus-top-bar-frame");
     expect(html).toContain(
-      'class="flex h-11 shrink-0 items-center border-b border-white/10 bg-black/20 px-3"',
+      "flex h-11 shrink-0 items-center border-b border-white/10 bg-black/20 px-3",
     );
+  });
+
+  it("has dedicated TopBar CSS aliases with panel and cyberpunk fallbacks", () => {
+    const css = readGlobalsCssSource();
+
+    expect(css).toContain(".nexus-shell .nexus-top-bar-frame");
+    expect(css).toContain("--nexus-top-bar-bg");
+    expect(css).toContain("--nexus-top-bar-border");
+    expect(css).toContain("--nexus-top-bar-shadow");
+    expect(css).toContain("--nexus-top-bar-blur");
+    expect(css).toContain("--nexus-top-bar-radius");
+    expect(css).toContain("var(--nexus-panel-bg, rgb(0 0 0 / 0.2))");
+    expect(css).toContain(
+      "var(--nexus-panel-border, rgb(255 255 255 / 0.1))",
+    );
+    expect(css).toContain("var(--nexus-panel-shadow, 0 0 0 transparent)");
+    expect(css).toContain("var(--nexus-panel-blur, var(--glass-blur))");
+    expect(css).toContain("var(--nexus-panel-radius, 0)");
   });
 
   it("does not expose behavior authority through props", () => {
@@ -103,4 +122,8 @@ function readTopBarFrameSource() {
     new URL("nexus-ops-top-bar-frame.tsx", import.meta.url),
     "utf8",
   );
+}
+
+function readGlobalsCssSource() {
+  return readFileSync(new URL("../../app/globals.css", import.meta.url), "utf8");
 }

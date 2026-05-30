@@ -37,8 +37,8 @@ Do not restart from the beginning. Continue from the latest completed checkpoint
 
 ## Latest Recorded Clean Checkpoint
 
-- Checkpoint: `CP-341 - Post Validator CSS Syntax Guard Phase Gate`
-- Commit: `0e219f192a26c2d7695dd1dd89e279fa79daff84`
+- Checkpoint: `CP-342 - Pure Validator Environment Reference Guard Coverage V1`
+- Commit: `d37304b0945889a7ea09fa45f44cd402948f868d`
 - Branch: `codex/v17-large-iteration`
-- Status before CP-342: clean.
-- Resume action: if `git log -1 --oneline` shows `test: cover environment validator guard`, treat CP-342 as the latest local checkpoint; otherwise finish or verify `CP-342 - Pure Validator Environment Reference Guard Coverage V1`, then select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.
+- Status before CP-343: clean.
+- Resume action: if `git log -1 --oneline` shows `docs: reconcile environment validator docs`, treat CP-343 as the latest local checkpoint; otherwise finish or verify `CP-343 - Validator Environment Reference Doc Reconciliation V1`, then select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.

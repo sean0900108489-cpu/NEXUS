@@ -1592,32 +1592,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-342 - Pure Validator Environment Reference Guard Coverage V1`.
 - Added focused validator coverage proving environment, Supabase anon-key, workspace persistence, sync queue, snapshot serializer, and workspace projection string references are rejected without echoing payloads.
 - Verified CP-342 with focused validator Vitest, `npm run lint`, `npm run typecheck`, touched-file side-effect/behavior scan, and `git diff --check`.
+- Created local checkpoint commit `d37304b0945889a7ea09fa45f44cd402948f868d` for the Pure Validator Environment Reference Guard Coverage V1 unit.
+- Started `CP-343 - Validator Environment Reference Doc Reconciliation V1`.
+- Reconciled manifest validator docs with CP-342 environment/workspace persistence string guard coverage.
+- Verified CP-343 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-342 - Pure Validator Environment Reference Guard Coverage V1`.
-- Latest recorded checkpoint commit: `0e219f192a26c2d7695dd1dd89e279fa79daff84` for `CP-341 - Post Validator CSS Syntax Guard Phase Gate`.
-- Confirmed current branch before CP-342: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-342: `0e219f192a26c2d7695dd1dd89e279fa79daff84`.
-- Confirmed current status before CP-342: clean.
-- Current stop reason: not stopped; CP-342 pure validator environment reference guard coverage is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-343 - Validator Environment Reference Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `d37304b0945889a7ea09fa45f44cd402948f868d` for `CP-342 - Pure Validator Environment Reference Guard Coverage V1`.
+- Confirmed current branch before CP-343: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-343: `d37304b0945889a7ea09fa45f44cd402948f868d`.
+- Confirmed current status before CP-343: clean.
+- Current stop reason: not stopped; CP-343 validator environment reference doc reconciliation is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-342 - Local checkpoint commit`.
+- `CP-343 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: validator implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused validator Vitest, `npm run lint`, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-342 validator test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside the listed validator rules doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan for environment/workspace persistence string guard coverage, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-343 validator rules doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-342 pure validator environment reference guard coverage if final diff/status checks remain clean by scope.
+1. Commit the CP-343 validator environment reference doc reconciliation if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

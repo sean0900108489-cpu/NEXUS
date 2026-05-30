@@ -1,0 +1,60 @@
+import { readFileSync } from "node:fs";
+
+import { describe, expect, it } from "vitest";
+
+describe("NexusOps extraction map markers", () => {
+  it("keeps graph and workspace behavior markers visible for protected-core planning", () => {
+    const source = readNexusOpsSource();
+
+    expect(source).toContain('import { NexusGraph } from "@/components/nexus/nexus-graph";');
+    expect(source).toContain("<NexusGraph");
+    expect(source).toContain("updateGraphNodePosition");
+    expect(source).toContain("connectGraphAgents");
+    expect(source).toContain("connectWorkflowRuntimeNodes");
+    expect(source).toContain("runWorkflowRuntimeLiteFlow");
+  });
+
+  it("keeps store, sync, Supabase, streaming, and tool execution markers visible", () => {
+    const source = readNexusOpsSource();
+
+    expect(source).toContain('import { useNexusStore } from "@/store/nexus-store";');
+    expect(source).toContain("supabaseStateSyncManager");
+    expect(source).toContain("localSyncQueueAdapter");
+    expect(source).toContain("handleSend");
+    expect(source).toContain("/api/v1/agents/${agentId}/stream");
+    expect(source).toContain("readStreamEvents");
+    expect(source).toContain("runTool");
+  });
+
+  it("keeps drag, resize, focus, z-index, window, and modal markers visible", () => {
+    const source = readNexusOpsSource();
+
+    expect(source).toContain('dynamic(() => import("react-rnd")');
+    expect(source).toContain("<Rnd");
+    expect(source).toContain("onDragStop");
+    expect(source).toContain("onResizeStop");
+    expect(source).toContain("style={{ zIndex: agent.layout.zIndex }}");
+    expect(source).toContain("focusAgent");
+    expect(source).toContain("<DatapadWindow");
+    expect(source).toContain("<PromptVaultManager");
+    expect(source).toContain("<AgentBranchModal");
+    expect(source).toContain("<MacroComposerModal");
+  });
+
+  it("keeps extraction-safe visual shell candidate markers visible", () => {
+    const source = readNexusOpsSource();
+
+    expect(source).toContain('className="nexus-shell');
+    expect(source).toContain('className="nexus-workspace');
+    expect(source).toContain('className="nexus-panel');
+    expect(source).toContain("<TopBar");
+    expect(source).toContain("<LeftDock");
+    expect(source).toContain("<RightFloatingDock");
+    expect(source).toContain("<AgentSettingsSidebar");
+    expect(source).toContain("<CommandPalette");
+  });
+});
+
+function readNexusOpsSource() {
+  return readFileSync(new URL("nexus-ops.tsx", import.meta.url), "utf8");
+}

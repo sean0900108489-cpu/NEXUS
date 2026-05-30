@@ -1429,31 +1429,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-304 - Validator Protected Behavior Class Doc Reconciliation V1`.
 - Reconciled manifest validator rules docs with CP-303 protected behavior class entry validation.
 - Verified CP-304 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
+- Created local checkpoint commit `63c52448387e72ecf6ef74f0e76877367201db00` for the Validator Protected Behavior Class Doc Reconciliation V1 unit.
+- Started `CP-305 - Post Protected Behavior Class Guard Phase Gate` with source edits closed.
+- Ran decomposed full gate: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, and `npm run build`.
+- Confirmed full Vitest passed 41 files / 339 tests and build passed with static `/style-lab` plus the known edge-runtime warning.
+- Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, and existing React Flow/window-modal adapter forbidden-key registries and test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-304 - Validator Protected Behavior Class Doc Reconciliation V1`.
-- Latest recorded checkpoint commit: `7b07ae531fac1eb31488efe146216369dc1acc25` for `CP-303 - Pure Validator Protected Behavior Class Entry Guard V1`; CP-304 is being prepared for local commit.
-- Confirmed current branch during CP-304: `codex/v17-large-iteration`.
-- Confirmed current status after CP-304 verification prep: dirty only in CP-304 allowed manifest validator doc and run-doc files.
-- Current stop reason: not stopped; CP-304 protected behavior class doc reconciliation checkpoint is underway.
+- Latest completed checkpoint: `CP-305 - Post Protected Behavior Class Guard Phase Gate`.
+- Latest recorded checkpoint commit: `63c52448387e72ecf6ef74f0e76877367201db00` for `CP-304 - Validator Protected Behavior Class Doc Reconciliation V1`; CP-305 is being prepared for local commit.
+- Confirmed current branch during CP-305: `codex/v17-large-iteration`.
+- Confirmed current status after CP-305 verification prep: clean before run-doc bookkeeping; dirty only in CP-305 run-doc files during this update.
+- Current stop reason: not stopped; CP-305 post protected behavior class guard phase gate checkpoint is underway.
 
 ## In Progress
 
-- `CP-304 - Local checkpoint commit prep`.
+- `CP-305 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, docs outside the listed validator doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-304 validator doc/run-doc changes if this reconciliation must be removed.
+- Forbidden files: all source/test/product docs, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, `npm run build`, side-effect/import scan, behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-305 run-doc changes if this phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-304 protected behavior class doc reconciliation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-305 post protected behavior class guard phase gate checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

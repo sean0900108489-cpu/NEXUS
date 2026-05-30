@@ -1454,31 +1454,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-310 - Pure Exchange Import Clone Coverage V1`.
 - Added focused exchange coverage proving direct manifest import normalization returns a cloned manifest and does not expose the caller-owned object for mutation.
 - Verified CP-310 with focused exchange Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scans, and `git diff --check`.
+- Created local checkpoint commit `8ebabfa79dcea2685389a8594fc61a790d1ee932` for the Pure Exchange Import Clone Coverage V1 unit.
+- Started `CP-311 - Governance Import Clone Doc Reconciliation V1`.
+- Reconciled style pack governance docs with CP-310 cloned manifest import normalization coverage.
+- Verified CP-311 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-310 - Pure Exchange Import Clone Coverage V1`.
-- Latest recorded checkpoint commit: `d25eee3a77435649b7ded85ebd949b4590acc5de` for `CP-309 - Governance Direct Manifest Import Doc Reconciliation V1`; CP-310 is being prepared for local commit.
-- Confirmed current branch during CP-310: `codex/v17-large-iteration`.
-- Confirmed current status after CP-310 verification prep: dirty only in CP-310 allowed exchange test and run-doc files.
-- Current stop reason: not stopped; CP-310 exchange import clone coverage checkpoint is underway.
+- Latest completed checkpoint: `CP-311 - Governance Import Clone Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `8ebabfa79dcea2685389a8594fc61a790d1ee932` for `CP-310 - Pure Exchange Import Clone Coverage V1`; CP-311 is being prepared for local commit.
+- Confirmed current branch during CP-311: `codex/v17-large-iteration`.
+- Confirmed current status after CP-311 verification prep: dirty only in CP-311 allowed style pack governance doc and run-doc files.
+- Current stop reason: not stopped; CP-311 governance import clone doc reconciliation checkpoint is underway.
 
 ## In Progress
 
-- `CP-310 - Local checkpoint commit prep`.
+- `CP-311 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/exchange.test.ts`
+  - `docs/style-system/style-pack-governance.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused exchange Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-310 exchange test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, docs outside the listed governance doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-311 governance doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-310 exchange import clone coverage checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-311 governance import clone doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -8,6 +8,7 @@ import {
   createInvalidLayoutPresetV1,
   createInvalidUnsafeAssetPackV1,
   createOverBudgetSkinPackV2,
+  createPixelWorkshopSkinPackV2,
   createUnsupportedVersionSkinPackV2,
   createValidAssetPackV1,
   createValidLayoutPresetV1,
@@ -22,9 +23,10 @@ import {
 } from "@/lib/style-engine";
 
 describe("NEXUS Style Engine V2 pure validators", () => {
-  it("accepts valid minimal and cyberpunk-compatible skin packs", () => {
+  it("accepts valid minimal, cyberpunk-compatible, and pixel workshop skin packs", () => {
     const minimal = validateNexusSkinPackV2(createValidMinimalSkinPackV2());
     const cyberpunk = validateNexusSkinPackV2(createCyberpunkCompatibleSkinPackV2());
+    const pixelWorkshop = validateNexusSkinPackV2(createPixelWorkshopSkinPackV2());
 
     expect(minimal.errors).toEqual([]);
     expect(minimal.accepted).toBe(true);
@@ -34,6 +36,11 @@ describe("NEXUS Style Engine V2 pure validators", () => {
     expect(cyberpunk.accepted).toBe(true);
     expect(cyberpunk.errors).toEqual([]);
     expect(cyberpunk.skinPack?.id).toBe("cyberpunk-compatible-skin");
+
+    expect(pixelWorkshop.accepted).toBe(true);
+    expect(pixelWorkshop.errors).toEqual([]);
+    expect(pixelWorkshop.skinPack?.id).toBe("pixel-workshop-skin");
+    expect(pixelWorkshop.totals?.cssVariableCount).toBeGreaterThan(0);
   });
 
   it("accepts valid asset, recipe registry, layout, and performance contracts", () => {
@@ -181,6 +188,7 @@ describe("NEXUS Style Engine V2 pure validators", () => {
 
   it("keeps V2 modules free of runtime UI, DOM, store, backend, Supabase, and React Flow imports", () => {
     const files = [
+      "v2-authoring-context.ts",
       "v2-contracts.ts",
       "v2-fixtures.ts",
       "v2-validators.ts",

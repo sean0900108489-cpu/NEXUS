@@ -7,6 +7,7 @@ import {
   compileNexusSkinPackTokenPreviewV2,
   createCyberpunkCompatibleSkinPackV2,
   createOverBudgetSkinPackV2,
+  createPixelWorkshopSkinPackV2,
   createValidMinimalSkinPackV2,
 } from "@/lib/style-engine";
 
@@ -74,6 +75,30 @@ describe("NEXUS Style Engine V2 token-only preview compiler", () => {
     expect(serializedVariables).not.toContain("cyberpunk-action-icon");
     expect(serializedVariables).not.toContain("compact-glass-ops");
     expect(serializedVariables).not.toContain("surface.panel");
+  });
+
+  it("compiles the pixel workshop fixture into scoped token variables", () => {
+    const result = compileNexusSkinPackTokenPreviewV2(
+      createPixelWorkshopSkinPackV2(),
+    );
+
+    expect(result.accepted).toBe(true);
+
+    if (!result.accepted) {
+      throw new Error("Expected pixel workshop token preview to be accepted.");
+    }
+
+    expect(result.patch.manifestId).toBe("pixel-workshop");
+    expect(result.patch.variables["--nexus-accent-primary"]).toBe("#45f0d7");
+    expect(result.patch.variables["--nexus-radius-surface"]).toBe("0px");
+    expect(result.report.omitted.assets).toBe(true);
+    expect(result.report.omitted.layoutPreset).toBe(true);
+    expect(JSON.stringify(result.patch.variables)).not.toContain(
+      "pixel-workshop-panel-texture",
+    );
+    expect(JSON.stringify(result.patch.variables)).not.toContain(
+      "pixel-workshop-compact",
+    );
   });
 
   it("only emits variables from requested token groups", () => {

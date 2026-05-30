@@ -148,6 +148,202 @@ export function createCyberpunkCompatibleSkinPackV2(): NexusSkinPackV2 {
   };
 }
 
+export function createPixelWorkshopSkinPackV2(): NexusSkinPackV2 {
+  const manifest = createHighContrastCarbonStyleManifestV1();
+
+  return {
+    ...createValidMinimalSkinPackV2(),
+    assets: {
+      assetPackContract: "asset-pack-v1",
+      assetPackId: "pixel-workshop-safe-assets",
+      fallbackAssetPackId: "minimal-safe-assets",
+      lazyAssetIds: ["pixel-workshop-panel-texture"],
+      optionalAssetIds: ["pixel-workshop-tool-icon"],
+      requiredAssetIds: [],
+    },
+    compatibility: {
+      appStyleEngineVersion: "nexus-style-engine-v2",
+      assetPackContract: "asset-pack-v1",
+      compilerVersion: "nexus-style-compiler-v1",
+      layoutPresetContract: "layout-preset-boundary-v1",
+      manifestVersion: 1,
+      recipeRegistryVersion: "recipe-registry-v1",
+      result: "compatible_with_warnings",
+      validatorVersion: "nexus-style-validator-v1",
+      warnings: [
+        "stylePack.compatibility.reviewOnlyAssets",
+        "stylePack.compatibility.reviewOnlyLayout",
+      ],
+    },
+    fallback: {
+      fallbackLegacyPreset: "cyberpunk",
+      fallbackManifestId: "legacy-cyberpunk",
+      fallbackPackId: "minimal-carbon-skin",
+      onAssetFailure: "omit-asset",
+      onBudgetFailure: "reject-pack",
+      onLayoutFailure: "use-default-layout",
+    },
+    id: "pixel-workshop-skin",
+    layoutPreset: {
+      contract: "layout-preset-boundary-v1",
+      density: "compact",
+      presetId: "pixel-workshop-compact",
+      slotOrdering: ["header", "body", "actions"],
+      surfaceTreatment: "outlined",
+      visibilityHints: {
+        sidebar: "compact",
+        toolrail: "compact",
+      },
+    },
+    manifest: {
+      manifestId: "pixel-workshop",
+      manifestVersion: 1,
+      payload: {
+        ...manifest,
+        adapters: {
+          nextThemes: {
+            colorScheme: "dark",
+            dataTheme: "terminal",
+          },
+          tailwindBridge: {
+            enabled: true,
+            legacyVariableMode: "preserve",
+          },
+        },
+        description:
+          "Pixel workshop visual language expressed as safe NEXUS tokens for Style Lab token preview.",
+        id: "pixel-workshop",
+        intent: {
+          contrast: "high",
+          density: "compact",
+          material: ["pixel-stone", "dirt", "grass", "diamond"],
+          mood: ["blocky", "playful", "workshop"],
+          motion: "minimal",
+        },
+        name: "Pixel Workshop",
+        recipes: {
+          ...manifest.recipes,
+          badge: {
+            default: {
+              border: "accent.secondary",
+              surface: "surface.panelMuted",
+              text: "text.secondary",
+            },
+          },
+          button: {
+            default: {
+              border: "border.subtle",
+              surface: "surface.panelMuted",
+              text: "text.primary",
+            },
+            focus: {
+              ring: "accent.primaryStrong",
+            },
+            hover: {
+              border: "accent.primary",
+              surface: "surface.raised",
+              text: "text.primary",
+            },
+          },
+          panel: {
+            border: "border.subtle",
+            shadow: "shadow.panel",
+            surface: "surface.panel",
+            text: "text.primary",
+          },
+        },
+        source: {
+          kind: "human-brief",
+          reference: "style-pack-authoring-closed-loop-fixture",
+        },
+        tokens: {
+          accent: {
+            primary: "#45f0d7",
+            primaryStrong: "#18b8d8",
+            secondary: "#7bbf2a",
+          },
+          blur: {
+            backdrop: "0px",
+            glass: "0px",
+          },
+          border: {
+            glow: "rgb(69 240 215 / 0.28)",
+            subtle: "rgb(216 231 167 / 0.32)",
+          },
+          density: {
+            control: "compact",
+            panel: "compact",
+          },
+          motion: {
+            durationFast: "80ms",
+            durationNormal: "120ms",
+          },
+          radius: {
+            base: "0px",
+            surface: "0px",
+          },
+          shadow: {
+            glow: "0 0 0 rgb(0 0 0 / 0)",
+            panel: "0 8px 0 rgb(0 0 0 / 0.42)",
+          },
+          status: {
+            danger: "#ff6b5f",
+            info: "#45f0d7",
+            success: "#63d247",
+            warning: "#ffd34e",
+          },
+          surface: {
+            app: "#10140a",
+            input: "#2a2416",
+            overlay: "rgb(16 20 10 / 0.88)",
+            panel: "#26331a",
+            panelMuted: "#3f321f",
+            raised: "#4c5b2d",
+            shell: "#161b10",
+            workspace: "#1f2717",
+          },
+          text: {
+            danger: "#ff9b8f",
+            inverse: "#07100c",
+            muted: "#b8c48f",
+            primary: "#f3ffd1",
+            secondary: "#d8e7a7",
+            success: "#a8ff8a",
+            warning: "#ffe066",
+          },
+          typography: {
+            interface: "Geist Mono",
+            mono: "Geist Mono",
+          },
+          workspace: {
+            gridPrimary: "rgb(99 210 71 / 0.22)",
+            gridSecondary: "rgb(69 240 215 / 0.18)",
+            wash: "rgb(123 191 42 / 0.12)",
+          },
+        },
+      },
+    },
+    metadata: {
+      description:
+        "Minecraft-like pixel workshop palette with grass, dirt, stone, and diamond tones for token-only preview.",
+      displayName: "Pixel Workshop Skin",
+      lifecycle: "validated",
+      source: "human-authored",
+      tags: ["pixel", "minecraft-like", "workshop", "token-preview"],
+    },
+    recipes: {
+      adapterCoverage: {
+        primitives: "partial",
+        windowModal: "partial",
+      },
+      groups: ["panel", "button", "input", "window", "modal"],
+      registryVersion: "recipe-registry-v1",
+      source: "manifest",
+    },
+    slug: "pixel-workshop-skin",
+  };
+}
+
 export function createValidAssetPackV1(): NexusAssetPackV1 {
   return {
     assets: [

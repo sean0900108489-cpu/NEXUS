@@ -9,6 +9,7 @@ import {
   createNexusStyleExportPackageV1,
   createNexusStylePreviewPatchV1,
   createOverBudgetSkinPackV2,
+  createPixelWorkshopSkinPackV2,
   createValidMinimalSkinPackV2,
   parseNexusSkinPackReviewImportTextV2,
   parseNexusStyleImportTextV1,
@@ -59,6 +60,28 @@ describe("NEXUS Style Engine V2 review-only import", () => {
       }),
     );
     expect(result.tokenPreview.variableCount).toBeGreaterThan(0);
+  });
+
+  it("accepts the pixel workshop fixture and marks it token-preview eligible", () => {
+    const result = parseNexusSkinPackReviewImportTextV2(
+      JSON.stringify(createPixelWorkshopSkinPackV2()),
+    );
+
+    expect(result.accepted).toBe(true);
+    expect(result.summary.metadata.rows).toEqual(
+      expect.arrayContaining([
+        { label: "Pack", value: "pixel-workshop-skin" },
+        { label: "Compatibility", value: "compatible_with_warnings" },
+      ]),
+    );
+    expect(result.summary.assets.rows).toEqual(
+      expect.arrayContaining([
+        { label: "Binding", value: "referenced" },
+        { label: "Asset Pack", value: "pixel-workshop-safe-assets" },
+      ]),
+    );
+    expect(result.tokenPreview.canPreviewTokens).toBe(true);
+    expect(result.tokenPreview.reasonCodes).toEqual([]);
   });
 
   it("produces a rejected redacted report for an invalid V2 fixture", () => {

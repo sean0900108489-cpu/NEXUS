@@ -28,9 +28,13 @@ import {
   createNexusStylePreviewPatchV1,
   createNexusProductionTokenBridgePlanV1,
   createDefaultWorkspaceLayoutPresetV1,
+  createDefaultWorkspacePageShellFeatureMountPlanV1,
   createInvalidUnsafeWorkspaceLayoutPresetV1,
+  createInvalidUnsafePageShellFeatureMountPlanV1,
   createLeftRightSwappedWorkspaceLayoutPresetV1,
+  createNexusPageShellPrototypeV1,
   createOverBudgetSkinPackV2,
+  createPageShellFeatureMountPlanV1,
   createPageShellLayoutPresetV1,
   createPixelWorkshopSkinPackV2,
   createReactFlowStyleAdapterFromManifestV1,
@@ -48,6 +52,8 @@ import {
   reviewNexusWorkspaceLayoutPresetTextV1,
   reviewNexusStylePackV1,
   revertNexusProductionTokenBridgePreviewOnTargetV1,
+  validateNexusPageShellFeatureMountPlanV1,
+  validateNexusWorkspaceLayoutPresetV1,
   type NexusProductionTokenBridgePreviewSessionV1,
   type NexusSkinPackReviewImportResultV2,
   type NexusSkinPackReviewSummarySectionV2,
@@ -425,6 +431,7 @@ const productionBridgeTargetMutedStyle = {
 export function NexusStyleLab() {
   const runtime = useNexusStyleRuntimeV1();
   const productionBridgeTargetRef = useRef<HTMLDivElement | null>(null);
+  const pageShellPrototypeTargetRef = useRef<HTMLDivElement | null>(null);
   const baselineManifest = useMemo(
     () => createLegacyCyberpunkStyleManifestV1(),
     [],
@@ -463,6 +470,10 @@ export function NexusStyleLab() {
   const [
     productionBridgePreviewSession,
     setProductionBridgePreviewSession,
+  ] = useState<NexusProductionTokenBridgePreviewSessionV1 | null>(null);
+  const [
+    pageShellPrototypePreviewSession,
+    setPageShellPrototypePreviewSession,
   ] = useState<NexusProductionTokenBridgePreviewSessionV1 | null>(null);
   const baselineCompiled = useMemo(
     () => compileNexusStyleManifestV1(baselineManifest),
@@ -771,6 +782,99 @@ export function NexusStyleLab() {
       [],
     [layoutPresetReviewResult],
   );
+  const pageShellPrototypeItems = useMemo(
+    () =>
+      [
+        {
+          id: "home",
+          label: "Home Shell",
+          prototype: createNexusPageShellPrototypeV1({
+            featurePlanResult: validateNexusPageShellFeatureMountPlanV1(
+              createPageShellFeatureMountPlanV1("home"),
+            ),
+            layoutResult: validateNexusWorkspaceLayoutPresetV1(
+              createPageShellLayoutPresetV1("home"),
+            ),
+          }),
+        },
+        {
+          id: "workspace",
+          label: "Workspace Shell",
+          prototype: createNexusPageShellPrototypeV1({
+            featurePlanResult: validateNexusPageShellFeatureMountPlanV1(
+              createDefaultWorkspacePageShellFeatureMountPlanV1(),
+            ),
+            layoutResult: validateNexusWorkspaceLayoutPresetV1(
+              createDefaultWorkspaceLayoutPresetV1(),
+            ),
+          }),
+        },
+        {
+          id: "settings",
+          label: "Settings Shell",
+          prototype: createNexusPageShellPrototypeV1({
+            featurePlanResult: validateNexusPageShellFeatureMountPlanV1(
+              createPageShellFeatureMountPlanV1("settings"),
+            ),
+            layoutResult: validateNexusWorkspaceLayoutPresetV1(
+              createPageShellLayoutPresetV1("settings"),
+            ),
+          }),
+        },
+        {
+          id: "style-lab",
+          label: "Style Lab Shell",
+          prototype: createNexusPageShellPrototypeV1({
+            featurePlanResult: validateNexusPageShellFeatureMountPlanV1(
+              createPageShellFeatureMountPlanV1("styleLab"),
+            ),
+            layoutResult: validateNexusWorkspaceLayoutPresetV1(
+              createPageShellLayoutPresetV1("styleLab"),
+            ),
+          }),
+        },
+        {
+          id: "left-right",
+          label: "Left/Right Swapped",
+          prototype: createNexusPageShellPrototypeV1({
+            featurePlanResult: validateNexusPageShellFeatureMountPlanV1(
+              createDefaultWorkspacePageShellFeatureMountPlanV1(),
+            ),
+            layoutResult: validateNexusWorkspaceLayoutPresetV1(
+              createLeftRightSwappedWorkspaceLayoutPresetV1(),
+            ),
+          }),
+        },
+        {
+          id: "top-bottom",
+          label: "Top/Bottom Swapped",
+          prototype: createNexusPageShellPrototypeV1({
+            featurePlanResult: validateNexusPageShellFeatureMountPlanV1(
+              createDefaultWorkspacePageShellFeatureMountPlanV1(),
+            ),
+            layoutResult: validateNexusWorkspaceLayoutPresetV1(
+              createTopBottomSwappedWorkspaceLayoutPresetV1(),
+            ),
+          }),
+        },
+        {
+          id: "invalid",
+          label: "Unsafe Example",
+          prototype: createNexusPageShellPrototypeV1({
+            featurePlanResult: validateNexusPageShellFeatureMountPlanV1(
+              createInvalidUnsafePageShellFeatureMountPlanV1(),
+            ),
+            layoutResult: validateNexusWorkspaceLayoutPresetV1(
+              createInvalidUnsafeWorkspaceLayoutPresetV1(),
+            ),
+          }),
+        },
+      ] as const,
+    [],
+  );
+  const acceptedPageShellPrototypeCount = pageShellPrototypeItems.filter(
+    (item) => item.prototype.accepted,
+  ).length;
   const specimenGalleryRows = useMemo(
     () => [
       ["Render Plan", renderPlan ? "ready" : "blocked"],
@@ -1015,7 +1119,15 @@ export function NexusStyleLab() {
       });
     }
 
+    if (pageShellPrototypePreviewSession) {
+      revertNexusProductionTokenBridgePreviewOnTargetV1({
+        session: pageShellPrototypePreviewSession,
+        target: pageShellPrototypeTargetRef.current,
+      });
+    }
+
     setProductionBridgePreviewSession(null);
+    setPageShellPrototypePreviewSession(null);
     setProductionBridgePreviewState("idle");
   };
 
@@ -1030,28 +1142,51 @@ export function NexusStyleLab() {
       currentSession: productionBridgePreviewSession,
       target: productionBridgeTargetRef.current,
     });
+    const pageShellResult = previewNexusProductionTokenBridgePlanOnTargetV1({
+      bridgePlan: productionBridgePlan,
+      currentSession: pageShellPrototypePreviewSession,
+      target: pageShellPrototypeTargetRef.current,
+    });
 
-    if (!result.accepted) {
+    if (!result.accepted || !pageShellResult.accepted) {
+      if (result.accepted) {
+        revertNexusProductionTokenBridgePreviewOnTargetV1({
+          session: result.session,
+          target: productionBridgeTargetRef.current,
+        });
+      }
+
       setProductionBridgePreviewState("blocked");
       return;
     }
 
     setProductionBridgePreviewSession(result.session);
+    setPageShellPrototypePreviewSession(pageShellResult.session);
     setProductionBridgePreviewState("previewing");
   };
 
   const revertProductionBridgePreview = () => {
-    if (!productionBridgePreviewSession) {
+    if (!productionBridgePreviewSession && !pageShellPrototypePreviewSession) {
       setProductionBridgePreviewState("reverted");
       return;
     }
 
-    revertNexusProductionTokenBridgePreviewOnTargetV1({
-      session: productionBridgePreviewSession,
-      target: productionBridgeTargetRef.current,
-    });
+    if (productionBridgePreviewSession) {
+      revertNexusProductionTokenBridgePreviewOnTargetV1({
+        session: productionBridgePreviewSession,
+        target: productionBridgeTargetRef.current,
+      });
+    }
+
+    if (pageShellPrototypePreviewSession) {
+      revertNexusProductionTokenBridgePreviewOnTargetV1({
+        session: pageShellPrototypePreviewSession,
+        target: pageShellPrototypeTargetRef.current,
+      });
+    }
 
     setProductionBridgePreviewSession(null);
+    setPageShellPrototypePreviewSession(null);
     setProductionBridgePreviewState("reverted");
   };
 
@@ -2004,6 +2139,153 @@ export function NexusStyleLab() {
               </section>
 
               <section
+                className="border border-cyan-300/15 bg-black/20 p-4 lg:col-span-2"
+                data-testid="v2-page-shell-prototype-panel"
+              >
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                    Page Shell Prototype
+                  </div>
+                  <div
+                    className="font-mono text-[10px] uppercase tracking-[0.12em] text-cyan-200"
+                    data-testid="v2-page-shell-prototype-status"
+                  >
+                    {acceptedPageShellPrototypeCount} isolated shells ready
+                  </div>
+                </div>
+
+                <div
+                  ref={pageShellPrototypeTargetRef}
+                  className="nexus-workspace grid min-w-0 gap-3 border border-white/10 p-3"
+                  data-testid="v2-page-shell-prototype-target"
+                >
+                  <div className="grid gap-3 lg:grid-cols-2">
+                    {pageShellPrototypeItems.map((item) => {
+                      const result = item.prototype;
+
+                      return (
+                        <div
+                          key={`page-shell-prototype:${item.id}`}
+                          className="nexus-panel min-w-0 p-3"
+                          data-testid={`v2-page-shell-prototype-${item.id}`}
+                        >
+                          <div className="mb-3 flex min-w-0 items-center justify-between gap-2">
+                            <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em]">
+                              {item.label}
+                            </div>
+                            <div
+                              className={[
+                                "shrink-0 font-mono text-[8px] uppercase tracking-[0.1em]",
+                                result.accepted
+                                  ? "text-emerald-200"
+                                  : "text-rose-200",
+                              ].join(" ")}
+                            >
+                              {result.accepted ? "accepted" : "rejected"}
+                            </div>
+                          </div>
+
+                          {result.accepted ? (
+                            <div className="grid gap-3">
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="nexus-glass min-w-0 p-2">
+                                  <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                                    Shell
+                                  </div>
+                                  <div className="mt-1 truncate font-mono text-[9px]">
+                                    {result.prototype.pageShell}
+                                  </div>
+                                </div>
+                                <div className="nexus-glass min-w-0 p-2">
+                                  <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                                    Arrangement
+                                  </div>
+                                  <div className="mt-1 truncate font-mono text-[9px]">
+                                    {result.prototype.arrangement}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="grid gap-2">
+                                {result.prototype.regions.map((region) => (
+                                  <div
+                                    key={`page-shell-region:${item.id}:${region.regionId}`}
+                                    className="grid min-w-0 grid-cols-[72px_minmax(0,1fr)] gap-2"
+                                  >
+                                    <span className="nexus-glass truncate px-2 py-2 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-400">
+                                      {region.regionId}
+                                    </span>
+                                    <div className="flex min-w-0 flex-wrap gap-1 border border-white/10 bg-black/20 p-1.5">
+                                      {region.slots.length > 0 ? (
+                                        region.slots.map((slot) => (
+                                          <span
+                                            key={`page-shell-slot:${item.id}:${region.regionId}:${slot.slotId}`}
+                                            className="max-w-full truncate border border-cyan-300/20 bg-cyan-300/10 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-cyan-100"
+                                          >
+                                            {slot.slotId}
+                                            {slot.features.length > 0
+                                              ? ` / ${slot.features
+                                                  .map((feature) => feature.label)
+                                                  .join(", ")}`
+                                              : ""}
+                                          </span>
+                                        ))
+                                      ) : (
+                                        <span className="truncate px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-600">
+                                          empty
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className="grid gap-1 border border-white/10 bg-black/20 p-2">
+                                <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                                  Slot Feature Placement
+                                </div>
+                                {result.prototype.featurePlacementSummary.map(
+                                  (placement) => (
+                                    <div
+                                      key={`page-shell-placement:${item.id}:${placement.featureId}`}
+                                      className="grid min-w-0 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-2"
+                                    >
+                                      <span className="truncate font-mono text-[8px] text-slate-400">
+                                        {placement.slotId}
+                                      </span>
+                                      <span className="truncate font-mono text-[8px] text-slate-200">
+                                        {placement.label}
+                                      </span>
+                                    </div>
+                                  ),
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="grid gap-2 border border-rose-300/20 bg-rose-300/[0.04] p-2">
+                              {result.issues.map((issue) => (
+                                <div
+                                  key={`page-shell-prototype-issue:${item.id}:${issue.path}:${issue.code}`}
+                                  className="min-w-0"
+                                >
+                                  <div className="truncate font-mono text-[9px] text-rose-100">
+                                    {issue.code}
+                                  </div>
+                                  <div className="mt-1 truncate font-mono text-[8px] text-slate-500">
+                                    {issue.path} / {issue.message}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+
+              <section
                 className="border border-emerald-300/15 bg-black/20 p-4 lg:col-span-2"
                 data-testid="v2-specimen-gallery"
               >
@@ -2198,7 +2480,10 @@ export function NexusStyleLab() {
                         <button
                           className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10 disabled:opacity-40"
                           data-testid="v2-production-bridge-revert"
-                          disabled={!productionBridgePreviewSession}
+                          disabled={
+                            !productionBridgePreviewSession &&
+                            !pageShellPrototypePreviewSession
+                          }
                           onClick={revertProductionBridgePreview}
                           type="button"
                         >

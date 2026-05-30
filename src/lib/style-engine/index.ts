@@ -19,6 +19,7 @@ export * from "./v2-fixtures";
 export * from "./v2-authoring-context";
 export * from "./v2-layout-boundary";
 export * from "./v2-page-shell-feature-registry";
+export * from "./v2-page-shell-prototype";
 export * from "./v2-review-import";
 export * from "./v2-recipe-specimen-preview";
 export * from "./v2-render-plan";

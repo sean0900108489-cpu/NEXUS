@@ -1605,32 +1605,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-345 - Pure Validator Executable String Guard Coverage V1`.
 - Added focused validator coverage proving script-tag, JavaScript URL, `eval(...)`, dynamic `Function(...)`, and dynamic `import(...)` string values are rejected without echoing payloads.
 - Verified CP-345 with focused validator Vitest, `npm run lint`, `npm run typecheck`, touched-file side-effect/behavior scan, and `git diff --check`.
+- Created local checkpoint commit `6e72e1aa39e1179ad4e4a13ba97097945f530e5f` for the Pure Validator Executable String Guard Coverage V1 unit.
+- Started `CP-346 - Validator Executable String Doc Reconciliation V1`.
+- Reconciled manifest validator docs with CP-345 executable string guard coverage.
+- Verified CP-346 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-345 - Pure Validator Executable String Guard Coverage V1`.
-- Latest recorded checkpoint commit: `618d48a43a5d783c9d5ac9e702dbf247979e4b11` for `CP-344 - Post Validator Environment Reference Guard Phase Gate`.
-- Confirmed current branch before CP-345: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-345: `618d48a43a5d783c9d5ac9e702dbf247979e4b11`.
-- Confirmed current status before CP-345: clean.
-- Current stop reason: not stopped; CP-345 pure validator executable string guard coverage is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-346 - Validator Executable String Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `6e72e1aa39e1179ad4e4a13ba97097945f530e5f` for `CP-345 - Pure Validator Executable String Guard Coverage V1`.
+- Confirmed current branch before CP-346: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-346: `6e72e1aa39e1179ad4e4a13ba97097945f530e5f`.
+- Confirmed current status before CP-346: clean.
+- Current stop reason: not stopped; CP-346 validator executable string doc reconciliation is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-345 - Local checkpoint commit`.
+- `CP-346 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: validator implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused validator Vitest, `npm run lint`, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-345 validator test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside the listed validator rules doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan for executable string guard coverage, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-346 validator rules doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-345 pure validator executable string guard coverage if final diff/status checks remain clean by scope.
+1. Commit the CP-346 validator executable string doc reconciliation if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

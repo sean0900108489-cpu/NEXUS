@@ -221,3 +221,24 @@ No-Go zones for the next implementation phase:
 - command execution
 - provider/auth/sync/persistence paths
 - any new registry, contract, feature placement, or layout preset adoption
+
+## 8. V18 Second-Level Static Frame Assessment
+
+Assessed during
+`20260531-v18-low-intensity-production-shell-long-run` Phase 3.
+
+| Candidate | Source anchor | Assessment | Decision |
+| --- | --- | --- | --- |
+| Right floating dock outer frame | `src/components/nexus/nexus-ops.tsx:2445` | The outer `nav` and inner rail `div` are static visual wrappers. Active state, button map, button classes, and `onClick` handlers can remain inside `RightFloatingDock`. Pointer-event and z-index classes must be preserved exactly. | Safe optional Phase 4 target: `NexusOpsRightFloatingDockFrame`. |
+| Collapsed sidebar rail | `src/components/nexus/nexus-ops.tsx:2352` | Root is a `motion.div` with animation props and side-derived visual class state. | Skip until an animation-boundary plan exists. |
+| Command palette panel | `src/components/nexus/nexus-ops.tsx:6392` | Owns query state, input ref, focus timing, overlay close behavior, mouse event behavior, and command execution. | No-Go for this run. |
+| Agent settings sidebar chrome | `src/components/nexus/nexus-ops.tsx:3240` | Owns settings/provider/artifact/memory/theme/trace/auth paths and a fixed motion overlay. | No-Go for this run. |
+| Sync badge and top menu actions | `src/components/nexus/nexus-ops.tsx:2811`, `src/components/nexus/nexus-ops.tsx:2846` | Interactive controls with event handlers and conditional visual state. | No-Go for this run. |
+
+Recommended Phase 4 unit:
+
+- Extract only `NexusOpsRightFloatingDockFrame`.
+- Preserve current class strings and child order.
+- Keep all state, map rendering, active classes, labels, titles, and handlers in
+  `RightFloatingDock`.
+- Browser smoke must include right dock visibility and a safe right dock toggle.

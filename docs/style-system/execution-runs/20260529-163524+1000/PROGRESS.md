@@ -1411,32 +1411,35 @@ Run id: `20260529-163524+1000`
 - Extended the pure accessibility helper to parse opaque `rgb()`/`rgba()` colors for contrast checks while returning `null` for translucent or unknown color formats.
 - Added focused accessibility coverage for opaque RGB ratios, translucent RGB non-guessing, and secondary text contrast rejection against an opaque RGB panel surface.
 - Verified CP-300 with focused accessibility Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scans, and `git diff --check`.
+- Created local checkpoint commit `680709eabf53cabd39e878ab583da237fd604cc6` for the Pure Accessibility Opaque RGB Contrast Coverage V1 unit.
+- Started `CP-301 - Validator RGB Contrast Doc Reconciliation V1`.
+- Reconciled manifest validator rules docs with CP-300 opaque RGB/RGBA accessibility contrast parsing and translucent color non-guessing behavior.
+- Verified CP-301 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-300 - Pure Accessibility Opaque RGB Contrast Coverage V1`.
-- Latest recorded checkpoint commit: `08da263954b2977721f3508fe8bd99fe179f1ff1` for `CP-299 - Post Compiler Report Adapter Phase Gate`; CP-300 is being prepared for local commit.
-- Confirmed current branch during CP-300: `codex/v17-large-iteration`.
-- Confirmed current status after CP-300 verification prep: dirty only in CP-300 allowed accessibility helper/test and run-doc files.
-- Current stop reason: not stopped; CP-300 pure accessibility opaque RGB contrast checkpoint is underway.
+- Latest completed checkpoint: `CP-301 - Validator RGB Contrast Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `680709eabf53cabd39e878ab583da237fd604cc6` for `CP-300 - Pure Accessibility Opaque RGB Contrast Coverage V1`; CP-301 is being prepared for local commit.
+- Confirmed current branch during CP-301: `codex/v17-large-iteration`.
+- Confirmed current status after CP-301 verification prep: dirty only in CP-301 allowed manifest validator doc and run-doc files.
+- Current stop reason: not stopped; CP-301 validator RGB contrast doc reconciliation checkpoint is underway.
 
 ## In Progress
 
-- `CP-300 - Local checkpoint commit prep`.
+- `CP-301 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/accessibility.ts`
-  - `src/lib/style-engine/accessibility.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused accessibility Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-300 accessibility helper/test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, docs outside the listed validator doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-301 validator doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-300 pure accessibility opaque RGB contrast checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-301 validator RGB contrast doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

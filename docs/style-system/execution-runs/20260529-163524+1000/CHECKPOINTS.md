@@ -4974,3 +4974,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused accessibility Vitest passed 1 file / 4 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Touched-file side-effect/behavior scans returned no matches for workspace/sync/backend/Supabase/deploy/production Nexus/React Flow behavior paths. `git diff --check` passed.
 - Rollback note: revert only the CP-300 accessibility helper/test/run-doc changes if opaque RGB contrast parsing must be removed.
+
+## CP-301 - Validator RGB Contrast Doc Reconciliation V1
+
+- Unit: reconcile manifest validator rules docs with CP-300 opaque RGB/RGBA accessibility contrast parsing and non-guessing translucent color behavior.
+- Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, docs outside the listed validator doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence/doc scan for opaque RGB contrast wording; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: focused evidence/doc scan for opaque RGB contrast wording; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found CP-300 opaque RGB/RGBA accessibility coverage and matching manifest validator wording. Source-diff absence check showed no source/runtime diff for this docs-only unit. `git diff --check` passed.
+- Rollback note: revert only the CP-301 validator doc/run-doc changes if this reconciliation must be removed.

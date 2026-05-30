@@ -316,6 +316,7 @@ Run id: `20260529-163524+1000`
 | Compiler Report Adapter Doc Reconciliation V1 | PASS | Reconciled compiler contract docs with emitted variable count and nextThemes adapter coverage. |
 | Post Compiler Report Adapter Phase Gate | PASS | Decomposed full gate passed after compiler report/adapter coverage; side-effect scan, build, and git diff check passed. |
 | Pure Accessibility Opaque RGB Contrast Coverage V1 | PASS | Extended pure contrast parsing to opaque rgb/rgba values while keeping translucent and unknown formats non-guessed. |
+| Validator RGB Contrast Doc Reconciliation V1 | PASS | Reconciled validator docs with opaque RGB contrast coverage and translucent-color non-guessing. |
 
 ## Current Gate
 
@@ -328,4 +329,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Pure Accessibility Opaque RGB Contrast Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, docs outside this run folder, governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Validator RGB Contrast Doc Reconciliation local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside the validator doc and this run folder, governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

@@ -334,6 +334,7 @@ Run id: `20260529-163524+1000`
 | Pure Import Text Unknown JSON Coverage V1 | PASS | Added focused import-text coverage for unknown parsed JSON fail-closed behavior. |
 | Style Lab Import Text Doc Reconciliation V1 | PASS | Reconciled Style Lab docs with import-text unknown JSON fail-closed coverage. |
 | Post Import Text Coverage Phase Gate | PASS | Decomposed full gate passed after import-text coverage/docs; side-effect scan, build, and git diff check passed. |
+| Pure Runtime Controller Unqualified Revert Coverage V1 | PASS | Added focused runtime-controller coverage for `revert()` without a preview id. |
 
 ## Current Gate
 
@@ -346,4 +347,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Import Text Coverage Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside this run folder, runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Runtime Controller Unqualified Revert Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

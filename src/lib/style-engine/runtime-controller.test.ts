@@ -87,6 +87,27 @@ describe("NEXUS Style Engine runtime preview controller", () => {
       reverted: false,
     });
   });
+
+  it("reverts the active preview when no preview id is provided", () => {
+    const target = createFakeVariableTarget({
+      "--nexus-surface-app": "#030712",
+    });
+    const controller = createNexusStylePreviewControllerV1(target);
+
+    controller.preview(
+      createPatch("first", {
+        "--nexus-surface-app": "#020617",
+      }),
+    );
+
+    expect(controller.revert()).toEqual({
+      reverted: true,
+    });
+    expect(controller.getActivePreview()).toBeNull();
+    expect(target.read()).toEqual({
+      "--nexus-surface-app": "#030712",
+    });
+  });
 });
 
 function createPatch(

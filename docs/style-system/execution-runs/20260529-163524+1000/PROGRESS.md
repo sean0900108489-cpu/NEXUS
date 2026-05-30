@@ -1489,30 +1489,35 @@ Run id: `20260529-163524+1000`
 - Ran decomposed full gate: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, and `npm run build`.
 - Confirmed full Vitest passed 41 files / 343 tests and build passed with static `/style-lab` plus the known edge-runtime warning.
 - Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, and existing React Flow/window-modal adapter forbidden-key registries and test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
+- Created local checkpoint commit `dcb3f337b7abbdd8e6252e32900c8f9ec87956c1` for the Post Import Text Coverage Phase Gate.
+- Started `CP-319 - Pure Runtime Controller Unqualified Revert Coverage V1`.
+- Added focused runtime-controller coverage proving `revert()` without a preview id reverts the active local preview session and clears the active preview.
+- Verified CP-319 with focused runtime-controller Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scans, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-318 - Post Import Text Coverage Phase Gate`.
-- Latest recorded checkpoint commit: `ecbf89c2610483ec5178137dfc7ed7a915ff403b` for `CP-317 - Style Lab Import Text Doc Reconciliation V1`; CP-318 is being prepared for local commit.
-- Confirmed current branch during CP-318: `codex/v17-large-iteration`.
-- Confirmed current status after CP-318 verification prep: clean before run-doc bookkeeping; dirty only in CP-318 run-doc files during this update.
-- Current stop reason: not stopped; CP-318 post import text coverage phase gate checkpoint is underway.
+- Latest completed checkpoint: `CP-319 - Pure Runtime Controller Unqualified Revert Coverage V1`.
+- Latest recorded checkpoint commit: `dcb3f337b7abbdd8e6252e32900c8f9ec87956c1` for `CP-318 - Post Import Text Coverage Phase Gate`; CP-319 is being prepared for local commit.
+- Confirmed current branch during CP-319: `codex/v17-large-iteration`.
+- Confirmed current status after CP-319 verification prep: dirty only in CP-319 allowed runtime-controller test and run-doc files.
+- Current stop reason: not stopped; CP-319 runtime-controller unqualified revert coverage checkpoint is underway.
 
 ## In Progress
 
-- `CP-318 - Local checkpoint commit prep`.
+- `CP-319 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/runtime-controller.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test/product docs, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, `npm run build`, side-effect/import scan, behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-318 run-doc changes if this phase gate bookkeeping must be removed.
+- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused runtime-controller Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-319 runtime-controller test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-318 post import text coverage phase gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-319 runtime-controller unqualified revert coverage checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

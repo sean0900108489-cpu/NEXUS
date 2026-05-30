@@ -350,6 +350,34 @@ describe("NEXUS Style Engine manifest validator", () => {
     );
   });
 
+  it("rejects invalid protected behavior class entries", () => {
+    const manifest = createSafeManifest();
+
+    manifest.constraints.protectedBehaviorClasses = [
+      "visual-boundary",
+      "",
+      42 as never,
+    ];
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toEqual(
+      expect.arrayContaining([
+        {
+          code: "style.invalidProtectedBehaviorClass",
+          message: "protectedBehaviorClasses entries must be non-empty strings.",
+          path: "$.constraints.protectedBehaviorClasses[1]",
+        },
+        {
+          code: "style.invalidProtectedBehaviorClass",
+          message: "protectedBehaviorClasses entries must be non-empty strings.",
+          path: "$.constraints.protectedBehaviorClasses[2]",
+        },
+      ]),
+    );
+  });
+
   it("rejects missing token groups, semantic tokens, and invalid token values", () => {
     const manifest = createSafeManifest();
     const tokens = manifest.tokens as unknown as Record<

@@ -361,6 +361,17 @@ function validateConstraints(value: unknown, report: MutableReport) {
       "style.invalidProtectedBehaviorClasses",
       "protectedBehaviorClasses must be an array.",
     );
+  } else {
+    value.protectedBehaviorClasses.forEach((item, index) => {
+      if (typeof item !== "string" || item.length === 0) {
+        addError(
+          report,
+          `$.constraints.protectedBehaviorClasses[${index}]`,
+          "style.invalidProtectedBehaviorClass",
+          "protectedBehaviorClasses entries must be non-empty strings.",
+        );
+      }
+    });
   }
 }
 

@@ -108,6 +108,30 @@ describe("NEXUS Style Engine runtime preview controller", () => {
       "--nexus-surface-app": "#030712",
     });
   });
+
+  it("clearAll reverts the active preview session and clears it", () => {
+    const target = createFakeVariableTarget({
+      "--nexus-surface-app": "#030712",
+      "--nexus-text-primary": "#e5e7eb",
+    });
+    const controller = createNexusStylePreviewControllerV1(target);
+
+    controller.preview(
+      createPatch("first", {
+        "--nexus-accent-primary": "#67e8f9",
+        "--nexus-surface-app": "#020617",
+      }),
+    );
+
+    expect(controller.clearAll()).toEqual({
+      reverted: true,
+    });
+    expect(controller.getActivePreview()).toBeNull();
+    expect(target.read()).toEqual({
+      "--nexus-surface-app": "#030712",
+      "--nexus-text-primary": "#e5e7eb",
+    });
+  });
 });
 
 function createPatch(

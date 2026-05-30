@@ -5340,3 +5340,21 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/RECOVERY.md`
 - Verification result: PASS. CP-321 is committed at `2701fe0dc3bacf5a97bbe3407ac3adeaa817c1e0`; stale CP-321-prep/current-state wording no longer appears in the current-state docs after the corrected scan; dirty files are limited to the run folder; `git diff --check` passed; status is dirty only for this CP-322 run-doc update before local commit.
 - Rollback note: revert only the CP-322 run-doc current-state reconciliation if this bookkeeping must be removed.
+
+## CP-323 - Pure Runtime Controller ClearAll Active Coverage V1
+
+- Unit: add pure runtime-controller coverage proving `clearAll()` reverts an active preview session, removes newly applied variables, restores previous values, and clears the active preview.
+- Allowed files:
+  - `src/lib/style-engine/runtime-controller.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: runtime implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused runtime-controller Vitest; targeted lint for touched runtime-controller test; `npm run typecheck`; touched-file side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run test -- --testTimeout 20000 src/lib/style-engine/runtime-controller.test.ts`; `npm run lint -- src/lib/style-engine/runtime-controller.test.ts`; `npm run typecheck`; touched-file side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/runtime-controller.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/RECOVERY.md`
+- Verification result: PASS. Focused runtime-controller Vitest passed 1 file / 5 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Touched-file side-effect/behavior scan returned no matches for workspace/sync/backend/Supabase/deploy/production Nexus/React Flow behavior paths. `git diff --check` passed.
+- Rollback note: revert only the CP-323 runtime-controller test/run-doc changes if this coverage must be removed.

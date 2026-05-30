@@ -1506,31 +1506,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-322 - Run Docs Current-State Reconciliation V1`.
 - Reconciled current-state bookkeeping after confirming the committed CP-321 HEAD and clean status.
 - Verified CP-322 with a focused stale current-state phrase scan, source-diff absence check, `git diff --check`, and `git status --porcelain=v1 -b`.
+- Created local checkpoint commit `da51b2e07d64582d3ef785d5e9b3812cb10c627f` for the Run Docs Current-State Reconciliation V1 unit.
+- Started `CP-323 - Pure Runtime Controller ClearAll Active Coverage V1`.
+- Added focused runtime-controller coverage proving active-session `clearAll()` restores previous variables, removes newly applied variables, and clears the active preview.
+- Verified CP-323 with focused runtime-controller Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-322 - Run Docs Current-State Reconciliation V1`.
-- Latest recorded checkpoint commit: `2701fe0dc3bacf5a97bbe3407ac3adeaa817c1e0` for `CP-321 - Post Runtime Controller Revert Phase Gate`.
-- Confirmed current branch before CP-322: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-322: `2701fe0dc3bacf5a97bbe3407ac3adeaa817c1e0`.
-- Confirmed current status before CP-322: clean.
-- Current stop reason: not stopped; CP-322 current-state reconciliation is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-323 - Pure Runtime Controller ClearAll Active Coverage V1`.
+- Latest recorded checkpoint commit: `da51b2e07d64582d3ef785d5e9b3812cb10c627f` for `CP-322 - Run Docs Current-State Reconciliation V1`.
+- Confirmed current branch before CP-323: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-323: `da51b2e07d64582d3ef785d5e9b3812cb10c627f`.
+- Confirmed current status before CP-323: clean.
+- Current stop reason: not stopped; CP-323 pure runtime-controller coverage is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-322 - Local checkpoint commit`.
+- `CP-323 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/runtime-controller.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test/product docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused CP-321/CP-322 doc consistency scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-322 run-doc current-state reconciliation if this bookkeeping must be removed.
+- Forbidden files: runtime implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused runtime-controller Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-323 runtime-controller test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-322 run-doc current-state reconciliation if final diff/status checks remain clean by scope.
+1. Commit the CP-323 pure runtime-controller coverage if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
-3. Select `CP-323 - Pure Runtime Controller ClearAll Active Coverage V1` unless a lower-risk reconciliation is discovered.
+3. Select `CP-324 - Runtime Controller ClearAll Doc Reconciliation V1` unless a lower-risk reconciliation is discovered.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

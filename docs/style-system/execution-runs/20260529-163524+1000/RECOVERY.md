@@ -37,8 +37,8 @@ Do not restart from the beginning. Continue from the latest completed checkpoint
 
 ## Latest Recorded Clean Checkpoint
 
-- Checkpoint: `CP-321 - Post Runtime Controller Revert Phase Gate`
-- Commit: `2701fe0dc3bacf5a97bbe3407ac3adeaa817c1e0`
+- Checkpoint: `CP-322 - Run Docs Current-State Reconciliation V1`
+- Commit: `da51b2e07d64582d3ef785d5e9b3812cb10c627f`
 - Branch: `codex/v17-large-iteration`
-- Status before CP-322: clean.
-- Resume action: if `git log -1 --oneline` shows `docs: reconcile run docs current state`, treat CP-322 as the latest local checkpoint; otherwise finish or verify `CP-322 - Run Docs Current-State Reconciliation V1`, then select the next lowest-risk isolated implementation or coverage unit.
+- Status before CP-323: clean.
+- Resume action: if `git log -1 --oneline` shows `test: cover active preview clearAll`, treat CP-323 as the latest local checkpoint; otherwise finish or verify `CP-323 - Pure Runtime Controller ClearAll Active Coverage V1`, then select the next lowest-risk isolated doc reconciliation or coverage unit.

@@ -1575,31 +1575,36 @@ Run id: `20260529-163524+1000`
 - Ran decomposed full gate: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, and `npm run build`.
 - Confirmed full Vitest passed 41 files / 349 tests and build passed with static `/style-lab` plus the known edge-runtime warning.
 - Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, pure adapter/token references, and existing React Flow/window-modal adapter guard/test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
+- Created local checkpoint commit `5dbe8292a00508c93d3fd4a3994f06c90c92d47c` for the Post Dynamic Function Intent Guard Phase Gate.
+- Started `CP-339 - Pure Validator CSS Syntax Guard Coverage V1`.
+- Added focused validator coverage proving CSS `@import`, block braces, and declaration-list strings are rejected without echoing payloads.
+- Verified CP-339 with focused validator Vitest, `npm run lint`, `npm run typecheck`, touched-file side-effect/behavior scan, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-338 - Post Dynamic Function Intent Guard Phase Gate`.
-- Latest recorded checkpoint commit: `84bd9caa46fcce910e6f56c1f0ea459e083a2a92` for `CP-337 - Interpreter Dynamic Function Input Doc Reconciliation V1`.
-- Confirmed current branch before CP-338: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-338: `84bd9caa46fcce910e6f56c1f0ea459e083a2a92`.
-- Confirmed current status before CP-338: clean.
-- Current stop reason: not stopped; CP-338 post dynamic function intent guard phase gate is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-339 - Pure Validator CSS Syntax Guard Coverage V1`.
+- Latest recorded checkpoint commit: `5dbe8292a00508c93d3fd4a3994f06c90c92d47c` for `CP-338 - Post Dynamic Function Intent Guard Phase Gate`.
+- Confirmed current branch before CP-339: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-339: `5dbe8292a00508c93d3fd4a3994f06c90c92d47c`.
+- Confirmed current status before CP-339: clean.
+- Current stop reason: not stopped; CP-339 pure validator CSS syntax guard coverage is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-338 - Local checkpoint commit`.
+- `CP-339 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/validator.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test/product docs, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, `npm run build`, side-effect/import scan, behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-338 run-doc update if this phase gate bookkeeping must be removed.
+- Forbidden files: validator implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused validator Vitest, `npm run lint`, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-339 validator test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-338 post dynamic function intent guard phase gate if final diff/status checks remain clean by scope.
+1. Commit the CP-339 pure validator CSS syntax guard coverage if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
-3. Select the next lowest-risk isolated implementation or coverage unit.
+3. Select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

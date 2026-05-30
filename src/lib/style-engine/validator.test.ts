@@ -90,6 +90,46 @@ describe("NEXUS Style Engine manifest validator", () => {
     expect(JSON.stringify(report)).not.toContain("example.test");
   });
 
+  it("rejects CSS import, block, and declaration-list strings without echoing payloads", () => {
+    const manifest = createSafeManifest({
+      tokens: {
+        surface: {
+          app: '@import "private-style.css"',
+          panel: ".private { color: secret-payload }",
+        },
+        text: {
+          primary: "color: red; background: hidden-declaration",
+        },
+      },
+    });
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toEqual(
+      expect.arrayContaining([
+        {
+          code: "style.forbidden.cssImport",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.surface.app",
+        },
+        {
+          code: "style.forbidden.cssBlock",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.surface.panel",
+        },
+        {
+          code: "style.forbidden.cssDeclarationList",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.text.primary",
+        },
+      ]),
+    );
+    expect(JSON.stringify(report)).not.toContain("private-style");
+    expect(JSON.stringify(report)).not.toContain("secret-payload");
+    expect(JSON.stringify(report)).not.toContain("hidden-declaration");
+  });
+
   it("rejects direct URL strings without echoing private hosts", () => {
     const manifest = createSafeManifest();
     manifest.source = {

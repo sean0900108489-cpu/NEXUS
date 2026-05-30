@@ -37,8 +37,8 @@ Do not restart from the beginning. Continue from the latest completed checkpoint
 
 ## Latest Recorded Clean Checkpoint
 
-- Checkpoint: `CP-337 - Interpreter Dynamic Function Input Doc Reconciliation V1`
-- Commit: `84bd9caa46fcce910e6f56c1f0ea459e083a2a92`
+- Checkpoint: `CP-338 - Post Dynamic Function Intent Guard Phase Gate`
+- Commit: `5dbe8292a00508c93d3fd4a3994f06c90c92d47c`
 - Branch: `codex/v17-large-iteration`
-- Status before CP-338: clean.
-- Resume action: if `git log -1 --oneline` shows `docs: record dynamic function phase gate`, treat CP-338 as the latest local checkpoint; otherwise finish or verify `CP-338 - Post Dynamic Function Intent Guard Phase Gate`, then select the next lowest-risk isolated implementation or coverage unit.
+- Status before CP-339: clean.
+- Resume action: if `git log -1 --oneline` shows `test: cover css syntax validator guard`, treat CP-339 as the latest local checkpoint; otherwise finish or verify `CP-339 - Pure Validator CSS Syntax Guard Coverage V1`, then select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.

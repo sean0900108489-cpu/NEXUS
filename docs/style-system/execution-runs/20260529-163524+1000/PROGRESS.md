@@ -1557,32 +1557,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-334 - Interpreter Eval Input Doc Reconciliation V1`.
 - Reconciled interpreter boundary docs with CP-333 `eval(...)` executable input rejection coverage.
 - Verified CP-334 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
+- Created local checkpoint commit `2215614502af6584e981e8cf2aa9f1f4fb258954` for the Interpreter Eval Input Doc Reconciliation V1 unit.
+- Started `CP-335 - Post Intent Eval Guard Phase Gate` with source edits closed.
+- Ran decomposed full gate: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, and `npm run build`.
+- Confirmed full Vitest passed 41 files / 348 tests and build passed with static `/style-lab` plus the known edge-runtime warning.
+- Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, pure adapter/token references, and existing React Flow/window-modal adapter guard/test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-334 - Interpreter Eval Input Doc Reconciliation V1`.
-- Latest recorded checkpoint commit: `e302546b380c15075df63afd9b70203f4ec40b83` for `CP-333 - Pure Intent Normalizer Eval Guard Coverage V1`.
-- Confirmed current branch before CP-334: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-334: `e302546b380c15075df63afd9b70203f4ec40b83`.
-- Confirmed current status before CP-334: clean.
-- Current stop reason: not stopped; CP-334 interpreter eval input doc reconciliation is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-335 - Post Intent Eval Guard Phase Gate`.
+- Latest recorded checkpoint commit: `2215614502af6584e981e8cf2aa9f1f4fb258954` for `CP-334 - Interpreter Eval Input Doc Reconciliation V1`.
+- Confirmed current branch before CP-335: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-335: `2215614502af6584e981e8cf2aa9f1f4fb258954`.
+- Confirmed current status before CP-335: clean.
+- Current stop reason: not stopped; CP-335 post intent eval guard phase gate is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-334 - Local checkpoint commit`.
+- `CP-335 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-interpreter-boundary.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime/provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside the listed interpreter boundary doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-334 interpreter boundary doc/run-doc changes if this reconciliation must be removed.
+- Forbidden files: all source/test/product docs, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, `npm run build`, side-effect/import scan, behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-335 run-doc update if this phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-334 interpreter eval input doc reconciliation if final diff/status checks remain clean by scope.
+1. Commit the CP-335 post intent eval guard phase gate if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
-3. Select the next lowest-risk isolated unit, likely a post intent eval guard phase gate.
+3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

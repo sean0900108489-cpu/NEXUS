@@ -321,6 +321,7 @@ Run id: `20260529-163524+1000`
 | Pure Validator Protected Behavior Class Entry Guard V1 | PASS | Validator now rejects non-string or empty protectedBehaviorClasses entries with per-index errors. |
 | Validator Protected Behavior Class Doc Reconciliation V1 | PASS | Reconciled validator docs with protectedBehaviorClasses entry validation. |
 | Post Protected Behavior Class Guard Phase Gate | PASS | Decomposed full gate passed after protectedBehaviorClasses entry guard/docs; side-effect scan, build, and git diff check passed. |
+| Pure Governance Rejected Permission Coverage V1 | PASS | Added direct governance coverage for rejected lifecycle permissions. |
 
 ## Current Gate
 
@@ -333,4 +334,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Protected Behavior Class Guard Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside this run folder, governance/exchange/runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Governance Rejected Permission Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, source implementation files, docs outside this run folder, runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

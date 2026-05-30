@@ -140,5 +140,10 @@ describe("NEXUS Style Engine governance review", () => {
       canPreview: false,
       reasonCodes: ["style.pack.quarantined"],
     });
+    expect(getNexusStylePackPermissionsV1("rejected")).toEqual({
+      canApply: false,
+      canPreview: false,
+      reasonCodes: ["style.pack.rejected"],
+    });
   });
 });

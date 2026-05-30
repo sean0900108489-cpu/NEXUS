@@ -1471,31 +1471,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-314 - Governance Export Package Import Clone Doc Reconciliation V1`.
 - Reconciled style pack governance docs with CP-310 direct import clone coverage and CP-313 export-package import clone coverage.
 - Verified CP-314 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
+- Created local checkpoint commit `24211f94a594eeea7273361d46ff867029a19124` for the Governance Export Package Import Clone Doc Reconciliation V1 unit.
+- Started `CP-315 - Post Exchange Import Clone Phase Gate` with source edits closed.
+- Ran decomposed full gate: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, and `npm run build`.
+- Confirmed full Vitest passed 41 files / 342 tests and build passed with static `/style-lab` plus the known edge-runtime warning.
+- Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, and existing React Flow/window-modal adapter forbidden-key registries and test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-314 - Governance Export Package Import Clone Doc Reconciliation V1`.
-- Latest recorded checkpoint commit: `7e11bdafe16ea30332397c31e482b6707a6ad772` for `CP-313 - Pure Exchange Export Package Import Clone Coverage V1`; CP-314 is being prepared for local commit.
-- Confirmed current branch during CP-314: `codex/v17-large-iteration`.
-- Confirmed current status after CP-314 verification prep: dirty only in CP-314 allowed style pack governance doc and run-doc files.
-- Current stop reason: not stopped; CP-314 governance export-package import clone doc reconciliation checkpoint is underway.
+- Latest completed checkpoint: `CP-315 - Post Exchange Import Clone Phase Gate`.
+- Latest recorded checkpoint commit: `24211f94a594eeea7273361d46ff867029a19124` for `CP-314 - Governance Export Package Import Clone Doc Reconciliation V1`; CP-315 is being prepared for local commit.
+- Confirmed current branch during CP-315: `codex/v17-large-iteration`.
+- Confirmed current status after CP-315 verification prep: clean before run-doc bookkeeping; dirty only in CP-315 run-doc files during this update.
+- Current stop reason: not stopped; CP-315 post exchange import clone phase gate checkpoint is underway.
 
 ## In Progress
 
-- `CP-314 - Local checkpoint commit prep`.
+- `CP-315 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-pack-governance.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, docs outside the listed governance doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-314 governance doc/run-doc changes if this reconciliation must be removed.
+- Forbidden files: all source/test/product docs, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, `npm run build`, side-effect/import scan, behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-315 run-doc changes if this phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-314 governance export-package import clone doc reconciliation checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-315 post exchange import clone phase gate checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

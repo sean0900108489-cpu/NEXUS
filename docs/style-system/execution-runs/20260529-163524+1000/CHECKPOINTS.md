@@ -5223,3 +5223,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Decomposed full gate passed lint, typecheck, 41 Vitest files / 342 tests with `--testTimeout 20000`, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, and existing React Flow/window-modal adapter forbidden-key registries and test coverage. No source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-315 run-doc update if the phase gate bookkeeping must be removed.
+
+## CP-316 - Pure Import Text Unknown JSON Coverage V1
+
+- Unit: add pure import-text coverage that valid JSON with an unknown non-style source fails closed without returning a manifest or echoing imported text.
+- Allowed files:
+  - `src/lib/style-engine/import-text.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: source implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused import-text Vitest; targeted lint for touched import-text test; `npm run typecheck`; touched-file side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run test -- --testTimeout 20000 src/lib/style-engine/import-text.test.ts`; `npm run lint -- src/lib/style-engine/import-text.test.ts`; `npm run typecheck`; touched-file side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/import-text.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Focused import-text Vitest passed 1 file / 6 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Touched-file side-effect/behavior scans returned no matches for workspace/sync/backend/Supabase/deploy/production Nexus/React Flow behavior paths. `git diff --check` passed.
+- Rollback note: revert only the CP-316 import-text test/run-doc changes if this coverage must be removed.

@@ -1476,30 +1476,35 @@ Run id: `20260529-163524+1000`
 - Ran decomposed full gate: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, and `npm run build`.
 - Confirmed full Vitest passed 41 files / 342 tests and build passed with static `/style-lab` plus the known edge-runtime warning.
 - Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, and existing React Flow/window-modal adapter forbidden-key registries and test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
+- Created local checkpoint commit `8c126829d2789db09b6a0a26ed2afea492e98c29` for the Post Exchange Import Clone Phase Gate.
+- Started `CP-316 - Pure Import Text Unknown JSON Coverage V1`.
+- Added focused import-text coverage proving valid JSON with an unknown non-style source fails closed without returning a manifest or echoing imported text.
+- Verified CP-316 with focused import-text Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scans, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-315 - Post Exchange Import Clone Phase Gate`.
-- Latest recorded checkpoint commit: `24211f94a594eeea7273361d46ff867029a19124` for `CP-314 - Governance Export Package Import Clone Doc Reconciliation V1`; CP-315 is being prepared for local commit.
-- Confirmed current branch during CP-315: `codex/v17-large-iteration`.
-- Confirmed current status after CP-315 verification prep: clean before run-doc bookkeeping; dirty only in CP-315 run-doc files during this update.
-- Current stop reason: not stopped; CP-315 post exchange import clone phase gate checkpoint is underway.
+- Latest completed checkpoint: `CP-316 - Pure Import Text Unknown JSON Coverage V1`.
+- Latest recorded checkpoint commit: `8c126829d2789db09b6a0a26ed2afea492e98c29` for `CP-315 - Post Exchange Import Clone Phase Gate`; CP-316 is being prepared for local commit.
+- Confirmed current branch during CP-316: `codex/v17-large-iteration`.
+- Confirmed current status after CP-316 verification prep: dirty only in CP-316 allowed import-text test and run-doc files.
+- Current stop reason: not stopped; CP-316 import-text unknown JSON coverage checkpoint is underway.
 
 ## In Progress
 
-- `CP-315 - Local checkpoint commit prep`.
+- `CP-316 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `src/lib/style-engine/import-text.test.ts`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test/product docs, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, `npm run build`, side-effect/import scan, behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-315 run-doc changes if this phase gate bookkeeping must be removed.
+- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused import-text Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-316 import-text test/run-doc changes if this coverage must be removed.
 
 ## Next
 
-1. Commit the CP-315 post exchange import clone phase gate checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-316 import-text unknown JSON coverage checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

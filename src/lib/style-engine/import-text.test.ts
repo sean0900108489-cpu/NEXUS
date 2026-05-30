@@ -67,6 +67,25 @@ describe("NEXUS Style Engine import text parser", () => {
     expect(JSON.stringify(result)).not.toContain("do-not-echo");
   });
 
+  it("rejects unknown parsed JSON without echoing the imported text", () => {
+    const result = parseNexusStyleImportTextV1(
+      JSON.stringify("not-a-style-pack-do-not-echo"),
+    );
+
+    expect(result.accepted).toBe(false);
+
+    if (result.accepted) {
+      throw new Error("Expected unknown import text to fail.");
+    }
+
+    expect(result.source).toBe("unknown");
+    expect(result.errors.map((error) => error.code)).toContain(
+      "style.invalidRoot",
+    );
+    expect("manifest" in result).toBe(false);
+    expect(JSON.stringify(result)).not.toContain("do-not-echo");
+  });
+
   it("rejects unsafe parsed JSON without returning the unsafe manifest", () => {
     const manifest = createLegacyCyberpunkStyleManifestV1();
 

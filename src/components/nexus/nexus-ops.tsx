@@ -139,6 +139,7 @@ import { DatapadWindow } from "@/components/nexus/DatapadWindow";
 import { NexusGraph } from "@/components/nexus/nexus-graph";
 import { NexusOpsBodyFrame } from "@/components/nexus/nexus-ops-body-frame";
 import { NexusOpsOuterShellFrame } from "@/components/nexus/nexus-ops-outer-shell-frame";
+import { NexusOpsRightFloatingDockFrame } from "@/components/nexus/nexus-ops-right-floating-dock-frame";
 import { NexusOpsTopBarFrame } from "@/components/nexus/nexus-ops-top-bar-frame";
 import { PromptVaultManager } from "@/components/nexus/PromptVaultManager";
 
@@ -2450,31 +2451,26 @@ function RightFloatingDock({
   onTogglePanel: (panel: RightDockPanelId) => void;
 }) {
   return (
-    <nav
-      aria-label="Right workspace tools"
-      className="pointer-events-none fixed right-3 top-1/2 z-[130] hidden -translate-y-1/2 xl:block"
-    >
-      <div className="pointer-events-auto grid gap-2 border border-cyan-300/25 bg-slate-950/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.45),0_0_32px_rgba(34,211,238,0.14)] backdrop-blur-xl">
-        {rightDockPanels.map((panel) => (
-          <button
-            key={panel.id}
-            aria-label={panel.label}
-            aria-pressed={activePanel === panel.id}
-            className={cx(
-              "grid h-9 w-9 place-items-center border text-slate-400 transition",
-              activePanel === panel.id
-                ? "border-cyan-300/55 bg-cyan-300/15 text-cyan-100"
-                : "border-white/10 bg-black/25 hover:border-cyan-300/35 hover:text-cyan-100",
-            )}
-            onClick={() => onTogglePanel(panel.id)}
-            title={panel.label}
-            type="button"
-          >
-            {panel.icon}
-          </button>
-        ))}
-      </div>
-    </nav>
+    <NexusOpsRightFloatingDockFrame>
+      {rightDockPanels.map((panel) => (
+        <button
+          key={panel.id}
+          aria-label={panel.label}
+          aria-pressed={activePanel === panel.id}
+          className={cx(
+            "grid h-9 w-9 place-items-center border text-slate-400 transition",
+            activePanel === panel.id
+              ? "border-cyan-300/55 bg-cyan-300/15 text-cyan-100"
+              : "border-white/10 bg-black/25 hover:border-cyan-300/35 hover:text-cyan-100",
+          )}
+          onClick={() => onTogglePanel(panel.id)}
+          title={panel.label}
+          type="button"
+        >
+          {panel.icon}
+        </button>
+      ))}
+    </NexusOpsRightFloatingDockFrame>
   );
 }
 

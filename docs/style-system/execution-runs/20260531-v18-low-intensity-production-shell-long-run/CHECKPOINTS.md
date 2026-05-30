@@ -10,8 +10,8 @@ Date: 2026-05-31
 | Phase 0 | `PHASE_0_RECOVERY_PREFLIGHT.md` | `897b8a5` | Complete |
 | Phase 1 | `PHASE_1_STATIC_FRAME_BATCH.md` | `1b46efd` | Complete |
 | Phase 2 | `PHASE_2_EXTRACTION_MAP_RECONCILIATION.md` | `ce5a2a6` | Complete |
-| Phase 3 | `PHASE_3_SECOND_LEVEL_ASSESSMENT.md` | Pending | Complete, awaiting commit |
-| Phase 4 | Pending | Pending | Pending |
+| Phase 3 | `PHASE_3_SECOND_LEVEL_ASSESSMENT.md` | `82ea350` | Complete |
+| Phase 4 | `PHASE_4_SECOND_STATIC_FRAME_EXTRACTION.md` | Pending | Complete, awaiting commit |
 | Phase 5 | Pending | Pending | Pending |
 
 ## Recovery Notes

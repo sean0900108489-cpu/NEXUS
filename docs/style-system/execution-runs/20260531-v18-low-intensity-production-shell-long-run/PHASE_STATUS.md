@@ -17,7 +17,7 @@ Date: 2026-05-31
 | Phase 1 | Static Shell Frame Extraction Batch | Completed | No new source extraction needed: BodyFrame already existed; LeftDock/Workspace skipped as unsafe behavior-bearing wrappers. |
 | Phase 2 | Extraction Map Reconciliation | Completed | Map updated with extracted frames, skipped candidates, protected core, next assessment candidates, and No-Go zones. |
 | Phase 3 | Second-Level Static Frame Assessment | Completed | Right floating dock outer frame is the only safe optional Phase 4 candidate; command palette/sidebar/collapsed rail/control micro-frames skipped. |
-| Phase 4 | Optional Second Static Frame Extraction | Pending | Execute only for `NexusOpsRightFloatingDockFrame`; do not extract other second-level frames this run. |
+| Phase 4 | Optional Second Static Frame Extraction | Completed | `NexusOpsRightFloatingDockFrame` extracted and verified. |
 | Phase 5 | Long-Run Integration Review Gate | Pending | Final docs review and health checks. |
 
 ## Latest Notes
@@ -36,3 +36,10 @@ Date: 2026-05-31
   a right floating dock visual wrapper that preserves existing pointer-event and
   z-index class semantics exactly. Collapsed rail, command palette, settings
   sidebar, sync badge, and top menu actions remain No-Go for this run.
+- Phase 4 extracted only `NexusOpsRightFloatingDockFrame`. Right dock buttons,
+  active state, and handlers remain in `RightFloatingDock`.
+- Phase 4 verification passed: focused frame test, existing guard tests,
+  typecheck, targeted lint, build, and browser smoke against existing
+  `localhost:3000/` server. Headless CDP could only verify the route-edge
+  wrapper due missing auth session; existing Chrome session covered NexusOps UI
+  smoke.

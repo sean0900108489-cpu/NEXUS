@@ -242,3 +242,40 @@ Recommended Phase 4 unit:
 - Keep all state, map rendering, active classes, labels, titles, and handlers in
   `RightFloatingDock`.
 - Browser smoke must include right dock visibility and a safe right dock toggle.
+
+## 9. V18 Optional Second Static Frame Extraction
+
+Implemented during
+`20260531-v18-low-intensity-production-shell-long-run` Phase 4.
+
+Extracted frame:
+
+- `NexusOpsRightFloatingDockFrame`
+
+Source anchors:
+
+- usage in `src/components/nexus/nexus-ops.tsx`
+- frame file at
+  `src/components/nexus/nexus-ops-right-floating-dock-frame.tsx`
+
+What moved:
+
+- the static right dock outer `nav`
+- the static `aria-label="Right workspace tools"`
+- the static pointer-event/fixed-position/z-index/visibility classes
+- the static inner rail visual classes
+
+What stayed protected in `RightFloatingDock`:
+
+- `rightDockPanels.map`
+- active panel selection and `aria-pressed`
+- button class branching
+- labels, titles, and icons
+- `onTogglePanel` event handlers
+
+Skipped second-level candidates remain skipped:
+
+- collapsed sidebar rail: motion/animation boundary
+- command palette: focus, query state, overlay close, command execution
+- settings sidebar: overlay, provider/auth/theme/artifact/memory behavior
+- sync badge/top menu actions: interactive controls

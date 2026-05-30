@@ -364,6 +364,7 @@ Run id: `20260529-163524+1000`
 | Validator Executable String Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with executable string rejection coverage. |
 | Post Validator Executable String Guard Phase Gate | PASS | Decomposed full gate passed after validator executable string coverage/docs; side-effect scan, build, and git diff check passed. |
 | Pure Validator Behavior Class String Guard Coverage V1 | PASS | Added focused validator coverage for dynamic z-index and protected behavior class string rejection. |
+| Validator Behavior Class String Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with dynamic z-index/protected behavior class string rejection coverage. |
 
 ## Current Gate
 
@@ -376,4 +377,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is CP-348 Pure Validator Behavior Class String Guard Coverage V1 local checkpoint commit. CP-347 is committed at `9e6781fd8c5d2b7b6e5bdc6da800dcaf1f84d241`, and focused validator coverage now proves dynamic z-index and protected behavior class string values are rejected. Production window/modal code, production graph/app shell files, validator implementation files, product docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is CP-349 Validator Behavior Class String Doc Reconciliation V1 local checkpoint commit. CP-348 is committed at `59d25b2378473eb5c9e44786ff7835b683d09a49`, and manifest validator docs now reflect dynamic z-index/protected behavior class string rejection coverage. Production window/modal code, production graph/app shell files, source/test files, product docs outside the validator rules doc and this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

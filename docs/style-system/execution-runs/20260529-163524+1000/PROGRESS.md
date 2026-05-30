@@ -1618,32 +1618,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-348 - Pure Validator Behavior Class String Guard Coverage V1`.
 - Added focused validator coverage proving dynamic z-index and protected behavior class string values are rejected.
 - Verified CP-348 with focused validator Vitest, `npm run lint`, `npm run typecheck`, touched-file side-effect/behavior scan, and `git diff --check`.
+- Created local checkpoint commit `59d25b2378473eb5c9e44786ff7835b683d09a49` for the Pure Validator Behavior Class String Guard Coverage V1 unit.
+- Started `CP-349 - Validator Behavior Class String Doc Reconciliation V1`.
+- Reconciled manifest validator docs with CP-348 dynamic z-index/protected behavior class string guard coverage.
+- Verified CP-349 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-348 - Pure Validator Behavior Class String Guard Coverage V1`.
-- Latest recorded checkpoint commit: `9e6781fd8c5d2b7b6e5bdc6da800dcaf1f84d241` for `CP-347 - Post Validator Executable String Guard Phase Gate`.
-- Confirmed current branch before CP-348: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-348: `9e6781fd8c5d2b7b6e5bdc6da800dcaf1f84d241`.
-- Confirmed current status before CP-348: clean.
-- Current stop reason: not stopped; CP-348 pure validator behavior class string guard coverage is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-349 - Validator Behavior Class String Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `59d25b2378473eb5c9e44786ff7835b683d09a49` for `CP-348 - Pure Validator Behavior Class String Guard Coverage V1`.
+- Confirmed current branch before CP-349: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-349: `59d25b2378473eb5c9e44786ff7835b683d09a49`.
+- Confirmed current status before CP-349: clean.
+- Current stop reason: not stopped; CP-349 validator behavior class string doc reconciliation is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-348 - Local checkpoint commit`.
+- `CP-349 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: validator implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused validator Vitest, `npm run lint`, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-348 validator test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside the listed validator rules doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan for behavior class string guard coverage, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-349 validator rules doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-348 pure validator behavior class string guard coverage if final diff/status checks remain clean by scope.
+1. Commit the CP-349 validator behavior class string doc reconciliation if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

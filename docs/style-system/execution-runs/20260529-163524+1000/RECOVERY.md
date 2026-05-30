@@ -37,8 +37,8 @@ Do not restart from the beginning. Continue from the latest completed checkpoint
 
 ## Latest Recorded Clean Checkpoint
 
-- Checkpoint: `CP-347 - Post Validator Executable String Guard Phase Gate`
-- Commit: `9e6781fd8c5d2b7b6e5bdc6da800dcaf1f84d241`
+- Checkpoint: `CP-348 - Pure Validator Behavior Class String Guard Coverage V1`
+- Commit: `59d25b2378473eb5c9e44786ff7835b683d09a49`
 - Branch: `codex/v17-large-iteration`
-- Status before CP-348: clean.
-- Resume action: if `git log -1 --oneline` shows `test: cover behavior class validator guard`, treat CP-348 as the latest local checkpoint; otherwise finish or verify `CP-348 - Pure Validator Behavior Class String Guard Coverage V1`, then select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.
+- Status before CP-349: clean.
+- Resume action: if `git log -1 --oneline` shows `docs: reconcile behavior class validator docs`, treat CP-349 as the latest local checkpoint; otherwise finish or verify `CP-349 - Validator Behavior Class String Doc Reconciliation V1`, then select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.

@@ -328,6 +328,7 @@ Run id: `20260529-163524+1000`
 | Pure Exchange Import Clone Coverage V1 | PASS | Added focused exchange coverage proving direct manifest imports return cloned manifests. |
 | Governance Import Clone Doc Reconciliation V1 | PASS | Reconciled governance docs with cloned manifest import normalization coverage. |
 | Post Exchange Governance Coverage Phase Gate | PASS | Decomposed full gate passed after exchange/governance coverage and docs; side-effect scan, build, and git diff check passed. |
+| Pure Exchange Export Package Import Clone Coverage V1 | PASS | Added focused exchange coverage proving export-package imports return cloned manifests. |
 
 ## Current Gate
 
@@ -340,4 +341,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Exchange Governance Coverage Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside this run folder, runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is Pure Exchange Export Package Import Clone Coverage local checkpoint prep. Production window/modal code, production graph/app shell files, source implementation files, docs outside this run folder, runtime/UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

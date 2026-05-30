@@ -85,6 +85,30 @@ describe("NEXUS Style Engine import/export normalization", () => {
     ]);
   });
 
+  it("returns a cloned manifest for export package imports", () => {
+    const exported = createNexusStyleExportPackageV1(
+      createLegacyCyberpunkStyleManifestV1(),
+    );
+
+    if (!exported.accepted) {
+      throw new Error("Expected export package creation to pass.");
+    }
+
+    const imported = normalizeNexusStyleImportCandidateV1(
+      exported.exportPackage,
+    );
+
+    expect(imported.accepted).toBe(true);
+
+    if (!imported.accepted) {
+      throw new Error("Expected export package import to pass.");
+    }
+
+    imported.manifest.tokens.surface.app = "#000000";
+
+    expect(exported.exportPackage.manifest.tokens.surface.app).toBe("#030712");
+  });
+
   it("normalizes a direct manifest candidate without an export package wrapper", () => {
     const imported = normalizeNexusStyleImportCandidateV1(
       createLegacyCyberpunkStyleManifestV1(),

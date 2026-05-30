@@ -337,6 +337,7 @@ Run id: `20260529-163524+1000`
 | Pure Runtime Controller Unqualified Revert Coverage V1 | PASS | Added focused runtime-controller coverage for `revert()` without a preview id. |
 | Runtime Controller Revert Doc Reconciliation V1 | PASS | Reconciled runtime preview docs with unqualified active-session revert coverage. |
 | Post Runtime Controller Revert Phase Gate | PASS | Decomposed full gate passed after runtime-controller revert coverage/docs; side-effect scan, build, and git diff check passed. |
+| Run Docs Current-State Reconciliation V1 | PASS | Reconciled current-state bookkeeping with committed CP-321 HEAD `2701fe0dc3bacf5a97bbe3407ac3adeaa817c1e0`; source/test/runtime files stayed closed. |
 
 ## Current Gate
 
@@ -349,4 +350,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is Post Runtime Controller Revert Phase Gate local checkpoint prep. Production window/modal code, production graph/app shell files, source/test files, docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is CP-322 Run Docs Current-State Reconciliation V1 local checkpoint commit. CP-321 is committed at `2701fe0dc3bacf5a97bbe3407ac3adeaa817c1e0`, and current-state bookkeeping has been aligned with that clean checkpoint before the next isolated implementation unit. Production window/modal code, production graph/app shell files, source/test files, docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

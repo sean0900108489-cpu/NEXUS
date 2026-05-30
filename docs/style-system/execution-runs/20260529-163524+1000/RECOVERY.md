@@ -34,3 +34,11 @@ Any dirty file outside the documented allowed range must be treated as user/othe
 ## Recovery Rule
 
 Do not restart from the beginning. Continue from the latest completed checkpoint and verify the current git status before any edit.
+
+## Latest Recorded Clean Checkpoint
+
+- Checkpoint: `CP-321 - Post Runtime Controller Revert Phase Gate`
+- Commit: `2701fe0dc3bacf5a97bbe3407ac3adeaa817c1e0`
+- Branch: `codex/v17-large-iteration`
+- Status before CP-322: clean.
+- Resume action: if `git log -1 --oneline` shows `docs: reconcile run docs current state`, treat CP-322 as the latest local checkpoint; otherwise finish or verify `CP-322 - Run Docs Current-State Reconciliation V1`, then select the next lowest-risk isolated implementation or coverage unit.

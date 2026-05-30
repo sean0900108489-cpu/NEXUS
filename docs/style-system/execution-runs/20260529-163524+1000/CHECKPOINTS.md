@@ -5321,3 +5321,22 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Decomposed full gate passed lint, typecheck, 41 Vitest files / 344 tests with `--testTimeout 20000`, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, and existing React Flow/window-modal adapter forbidden-key registries and test coverage. No source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-321 run-doc update if the phase gate bookkeeping must be removed.
+
+## CP-322 - Run Docs Current-State Reconciliation V1
+
+- Unit: reconcile current-state run-doc bookkeeping after confirming CP-321 is committed and the branch is clean.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/RECOVERY.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+- Forbidden files: all source/test/product docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused CP-321/CP-322 doc consistency scan; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`; post-commit branch/HEAD/status check.
+- Commands run: `git log --oneline -5`; focused stale CP-321-prep phrase scan; `git diff --name-only`; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/RECOVERY.md`
+- Verification result: PASS. CP-321 is committed at `2701fe0dc3bacf5a97bbe3407ac3adeaa817c1e0`; stale CP-321-prep/current-state wording no longer appears in the current-state docs after the corrected scan; dirty files are limited to the run folder; `git diff --check` passed; status is dirty only for this CP-322 run-doc update before local commit.
+- Rollback note: revert only the CP-322 run-doc current-state reconciliation if this bookkeeping must be removed.

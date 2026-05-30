@@ -359,6 +359,7 @@ Run id: `20260529-163524+1000`
 | Post Validator CSS Syntax Guard Phase Gate | PASS | Decomposed full gate passed after validator CSS syntax coverage/docs; side-effect scan, build, and git diff check passed. |
 | Pure Validator Environment Reference Guard Coverage V1 | PASS | Added focused validator coverage for env, Supabase anon-key, workspace persistence, sync queue, snapshot serializer, and workspace projection string rejection without payload echo. |
 | Validator Environment Reference Doc Reconciliation V1 | PASS | Reconciled manifest validator docs with environment/workspace persistence string rejection coverage. |
+| Post Validator Environment Reference Guard Phase Gate | PASS | Decomposed full gate passed after validator environment/workspace reference coverage/docs; side-effect scan, build, and git diff check passed. |
 
 ## Current Gate
 
@@ -371,4 +372,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is CP-343 Validator Environment Reference Doc Reconciliation V1 local checkpoint commit. CP-342 is committed at `d37304b0945889a7ea09fa45f44cd402948f868d`, and manifest validator docs now reflect environment/workspace persistence string rejection coverage. Production window/modal code, production graph/app shell files, source/test files, product docs outside the validator rules doc and this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is CP-344 Post Validator Environment Reference Guard Phase Gate local checkpoint commit. CP-343 is committed at `c3b4ab23ec866b675e007ff821f5a649897ebfa8`, and the decomposed full gate after validator environment/workspace reference coverage/docs has passed. Production window/modal code, production graph/app shell files, source/test files, product docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

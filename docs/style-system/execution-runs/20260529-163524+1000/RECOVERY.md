@@ -37,8 +37,8 @@ Do not restart from the beginning. Continue from the latest completed checkpoint
 
 ## Latest Recorded Clean Checkpoint
 
-- Checkpoint: `CP-342 - Pure Validator Environment Reference Guard Coverage V1`
-- Commit: `d37304b0945889a7ea09fa45f44cd402948f868d`
+- Checkpoint: `CP-343 - Validator Environment Reference Doc Reconciliation V1`
+- Commit: `c3b4ab23ec866b675e007ff821f5a649897ebfa8`
 - Branch: `codex/v17-large-iteration`
-- Status before CP-343: clean.
-- Resume action: if `git log -1 --oneline` shows `docs: reconcile environment validator docs`, treat CP-343 as the latest local checkpoint; otherwise finish or verify `CP-343 - Validator Environment Reference Doc Reconciliation V1`, then select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.
+- Status before CP-344: clean.
+- Resume action: if `git log -1 --oneline` shows `docs: record environment validator phase gate`, treat CP-344 as the latest local checkpoint; otherwise finish or verify `CP-344 - Post Validator Environment Reference Guard Phase Gate`, then select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.

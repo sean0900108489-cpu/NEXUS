@@ -5706,3 +5706,19 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/RECOVERY.md`
 - Verification result: PASS. Evidence scan found CP-342 environment/workspace persistence guard coverage, implemented forbidden string codes, and matching validator rules doc wording. Source-diff absence check showed no source/runtime diff for this docs-only unit. `git diff --check` passed.
 - Rollback note: revert only the CP-343 validator rules doc/run-doc changes if this reconciliation must be removed.
+
+## CP-344 - Post Validator Environment Reference Guard Phase Gate
+
+- Unit: run broader decomposed verification after validator environment/workspace persistence string guard coverage and doc reconciliation.
+- Allowed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test/product doc edits during the gate, UI/CSS/production files, store/sync/backend/Supabase/database files, package/deploy files, AI/runtime API calls, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: `npm run lint`; `npm run typecheck`; full Vitest with `--testTimeout 20000`; `npm run build`; targeted side-effect/import scan across `src/lib/style-engine`, `src/components/style-engine`, `src/app/style-lab`, and `src/app/page.tsx`; targeted behavior scan across the same paths; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run lint`; `npm run typecheck`; `npm run test -- --testTimeout 20000`; `npm run build`; targeted side-effect/import scan; targeted behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/RECOVERY.md`
+- Verification result: PASS. Decomposed full gate passed lint, typecheck, 41 Vitest files / 351 tests with `--testTimeout 20000`, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only expected validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, pure adapter guard strings, and existing React Flow/window-modal adapter guard/test coverage. No source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
+- Rollback note: revert only this CP-344 run-doc update if the phase gate bookkeeping must be removed.

@@ -353,6 +353,7 @@ Run id: `20260529-163524+1000`
 | Post Intent Eval Guard Phase Gate | PASS | Decomposed full gate passed after intent eval guard coverage/docs; side-effect scan, build, and git diff check passed. |
 | Pure Intent Normalizer Dynamic Function Guard Coverage V1 | PASS | Added focused intent-normalizer coverage for `Function(...)` and `import(...)` executable input rejection without payload echo. |
 | Interpreter Dynamic Function Input Doc Reconciliation V1 | PASS | Reconciled interpreter docs with dynamic function/import executable input rejection coverage. |
+| Post Dynamic Function Intent Guard Phase Gate | PASS | Decomposed full gate passed after dynamic function/import guard coverage/docs; side-effect scan, build, and git diff check passed. |
 
 ## Current Gate
 
@@ -365,4 +366,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is CP-337 Interpreter Dynamic Function Input Doc Reconciliation V1 local checkpoint commit. CP-336 is committed at `6dd95d6ed8fc5627c165b7d3655cc0271bd7a0d3`, and interpreter docs now reflect dynamic function/import executable input rejection coverage. Production window/modal code, production graph/app shell files, source/test files, product docs outside the interpreter boundary doc and this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is CP-338 Post Dynamic Function Intent Guard Phase Gate local checkpoint commit. CP-337 is committed at `84bd9caa46fcce910e6f56c1f0ea459e083a2a92`, and the decomposed full gate after dynamic function/import guard coverage/docs has passed. Production window/modal code, production graph/app shell files, source/test files, product docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

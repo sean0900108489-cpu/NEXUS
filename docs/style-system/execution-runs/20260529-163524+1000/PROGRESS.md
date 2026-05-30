@@ -1566,32 +1566,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-336 - Pure Intent Normalizer Dynamic Function Guard Coverage V1`.
 - Added focused intent-normalizer coverage proving dynamic `Function(...)` and `import(...)` executable inputs are rejected without echoing payloads.
 - Verified CP-336 with focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, and `git diff --check`.
+- Created local checkpoint commit `6dd95d6ed8fc5627c165b7d3655cc0271bd7a0d3` for the Pure Intent Normalizer Dynamic Function Guard Coverage V1 unit.
+- Started `CP-337 - Interpreter Dynamic Function Input Doc Reconciliation V1`.
+- Reconciled interpreter boundary docs with CP-336 dynamic `Function(...)` and `import(...)` executable input rejection coverage.
+- Verified CP-337 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-336 - Pure Intent Normalizer Dynamic Function Guard Coverage V1`.
-- Latest recorded checkpoint commit: `172d2f6b41b180146a992306f08c7e3610bb39f4` for `CP-335 - Post Intent Eval Guard Phase Gate`.
-- Confirmed current branch before CP-336: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-336: `172d2f6b41b180146a992306f08c7e3610bb39f4`.
-- Confirmed current status before CP-336: clean.
-- Current stop reason: not stopped; CP-336 pure intent-normalizer dynamic function guard coverage is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-337 - Interpreter Dynamic Function Input Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `6dd95d6ed8fc5627c165b7d3655cc0271bd7a0d3` for `CP-336 - Pure Intent Normalizer Dynamic Function Guard Coverage V1`.
+- Confirmed current branch before CP-337: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-337: `6dd95d6ed8fc5627c165b7d3655cc0271bd7a0d3`.
+- Confirmed current status before CP-337: clean.
+- Current stop reason: not stopped; CP-337 interpreter dynamic function doc reconciliation is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-336 - Local checkpoint commit`.
+- `CP-337 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/intent-normalizer.test.ts`
+  - `docs/style-system/style-interpreter-boundary.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime/provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-336 intent-normalizer test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime/provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside the listed interpreter boundary doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-337 interpreter boundary doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-336 pure intent-normalizer dynamic function guard coverage if final diff/status checks remain clean by scope.
+1. Commit the CP-337 interpreter dynamic function input doc reconciliation if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
-3. Select `CP-337 - Interpreter Dynamic Function Input Doc Reconciliation V1` unless a lower-risk reconciliation is discovered.
+3. Select the next lowest-risk isolated unit, likely a post dynamic function guard phase gate.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

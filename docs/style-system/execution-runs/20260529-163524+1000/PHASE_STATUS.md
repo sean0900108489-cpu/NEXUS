@@ -352,6 +352,7 @@ Run id: `20260529-163524+1000`
 | Interpreter Eval Input Doc Reconciliation V1 | PASS | Reconciled interpreter docs with `eval(...)` executable input rejection coverage. |
 | Post Intent Eval Guard Phase Gate | PASS | Decomposed full gate passed after intent eval guard coverage/docs; side-effect scan, build, and git diff check passed. |
 | Pure Intent Normalizer Dynamic Function Guard Coverage V1 | PASS | Added focused intent-normalizer coverage for `Function(...)` and `import(...)` executable input rejection without payload echo. |
+| Interpreter Dynamic Function Input Doc Reconciliation V1 | PASS | Reconciled interpreter docs with dynamic function/import executable input rejection coverage. |
 
 ## Current Gate
 
@@ -364,4 +365,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is CP-336 Pure Intent Normalizer Dynamic Function Guard Coverage V1 local checkpoint commit. CP-335 is committed at `172d2f6b41b180146a992306f08c7e3610bb39f4`, and focused dynamic `Function(...)` / `import(...)` executable input rejection coverage has passed. Production window/modal code, production graph/app shell files, implementation files, product docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is CP-337 Interpreter Dynamic Function Input Doc Reconciliation V1 local checkpoint commit. CP-336 is committed at `6dd95d6ed8fc5627c165b7d3655cc0271bd7a0d3`, and interpreter docs now reflect dynamic function/import executable input rejection coverage. Production window/modal code, production graph/app shell files, source/test files, product docs outside the interpreter boundary doc and this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

@@ -340,6 +340,7 @@ Run id: `20260529-163524+1000`
 | Run Docs Current-State Reconciliation V1 | PASS | Reconciled current-state bookkeeping with committed CP-321 HEAD `2701fe0dc3bacf5a97bbe3407ac3adeaa817c1e0`; source/test/runtime files stayed closed. |
 | Pure Runtime Controller ClearAll Active Coverage V1 | PASS | Added focused runtime-controller coverage for active-session `clearAll()` revert semantics. |
 | Runtime Controller ClearAll Doc Reconciliation V1 | PASS | Reconciled runtime preview docs with active-session `clearAll()` coverage and the implemented controller result type. |
+| Post Runtime Controller ClearAll Phase Gate | PASS | Decomposed full gate passed after active-session `clearAll()` coverage/docs; side-effect scan, build, and git diff check passed. |
 
 ## Current Gate
 
@@ -352,4 +353,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is CP-324 Runtime Controller ClearAll Doc Reconciliation V1 local checkpoint commit. CP-323 is committed at `d533d6fe416766638d859e68d41c254a506bf936`, and the runtime preview docs now reflect active-session `clearAll()` coverage and the implemented controller result type. Production window/modal code, production graph/app shell files, source/test files, docs outside the runtime preview doc and this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is CP-325 Post Runtime Controller ClearAll Phase Gate local checkpoint commit. CP-324 is committed at `35e0b2f1952fd131bba691a98bf809d5a98b8f6f`, and the decomposed full gate after active-session `clearAll()` coverage/docs has passed. Production window/modal code, production graph/app shell files, source/test files, product docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

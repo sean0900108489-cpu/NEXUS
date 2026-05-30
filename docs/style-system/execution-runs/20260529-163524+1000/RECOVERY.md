@@ -37,8 +37,8 @@ Do not restart from the beginning. Continue from the latest completed checkpoint
 
 ## Latest Recorded Clean Checkpoint
 
-- Checkpoint: `CP-323 - Pure Runtime Controller ClearAll Active Coverage V1`
-- Commit: `d533d6fe416766638d859e68d41c254a506bf936`
+- Checkpoint: `CP-324 - Runtime Controller ClearAll Doc Reconciliation V1`
+- Commit: `35e0b2f1952fd131bba691a98bf809d5a98b8f6f`
 - Branch: `codex/v17-large-iteration`
-- Status before CP-324: clean.
-- Resume action: if `git log -1 --oneline` shows `docs: reconcile active preview clearAll`, treat CP-324 as the latest local checkpoint; otherwise finish or verify `CP-324 - Runtime Controller ClearAll Doc Reconciliation V1`, then select the next lowest-risk isolated phase gate or coverage unit.
+- Status before CP-325: clean.
+- Resume action: if `git log -1 --oneline` shows `docs: record clearAll phase gate`, treat CP-325 as the latest local checkpoint; otherwise finish or verify `CP-325 - Post Runtime Controller ClearAll Phase Gate`, then select the next lowest-risk isolated implementation or coverage unit.

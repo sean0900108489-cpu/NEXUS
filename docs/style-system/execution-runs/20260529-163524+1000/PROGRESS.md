@@ -1438,31 +1438,35 @@ Run id: `20260529-163524+1000`
 - Started `CP-306 - Pure Governance Rejected Permission Coverage V1`.
 - Added direct governance coverage for conservative `rejected` lifecycle permissions.
 - Verified CP-306 with focused governance Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scans, and `git diff --check`.
+- Created local checkpoint commit `940a25b11fc58b4cca23980f2edfe2daad884e67` for the Pure Governance Rejected Permission Coverage V1 unit.
+- Started `CP-307 - Governance Rejected Permission Doc Reconciliation V1`.
+- Reconciled style pack governance docs with CP-306 direct rejected lifecycle permission coverage.
+- Verified CP-307 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-306 - Pure Governance Rejected Permission Coverage V1`.
-- Latest recorded checkpoint commit: `cd1c51f1b23c4af7ec95833f76de67380ab49e16` for `CP-305 - Post Protected Behavior Class Guard Phase Gate`; CP-306 is being prepared for local commit.
-- Confirmed current branch during CP-306: `codex/v17-large-iteration`.
-- Confirmed current status after CP-306 verification prep: dirty only in CP-306 allowed governance test and run-doc files.
-- Current stop reason: not stopped; CP-306 governance rejected permission coverage checkpoint is underway.
+- Latest completed checkpoint: `CP-307 - Governance Rejected Permission Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `940a25b11fc58b4cca23980f2edfe2daad884e67` for `CP-306 - Pure Governance Rejected Permission Coverage V1`; CP-307 is being prepared for local commit.
+- Confirmed current branch during CP-307: `codex/v17-large-iteration`.
+- Confirmed current status after CP-307 verification prep: dirty only in CP-307 allowed style pack governance doc and run-doc files.
+- Current stop reason: not stopped; CP-307 governance rejected permission doc reconciliation checkpoint is underway.
 
 ## In Progress
 
-- `CP-306 - Local checkpoint commit prep`.
+- `CP-307 - Local checkpoint commit prep`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/governance.test.ts`
+  - `docs/style-system/style-pack-governance.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: source implementation files, docs outside this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused governance Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
-- Rollback: revert only the CP-306 governance test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, docs outside the listed governance doc and this run folder, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and commit metadata check before selecting the next isolated unit.
+- Rollback: revert only the CP-307 governance doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-306 governance rejected permission coverage checkpoint if final diff/status checks remain clean by scope.
+1. Commit the CP-307 governance rejected permission doc reconciliation checkpoint if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

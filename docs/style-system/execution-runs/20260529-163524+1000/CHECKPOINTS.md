@@ -5074,3 +5074,20 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
 - Verification result: PASS. Focused governance Vitest passed 1 file / 6 tests with `--testTimeout 20000`. Targeted lint passed. `npm run typecheck` passed. Touched-file side-effect/behavior scans returned no matches for workspace/sync/backend/Supabase/deploy/production Nexus/React Flow behavior paths. `git diff --check` passed.
 - Rollback note: revert only the CP-306 governance test/run-doc changes if this coverage must be removed.
+
+## CP-307 - Governance Rejected Permission Doc Reconciliation V1
+
+- Unit: reconcile style pack governance docs with CP-306 direct `rejected` lifecycle permission coverage.
+- Allowed files:
+  - `docs/style-system/style-pack-governance.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider/controller wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, docs outside the listed governance doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence/doc scan for rejected lifecycle permission coverage; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: focused evidence/doc scan for rejected lifecycle permission coverage; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/style-pack-governance.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+- Verification result: PASS. Evidence scan found CP-306 rejected lifecycle permission coverage and matching style pack governance wording. Source-diff absence check showed no source/runtime diff for this docs-only unit. `git diff --check` passed.
+- Rollback note: revert only the CP-307 governance doc/run-doc changes if this reconciliation must be removed.

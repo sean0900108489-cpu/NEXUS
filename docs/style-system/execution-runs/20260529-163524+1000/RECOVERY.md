@@ -37,8 +37,8 @@ Do not restart from the beginning. Continue from the latest completed checkpoint
 
 ## Latest Recorded Clean Checkpoint
 
-- Checkpoint: `CP-331 - Interpreter Executable Input Doc Reconciliation V1`
-- Commit: `f7fe42163f882dceebcb2c4d3c322ad5338da726`
+- Checkpoint: `CP-332 - Post Intent JavaScript Guard Phase Gate`
+- Commit: `dc0ac708b339012ab305d9954161a91c48d70530`
 - Branch: `codex/v17-large-iteration`
-- Status before CP-332: clean.
-- Resume action: if `git log -1 --oneline` shows `docs: record intent javascript phase gate`, treat CP-332 as the latest local checkpoint; otherwise finish or verify `CP-332 - Post Intent JavaScript Guard Phase Gate`, then select the next lowest-risk isolated implementation or coverage unit.
+- Status before CP-333: clean.
+- Resume action: if `git log -1 --oneline` shows `test: cover eval intent input`, treat CP-333 as the latest local checkpoint; otherwise finish or verify `CP-333 - Pure Intent Normalizer Eval Guard Coverage V1`, then select the next lowest-risk isolated doc reconciliation or coverage unit.

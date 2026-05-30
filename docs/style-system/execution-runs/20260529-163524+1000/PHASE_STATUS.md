@@ -345,6 +345,7 @@ Run id: `20260529-163524+1000`
 | Runtime Controller No-Active Revert Doc Reconciliation V1 | PASS | Reconciled runtime preview docs with `style.preview.noActiveSession` no-mutation behavior. |
 | Post Runtime Controller No-Active Revert Phase Gate | PASS | Decomposed full gate passed after no-active `revert()` coverage/docs; side-effect scan, build, and git diff check passed. |
 | Compiler Coverage Doc Reconciliation V1 | PASS | Reconciled compiler contract docs with existing High Contrast Carbon pure compiler coverage. |
+| Pure Intent Normalizer JavaScript URL Guard Coverage V1 | PASS | Added focused intent-normalizer coverage for `javascript:` executable input rejection without payload echo. |
 
 ## Current Gate
 
@@ -357,4 +358,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is CP-329 Compiler Coverage Doc Reconciliation V1 local checkpoint commit. CP-328 is committed at `c641b73643153f6fb58b883b613f93bd05f1c78a`, and compiler contract docs now reflect existing High Contrast Carbon pure compiler coverage. Production window/modal code, production graph/app shell files, source/test files, product docs outside the compiler contract doc and this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is CP-330 Pure Intent Normalizer JavaScript URL Guard Coverage V1 local checkpoint commit. CP-329 is committed at `7ace27dbbec401501726d12003465e12deaac558`, and focused `javascript:` executable input rejection coverage has passed. Production window/modal code, production graph/app shell files, implementation files, product docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

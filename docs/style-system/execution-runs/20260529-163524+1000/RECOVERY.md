@@ -37,8 +37,8 @@ Do not restart from the beginning. Continue from the latest completed checkpoint
 
 ## Latest Recorded Clean Checkpoint
 
-- Checkpoint: `CP-328 - Post Runtime Controller No-Active Revert Phase Gate`
-- Commit: `c641b73643153f6fb58b883b613f93bd05f1c78a`
+- Checkpoint: `CP-329 - Compiler Coverage Doc Reconciliation V1`
+- Commit: `7ace27dbbec401501726d12003465e12deaac558`
 - Branch: `codex/v17-large-iteration`
-- Status before CP-329: clean.
-- Resume action: if `git log -1 --oneline` shows `docs: reconcile compiler coverage`, treat CP-329 as the latest local checkpoint; otherwise finish or verify `CP-329 - Compiler Coverage Doc Reconciliation V1`, then select the next lowest-risk isolated implementation or coverage unit.
+- Status before CP-330: clean.
+- Resume action: if `git log -1 --oneline` shows `test: cover javascript intent input`, treat CP-330 as the latest local checkpoint; otherwise finish or verify `CP-330 - Pure Intent Normalizer JavaScript URL Guard Coverage V1`, then select the next lowest-risk isolated doc reconciliation or coverage unit.

@@ -49,6 +49,7 @@ Only read `/Users/sean/Downloads/nexusstyle總升級.md` for long-term ambition.
 | `v2-style-pack-implementation-gates.md` | V2 implementation gate map | Execution owner | All V2 contract-prep docs and governance docs | Go/No-Go gates, first implementation batch rules, protocol trigger matrix | Broad implementation is blocked until pure contract validators and fixtures exist. |
 | `skin-pack-render-optimization-pipeline-v1.md` | V2/V3 Skin Pack render optimization pipeline | Performance owner | V2 contracts, token-only preview checkpoint, Style Lab review source | Receive-to-RenderPlan pipeline, scheduler design, diagnostics, dependency policy | Next implementation gate is pure Render Plan IR types/tests, not asset preview. |
 | `style-pack-authoring-guide-v1.md` | V2 Style Pack authoring guide | Authoring owner | V2 contracts, validators, fixtures, token preview checkpoint | User/designer/LLM guide, examples, image-to-style workflow, prompts, troubleshooting | Authored packs can target review-only import and token-only preview without runtime or persistence work. |
+| `style-pack-authoring-reference-v1.md` | Current V2 authoring capability reference | Authoring owner | V2 authoring guide, V2 fixtures, V2 token preview source, Style Lab source | Capability map, visible token list, valid skeleton, fixture-based Pixel/Minecraft rewrite, repair guide | External authors know which fields change Style Lab today and which fields remain review-only. |
 
 ## 2. Phase Docs To Create Later
 

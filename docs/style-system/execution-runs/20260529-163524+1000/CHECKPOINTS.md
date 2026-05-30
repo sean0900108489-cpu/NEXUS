@@ -5444,3 +5444,21 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/RECOVERY.md`
 - Verification result: PASS. Decomposed full gate passed lint, typecheck, 41 Vitest files / 346 tests with `--testTimeout 20000`, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, pure adapter/token references, and existing React Flow/window-modal adapter guard/test coverage. No source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-328 run-doc update if the phase gate bookkeeping must be removed.
+
+## CP-329 - Compiler Coverage Doc Reconciliation V1
+
+- Unit: reconcile compiler contract docs with existing High Contrast Carbon built-in preset compile coverage.
+- Allowed files:
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime/provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside the listed compiler contract doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence/doc scan for High Contrast Carbon compiler coverage; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: focused evidence/doc scan for High Contrast Carbon compiler coverage; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/compiler-v1-contract.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/RECOVERY.md`
+- Verification result: PASS. Evidence scan found the existing High Contrast Carbon pure compiler test in `src/lib/style-engine/presets.test.ts` and matching compiler contract coverage wording. Source-diff absence check showed no source/runtime diff for this docs-only unit. `git diff --check` passed.
+- Rollback note: revert only the CP-329 compiler contract doc/run-doc changes if this reconciliation must be removed.

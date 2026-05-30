@@ -1532,31 +1532,36 @@ Run id: `20260529-163524+1000`
 - Ran decomposed full gate: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, and `npm run build`.
 - Confirmed full Vitest passed 41 files / 346 tests and build passed with static `/style-lab` plus the known edge-runtime warning.
 - Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, pure adapter/token references, and existing React Flow/window-modal adapter guard/test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
+- Created local checkpoint commit `c641b73643153f6fb58b883b613f93bd05f1c78a` for the Post Runtime Controller No-Active Revert Phase Gate.
+- Started `CP-329 - Compiler Coverage Doc Reconciliation V1`.
+- Reconciled compiler contract docs with existing High Contrast Carbon built-in preset compile coverage.
+- Verified CP-329 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-328 - Post Runtime Controller No-Active Revert Phase Gate`.
-- Latest recorded checkpoint commit: `0bfa10ed2c9eced65095ec01fad79fd67031aa1f` for `CP-327 - Runtime Controller No-Active Revert Doc Reconciliation V1`.
-- Confirmed current branch before CP-328: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-328: `0bfa10ed2c9eced65095ec01fad79fd67031aa1f`.
-- Confirmed current status before CP-328: clean.
-- Current stop reason: not stopped; CP-328 post no-active revert phase gate is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-329 - Compiler Coverage Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `c641b73643153f6fb58b883b613f93bd05f1c78a` for `CP-328 - Post Runtime Controller No-Active Revert Phase Gate`.
+- Confirmed current branch before CP-329: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-329: `c641b73643153f6fb58b883b613f93bd05f1c78a`.
+- Confirmed current status before CP-329: clean.
+- Current stop reason: not stopped; CP-329 compiler contract doc reconciliation is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-328 - Local checkpoint commit`.
+- `CP-329 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
+  - `docs/style-system/compiler-v1-contract.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test/product docs, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, `npm run build`, side-effect/import scan, behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-328 run-doc update if this phase gate bookkeeping must be removed.
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime/provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside the listed compiler contract doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-329 compiler contract doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-328 post runtime-controller no-active revert phase gate if final diff/status checks remain clean by scope.
+1. Commit the CP-329 compiler coverage doc reconciliation if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -277,6 +277,7 @@ Current focused compiler coverage includes:
 
 - same manifest produces deterministic output
 - legacy cyberpunk compiles to expected variables
+- High Contrast Carbon compiles through the pure compiler as a built-in preset fixture
 - validator-rejected manifests do not produce compiled output
 - emitted variable totals are reported in compiler metadata
 - optional `nextThemes` bridge data stays inert adapter output

@@ -1609,32 +1609,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-346 - Validator Executable String Doc Reconciliation V1`.
 - Reconciled manifest validator docs with CP-345 executable string guard coverage.
 - Verified CP-346 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
+- Created local checkpoint commit `fa6558bfe142692298c9d9b7ede44ddc5e8b323d` for the Validator Executable String Doc Reconciliation V1 unit.
+- Started `CP-347 - Post Validator Executable String Guard Phase Gate` with source edits closed.
+- Ran decomposed full gate: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, and `npm run build`.
+- Confirmed full Vitest passed 41 files / 352 tests and build passed with static `/style-lab` plus the known edge-runtime warning.
+- Confirmed phase-gate side-effect scans only matched expected validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, pure adapter guard strings, and existing React Flow/window-modal adapter guard/test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-346 - Validator Executable String Doc Reconciliation V1`.
-- Latest recorded checkpoint commit: `6e72e1aa39e1179ad4e4a13ba97097945f530e5f` for `CP-345 - Pure Validator Executable String Guard Coverage V1`.
-- Confirmed current branch before CP-346: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-346: `6e72e1aa39e1179ad4e4a13ba97097945f530e5f`.
-- Confirmed current status before CP-346: clean.
-- Current stop reason: not stopped; CP-346 validator executable string doc reconciliation is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-347 - Post Validator Executable String Guard Phase Gate`.
+- Latest recorded checkpoint commit: `fa6558bfe142692298c9d9b7ede44ddc5e8b323d` for `CP-346 - Validator Executable String Doc Reconciliation V1`.
+- Confirmed current branch before CP-347: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-347: `fa6558bfe142692298c9d9b7ede44ddc5e8b323d`.
+- Confirmed current status before CP-347: clean.
+- Current stop reason: not stopped; CP-347 post validator executable string guard phase gate is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-346 - Local checkpoint commit`.
+- `CP-347 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside the listed validator rules doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused evidence/doc scan for executable string guard coverage, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-346 validator rules doc/run-doc changes if this reconciliation must be removed.
+- Forbidden files: all source/test/product docs, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, `npm run build`, side-effect/import scan, behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-347 run-doc update if this phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-346 validator executable string doc reconciliation if final diff/status checks remain clean by scope.
+1. Commit the CP-347 post validator executable string guard phase gate if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

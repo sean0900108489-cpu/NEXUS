@@ -43,8 +43,14 @@ describe("NexusOps extraction map markers", () => {
 
   it("keeps extraction-safe visual shell candidate markers visible", () => {
     const source = readNexusOpsSource();
+    const outerShellFrameSource = readOuterShellFrameSource();
 
-    expect(source).toContain('className="nexus-shell');
+    expect(source).toContain(
+      'import { NexusOpsOuterShellFrame } from "@/components/nexus/nexus-ops-outer-shell-frame";',
+    );
+    expect(source).toContain("<NexusOpsOuterShellFrame>");
+    expect(source).toContain("</NexusOpsOuterShellFrame>");
+    expect(outerShellFrameSource).toContain('className="nexus-shell');
     expect(source).toContain('className="nexus-workspace');
     expect(source).toContain('className="nexus-panel');
     expect(source).toContain("<TopBar");
@@ -57,4 +63,11 @@ describe("NexusOps extraction map markers", () => {
 
 function readNexusOpsSource() {
   return readFileSync(new URL("nexus-ops.tsx", import.meta.url), "utf8");
+}
+
+function readOuterShellFrameSource() {
+  return readFileSync(
+    new URL("nexus-ops-outer-shell-frame.tsx", import.meta.url),
+    "utf8",
+  );
 }

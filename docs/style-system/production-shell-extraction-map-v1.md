@@ -1,13 +1,19 @@
 # NEXUS Production Shell Extraction Map V1
 
-Status: read-only extraction planning
+Status: read-only extraction planning with first outer frame extraction landed
 Branch: `codex/v18-style-pack-contract-prep`
 Source scanned: `src/components/nexus/nexus-ops.tsx`
 
+Update: `NexusOpsOuterShellFrame` now owns only the original outer
+`nexus-shell` visual wrapper. The `NexusOps` behavior core, child order, store
+selectors/actions, React Flow wiring, windows, modals, and layout semantics
+remain in `src/components/nexus/nexus-ops.tsx`.
+
 ## 1. Scope And Non-Goals
 
-This document is a read-only map for the first real production shell extraction.
-It does not change production runtime behavior, does not extract code, and does
+This document started as the read-only map for the first real production shell
+extraction. It now records that the first outer visual shell frame extraction
+has landed. The extraction does not change production runtime behavior and does
 not introduce a new registry, contract, layout preset, or feature placement
 system.
 
@@ -18,9 +24,8 @@ The goal is to mark cut lines inside `NexusOps` before any extraction happens:
 - visual-token adoption candidates
 - interaction smoke requirements
 
-Non-goals for this round:
+Non-goals that still apply after the outer frame extraction:
 
-- no edits to `src/components/nexus/nexus-ops.tsx`
 - no edits to React Flow, drag, resize, focus, z-index, store, sync, backend,
   Supabase, route behavior, or CSS layout rules
 - no production token bridge apply
@@ -37,7 +42,7 @@ and persistence authority in `NexusOps` or in an already-owned behavior module.
 
 | Candidate | Source anchor | Why it appears safe | What it must not own | Proposed future extraction unit | Required smoke |
 | --- | --- | --- | --- | --- | --- |
-| `NexusOps` outer visual shell frame | `src/components/nexus/nexus-ops.tsx:2019` to `src/components/nexus/nexus-ops.tsx:2310`, especially `<main className="nexus-shell ...">` at line 2020 | It is the broadest visual frame around the existing shell after the auth gate. It already sits inside the inert route-edge wrapper. | Auth gate, store selectors, effects, keyboard shortcuts, import/export, persistence, graph, windows, modals, layout geometry, feature placement. | `NexusOpsShellFrame` that accepts fixed `children` slots from the existing render tree, with no registry and no behavior props beyond children. | Page renders, wrapper boundary still exists, `NexusOps` visible, no console/hydration errors, no pointer/focus regression. |
+| `NexusOps` outer visual shell frame | `src/components/nexus/nexus-ops-outer-shell-frame.tsx:7`; callsite `src/components/nexus/nexus-ops.tsx:2021` to `src/components/nexus/nexus-ops.tsx:2310` | It is the broadest visual frame around the existing shell after the auth gate. It already sits inside the inert route-edge wrapper and now accepts only `children`. | Auth gate, store selectors, effects, keyboard shortcuts, import/export, persistence, graph, windows, modals, layout geometry, feature placement. | Landed as `NexusOpsOuterShellFrame`; no further extraction is implied by this map. | Page renders, wrapper boundary still exists, `NexusOps` visible, no console/hydration errors, no pointer/focus regression. |
 | Main chrome/body container | `src/components/nexus/nexus-ops.tsx:2077` to `src/components/nexus/nexus-ops.tsx:2204` | The flex row that contains left dock and workspace is visually identifiable and does not itself make decisions beyond existing child placement. | Left/right swapping, layout preset intent, scroll/overflow changes, React Flow behavior, workspace sizing, drag/drop, slot registry. | `NexusOpsBodyFrame` wrapping current left dock and workspace children without reordering them. | Workspace visible, left rail still opens/closes, graph/panels view unchanged, no layout shift. |
 | Top shell chrome frame | `<TopBar />` call at `src/components/nexus/nexus-ops.tsx:2032`; component body starts at `src/components/nexus/nexus-ops.tsx:2478`; header root at line 2553 | The header has a clear visual boundary and stable placement above the workspace body. | Workspace menu state, rename form state, save/import/export actions, view-mode toggles, sync retry, recovery actions, keyboard behavior. | Extract only a `TopBarFrame` or primitive visual wrapper first; leave `TopBar` behavior in place. | Workspace menu opens, rename cancel/commit still works, view toggle still works, import/export buttons still reachable. |
 | Left dock visual wrapper | `<LeftDock />` call at `src/components/nexus/nexus-ops.tsx:2099`; `LeftDock` starts at `src/components/nexus/nexus-ops.tsx:4591`; root `.nexus-panel` at line 4626 | The expanded left dock is already a `.nexus-panel` visual primitive and is separate from workspace canvas content. | Agent spawn/select/focus/restore logic, template profile editing, model selection, collapse animation state. | Extract a left dock frame wrapper around the existing `LeftDock` render tree, or first move only the `.nexus-panel` frame class to a named wrapper. | Expand/collapse left rail, spawn from template, select agent, restore minimized agent, no focus regression. |
@@ -82,7 +87,7 @@ aliases in future, focused implementation rounds.
 | `.nexus-panel` primitive | `src/app/globals.css:280`; direct `nexus-ops.tsx` usage at lines 2359, 4626, 6070, 6437 | CSS class with bridge aliases and legacy fallback | `--nexus-panel-bg`, `--nexus-panel-border`, `--nexus-panel-text`, `--nexus-panel-radius`, `--nexus-panel-shadow`, `--nexus-panel-blur` | Low | Already adopted as a primitive. Future shell extraction may reuse it but must not move behavior. |
 | `.nexus-glass` primitive | `src/app/globals.css:289` | CSS class with bridge aliases and legacy fallback | `--nexus-glass-bg`, `--nexus-glass-border`, `--nexus-glass-text`, `--nexus-glass-radius`, `--nexus-glass-blur` | Low-Medium | Not a direct `nexus-ops.tsx` class marker in this scan, but available for future outer frames or modal/sidebar specimen parity. |
 | `.nexus-workspace` primitive | `src/app/globals.css:252`; direct `nexus-ops.tsx` usage at line 2127 | CSS class with background/grid/wash bridge aliases plus hardcoded layout classes | `--nexus-workspace-bg`, `--nexus-workspace-grid-primary`, `--nexus-workspace-grid-secondary`, `--nexus-workspace-wash` | Medium | Color/background/grid/wash only. Do not touch overflow, sizing, positioning, React Flow, canvas behavior, or workspace state. |
-| `.nexus-shell` root | `src/app/globals.css:245`; direct `nexus-ops.tsx` usage at line 2020 | Root shell class and global descendant rules | `--bg-base`, `--text-main`, possible future shell aliases | Medium | Good candidate for the first shell frame extraction, but not for asset background or layout control. |
+| `.nexus-shell` root | `src/app/globals.css:245`; wrapper in `src/components/nexus/nexus-ops-outer-shell-frame.tsx:11` | Root shell class and global descendant rules | `--bg-base`, `--text-main`, possible future shell aliases | Medium | First outer frame extraction landed. Do not use it for asset background, production token apply, or layout control. |
 | Hardcoded Tailwind chrome | `TopBar` line 2553, right dock line 2454, settings panel line 3420, macro modal line 2905 | Inline Tailwind classes with cyan/fuchsia/black colors, shadows, and borders | panel/glass/modal recipe variables after specimen parity | Medium-High | Requires component-specific smoke before adoption. Do not bulk replace. |
 
 ## 5. Interaction Smoke Requirements

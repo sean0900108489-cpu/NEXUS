@@ -137,6 +137,7 @@ import { AgentBranchModal } from "@/components/nexus/AgentBranchModal";
 import { AuthScreen } from "@/components/nexus/auth-screen";
 import { DatapadWindow } from "@/components/nexus/DatapadWindow";
 import { NexusGraph } from "@/components/nexus/nexus-graph";
+import { NexusOpsOuterShellFrame } from "@/components/nexus/nexus-ops-outer-shell-frame";
 import { PromptVaultManager } from "@/components/nexus/PromptVaultManager";
 
 const Rnd = dynamic(() => import("react-rnd").then((module) => module.Rnd), {
@@ -2017,7 +2018,7 @@ export function NexusOps() {
   }
 
   return (
-    <main className="nexus-shell flex h-dvh min-h-0 flex-col overflow-hidden text-slate-100">
+    <NexusOpsOuterShellFrame>
       <input
         ref={fileInputRef}
         accept="application/json"
@@ -2306,7 +2307,7 @@ export function NexusOps() {
         streamMode={effectiveStreamMode}
         themeConfig={themeConfig}
       />
-    </main>
+    </NexusOpsOuterShellFrame>
   );
 }
 

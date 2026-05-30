@@ -23,6 +23,7 @@ import {
   createOverBudgetSkinPackV2,
   createPixelWorkshopSkinPackV2,
   createReactFlowStyleAdapterFromManifestV1,
+  compileNexusSkinPackSpecimenPreviewTextV2,
   emitReactFlowAdapterCssVariablesV1,
   getNexusSkinPackIssueRepairHintV1,
   HIGH_CONTRAST_CARBON_STYLE_ID,
@@ -60,6 +61,7 @@ type VisibleStyleIssue = {
 
 const maxVisibleImportIssues = 3;
 const maxVisibleSkinPackIssues = 5;
+const maxVisibleSpecimenFallbacks = 4;
 
 const comparisonVariables = [
   "--nexus-surface-app",
@@ -552,6 +554,54 @@ export function NexusStyleLab() {
           : canPreviewSkinPackTokens
             ? "tokens ready"
             : "token preview idle";
+  const skinPackGalleryTokenPreviewResult = useMemo(() => {
+    if (!canPreviewSkinPackTokens) {
+      return null;
+    }
+
+    return compileNexusSkinPackTokenPreviewTextV2(skinPackText);
+  }, [canPreviewSkinPackTokens, skinPackText]);
+  const acceptedSkinPackTokenPreviewResult =
+    skinPackTokenPreviewResult?.accepted
+      ? skinPackTokenPreviewResult
+      : skinPackGalleryTokenPreviewResult?.accepted
+        ? skinPackGalleryTokenPreviewResult
+        : null;
+  const skinPackSpecimenPreviewResult = useMemo(() => {
+    if (!acceptedSkinPackTokenPreviewResult) {
+      return null;
+    }
+
+    return compileNexusSkinPackSpecimenPreviewTextV2(skinPackText);
+  }, [acceptedSkinPackTokenPreviewResult, skinPackText]);
+  const specimenGallery =
+    skinPackSpecimenPreviewResult?.accepted === true
+      ? skinPackSpecimenPreviewResult.gallery
+      : null;
+  const specimenGalleryStatus = specimenGallery
+    ? "isolated gallery ready"
+    : canPreviewSkinPackTokens
+      ? "gallery blocked"
+      : "review required";
+  const specimenGalleryRows = useMemo(
+    () => [
+      ["Token Preview", acceptedSkinPackTokenPreviewResult ? "accepted" : "blocked"],
+      ["Recipe Specimen", specimenGallery ? "isolated visual objects" : "blocked"],
+      ["Production Apply", "blocked"],
+      ["Pack", specimenGallery?.skinPackId ?? "none"],
+      ["Manifest", specimenGallery?.manifestId ?? "none"],
+      [
+        "Groups",
+        specimenGallery?.coverage.supportedRecipeGroups.join(", ") || "none",
+      ],
+      ["Fallbacks", String(specimenGallery?.coverage.fallbackCount ?? 0)],
+    ],
+    [acceptedSkinPackTokenPreviewResult, specimenGallery],
+  );
+  const specimenFallbackRows = useMemo(
+    () => specimenGallery?.fallbacks.slice(0, maxVisibleSpecimenFallbacks) ?? [],
+    [specimenGallery],
+  );
   const skinPackTokenPreviewRows = useMemo(() => {
     const eligibility = skinPackReviewResult?.tokenPreview;
     const previewResult = skinPackTokenPreviewResult;
@@ -577,21 +627,23 @@ export function NexusStyleLab() {
           ? eligibility.reasonCodes.join(", ")
           : "none",
       ],
+      ["Gallery", specimenGalleryStatus],
     ];
   }, [
     skinPackReviewResult,
     skinPackTokenPreviewResult,
+    specimenGalleryStatus,
     skinPackTokenPreviewStatus,
   ]);
   const skinPackTokenPreviewVariables = useMemo(() => {
-    if (!skinPackTokenPreviewResult?.accepted) {
+    if (!acceptedSkinPackTokenPreviewResult) {
       return [];
     }
 
-    return Object.entries(skinPackTokenPreviewResult.patch.variables)
+    return Object.entries(acceptedSkinPackTokenPreviewResult.patch.variables)
       .sort(([left], [right]) => left.localeCompare(right))
       .slice(0, 16);
-  }, [skinPackTokenPreviewResult]);
+  }, [acceptedSkinPackTokenPreviewResult]);
   const briefIssues = useMemo(() => {
     if (!briefResult) {
       return [];
@@ -1488,6 +1540,303 @@ export function NexusStyleLab() {
                     </div>
                   </div>
                 </div>
+              </section>
+
+              <section
+                className="border border-emerald-300/15 bg-black/20 p-4 lg:col-span-2"
+                data-testid="v2-specimen-gallery"
+              >
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
+                    V2 Specimen Gallery
+                  </div>
+                  <div
+                    className={[
+                      "font-mono text-[10px] uppercase tracking-[0.12em]",
+                      specimenGallery ? "text-emerald-200" : "text-slate-500",
+                    ].join(" ")}
+                    data-testid="v2-specimen-gallery-status"
+                  >
+                    {specimenGalleryStatus}
+                  </div>
+                </div>
+
+                <div className="mb-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                  {specimenGalleryRows.map(([label, value]) => (
+                    <div
+                      key={`specimen-gallery:${label}`}
+                      className="min-w-0 border border-white/10 bg-white/[0.03] p-2"
+                    >
+                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                        {label}
+                      </div>
+                      <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+                        {value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {specimenGallery ? (
+                  <div className="grid gap-4">
+                    <div className="grid gap-3 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                      <div
+                        className="min-w-0 border p-4"
+                        data-testid="v2-specimen-panel"
+                        style={specimenGallery.specimens.panel.style}
+                      >
+                        <div className="font-mono text-[10px] uppercase tracking-[0.16em]">
+                          Panel
+                        </div>
+                        <div className="mt-3 truncate text-sm">
+                          {specimenGallery.displayName}
+                        </div>
+                        <div className="mt-3 grid grid-cols-3 gap-2">
+                          {["review", "tokens", "safe"].map((item) => (
+                            <span
+                              key={item}
+                              className="truncate border border-white/10 bg-white/[0.04] px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.1em]"
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        <div
+                          className="grid min-h-20 place-items-center border px-3 py-2 text-center font-mono text-[10px] uppercase tracking-[0.12em]"
+                          data-testid="v2-specimen-button-default"
+                          style={specimenGallery.specimens.buttonDefault.style}
+                        >
+                          Default
+                        </div>
+                        <div
+                          className="grid min-h-20 place-items-center border px-3 py-2 text-center font-mono text-[10px] uppercase tracking-[0.12em]"
+                          data-testid="v2-specimen-button-hover"
+                          style={specimenGallery.specimens.buttonHover.style}
+                        >
+                          Hover-Like
+                        </div>
+                        <div
+                          className="grid min-h-20 place-items-center border px-3 py-2 text-center font-mono text-[10px] uppercase tracking-[0.12em]"
+                          data-testid="v2-specimen-button-disabled"
+                          style={specimenGallery.specimens.buttonDisabled.style}
+                        >
+                          Disabled-Like
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+                      <div className="grid gap-2">
+                        <input
+                          aria-label="V2 specimen input"
+                          className="h-10 min-w-0 border px-3 font-mono text-[10px] uppercase tracking-[0.12em] outline-none"
+                          data-testid="v2-specimen-input"
+                          readOnly
+                          style={specimenGallery.specimens.input.style}
+                          value="Input"
+                        />
+                        <span
+                          className="inline-flex max-w-full items-center border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em]"
+                          data-testid="v2-specimen-badge"
+                          style={specimenGallery.specimens.badgeStatus.style}
+                        >
+                          Badge / Status
+                        </span>
+                      </div>
+
+                      <div
+                        className="grid gap-3 border p-3"
+                        data-testid="v2-specimen-command-palette"
+                        style={specimenGallery.specimens.commandPalette.style}
+                      >
+                        <div className="font-mono text-[10px] uppercase tracking-[0.16em]">
+                          Command Palette
+                        </div>
+                        <div
+                          className="truncate border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em]"
+                          style={
+                            specimenGallery.specimens.commandPalette.parts.input
+                          }
+                        >
+                          Search command
+                        </div>
+                        <div className="grid gap-2">
+                          {["Open Agent", "Toggle Dock", "Review Style"].map(
+                            (item, index) => (
+                              <div
+                                key={item}
+                                className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border px-3 py-2"
+                                style={
+                                  index === 0
+                                    ? specimenGallery.specimens.commandPalette
+                                        .parts.activeItem
+                                    : specimenGallery.specimens.commandPalette
+                                        .parts.item
+                                }
+                              >
+                                <span className="truncate font-mono text-[10px] uppercase tracking-[0.12em]">
+                                  {item}
+                                </span>
+                                <span className="font-mono text-[9px] uppercase tracking-[0.1em] opacity-70">
+                                  visual
+                                </span>
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 xl:grid-cols-3">
+                      <div
+                        className="overflow-hidden border"
+                        data-testid="v2-specimen-agent-window"
+                        style={specimenGallery.specimens.agentWindow.style}
+                      >
+                        <div
+                          className="border-b px-4 py-3"
+                          style={specimenGallery.specimens.agentWindow.parts.chrome}
+                        >
+                          <div className="font-mono text-[10px] uppercase tracking-[0.16em]">
+                            Agent Window
+                          </div>
+                          <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] opacity-70">
+                            specimen only
+                          </div>
+                        </div>
+                        <div
+                          className="grid gap-3 p-4"
+                          style={specimenGallery.specimens.agentWindow.parts.body}
+                        >
+                          <div className="grid grid-cols-[40px_minmax(0,1fr)] gap-3">
+                            <span
+                              className="h-10 border"
+                              style={
+                                specimenGallery.specimens.agentWindow.parts.status
+                              }
+                            />
+                            <span className="grid content-center gap-2">
+                              <span className="h-2 w-3/4 bg-white/15" />
+                              <span className="h-2 w-1/2 bg-white/10" />
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            {["stream", "tools", "state"].map((item) => (
+                              <span
+                                key={item}
+                                className="truncate border border-white/10 bg-white/[0.04] px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.1em]"
+                              >
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        className="min-h-52 border p-4"
+                        data-testid="v2-specimen-modal"
+                        style={specimenGallery.specimens.modalDialog.parts.backdrop}
+                      >
+                        <div
+                          className="grid gap-3 border p-4"
+                          style={specimenGallery.specimens.modalDialog.style}
+                        >
+                          <div className="font-mono text-[10px] uppercase tracking-[0.16em]">
+                            Modal / Dialog
+                          </div>
+                          <div
+                            className="border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em]"
+                            style={
+                              specimenGallery.specimens.modalDialog.parts.callout
+                            }
+                          >
+                            Review Required
+                          </div>
+                          <div
+                            className="grid grid-cols-2 gap-2 border-t pt-3"
+                            style={
+                              specimenGallery.specimens.modalDialog.parts.footer
+                            }
+                          >
+                            <span className="border border-white/10 bg-white/[0.04] px-3 py-2 text-center font-mono text-[10px] uppercase tracking-[0.12em]">
+                              Cancel
+                            </span>
+                            <span
+                              className="border px-3 py-2 text-center font-mono text-[10px] uppercase tracking-[0.12em]"
+                              style={
+                                specimenGallery.specimens.buttonDefault.style
+                              }
+                            >
+                              Apply
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        className="grid min-h-52 gap-2 border p-3"
+                        data-testid="v2-specimen-sidebar-dock"
+                        style={specimenGallery.specimens.sidebarDock.style}
+                      >
+                        <div className="font-mono text-[10px] uppercase tracking-[0.16em]">
+                          Sidebar / Dock
+                        </div>
+                        {["Workspace", "Agents", "Style Lab"].map(
+                          (item, index) => (
+                            <span
+                              key={item}
+                              className="truncate border px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em]"
+                              style={
+                                index === 2
+                                  ? specimenGallery.specimens.sidebarDock.parts
+                                      .activeItem
+                                  : specimenGallery.specimens.sidebarDock.parts
+                                      .item
+                              }
+                            >
+                              {item}
+                            </span>
+                          ),
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="border border-white/10 bg-white/[0.03] p-3">
+                      <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Fallback Summary
+                      </div>
+                      {specimenFallbackRows.length > 0 ? (
+                        <div className="grid gap-2 md:grid-cols-2">
+                          {specimenFallbackRows.map((issue) => (
+                            <div
+                              key={`${issue.path}:${issue.code}`}
+                              className="min-w-0 border border-white/10 bg-black/20 p-2"
+                            >
+                              <div className="truncate font-mono text-[9px] text-amber-100">
+                                {issue.code}
+                              </div>
+                              <div className="mt-1 truncate font-mono text-[9px] text-slate-500">
+                                {issue.path}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-200">
+                          none
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border border-white/10 bg-white/[0.03] p-4 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                    accepted token preview result required
+                  </div>
+                )}
               </section>
 
               <section className="border border-white/10 bg-black/20 p-4 lg:col-span-2">

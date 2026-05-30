@@ -1540,32 +1540,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-330 - Pure Intent Normalizer JavaScript URL Guard Coverage V1`.
 - Added focused intent-normalizer coverage proving `javascript:` URL-like executable input is rejected without echoing the payload.
 - Verified CP-330 with focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, and `git diff --check`.
+- Created local checkpoint commit `9b3e532b818d3dd0f5be9df5a5c52a065c21ad60` for the Pure Intent Normalizer JavaScript URL Guard Coverage V1 unit.
+- Started `CP-331 - Interpreter Executable Input Doc Reconciliation V1`.
+- Reconciled interpreter boundary docs with CP-330 `javascript:` URL-like executable input rejection coverage.
+- Verified CP-331 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-330 - Pure Intent Normalizer JavaScript URL Guard Coverage V1`.
-- Latest recorded checkpoint commit: `7ace27dbbec401501726d12003465e12deaac558` for `CP-329 - Compiler Coverage Doc Reconciliation V1`.
-- Confirmed current branch before CP-330: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-330: `7ace27dbbec401501726d12003465e12deaac558`.
-- Confirmed current status before CP-330: clean.
-- Current stop reason: not stopped; CP-330 pure intent-normalizer JavaScript URL guard coverage is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-331 - Interpreter Executable Input Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `9b3e532b818d3dd0f5be9df5a5c52a065c21ad60` for `CP-330 - Pure Intent Normalizer JavaScript URL Guard Coverage V1`.
+- Confirmed current branch before CP-331: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-331: `9b3e532b818d3dd0f5be9df5a5c52a065c21ad60`.
+- Confirmed current status before CP-331: clean.
+- Current stop reason: not stopped; CP-331 interpreter doc reconciliation is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-330 - Local checkpoint commit`.
+- `CP-331 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/intent-normalizer.test.ts`
+  - `docs/style-system/style-interpreter-boundary.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime/provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused intent-normalizer Vitest, targeted lint, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-330 intent-normalizer test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime/provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside the listed interpreter boundary doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-331 interpreter boundary doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-330 pure intent-normalizer JavaScript URL guard coverage if final diff/status checks remain clean by scope.
+1. Commit the CP-331 interpreter executable input doc reconciliation if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
-3. Select `CP-331 - Interpreter Executable Input Doc Reconciliation V1` unless a lower-risk reconciliation is discovered.
+3. Select the next lowest-risk isolated unit, likely a post intent JavaScript guard phase gate.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

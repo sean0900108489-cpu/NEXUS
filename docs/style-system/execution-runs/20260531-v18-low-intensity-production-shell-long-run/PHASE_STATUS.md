@@ -15,7 +15,7 @@ Date: 2026-05-31
 | Initial docs | Technical runbook bootstrap | Completed | Committed as `2d1405a docs: start v18 low intensity production shell long run`. |
 | Phase 0 | Recovery / Preflight | Completed | Branch/status/history verified; required context read; no source edits. |
 | Phase 1 | Static Shell Frame Extraction Batch | Completed | No new source extraction needed: BodyFrame already existed; LeftDock/Workspace skipped as unsafe behavior-bearing wrappers. |
-| Phase 2 | Extraction Map Reconciliation | Pending | Reconcile current extracted/skipped state. |
+| Phase 2 | Extraction Map Reconciliation | Completed | Map updated with extracted frames, skipped candidates, protected core, next assessment candidates, and No-Go zones. |
 | Phase 3 | Second-Level Static Frame Assessment | Pending | Assessment only unless a safe candidate is obvious. |
 | Phase 4 | Optional Second Static Frame Extraction | Pending | Execute only if Phase 3 finds safe candidates. |
 | Phase 5 | Long-Run Integration Review Gate | Pending | Final docs review and health checks. |
@@ -31,3 +31,4 @@ Date: 2026-05-31
   `getByLabel("Workspace menu")` browser locator returned 0 despite the button
   existing; rerun used the exact `button[aria-label="Workspace menu"]` selector
   from DOM inspection and passed.
+- Phase 2 reconciled the extraction map without source runtime edits.

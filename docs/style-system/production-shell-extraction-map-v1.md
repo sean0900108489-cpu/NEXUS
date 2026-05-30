@@ -168,3 +168,56 @@ Do not start with:
 Stop if the first viable extraction would require touching React Flow,
 drag/resize/focus/z-index, store/sync/backend, Supabase, route behavior, or CSS
 layout rules.
+
+## 7. V18 Long-Run Reconciliation
+
+Reconciled during
+`20260531-v18-low-intensity-production-shell-long-run` Phase 2.
+
+Extracted static shell frames:
+
+- `NexusOpsOuterShellFrame`
+- `NexusOpsBodyFrame`
+- `NexusOpsTopBarFrame`
+
+Skipped candidates that remain No-Go for children-only extraction:
+
+- `NexusOpsLeftDockFrame`
+  - the same-level wrapper owns dynamic `motion.aside` width and collapse
+    animation
+  - extracting it safely requires a later animation-boundary decision
+- `NexusOpsWorkspaceFrame`
+  - the same-level wrapper owns `workspaceRef` measurement
+  - it also contains the panel/graph conditional and must not be separated from
+    behavior in this run
+
+Remaining protected core:
+
+- React Flow graph/canvas and graph callbacks
+- workspace measurement and view-mode switching
+- store selectors/actions
+- Supabase/sync/backend/API paths
+- agent streaming/tool execution
+- workflow runtime/handoffs
+- Rnd windows, drag/resize/focus/z-index
+- modals, overlays, command palette execution, and provider/settings behavior
+
+Next safe extraction candidates for assessment only:
+
+- right floating dock outer visual frame, if pointer-event semantics can be
+  preserved exactly
+- command palette visual panel frame, if focus/open/close behavior remains
+  entirely in `CommandPalette`
+- collapsed sidebar rail inner visual frame, only if toggle behavior remains
+  outside the frame
+
+No-Go zones for the next implementation phase:
+
+- React Flow
+- workspace wrapper
+- left dock wrapper
+- agent windows
+- modal behavior
+- command execution
+- provider/auth/sync/persistence paths
+- any new registry, contract, feature placement, or layout preset adoption

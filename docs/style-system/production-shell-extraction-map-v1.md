@@ -311,3 +311,53 @@ Do not proceed next with:
 - command palette extraction
 - modal/settings extraction
 - broad production token application
+
+## 11. V18 Right Floating Dock Frame Token Alias Spike
+
+Implemented during
+`20260531-right-floating-dock-frame-token-alias-spike`.
+
+Target:
+
+- `NexusOpsRightFloatingDockFrame`
+
+Token alias status:
+
+- completed for the right floating dock inner rail visual surface only
+- no production token runtime apply was introduced
+- no store/sync/backend/Supabase/API path was touched
+- no `nexus-ops.tsx` behavior or child rendering was changed
+
+Aliases added:
+
+- `--nexus-right-dock-bg`
+- `--nexus-right-dock-border`
+- `--nexus-right-dock-shadow`
+- `--nexus-right-dock-blur`
+- `--nexus-right-dock-radius`
+
+Fallback chain:
+
+- dedicated right-dock alias
+- existing panel bridge alias
+- cyberpunk baseline value
+
+Intentionally not tokenized:
+
+- outer `nav` pointer events
+- outer `nav` fixed position
+- outer `nav` z-index
+- responsive visibility
+- right dock button active/inactive colors
+- right dock text/icon colors
+- right panel content
+- workspace, graph, window, modal, or layout behavior
+
+Remaining No-Go zones:
+
+- LeftDock and Workspace wrappers
+- React Flow and graph files
+- drag/resize/focus/z-index/window/modal behavior
+- feature placement and layout preset production adoption
+- runtime token apply or persistence
+- store/sync/backend/Supabase/API paths

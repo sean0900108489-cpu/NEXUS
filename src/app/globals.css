@@ -373,6 +373,22 @@ button {
   backdrop-filter: blur(var(--glass-blur)) !important;
 }
 
+.nexus-shell .nexus-right-floating-dock-rail {
+  background: var(--nexus-right-dock-bg, var(--nexus-panel-bg, rgb(2 6 23 / 0.9)));
+  border-color: var(--nexus-right-dock-border, var(--nexus-panel-border, rgb(103 232 249 / 0.25)));
+  border-radius: var(--nexus-right-dock-radius, var(--nexus-panel-radius, 0));
+  box-shadow: var(
+    --nexus-right-dock-shadow,
+    var(
+      --nexus-panel-shadow,
+      0 18px 60px rgb(0 0 0 / 0.45),
+      0 0 32px rgb(34 211 238 / 0.14)
+    )
+  );
+  -webkit-backdrop-filter: blur(var(--nexus-right-dock-blur, var(--nexus-panel-blur, var(--glass-blur)))) !important;
+  backdrop-filter: blur(var(--nexus-right-dock-blur, var(--nexus-panel-blur, var(--glass-blur)))) !important;
+}
+
 .nexus-shell input[type="range"] {
   accent-color: var(--theme-primary-strong);
 }

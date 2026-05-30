@@ -34,8 +34,14 @@ describe("NexusOpsRightFloatingDockFrame", () => {
       'class="pointer-events-none fixed right-3 top-1/2 z-[130] hidden -translate-y-1/2 xl:block"',
     );
     expect(html).toContain(
-      'class="pointer-events-auto grid gap-2 border border-cyan-300/25 bg-slate-950/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.45),0_0_32px_rgba(34,211,238,0.14)] backdrop-blur-xl"',
+      'class="nexus-right-floating-dock-rail pointer-events-auto grid gap-2 border border-cyan-300/25 bg-slate-950/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.45),0_0_32px_rgba(34,211,238,0.14)] backdrop-blur-xl"',
     );
+  });
+
+  it("keeps a stable rail class for token alias adoption", () => {
+    const source = readRightFloatingDockFrameSource();
+
+    expect(source).toContain("nexus-right-floating-dock-rail");
   });
 
   it("does not expose behavior authority through props", () => {
@@ -100,6 +106,22 @@ describe("NexusOpsRightFloatingDockFrame", () => {
       );
     }
   });
+
+  it("declares right dock CSS variable aliases with panel and baseline fallback", () => {
+    const css = readGlobalsCssSource();
+
+    expect(css).toContain(".nexus-right-floating-dock-rail");
+    expect(css).toContain("--nexus-right-dock-bg");
+    expect(css).toContain("--nexus-right-dock-border");
+    expect(css).toContain("--nexus-right-dock-shadow");
+    expect(css).toContain("--nexus-right-dock-blur");
+    expect(css).toContain("--nexus-right-dock-radius");
+    expect(css).toContain("var(--nexus-panel-bg");
+    expect(css).toContain("var(--nexus-panel-border");
+    expect(css).toContain("var(--nexus-panel-shadow");
+    expect(css).toContain("var(--nexus-panel-blur");
+    expect(css).toContain("var(--nexus-panel-radius");
+  });
 });
 
 function readRightFloatingDockFrameSource() {
@@ -107,4 +129,8 @@ function readRightFloatingDockFrameSource() {
     new URL("nexus-ops-right-floating-dock-frame.tsx", import.meta.url),
     "utf8",
   );
+}
+
+function readGlobalsCssSource() {
+  return readFileSync(new URL("../../app/globals.css", import.meta.url), "utf8");
 }

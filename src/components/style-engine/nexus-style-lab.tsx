@@ -27,9 +27,14 @@ import {
   createNexusStyleExportPackageV1,
   createNexusStylePreviewPatchV1,
   createNexusProductionTokenBridgePlanV1,
+  createDefaultWorkspaceLayoutPresetV1,
+  createInvalidUnsafeWorkspaceLayoutPresetV1,
+  createLeftRightSwappedWorkspaceLayoutPresetV1,
   createOverBudgetSkinPackV2,
+  createPageShellLayoutPresetV1,
   createPixelWorkshopSkinPackV2,
   createReactFlowStyleAdapterFromManifestV1,
+  createTopBottomSwappedWorkspaceLayoutPresetV1,
   compileNexusSkinPackRenderPlanTextV2,
   emitReactFlowAdapterCssVariablesV1,
   getNexusSkinPackIssueRepairHintV1,
@@ -40,6 +45,7 @@ import {
   parseNexusSkinPackReviewImportTextV2,
   parseNexusStyleImportTextV1,
   previewNexusProductionTokenBridgePlanOnTargetV1,
+  reviewNexusWorkspaceLayoutPresetTextV1,
   reviewNexusStylePackV1,
   revertNexusProductionTokenBridgePreviewOnTargetV1,
   type NexusProductionTokenBridgePreviewSessionV1,
@@ -50,6 +56,7 @@ import {
   type NexusStyleIntentNormalizerResultV1,
   type NexusStyleImportTextResultV1,
   type NexusStyleManifestV1,
+  type NexusWorkspaceLayoutPresetReviewResultV1,
 } from "@/lib/style-engine";
 import { useNexusStyleRuntimeV1 } from "@/components/style-engine/nexus-style-runtime-provider";
 
@@ -76,6 +83,7 @@ type VisibleStyleIssue = {
 
 const maxVisibleImportIssues = 3;
 const maxVisibleSkinPackIssues = 5;
+const maxVisibleLayoutBoundaryIssues = 5;
 const maxVisibleSpecimenFallbacks = 4;
 const maxVisibleBridgeVariables = 10;
 const maxVisibleBridgePreserveVariables = 8;
@@ -443,6 +451,11 @@ export function NexusStyleLab() {
     useState<NexusSkinPackTokenPreviewResultV2 | null>(null);
   const [skinPackTokenPreviewState, setSkinPackTokenPreviewState] =
     useState<SkinPackTokenPreviewState>("idle");
+  const [layoutPresetText, setLayoutPresetText] = useState(() =>
+    JSON.stringify(createDefaultWorkspaceLayoutPresetV1(), null, 2),
+  );
+  const [layoutPresetReviewResult, setLayoutPresetReviewResult] =
+    useState<NexusWorkspaceLayoutPresetReviewResultV1 | null>(null);
   const [
     productionBridgePreviewState,
     setProductionBridgePreviewState,
@@ -727,6 +740,36 @@ export function NexusStyleLab() {
           )
         : [],
     [productionBridgePlan],
+  );
+  const acceptedLayoutPreset =
+    layoutPresetReviewResult?.accepted === true
+      ? layoutPresetReviewResult
+      : null;
+  const layoutBoundaryStatus = layoutPresetReviewResult
+    ? layoutPresetReviewResult.accepted
+      ? "layout preset accepted"
+      : "layout preset rejected"
+    : "layout boundary idle";
+  const layoutBoundaryRows = useMemo(
+    () => [
+      ["Status", layoutBoundaryStatus],
+      ["Preset", acceptedLayoutPreset?.summary.presetId ?? "none"],
+      ["Page Shell", acceptedLayoutPreset?.summary.pageShell ?? "none"],
+      ["Arrangement", acceptedLayoutPreset?.summary.arrangement ?? "none"],
+      ["Slots", String(acceptedLayoutPreset?.summary.slotCount ?? 0)],
+      [
+        "Production",
+        acceptedLayoutPreset?.summary.protectedBoundary ??
+          "production-layout-blocked",
+      ],
+    ],
+    [acceptedLayoutPreset, layoutBoundaryStatus],
+  );
+  const layoutBoundaryIssueRows = useMemo(
+    () =>
+      layoutPresetReviewResult?.issues.slice(0, maxVisibleLayoutBoundaryIssues) ??
+      [],
+    [layoutPresetReviewResult],
   );
   const specimenGalleryRows = useMemo(
     () => [
@@ -1163,6 +1206,17 @@ export function NexusStyleLab() {
     setSkinPackReviewResult(null);
     setSkinPackTokenPreviewResult(null);
     setSkinPackTokenPreviewState("idle");
+  };
+
+  const loadLayoutPresetFixture = (preset: unknown) => {
+    setLayoutPresetText(JSON.stringify(preset, null, 2));
+    setLayoutPresetReviewResult(null);
+  };
+
+  const reviewLayoutPresetText = () => {
+    setLayoutPresetReviewResult(
+      reviewNexusWorkspaceLayoutPresetTextV1(layoutPresetText),
+    );
   };
 
   const reviewSkinPackText = () => {
@@ -1739,6 +1793,211 @@ export function NexusStyleLab() {
                       >
                         Badge
                       </span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section
+                className="border border-violet-300/15 bg-black/20 p-4 lg:col-span-2"
+                data-testid="v2-layout-boundary-panel"
+              >
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-violet-100">
+                    Layout Boundary
+                  </div>
+                  <div
+                    className={[
+                      "font-mono text-[10px] uppercase tracking-[0.12em]",
+                      layoutPresetReviewResult?.accepted
+                        ? "text-emerald-200"
+                        : layoutPresetReviewResult
+                          ? "text-rose-200"
+                          : "text-slate-500",
+                    ].join(" ")}
+                    data-testid="v2-layout-boundary-status"
+                  >
+                    {layoutBoundaryStatus}
+                  </div>
+                </div>
+
+                <div
+                  className="mb-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3"
+                  data-testid="v2-layout-boundary-summary"
+                >
+                  {layoutBoundaryRows.map(([label, value]) => (
+                    <div
+                      key={`layout-boundary:${label}`}
+                      className="min-w-0 border border-white/10 bg-black/20 p-2"
+                    >
+                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                        {label}
+                      </div>
+                      <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+                        {value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid gap-3 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                  <div className="grid min-w-0 gap-3">
+                    <textarea
+                      aria-label="Workspace layout preset JSON"
+                      className="min-h-56 resize-none overflow-auto border border-white/10 bg-black/20 p-3 font-mono text-[10px] leading-5 text-slate-300 outline-none placeholder:text-slate-700"
+                      data-testid="v2-layout-boundary-json"
+                      onChange={(event: ChangeEvent<HTMLTextAreaElement>) => {
+                        setLayoutPresetText(event.target.value);
+                        setLayoutPresetReviewResult(null);
+                      }}
+                      spellCheck={false}
+                      value={layoutPresetText}
+                    />
+
+                    <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+                      <button
+                        className="inline-flex h-9 min-w-0 items-center justify-center border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                        data-testid="v2-layout-boundary-default-fixture"
+                        onClick={() =>
+                          loadLayoutPresetFixture(
+                            createDefaultWorkspaceLayoutPresetV1(),
+                          )
+                        }
+                        type="button"
+                      >
+                        <span className="truncate">Default</span>
+                      </button>
+                      <button
+                        className="inline-flex h-9 min-w-0 items-center justify-center border border-violet-300/35 bg-violet-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-violet-100 transition hover:bg-violet-300/20"
+                        data-testid="v2-layout-boundary-left-right-fixture"
+                        onClick={() =>
+                          loadLayoutPresetFixture(
+                            createLeftRightSwappedWorkspaceLayoutPresetV1(),
+                          )
+                        }
+                        type="button"
+                      >
+                        <span className="truncate">Swap L/R</span>
+                      </button>
+                      <button
+                        className="inline-flex h-9 min-w-0 items-center justify-center border border-violet-300/35 bg-violet-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-violet-100 transition hover:bg-violet-300/20"
+                        data-testid="v2-layout-boundary-top-bottom-fixture"
+                        onClick={() =>
+                          loadLayoutPresetFixture(
+                            createTopBottomSwappedWorkspaceLayoutPresetV1(),
+                          )
+                        }
+                        type="button"
+                      >
+                        <span className="truncate">Swap T/B</span>
+                      </button>
+                      <button
+                        className="inline-flex h-9 min-w-0 items-center justify-center border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                        data-testid="v2-layout-boundary-settings-fixture"
+                        onClick={() =>
+                          loadLayoutPresetFixture(
+                            createPageShellLayoutPresetV1("settings"),
+                          )
+                        }
+                        type="button"
+                      >
+                        <span className="truncate">Settings</span>
+                      </button>
+                      <button
+                        className="inline-flex h-9 min-w-0 items-center justify-center border border-rose-300/35 bg-rose-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-rose-100 transition hover:bg-rose-300/20"
+                        data-testid="v2-layout-boundary-invalid-fixture"
+                        onClick={() =>
+                          loadLayoutPresetFixture(
+                            createInvalidUnsafeWorkspaceLayoutPresetV1(),
+                          )
+                        }
+                        type="button"
+                      >
+                        <span className="truncate">Invalid</span>
+                      </button>
+                    </div>
+
+                    <button
+                      className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-violet-300/35 bg-violet-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-violet-100 transition hover:bg-violet-300/20 disabled:opacity-40"
+                      data-testid="v2-layout-boundary-review-button"
+                      disabled={layoutPresetText.trim().length === 0}
+                      onClick={reviewLayoutPresetText}
+                      type="button"
+                    >
+                      <ShieldCheck className="h-4 w-4 shrink-0" />
+                      <span className="truncate">Review Layout</span>
+                    </button>
+                  </div>
+
+                  <div className="grid min-w-0 gap-3">
+                    <div
+                      className="grid gap-2 border border-violet-300/15 bg-violet-300/[0.035] p-3"
+                      data-testid="v2-layout-boundary-specimen"
+                    >
+                      <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-violet-100">
+                        Slot Arrangement Specimen
+                      </div>
+                      {acceptedLayoutPreset ? (
+                        <div className="grid gap-2">
+                          {acceptedLayoutPreset.summary.regions.map((region) => (
+                            <div
+                              key={`layout-region:${region.regionId}`}
+                              className="grid min-w-0 grid-cols-[72px_minmax(0,1fr)] gap-2"
+                            >
+                              <span className="truncate border border-white/10 bg-black/20 px-2 py-2 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                                {region.regionId}
+                              </span>
+                              <div className="flex min-w-0 flex-wrap gap-1 border border-white/10 bg-black/20 p-1.5">
+                                {region.slots.length > 0 ? (
+                                  region.slots.map((slot) => (
+                                    <span
+                                      key={`layout-region:${region.regionId}:${slot}`}
+                                      className="max-w-full truncate border border-violet-300/20 bg-violet-300/10 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-violet-100"
+                                    >
+                                      {slot}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span className="truncate px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-600">
+                                    empty
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                          accepted layout preset required
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 border border-white/10 bg-black/20 p-3">
+                      <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Redacted Layout Issues
+                      </div>
+                      {layoutBoundaryIssueRows.length > 0 ? (
+                        <div className="grid gap-2">
+                          {layoutBoundaryIssueRows.map((issue) => (
+                            <div
+                              key={`${issue.path}:${issue.code}`}
+                              className="min-w-0 border border-white/10 bg-white/[0.03] p-2"
+                            >
+                              <div className="truncate font-mono text-[10px] text-amber-100">
+                                {issue.code}
+                              </div>
+                              <div className="mt-1 truncate font-mono text-[9px] text-slate-500">
+                                {issue.path} / {issue.message}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                          none
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

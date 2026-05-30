@@ -37,8 +37,8 @@ Do not restart from the beginning. Continue from the latest completed checkpoint
 
 ## Latest Recorded Clean Checkpoint
 
-- Checkpoint: `CP-326 - Pure Runtime Controller No-Active Revert Coverage V1`
-- Commit: `07f57b0771c56e3f824a457fdf2a30727bf1ee27`
+- Checkpoint: `CP-327 - Runtime Controller No-Active Revert Doc Reconciliation V1`
+- Commit: `0bfa10ed2c9eced65095ec01fad79fd67031aa1f`
 - Branch: `codex/v17-large-iteration`
-- Status before CP-327: clean.
-- Resume action: if `git log -1 --oneline` shows `docs: reconcile no-active preview revert`, treat CP-327 as the latest local checkpoint; otherwise finish or verify `CP-327 - Runtime Controller No-Active Revert Doc Reconciliation V1`, then select the next lowest-risk isolated phase gate or coverage unit.
+- Status before CP-328: clean.
+- Resume action: if `git log -1 --oneline` shows `docs: record no-active revert phase gate`, treat CP-328 as the latest local checkpoint; otherwise finish or verify `CP-328 - Post Runtime Controller No-Active Revert Phase Gate`, then select the next lowest-risk isolated implementation or coverage unit.

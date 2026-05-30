@@ -130,6 +130,63 @@ describe("NEXUS Style Engine manifest validator", () => {
     expect(JSON.stringify(report)).not.toContain("hidden-declaration");
   });
 
+  it("rejects executable string values without echoing payloads", () => {
+    const manifest = createSafeManifest({
+      tokens: {
+        surface: {
+          app: "<script>privateScriptPayload()</script>",
+          panel: "javascript:alert(hidden-js-payload)",
+        },
+        text: {
+          primary: 'eval("hidden-eval-payload")',
+          secondary: 'Function("hidden-function-payload")',
+        },
+      },
+    });
+    manifest.source = {
+      kind: "imported-draft",
+      reference: 'import("hidden-import-payload")',
+    };
+
+    const report = validateNexusStyleManifestV1(manifest);
+
+    expect(report.accepted).toBe(false);
+    expect(report.errors).toEqual(
+      expect.arrayContaining([
+        {
+          code: "style.forbidden.script",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.surface.app",
+        },
+        {
+          code: "style.forbidden.javascriptUrl",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.surface.panel",
+        },
+        {
+          code: "style.forbidden.eval",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.text.primary",
+        },
+        {
+          code: "style.forbidden.functionConstructor",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.tokens.text.secondary",
+        },
+        {
+          code: "style.forbidden.dynamicImport",
+          message: "Manifest contains a forbidden string value.",
+          path: "$.source.reference",
+        },
+      ]),
+    );
+    expect(JSON.stringify(report)).not.toContain("privateScriptPayload");
+    expect(JSON.stringify(report)).not.toContain("hidden-js-payload");
+    expect(JSON.stringify(report)).not.toContain("hidden-eval-payload");
+    expect(JSON.stringify(report)).not.toContain("hidden-function-payload");
+    expect(JSON.stringify(report)).not.toContain("hidden-import-payload");
+  });
+
   it("rejects direct URL strings without echoing private hosts", () => {
     const manifest = createSafeManifest();
     manifest.source = {

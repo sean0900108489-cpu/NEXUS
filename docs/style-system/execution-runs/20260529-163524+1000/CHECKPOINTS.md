@@ -5722,3 +5722,21 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/RECOVERY.md`
 - Verification result: PASS. Decomposed full gate passed lint, typecheck, 41 Vitest files / 351 tests with `--testTimeout 20000`, and `next build`. Build included static `/style-lab` and the known edge-runtime warning only. Side-effect scans found only expected validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, pure adapter guard strings, and existing React Flow/window-modal adapter guard/test coverage. No source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found. `git diff --check` passed and git status stayed clean before run-doc bookkeeping.
 - Rollback note: revert only this CP-344 run-doc update if the phase gate bookkeeping must be removed.
+
+## CP-345 - Pure Validator Executable String Guard Coverage V1
+
+- Unit: add pure validator coverage proving script-tag, JavaScript URL, `eval(...)`, dynamic `Function(...)`, and dynamic `import(...)` string values are rejected without echoing payloads.
+- Allowed files:
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: validator implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused validator Vitest; `npm run lint`; `npm run typecheck`; touched-file side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: `npm run test -- src/lib/style-engine/validator.test.ts --testTimeout 20000`; `npm run lint`; `npm run typecheck`; touched-file side-effect/behavior scan; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/RECOVERY.md`
+- Verification result: PASS. Focused validator Vitest passed 1 file / 33 tests with `--testTimeout 20000`. `npm run lint` passed. `npm run typecheck` passed. Touched-file side-effect/behavior scan matched only the new dummy executable sentinels, existing run-doc boundary text, and existing validator fixtures; no store/sync/backend/Supabase/deploy/production Nexus/React Flow behavior implementation path was touched. `git diff --check` passed.
+- Rollback note: revert only the CP-345 validator test/run-doc changes if this coverage must be removed.

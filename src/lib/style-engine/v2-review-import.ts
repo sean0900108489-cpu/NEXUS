@@ -31,6 +31,12 @@ export type NexusSkinPackReviewImportResultV2 = {
   report: NexusV2ValidationReport;
   issues: NexusV2ValidationIssue[];
   summary: NexusSkinPackReviewSummaryV2;
+  tokenPreview: {
+    canPreviewTokens: boolean;
+    reasonCodes: string[];
+    tokenGroups: string[];
+    variableCount: number;
+  };
 };
 
 export type NexusSkinPackReviewImportOptionsV2 = {
@@ -80,6 +86,9 @@ export function parseNexusSkinPackReviewImportTextV2(
     summary: validation.accepted && validation.skinPack
       ? createAcceptedSummary(validation.skinPack, validation)
       : createRejectedSummary(validation),
+    tokenPreview: validation.accepted && validation.skinPack
+      ? createAcceptedTokenPreviewEligibility(validation.skinPack)
+      : createRejectedTokenPreviewEligibility(validation),
   };
 }
 
@@ -105,6 +114,7 @@ function rejectSkinPackReviewText(
     report,
     source: "text",
     summary: createRejectedSummary(report),
+    tokenPreview: createRejectedTokenPreviewEligibility(report),
   };
 }
 
@@ -273,6 +283,52 @@ function createRejectedSummary(
       title: "Recipe Summary",
     },
     status: "rejected",
+  };
+}
+
+function createAcceptedTokenPreviewEligibility(skinPack: NexusSkinPackV2) {
+  const tokenGroups = Array.from(new Set(skinPack.tokens.manifestTokenGroups))
+    .sort((left, right) => left.localeCompare(right));
+  const variableCount = tokenGroups.reduce((sum, group) => {
+    return sum + Object.keys(skinPack.manifest.payload.tokens[group]).length;
+  }, 0);
+
+  if (variableCount === 0) {
+    return {
+      canPreviewTokens: false,
+      reasonCodes: ["stylePack.tokenPreview.noTokenVariables"],
+      tokenGroups,
+      variableCount,
+    };
+  }
+
+  if (variableCount > skinPack.performanceBudget.maxCssVariableCount) {
+    return {
+      canPreviewTokens: false,
+      reasonCodes: ["stylePack.tokenPreview.variableBudgetExceeded"],
+      tokenGroups,
+      variableCount,
+    };
+  }
+
+  return {
+    canPreviewTokens: true,
+    reasonCodes: [],
+    tokenGroups,
+    variableCount,
+  };
+}
+
+function createRejectedTokenPreviewEligibility(
+  report: NexusV2ValidationReport,
+) {
+  return {
+    canPreviewTokens: false,
+    reasonCodes: report.errors.length > 0
+      ? report.errors.map((issue) => issue.code)
+      : ["stylePack.tokenPreview.notAccepted"],
+    tokenGroups: [],
+    variableCount: 0,
   };
 }
 

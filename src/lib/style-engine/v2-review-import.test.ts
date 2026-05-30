@@ -52,6 +52,13 @@ describe("NEXUS Style Engine V2 review-only import", () => {
         { label: "Contract", value: "performance-budget-validator-v1" },
       ]),
     );
+    expect(result.tokenPreview).toEqual(
+      expect.objectContaining({
+        canPreviewTokens: true,
+        reasonCodes: [],
+      }),
+    );
+    expect(result.tokenPreview.variableCount).toBeGreaterThan(0);
   });
 
   it("produces a rejected redacted report for an invalid V2 fixture", () => {
@@ -69,6 +76,10 @@ describe("NEXUS Style Engine V2 review-only import", () => {
       ]),
     );
     expect(result.issues.map((issue) => issue.code)).toContain(
+      "stylePack.staticBudgetExceeded",
+    );
+    expect(result.tokenPreview.canPreviewTokens).toBe(false);
+    expect(result.tokenPreview.reasonCodes).toContain(
       "stylePack.staticBudgetExceeded",
     );
     expect(JSON.stringify(result)).not.toContain("Over Budget Skin");

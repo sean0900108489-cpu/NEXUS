@@ -7,6 +7,7 @@ import {
   FileJson,
   RotateCcw,
   ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import { useMemo, useState, type CSSProperties, type ChangeEvent } from "react";
 
@@ -23,12 +24,14 @@ import {
   emitReactFlowAdapterCssVariablesV1,
   HIGH_CONTRAST_CARBON_STYLE_ID,
   LEGACY_CYBERPUNK_STYLE_ID,
+  compileNexusSkinPackTokenPreviewTextV2,
   normalizeNexusStyleIntentV1,
   parseNexusSkinPackReviewImportTextV2,
   parseNexusStyleImportTextV1,
   reviewNexusStylePackV1,
   type NexusSkinPackReviewImportResultV2,
   type NexusSkinPackReviewSummarySectionV2,
+  type NexusSkinPackTokenPreviewResultV2,
   type NexusStyleIntentManifestDraftResultV1,
   type NexusStyleIntentNormalizerResultV1,
   type NexusStyleImportTextResultV1,
@@ -37,6 +40,7 @@ import {
 import { useNexusStyleRuntimeV1 } from "@/components/style-engine/nexus-style-runtime-provider";
 
 type PreviewState = "idle" | "previewing" | "reverted";
+type SkinPackTokenPreviewState = "idle" | "previewing" | "reverted" | "blocked";
 type ExportView = "manifest" | "package" | "review";
 type VisibleIssueSeverity = "error" | "question" | "warning";
 type BriefDraftResult = {
@@ -380,6 +384,10 @@ export function NexusStyleLab() {
   const [skinPackText, setSkinPackText] = useState("");
   const [skinPackReviewResult, setSkinPackReviewResult] =
     useState<NexusSkinPackReviewImportResultV2 | null>(null);
+  const [skinPackTokenPreviewResult, setSkinPackTokenPreviewResult] =
+    useState<NexusSkinPackTokenPreviewResultV2 | null>(null);
+  const [skinPackTokenPreviewState, setSkinPackTokenPreviewState] =
+    useState<SkinPackTokenPreviewState>("idle");
   const baselineCompiled = useMemo(
     () => compileNexusStyleManifestV1(baselineManifest),
     [baselineManifest],
@@ -480,6 +488,52 @@ export function NexusStyleLab() {
 
     return skinPackReviewResult.issues.slice(0, maxVisibleSkinPackIssues);
   }, [skinPackReviewResult]);
+  const canPreviewSkinPackTokens =
+    skinPackReviewResult?.tokenPreview.canPreviewTokens === true;
+  const canRevertSkinPackTokens =
+    skinPackTokenPreviewResult?.accepted === true &&
+    skinPackTokenPreviewState === "previewing";
+  const skinPackTokenPreviewStatus =
+    skinPackTokenPreviewState === "previewing"
+      ? "token-only previewing"
+      : skinPackTokenPreviewState === "reverted"
+        ? "token-only reverted"
+        : skinPackTokenPreviewState === "blocked"
+          ? "token preview blocked"
+          : canPreviewSkinPackTokens
+            ? "tokens ready"
+            : "token preview idle";
+  const skinPackTokenPreviewRows = useMemo(() => {
+    const eligibility = skinPackReviewResult?.tokenPreview;
+    const previewResult = skinPackTokenPreviewResult;
+
+    return [
+      ["Status", skinPackTokenPreviewStatus],
+      ["Eligible", eligibility?.canPreviewTokens ? "yes" : "no"],
+      ["Groups", eligibility?.tokenGroups.join(", ") || "none"],
+      ["Eligible Vars", String(eligibility?.variableCount ?? 0)],
+      [
+        "Patch Vars",
+        previewResult?.accepted
+          ? String(Object.keys(previewResult.patch.variables).length)
+          : "none",
+      ],
+      [
+        "Preview Id",
+        previewResult?.accepted ? previewResult.patch.previewId : "none",
+      ],
+      [
+        "Blocked By",
+        eligibility && eligibility.reasonCodes.length > 0
+          ? eligibility.reasonCodes.join(", ")
+          : "none",
+      ],
+    ];
+  }, [
+    skinPackReviewResult,
+    skinPackTokenPreviewResult,
+    skinPackTokenPreviewStatus,
+  ]);
   const briefIssues = useMemo(() => {
     if (!briefResult) {
       return [];
@@ -661,6 +715,7 @@ export function NexusStyleLab() {
 
     if (result.accepted) {
       setPreviewState("previewing");
+      setSkinPackTokenPreviewState("reverted");
     }
   };
 
@@ -684,8 +739,14 @@ export function NexusStyleLab() {
   const handleSkinPackTextChange = (
     event: ChangeEvent<HTMLTextAreaElement>,
   ) => {
+    if (skinPackTokenPreviewResult?.accepted) {
+      runtime.revertPreview(skinPackTokenPreviewResult.patch.previewId);
+    }
+
     setSkinPackText(event.target.value);
     setSkinPackReviewResult(null);
+    setSkinPackTokenPreviewResult(null);
+    setSkinPackTokenPreviewState("idle");
   };
 
   const handleBriefTextChange = (
@@ -712,6 +773,8 @@ export function NexusStyleLab() {
     runtime.clearPreview();
     setManifest(draft.manifest);
     setImportResult(null);
+    setSkinPackTokenPreviewResult(null);
+    setSkinPackTokenPreviewState("idle");
     setPreviewState("idle");
     setSelectedBuiltInPreset("brief-draft");
   };
@@ -727,6 +790,8 @@ export function NexusStyleLab() {
     setManifest(preset.create());
     setBriefResult(null);
     setImportResult(null);
+    setSkinPackTokenPreviewResult(null);
+    setSkinPackTokenPreviewState("idle");
     setPreviewState("idle");
     setSelectedBuiltInPreset(preset.id);
   };
@@ -747,6 +812,8 @@ export function NexusStyleLab() {
     runtime.clearPreview();
     setManifest(result.manifest);
     setBriefResult(null);
+    setSkinPackTokenPreviewResult(null);
+    setSkinPackTokenPreviewState("idle");
     setSelectedBuiltInPreset(
       builtInPresets.some((preset) => preset.id === result.manifest.id)
         ? result.manifest.id
@@ -760,17 +827,54 @@ export function NexusStyleLab() {
       JSON.stringify(createCyberpunkCompatibleSkinPackV2(), null, 2),
     );
     setSkinPackReviewResult(null);
+    setSkinPackTokenPreviewResult(null);
+    setSkinPackTokenPreviewState("idle");
   };
 
   const loadInvalidSkinPackFixture = () => {
     setSkinPackText(JSON.stringify(createOverBudgetSkinPackV2(), null, 2));
     setSkinPackReviewResult(null);
+    setSkinPackTokenPreviewResult(null);
+    setSkinPackTokenPreviewState("idle");
   };
 
   const reviewSkinPackText = () => {
     setSkinPackReviewResult(
       parseNexusSkinPackReviewImportTextV2(skinPackText),
     );
+    setSkinPackTokenPreviewResult(null);
+    setSkinPackTokenPreviewState("idle");
+  };
+
+  const previewSkinPackTokens = () => {
+    if (!canPreviewSkinPackTokens) {
+      setSkinPackTokenPreviewState("blocked");
+      return;
+    }
+
+    const result = compileNexusSkinPackTokenPreviewTextV2(skinPackText);
+
+    setSkinPackTokenPreviewResult(result);
+
+    if (!result.accepted) {
+      setSkinPackTokenPreviewState("blocked");
+      return;
+    }
+
+    const previewResult = runtime.previewPatch(result.patch);
+
+    if (previewResult.accepted) {
+      setPreviewState("reverted");
+      setSkinPackTokenPreviewState("previewing");
+    }
+  };
+
+  const revertSkinPackTokens = () => {
+    if (skinPackTokenPreviewResult?.accepted) {
+      runtime.revertPreview(skinPackTokenPreviewResult.patch.previewId);
+    }
+
+    setSkinPackTokenPreviewState("reverted");
   };
 
   const statusIcon =
@@ -1610,6 +1714,44 @@ export function NexusStyleLab() {
                           </div>
                         )}
                       </div>
+
+                      <div
+                        className="min-w-0 border border-cyan-300/15 bg-cyan-300/[0.04] p-2"
+                        data-testid="v2-token-preview-status"
+                      >
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                            Token Preview
+                          </span>
+                          <span
+                            className={[
+                              "truncate font-mono text-[9px] uppercase tracking-[0.1em]",
+                              skinPackTokenPreviewState === "previewing"
+                                ? "text-cyan-100"
+                                : canPreviewSkinPackTokens
+                                  ? "text-emerald-200"
+                                  : "text-slate-500",
+                            ].join(" ")}
+                          >
+                            {skinPackTokenPreviewStatus}
+                          </span>
+                        </div>
+                        <div className="grid gap-1">
+                          {skinPackTokenPreviewRows.map(([label, value]) => (
+                            <div
+                              key={`token-preview:${label}`}
+                              className="grid grid-cols-[88px_minmax(0,1fr)] gap-2"
+                            >
+                              <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                                {label}
+                              </span>
+                              <span className="truncate font-mono text-[9px] text-slate-300">
+                                {value}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
@@ -1643,6 +1785,28 @@ export function NexusStyleLab() {
                     type="button"
                   >
                     Review
+                  </button>
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-cyan-300/35 bg-cyan-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+                    data-testid="v2-skin-pack-preview-tokens"
+                    disabled={!canPreviewSkinPackTokens}
+                    onClick={previewSkinPackTokens}
+                    type="button"
+                  >
+                    <Sparkles className="h-4 w-4 shrink-0" />
+                    <span className="truncate">Preview Tokens</span>
+                  </button>
+                  <button
+                    className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10 disabled:opacity-40"
+                    data-testid="v2-skin-pack-revert-tokens"
+                    disabled={!canRevertSkinPackTokens}
+                    onClick={revertSkinPackTokens}
+                    type="button"
+                  >
+                    <RotateCcw className="h-4 w-4 shrink-0" />
+                    <span className="truncate">Revert V2</span>
                   </button>
                 </div>
               </footer>

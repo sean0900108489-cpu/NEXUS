@@ -56,6 +56,22 @@ describe("NEXUS Style Engine runtime preview controller", () => {
     expect(controller.getActivePreview()?.previewId).toBe("second");
   });
 
+  it("reports no active session when reverting before any preview", () => {
+    const target = createFakeVariableTarget({
+      "--nexus-surface-app": "#030712",
+    });
+    const controller = createNexusStylePreviewControllerV1(target);
+
+    expect(controller.revert()).toEqual({
+      reasonCode: "style.preview.noActiveSession",
+      reverted: false,
+    });
+    expect(controller.getActivePreview()).toBeNull();
+    expect(target.read()).toEqual({
+      "--nexus-surface-app": "#030712",
+    });
+  });
+
   it("rejects mismatched reverts and clears the active preview on match", () => {
     const target = createFakeVariableTarget({
       "--nexus-surface-app": "#030712",

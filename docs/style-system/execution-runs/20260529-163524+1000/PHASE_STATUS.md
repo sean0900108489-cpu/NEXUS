@@ -341,6 +341,7 @@ Run id: `20260529-163524+1000`
 | Pure Runtime Controller ClearAll Active Coverage V1 | PASS | Added focused runtime-controller coverage for active-session `clearAll()` revert semantics. |
 | Runtime Controller ClearAll Doc Reconciliation V1 | PASS | Reconciled runtime preview docs with active-session `clearAll()` coverage and the implemented controller result type. |
 | Post Runtime Controller ClearAll Phase Gate | PASS | Decomposed full gate passed after active-session `clearAll()` coverage/docs; side-effect scan, build, and git diff check passed. |
+| Pure Runtime Controller No-Active Revert Coverage V1 | PASS | Added focused runtime-controller coverage for `revert()` before any preview. |
 
 ## Current Gate
 
@@ -353,4 +354,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is CP-325 Post Runtime Controller ClearAll Phase Gate local checkpoint commit. CP-324 is committed at `35e0b2f1952fd131bba691a98bf809d5a98b8f6f`, and the decomposed full gate after active-session `clearAll()` coverage/docs has passed. Production window/modal code, production graph/app shell files, source/test files, product docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is CP-326 Pure Runtime Controller No-Active Revert Coverage V1 local checkpoint commit. CP-325 is committed at `34b332e26427c957c2bc3c836f8647055c4e47a5`, and pure `revert()` no-active coverage has passed focused verification. Production window/modal code, production graph/app shell files, runtime implementation files, product docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

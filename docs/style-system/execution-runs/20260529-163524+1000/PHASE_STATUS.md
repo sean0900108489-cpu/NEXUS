@@ -347,6 +347,7 @@ Run id: `20260529-163524+1000`
 | Compiler Coverage Doc Reconciliation V1 | PASS | Reconciled compiler contract docs with existing High Contrast Carbon pure compiler coverage. |
 | Pure Intent Normalizer JavaScript URL Guard Coverage V1 | PASS | Added focused intent-normalizer coverage for `javascript:` executable input rejection without payload echo. |
 | Interpreter Executable Input Doc Reconciliation V1 | PASS | Reconciled interpreter docs with `javascript:` executable input rejection coverage. |
+| Post Intent JavaScript Guard Phase Gate | PASS | Decomposed full gate passed after intent JavaScript guard coverage/docs; side-effect scan, build, and git diff check passed. |
 
 ## Current Gate
 
@@ -359,4 +360,4 @@ Phase 0 gate passes when:
 
 ## Current Decision
 
-Current unit is CP-331 Interpreter Executable Input Doc Reconciliation V1 local checkpoint commit. CP-330 is committed at `9b3e532b818d3dd0f5be9df5a5c52a065c21ad60`, and interpreter docs now reflect `javascript:` executable input rejection coverage. Production window/modal code, production graph/app shell files, source/test files, product docs outside the interpreter boundary doc and this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.
+Current unit is CP-332 Post Intent JavaScript Guard Phase Gate local checkpoint commit. CP-331 is committed at `f7fe42163f882dceebcb2c4d3c322ad5338da726`, and the decomposed full gate after intent JavaScript guard coverage/docs has passed. Production window/modal code, production graph/app shell files, source/test files, product docs outside this run folder, UI/TSX/app route/CSS files, persistence wiring, workspace store, sync, backend, Supabase, branch merge, push, deploy, database mutation, `exports/**`, and `src/components/nexus/nexus-ops.tsx` remain closed.

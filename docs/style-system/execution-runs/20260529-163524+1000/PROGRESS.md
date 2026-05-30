@@ -1544,32 +1544,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-331 - Interpreter Executable Input Doc Reconciliation V1`.
 - Reconciled interpreter boundary docs with CP-330 `javascript:` URL-like executable input rejection coverage.
 - Verified CP-331 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
+- Created local checkpoint commit `f7fe42163f882dceebcb2c4d3c322ad5338da726` for the Interpreter Executable Input Doc Reconciliation V1 unit.
+- Started `CP-332 - Post Intent JavaScript Guard Phase Gate` with source edits closed.
+- Ran decomposed full gate: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, and `npm run build`.
+- Confirmed full Vitest passed 41 files / 347 tests and build passed with static `/style-lab` plus the known edge-runtime warning.
+- Confirmed phase-gate side-effect scans only matched expected existing validator/normalizer safety detector strings, test fixtures, isolated Style Lab UI onClick/onChange handlers, pure adapter/token references, and existing React Flow/window-modal adapter guard/test coverage; no source edits, store/sync/backend/Supabase import or mutation path, deploy path, production Nexus component edit, or `exports/**` path was found.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-331 - Interpreter Executable Input Doc Reconciliation V1`.
-- Latest recorded checkpoint commit: `9b3e532b818d3dd0f5be9df5a5c52a065c21ad60` for `CP-330 - Pure Intent Normalizer JavaScript URL Guard Coverage V1`.
-- Confirmed current branch before CP-331: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-331: `9b3e532b818d3dd0f5be9df5a5c52a065c21ad60`.
-- Confirmed current status before CP-331: clean.
-- Current stop reason: not stopped; CP-331 interpreter doc reconciliation is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-332 - Post Intent JavaScript Guard Phase Gate`.
+- Latest recorded checkpoint commit: `f7fe42163f882dceebcb2c4d3c322ad5338da726` for `CP-331 - Interpreter Executable Input Doc Reconciliation V1`.
+- Confirmed current branch before CP-332: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-332: `f7fe42163f882dceebcb2c4d3c322ad5338da726`.
+- Confirmed current status before CP-332: clean.
+- Current stop reason: not stopped; CP-332 post intent JavaScript guard phase gate is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-331 - Local checkpoint commit`.
+- `CP-332 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `docs/style-system/style-interpreter-boundary.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime/provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside the listed interpreter boundary doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused evidence/doc scan, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-331 interpreter boundary doc/run-doc changes if this reconciliation must be removed.
+- Forbidden files: all source/test/product docs, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: `npm run lint`, `npm run typecheck`, full Vitest with `--testTimeout 20000`, `npm run build`, side-effect/import scan, behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-332 run-doc update if this phase gate bookkeeping must be removed.
 
 ## Next
 
-1. Commit the CP-331 interpreter executable input doc reconciliation if final diff/status checks remain clean by scope.
+1. Commit the CP-332 post intent JavaScript guard phase gate if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
-3. Select the next lowest-risk isolated unit, likely a post intent JavaScript guard phase gate.
+3. Select the next lowest-risk isolated implementation or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

@@ -5636,3 +5636,21 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/RECOVERY.md`
 - Verification result: PASS. Focused validator Vitest passed 1 file / 31 tests with `--testTimeout 20000`. `npm run lint` passed. `npm run typecheck` passed. Touched-file side-effect/behavior scan matched only existing run-doc boundary text and existing validator external-platform fixture strings; no store/sync/backend/Supabase/deploy/production Nexus/React Flow behavior implementation path was touched. `git diff --check` passed.
 - Rollback note: revert only the CP-339 validator test/run-doc changes if this coverage must be removed.
+
+## CP-340 - Validator CSS Syntax Doc Reconciliation V1
+
+- Unit: reconcile manifest validator docs with CP-339 CSS `@import`, block brace, and declaration-list rejection coverage.
+- Allowed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/**`
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside the listed validator rules doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification plan: focused evidence/doc scan for CSS syntax guard coverage; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Commands run: focused evidence/doc scan for CSS syntax guard coverage; source-diff absence check; `git diff --check`; `git status --porcelain=v1 -b`.
+- Changed files:
+  - `docs/style-system/manifest-validator-rules.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
+  - `docs/style-system/execution-runs/20260529-163524+1000/RECOVERY.md`
+- Verification result: PASS. Evidence scan found CP-339 CSS syntax guard coverage, implemented `style.forbidden.cssImport`, `style.forbidden.cssBlock`, and `style.forbidden.cssDeclarationList` codes, and matching validator rules doc wording. Source-diff absence check showed no source/runtime diff for this docs-only unit. `git diff --check` passed.
+- Rollback note: revert only the CP-340 validator rules doc/run-doc changes if this reconciliation must be removed.

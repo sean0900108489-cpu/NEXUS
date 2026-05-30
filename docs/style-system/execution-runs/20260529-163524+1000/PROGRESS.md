@@ -1579,32 +1579,36 @@ Run id: `20260529-163524+1000`
 - Started `CP-339 - Pure Validator CSS Syntax Guard Coverage V1`.
 - Added focused validator coverage proving CSS `@import`, block braces, and declaration-list strings are rejected without echoing payloads.
 - Verified CP-339 with focused validator Vitest, `npm run lint`, `npm run typecheck`, touched-file side-effect/behavior scan, and `git diff --check`.
+- Created local checkpoint commit `ef3a5269f5f3c8b8a75dfba70f94b189027327f9` for the Pure Validator CSS Syntax Guard Coverage V1 unit.
+- Started `CP-340 - Validator CSS Syntax Doc Reconciliation V1`.
+- Reconciled manifest validator docs with CP-339 CSS syntax guard coverage.
+- Verified CP-340 with focused evidence/doc scan, source-diff absence check, and `git diff --check`.
 
 ## Current Checkpoint
 
-- Latest completed checkpoint: `CP-339 - Pure Validator CSS Syntax Guard Coverage V1`.
-- Latest recorded checkpoint commit: `5dbe8292a00508c93d3fd4a3994f06c90c92d47c` for `CP-338 - Post Dynamic Function Intent Guard Phase Gate`.
-- Confirmed current branch before CP-339: `codex/v17-large-iteration`.
-- Confirmed current HEAD before CP-339: `5dbe8292a00508c93d3fd4a3994f06c90c92d47c`.
-- Confirmed current status before CP-339: clean.
-- Current stop reason: not stopped; CP-339 pure validator CSS syntax guard coverage is verified and ready for local checkpoint commit.
+- Latest completed checkpoint: `CP-340 - Validator CSS Syntax Doc Reconciliation V1`.
+- Latest recorded checkpoint commit: `ef3a5269f5f3c8b8a75dfba70f94b189027327f9` for `CP-339 - Pure Validator CSS Syntax Guard Coverage V1`.
+- Confirmed current branch before CP-340: `codex/v17-large-iteration`.
+- Confirmed current HEAD before CP-340: `ef3a5269f5f3c8b8a75dfba70f94b189027327f9`.
+- Confirmed current status before CP-340: clean.
+- Current stop reason: not stopped; CP-340 validator CSS syntax doc reconciliation is verified and ready for local checkpoint commit.
 
 ## In Progress
 
-- `CP-339 - Local checkpoint commit`.
+- `CP-340 - Local checkpoint commit`.
 
 ## Current Unit Scope
 
 - Allowed files:
-  - `src/lib/style-engine/validator.test.ts`
+  - `docs/style-system/manifest-validator-rules.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
-- Forbidden files: validator implementation files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
-- Verification: focused validator Vitest, `npm run lint`, `npm run typecheck`, touched-file side-effect/behavior scan, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
-- Rollback: revert only the CP-339 validator test/run-doc changes if this coverage must be removed.
+- Forbidden files: all source/test files, UI/TSX/app route/CSS files, production Nexus components, React Flow behavior surfaces, runtime provider wiring, workspace store/sync/backend/Supabase/database files, package/deploy files, product docs outside the listed validator rules doc and this run folder, remote push, branch merge, deploy, database mutation, and `exports/**`.
+- Verification: focused evidence/doc scan for CSS syntax guard coverage, source-diff absence check, `git diff --check`, `git status --porcelain=v1 -b`, and post-commit branch/HEAD/status check before selecting the next isolated unit.
+- Rollback: revert only the CP-340 validator rules doc/run-doc changes if this reconciliation must be removed.
 
 ## Next
 
-1. Commit the CP-339 pure validator CSS syntax guard coverage if final diff/status checks remain clean by scope.
+1. Commit the CP-340 validator CSS syntax doc reconciliation if final diff/status checks remain clean by scope.
 2. Confirm branch, HEAD, and clean status after the commit.
 3. Select the next lowest-risk isolated doc reconciliation, implementation, or coverage unit.
 4. Keep workspace store, sync, backend, Supabase, deploy, push, branch merge, and `exports/**` closed.

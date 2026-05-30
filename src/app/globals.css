@@ -278,11 +278,12 @@ button {
 }
 
 .nexus-panel {
-  background: var(--panel-bg);
-  border: var(--border-width) solid var(--border-subtle);
-  border-radius: var(--surface-radius);
-  box-shadow: var(--shadow-panel);
-  backdrop-filter: blur(var(--glass-blur));
+  background: var(--nexus-panel-bg, var(--panel-bg));
+  border: var(--border-width) solid var(--nexus-panel-border, var(--border-subtle));
+  border-radius: var(--nexus-panel-radius, var(--surface-radius));
+  box-shadow: var(--nexus-panel-shadow, var(--shadow-panel));
+  color: var(--nexus-panel-text, var(--text-main));
+  backdrop-filter: blur(var(--nexus-panel-blur, var(--glass-blur)));
 }
 
 .nexus-glass {

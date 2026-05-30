@@ -67,6 +67,17 @@ Preserve-only variables remain out of V2 bridge apply:
 
 Start with `.nexus-panel` only.
 
+Spike status:
+
+- `Production .nexus-panel Token Bridge Spike` is the active first surface.
+- `.nexus-panel` may consume surface-specific aliases
+  `--nexus-panel-bg`, `--nexus-panel-border`, `--nexus-panel-text`,
+  `--nexus-panel-radius`, `--nexus-panel-shadow`, and `--nexus-panel-blur`.
+- The aliases fall back to existing legacy variables, so the cyberpunk baseline
+  remains the fallback when no bridge variables are scoped.
+- Style Lab contains an isolated `.nexus-panel` compatibility specimen for
+  bridge preview/revert smoke.
+
 Why:
 
 - It already consumes `--panel-bg`, `--border-subtle`,

@@ -1847,6 +1847,23 @@ export function NexusStyleLab() {
                       <div className="mt-3 truncate text-sm">
                         legacy variable scope only
                       </div>
+                      <div
+                        className="nexus-panel mt-3 min-w-0 p-3"
+                        data-testid="v2-production-bridge-nexus-panel"
+                      >
+                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em]">
+                          .nexus-panel compatibility
+                        </div>
+                        <div className="mt-2 h-2 bg-white/10">
+                          <div
+                            className="h-full w-2/3"
+                            style={{
+                              background:
+                                "var(--theme-primary, #67e8f9)",
+                            }}
+                          />
+                        </div>
+                      </div>
                       <div className="mt-3 grid grid-cols-3 gap-2">
                         <span
                           className="truncate border px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.1em]"

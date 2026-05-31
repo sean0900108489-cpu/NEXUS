@@ -255,3 +255,39 @@ The highest ROI next step is a Style Lab-only icon/button chrome recipe
 specimen. Production button/input/badge selector-first remains important for
 the path to 80%, but it should follow the recipe artifact and a strict
 ownership scan rather than replacing this polish step.
+
+## Icon Button Chrome Recipe Specimen Follow-Up
+
+Loop `20260531-v19-warm-glass-ops-icon-button-chrome-recipe-specimen` added a
+Style Lab-only control chrome recipe specimen to the Warm Glass Scene Preview.
+
+Added specimen evidence:
+
+- compact lucide icon controls for theme, alert, focus, and new/add actions
+- primary action chrome: `Run Execution`
+- secondary action chrome: `Sync Analysis`
+- input-like command field: `Transmit mission packet`
+- status badges: `Live`, `Idle`, `Syncing`, and `Local`
+- active/inert affordance examples
+- local boundary rows for supported now, specimen-only, and missing production
+  primitive path
+
+The specimen remains isolated:
+
+- no production controls imported or edited
+- no production selector adoption
+- no `src/components/nexus/**`
+- no `src/app/globals.css`
+- no store, sync, backend, Supabase, API, or persistence
+- no runtime token apply
+- no copied reference image, remote image URL, or public asset
+
+Updated estimate after this specimen:
+
+- Warm Glass visual similarity in Style Lab: about `71-73%`
+- production skinning readiness: about `76-78%`
+
+The next highest ROI production-readiness step is a selector-first scan for
+button/input/badge primitives using this recipe as the visual standard. That
+scan should stop with a No-Go map if real controls own handlers, focus,
+keyboard, validation, submit, hover/active behavior, or component state.

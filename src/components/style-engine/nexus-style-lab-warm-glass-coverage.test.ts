@@ -114,6 +114,44 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
     expect(source).toContain("Tasks");
   });
 
+  it("renders a static Warm Glass icon and button chrome recipe specimen", () => {
+    const source = readStyleLabSource();
+
+    expect(source).toContain("warmGlassControlChromeIconButtons");
+    expect(source).toContain("warmGlassControlChromeStatusBadges");
+    expect(source).toContain("warmGlassControlChromeAffordances");
+    expect(source).toContain("warmGlassControlChromeCapabilityRows");
+    expect(source).toContain(
+      'data-testid="warm-glass-control-chrome-specimen"',
+    );
+    expect(source).toContain(
+      'data-testid="warm-glass-control-icon-action-cluster"',
+    );
+    expect(source).toContain('data-testid="warm-glass-control-command-field"');
+    expect(source).toContain(
+      'data-testid="warm-glass-primary-action-button"',
+    );
+    expect(source).toContain(
+      'data-testid="warm-glass-secondary-action-button"',
+    );
+    expect(source).toContain(
+      'data-testid="warm-glass-control-status-badges"',
+    );
+    expect(source).toContain(
+      'data-testid="warm-glass-control-affordance-examples"',
+    );
+    expect(source).toContain("Run Execution");
+    expect(source).toContain("Sync Analysis");
+    expect(source).toContain("Transmit mission packet");
+    expect(source).toContain("Live");
+    expect(source).toContain("Idle");
+    expect(source).toContain("Syncing");
+    expect(source).toContain("Local");
+    expect(source).toContain("Supported now");
+    expect(source).toContain("Specimen only");
+    expect(source).toContain("Missing");
+  });
+
   it("keeps the coverage panel detached from production runtime mutation", () => {
     const source = readStyleLabSource();
     const forbiddenPatterns = [
@@ -151,6 +189,12 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
       /warmGlassSegmented[\s\S]*fetch\s*\(/,
       /warmGlassSegmented[\s\S]*https?:\/\//,
       /warmGlassSegmented[\s\S]*\burl\s*\(/,
+      /warmGlassControlChrome[\s\S]*document\.documentElement/,
+      /warmGlassControlChrome[\s\S]*window\.localStorage/,
+      /warmGlassControlChrome[\s\S]*indexedDB/,
+      /warmGlassControlChrome[\s\S]*fetch\s*\(/,
+      /warmGlassControlChrome[\s\S]*https?:\/\//,
+      /warmGlassControlChrome[\s\S]*\burl\s*\(/,
     ];
 
     expect(source).toContain("createWarmGlassOpsProductionAliasCoverageReportV1");

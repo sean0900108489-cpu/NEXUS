@@ -2,12 +2,17 @@
 
 import {
   AlertTriangle,
+  Bell,
   CheckCircle2,
   Eye,
   FileJson,
+  Maximize2,
+  Plus,
   RotateCcw,
+  Send,
   ShieldCheck,
   Sparkles,
+  Sun,
 } from "lucide-react";
 import {
   useMemo,
@@ -579,6 +584,57 @@ const warmGlassSegmentedNavSpecimenStyle = {
   ...warmGlassSceneGlassStyle,
   background:
     "linear-gradient(180deg, rgb(255 248 235 / 0.2), rgb(74 48 29 / 0.1)), var(--nexus-glass-bg, rgb(255 248 235 / 0.18))",
+} as CSSProperties;
+
+const warmGlassControlChromeIconButtons = [
+  { Icon: Sun, id: "theme", label: "Theme" },
+  { Icon: Bell, id: "alert", label: "Alert" },
+  { Icon: Maximize2, id: "focus", label: "Focus" },
+  { Icon: Plus, id: "new", label: "New" },
+] as const;
+
+const warmGlassControlChromeStatusBadges = [
+  {
+    dot: "bg-emerald-100/75",
+    id: "live",
+    label: "Live",
+    tone: "border-emerald-100/25 bg-emerald-200/[0.12] text-emerald-50",
+  },
+  {
+    dot: "bg-amber-100/65",
+    id: "idle",
+    label: "Idle",
+    tone: "border-amber-100/20 bg-amber-100/[0.1] text-amber-50",
+  },
+  {
+    dot: "bg-cyan-100/65",
+    id: "syncing",
+    label: "Syncing",
+    tone: "border-cyan-100/20 bg-cyan-100/[0.1] text-cyan-50",
+  },
+  {
+    dot: "bg-white/55",
+    id: "local",
+    label: "Local",
+    tone: "border-white/15 bg-white/[0.08] text-amber-50/75",
+  },
+] as const;
+
+const warmGlassControlChromeAffordances = [
+  { id: "active", label: "Active", value: "ready" },
+  { id: "inert", label: "Inert", value: "display" },
+] as const;
+
+const warmGlassControlChromeCapabilityRows = [
+  ["Supported now", "local warm glass variables"],
+  ["Specimen only", "control recipe language"],
+  ["Missing", "production primitive selectors"],
+] as const;
+
+const warmGlassControlChromeSpecimenStyle = {
+  ...warmGlassSceneGlassStyle,
+  background:
+    "linear-gradient(180deg, rgb(255 248 235 / 0.18), rgb(74 48 29 / 0.1)), var(--nexus-glass-bg, rgb(255 248 235 / 0.18))",
 } as CSSProperties;
 
 const warmGlassAgentCardRows = [
@@ -3521,6 +3577,150 @@ export function NexusStyleLab() {
                           </div>
                         </aside>
                       </div>
+
+                      <section
+                        className="mt-3 grid gap-3 border p-3 lg:grid-cols-[minmax(0,1fr)_260px]"
+                        data-testid="warm-glass-control-chrome-specimen"
+                        style={warmGlassControlChromeSpecimenStyle}
+                      >
+                        <div className="grid gap-3">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
+                                Control Chrome
+                              </div>
+                              <div className="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/60">
+                                icon / button / badge / input recipe
+                              </div>
+                            </div>
+                            <div
+                              aria-hidden="true"
+                              className="flex flex-wrap gap-1"
+                              data-testid="warm-glass-control-icon-action-cluster"
+                            >
+                              {warmGlassControlChromeIconButtons.map((action) => {
+                                const Icon = action.Icon;
+
+                                return (
+                                  <span
+                                    key={`warm-glass-control-icon:${action.id}`}
+                                    className="grid h-9 w-9 place-items-center rounded-full border border-white/15 bg-white/[0.1] text-amber-50/80 shadow-[0_12px_30px_rgb(74_48_29_/_0.16)]"
+                                    data-testid={`warm-glass-control-icon-${action.id}`}
+                                    title={action.label}
+                                  >
+                                    <Icon size={14} strokeWidth={1.8} />
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto]">
+                            <div
+                              className="grid min-h-10 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-full border border-white/15 bg-white/[0.08] px-3 py-2"
+                              data-testid="warm-glass-control-command-field"
+                            >
+                              <span className="truncate text-[11px] text-amber-50/75">
+                                Transmit mission packet
+                              </span>
+                              <Send
+                                aria-hidden="true"
+                                className="text-amber-50/70"
+                                size={14}
+                                strokeWidth={1.8}
+                              />
+                            </div>
+
+                            <span
+                              className="grid min-h-10 place-items-center rounded-full border border-amber-50/25 bg-amber-50/[0.16] px-4 py-2 text-center font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50 shadow-[0_14px_34px_rgb(74_48_29_/_0.2)]"
+                              data-testid="warm-glass-primary-action-button"
+                            >
+                              Run Execution
+                            </span>
+
+                            <span
+                              className="grid min-h-10 place-items-center rounded-full border border-white/15 bg-white/[0.08] px-4 py-2 text-center font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/75"
+                              data-testid="warm-glass-secondary-action-button"
+                            >
+                              Sync Analysis
+                            </span>
+                          </div>
+
+                          <div
+                            className="flex flex-wrap gap-1.5"
+                            data-testid="warm-glass-control-status-badges"
+                          >
+                            {warmGlassControlChromeStatusBadges.map((badge) => (
+                              <span
+                                key={`warm-glass-control-badge:${badge.id}`}
+                                className={[
+                                  "inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[8px] uppercase tracking-[0.09em]",
+                                  badge.tone,
+                                ].join(" ")}
+                                data-testid={`warm-glass-control-badge-${badge.id}`}
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className={["h-1.5 w-1.5 rounded-full", badge.dot].join(
+                                    " ",
+                                  )}
+                                />
+                                {badge.label}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <aside
+                          className="grid content-start gap-2 border border-white/10 bg-black/10 p-2"
+                          data-testid="warm-glass-control-affordance-examples"
+                        >
+                          <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                            Affordance
+                          </div>
+                          <div className="grid grid-cols-2 gap-1">
+                            {warmGlassControlChromeAffordances.map((item) => (
+                              <span
+                                key={`warm-glass-control-affordance:${item.id}`}
+                                className={[
+                                  "border px-2 py-2 text-center font-mono uppercase",
+                                  item.id === "active"
+                                    ? "border-amber-50/25 bg-amber-50/[0.14] text-amber-50"
+                                    : "border-white/10 bg-white/[0.06] text-amber-50/50",
+                                ].join(" ")}
+                                data-testid={`warm-glass-control-affordance-${item.id}`}
+                              >
+                                <span className="block text-[8px] tracking-[0.1em]">
+                                  {item.label}
+                                </span>
+                                <span className="mt-1 block text-[7px] tracking-[0.08em] opacity-70">
+                                  {item.value}
+                                </span>
+                              </span>
+                            ))}
+                          </div>
+                          <div
+                            className="grid gap-1 border-t border-white/10 pt-2"
+                            data-testid="warm-glass-control-chrome-boundary"
+                          >
+                            {warmGlassControlChromeCapabilityRows.map(
+                              ([label, value]) => (
+                                <div
+                                  key={`warm-glass-control-capability:${label}`}
+                                  className="grid grid-cols-[90px_minmax(0,1fr)] gap-2"
+                                >
+                                  <span className="truncate font-mono text-[7px] uppercase tracking-[0.09em] text-amber-50/45">
+                                    {label}
+                                  </span>
+                                  <span className="truncate font-mono text-[7px] uppercase tracking-[0.09em] text-amber-50/70">
+                                    {value}
+                                  </span>
+                                </div>
+                              ),
+                            )}
+                          </div>
+                        </aside>
+                      </section>
                     </div>
 
                     <div className="mt-3 grid gap-2 lg:grid-cols-3">

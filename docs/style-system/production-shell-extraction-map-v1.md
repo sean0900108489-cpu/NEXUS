@@ -1834,3 +1834,80 @@ Forbidden boundaries held:
 - no Supabase/database/migrations
 - no `exports/**`
 - no production runtime apply or persistence
+
+## 33. Warm Glass Ops Icon Button Chrome Recipe Specimen
+
+Recorded during
+`20260531-v19-warm-glass-ops-icon-button-chrome-recipe-specimen`.
+
+Reference image usage:
+
+- `/Users/sean/Downloads/ChatGPT Image 2026年5月31日 下午12_15_46.png`
+  was viewed read-only as icon/button/badge/input chrome guidance
+- the image was not copied, encoded, imported, referenced as a remote URL, or
+  used as a repo/public/production asset
+
+Selected target:
+
+- Style Lab-only icon/button/badge/input-like chrome recipe specimen inside the
+  Warm Glass Scene Preview
+- no production controls
+- no production selectors
+- no runtime apply or persistence
+
+Specimen structure:
+
+- compact icon controls for theme, alert, focus, and new/add actions
+- primary action: `Run Execution`
+- secondary action: `Sync Analysis`
+- input-like command field: `Transmit mission packet`
+- status badges: `Live`, `Idle`, `Syncing`, and `Local`
+- active/inert affordance examples
+- supported/specimen-only/missing boundary rows
+
+Supported now:
+
+- Style Lab can visually compare warm glass control chrome language with the
+  existing scene, segmented nav, agent bank, workspace, and right metrics
+  specimens
+- the specimen reuses local Warm Glass glass/panel variables and existing
+  lucide icon primitives already present in Style Lab
+
+Simulated only:
+
+- icon actions
+- button states
+- command input field
+- badge/status state
+- active/inert affordance examples
+
+Still missing production capability:
+
+- production button/input/badge primitive selector ownership scan
+- production control aliases
+- typography density policy
+- authenticated production `/` smoke
+
+Verification:
+
+- focused Style Lab source guard covers the control chrome specimen, labels,
+  icon/action cluster, and forbidden runtime boundaries
+- typecheck, targeted lint, and build passed
+- browser smoke confirmed the specimen and existing Warm Glass sections render
+- browser smoke confirmed token preview/revert and Production Chrome Smoke
+  apply/revert still work
+- only observed browser network error was the known
+  `https://cdn.example.com/nexus/bg-cyberpunk.webp` placeholder baseline
+
+Estimate after this loop:
+
+- Style Lab visual similarity: about `71-73%`
+- production skinning readiness: about `76-78%`
+
+Next seed:
+
+- `V19 Production Control Primitive Selector-First Scan`
+- rank button, input, badge, and icon-control primitives by ROI and ownership
+  risk
+- add selectors only if an inert visual shell exists; otherwise produce a No-Go
+  extraction map

@@ -289,32 +289,32 @@ function createWorkspaceStylePayloadImportNotice(
   status: WorkspaceStylePayloadImportStatus,
 ) {
   if (status === "accepted") {
-    return "Workspace snapshot imported; style payload accepted for review";
+    return "Workspace snapshot imported; stylePack accepted for Style Lab review; not auto-applied";
   }
 
   if (status === "rejected-style-only") {
-    return "Workspace snapshot imported; style payload rejected";
+    return "Workspace snapshot imported; stylePack rejected style-only; workspace kept";
   }
 
   if (status === "unsupported-version") {
-    return "Workspace snapshot imported; style payload version unsupported";
+    return "Workspace snapshot imported; stylePack version unsupported; workspace kept";
   }
 
-  return "Workspace snapshot imported";
+  return "Workspace snapshot imported; no stylePack found";
 }
 
 function createWorkspaceStylePayloadExportNotice(
   status: WorkspaceStylePayloadExportStatus,
 ) {
   if (status === "included") {
-    return "Workspace snapshot exported with style payload";
+    return "Workspace snapshot exported with reviewed stylePack";
   }
 
   if (status === "omitted-invalid") {
-    return "Workspace snapshot exported; style payload omitted";
+    return "Workspace snapshot exported; invalid stylePack not retained";
   }
 
-  return "Workspace snapshot exported";
+  return "Workspace snapshot exported; no stylePack retained";
 }
 
 function normalizeThemeConfig(

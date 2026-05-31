@@ -22,7 +22,43 @@ describe("Nexus Style Lab imported workspace style review panel", () => {
     expect(source).toContain("Direct Aliases");
     expect(source).toContain("Families");
     expect(source).toContain("Controls");
+    expect(source).toContain("Import Result");
+    expect(source).toContain("Review Load");
+    expect(source).toContain("Export Retention");
     expect(source).toContain("review-only / not auto-applied");
+  });
+
+  it("explains accepted, rejected, missing, and unsupported imported style states", () => {
+    expect(source).toContain("stylePack imported and available for review");
+    expect(source).toContain(
+      "style section ignored; workspace import still succeeded",
+    );
+    expect(source).toContain("this workspace has no stylePack");
+    expect(source).toContain(
+      "style version not supported; workspace import still succeeded",
+    );
+    expect(source).toContain(
+      'data-testid="imported-workspace-style-status-note"',
+    );
+    expect(source).toContain(
+      'data-testid="imported-workspace-style-auto-apply"',
+    );
+  });
+
+  it("shows export retention only for accepted style packs", () => {
+    expect(source).toContain(
+      "accepted stylePack will be included in next workspace export",
+    );
+    expect(source).toContain(
+      "rejected style section will not be exported as valid stylePack",
+    );
+    expect(source).toContain(
+      "unsupported style section will not be exported as valid stylePack",
+    );
+    expect(source).toContain("no stylePack will be added to workspace export");
+    expect(source).toContain(
+      'data-testid="imported-workspace-style-retention"',
+    );
   });
 
   it("loads valid imported skin packs into the existing V2 review flow only when available", () => {
@@ -30,8 +66,15 @@ describe("Nexus Style Lab imported workspace style review panel", () => {
     expect(source).toContain("subscribeImportedWorkspaceStyleReviewState");
     expect(source).toContain("loadImportedWorkspaceStyleIntoReview");
     expect(source).toContain("importedWorkspaceStyleCanLoadSkinPack");
+    expect(source).toContain("importedWorkspaceStyleLoadedIntoReview");
+    expect(source).toContain("setImportedWorkspaceStyleLoadedReviewId");
+    expect(source).toContain("loaded into Style Lab review");
+    expect(source).toContain("metadata only; no previewable skinPack");
     expect(source).toContain(
       'data-testid="imported-workspace-style-load-review"',
+    );
+    expect(source).toContain(
+      'data-testid="imported-workspace-style-load-state"',
     );
     expect(source).toContain("parseNexusSkinPackReviewImportTextV2");
     expect(source).toContain("setSkinPackReviewResult");

@@ -914,6 +914,10 @@ export function NexusStyleLab() {
     importedWorkspaceStyleReview,
     setImportedWorkspaceStyleReview,
   ] = useState<ImportedWorkspaceStyleReviewState | null>(null);
+  const [
+    importedWorkspaceStyleLoadedReviewId,
+    setImportedWorkspaceStyleLoadedReviewId,
+  ] = useState<string | null>(null);
   useEffect(() => {
     const syncImportedWorkspaceStyleReview = () => {
       setImportedWorkspaceStyleReview(
@@ -1038,12 +1042,24 @@ export function NexusStyleLab() {
     importedWorkspaceStyleDecision?.payload ?? null;
   const importedWorkspaceStyleStatus =
     importedWorkspaceStyleDecision?.status ?? "ignored-missing";
-  const importedWorkspaceStyleDisplayStatus = importedWorkspaceStyleDecision
-    ? importedWorkspaceStyleStatus
+  const importedWorkspaceStyleDisplayStatus =
+    importedWorkspaceStyleStatus === "ignored-missing"
+      ? "missing"
+      : importedWorkspaceStyleStatus;
+  const importedWorkspaceStyleReviewId = importedWorkspaceStyleDecision
+    ? [
+        importedWorkspaceStyleStatus,
+        importedWorkspaceStylePayload?.version ?? "no-version",
+        importedWorkspaceStylePayload?.bridgeSummary?.checksum ?? "no-checksum",
+        importedWorkspaceStyleReview?.updatedAt ?? "no-updated-at",
+      ].join(":")
     : "missing";
   const importedWorkspaceStyleCanLoadSkinPack =
     importedWorkspaceStyleStatus === "accepted" &&
     Boolean(importedWorkspaceStylePayload?.skinPack);
+  const importedWorkspaceStyleLoadedIntoReview =
+    importedWorkspaceStyleCanLoadSkinPack &&
+    importedWorkspaceStyleLoadedReviewId === importedWorkspaceStyleReviewId;
   const importedWorkspaceStyleControlsSummary = importedWorkspaceStylePayload
     ?.controls
     ? Object.keys(importedWorkspaceStylePayload.controls)
@@ -1053,9 +1069,36 @@ export function NexusStyleLab() {
     : "none";
   const importedWorkspaceStyleReasonSummary =
     importedWorkspaceStyleDecision?.reasons.join(", ") || "none";
+  const importedWorkspaceStyleStatusNote =
+    importedWorkspaceStyleStatus === "accepted"
+      ? "stylePack imported and available for review"
+      : importedWorkspaceStyleStatus === "rejected-style-only"
+        ? "style section ignored; workspace import still succeeded"
+        : importedWorkspaceStyleStatus === "unsupported-version"
+          ? "style version not supported; workspace import still succeeded"
+          : "this workspace has no stylePack";
+  const importedWorkspaceStyleExportRetention =
+    importedWorkspaceStyleStatus === "accepted"
+      ? "accepted stylePack will be included in next workspace export"
+      : importedWorkspaceStyleStatus === "rejected-style-only"
+        ? "rejected style section will not be exported as valid stylePack"
+        : importedWorkspaceStyleStatus === "unsupported-version"
+          ? "unsupported style section will not be exported as valid stylePack"
+          : "no stylePack will be added to workspace export";
+  const importedWorkspaceStyleNextAction =
+    importedWorkspaceStyleCanLoadSkinPack
+      ? importedWorkspaceStyleLoadedIntoReview
+        ? "loaded into Style Lab review"
+        : "load into Style Lab review when ready"
+      : importedWorkspaceStyleStatus === "accepted"
+        ? "metadata only; no previewable skinPack"
+        : importedWorkspaceStyleStatus === "ignored-missing"
+          ? "import a workspace with stylePack to review"
+          : "fix style payload before review";
   const importedWorkspaceStyleRows = useMemo(
     () => [
       ["Status", importedWorkspaceStyleDisplayStatus],
+      ["Import Result", importedWorkspaceStyleStatusNote],
       ["Source", importedWorkspaceStylePayload?.source ?? "none"],
       ["Version", importedWorkspaceStylePayload?.version ?? "none"],
       [
@@ -1075,14 +1118,19 @@ export function NexusStyleLab() {
         "Skin Pack",
         importedWorkspaceStylePayload?.skinPack ? "available" : "none",
       ],
+      ["Review Load", importedWorkspaceStyleNextAction],
+      ["Export Retention", importedWorkspaceStyleExportRetention],
       ["Updated", importedWorkspaceStyleReview?.updatedAt ?? "none"],
       ["Apply", "not auto-applied"],
     ],
     [
       importedWorkspaceStyleControlsSummary,
       importedWorkspaceStyleDisplayStatus,
+      importedWorkspaceStyleExportRetention,
+      importedWorkspaceStyleNextAction,
       importedWorkspaceStylePayload,
       importedWorkspaceStyleReview,
+      importedWorkspaceStyleStatusNote,
     ],
   );
   const skinPackReviewSections = useMemo<
@@ -2327,6 +2375,7 @@ export function NexusStyleLab() {
     setSkinPackReviewResult(
       parseNexusSkinPackReviewImportTextV2(nextSkinPackText),
     );
+    setImportedWorkspaceStyleLoadedReviewId(importedWorkspaceStyleReviewId);
     setSkinPackTokenPreviewResult(null);
     setSkinPackTokenPreviewState("idle");
   };
@@ -5484,6 +5533,36 @@ export function NexusStyleLab() {
                     </span>
                   </div>
                 ))}
+
+                <div
+                  className="grid gap-2 border border-amber-300/15 bg-amber-300/[0.04] p-2 font-mono text-[9px] uppercase tracking-[0.1em]"
+                  data-testid="imported-workspace-style-landing-note"
+                >
+                  <div
+                    className="text-amber-100"
+                    data-testid="imported-workspace-style-status-note"
+                  >
+                    {importedWorkspaceStyleStatusNote}
+                  </div>
+                  <div
+                    className="text-slate-300"
+                    data-testid="imported-workspace-style-retention"
+                  >
+                    {importedWorkspaceStyleExportRetention}
+                  </div>
+                  <div
+                    className="text-slate-400"
+                    data-testid="imported-workspace-style-auto-apply"
+                  >
+                    not auto-applied
+                  </div>
+                  <div
+                    className="text-slate-400"
+                    data-testid="imported-workspace-style-load-state"
+                  >
+                    {importedWorkspaceStyleNextAction}
+                  </div>
+                </div>
 
                 <div
                   className="min-w-0 border border-white/10 bg-black/20 p-2"

@@ -13,12 +13,17 @@ describe("Nexus workspace style payload export/import wiring", () => {
     expect(source).toContain("extractWorkspaceStylePayloadFromSnapshot");
     expect(source).toContain("writeImportedWorkspaceStyleReviewState");
     expect(source).toContain("setWorkspaceStylePayloadReview");
-    expect(source).toContain("Workspace snapshot exported with style payload");
     expect(source).toContain(
-      "Workspace snapshot imported; style payload accepted for review",
+      "Workspace snapshot exported with reviewed stylePack",
     );
     expect(source).toContain(
-      "Workspace snapshot imported; style payload rejected",
+      "Workspace snapshot imported; stylePack accepted for Style Lab review; not auto-applied",
+    );
+    expect(source).toContain(
+      "Workspace snapshot imported; stylePack rejected style-only; workspace kept",
+    );
+    expect(source).toContain(
+      "Workspace snapshot imported; no stylePack found",
     );
   });
 

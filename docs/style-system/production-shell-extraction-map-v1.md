@@ -936,3 +936,73 @@ Remaining production-auth-only checks:
 - overlay click close and Escape close in the authenticated production shell
 - command buttons should remain unexecuted in visual smoke unless a dedicated
   safe command interaction script exists
+
+## 20. V19 Production Skinning 40-to-60 ROI Loop 07
+
+Implemented during
+`20260531-v19-production-skinning-40-to-60-roi-loop-07`.
+
+Target:
+
+- `AgentBranchModal` shell/chrome selector prep
+
+Path:
+
+- Path A: selector-only prep on the existing inner visual shell
+- No modal/dialog token aliases were added in this loop.
+- No inert modal frame was extracted in this loop.
+
+Ownership scan result:
+
+- `AgentBranchModal` is rendered from the separate
+  `src/components/nexus/AgentBranchModal.tsx` component and mounted by
+  `src/components/nexus/nexus-ops.tsx`.
+- `NexusOps` owns `branchAgentId`, chooses when the modal is mounted, focuses the
+  newly branched agent after completion, and closes the modal by setting
+  `branchAgentId` to `null`.
+- `AgentBranchModal` owns modal form state, branch execution, store branch
+  action, busy/failed state, close buttons, cancel buttons, form inputs, mode
+  buttons, compressor model selection, retention ratio, custom focus prompt, and
+  advanced weight controls.
+- The outer `motion.div` owns modal layer semantics: `role="dialog"`,
+  `aria-modal`, fixed inset, z-index, backdrop, and centering.
+- The inner `motion.section` is the visible modal shell and has no close,
+  submit, focus, keyboard, overlay click, or form-state handler on the shell
+  element itself.
+
+Selector status:
+
+- Added `.nexus-agent-branch-modal-shell` to the existing inner visual shell:
+  `nexus-agent-branch-modal-shell w-full max-w-3xl border border-cyan-300/25 bg-slate-950/95 ...`.
+- Added the same selector to the isolated `/style-lab` `Production Chrome Smoke`
+  harness as a static display-only dialog specimen.
+
+Why no frame extraction:
+
+- Extracting the modal shell would require a broader Framer Motion boundary
+  decision around the existing `motion.section` animation props.
+- Selector-only prep gives the next alias loop a stable visual target without
+  moving modal behavior or modal layer ownership.
+
+Intentionally not changed:
+
+- modal open/close logic
+- form submit or branch execution logic
+- validation/clamping logic
+- keyboard/focus/autofocus behavior
+- overlay, z-index, or modal layer semantics
+- form state, input values, mode controls, busy/failed states
+- store, sync, backend, Supabase, API, React Flow, Rnd, graph, persistence,
+  runtime token apply, token persistence, or production auth
+
+Remaining future token step:
+
+- Add dedicated modal/dialog shell aliases only after this selector survives
+  source, build, and browser/style-lab smoke:
+  `--nexus-modal-dialog-bg`,
+  `--nexus-modal-dialog-border`,
+  `--nexus-modal-dialog-shadow`,
+  `--nexus-modal-dialog-radius`, and optional blur.
+- Do not tokenize overlay backdrop, close buttons, submit buttons, focus rings,
+  form controls, validation states, z-index, positioning, or modal stack
+  behavior in that alias loop.

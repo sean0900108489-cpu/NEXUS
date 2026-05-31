@@ -15,6 +15,7 @@ describe("Nexus Style Lab production chrome smoke harness", () => {
     expect(source).toContain("nexus-top-bar-frame");
     expect(source).toContain("nexus-right-floating-dock-rail");
     expect(source).toContain("nexus-command-palette-shell");
+    expect(source).toContain("nexus-agent-branch-modal-shell");
     expect(source).toContain("nexus-workspace");
     expect(source).toContain("nexus-message-bubble");
     expect(source).toContain("nexus-message-bubble-user");
@@ -22,6 +23,9 @@ describe("Nexus Style Lab production chrome smoke harness", () => {
     expect(source).toContain("nexus-message-bubble-tool");
     expect(source).toContain(
       'data-testid="production-chrome-smoke-command-palette"',
+    );
+    expect(source).toContain(
+      'data-testid="production-chrome-smoke-modal-dialog"',
     );
   });
 

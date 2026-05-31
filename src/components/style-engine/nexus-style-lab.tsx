@@ -435,6 +435,7 @@ const productionChromeSmokeSelectors = [
   ".nexus-top-bar-frame",
   ".nexus-right-floating-dock-rail",
   ".nexus-command-palette-shell",
+  ".nexus-agent-branch-modal-shell",
   ".nexus-workspace",
   ".nexus-message-bubble",
   ".nexus-message-bubble-user",
@@ -2767,6 +2768,44 @@ export function NexusStyleLab() {
                               </div>
                             ),
                           )}
+                        </div>
+                      </div>
+
+                      <div
+                        aria-hidden="true"
+                        className="nexus-agent-branch-modal-shell mx-auto w-full max-w-xl overflow-hidden border border-cyan-300/25 bg-slate-950/95 shadow-[0_0_38px_rgba(34,211,238,0.12),0_18px_54px_rgba(0,0,0,0.48)]"
+                        data-testid="production-chrome-smoke-modal-dialog"
+                      >
+                        <div className="flex items-center justify-between border-b border-cyan-300/15 px-3 py-2">
+                          <div className="min-w-0">
+                            <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-cyan-100">
+                              Branch Modal
+                            </div>
+                            <div className="mt-0.5 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                              static dialog shell
+                            </div>
+                          </div>
+                          <span className="grid h-6 w-6 place-items-center border border-white/10 text-[9px] text-slate-500">
+                            x
+                          </span>
+                        </div>
+                        <div className="grid gap-2 p-3">
+                          <div className="border border-white/10 bg-white/[0.035] p-2">
+                            <div className="font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                              source callsign
+                            </div>
+                            <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100">
+                              atlas
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <span className="border border-cyan-300/30 bg-cyan-300/10 px-2 py-1.5 font-mono text-[8px] uppercase tracking-[0.1em] text-cyan-100">
+                              full branch
+                            </span>
+                            <span className="border border-white/10 bg-black/25 px-2 py-1.5 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                              summary
+                            </span>
+                          </div>
                         </div>
                       </div>
 

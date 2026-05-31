@@ -312,3 +312,41 @@ Updated estimate after this specimen:
 The next highest ROI visual gaps are segmented top navigation specimen,
 typography/icon/button polish, and then production confidence work such as
 authenticated `/` smoke.
+
+## Segmented Top Navigation Specimen Follow-Up
+
+Loop `20260531-v19-warm-glass-ops-segmented-top-navigation-specimen` upgraded
+the Style Lab scene preview with a static segmented top navigation specimen.
+
+Reference image usage:
+
+- viewed read-only as visual hierarchy guidance
+- not copied into the repository
+- not encoded as base64
+- not referenced as a production or public asset
+
+Added specimen evidence:
+
+- central rounded glass segmented navigation shell
+- View: Panels / View: Graph / Cyberpunk / Apple / Tesla / Terminal segments
+- one active segment with brighter glass treatment
+- soft separators
+- compact Agents / Streams / Tokens / Tasks counters
+- inert compact action cluster
+
+The specimen remains isolated:
+
+- no production TopBar import
+- no TopBar control, keyboard, focus, or action behavior
+- no store, sync, backend, Supabase, or API calls
+- no persistence
+- no event handlers or runtime apply
+- no `globals.css` or production selector changes
+
+Updated estimate after this specimen:
+
+- visual similarity in Style Lab: about `67-70%`
+- production skinning readiness: about `74-76%`
+
+The next highest ROI visual gaps are typography/icon/button chrome polish and
+then authenticated production smoke confidence.

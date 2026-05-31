@@ -1683,3 +1683,82 @@ Next seed:
 - create a Style Lab-only static segmented top navigation recipe specimen using
   current direct aliases, without touching TopBar controls or keyboard/action
   behavior
+
+## 31. Warm Glass Ops Segmented Top Navigation Specimen
+
+Recorded during
+`20260531-v19-warm-glass-ops-segmented-top-navigation-specimen`.
+
+Reference image usage:
+
+- `/Users/sean/Downloads/ChatGPT Image 2026年5月31日 下午12_15_46.png`
+  was viewed read-only
+- the image was not copied, encoded, imported, or referenced as a repo/public
+  asset
+- visual requirements extracted: central rounded segmented nav, brighter active
+  segment, soft separators, compact right-side counters, warm glass top chrome
+  density
+
+Selected target:
+
+- Style Lab-only segmented top navigation recipe/specimen inside the Warm Glass
+  scene preview
+- no production TopBar behavior
+- no keyboard/action/focus behavior
+- no persistence, store, sync, backend, Supabase, or API calls
+- no `src/components/nexus/**`, `src/app/globals.css`, selectors, routes, or
+  runtime apply changes
+
+Specimen structure:
+
+- rounded warm glass top nav shell
+- View: Panels / View: Graph / Cyberpunk / Apple / Tesla / Terminal segments
+- one active segment
+- soft separators
+- compact Agents / Streams / Tokens / Tasks counters
+- inert compact action cluster
+
+Supported now:
+
+- static top chrome hierarchy can reuse local Warm Glass glass variables
+- direct alias preview can show scene, agent bank, workspace, right metrics,
+  and top nav composition together
+- Style Lab can visually compare the reference-like command-center top strip
+  without touching production TopBar
+
+Simulated only:
+
+- segment state
+- mode labels
+- counter values
+- icon/action cluster
+- actual TopBar controls and behavior
+
+Still missing production capability:
+
+- production segmented nav selector/recipe boundary
+- safe adoption path for behavior-bearing TopBar controls
+- typography/icon/button chrome polish
+- authenticated production `/` smoke
+- layout preset/page shell arrangement
+- asset/background production pipeline
+
+Verification:
+
+- source guard covers the segmented nav labels and counters
+- no reference image path/import was introduced in Style Lab source
+- no document-root mutation, storage, fetch, remote URL, or production Nexus
+  import was introduced
+- full verification is recorded in the loop checkpoint
+
+Estimate after this loop:
+
+- Style Lab visual similarity: about `67-70%`
+- readiness: about `74-76%`
+
+Next seed:
+
+- `V19 Warm Glass Ops Typography Icon Button Polish Audit`
+- create a Style Lab-only polish audit/specimen for type density, restrained
+  icon/action chrome, and button/control recipe gaps before any production
+  control adoption

@@ -86,6 +86,34 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
     expect(source).toContain("Steward");
   });
 
+  it("renders a static Warm Glass segmented top navigation recipe specimen", () => {
+    const source = readStyleLabSource();
+
+    expect(source).toContain("warmGlassSegmentedNavRows");
+    expect(source).toContain("warmGlassSegmentedNavCounters");
+    expect(source).toContain("warmGlassSegmentedNavSpecimenStyle");
+    expect(source).toContain(
+      'data-testid="warm-glass-segmented-top-nav-specimen"',
+    );
+    expect(source).toContain("warm-glass-segmented-active-segment");
+    expect(source).toContain(
+      'data-testid="warm-glass-segmented-top-nav-counters"',
+    );
+    expect(source).toContain(
+      'data-testid="warm-glass-segmented-top-nav-actions"',
+    );
+    expect(source).toContain("View: Panels");
+    expect(source).toContain("View: Graph");
+    expect(source).toContain("Cyberpunk");
+    expect(source).toContain("Apple");
+    expect(source).toContain("Tesla");
+    expect(source).toContain("Terminal");
+    expect(source).toContain("Agents");
+    expect(source).toContain("Streams");
+    expect(source).toContain("Tokens");
+    expect(source).toContain("Tasks");
+  });
+
   it("keeps the coverage panel detached from production runtime mutation", () => {
     const source = readStyleLabSource();
     const forbiddenPatterns = [
@@ -117,10 +145,18 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
       /warmGlassAgent[\s\S]*fetch\s*\(/,
       /warmGlassAgent[\s\S]*https?:\/\//,
       /warmGlassAgent[\s\S]*\burl\s*\(/,
+      /warmGlassSegmented[\s\S]*document\.documentElement/,
+      /warmGlassSegmented[\s\S]*window\.localStorage/,
+      /warmGlassSegmented[\s\S]*indexedDB/,
+      /warmGlassSegmented[\s\S]*fetch\s*\(/,
+      /warmGlassSegmented[\s\S]*https?:\/\//,
+      /warmGlassSegmented[\s\S]*\burl\s*\(/,
     ];
 
     expect(source).toContain("createWarmGlassOpsProductionAliasCoverageReportV1");
     expect(source).not.toContain("asset-background-image");
+    expect(source).not.toContain("ChatGPT Image 2026");
+    expect(source).not.toContain("/Users/sean/Downloads");
 
     for (const pattern of forbiddenPatterns) {
       expect(source, `Style Lab coverage should not match ${pattern}`).not.toMatch(

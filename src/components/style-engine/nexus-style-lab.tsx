@@ -559,6 +559,28 @@ const warmGlassSceneAgentWindowStyle = {
   boxShadow: "var(--nexus-agent-window-shadow, 0 24px 68px rgb(73 49 30 / 0.24))",
 } as CSSProperties;
 
+const warmGlassSegmentedNavRows = [
+  { active: true, label: "View: Panels" },
+  { active: false, label: "View: Graph" },
+  { active: false, label: "Cyberpunk" },
+  { active: false, label: "Apple" },
+  { active: false, label: "Tesla" },
+  { active: false, label: "Terminal" },
+] as const;
+
+const warmGlassSegmentedNavCounters = [
+  ["Agents", "5"],
+  ["Streams", "0"],
+  ["Tokens", "0"],
+  ["Tasks", "0"],
+] as const;
+
+const warmGlassSegmentedNavSpecimenStyle = {
+  ...warmGlassSceneGlassStyle,
+  background:
+    "linear-gradient(180deg, rgb(255 248 235 / 0.2), rgb(74 48 29 / 0.1)), var(--nexus-glass-bg, rgb(255 248 235 / 0.18))",
+} as CSSProperties;
+
 const warmGlassAgentCardRows = [
   {
     id: "architect",
@@ -638,7 +660,7 @@ const warmGlassSceneCapabilityGroups = [
       "desert scene gradients",
       "agent bank cards",
       "right metrics panel",
-      "segmented nav mood",
+      "segmented nav specimen",
     ],
   },
   {
@@ -3075,27 +3097,67 @@ export function NexusStyleLab() {
                       </div>
 
                       <div
-                        className="mb-3 grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border p-2"
+                        className="mb-3 grid min-h-12 gap-3 border p-2 xl:grid-cols-[minmax(0,1fr)_auto_auto]"
                         data-testid="warm-glass-scene-segmented-nav"
-                        style={warmGlassSceneGlassStyle}
+                        style={warmGlassSegmentedNavSpecimenStyle}
                       >
-                        <div className="flex min-w-0 flex-wrap items-center gap-2">
-                          {["Panels", "Graph", "Apple", "Terminal"].map((item) => (
+                        <div
+                          className="flex min-w-0 flex-wrap items-center gap-1 rounded-full border border-white/15 bg-white/[0.07] p-1"
+                          data-testid="warm-glass-segmented-top-nav-specimen"
+                        >
+                          {warmGlassSegmentedNavRows.map((segment, index) => (
                             <span
-                              key={`warm-glass-scene-nav:${item}`}
-                              className="border border-white/15 bg-white/[0.08] px-3 py-1.5 font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50"
+                              key={`warm-glass-segmented-nav:${segment.label}`}
+                              className={[
+                                "min-w-0 rounded-full px-3 py-1.5 font-mono text-[8px] uppercase tracking-[0.1em]",
+                                segment.active
+                                  ? "border border-white/30 bg-white/[0.2] text-amber-50 shadow-[0_10px_28px_rgb(74_48_29_/_0.2)]"
+                                  : "text-amber-50/70",
+                              ].join(" ")}
+                              data-testid={
+                                segment.active
+                                  ? "warm-glass-segmented-active-segment"
+                                  : undefined
+                              }
                             >
-                              {item}
+                              <span className="truncate">{segment.label}</span>
+                              {index < warmGlassSegmentedNavRows.length - 1 ? (
+                                <span className="ml-3 hidden h-3 w-px align-middle opacity-30 sm:inline-block" />
+                              ) : null}
                             </span>
                           ))}
                         </div>
-                        <div className="hidden gap-2 sm:flex">
-                          {["5", "0", "0"].map((value, index) => (
+
+                        <div
+                          className="grid grid-cols-2 gap-1 sm:grid-cols-4"
+                          data-testid="warm-glass-segmented-top-nav-counters"
+                        >
+                          {warmGlassSegmentedNavCounters.map(([label, value]) => (
                             <span
-                              key={`warm-glass-scene-counter:${index}`}
-                              className="grid h-8 w-10 place-items-center border border-white/15 bg-white/[0.08] font-mono text-[9px] text-amber-50"
+                              key={`warm-glass-segmented-counter:${label}`}
+                              className="min-w-[52px] border border-white/15 bg-white/[0.08] px-2 py-1"
                             >
-                              {value}
+                              <span className="block truncate font-mono text-[7px] uppercase tracking-[0.1em] text-amber-50/55">
+                                {label}
+                              </span>
+                              <span className="mt-0.5 block font-mono text-[10px] text-amber-50">
+                                {value}
+                              </span>
+                            </span>
+                          ))}
+                        </div>
+
+                        <div
+                          aria-hidden="true"
+                          className="flex items-center gap-1 justify-self-start xl:justify-self-end"
+                          data-testid="warm-glass-segmented-top-nav-actions"
+                        >
+                          {["Sun", "Bell", "Focus", "Add"].map((label) => (
+                            <span
+                              key={`warm-glass-segmented-action:${label}`}
+                              className="grid h-8 w-8 place-items-center rounded-full border border-white/15 bg-white/[0.08] font-mono text-[8px] uppercase tracking-[0.08em] text-amber-50/70"
+                            >
+                              {label.slice(0, 1)}
                             </span>
                           ))}
                         </div>

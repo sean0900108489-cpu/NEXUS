@@ -5946,6 +5946,7 @@ function MessageBubble({
   reasoningDetail?: NexusReasoningDetail;
 }) {
   const isUser = message.role === "user";
+  const isAssistant = message.role === "assistant";
   const isTool = message.role === "tool";
   const reasoningPreview = message.reasoningContent
     ? getReasoningPreview(message.reasoningContent, reasoningDetail)
@@ -5955,6 +5956,9 @@ function MessageBubble({
     <article
       className={cx(
         "nexus-message-bubble border p-3",
+        isUser && "nexus-message-bubble-user",
+        isAssistant && "nexus-message-bubble-assistant",
+        isTool && "nexus-message-bubble-tool",
         isUser
           ? "ml-8 border-fuchsia-300/30 bg-fuchsia-300/10"
           : isTool

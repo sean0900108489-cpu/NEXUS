@@ -557,3 +557,82 @@ Remaining No-Go zones:
 - feature placement and layout preset production adoption
 - runtime token apply or persistence
 - store/sync/backend/Supabase/API paths
+
+## 15. V19 Production Skinning 20-to-40 ROI Loop 03
+
+Implemented during
+`20260531-v19-production-skinning-20-to-40-roi-loop-03`.
+
+Target:
+
+- `MessageBubble` role surface
+
+Path:
+
+- Path A: behavior-free role-specific selector prep plus role-aware aliases
+
+Ownership scan result:
+
+- `MessageBubble` renders the existing `.nexus-message-bubble` visual wrapper
+  as an `article` in `src/components/nexus/nexus-ops.tsx`.
+- Parent `AgentWindow` owns scroll refs, composer refs, submit handlers, window
+  focus, Rnd drag/resize, z-index, message ordering, and list mapping.
+- Streaming creation, token append, interruption, media generation, tool
+  execution, and persistence stay outside `MessageBubble`.
+- `MessageBubble` itself has no hooks, effects, refs, event handlers, fetches,
+  persistence, or tool execution.
+- It only derives role booleans from `message.role` and renders content,
+  streaming cursor, interrupted label, reasoning details, and media preview.
+
+Selector and alias status:
+
+- added role classes to the existing message wrapper only
+- added generic message bubble aliases
+- added role background aliases for user, assistant, and tool messages
+- wired the existing terminal-theme message bubble override through the same
+  aliases so browser-only CSS vars visibly apply on the current production
+  chrome
+- no message content, ordering, streaming, reasoning, media, markdown/prose, or
+  tool execution behavior was changed
+
+Selectors added:
+
+- `.nexus-message-bubble-user`
+- `.nexus-message-bubble-assistant`
+- `.nexus-message-bubble-tool`
+
+Aliases added:
+
+- `--nexus-message-bubble-bg`
+- `--nexus-message-bubble-border`
+- `--nexus-message-bubble-shadow`
+- `--nexus-message-bubble-radius`
+- `--nexus-message-user-bg`
+- `--nexus-message-assistant-bg`
+- `--nexus-message-tool-bg`
+
+Fallback chain:
+
+- role background alias
+- generic message bubble alias
+- existing panel alias
+- current cyberpunk role baseline
+
+Intentionally not tokenized:
+
+- message text color
+- links, code blocks, markdown/prose internals, or media preview internals
+- copy/tool buttons
+- hover/focus states
+- scroll behavior
+- streaming cursor
+- timestamps and labels
+- reasoning details internals
+- message content parsing, ordering, persistence, or tool execution
+
+Remaining No-Go zones:
+
+- message content parsing, markdown rendering, streaming, and tool execution
+- AgentWindow scroll refs, composer refs, Rnd drag/resize, focus, and z-index
+- backend/store/sync/Supabase/API paths
+- runtime token apply or persistence

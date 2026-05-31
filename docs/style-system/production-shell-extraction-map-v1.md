@@ -1762,3 +1762,75 @@ Next seed:
 - create a Style Lab-only polish audit/specimen for type density, restrained
   icon/action chrome, and button/control recipe gaps before any production
   control adoption
+
+## 32. Warm Glass Ops Typography Icon Button Polish Audit
+
+Recorded during
+`20260531-v19-warm-glass-ops-typography-icon-button-polish-audit`.
+
+Reference image usage:
+
+- `/Users/sean/Downloads/ChatGPT Image 2026年5月31日 下午12_15_46.png`
+  was viewed read-only
+- the image was not copied, encoded, imported, referenced as a remote URL, or
+  used as a repo/public/production asset
+
+Selected path:
+
+- docs-only audit
+- no source implementation
+- no production selector adoption
+- no production control primitive changes
+
+Polish score summary:
+
+- total polish score: `32/50`
+- typography hierarchy: `3/5`
+- label style / casing: `4/5`
+- icon treatment: `2/5`
+- button chrome: `2/5`
+- active/inert affordance clarity: `3/5`
+- card density: `4/5`
+- metrics density: `4/5`
+- segmented nav polish: `4/5`
+- message/content readability: `3/5`
+- overall enterprise product finish: `3/5`
+
+Top gaps:
+
+- restrained icon/action chrome recipe
+- reusable button/input/badge visual language
+- typography density policy
+- active/inert/status affordance clarity
+- authenticated production `/` confidence smoke
+
+Decision:
+
+- next seed is `V19 Warm Glass Ops Icon Button Chrome Recipe Specimen`
+- implement a Style Lab-only recipe specimen before attempting production
+  button/input/badge selector-first work
+
+Reason:
+
+- icon and button chrome are the most visible remaining polish gap
+- Style Lab-only recipe work improves visual similarity with low risk
+- production controls can own handlers, focus, keyboard, validation, submit,
+  hover/active state, and component state, so production selector-first should
+  wait for a clearer recipe and ownership scan
+
+Verification:
+
+- docs-only diff check passed
+- diff contained only allowed docs
+- no reference image file was copied into the repository
+
+Forbidden boundaries held:
+
+- no `src/**` changes
+- no `src/app/globals.css`
+- no `src/components/nexus/**`
+- no package/config/deploy edits
+- no store/sync/backend/Supabase/API
+- no Supabase/database/migrations
+- no `exports/**`
+- no production runtime apply or persistence

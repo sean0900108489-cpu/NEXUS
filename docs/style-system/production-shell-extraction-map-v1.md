@@ -1415,3 +1415,63 @@ Next seed:
 - verify whether the Style Lab token preview can demonstrate the direct alias
   Bridge Plan outputs across the Warm Glass coverage panel and production
   chrome smoke specimens without adding runtime apply or persistence
+
+## 27. Warm Glass Ops Direct Alias Preview Audit
+
+Recorded during
+`20260531-v19-warm-glass-ops-direct-alias-preview-audit`.
+
+Reference:
+
+- `/Users/sean/Downloads/ChatGPT Image 2026年5月31日 下午12_15_46.png`
+- read-only visual north star; not copied into the repository
+
+Audit result:
+
+- Direct alias bridge coverage is successful but does not equal 80 percent
+  visual similarity.
+- `/style-lab` showed `Bridge Vars 83`, `Direct % 100`,
+  `Direct Aliases 58/58`, and `DIRECT-BRIDGE` family modes.
+- Warm Glass token preview was accepted and reversible.
+- Production Chrome Smoke apply/revert still worked.
+- Console errors: none observed.
+- Warm Glass token preview did not visually recolor the Production Chrome Smoke
+  specimens. The command palette smoke specimen retained the same computed
+  background, border, radius, blur, and shadow before and after token preview.
+
+Visual score:
+
+- `30 / 75`
+- estimated visual similarity: about `40%`
+- estimated readiness: about `66-70%`
+
+Top visual gaps:
+
+1. background scene / workspace wash preview
+2. right metrics panel recipe/specimen
+3. agent card/bank recipe/specimen
+4. segmented top navigation specimen
+5. typography and icon/button chrome polish
+
+Selected next seed:
+
+- `V19 Warm Glass Ops Style Lab Scene Wash Preview`
+
+Reason:
+
+- The reference image is mostly carried by the desert atelier scene and
+  translucent glass over that scene.
+- The direct alias bridge is ready, but the current Style Lab preview is still
+  evidence-heavy and visually scene-poor.
+- The next step should remain Style Lab only: local preview container, no
+  production runtime apply, no asset/background production apply, no copied
+  reference image, no remote image URL, and no persistence.
+
+Boundaries held:
+
+- docs-only audit
+- no source changes
+- no production source reads beyond the allowed style-engine and Style Lab
+  context
+- no production runtime, store, sync, backend, Supabase, API, asset production
+  apply, or layout production apply changes

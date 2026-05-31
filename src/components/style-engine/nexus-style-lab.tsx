@@ -73,6 +73,7 @@ type ProductionBridgePreviewState =
   | "previewing"
   | "reverted"
   | "blocked";
+type ProductionChromeSmokeState = "idle" | "applied" | "reverted";
 type ExportView = "manifest" | "package" | "review";
 type AuthoringContextView = "context" | "prompt" | "minimal" | "pixel";
 type VisibleIssueSeverity = "error" | "question" | "warning";
@@ -428,9 +429,40 @@ const productionBridgeTargetMutedStyle = {
   color: "var(--text-soft, #cbd5e1)",
 };
 
+const productionChromeSmokeSelectors = [
+  ".nexus-agent-window",
+  ".nexus-drag-handle",
+  ".nexus-top-bar-frame",
+  ".nexus-right-floating-dock-rail",
+  ".nexus-workspace",
+  ".nexus-message-bubble",
+  ".nexus-message-bubble-user",
+  ".nexus-message-bubble-assistant",
+  ".nexus-message-bubble-tool",
+] as const;
+
+const productionChromeSmokeVariables = [
+  ["--nexus-agent-window-bg", "rgb(126 34 206 / 0.82)"],
+  ["--nexus-agent-window-border", "rgb(34 211 238 / 0.92)"],
+  ["--nexus-agent-window-shadow", "0 0 0 2px rgb(34 211 238 / 0.36), 0 24px 74px rgb(126 34 206 / 0.42)"],
+  ["--nexus-agent-window-radius", "10px"],
+  ["--nexus-agent-window-handle-bg", "rgb(34 211 238 / 0.32)"],
+  ["--nexus-agent-window-handle-border", "rgb(103 232 249 / 0.72)"],
+  ["--nexus-top-bar-bg", "rgb(20 184 166 / 0.26)"],
+  ["--nexus-top-bar-border", "rgb(45 212 191 / 0.86)"],
+  ["--nexus-right-dock-bg", "rgb(59 7 100 / 0.84)"],
+  ["--nexus-right-dock-border", "rgb(216 180 254 / 0.78)"],
+  ["--nexus-workspace-bg", "rgb(3 7 18 / 0.96)"],
+  ["--nexus-workspace-border", "rgb(45 212 191 / 0.64)"],
+  ["--nexus-message-user-bg", "rgb(236 72 153 / 0.34)"],
+  ["--nexus-message-assistant-bg", "rgb(34 211 238 / 0.26)"],
+  ["--nexus-message-tool-bg", "rgb(16 185 129 / 0.3)"],
+] as const;
+
 export function NexusStyleLab() {
   const runtime = useNexusStyleRuntimeV1();
   const productionBridgeTargetRef = useRef<HTMLDivElement | null>(null);
+  const productionChromeSmokeTargetRef = useRef<HTMLDivElement | null>(null);
   const pageShellPrototypeTargetRef = useRef<HTMLDivElement | null>(null);
   const baselineManifest = useMemo(
     () => createLegacyCyberpunkStyleManifestV1(),
@@ -475,6 +507,12 @@ export function NexusStyleLab() {
     pageShellPrototypePreviewSession,
     setPageShellPrototypePreviewSession,
   ] = useState<NexusProductionTokenBridgePreviewSessionV1 | null>(null);
+  const [productionChromeSmokeState, setProductionChromeSmokeState] =
+    useState<ProductionChromeSmokeState>("idle");
+  const [
+    productionChromeSmokeTargetCount,
+    setProductionChromeSmokeTargetCount,
+  ] = useState<number>(productionChromeSmokeSelectors.length);
   const baselineCompiled = useMemo(
     () => compileNexusStyleManifestV1(baselineManifest),
     [baselineManifest],
@@ -1188,6 +1226,51 @@ export function NexusStyleLab() {
     setProductionBridgePreviewSession(null);
     setPageShellPrototypePreviewSession(null);
     setProductionBridgePreviewState("reverted");
+  };
+
+  const countProductionChromeSmokeTargets = () => {
+    const target = productionChromeSmokeTargetRef.current;
+
+    if (!target) {
+      return 0;
+    }
+
+    return productionChromeSmokeSelectors.filter((selector) =>
+      target.querySelector(selector),
+    ).length;
+  };
+
+  const applyProductionChromeSmokeVars = () => {
+    const target = productionChromeSmokeTargetRef.current;
+
+    if (!target) {
+      setProductionChromeSmokeTargetCount(0);
+      return;
+    }
+
+    for (const [name, value] of productionChromeSmokeVariables) {
+      target.style.setProperty(name, value);
+    }
+
+    setProductionChromeSmokeTargetCount(countProductionChromeSmokeTargets());
+    setProductionChromeSmokeState("applied");
+  };
+
+  const revertProductionChromeSmokeVars = () => {
+    const target = productionChromeSmokeTargetRef.current;
+
+    if (!target) {
+      setProductionChromeSmokeTargetCount(0);
+      setProductionChromeSmokeState("reverted");
+      return;
+    }
+
+    for (const [name] of productionChromeSmokeVariables) {
+      target.style.removeProperty(name);
+    }
+
+    setProductionChromeSmokeTargetCount(countProductionChromeSmokeTargets());
+    setProductionChromeSmokeState("reverted");
   };
 
   const startPreview = () => {
@@ -2581,6 +2664,195 @@ export function NexusStyleLab() {
                     </div>
                   </div>
                 </div>
+
+                <section
+                  className="mb-4 border border-fuchsia-300/15 bg-fuchsia-300/[0.035] p-3"
+                  data-testid="production-chrome-smoke-panel"
+                >
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-fuchsia-100">
+                      Production Chrome Smoke
+                    </div>
+                    <div
+                      className={[
+                        "font-mono text-[10px] uppercase tracking-[0.12em]",
+                        productionChromeSmokeState === "applied"
+                          ? "text-fuchsia-100"
+                          : productionChromeSmokeState === "reverted"
+                            ? "text-emerald-200"
+                            : "text-slate-500",
+                      ].join(" ")}
+                      data-testid="production-chrome-smoke-status"
+                    >
+                      {productionChromeSmokeState}
+                    </div>
+                  </div>
+
+                  <div className="mb-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                    {[
+                      ["Vars", String(productionChromeSmokeVariables.length)],
+                      [
+                        "Targets",
+                        `${productionChromeSmokeTargetCount}/${productionChromeSmokeSelectors.length}`,
+                      ],
+                      ["Scope", "local ref"],
+                      ["Persistence", "none"],
+                    ].map(([label, value]) => (
+                      <div
+                        key={`production-chrome-smoke:${label}`}
+                        className="min-w-0 border border-white/10 bg-black/20 p-2"
+                      >
+                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                          {label}
+                        </div>
+                        <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+                          {value}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px]">
+                    <div
+                      ref={productionChromeSmokeTargetRef}
+                      className="nexus-shell grid min-w-0 gap-3 border border-white/10 bg-slate-950/80 p-3"
+                      data-testid="production-chrome-smoke-target"
+                    >
+                      <div
+                        className="nexus-top-bar-frame flex h-11 shrink-0 items-center justify-between border-b border-white/10 bg-black/20 px-3"
+                        data-testid="production-chrome-smoke-top-bar"
+                      >
+                        <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-cyan-100">
+                          TopBar
+                        </span>
+                        <span className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-400">
+                          inert
+                        </span>
+                      </div>
+
+                      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_72px]">
+                        <div
+                          className="nexus-workspace min-h-64 min-w-0 overflow-hidden border border-white/10 bg-slate-950/80 p-3 shadow-2xl"
+                          data-testid="production-chrome-smoke-workspace"
+                        >
+                          <div
+                            className="nexus-agent-window min-h-56 overflow-hidden border-2 bg-slate-950/88 shadow-[0_22px_70px_rgba(0,0,0,0.45)]"
+                            data-testid="production-chrome-smoke-agent-window"
+                            style={
+                              {
+                                "--nexus-agent-window-default-bg":
+                                  "color-mix(in srgb, var(--bg-elevated) var(--chat-panel-opacity), transparent)",
+                                "--nexus-agent-window-default-border":
+                                  "rgb(34 211 238 / 0.68)",
+                                "--nexus-agent-window-default-shadow":
+                                  "0 0 24px rgb(34 211 238 / 0.18), 0 22px 70px rgb(0 0 0 / 0.38)",
+                              } as CSSProperties
+                            }
+                          >
+                            <div
+                              aria-hidden="true"
+                              className="nexus-drag-handle h-2 shrink-0"
+                              data-testid="production-chrome-smoke-agent-handle"
+                            />
+                            <div className="border-b border-white/10 px-3 py-2">
+                              <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                                Agent Window
+                              </div>
+                              <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                                static chrome specimen
+                              </div>
+                            </div>
+                            <div className="grid gap-2 p-3">
+                              <article
+                                className="nexus-message-bubble nexus-message-bubble-user border p-3"
+                                data-testid="production-chrome-smoke-message-user"
+                              >
+                                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-slate-400">
+                                  user bubble
+                                </div>
+                                <p className="mt-1 text-xs text-slate-100">
+                                  Local smoke variable target.
+                                </p>
+                              </article>
+                              <article
+                                className="nexus-message-bubble nexus-message-bubble-assistant border p-3"
+                                data-testid="production-chrome-smoke-message-assistant"
+                              >
+                                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-slate-400">
+                                  assistant bubble
+                                </div>
+                                <p className="mt-1 text-xs text-slate-100">
+                                  Visual apply/revert only.
+                                </p>
+                              </article>
+                              <article
+                                className="nexus-message-bubble nexus-message-bubble-tool border p-3"
+                                data-testid="production-chrome-smoke-message-tool"
+                              >
+                                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-slate-400">
+                                  tool bubble
+                                </div>
+                                <p className="mt-1 text-xs text-slate-100">
+                                  No runtime persistence.
+                                </p>
+                              </article>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          className="nexus-right-floating-dock-rail grid content-start gap-2 border border-cyan-300/25 bg-slate-950/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.45),0_0_32px_rgba(34,211,238,0.14)] backdrop-blur-xl"
+                          data-testid="production-chrome-smoke-right-dock"
+                        >
+                          {["Intel", "Theme", "Trace", "Vault"].map((item) => (
+                            <span
+                              key={`production-chrome-smoke-dock:${item}`}
+                              className="grid h-9 place-items-center border border-white/10 bg-white/[0.04] font-mono text-[8px] uppercase tracking-[0.1em] text-slate-300"
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid min-w-0 content-start gap-2">
+                      <button
+                        className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-fuchsia-300/35 bg-fuchsia-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-fuchsia-100 transition hover:bg-fuchsia-300/20"
+                        data-testid="production-chrome-smoke-apply"
+                        onClick={applyProductionChromeSmokeVars}
+                        type="button"
+                      >
+                        <Sparkles className="h-4 w-4 shrink-0" />
+                        <span className="truncate">Apply Smoke Vars</span>
+                      </button>
+                      <button
+                        className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                        data-testid="production-chrome-smoke-revert"
+                        onClick={revertProductionChromeSmokeVars}
+                        type="button"
+                      >
+                        <RotateCcw className="h-4 w-4 shrink-0" />
+                        <span className="truncate">Revert Smoke Vars</span>
+                      </button>
+                      <div className="border border-white/10 bg-black/20 p-2">
+                        <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                          Smoke Variables
+                        </div>
+                        <div className="grid max-h-52 gap-1 overflow-hidden">
+                          {productionChromeSmokeVariables.slice(0, 8).map(([name]) => (
+                            <div
+                              key={`production-chrome-smoke-var:${name}`}
+                              className="truncate font-mono text-[9px] text-fuchsia-100"
+                            >
+                              {name}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
 
                 <div className="mb-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
                   {specimenGalleryRows.map(([label, value]) => (

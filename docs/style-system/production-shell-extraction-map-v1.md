@@ -719,3 +719,79 @@ Remaining No-Go zones:
   boundary exists
 - backend/store/sync/Supabase/API paths
 - runtime token apply or persistence
+
+## 17. V19 Production Chrome Isolated Visual Smoke Harness
+
+Implemented during
+`20260531-v19-production-chrome-isolated-visual-smoke-harness`.
+
+Purpose:
+
+- Close the Loop 04 browser-smoke gap where local `/` was correctly blocked by
+  production auth and therefore could not render real `AgentWindow` chrome.
+- Provide a non-production, non-persistent `/style-lab` visual smoke surface for
+  production chrome aliases without auth bypass, fake login, store access,
+  backend calls, Supabase, API routes, React Flow, Rnd, or window behavior.
+
+Placement:
+
+- `src/components/style-engine/nexus-style-lab.tsx`
+- The harness lives inside the existing isolated Style Lab route at
+  `/style-lab`.
+- Smoke variables are applied only to a local `productionChromeSmokeTargetRef`
+  container through `target.style.setProperty` and reverted with
+  `target.style.removeProperty`.
+- It does not use `document.documentElement`, localStorage, IndexedDB,
+  workspace store, runtime token persistence, layout preset production apply,
+  or feature registry production placement.
+
+Static selectors/classes represented:
+
+- `.nexus-agent-window`
+- `.nexus-drag-handle`
+- `.nexus-top-bar-frame`
+- `.nexus-right-floating-dock-rail`
+- `.nexus-workspace`
+- `.nexus-message-bubble`
+- `.nexus-message-bubble-user`
+- `.nexus-message-bubble-assistant`
+- `.nexus-message-bubble-tool`
+
+Smoke variables covered:
+
+- `--nexus-agent-window-bg`
+- `--nexus-agent-window-border`
+- `--nexus-agent-window-shadow`
+- `--nexus-agent-window-radius`
+- `--nexus-agent-window-handle-bg`
+- `--nexus-agent-window-handle-border`
+- `--nexus-top-bar-bg`
+- `--nexus-top-bar-border`
+- `--nexus-right-dock-bg`
+- `--nexus-right-dock-border`
+- `--nexus-workspace-bg`
+- `--nexus-workspace-border`
+- `--nexus-message-user-bg`
+- `--nexus-message-assistant-bg`
+- `--nexus-message-tool-bg`
+
+Production aliases now testable without auth:
+
+- AgentWindow chrome aliases from Loop 04
+- Right dock aliases
+- TopBar aliases
+- workspace aliases
+- MessageBubble role aliases
+
+Remaining production-auth-only checks:
+
+- real `/` authenticated agent windows, workspace state, right dock active
+  panels, TopBar live data, message history, and production sync behavior
+- any interaction smoke involving drag, resize, focus, z-index, modals,
+  command execution, store state, backend/API, or persistence
+
+Next seed:
+
+- Command palette shell extraction-first remains the next high-ROI candidate,
+  using the harness only for future visual selector/alias smoke after a safe
+  inert shell boundary exists.

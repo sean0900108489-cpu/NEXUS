@@ -23,7 +23,7 @@ describe("NexusOpsRightFloatingDockFrame", () => {
     expect(html).toContain('<button type="button">Providers</button>');
   });
 
-  it("preserves the existing right dock visual class markers", () => {
+  it("keeps the right dock material fallback neutral while preserving frame markers", () => {
     const html = renderToStaticMarkup(
       <NexusOpsRightFloatingDockFrame>
         <span>child</span>
@@ -34,8 +34,11 @@ describe("NexusOpsRightFloatingDockFrame", () => {
       'class="pointer-events-none fixed right-3 top-1/2 z-[130] hidden -translate-y-1/2 xl:block"',
     );
     expect(html).toContain(
-      'class="nexus-right-floating-dock-rail pointer-events-auto grid gap-2 border border-cyan-300/25 bg-slate-950/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.45),0_0_32px_rgba(34,211,238,0.14)] backdrop-blur-xl"',
+      'class="nexus-right-floating-dock-rail pointer-events-auto grid gap-2 border border-white/10 bg-black/35 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl"',
     );
+    expect(html).not.toContain("border-cyan-300/25");
+    expect(html).not.toContain("bg-slate-950/90");
+    expect(html).not.toContain("rgba(34,211,238");
   });
 
   it("keeps a stable rail class for token alias adoption", () => {

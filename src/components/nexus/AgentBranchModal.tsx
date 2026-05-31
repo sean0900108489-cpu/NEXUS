@@ -114,7 +114,7 @@ export function AgentBranchModal({
     >
       <motion.section
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        className="nexus-agent-branch-modal-shell w-full max-w-3xl border border-cyan-300/25 bg-slate-950/95 shadow-[0_0_48px_rgba(34,211,238,0.14),0_24px_80px_rgba(0,0,0,0.6)]"
+        className="nexus-agent-branch-modal-shell w-full max-w-3xl border border-white/10 bg-black/70 shadow-[0_24px_80px_rgba(0,0,0,0.5)]"
         exit={{ opacity: 0, y: 16, scale: 0.98 }}
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         transition={{ duration: 0.18, ease: "easeOut" }}

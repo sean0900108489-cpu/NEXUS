@@ -13,6 +13,9 @@ describe("Nexus agent branch modal shell selector", () => {
       'className="fixed inset-0 z-[9999] grid place-items-center bg-black/80 p-4 backdrop-blur-md"',
     );
     expect(source).toContain(
+      'className="nexus-agent-branch-modal-shell w-full max-w-3xl border border-white/10 bg-black/70 shadow-[0_24px_80px_rgba(0,0,0,0.5)]"',
+    );
+    expect(source).not.toContain(
       'className="nexus-agent-branch-modal-shell w-full max-w-3xl border border-cyan-300/25 bg-slate-950/95 shadow-[0_0_48px_rgba(34,211,238,0.14),0_24px_80px_rgba(0,0,0,0.6)]"',
     );
   });

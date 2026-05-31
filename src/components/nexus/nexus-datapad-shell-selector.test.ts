@@ -10,6 +10,9 @@ describe("Nexus datapad shell selector", () => {
     expect(source).toContain("<Rnd");
     expect(source).toContain('dragHandleClassName="datapad-drag-handle"');
     expect(source).toContain(
+      'className="nexus-datapad-shell nexus-datapad-window flex h-full min-h-0 flex-col overflow-hidden border border-white/10 bg-black/70 text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.48)] backdrop-blur-xl"',
+    );
+    expect(source).not.toContain(
       'className="nexus-datapad-shell nexus-datapad-window flex h-full min-h-0 flex-col overflow-hidden border border-emerald-300/30 bg-slate-950/94 text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.55),0_0_34px_rgba(16,185,129,0.14)] backdrop-blur-xl"',
     );
   });

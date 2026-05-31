@@ -68,7 +68,9 @@ describe("NexusOps extraction map markers", () => {
     expect(source).toContain("</NexusOpsRightFloatingDockFrame>");
     expect(source).toContain("<NexusOpsTopBarFrame>");
     expect(source).toContain("</NexusOpsTopBarFrame>");
-    expect(bodyFrameSource).toContain('className="flex min-h-0 flex-1 gap-2 p-2"');
+    expect(bodyFrameSource).toContain(
+      'className="flex min-h-0 flex-1 gap-2 [background:var(--nexus-body-frame-bg,transparent)] p-2"',
+    );
     expect(outerShellFrameSource).toContain('className="nexus-shell');
     expect(rightFloatingDockFrameSource).toContain(
       'aria-label="Right workspace tools"',
@@ -77,10 +79,10 @@ describe("NexusOps extraction map markers", () => {
       'className="pointer-events-none fixed right-3 top-1/2 z-[130] hidden -translate-y-1/2 xl:block"',
     );
     expect(rightFloatingDockFrameSource).toContain(
-      'className="pointer-events-auto grid gap-2 border border-cyan-300/25 bg-slate-950/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.45),0_0_32px_rgba(34,211,238,0.14)] backdrop-blur-xl"',
+      'className="nexus-right-floating-dock-rail pointer-events-auto grid gap-2 border border-white/10 bg-black/35 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl"',
     );
     expect(topBarFrameSource).toContain(
-      'className="flex h-11 shrink-0 items-center border-b border-white/10 bg-black/20 px-3"',
+      'className="nexus-top-bar-frame relative z-[110] flex h-11 shrink-0 items-center border-b border-white/10 bg-black/20 px-3"',
     );
     expect(source).toContain('className="nexus-workspace');
     expect(source).toContain('className="nexus-panel');

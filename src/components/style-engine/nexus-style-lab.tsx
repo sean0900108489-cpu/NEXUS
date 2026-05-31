@@ -86,6 +86,24 @@ type ProductionBridgePreviewState =
   | "reverted"
   | "blocked";
 type ProductionChromeSmokeState = "idle" | "applied" | "reverted";
+type StyleRuntimePreviewDiagnosticsStatus =
+  | "idle"
+  | "applied"
+  | "reverted"
+  | "failed";
+type StyleRuntimePreviewResidueCheck = "not-run" | "pass" | "fail";
+type StyleRuntimePreviewDiagnosticsState = {
+  applyDurationMs: number | null;
+  checksum: string;
+  lastError: string | null;
+  residueCheck: StyleRuntimePreviewResidueCheck;
+  revertDurationMs: number | null;
+  sessionId: string;
+  status: StyleRuntimePreviewDiagnosticsStatus;
+  targetScope: string;
+  timestamp: string | null;
+  variableCount: number;
+};
 type ExportView = "manifest" | "package" | "review";
 type AuthoringContextView = "context" | "prompt" | "minimal" | "pixel";
 type VisibleIssueSeverity = "error" | "question" | "warning";
@@ -110,6 +128,8 @@ const maxVisibleBridgeUnsupportedVariables = 6;
 const maxVisibleWarmGlassCoverageFamilies = 10;
 const maxVisibleWarmGlassGaps = 6;
 const maxVisibleStyleRuntimeBudgetHints = 3;
+const styleRuntimePreviewDiagnosticsTargetScope =
+  "style-lab-production-chrome-smoke";
 
 const warmGlassOpsCoverageReportStatic =
   createWarmGlassOpsProductionAliasCoverageReportV1();
@@ -521,6 +541,37 @@ const productionChromeSmokeVariables = [
   ["--nexus-message-tool-bg", "rgb(16 185 129 / 0.3)"],
 ] as const;
 
+const initialStyleRuntimePreviewDiagnostics: StyleRuntimePreviewDiagnosticsState = {
+  applyDurationMs: null,
+  checksum: warmGlassStyleRuntimeBudgetSummaryStatic.checksum,
+  lastError: null,
+  residueCheck: "not-run",
+  revertDurationMs: null,
+  sessionId: "none",
+  status: "idle",
+  targetScope: styleRuntimePreviewDiagnosticsTargetScope,
+  timestamp: null,
+  variableCount: productionChromeSmokeVariables.length,
+};
+
+function getStyleRuntimePreviewNow() {
+  return typeof globalThis.performance?.now === "function"
+    ? globalThis.performance.now()
+    : Date.now();
+}
+
+function formatStyleRuntimePreviewDuration(durationMs: number | null) {
+  return durationMs === null ? "not run" : `${durationMs.toFixed(2)}ms`;
+}
+
+function formatStyleRuntimePreviewTimestamp(timestamp: string | null) {
+  return timestamp ?? "not run";
+}
+
+function roundStyleRuntimePreviewDuration(durationMs: number) {
+  return Math.max(0, Math.round(durationMs * 100) / 100);
+}
+
 const warmGlassScenePreviewVariables = [
   ["--nexus-panel-bg", "rgb(255 244 226 / 0.24)"],
   ["--nexus-panel-border", "rgb(255 244 226 / 0.24)"],
@@ -795,6 +846,7 @@ export function NexusStyleLab() {
   const runtime = useNexusStyleRuntimeV1();
   const productionBridgeTargetRef = useRef<HTMLDivElement | null>(null);
   const productionChromeSmokeTargetRef = useRef<HTMLDivElement | null>(null);
+  const styleRuntimePreviewDiagnosticsCounterRef = useRef(0);
   const pageShellPrototypeTargetRef = useRef<HTMLDivElement | null>(null);
   const baselineManifest = useMemo(
     () => createLegacyCyberpunkStyleManifestV1(),
@@ -841,6 +893,12 @@ export function NexusStyleLab() {
   ] = useState<NexusProductionTokenBridgePreviewSessionV1 | null>(null);
   const [productionChromeSmokeState, setProductionChromeSmokeState] =
     useState<ProductionChromeSmokeState>("idle");
+  const [
+    styleRuntimePreviewDiagnostics,
+    setStyleRuntimePreviewDiagnostics,
+  ] = useState<StyleRuntimePreviewDiagnosticsState>(
+    initialStyleRuntimePreviewDiagnostics,
+  );
   const [
     productionChromeSmokeTargetCount,
     setProductionChromeSmokeTargetCount,
@@ -1239,6 +1297,56 @@ export function NexusStyleLab() {
       ),
     [warmGlassStyleRuntimeBudgetSummary],
   );
+  const styleRuntimePreviewDiagnosticsTone =
+    styleRuntimePreviewDiagnostics.status === "failed"
+      ? "border-rose-300/35 bg-rose-300/10 text-rose-100"
+      : styleRuntimePreviewDiagnostics.status === "applied"
+        ? "border-fuchsia-300/35 bg-fuchsia-300/10 text-fuchsia-100"
+        : styleRuntimePreviewDiagnostics.status === "reverted"
+          ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+          : "border-white/10 bg-white/[0.04] text-slate-400";
+  const styleRuntimePreviewDiagnosticsEligibility =
+    styleRuntimePreviewDiagnostics.status === "failed"
+      ? "diagnostics blocked / failed closed"
+      : styleRuntimePreviewDiagnostics.status === "reverted" &&
+          styleRuntimePreviewDiagnostics.residueCheck === "pass"
+        ? "next local preview preflight ready"
+        : styleRuntimePreviewDiagnostics.status === "applied"
+          ? "awaiting revert residue check"
+          : "idle / run local smoke preview";
+  const styleRuntimePreviewDiagnosticsPrimaryRows = [
+    [
+      "Apply",
+      formatStyleRuntimePreviewDuration(
+        styleRuntimePreviewDiagnostics.applyDurationMs,
+      ),
+    ],
+    [
+      "Revert",
+      formatStyleRuntimePreviewDuration(
+        styleRuntimePreviewDiagnostics.revertDurationMs,
+      ),
+    ],
+    ["Vars", String(styleRuntimePreviewDiagnostics.variableCount)],
+    ["Residue", styleRuntimePreviewDiagnostics.residueCheck],
+  ];
+  const styleRuntimePreviewDiagnosticsTraceRows = [
+    ["Session", styleRuntimePreviewDiagnostics.sessionId],
+    ["Scope", styleRuntimePreviewDiagnostics.targetScope],
+    ["Checksum", styleRuntimePreviewDiagnostics.checksum],
+    [
+      "Updated",
+      formatStyleRuntimePreviewTimestamp(
+        styleRuntimePreviewDiagnostics.timestamp,
+      ),
+    ],
+  ];
+  const styleRuntimePreviewDiagnosticsFailSafe =
+    styleRuntimePreviewDiagnostics.status === "failed"
+      ? (styleRuntimePreviewDiagnostics.lastError ?? "failed closed")
+      : styleRuntimePreviewDiagnostics.residueCheck === "fail"
+        ? "residue detected"
+        : "fail-safe clear";
   const acceptedLayoutPreset =
     layoutPresetReviewResult?.accepted === true
       ? layoutPresetReviewResult
@@ -1598,6 +1706,47 @@ export function NexusStyleLab() {
             ? `blocked / ${review.permissions.reasonCodes[0] ?? review.state}`
             : null;
 
+  const createStyleRuntimePreviewDiagnosticsSessionId = () => {
+    styleRuntimePreviewDiagnosticsCounterRef.current += 1;
+
+    return [
+      "style-preview",
+      styleRuntimePreviewDiagnosticsTargetScope,
+      styleRuntimePreviewDiagnosticsCounterRef.current.toString().padStart(3, "0"),
+      Math.round(getStyleRuntimePreviewNow()).toString(36),
+    ].join(":");
+  };
+
+  const failStyleRuntimePreviewDiagnostics = ({
+    applyDurationMs = null,
+    lastError,
+    revertDurationMs = null,
+    sessionId,
+  }: {
+    applyDurationMs?: number | null;
+    lastError: string;
+    revertDurationMs?: number | null;
+    sessionId: string;
+  }) => {
+    setStyleRuntimePreviewDiagnostics({
+      applyDurationMs,
+      checksum: warmGlassStyleRuntimeBudgetSummary.checksum,
+      lastError,
+      residueCheck: "fail",
+      revertDurationMs,
+      sessionId,
+      status: "failed",
+      targetScope: styleRuntimePreviewDiagnosticsTargetScope,
+      timestamp: new Date().toISOString(),
+      variableCount: productionChromeSmokeVariables.length,
+    });
+  };
+
+  const countProductionChromeSmokeInlineVariables = (target: HTMLDivElement) =>
+    productionChromeSmokeVariables.filter(([name]) =>
+      target.style.getPropertyValue(name).trim().length > 0,
+    ).length;
+
   const clearProductionBridgePreview = () => {
     if (productionBridgePreviewSession) {
       revertNexusProductionTokenBridgePreviewOnTargetV1({
@@ -1690,27 +1839,80 @@ export function NexusStyleLab() {
   };
 
   const applyProductionChromeSmokeVars = () => {
+    const sessionId = createStyleRuntimePreviewDiagnosticsSessionId();
+    const startedAt = getStyleRuntimePreviewNow();
     const target = productionChromeSmokeTargetRef.current;
+    const smokeVariables: ReadonlyArray<readonly [string, string]> =
+      productionChromeSmokeVariables;
 
-    if (!target) {
-      setProductionChromeSmokeTargetCount(0);
+    if (smokeVariables.length === 0) {
+      failStyleRuntimePreviewDiagnostics({
+        applyDurationMs: roundStyleRuntimePreviewDuration(
+          getStyleRuntimePreviewNow() - startedAt,
+        ),
+        lastError: "No smoke variables available; apply failed closed.",
+        sessionId,
+      });
+      setProductionChromeSmokeState("idle");
       return;
     }
 
-    for (const [name, value] of productionChromeSmokeVariables) {
+    if (!target) {
+      setProductionChromeSmokeTargetCount(0);
+      failStyleRuntimePreviewDiagnostics({
+        applyDurationMs: roundStyleRuntimePreviewDuration(
+          getStyleRuntimePreviewNow() - startedAt,
+        ),
+        lastError: "Smoke target ref missing; apply failed closed.",
+        sessionId,
+      });
+      return;
+    }
+
+    for (const [name, value] of smokeVariables) {
       target.style.setProperty(name, value);
     }
 
+    const appliedVariableCount =
+      countProductionChromeSmokeInlineVariables(target);
+    const applyDurationMs = roundStyleRuntimePreviewDuration(
+      getStyleRuntimePreviewNow() - startedAt,
+    );
+
     setProductionChromeSmokeTargetCount(countProductionChromeSmokeTargets());
     setProductionChromeSmokeState("applied");
+    setStyleRuntimePreviewDiagnostics({
+      applyDurationMs,
+      checksum: warmGlassStyleRuntimeBudgetSummary.checksum,
+      lastError: null,
+      residueCheck: "not-run",
+      revertDurationMs: null,
+      sessionId,
+      status: "applied",
+      targetScope: styleRuntimePreviewDiagnosticsTargetScope,
+      timestamp: new Date().toISOString(),
+      variableCount: appliedVariableCount,
+    });
   };
 
   const revertProductionChromeSmokeVars = () => {
+    const sessionId =
+      styleRuntimePreviewDiagnostics.sessionId === "none"
+        ? createStyleRuntimePreviewDiagnosticsSessionId()
+        : styleRuntimePreviewDiagnostics.sessionId;
+    const startedAt = getStyleRuntimePreviewNow();
     const target = productionChromeSmokeTargetRef.current;
 
     if (!target) {
       setProductionChromeSmokeTargetCount(0);
-      setProductionChromeSmokeState("reverted");
+      failStyleRuntimePreviewDiagnostics({
+        applyDurationMs: styleRuntimePreviewDiagnostics.applyDurationMs,
+        lastError: "Smoke target ref missing; revert failed closed.",
+        revertDurationMs: roundStyleRuntimePreviewDuration(
+          getStyleRuntimePreviewNow() - startedAt,
+        ),
+        sessionId,
+      });
       return;
     }
 
@@ -1718,8 +1920,29 @@ export function NexusStyleLab() {
       target.style.removeProperty(name);
     }
 
+    const residueCount = countProductionChromeSmokeInlineVariables(target);
+    const residueCheck = residueCount === 0 ? "pass" : "fail";
+    const revertDurationMs = roundStyleRuntimePreviewDuration(
+      getStyleRuntimePreviewNow() - startedAt,
+    );
+
     setProductionChromeSmokeTargetCount(countProductionChromeSmokeTargets());
     setProductionChromeSmokeState("reverted");
+    setStyleRuntimePreviewDiagnostics({
+      applyDurationMs: styleRuntimePreviewDiagnostics.applyDurationMs,
+      checksum: warmGlassStyleRuntimeBudgetSummary.checksum,
+      lastError:
+        residueCheck === "pass"
+          ? null
+          : `${residueCount} smoke variables remained after revert.`,
+      residueCheck,
+      revertDurationMs,
+      sessionId,
+      status: residueCheck === "pass" ? "reverted" : "failed",
+      targetScope: styleRuntimePreviewDiagnosticsTargetScope,
+      timestamp: new Date().toISOString(),
+      variableCount: productionChromeSmokeVariables.length,
+    });
   };
 
   const startPreview = () => {
@@ -4264,9 +4487,102 @@ export function NexusStyleLab() {
                       </div>
                     </div>
                   </div>
-                </section>
+	                </section>
 
-                <div className="mb-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+	                <section
+	                  className="mb-4 border border-emerald-300/15 bg-emerald-300/[0.035] p-3"
+	                  data-testid="style-runtime-preview-diagnostics-panel"
+	                >
+	                  <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+	                    <div className="min-w-0">
+	                      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
+	                        Style Runtime Preview Diagnostics
+	                      </div>
+	                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+	                        local scope / no production apply / no persistence
+	                      </div>
+	                    </div>
+	                    <span
+	                      className={[
+	                        "border px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em]",
+	                        styleRuntimePreviewDiagnosticsTone,
+	                      ].join(" ")}
+	                      data-testid="style-runtime-preview-diagnostics-status"
+	                    >
+	                      {styleRuntimePreviewDiagnostics.status}
+	                    </span>
+	                  </div>
+
+	                  <div className="mb-3 grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(260px,0.42fr)]">
+	                    <div
+	                      className="min-w-0 border border-white/10 bg-black/20 p-3"
+	                      data-testid="style-runtime-preview-diagnostics-eligibility"
+	                    >
+	                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-emerald-100">
+	                        Preview Preflight
+	                      </div>
+	                      <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.1em] text-slate-300">
+	                        {styleRuntimePreviewDiagnosticsEligibility}
+	                      </div>
+	                      <div className="mt-2 text-xs leading-5 text-slate-500">
+	                        {styleRuntimePreviewDiagnosticsFailSafe}
+	                      </div>
+	                    </div>
+
+	                    <div
+	                      className="min-w-0 border border-white/10 bg-black/20 p-3"
+	                      data-testid="style-runtime-preview-diagnostics-trace"
+	                    >
+	                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+	                        Session
+	                      </div>
+	                      <div className="mt-2 break-all font-mono text-[9px] text-emerald-100">
+	                        {styleRuntimePreviewDiagnostics.sessionId}
+	                      </div>
+	                      <div className="mt-2 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+	                        {styleRuntimePreviewDiagnostics.targetScope}
+	                      </div>
+	                    </div>
+	                  </div>
+
+	                  <div className="mb-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+	                    {styleRuntimePreviewDiagnosticsPrimaryRows.map(
+	                      ([label, value]) => (
+	                        <div
+	                          key={`style-runtime-preview-diagnostics-primary:${label}`}
+	                          className="min-w-0 border border-white/10 bg-black/20 p-2"
+	                        >
+	                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+	                            {label}
+	                          </div>
+	                          <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+	                            {value}
+	                          </div>
+	                        </div>
+	                      ),
+	                    )}
+	                  </div>
+
+	                  <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+	                    {styleRuntimePreviewDiagnosticsTraceRows.map(
+	                      ([label, value]) => (
+	                        <div
+	                          key={`style-runtime-preview-diagnostics-trace:${label}`}
+	                          className="min-w-0 border border-white/10 bg-black/20 p-2"
+	                        >
+	                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+	                            {label}
+	                          </div>
+	                          <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+	                            {value}
+	                          </div>
+	                        </div>
+	                      ),
+	                    )}
+	                  </div>
+	                </section>
+
+	                <div className="mb-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
                   {specimenGalleryRows.map(([label, value]) => (
                     <div
                       key={`specimen-gallery:${label}`}

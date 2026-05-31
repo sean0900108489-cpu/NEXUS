@@ -42,6 +42,39 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
     expect(source).toContain("Families");
   });
 
+  it("renders local Style Runtime Preview Diagnostics for smoke apply and revert", () => {
+    const source = readStyleLabSource();
+
+    expect(source).toContain("Style Runtime Preview Diagnostics");
+    expect(source).toContain(
+      'data-testid="style-runtime-preview-diagnostics-panel"',
+    );
+    expect(source).toContain(
+      'data-testid="style-runtime-preview-diagnostics-status"',
+    );
+    expect(source).toContain(
+      'data-testid="style-runtime-preview-diagnostics-eligibility"',
+    );
+    expect(source).toContain(
+      'data-testid="style-runtime-preview-diagnostics-trace"',
+    );
+    expect(source).toContain("styleRuntimePreviewDiagnosticsTargetScope");
+    expect(source).toContain("style-lab-production-chrome-smoke");
+    expect(source).toContain("applyDurationMs");
+    expect(source).toContain("revertDurationMs");
+    expect(source).toContain("residueCheck");
+    expect(source).toContain("sessionId");
+    expect(source).toContain("performance?.now");
+    expect(source).toContain("countProductionChromeSmokeInlineVariables");
+    expect(source).toContain("productionChromeSmokeTargetRef.current");
+    expect(source).toContain("target.style.setProperty");
+    expect(source).toContain("target.style.removeProperty");
+    expect(source).toContain("failStyleRuntimePreviewDiagnostics");
+    expect(source).toContain("No smoke variables available; apply failed closed.");
+    expect(source).toContain("Smoke target ref missing; apply failed closed.");
+    expect(source).toContain("Smoke target ref missing; revert failed closed.");
+  });
+
   it("renders a local Warm Glass scene preview with supported and missing capability groups", () => {
     const source = readStyleLabSource();
 
@@ -225,6 +258,12 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
       /styleRuntimeBudget[\s\S]*fetch\s*\(/,
       /styleRuntimeBudget[\s\S]*https?:\/\//,
       /styleRuntimeBudget[\s\S]*\burl\s*\(/,
+      /styleRuntimePreviewDiagnostics[\s\S]*document\.documentElement/,
+      /styleRuntimePreviewDiagnostics[\s\S]*window\.localStorage/,
+      /styleRuntimePreviewDiagnostics[\s\S]*indexedDB/,
+      /styleRuntimePreviewDiagnostics[\s\S]*fetch\s*\(/,
+      /styleRuntimePreviewDiagnostics[\s\S]*https?:\/\//,
+      /styleRuntimePreviewDiagnostics[\s\S]*\burl\s*\(/,
     ];
 
     expect(source).toContain("createWarmGlassOpsProductionAliasCoverageReportV1");

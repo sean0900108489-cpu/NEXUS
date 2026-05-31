@@ -246,3 +246,36 @@ Updated estimate after this scene preview:
 The remaining path to 80 percent should prioritize real recipe/specimen
 coverage for right metrics, agent cards, segmented navigation, and typography
 density before adding more low-level aliases.
+
+## Right Metrics Panel Specimen Follow-Up
+
+Loop `20260531-v19-warm-glass-ops-right-metrics-panel-recipe-specimen`
+expanded the Style Lab scene preview with a static right metrics panel recipe
+specimen.
+
+Added specimen evidence:
+
+- selected agent summary
+- collaboration map
+- context stack
+- goal metric bars
+- run execution chrome
+- memory/history block
+- compact warm glass inspector hierarchy
+
+The specimen remains isolated:
+
+- no production right-dock panel import
+- no store, sync, backend, Supabase, or API calls
+- no persistence
+- no event handlers or runtime apply
+- no `globals.css` or production selector changes
+
+Updated estimate after this specimen:
+
+- visual similarity in Style Lab: about `58-62%`
+- production skinning readiness: about `70-73%`
+
+The next highest ROI visual gaps remain agent card/bank recipe, segmented top
+navigation specimen, and then typography density policy before any production
+layout or asset pipeline gate.

@@ -1549,3 +1549,67 @@ Next seed:
 - create a Style Lab-only static right metrics panel specimen/recipe candidate
   using direct aliases, without touching right-dock artifact/vault persistence
   panels or production behavior
+
+## 29. Warm Glass Ops Right Metrics Panel Recipe Specimen
+
+Recorded during
+`20260531-v19-warm-glass-ops-right-metrics-panel-recipe-specimen`.
+
+Selected target:
+
+- Style Lab-only right metrics panel recipe/specimen inside the Warm Glass
+  scene preview
+- no production right-dock panel behavior
+- no persistence, store, sync, backend, Supabase, or API calls
+- no `src/components/nexus/**`, `src/app/globals.css`, selectors, or runtime
+  apply changes
+
+Specimen structure:
+
+- selected agent summary
+- collaboration map
+- context stack
+- goal metrics bars
+- run execution chrome
+- memory/history block
+
+Supported now:
+
+- static right-side hierarchy can reuse local Warm Glass panel/glass variables
+- direct alias preview can show warm glass surfaces around the metrics recipe
+- Style Lab can visually compare scene, workspace, agent window, and metrics
+  hierarchy together
+
+Simulated only:
+
+- right metrics content model
+- collaboration map topology
+- run execution controls
+- memory/history source data
+- actual right-dock panel layout and behavior
+
+Still missing production capability:
+
+- selector-only production right metrics boundary
+- real right-dock panel recipe adoption
+- store-backed data mapping
+- authenticated production `/` smoke
+- layout preset/page shell arrangement
+
+Verification:
+
+- source guard covers the right metrics specimen sections
+- no document-root mutation, storage, fetch, remote URL, or production Nexus
+  import was introduced
+- full verification is recorded in the loop checkpoint
+
+Estimate after this loop:
+
+- Style Lab visual similarity: about `58-62%`
+- readiness: about `70-73%`
+
+Next seed:
+
+- `V19 Warm Glass Ops Agent Card Bank Specimen`
+- create a Style Lab-only static agent card/bank recipe specimen using current
+  direct aliases, without touching production AgentWindow behavior

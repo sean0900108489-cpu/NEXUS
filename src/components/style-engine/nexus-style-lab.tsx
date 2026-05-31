@@ -595,6 +595,30 @@ const warmGlassSceneCapabilityGroups = [
   },
 ] as const;
 
+const warmGlassRightMetricsGoalRows = [
+  { label: "Plan Health", value: "91", width: "91%" },
+  { label: "Context Fit", value: "76", width: "76%" },
+  { label: "Risk Held", value: "18", width: "18%" },
+] as const;
+
+const warmGlassRightMetricsContextRows = [
+  ["North Star", "warm glass ops"],
+  ["Active Loop", "scene recipe"],
+  ["Guardrail", "style lab only"],
+] as const;
+
+const warmGlassRightMetricsHistoryRows = [
+  ["12:16", "Fixture accepted"],
+  ["12:18", "Bridge vars ready"],
+  ["12:21", "Specimen staged"],
+] as const;
+
+const warmGlassRightMetricsSpecimenStyle = {
+  ...warmGlassScenePanelStyle,
+  background:
+    "linear-gradient(180deg, rgb(255 248 235 / 0.16), rgb(184 137 92 / 0.08)), var(--nexus-panel-bg, rgb(255 244 226 / 0.24))",
+} as CSSProperties;
+
 export function NexusStyleLab() {
   const runtime = useNexusStyleRuntimeV1();
   const productionBridgeTargetRef = useRef<HTMLDivElement | null>(null);
@@ -3018,7 +3042,7 @@ export function NexusStyleLab() {
                         </div>
                       </div>
 
-                      <div className="grid gap-3 xl:grid-cols-[220px_minmax(0,1fr)_240px]">
+                      <div className="grid gap-3 xl:grid-cols-[220px_minmax(0,1fr)_280px]">
                         <aside
                           className="grid content-start gap-2 border p-3"
                           data-testid="warm-glass-scene-agent-bank"
@@ -3137,47 +3161,191 @@ export function NexusStyleLab() {
                         <aside
                           className="grid content-start gap-3 border p-3"
                           data-testid="warm-glass-scene-metrics-panel"
-                          style={warmGlassScenePanelStyle}
+                          style={warmGlassRightMetricsSpecimenStyle}
                         >
-                          <div>
-                            <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
-                              Metrics
+                          <div
+                            className="grid gap-3"
+                            data-testid="warm-glass-right-metrics-specimen"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
+                                  Right Metrics
+                                </div>
+                                <div className="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/60">
+                                  inspector recipe specimen
+                                </div>
+                              </div>
+                              <span className="shrink-0 border border-emerald-100/20 bg-emerald-200/[0.12] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-emerald-50">
+                                static
+                              </span>
                             </div>
-                            <div className="mt-1 font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/60">
-                              static scene specimen
-                            </div>
-                          </div>
-                          <div className="grid gap-2 border border-white/15 bg-white/[0.08] p-2">
-                            {["Scope Depth", "Schema Forge", "Protocol"].map(
-                              (label, index) => (
+
+                            <section
+                              className="grid gap-2 border border-white/15 bg-white/[0.08] p-2"
+                              data-testid="warm-glass-right-metrics-selected-agent"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[rgb(143_189_183_/_0.22)] font-mono text-[10px] text-emerald-50">
+                                  A
+                                </span>
+                                <span className="min-w-0">
+                                  <span className="block truncate font-mono text-[9px] uppercase tracking-[0.12em] text-amber-50">
+                                    Architect
+                                  </span>
+                                  <span className="mt-0.5 block truncate text-[10px] text-amber-50/70">
+                                    orchestration lead / calm queue
+                                  </span>
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-3 gap-1">
+                                {[
+                                  ["Load", "32%"],
+                                  ["Trust", "94"],
+                                  ["ETA", "06m"],
+                                ].map(([label, value]) => (
+                                  <span
+                                    key={`warm-glass-right-agent:${label}`}
+                                    className="min-w-0 border border-white/10 bg-white/[0.06] px-2 py-1"
+                                  >
+                                    <span className="block truncate font-mono text-[7px] uppercase tracking-[0.1em] text-amber-50/50">
+                                      {label}
+                                    </span>
+                                    <span className="mt-0.5 block truncate font-mono text-[9px] text-amber-50">
+                                      {value}
+                                    </span>
+                                  </span>
+                                ))}
+                              </div>
+                            </section>
+
+                            <section
+                              className="grid gap-2 border border-white/15 bg-white/[0.07] p-2"
+                              data-testid="warm-glass-right-metrics-collaboration-map"
+                            >
+                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                                Collaboration Map
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                {[
+                                  ["Architect", "bg-emerald-200/[0.16]"],
+                                  ["Explorer", "bg-cyan-200/[0.12]"],
+                                  ["Sentinel", "bg-amber-200/[0.12]"],
+                                  ["Auditor", "bg-white/[0.08]"],
+                                ].map(([label, tone]) => (
+                                  <span
+                                    key={`warm-glass-right-map:${label}`}
+                                    className={[
+                                      "min-w-0 border border-white/15 px-2 py-2 text-center font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/80",
+                                      tone,
+                                    ].join(" ")}
+                                  >
+                                    {label}
+                                  </span>
+                                ))}
+                              </div>
+                            </section>
+
+                            <section
+                              className="grid gap-2 border border-white/15 bg-white/[0.07] p-2"
+                              data-testid="warm-glass-right-metrics-context-stack"
+                            >
+                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                                Context Stack
+                              </div>
+                              {warmGlassRightMetricsContextRows.map(
+                                ([label, value]) => (
+                                  <div
+                                    key={`warm-glass-right-context:${label}`}
+                                    className="grid grid-cols-[86px_minmax(0,1fr)] gap-2"
+                                  >
+                                    <span className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/45">
+                                      {label}
+                                    </span>
+                                    <span className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/75">
+                                      {value}
+                                    </span>
+                                  </div>
+                                ),
+                              )}
+                            </section>
+
+                            <section
+                              className="grid gap-2 border border-white/15 bg-white/[0.08] p-2"
+                              data-testid="warm-glass-right-metrics-goal-metrics"
+                            >
+                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                                Goal Metrics
+                              </div>
+                              {warmGlassRightMetricsGoalRows.map((metric) => (
                                 <div
-                                  key={`warm-glass-scene-metric:${label}`}
+                                  key={`warm-glass-right-goal:${metric.label}`}
                                   className="grid grid-cols-[minmax(0,1fr)_64px] items-center gap-2"
                                 >
                                   <span className="truncate text-[10px] text-amber-50/80">
-                                    {label}
+                                    {metric.label}
                                   </span>
-                                  <span className="h-1 bg-white/15">
+                                  <span className="h-1.5 bg-white/15">
                                     <span
-                                      className="block h-full bg-amber-50/55"
-                                      style={{ width: `${52 + index * 16}%` }}
+                                      className="block h-full bg-[rgb(209_154_102_/_0.72)]"
+                                      style={{ width: metric.width }}
                                     />
                                   </span>
+                                  <span className="sr-only">{metric.value}</span>
                                 </div>
-                              ),
-                            )}
-                          </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            {["ARCHITECT", "AUDITOR", "SENTINEL", "EXPLORER"].map(
-                              (item) => (
-                                <span
-                                  key={`warm-glass-scene-map:${item}`}
-                                  className="border border-white/15 bg-white/[0.07] px-2 py-2 text-center font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/80"
-                                >
-                                  {item}
+                              ))}
+                            </section>
+
+                            <section
+                              className="grid gap-2 border border-white/15 bg-white/[0.07] p-2"
+                              data-testid="warm-glass-right-metrics-run-execution"
+                            >
+                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                                Run Execution
+                              </div>
+                              <div className="grid grid-cols-3 gap-1">
+                                {["Plan", "Dry Run", "Hold"].map((label) => (
+                                  <span
+                                    key={`warm-glass-right-run:${label}`}
+                                    className="border border-white/15 bg-white/[0.08] px-1.5 py-1.5 text-center font-mono text-[7px] uppercase tracking-[0.08em] text-amber-50/80"
+                                  >
+                                    {label}
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                                <span className="h-1.5 bg-white/15">
+                                  <span className="block h-full w-[68%] bg-emerald-100/55" />
                                 </span>
-                              ),
-                            )}
+                                <span className="font-mono text-[8px] text-emerald-50">
+                                  READY
+                                </span>
+                              </div>
+                            </section>
+
+                            <section
+                              className="grid gap-2 border border-white/15 bg-white/[0.07] p-2"
+                              data-testid="warm-glass-right-metrics-memory-history"
+                            >
+                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                                Memory / History
+                              </div>
+                              {warmGlassRightMetricsHistoryRows.map(
+                                ([time, label]) => (
+                                  <div
+                                    key={`warm-glass-right-history:${time}:${label}`}
+                                    className="grid grid-cols-[38px_minmax(0,1fr)] gap-2"
+                                  >
+                                    <span className="font-mono text-[8px] text-amber-50/45">
+                                      {time}
+                                    </span>
+                                    <span className="truncate text-[10px] text-amber-50/75">
+                                      {label}
+                                    </span>
+                                  </div>
+                                ),
+                              )}
+                            </section>
                           </div>
                         </aside>
                       </div>

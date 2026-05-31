@@ -38,6 +38,34 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
     expect(source).toContain("--nexus-datapad-shell-bg");
   });
 
+  it("renders a static Warm Glass right metrics recipe specimen", () => {
+    const source = readStyleLabSource();
+
+    expect(source).toContain("warmGlassRightMetricsGoalRows");
+    expect(source).toContain("warmGlassRightMetricsContextRows");
+    expect(source).toContain("warmGlassRightMetricsHistoryRows");
+    expect(source).toContain("warmGlassRightMetricsSpecimenStyle");
+    expect(source).toContain('data-testid="warm-glass-right-metrics-specimen"');
+    expect(source).toContain(
+      'data-testid="warm-glass-right-metrics-selected-agent"',
+    );
+    expect(source).toContain(
+      'data-testid="warm-glass-right-metrics-collaboration-map"',
+    );
+    expect(source).toContain(
+      'data-testid="warm-glass-right-metrics-context-stack"',
+    );
+    expect(source).toContain(
+      'data-testid="warm-glass-right-metrics-goal-metrics"',
+    );
+    expect(source).toContain(
+      'data-testid="warm-glass-right-metrics-run-execution"',
+    );
+    expect(source).toContain(
+      'data-testid="warm-glass-right-metrics-memory-history"',
+    );
+  });
+
   it("keeps the coverage panel detached from production runtime mutation", () => {
     const source = readStyleLabSource();
     const forbiddenPatterns = [
@@ -57,6 +85,12 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
       /warmGlassScene[\s\S]*fetch\s*\(/,
       /warmGlassScene[\s\S]*https?:\/\//,
       /warmGlassScene[\s\S]*\burl\s*\(/,
+      /warmGlassRightMetrics[\s\S]*document\.documentElement/,
+      /warmGlassRightMetrics[\s\S]*window\.localStorage/,
+      /warmGlassRightMetrics[\s\S]*indexedDB/,
+      /warmGlassRightMetrics[\s\S]*fetch\s*\(/,
+      /warmGlassRightMetrics[\s\S]*https?:\/\//,
+      /warmGlassRightMetrics[\s\S]*\burl\s*\(/,
     ];
 
     expect(source).toContain("createWarmGlassOpsProductionAliasCoverageReportV1");

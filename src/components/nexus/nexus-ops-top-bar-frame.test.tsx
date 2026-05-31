@@ -31,8 +31,18 @@ describe("NexusOpsTopBarFrame", () => {
 
     expect(html).toContain("nexus-top-bar-frame");
     expect(html).toContain(
-      "flex h-11 shrink-0 items-center border-b border-white/10 bg-black/20 px-3",
+      "relative z-[110] flex h-11 shrink-0 items-center border-b border-white/10 bg-black/20 px-3",
     );
+  });
+
+  it("keeps the workspace menu stacking context above the canvas", () => {
+    const html = renderToStaticMarkup(
+      <NexusOpsTopBarFrame>
+        <button type="button">Workspace menu</button>
+      </NexusOpsTopBarFrame>,
+    );
+
+    expect(html).toContain("relative z-[110]");
   });
 
   it("has dedicated TopBar CSS aliases with panel and cyberpunk fallbacks", () => {

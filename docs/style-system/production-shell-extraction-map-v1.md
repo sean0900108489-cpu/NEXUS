@@ -636,3 +636,86 @@ Remaining No-Go zones:
 - AgentWindow scroll refs, composer refs, Rnd drag/resize, focus, and z-index
 - backend/store/sync/Supabase/API paths
 - runtime token apply or persistence
+
+## 16. V19 Production Skinning 40-to-60 ROI Loop 04
+
+Implemented during
+`20260531-v19-production-skinning-40-to-60-roi-loop-04`.
+
+Target:
+
+- `AgentWindow` chrome primitive
+
+Path:
+
+- Path A: behavior-free visual alias adoption on the existing
+  `.nexus-agent-window` and `.nexus-drag-handle` selectors
+
+Candidate ranking:
+
+1. `AgentWindow` chrome primitive
+   - Source anchors: `src/components/nexus/nexus-ops.tsx` `AgentWindow`
+     `<Rnd>` wrapper and `.nexus-agent-window` motion section;
+     `src/app/globals.css` existing `.nexus-agent-window` selector.
+   - Highest ROI because agent windows are the primary long-lived production
+     chrome around active conversations, media/sandbox canvases, composer, and
+     message bubbles.
+   - Safe implementation path because the selector already existed and the
+     change only routes existing visual values through aliases with dynamic
+     defaults. Rnd drag/resize, focus, z-index, scroll refs, message rendering,
+     composer handlers, and child order stayed in place.
+2. Command palette / modal chrome
+   - Source anchors: `CommandPalette` in `src/components/nexus/nexus-ops.tsx`
+     and `AgentBranchModal`.
+   - High visibility when open, but selector prep or extraction would touch
+     focus, overlay close, dialog stack/z-index, command execution, or form
+     behavior. Existing `.nexus-panel` bridge coverage remains sufficient for
+     this loop.
+3. Control primitives: buttons, inputs, badges/status shells
+   - Broad visual reach, but hover/focus/disabled/active/status behavior is
+     distributed across many production surfaces. This is too broad for a
+     single reversible Loop 04 target.
+4. No-Go extraction map
+   - Reserved if AgentWindow aliases failed verification. It was not needed.
+
+Aliases added:
+
+- `--nexus-agent-window-bg`
+- `--nexus-agent-window-border`
+- `--nexus-agent-window-shadow`
+- `--nexus-agent-window-radius`
+- `--nexus-agent-window-blur`
+- `--nexus-agent-window-handle-bg`
+- `--nexus-agent-window-handle-border`
+- `--nexus-agent-window-handle-radius`
+
+Fallback chain:
+
+- dedicated AgentWindow alias
+- existing panel alias where visually appropriate
+- existing dynamic AgentWindow default custom property
+- current cyberpunk/window baseline
+
+Implementation notes:
+
+- The `.nexus-agent-window` wrapper keeps its existing class and child order.
+- Dynamic selected-agent accent border and glow defaults are preserved through
+  element-scoped default custom properties.
+- CSS declarations cover only background, border color, shadow, blur, radius,
+  and the thin drag-handle visual strip.
+- No layout geometry, position, overflow, pointer events, cursor, drag/resize,
+  focus, z-index, window lifecycle, message streaming, composer behavior, or
+  agent business logic was tokenized.
+
+Remaining No-Go zones:
+
+- Rnd drag, resize, focus, z-index, maximize/minimize, and window lifecycle
+- AgentWindow scroll refs, composer refs, submit/key handlers, message list
+  mapping, and sandbox interaction lock
+- command palette focus, overlay close, command execution, and workspace
+  mutation commands
+- modal/dialog stack, z-index, close/submit behavior, and form state
+- broad button/input/badge primitive skinning before a narrower interaction
+  boundary exists
+- backend/store/sync/Supabase/API paths
+- runtime token apply or persistence

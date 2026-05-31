@@ -47,6 +47,7 @@ import {
   Zap,
 } from "lucide-react";
 import {
+  type CSSProperties,
   type FormEvent,
   type KeyboardEvent,
   type ReactNode,
@@ -4932,6 +4933,19 @@ function AgentWindow({
     composerRef.current?.focus();
   };
   const agentGlowColor = `color-mix(in srgb, ${agent.accent} var(--agent-glow-intensity), transparent)`;
+  const agentWindowBackground = isSandboxAgent
+    ? "color-mix(in srgb, var(--bg-elevated) 72%, transparent)"
+    : "color-mix(in srgb, var(--bg-elevated) var(--chat-panel-opacity), transparent)";
+  const agentWindowBorderColor = isSandboxAgent
+    ? "transparent"
+    : selected
+      ? `${agent.accent}f2`
+      : `${agent.accent}99`;
+  const agentWindowShadow = isSandboxAgent
+    ? "0 20px 60px rgba(0,0,0,0.32)"
+    : selected
+      ? `0 0 42px ${agentGlowColor}, 0 22px 70px rgba(0,0,0,0.45)`
+      : `0 0 24px ${agentGlowColor}, 0 22px 70px rgba(0,0,0,0.38)`;
 
   return (
     <Rnd
@@ -4971,33 +4985,38 @@ function AgentWindow({
         )}
         exit={{ opacity: 0, scale: 0.96 }}
         initial={{ opacity: 0, scale: 0.96 }}
-        style={{
-          WebkitBackdropFilter: "blur(var(--glass-blur))",
-          backdropFilter: "blur(var(--glass-blur))",
-          background: isSandboxAgent
-            ? "color-mix(in srgb, var(--bg-elevated) 72%, transparent)"
-            : "color-mix(in srgb, var(--bg-elevated) var(--chat-panel-opacity), transparent)",
-          borderRadius: "var(--surface-radius)",
-          borderColor: isSandboxAgent
-            ? "transparent"
-            : selected
-              ? `${agent.accent}f2`
-              : `${agent.accent}99`,
-          boxShadow: isSandboxAgent
-            ? "0 20px 60px rgba(0,0,0,0.32)"
-            : selected
-              ? `0 0 42px ${agentGlowColor}, 0 22px 70px rgba(0,0,0,0.45)`
-              : `0 0 24px ${agentGlowColor}, 0 22px 70px rgba(0,0,0,0.38)`,
-        }}
+        style={
+          {
+            "--nexus-agent-window-default-bg": agentWindowBackground,
+            "--nexus-agent-window-default-border": agentWindowBorderColor,
+            "--nexus-agent-window-default-shadow": agentWindowShadow,
+            WebkitBackdropFilter:
+              "blur(var(--nexus-agent-window-blur, var(--nexus-panel-blur, var(--glass-blur))))",
+            backdropFilter:
+              "blur(var(--nexus-agent-window-blur, var(--nexus-panel-blur, var(--glass-blur))))",
+            background:
+              "var(--nexus-agent-window-bg, var(--nexus-panel-bg, var(--nexus-agent-window-default-bg)))",
+            borderRadius:
+              "var(--nexus-agent-window-radius, var(--nexus-panel-radius, var(--surface-radius)))",
+            borderColor:
+              "var(--nexus-agent-window-border, var(--nexus-panel-border, var(--nexus-agent-window-default-border)))",
+            boxShadow:
+              "var(--nexus-agent-window-shadow, var(--nexus-panel-shadow, var(--nexus-agent-window-default-shadow)))",
+          } as CSSProperties
+        }
         transition={{ duration: 0.18 }}
       >
         <div
           aria-label={`${agent.callsign} drag handle`}
           className="nexus-drag-handle h-2 shrink-0 cursor-move"
           style={{
-            background: "transparent",
-            borderTopLeftRadius: "var(--surface-radius)",
-            borderTopRightRadius: "var(--surface-radius)",
+            background: "var(--nexus-agent-window-handle-bg, transparent)",
+            borderTopLeftRadius:
+              "var(--nexus-agent-window-handle-radius, var(--nexus-agent-window-radius, var(--nexus-panel-radius, var(--surface-radius))))",
+            borderTopRightRadius:
+              "var(--nexus-agent-window-handle-radius, var(--nexus-agent-window-radius, var(--nexus-panel-radius, var(--surface-radius))))",
+            boxShadow:
+              "inset 0 1px 0 var(--nexus-agent-window-handle-border, transparent)",
           }}
         />
 

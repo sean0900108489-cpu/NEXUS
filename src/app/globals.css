@@ -459,19 +459,40 @@ button {
 }
 
 .nexus-agent-window {
-  background-color: color-mix(
-    in srgb,
-    var(--bg-elevated) var(--chat-panel-opacity),
-    transparent
+  background: var(
+    --nexus-agent-window-bg,
+    var(
+      --nexus-panel-bg,
+      var(
+        --nexus-agent-window-default-bg,
+        color-mix(in srgb, var(--bg-elevated) var(--chat-panel-opacity), transparent)
+      )
+    )
   ) !important;
-  border-radius: var(--surface-radius);
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  backdrop-filter: blur(var(--glass-blur));
+  border-color: var(
+    --nexus-agent-window-border,
+    var(--nexus-panel-border, var(--nexus-agent-window-default-border, rgb(103 232 249 / 0.2)))
+  ) !important;
+  border-radius: var(--nexus-agent-window-radius, var(--nexus-panel-radius, var(--surface-radius))) !important;
+  box-shadow: var(
+    --nexus-agent-window-shadow,
+    var(--nexus-panel-shadow, var(--nexus-agent-window-default-shadow, 0 22px 70px rgb(0 0 0 / 0.45)))
+  ) !important;
+  -webkit-backdrop-filter: blur(var(--nexus-agent-window-blur, var(--nexus-panel-blur, var(--glass-blur)))) !important;
+  backdrop-filter: blur(var(--nexus-agent-window-blur, var(--nexus-panel-blur, var(--glass-blur)))) !important;
 }
 
 .nexus-agent-window > .nexus-drag-handle {
-  border-top-left-radius: var(--surface-radius);
-  border-top-right-radius: var(--surface-radius);
+  background: var(--nexus-agent-window-handle-bg, transparent);
+  border-top-left-radius: var(
+    --nexus-agent-window-handle-radius,
+    var(--nexus-agent-window-radius, var(--nexus-panel-radius, var(--surface-radius)))
+  );
+  border-top-right-radius: var(
+    --nexus-agent-window-handle-radius,
+    var(--nexus-agent-window-radius, var(--nexus-panel-radius, var(--surface-radius)))
+  );
+  box-shadow: inset 0 1px 0 var(--nexus-agent-window-handle-border, transparent);
 }
 
 .nexus-datapad-window {

@@ -11,6 +11,7 @@ describe("Nexus workspace style payload export/import wiring", () => {
   it("routes existing workspace export/import through the style payload adapter", () => {
     expect(source).toContain("createWorkspaceStylePayloadExportSnapshot");
     expect(source).toContain("extractWorkspaceStylePayloadFromSnapshot");
+    expect(source).toContain("writeImportedWorkspaceStyleReviewState");
     expect(source).toContain("setWorkspaceStylePayloadReview");
     expect(source).toContain("Workspace snapshot exported with style payload");
     expect(source).toContain(
@@ -26,6 +27,9 @@ describe("Nexus workspace style payload export/import wiring", () => {
 
     expect(handleImportSource).toContain(
       "extractWorkspaceStylePayloadFromSnapshot",
+    );
+    expect(handleImportSource).toContain(
+      "writeImportedWorkspaceStyleReviewState",
     );
     expect(handleImportSource).toContain("importWorkspace({");
     expect(handleImportSource).toContain("setWorkspaceStylePayloadReview");

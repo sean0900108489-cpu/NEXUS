@@ -15,6 +15,7 @@ import {
   Sun,
 } from "lucide-react";
 import {
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -76,6 +77,11 @@ import {
   createStyleRuntimeBudgetSummary,
   createStyleRuntimeBudgetSummaryFromRenderPlan,
 } from "@/lib/style-engine/v2-style-runtime-budget";
+import {
+  readImportedWorkspaceStyleReviewState,
+  subscribeImportedWorkspaceStyleReviewState,
+  type ImportedWorkspaceStyleReviewState,
+} from "@/lib/style-engine/v2-workspace-style-payload";
 import { useNexusStyleRuntimeV1 } from "@/components/style-engine/nexus-style-runtime-provider";
 
 type PreviewState = "idle" | "previewing" | "reverted";
@@ -904,6 +910,23 @@ export function NexusStyleLab() {
     productionChromeSmokeTargetCount,
     setProductionChromeSmokeTargetCount,
   ] = useState<number>(productionChromeSmokeSelectors.length);
+  const [
+    importedWorkspaceStyleReview,
+    setImportedWorkspaceStyleReview,
+  ] = useState<ImportedWorkspaceStyleReviewState | null>(null);
+  useEffect(() => {
+    const syncImportedWorkspaceStyleReview = () => {
+      setImportedWorkspaceStyleReview(
+        readImportedWorkspaceStyleReviewState(),
+      );
+    };
+
+    syncImportedWorkspaceStyleReview();
+
+    return subscribeImportedWorkspaceStyleReviewState(
+      syncImportedWorkspaceStyleReview,
+    );
+  }, []);
   const baselineCompiled = useMemo(
     () => compileNexusStyleManifestV1(baselineManifest),
     [baselineManifest],
@@ -1009,6 +1032,59 @@ export function NexusStyleLab() {
       ? "accepted"
       : "rejected"
     : "no review";
+  const importedWorkspaceStyleDecision =
+    importedWorkspaceStyleReview?.decision ?? null;
+  const importedWorkspaceStylePayload =
+    importedWorkspaceStyleDecision?.payload ?? null;
+  const importedWorkspaceStyleStatus =
+    importedWorkspaceStyleDecision?.status ?? "ignored-missing";
+  const importedWorkspaceStyleDisplayStatus = importedWorkspaceStyleDecision
+    ? importedWorkspaceStyleStatus
+    : "missing";
+  const importedWorkspaceStyleCanLoadSkinPack =
+    importedWorkspaceStyleStatus === "accepted" &&
+    Boolean(importedWorkspaceStylePayload?.skinPack);
+  const importedWorkspaceStyleControlsSummary = importedWorkspaceStylePayload
+    ?.controls
+    ? Object.keys(importedWorkspaceStylePayload.controls)
+        .sort((left, right) => left.localeCompare(right))
+        .slice(0, 4)
+        .join(", ") || "present"
+    : "none";
+  const importedWorkspaceStyleReasonSummary =
+    importedWorkspaceStyleDecision?.reasons.join(", ") || "none";
+  const importedWorkspaceStyleRows = useMemo(
+    () => [
+      ["Status", importedWorkspaceStyleDisplayStatus],
+      ["Source", importedWorkspaceStylePayload?.source ?? "none"],
+      ["Version", importedWorkspaceStylePayload?.version ?? "none"],
+      [
+        "Checksum",
+        importedWorkspaceStylePayload?.bridgeSummary?.checksum ?? "none",
+      ],
+      [
+        "Direct Aliases",
+        String(importedWorkspaceStylePayload?.bridgeSummary?.directAliases ?? 0),
+      ],
+      [
+        "Families",
+        String(importedWorkspaceStylePayload?.bridgeSummary?.families ?? 0),
+      ],
+      ["Controls", importedWorkspaceStyleControlsSummary],
+      [
+        "Skin Pack",
+        importedWorkspaceStylePayload?.skinPack ? "available" : "none",
+      ],
+      ["Updated", importedWorkspaceStyleReview?.updatedAt ?? "none"],
+      ["Apply", "not auto-applied"],
+    ],
+    [
+      importedWorkspaceStyleControlsSummary,
+      importedWorkspaceStyleDisplayStatus,
+      importedWorkspaceStylePayload,
+      importedWorkspaceStyleReview,
+    ],
+  );
   const skinPackReviewSections = useMemo<
     NexusSkinPackReviewSummarySectionV2[]
   >(() => {
@@ -2231,6 +2307,26 @@ export function NexusStyleLab() {
       JSON.stringify(createWarmGlassOpsSkinPackV2Fixture(), null, 2),
     );
     setSkinPackReviewResult(null);
+    setSkinPackTokenPreviewResult(null);
+    setSkinPackTokenPreviewState("idle");
+  };
+
+  const loadImportedWorkspaceStyleIntoReview = () => {
+    if (!importedWorkspaceStylePayload?.skinPack) {
+      return;
+    }
+
+    const nextSkinPackText = JSON.stringify(
+      importedWorkspaceStylePayload.skinPack,
+      null,
+      2,
+    );
+
+    clearProductionBridgePreview();
+    setSkinPackText(nextSkinPackText);
+    setSkinPackReviewResult(
+      parseNexusSkinPackReviewImportTextV2(nextSkinPackText),
+    );
     setSkinPackTokenPreviewResult(null);
     setSkinPackTokenPreviewState("idle");
   };
@@ -5345,6 +5441,77 @@ export function NexusStyleLab() {
                 >
                   <span className="truncate">Use Pixel</span>
                 </button>
+              </footer>
+            </section>
+
+            <section
+              className="grid min-h-[300px] grid-rows-[auto_1fr_auto] overflow-hidden border border-amber-300/15 bg-black/30"
+              data-testid="imported-workspace-style-panel"
+            >
+              <header className="flex items-center justify-between gap-3 border-b border-white/10 p-4">
+                <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-amber-100">
+                  <FileJson className="h-4 w-4 shrink-0" />
+                  <span className="truncate">Imported Workspace Style</span>
+                </div>
+                <span
+                  className={[
+                    "shrink-0 font-mono text-[10px] uppercase tracking-[0.12em]",
+                    importedWorkspaceStyleStatus === "accepted"
+                      ? "text-emerald-200"
+                      : importedWorkspaceStyleStatus === "rejected-style-only"
+                        ? "text-rose-200"
+                        : importedWorkspaceStyleStatus === "unsupported-version"
+                          ? "text-amber-200"
+                          : "text-slate-500",
+                  ].join(" ")}
+                  data-testid="imported-workspace-style-status"
+                >
+                  {importedWorkspaceStyleDisplayStatus}
+                </span>
+              </header>
+
+              <div className="grid content-start gap-2 overflow-y-auto p-3">
+                {importedWorkspaceStyleRows.map(([label, value]) => (
+                  <div
+                    key={`imported-workspace-style:${label}`}
+                    className="grid grid-cols-[104px_minmax(0,1fr)] gap-2 border border-white/10 bg-white/[0.03] p-2"
+                  >
+                    <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                      {label}
+                    </span>
+                    <span className="truncate font-mono text-[9px] text-slate-300">
+                      {value}
+                    </span>
+                  </div>
+                ))}
+
+                <div
+                  className="min-w-0 border border-white/10 bg-black/20 p-2"
+                  data-testid="imported-workspace-style-reasons"
+                >
+                  <div className="mb-1 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                    Review Result
+                  </div>
+                  <div className="truncate font-mono text-[9px] text-slate-300">
+                    {importedWorkspaceStyleReasonSummary}
+                  </div>
+                </div>
+              </div>
+
+              <footer className="grid gap-2 border-t border-white/10 p-3">
+                <button
+                  className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-amber-300/35 bg-amber-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-amber-100 transition hover:bg-amber-300/20 disabled:opacity-40"
+                  data-testid="imported-workspace-style-load-review"
+                  disabled={!importedWorkspaceStyleCanLoadSkinPack}
+                  onClick={loadImportedWorkspaceStyleIntoReview}
+                  type="button"
+                >
+                  <FileJson className="h-4 w-4 shrink-0" />
+                  <span className="truncate">Load Into Style Lab Review</span>
+                </button>
+                <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                  review-only / not auto-applied
+                </div>
               </footer>
             </section>
 

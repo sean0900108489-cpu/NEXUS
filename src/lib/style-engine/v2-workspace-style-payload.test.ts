@@ -2,10 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import { createWarmGlassOpsSkinPackV2Fixture } from "./v2-fixtures";
 import {
+  clearImportedWorkspaceStyleReviewState,
+  createImportedWorkspaceStyleReviewState,
   createWorkspaceStylePayloadExportSnapshot,
   extractWorkspaceStylePayloadFromSnapshot,
   normalizeWorkspaceStylePayload,
   NEXUS_WORKSPACE_STYLE_PAYLOAD_MAX_BYTES,
+  readImportedWorkspaceStyleReviewState,
+  writeImportedWorkspaceStyleReviewState,
 } from "./v2-workspace-style-payload";
 
 describe("workspace style payload adapter", () => {
@@ -177,5 +181,49 @@ describe("workspace style payload adapter", () => {
     expect(result.status).toBe("omitted-invalid");
     expect("stylePack" in result.snapshot).toBe(false);
     expect(snapshot).toEqual(before);
+  });
+
+  it("stores accepted imported workspace style review state without mutating the payload", () => {
+    clearImportedWorkspaceStyleReviewState();
+    const decision = extractWorkspaceStylePayloadFromSnapshot({
+      stylePack: {
+        controls: { palette: "warm-glass" },
+        source: "imported",
+        version: "style-pack-v2",
+      },
+    });
+    const reviewState = createImportedWorkspaceStyleReviewState(
+      decision,
+      "2026-05-31T00:00:00.000Z",
+    );
+
+    const written = writeImportedWorkspaceStyleReviewState(reviewState);
+    const read = readImportedWorkspaceStyleReviewState();
+
+    expect(written?.decision.status).toBe("accepted");
+    expect(read?.decision.status).toBe("accepted");
+    expect(read?.decision.payload?.controls?.palette).toBe("warm-glass");
+    expect(read?.updatedAt).toBe("2026-05-31T00:00:00.000Z");
+  });
+
+  it("keeps rejected imported workspace style review state review-only", () => {
+    clearImportedWorkspaceStyleReviewState();
+    const reviewState = createImportedWorkspaceStyleReviewState(
+      {
+        payload: null,
+        reasons: ["workspaceStylePayload.unsafeKey:$.controls.rawCss"],
+        status: "rejected-style-only",
+      },
+      "2026-05-31T00:00:01.000Z",
+    );
+
+    writeImportedWorkspaceStyleReviewState(reviewState);
+    const read = readImportedWorkspaceStyleReviewState();
+
+    expect(read?.decision.status).toBe("rejected-style-only");
+    expect(read?.decision.payload).toBeNull();
+    expect(read?.decision.reasons).toContain(
+      "workspaceStylePayload.unsafeKey:$.controls.rawCss",
+    );
   });
 });

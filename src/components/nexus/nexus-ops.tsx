@@ -111,10 +111,14 @@ import {
   parseWorkspaceSnapshot,
 } from "@/lib/workspace-kernel";
 import {
+  createImportedWorkspaceStyleReviewState,
   createWorkspaceStylePayloadExportSnapshot,
   extractWorkspaceStylePayloadFromSnapshot,
+  readImportedWorkspaceStyleReviewState,
+  subscribeImportedWorkspaceStyleReviewState,
+  writeImportedWorkspaceStyleReviewState,
+  type ImportedWorkspaceStyleReviewState,
   type WorkspaceStylePayloadExportStatus,
-  type WorkspaceStylePayloadImportDecision,
   type WorkspaceStylePayloadImportStatus,
 } from "@/lib/style-engine/v2-workspace-style-payload";
 import { buildLocalWorkspaceRecoveryContext } from "@/lib/workspace-recovery-local";
@@ -233,11 +237,6 @@ const themeOptions: Array<{ id: NexusTheme; label: string }> = [
 type WorkspaceSize = {
   width: number;
   height: number;
-};
-
-type WorkspaceStylePayloadReviewState = {
-  decision: WorkspaceStylePayloadImportDecision;
-  updatedAt: string;
 };
 
 type ClientStreamEvent =
@@ -715,7 +714,7 @@ export function NexusOps() {
   const [leftDockOpen, setLeftDockOpen] = useState(false);
   const [notice, setNotice] = useState("Workspace persistence online");
   const [workspaceStylePayloadReview, setWorkspaceStylePayloadReview] =
-    useState<WorkspaceStylePayloadReviewState | null>(null);
+    useState<ImportedWorkspaceStyleReviewState | null>(null);
   const [macros, setMacros] = useState<WorkflowTemplateRecord[]>([]);
   const [macrosLoading, setMacrosLoading] = useState(false);
   const [macroError, setMacroError] = useState<string | undefined>();
@@ -733,6 +732,18 @@ export function NexusOps() {
     WorkspaceRecoveryListItem[]
   >([]);
   const [workspaceRecoveryLoading, setWorkspaceRecoveryLoading] = useState(false);
+
+  useEffect(() => {
+    const syncImportedWorkspaceStyleReview = () => {
+      setWorkspaceStylePayloadReview(readImportedWorkspaceStyleReviewState());
+    };
+
+    syncImportedWorkspaceStyleReview();
+
+    return subscribeImportedWorkspaceStyleReviewState(
+      syncImportedWorkspaceStyleReview,
+    );
+  }, []);
 
   const activeWorkspaceId = useNexusStore((state) => state.activeWorkspaceId);
   const workspaces = useNexusStore((state) => state.workspaces);
@@ -1328,10 +1339,14 @@ export function NexusOps() {
         notebooks: Array.isArray(snapshot.notebooks) ? snapshot.notebooks : undefined,
         workspace: result.workspace,
       });
-      setWorkspaceStylePayloadReview({
-        decision: styleDecision,
-        updatedAt: new Date().toISOString(),
-      });
+      const nextStylePayloadReview = createImportedWorkspaceStyleReviewState(
+        styleDecision,
+        new Date().toISOString(),
+      );
+      const writtenStylePayloadReview =
+        writeImportedWorkspaceStyleReviewState(nextStylePayloadReview);
+
+      setWorkspaceStylePayloadReview(writtenStylePayloadReview);
       setNotice(createWorkspaceStylePayloadImportNotice(styleDecision.status));
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Import failed");

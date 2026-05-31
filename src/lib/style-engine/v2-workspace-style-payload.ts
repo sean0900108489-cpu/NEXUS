@@ -49,6 +49,17 @@ export type WorkspaceStylePayloadExportDecision<TSnapshot extends object> = {
   reasons: string[];
 };
 
+export type ImportedWorkspaceStyleReviewState = {
+  decision: WorkspaceStylePayloadImportDecision;
+  updatedAt: string;
+};
+
+export const NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_STORAGE_KEY =
+  "nexus.importedWorkspaceStyleReview.v1" as const;
+
+export const NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_EVENT =
+  "nexus:imported-workspace-style-review" as const;
+
 const allowedPayloadKeys = new Set([
   "version",
   "source",
@@ -62,6 +73,17 @@ const allowedSources = new Set<WorkspaceStylePayloadSource>([
   "warm-glass-controls",
   "imported",
 ]);
+
+const allowedImportStatuses = new Set<WorkspaceStylePayloadImportStatus>([
+  "accepted",
+  "ignored-missing",
+  "rejected-style-only",
+  "unsupported-version",
+]);
+
+let importedWorkspaceStyleReviewState: ImportedWorkspaceStyleReviewState | null =
+  null;
+const importedWorkspaceStyleReviewListeners = new Set<() => void>();
 
 const unsafeKeyPattern =
   /(^|[._-])(rawcss|cssText|styleTag|script|javascript|eval|function|remoteUrl|remoteURL|html)([._-]|$)/i;
@@ -128,6 +150,119 @@ export function createWorkspaceStylePayloadExportSnapshot<
       stylePack: decision.payload,
     },
     status: "included",
+  };
+}
+
+export function createImportedWorkspaceStyleReviewState(
+  decision: WorkspaceStylePayloadImportDecision,
+  updatedAt = new Date().toISOString(),
+): ImportedWorkspaceStyleReviewState {
+  return {
+    decision: normalizeWorkspaceStyleImportDecision(decision),
+    updatedAt,
+  };
+}
+
+export function readImportedWorkspaceStyleReviewState():
+  | ImportedWorkspaceStyleReviewState
+  | null {
+  if (importedWorkspaceStyleReviewState) {
+    return importedWorkspaceStyleReviewState;
+  }
+
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const stored = window.sessionStorage.getItem(
+      NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_STORAGE_KEY,
+    );
+
+    if (!stored) {
+      return null;
+    }
+
+    importedWorkspaceStyleReviewState =
+      normalizeImportedWorkspaceStyleReviewState(JSON.parse(stored));
+
+    return importedWorkspaceStyleReviewState;
+  } catch {
+    return null;
+  }
+}
+
+export function writeImportedWorkspaceStyleReviewState(
+  review: ImportedWorkspaceStyleReviewState,
+) {
+  importedWorkspaceStyleReviewState =
+    normalizeImportedWorkspaceStyleReviewState(review);
+
+  if (typeof window !== "undefined") {
+    try {
+      if (importedWorkspaceStyleReviewState) {
+        window.sessionStorage.setItem(
+          NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_STORAGE_KEY,
+          JSON.stringify(importedWorkspaceStyleReviewState),
+        );
+      } else {
+        window.sessionStorage.removeItem(
+          NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_STORAGE_KEY,
+        );
+      }
+
+      window.dispatchEvent(
+        new CustomEvent(NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_EVENT),
+      );
+    } catch {
+      // Keep the in-memory review state even if the browser blocks session storage.
+    }
+  }
+
+  notifyImportedWorkspaceStyleReviewListeners();
+  return importedWorkspaceStyleReviewState;
+}
+
+export function clearImportedWorkspaceStyleReviewState() {
+  importedWorkspaceStyleReviewState = null;
+
+  if (typeof window !== "undefined") {
+    try {
+      window.sessionStorage.removeItem(
+        NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_STORAGE_KEY,
+      );
+      window.dispatchEvent(
+        new CustomEvent(NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_EVENT),
+      );
+    } catch {
+      // Nothing to clear beyond the in-memory state.
+    }
+  }
+
+  notifyImportedWorkspaceStyleReviewListeners();
+}
+
+export function subscribeImportedWorkspaceStyleReviewState(
+  listener: () => void,
+) {
+  importedWorkspaceStyleReviewListeners.add(listener);
+
+  if (typeof window !== "undefined") {
+    window.addEventListener(
+      NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_EVENT,
+      listener,
+    );
+  }
+
+  return () => {
+    importedWorkspaceStyleReviewListeners.delete(listener);
+
+    if (typeof window !== "undefined") {
+      window.removeEventListener(
+        NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_EVENT,
+        listener,
+      );
+    }
   };
 }
 
@@ -273,6 +408,59 @@ function cloneJsonRecord(value: Record<string, unknown>) {
   return JSON.parse(JSON.stringify(value)) as Record<string, unknown>;
 }
 
+function normalizeImportedWorkspaceStyleReviewState(
+  value: unknown,
+): ImportedWorkspaceStyleReviewState | null {
+  if (!isRecord(value) || typeof value.updatedAt !== "string") {
+    return null;
+  }
+
+  if (!isRecord(value.decision)) {
+    return null;
+  }
+
+  return {
+    decision: normalizeWorkspaceStyleImportDecision(
+      value.decision as WorkspaceStylePayloadImportDecision,
+    ),
+    updatedAt: value.updatedAt,
+  };
+}
+
+function normalizeWorkspaceStyleImportDecision(
+  decision: WorkspaceStylePayloadImportDecision,
+): WorkspaceStylePayloadImportDecision {
+  if (!allowedImportStatuses.has(decision.status)) {
+    return {
+      payload: null,
+      reasons: ["workspaceStylePayload.invalidStatus"],
+      status: "rejected-style-only",
+    };
+  }
+
+  if (decision.status === "accepted") {
+    const payloadDecision = normalizeWorkspaceStylePayload(decision.payload);
+
+    if (payloadDecision.status === "accepted" && payloadDecision.payload) {
+      return payloadDecision;
+    }
+
+    return {
+      payload: null,
+      reasons: payloadDecision.reasons,
+      status: "rejected-style-only",
+    };
+  }
+
+  return {
+    payload: null,
+    reasons: Array.isArray(decision.reasons)
+      ? decision.reasons.filter((reason) => typeof reason === "string")
+      : [],
+    status: decision.status,
+  };
+}
+
 function omitStylePayload<TSnapshot extends object>(
   snapshot: TSnapshot,
 ): TSnapshot & { stylePack?: WorkspaceStylePayloadV1 } {
@@ -283,6 +471,12 @@ function omitStylePayload<TSnapshot extends object>(
   }).stylePack;
 
   return rest as TSnapshot & { stylePack?: WorkspaceStylePayloadV1 };
+}
+
+function notifyImportedWorkspaceStyleReviewListeners() {
+  for (const listener of importedWorkspaceStyleReviewListeners) {
+    listener();
+  }
 }
 
 function scanUnsafeJson(value: unknown, path: string): string[] {

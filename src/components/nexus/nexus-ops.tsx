@@ -4518,6 +4518,22 @@ function WorkspaceStyleControlsPanel({
     : 0;
   const activeAccent = controls.accentColor;
   const controlRadius = `${controls.radius}px`;
+  const panelMaterialStyle = {
+    background:
+      "var(--nexus-layout-panel-bg, linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02))), var(--nexus-panel-bg, rgb(2 6 23 / 0.95))",
+    borderColor:
+      "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.12)))",
+    borderRadius: controlRadius,
+    boxShadow:
+      "var(--nexus-layout-panel-shadow, var(--nexus-panel-shadow, 0 0 0 transparent))",
+  } satisfies CSSProperties;
+  const panelMutedMaterialStyle = {
+    background:
+      "var(--nexus-layout-panel-muted-bg, linear-gradient(180deg, rgb(255 255 255 / 0.045), rgb(255 255 255 / 0.012))), var(--nexus-panel-bg, rgb(2 6 23 / 0.82))",
+    borderColor:
+      "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.1)))",
+    borderRadius: controlRadius,
+  } satisfies CSSProperties;
 
   const applyPreview = useCallback(
     (nextControls: WorkspaceThemeStyleControlsV1) => {
@@ -4731,9 +4747,7 @@ function WorkspaceStyleControlsPanel({
       className="block border bg-black/20 p-3"
       data-testid={`workspace-style-control-${key}`}
       style={{
-        backgroundColor: `${activeAccent}0a`,
-        borderColor: `${activeAccent}33`,
-        borderRadius: controlRadius,
+        ...panelMutedMaterialStyle,
       }}
     >
       <span className="flex items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
@@ -4762,11 +4776,7 @@ function WorkspaceStyleControlsPanel({
       className="mb-4 border p-3"
       data-testid="workspace-style-controls-panel"
       style={{
-        background:
-          `linear-gradient(180deg, ${activeAccent}18, ${activeAccent}0b)`,
-        borderColor: `${activeAccent}59`,
-        borderRadius: controlRadius,
-        boxShadow: `0 0 36px ${activeAccent}1f`,
+        ...panelMaterialStyle,
       }}
     >
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -4794,9 +4804,7 @@ function WorkspaceStyleControlsPanel({
       <div
         className="mb-3 grid gap-2 border bg-black/20 p-3 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300"
         style={{
-          backgroundColor: `${activeAccent}0d`,
-          borderColor: `${activeAccent}33`,
-          borderRadius: controlRadius,
+          ...panelMutedMaterialStyle,
         }}
       >
         <div className="flex justify-between gap-3">
@@ -4884,9 +4892,7 @@ function WorkspaceStyleControlsPanel({
         <div
           className="border bg-black/20 p-3"
           style={{
-            backgroundColor: `${activeAccent}0a`,
-            borderColor: `${activeAccent}33`,
-            borderRadius: controlRadius,
+            ...panelMutedMaterialStyle,
           }}
         >
           <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
@@ -4915,7 +4921,10 @@ function WorkspaceStyleControlsPanel({
             <div
               className="flex min-h-10 items-center justify-between gap-3 border bg-white/[0.03] px-3 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-100"
               style={{
-                borderColor: `${activeAccent}55`,
+                background:
+                  "var(--nexus-layout-panel-bg, linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02))), var(--nexus-panel-bg, rgb(255 255 255 / 0.03))",
+                borderColor:
+                  "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.12)))",
                 borderRadius: controlRadius,
               }}
             >
@@ -4932,7 +4941,8 @@ function WorkspaceStyleControlsPanel({
           data-testid="workspace-style-save"
           onClick={saveControls}
           style={{
-            backgroundColor: `${activeAccent}1f`,
+            background:
+              "var(--nexus-layout-panel-bg, linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02))), var(--nexus-panel-bg, rgb(255 255 255 / 0.04))",
             borderColor: `${activeAccent}59`,
             borderRadius: controlRadius,
           }}
@@ -4946,6 +4956,8 @@ function WorkspaceStyleControlsPanel({
           data-testid="workspace-style-revert"
           onClick={revertPreview}
           style={{
+            background:
+              "var(--nexus-layout-panel-muted-bg, linear-gradient(180deg, rgb(255 255 255 / 0.045), rgb(255 255 255 / 0.012))), var(--nexus-panel-bg, rgb(0 0 0 / 0.25))",
             borderColor: `${activeAccent}40`,
             borderRadius: controlRadius,
           }}
@@ -4959,6 +4971,8 @@ function WorkspaceStyleControlsPanel({
           data-testid="workspace-style-reset"
           onClick={resetControls}
           style={{
+            background:
+              "var(--nexus-layout-panel-muted-bg, linear-gradient(180deg, rgb(255 255 255 / 0.045), rgb(255 255 255 / 0.012))), var(--nexus-panel-bg, rgb(0 0 0 / 0.25))",
             borderColor: `${activeAccent}40`,
             borderRadius: controlRadius,
           }}

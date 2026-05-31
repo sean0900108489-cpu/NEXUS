@@ -106,12 +106,19 @@ describe("Nexus production Theme panel live style controls", () => {
     expect(controlsPanelSource).not.toContain("option.swatch");
   });
 
-  it("keeps Workspace Style Controls text neutral while chrome follows the active accent", () => {
-    expect(controlsPanelSource).toContain("linear-gradient(180deg, ${activeAccent}18, ${activeAccent}0b)");
-    expect(controlsPanelSource).toContain("borderColor: `${activeAccent}59`");
+  it("keeps Workspace Style Controls material on shared panel variables while controls follow the active accent", () => {
+    expect(controlsPanelSource).toContain("const panelMaterialStyle");
+    expect(controlsPanelSource).toContain("const panelMutedMaterialStyle");
+    expect(controlsPanelSource).toContain("var(--nexus-layout-panel-bg");
+    expect(controlsPanelSource).toContain("var(--nexus-layout-panel-muted-bg");
+    expect(controlsPanelSource).toContain("var(--nexus-layout-panel-border");
     expect(controlsPanelSource).toContain("style={{ accentColor: activeAccent }}");
     expect(controlsPanelSource).toContain("const controlRadius = `${controls.radius}px`");
     expect(controlsPanelSource).toContain("borderRadius: controlRadius");
+    expect(controlsPanelSource).not.toContain("linear-gradient(180deg, ${activeAccent}18, ${activeAccent}0b)");
+    expect(controlsPanelSource).not.toContain("backgroundColor: `${activeAccent}0d`");
+    expect(controlsPanelSource).not.toContain("backgroundColor: `${activeAccent}0a`");
+    expect(controlsPanelSource).not.toContain("backgroundColor: `${activeAccent}1f`");
     expect(controlsPanelSource).not.toContain("text-amber-100");
     expect(controlsPanelSource).not.toContain("text-cyan-100");
     expect(controlsPanelSource).not.toContain("text-emerald-100");
@@ -143,16 +150,18 @@ describe("Nexus production Theme panel live style controls", () => {
     );
   });
 
-  it("layers Theme panel fills with the active tone instead of flat fixed cyan", () => {
+  it("layers Theme panel fills through shared material variables instead of local accent fills", () => {
     expect(source).toContain("color-mix(in srgb, var(--theme-primary, #67e8f9) 13%");
     expect(source).toContain("color-mix(in srgb, var(--theme-primary, #67e8f9) 12%");
     expect(source).toContain("color-mix(in srgb, var(--theme-primary, #67e8f9) 4%");
     expect(source).toContain("var(--nexus-layout-panel-bg");
     expect(source).toContain("var(--nexus-layout-panel-muted-bg");
     expect(source).toContain("var(--nexus-layout-panel-border");
-    expect(controlsPanelSource).toContain("linear-gradient(180deg, ${activeAccent}18, ${activeAccent}0b)");
-    expect(controlsPanelSource).toContain("backgroundColor: `${activeAccent}0d`");
-    expect(controlsPanelSource).toContain("backgroundColor: `${activeAccent}0a`");
+    expect(controlsPanelSource).toContain("...panelMaterialStyle");
+    expect(controlsPanelSource).toContain("...panelMutedMaterialStyle");
+    expect(controlsPanelSource).not.toContain("linear-gradient(180deg, ${activeAccent}18, ${activeAccent}0b)");
+    expect(controlsPanelSource).not.toContain("backgroundColor: `${activeAccent}0d`");
+    expect(controlsPanelSource).not.toContain("backgroundColor: `${activeAccent}0a`");
   });
 
   it("syncs central panels and graph backgrounds to shared layout material variables", () => {

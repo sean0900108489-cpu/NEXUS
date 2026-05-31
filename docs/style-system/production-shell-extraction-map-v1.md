@@ -1006,3 +1006,66 @@ Remaining future token step:
 - Do not tokenize overlay backdrop, close buttons, submit buttons, focus rings,
   form controls, validation states, z-index, positioning, or modal stack
   behavior in that alias loop.
+
+## 21. V19 Production Skinning 40-to-60 ROI Loop 08
+
+Implemented during
+`20260531-v19-production-skinning-40-to-60-roi-loop-08`.
+
+Target:
+
+- `AgentBranchModal` inner shell/chrome token aliases
+
+Path:
+
+- CSS-only alias adoption on the existing `.nexus-agent-branch-modal-shell`
+  selector from Loop 07.
+- No changes to `src/components/nexus/AgentBranchModal.tsx`.
+- No modal open/close, submit, validation, focus, keyboard, overlay, z-index,
+  form-control, or modal stack behavior changes.
+
+Aliases added:
+
+- `--nexus-modal-shell-bg`
+- `--nexus-modal-shell-border`
+- `--nexus-modal-shell-shadow`
+- `--nexus-modal-shell-radius`
+- `--nexus-modal-shell-blur`
+
+Fallback chain:
+
+- dedicated modal shell alias
+- existing `.nexus-panel` alias
+- current cyberpunk baseline variable
+
+CSS scope:
+
+- `.nexus-shell .nexus-agent-branch-modal-shell`
+
+Intentionally not tokenized:
+
+- overlay backdrop
+- close button
+- submit buttons
+- form fields
+- validation or error text
+- focus rings
+- keyboard states
+- z-index, position, dimensions, layout geometry, overflow, pointer events, or
+  modal stack ownership
+
+Style Lab smoke:
+
+- Added modal shell smoke variables to the isolated `/style-lab`
+  `Production Chrome Smoke` harness.
+- Smoke variables still apply only to the local
+  `productionChromeSmokeTargetRef` container.
+- No document-root mutation, localStorage, IndexedDB, store, sync, backend,
+  Supabase, API, runtime token persistence, modal behavior, or production auth
+  was introduced.
+
+Remaining production-auth-only checks:
+
+- real authenticated `/` modal open/close smoke
+- branch modal submit path should remain unexecuted during visual smoke
+- focus, overlay, and modal stack checks remain outside token alias work

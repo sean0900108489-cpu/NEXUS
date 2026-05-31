@@ -36,10 +36,25 @@ describe("Nexus agent branch modal shell selector", () => {
     expect(source).toContain("void executeBranchConfiguration();");
   });
 
-  it("does not introduce token aliases or modal frame extraction in this prep step", () => {
+  it("adds modal shell aliases in globals with panel and cyberpunk fallbacks", () => {
     const source = readAgentBranchModalSource();
     const css = readGlobalsCssSource();
 
+    expect(css).toContain(".nexus-shell .nexus-agent-branch-modal-shell");
+    expect(css).toContain(
+      "background: var(--nexus-modal-shell-bg, var(--nexus-panel-bg, rgb(2 6 23 / 0.95)))",
+    );
+    expect(css).toContain(
+      "border-color: var(--nexus-modal-shell-border, var(--nexus-panel-border, rgb(103 232 249 / 0.25)))",
+    );
+    expect(css).toContain(
+      "border-radius: var(--nexus-modal-shell-radius, var(--nexus-panel-radius, var(--surface-radius)))",
+    );
+    expect(css).toContain("--nexus-modal-shell-shadow");
+    expect(css).toContain("var(--nexus-panel-shadow, 0 0 48px rgb(34 211 238 / 0.14)");
+    expect(css).toContain(
+      "backdrop-filter: blur(var(--nexus-modal-shell-blur, var(--nexus-panel-blur, var(--glass-blur))))",
+    );
     expect(css).not.toContain("--nexus-agent-branch-modal");
     expect(source).not.toContain("ModalDialogShellFrame");
     expect(source).not.toContain("AgentBranchModalShellFrame");

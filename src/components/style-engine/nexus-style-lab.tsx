@@ -436,6 +436,7 @@ const productionChromeSmokeSelectors = [
   ".nexus-right-floating-dock-rail",
   ".nexus-command-palette-shell",
   ".nexus-agent-branch-modal-shell",
+  ".nexus-datapad-shell",
   ".nexus-workspace",
   ".nexus-message-bubble",
   ".nexus-message-bubble-user",
@@ -2811,6 +2812,34 @@ export function NexusStyleLab() {
                               summary
                             </span>
                           </div>
+                        </div>
+                      </div>
+
+                      <div
+                        aria-hidden="true"
+                        className="nexus-datapad-shell nexus-datapad-window mx-auto flex min-h-48 w-full max-w-xl flex-col overflow-hidden border border-emerald-300/30 bg-slate-950/94 text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.45),0_0_34px_rgba(16,185,129,0.12)] backdrop-blur-xl"
+                        data-testid="production-chrome-smoke-datapad"
+                      >
+                        <div className="datapad-drag-handle flex h-10 shrink-0 items-center justify-between border-b border-emerald-300/15 bg-emerald-300/[0.045] px-3">
+                          <span className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-50">
+                            Datapad Shell
+                          </span>
+                          <span className="border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                            static
+                          </span>
+                        </div>
+                        <div className="grid gap-2 bg-black/35 p-3">
+                          <div className="h-2 w-3/4 bg-emerald-100/20" />
+                          <div className="h-2 w-5/6 bg-white/10" />
+                          <div className="h-2 w-2/3 bg-white/10" />
+                        </div>
+                        <div className="flex h-10 shrink-0 items-center justify-between border-t border-white/10 bg-black/28 px-3">
+                          <span className="font-mono text-[8px] uppercase tracking-[0.12em] text-slate-500">
+                            Global Datapad
+                          </span>
+                          <span className="border border-emerald-300/30 bg-emerald-300/10 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-emerald-100">
+                            save
+                          </span>
                         </div>
                       </div>
 

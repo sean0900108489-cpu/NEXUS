@@ -1069,3 +1069,75 @@ Remaining production-auth-only checks:
 - real authenticated `/` modal open/close smoke
 - branch modal submit path should remain unexecuted during visual smoke
 - focus, overlay, and modal stack checks remain outside token alias work
+
+## 22. V19 Production Skinning 40-to-60 ROI Loop 09
+
+Implemented during
+`20260531-v19-production-skinning-40-to-60-roi-loop-09`.
+
+Target:
+
+- `DatapadWindow` shell/chrome selector prep
+
+Path:
+
+- Path A: selector-only prep on the existing inner visual shell.
+- No Datapad/inspector token aliases were added in this loop.
+- No inert Datapad frame was extracted in this loop.
+
+Ownership scan result:
+
+- `DatapadWindow` is rendered from the separate
+  `src/components/nexus/DatapadWindow.tsx` component and mounted by
+  `src/components/nexus/nexus-ops.tsx` for each open notebook id.
+- `NexusOps` owns the open notebook id list, creates/toggles global datapads,
+  and remains the coordinator for production workspace state.
+- `DatapadWindow` owns notebook lookup, notebook draft state, save/delete/close
+  actions, focus-on-mount behavior, bring-to-front behavior, Rnd drag/resize
+  wrapper, z-index, title input, content textarea, footer action buttons, and
+  save status.
+- The outer `Rnd` owns drag, resize, parent bounds, default frame, min size,
+  mouse/touch focus behavior, and z-index style.
+- The inner `section` is the visible Datapad shell and can receive a stable
+  selector without changing children, handlers, refs, effects, state, Rnd props,
+  z-index, focus, scroll, save, delete, close, upload/download, artifact, or
+  persistence behavior.
+
+Selector status:
+
+- Added `.nexus-datapad-shell` to the existing inner visual shell:
+  `nexus-datapad-shell nexus-datapad-window flex h-full min-h-0 flex-col ...`.
+- Added the same selector to the isolated `/style-lab` `Production Chrome Smoke`
+  harness as a static display-only Datapad specimen.
+
+Why no frame extraction:
+
+- The production visual shell sits inside an Rnd-owned window with drag/resize
+  and z-index ownership immediately above it.
+- Selector-only prep gives the next alias loop a stable visual target without
+  moving Rnd, focus, z-index, draft, action, or persistence ownership.
+
+Intentionally not changed:
+
+- file upload/download logic
+- artifact persistence
+- notebook draft persistence
+- save/delete/close actions
+- title/content input behavior
+- scroll/focus behavior
+- drag/resize/z-index/window behavior
+- store, sync, backend, Supabase, API, React Flow, graph, workspace
+  persistence, runtime token apply, token persistence, production auth, or
+  package/config/deploy files
+
+Remaining future token step:
+
+- Add dedicated Datapad shell aliases only after this selector survives source,
+  build, and browser/style-lab smoke:
+  `--nexus-datapad-shell-bg`,
+  `--nexus-datapad-shell-border`,
+  `--nexus-datapad-shell-shadow`,
+  `--nexus-datapad-shell-radius`, and optional blur.
+- Do not tokenize title/content fields, save/delete/close buttons,
+  drag/resize/z-index, scroll/focus behavior, file upload/download, artifact
+  persistence, or notebook persistence in that alias loop.

@@ -94,7 +94,7 @@ export function DatapadWindow({ notebookId }: { notebookId: string }) {
       onTouchStart={bringToFront}
       style={{ zIndex }}
     >
-      <section className="nexus-datapad-window flex h-full min-h-0 flex-col overflow-hidden border border-emerald-300/30 bg-slate-950/94 text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.55),0_0_34px_rgba(16,185,129,0.14)] backdrop-blur-xl">
+      <section className="nexus-datapad-shell nexus-datapad-window flex h-full min-h-0 flex-col overflow-hidden border border-emerald-300/30 bg-slate-950/94 text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.55),0_0_34px_rgba(16,185,129,0.14)] backdrop-blur-xl">
         <header className="datapad-drag-handle flex h-12 shrink-0 cursor-move items-center gap-2 border-b border-emerald-300/15 bg-emerald-300/[0.045] px-3">
           <input
             aria-label="Datapad title"

@@ -161,11 +161,12 @@ describe("Nexus production Theme panel live style controls", () => {
     expect(bodyFrameSource).toContain(
       "[background:var(--nexus-body-frame-bg,transparent)]",
     );
-    expect(graphSource).toContain(
-      "[background:var(--nexus-workspace-bg,transparent)]",
-    );
+    expect(graphSource).toContain("bg-transparent");
+    expect(graphSource).toContain("[&_.react-flow]:!bg-transparent");
+    expect(graphSource).toContain("[&_.react-flow__pane]:!bg-transparent");
     expect(graphSource).toContain("--nexus-workspace-grid-primary");
     expect(graphSource).toContain("--nexus-workspace-minimap-mask");
+    expect(controlsPanelSource).toContain("Surface Brightness");
   });
 });
 

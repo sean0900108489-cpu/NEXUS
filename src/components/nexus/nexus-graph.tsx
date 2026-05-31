@@ -847,7 +847,7 @@ export function NexusGraph({
   };
 
   return (
-    <div className="h-full min-h-0 w-full [background:var(--nexus-workspace-bg,transparent)]">
+    <div className="h-full min-h-0 w-full bg-transparent [&_.react-flow]:!bg-transparent [&_.react-flow__pane]:!bg-transparent">
       <ReactFlow
         colorMode="dark"
         defaultEdgeOptions={{

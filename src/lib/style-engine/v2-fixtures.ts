@@ -344,6 +344,220 @@ export function createPixelWorkshopSkinPackV2(): NexusSkinPackV2 {
   };
 }
 
+export function createWarmGlassOpsSkinPackV2Fixture(): NexusSkinPackV2 {
+  const manifest = createHighContrastCarbonStyleManifestV1();
+
+  return {
+    ...createValidMinimalSkinPackV2(),
+    compatibility: {
+      appStyleEngineVersion: "nexus-style-engine-v2",
+      compilerVersion: "nexus-style-compiler-v1",
+      manifestVersion: 1,
+      recipeRegistryVersion: "recipe-registry-v1",
+      result: "compatible",
+      validatorVersion: "nexus-style-validator-v1",
+    },
+    fallback: {
+      fallbackLegacyPreset: "apple",
+      fallbackManifestId: "legacy-cyberpunk",
+      fallbackPackId: "minimal-carbon-skin",
+      onAssetFailure: "omit-asset",
+      onBudgetFailure: "reject-pack",
+      onLayoutFailure: "use-default-layout",
+    },
+    id: "warm-glass-ops-skin",
+    manifest: {
+      manifestId: "warm-glass-ops",
+      manifestVersion: 1,
+      payload: {
+        ...manifest,
+        adapters: {
+          nextThemes: {
+            colorScheme: "dark",
+            dataTheme: "apple",
+          },
+          tailwindBridge: {
+            enabled: true,
+            legacyVariableMode: "preserve",
+          },
+        },
+        description:
+          "Warm neutral frosted-glass command center tokens for the V19 production alias coverage path.",
+        id: "warm-glass-ops",
+        intent: {
+          contrast: "standard",
+          density: "comfortable",
+          material: ["frosted-glass", "warm-sand", "pearl", "muted-bronze"],
+          mood: ["calm", "professional", "atelier", "command-center"],
+          motion: "minimal",
+        },
+        name: "Warm Glass Ops",
+        recipes: {
+          ...manifest.recipes,
+          badge: {
+            default: {
+              border: "border.subtle",
+              surface: "surface.panelMuted",
+              text: "text.secondary",
+            },
+          },
+          button: {
+            default: {
+              border: "border.subtle",
+              surface: "surface.panelMuted",
+              text: "text.secondary",
+            },
+            focus: {
+              ring: "accent.primaryStrong",
+            },
+            hover: {
+              border: "accent.primary",
+              surface: "surface.raised",
+              text: "text.primary",
+            },
+          },
+          commandPalette: {
+            emptyState: "text.muted",
+            icon: "accent.secondary",
+            input: "surface.input",
+            itemActive: "accent.primary",
+            itemDefault: "surface.panelMuted",
+            itemHover: "surface.raised",
+            overlay: "surface.overlay",
+            surface: "surface.panel",
+          },
+          dock: {
+            border: "border.subtle",
+            surface: "surface.shell",
+          },
+          input: {
+            default: {
+              border: "border.subtle",
+              placeholder: "text.muted",
+              surface: "surface.input",
+              text: "text.primary",
+            },
+            focus: {
+              border: "accent.primaryStrong",
+            },
+          },
+          modal: {
+            backdrop: "surface.overlay",
+            border: "border.subtle",
+            surface: "surface.panel",
+            text: "text.primary",
+          },
+          panel: {
+            border: "border.subtle",
+            shadow: "shadow.panel",
+            surface: "surface.panel",
+            text: "text.primary",
+          },
+          window: {
+            border: "border.subtle",
+            shadow: "shadow.panel",
+            surface: "surface.panel",
+            text: "text.primary",
+          },
+        },
+        source: {
+          kind: "human-brief",
+          reference: "warm-glass-ops-north-star-v1",
+        },
+        tokens: {
+          accent: {
+            primary: "#b8895c",
+            primaryStrong: "#d19a66",
+            secondary: "#8fbdb7",
+          },
+          blur: {
+            backdrop: "20px",
+            glass: "18px",
+          },
+          border: {
+            glow: "rgb(216 154 102 / 0.22)",
+            subtle: "rgb(255 244 226 / 0.18)",
+          },
+          density: {
+            control: "comfortable",
+            panel: "comfortable",
+          },
+          motion: {
+            durationFast: "110ms",
+            durationNormal: "180ms",
+          },
+          radius: {
+            base: "12px",
+            surface: "18px",
+          },
+          shadow: {
+            glow: "0 0 24px rgb(216 154 102 / 0.12)",
+            panel: "0 22px 64px rgb(42 28 18 / 0.28)",
+          },
+          status: {
+            danger: "#d98b7d",
+            info: "#8fbdb7",
+            success: "#8fbc9d",
+            warning: "#d6a85f",
+          },
+          surface: {
+            app: "#1f1712",
+            input: "rgb(255 247 234 / 0.09)",
+            overlay: "rgb(29 20 15 / 0.72)",
+            panel: "rgb(255 244 226 / 0.16)",
+            panelMuted: "rgb(239 215 184 / 0.11)",
+            raised: "rgb(255 248 235 / 0.22)",
+            shell: "rgb(57 43 32 / 0.56)",
+            workspace: "#2a2119",
+          },
+          text: {
+            danger: "#f2b8aa",
+            inverse: "#1d140f",
+            muted: "#b7a997",
+            primary: "#fff6e8",
+            secondary: "#e8d9c5",
+            success: "#c5e6cf",
+            warning: "#f0d199",
+          },
+          typography: {
+            interface: "Geist",
+            mono: "Geist Mono",
+          },
+          workspace: {
+            gridPrimary: "rgb(255 244 226 / 0.1)",
+            gridSecondary: "rgb(184 137 92 / 0.12)",
+            wash: "rgb(184 137 92 / 0.08)",
+          },
+        },
+      },
+    },
+    metadata: {
+      description:
+        "Apple/VisionOS-inspired warm glass operations skin with pearl text, sand/clay surfaces, muted bronze accents, and soft enterprise command-center chrome.",
+      displayName: "Warm Glass Ops",
+      lifecycle: "validated",
+      source: "human-authored",
+      tags: [
+        "warm-glass",
+        "visionos",
+        "desert-atelier",
+        "command-center",
+        "token-preview",
+      ],
+    },
+    recipes: {
+      adapterCoverage: {
+        primitives: "partial",
+        windowModal: "partial",
+      },
+      groups: ["panel", "button", "input", "window", "modal"],
+      registryVersion: "recipe-registry-v1",
+      source: "manifest",
+    },
+    slug: "warm-glass-ops-skin",
+  };
+}
+
 export function createValidAssetPackV1(): NexusAssetPackV1 {
   return {
     assets: [

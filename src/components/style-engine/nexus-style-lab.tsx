@@ -37,6 +37,8 @@ import {
   createPageShellFeatureMountPlanV1,
   createPageShellLayoutPresetV1,
   createPixelWorkshopSkinPackV2,
+  createWarmGlassOpsProductionAliasCoverageReportV1,
+  createWarmGlassOpsSkinPackV2Fixture,
   createReactFlowStyleAdapterFromManifestV1,
   createTopBottomSwappedWorkspaceLayoutPresetV1,
   compileNexusSkinPackRenderPlanTextV2,
@@ -95,6 +97,8 @@ const maxVisibleSpecimenFallbacks = 4;
 const maxVisibleBridgeVariables = 10;
 const maxVisibleBridgePreserveVariables = 8;
 const maxVisibleBridgeUnsupportedVariables = 6;
+const maxVisibleWarmGlassCoverageFamilies = 10;
+const maxVisibleWarmGlassGaps = 6;
 
 const comparisonVariables = [
   "--nexus-surface-app",
@@ -716,6 +720,10 @@ export function NexusStyleLab() {
     productionBridgePlanResult?.accepted === true
       ? productionBridgePlanResult.bridgePlan
       : null;
+  const warmGlassOpsCoverageReport = useMemo(
+    () => createWarmGlassOpsProductionAliasCoverageReportV1(),
+    [],
+  );
   const specimenGallery =
     renderPlan?.specimenGallery ?? null;
   const hasRejectedSkinPackReview = skinPackReviewResult?.accepted === false;
@@ -807,6 +815,40 @@ export function NexusStyleLab() {
           )
         : [],
     [productionBridgePlan],
+  );
+  const warmGlassOpsCoverageRows = useMemo(
+    () => [
+      ["Fixture", warmGlassOpsCoverageReport.displayName],
+      [
+        "Render Plan",
+        warmGlassOpsCoverageReport.renderPlanAccepted ? "accepted" : "blocked",
+      ],
+      [
+        "Bridge Plan",
+        warmGlassOpsCoverageReport.bridgePlanAccepted ? "accepted" : "blocked",
+      ],
+      ["Families", String(warmGlassOpsCoverageReport.familyCount)],
+      [
+        "Fallback",
+        String(warmGlassOpsCoverageReport.fallbackDrivenFamilyCount),
+      ],
+      ["Direct", String(warmGlassOpsCoverageReport.directlyDrivenFamilyCount)],
+      ["Smoke Only", String(warmGlassOpsCoverageReport.smokeOnlyFamilyCount)],
+      ["Gaps", String(warmGlassOpsCoverageReport.gaps.length)],
+    ],
+    [warmGlassOpsCoverageReport],
+  );
+  const warmGlassOpsCoverageFamilies = useMemo(
+    () =>
+      warmGlassOpsCoverageReport.families.slice(
+        0,
+        maxVisibleWarmGlassCoverageFamilies,
+      ),
+    [warmGlassOpsCoverageReport],
+  );
+  const warmGlassOpsGapRows = useMemo(
+    () => warmGlassOpsCoverageReport.gaps.slice(0, maxVisibleWarmGlassGaps),
+    [warmGlassOpsCoverageReport],
   );
   const acceptedLayoutPreset =
     layoutPresetReviewResult?.accepted === true
@@ -1430,6 +1472,16 @@ export function NexusStyleLab() {
     clearProductionBridgePreview();
     setSkinPackText(
       JSON.stringify(createPixelWorkshopSkinPackV2(), null, 2),
+    );
+    setSkinPackReviewResult(null);
+    setSkinPackTokenPreviewResult(null);
+    setSkinPackTokenPreviewState("idle");
+  };
+
+  const loadWarmGlassSkinPackFixture = () => {
+    clearProductionBridgePreview();
+    setSkinPackText(
+      JSON.stringify(createWarmGlassOpsSkinPackV2Fixture(), null, 2),
     );
     setSkinPackReviewResult(null);
     setSkinPackTokenPreviewResult(null);
@@ -2680,12 +2732,100 @@ export function NexusStyleLab() {
                         </div>
                       </div>
                     </div>
+                    </div>
                   </div>
-                </div>
 
-                <section
-                  className="mb-4 border border-fuchsia-300/15 bg-fuchsia-300/[0.035] p-3"
-                  data-testid="production-chrome-smoke-panel"
+                  <section
+                    className="mb-4 border border-amber-300/15 bg-amber-300/[0.04] p-3"
+                    data-testid="warm-glass-ops-coverage-panel"
+                  >
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-amber-100">
+                        Warm Glass Ops Coverage
+                      </div>
+                      <button
+                        className="inline-flex h-8 min-w-0 items-center justify-center gap-2 border border-amber-300/35 bg-amber-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-amber-100 transition hover:bg-amber-300/20"
+                        data-testid="warm-glass-ops-load-fixture"
+                        onClick={loadWarmGlassSkinPackFixture}
+                        type="button"
+                      >
+                        <Sparkles className="h-4 w-4 shrink-0" />
+                        <span className="truncate">Use Warm Glass</span>
+                      </button>
+                    </div>
+
+                    <div className="mb-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                      {warmGlassOpsCoverageRows.map(([label, value]) => (
+                        <div
+                          key={`warm-glass-coverage:${label}`}
+                          className="min-w-0 border border-white/10 bg-black/20 p-2"
+                        >
+                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                            {label}
+                          </div>
+                          <div className="mt-1 truncate font-mono text-[9px] text-amber-100">
+                            {value}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_260px]">
+                      <div className="grid min-w-0 gap-2">
+                        {warmGlassOpsCoverageFamilies.map((family) => (
+                          <div
+                            key={`warm-glass-family:${family.id}`}
+                            className="grid min-w-0 gap-2 border border-white/10 bg-black/20 p-2 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)_auto]"
+                          >
+                            <div className="min-w-0">
+                              <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-amber-100">
+                                {family.label}
+                              </div>
+                              <div className="mt-1 truncate font-mono text-[8px] text-slate-500">
+                                {family.selectors.join(", ")}
+                              </div>
+                            </div>
+                            <div className="min-w-0">
+                              <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                                {family.tokenIntents.slice(0, 4).join(", ")}
+                              </div>
+                              <div className="mt-1 truncate font-mono text-[8px] text-slate-300">
+                                {family.aliases.slice(0, 4).join(", ")}
+                              </div>
+                            </div>
+                            <span className="self-start justify-self-start border border-amber-300/25 bg-amber-300/10 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-amber-100 md:justify-self-end">
+                              {family.mode}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="min-w-0 border border-white/10 bg-black/20 p-2">
+                        <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                          Missing Capabilities
+                        </div>
+                        <div className="grid gap-2">
+                          {warmGlassOpsGapRows.map((gap) => (
+                            <div
+                              key={`warm-glass-gap:${gap.id}`}
+                              className="min-w-0 border border-white/10 bg-white/[0.03] p-2"
+                            >
+                              <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-amber-100">
+                                {gap.label}
+                              </div>
+                              <div className="mt-1 truncate font-mono text-[8px] text-slate-500">
+                                {gap.nextGate}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section
+                    className="mb-4 border border-fuchsia-300/15 bg-fuchsia-300/[0.035] p-3"
+                    data-testid="production-chrome-smoke-panel"
                 >
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                     <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-fuchsia-100">

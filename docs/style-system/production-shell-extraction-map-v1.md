@@ -1266,3 +1266,74 @@ Next 60-to-80 route:
 - Avoid right-dock artifact/vault persistence panels, backend/store/sync/API,
   asset pack production apply, layout preset production apply, runtime
   persistence, and broad `nexus-ops.tsx` refactors.
+
+## 25. Warm Glass Ops Render Plan Coverage Loop 01
+
+Recorded during
+`20260531-v19-warm-glass-ops-render-plan-coverage-loop-01`.
+
+North star:
+
+- `NEXUS Warm Glass Ops`
+- Apple / VisionOS-inspired warm frosted glass operations UI
+- sand, clay, pearl, smoke, muted bronze, soft cyan-green status accents
+- professional command-center restraint instead of broad production restyling
+
+Deliverables:
+
+- `docs/style-system/warm-glass-ops-north-star-v1.md`
+- `createWarmGlassOpsSkinPackV2Fixture()`
+- pure Render Plan / Production Bridge alias coverage helper
+- `/style-lab` `Warm Glass Ops Coverage` panel
+- focused tests for fixture validation, Render Plan compilation, bridge
+  coverage, unsupported capabilities, and source-boundary safety
+
+Coverage map result:
+
+- Direct bridge coverage exists today for workspace aliases emitted by the
+  current bridge:
+  `--nexus-workspace-bg`, `--nexus-workspace-grid-primary`,
+  `--nexus-workspace-grid-secondary`, and `--nexus-workspace-wash`.
+- Fallback-driven coverage exists for panel, glass, right dock, TopBar,
+  message bubble generic chrome, AgentWindow, CommandPalette, modal shell, and
+  Datapad shell through `--panel-bg`, `--border-subtle`, `--shadow-panel`,
+  `--surface-radius`, `--glass-blur`, and text/accent bridge targets.
+- Style Lab smoke variables can still set many dedicated aliases directly for
+  isolated visual apply/revert, but those dedicated component aliases are not
+  yet emitted by the Render Plan / Production Bridge as production bridge
+  variables.
+
+Reference elements currently possible:
+
+- frosted glass panel feel through panel/glass fallback variables
+- warm neutral workspace and shell mood through base surface tokens
+- soft borders, shadows, blur, and rounded chrome
+- message, window, command palette, modal, and Datapad shell approximation in
+  the isolated Style Lab harness
+
+Reference elements still missing:
+
+- desert atelier background image/scene
+- right metrics panel recipe
+- agent card recipe
+- top segmented navigation/control primitive recipe
+- typography scale cleanup and production font policy
+- packaged asset/background pipeline
+- layout preset/page shell arrangement
+- authenticated production `/` smoke for live behavior-bearing surfaces
+
+Boundaries held:
+
+- no production source selectors or aliases were added
+- no `nexus-ops.tsx`, graph, store, sync, backend, Supabase, API, deploy/config,
+  exports, runtime token persistence, asset production apply, or layout preset
+  production apply work is part of this map
+
+Next seed:
+
+- `V19 Warm Glass Ops Production Alias Bridge Expansion Plan`
+- decide whether dedicated component aliases should be added to the production
+  bridge output, remain fallback-driven, or wait for recipe-specific bridge
+  stages
+- keep the next step pure and Style Lab scoped unless a separate production
+  gate explicitly opens runtime apply

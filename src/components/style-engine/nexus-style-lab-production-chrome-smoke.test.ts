@@ -65,6 +65,11 @@ describe("Nexus Style Lab production chrome smoke harness", () => {
     expect(source).toContain("--nexus-top-bar-border");
     expect(source).toContain("--nexus-right-dock-bg");
     expect(source).toContain("--nexus-right-dock-border");
+    expect(source).toContain("--nexus-command-palette-bg");
+    expect(source).toContain("--nexus-command-palette-border");
+    expect(source).toContain("--nexus-command-palette-shadow");
+    expect(source).toContain("--nexus-command-palette-radius");
+    expect(source).toContain("--nexus-command-palette-blur");
     expect(source).toContain("--nexus-workspace-bg");
     expect(source).toContain("--nexus-message-user-bg");
     expect(source).toContain("--nexus-message-assistant-bg");

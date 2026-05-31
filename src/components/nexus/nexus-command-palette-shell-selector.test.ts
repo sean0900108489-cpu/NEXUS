@@ -37,15 +37,66 @@ describe("Nexus command palette shell selector", () => {
     expect(source).toContain("value={query}");
   });
 
-  it("does not introduce token aliases or an extraction frame in this prep step", () => {
+  it("routes visual chrome through dedicated aliases with panel fallbacks", () => {
     const css = readGlobalsCssSource();
-    const source = readCommandPaletteSource();
+    const block = readCommandPaletteCssBlock();
 
-    expect(css).not.toContain("--nexus-command-palette");
+    expect(css).toContain(".nexus-shell .nexus-command-palette-shell");
+    expect(block).toContain("--nexus-command-palette-bg");
+    expect(block).toContain("--nexus-command-palette-border");
+    expect(block).toContain("--nexus-command-palette-shadow");
+    expect(block).toContain("--nexus-command-palette-radius");
+    expect(block).toContain("--nexus-command-palette-blur");
+    expect(block).toContain(
+      "var(--nexus-command-palette-bg, var(--nexus-panel-bg, var(--panel-bg)))",
+    );
+    expect(block).toContain(
+      "var(--nexus-command-palette-border, var(--nexus-panel-border, var(--border-subtle)))",
+    );
+    expect(block).toContain(
+      "var(--nexus-command-palette-shadow, var(--nexus-panel-shadow, var(--shadow-panel)))",
+    );
+    expect(block).toContain(
+      "var(--nexus-command-palette-radius, var(--nexus-panel-radius, var(--surface-radius)))",
+    );
+    expect(block).toContain(
+      "var(--nexus-command-palette-blur, var(--nexus-panel-blur, var(--glass-blur)))",
+    );
+  });
+
+  it("keeps CSS aliasing out of behavior, layout, input, and command item states", () => {
+    const source = readCommandPaletteSource();
+    const block = readCommandPaletteCssBlock();
+    const forbiddenCssPatterns = [
+      /\bposition\s*:/,
+      /\bz-index\s*:/,
+      /\bpointer-events\s*:/,
+      /\boverflow\s*:/,
+      /\bwidth\s*:/,
+      /\bheight\s*:/,
+      /\bmin-width\s*:/,
+      /\bmin-height\s*:/,
+      /\bmax-width\s*:/,
+      /\bmax-height\s*:/,
+      /\btransform\s*:/,
+      /\bcursor\s*:/,
+      /\n\s*color\s*:/,
+      /:hover/,
+      /:focus/,
+      /\binput\b/,
+      /\bbutton\b/,
+    ];
+
     expect(source).not.toContain("CommandPaletteShellFrame");
     expect(
       existsSync(new URL("nexus-command-palette-shell-frame.tsx", import.meta.url)),
     ).toBe(false);
+
+    for (const pattern of forbiddenCssPatterns) {
+      expect(block, `Command palette CSS should not match ${pattern}`).not.toMatch(
+        pattern,
+      );
+    }
   });
 });
 
@@ -62,4 +113,12 @@ function readCommandPaletteSource() {
 
 function readGlobalsCssSource() {
   return readFileSync(new URL("../../app/globals.css", import.meta.url), "utf8");
+}
+
+function readCommandPaletteCssBlock() {
+  const css = readGlobalsCssSource();
+
+  return css.match(
+    /\.nexus-shell \.nexus-command-palette-shell \{[\s\S]*?\.nexus-shell \.nexus-message-bubble \{/,
+  )?.[0] ?? "";
 }

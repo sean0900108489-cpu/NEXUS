@@ -873,3 +873,66 @@ Remaining production-auth-only checks:
 - Overlay click close and Escape close
 - Command buttons remain unexecuted during visual smoke unless a dedicated safe
   interaction script exists
+
+## 19. V19 Production Skinning 40-to-60 ROI Loop 06
+
+Implemented during
+`20260531-v19-production-skinning-40-to-60-roi-loop-06`.
+
+Target:
+
+- `CommandPalette` shell/chrome token aliases
+
+Path:
+
+- CSS-only alias adoption on the existing `.nexus-command-palette-shell`
+  selector from Loop 05.
+- No changes to `src/components/nexus/nexus-ops.tsx`.
+- No command behavior, focus handling, keyboard shortcut, overlay close, input
+  state, command execution, z-index, or modal positioning changes.
+
+Aliases added:
+
+- `--nexus-command-palette-bg`
+- `--nexus-command-palette-border`
+- `--nexus-command-palette-shadow`
+- `--nexus-command-palette-radius`
+- `--nexus-command-palette-blur`
+
+Fallback chain:
+
+- dedicated command palette alias
+- existing `.nexus-panel` alias
+- current cyberpunk baseline variable
+
+CSS scope:
+
+- `.nexus-shell .nexus-command-palette-shell`
+
+Intentionally not tokenized:
+
+- overlay backdrop
+- input text, placeholder, caret, focus ring, or state
+- command item hover, active, disabled, or execution states
+- close button
+- keyboard shortcut behavior
+- command execution
+- z-index, position, dimensions, overflow, layout geometry, pointer events, or
+  modal/focus ownership
+
+Style Lab smoke:
+
+- Added command palette smoke variables to the isolated `/style-lab`
+  `Production Chrome Smoke` harness.
+- Smoke variables still apply only to the local
+  `productionChromeSmokeTargetRef` container.
+- No document-root mutation, localStorage, IndexedDB, store, sync, backend,
+  Supabase, API, runtime token persistence, or production command logic was
+  introduced.
+
+Remaining production-auth-only checks:
+
+- real `/` authenticated palette open/close and autofocus smoke
+- overlay click close and Escape close in the authenticated production shell
+- command buttons should remain unexecuted in visual smoke unless a dedicated
+  safe command interaction script exists

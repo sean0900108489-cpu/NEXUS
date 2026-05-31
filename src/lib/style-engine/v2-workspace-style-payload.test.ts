@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { createWarmGlassOpsSkinPackV2Fixture } from "./v2-fixtures";
 import {
+  createWorkspaceStylePayloadExportSnapshot,
   extractWorkspaceStylePayloadFromSnapshot,
   normalizeWorkspaceStylePayload,
   NEXUS_WORKSPACE_STYLE_PAYLOAD_MAX_BYTES,
@@ -121,5 +122,60 @@ describe("workspace style payload adapter", () => {
 
     expect(result.status).toBe("rejected-style-only");
     expect(result.reasons).toContain("workspaceStylePayload.emptyStyleBody");
+  });
+
+  it("keeps export snapshots old-compatible when there is no style payload", () => {
+    const snapshot = {
+      exportedAt: "2026-05-31T00:00:00.000Z",
+      schemaVersion: 1,
+      workspace: { id: "workspace-old-compatible" },
+    };
+    const result = createWorkspaceStylePayloadExportSnapshot(snapshot);
+
+    expect(result.status).toBe("omitted-missing");
+    expect(result.snapshot).toEqual(snapshot);
+    expect("stylePack" in result.snapshot).toBe(false);
+  });
+
+  it("includes a normalized style payload in export snapshots when valid", () => {
+    const snapshot = {
+      exportedAt: "2026-05-31T00:00:00.000Z",
+      schemaVersion: 1,
+      workspace: { id: "workspace-with-style" },
+    };
+    const stylePack = {
+      bridgeSummary: {
+        checksum: "nexus-style-fnv1a32:85e89afc",
+        directAliases: 58,
+        families: 10,
+      },
+      skinPack: createWarmGlassOpsSkinPackV2Fixture(),
+      source: "style-lab",
+      version: "style-pack-v2",
+    };
+    const result = createWorkspaceStylePayloadExportSnapshot(snapshot, stylePack);
+
+    expect(result.status).toBe("included");
+    expect(result.snapshot.stylePack?.skinPack?.id).toBe("warm-glass-ops-skin");
+    expect(result.snapshot.workspace).toEqual(snapshot.workspace);
+  });
+
+  it("omits invalid style payloads during export without mutating the input", () => {
+    const snapshot = {
+      exportedAt: "2026-05-31T00:00:00.000Z",
+      schemaVersion: 1,
+      stylePack: { version: "unsafe-existing" },
+      workspace: { id: "workspace-invalid-style" },
+    };
+    const before = structuredClone(snapshot);
+    const result = createWorkspaceStylePayloadExportSnapshot(snapshot, {
+      controls: { rawCss: "body { display: none; }" },
+      source: "style-lab",
+      version: "style-pack-v2",
+    });
+
+    expect(result.status).toBe("omitted-invalid");
+    expect("stylePack" in result.snapshot).toBe(false);
+    expect(snapshot).toEqual(before);
   });
 });

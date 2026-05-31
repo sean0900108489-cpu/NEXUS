@@ -106,7 +106,17 @@ import {
   NEXUS_RUNTIME_AUTHORIZATION_HEADER,
   nexusApiClient,
 } from "@/lib/api/nexus-api-client";
-import { createNotebookRecoveryMetadata, parseWorkspaceSnapshot } from "@/lib/workspace-kernel";
+import {
+  createNotebookRecoveryMetadata,
+  parseWorkspaceSnapshot,
+} from "@/lib/workspace-kernel";
+import {
+  createWorkspaceStylePayloadExportSnapshot,
+  extractWorkspaceStylePayloadFromSnapshot,
+  type WorkspaceStylePayloadExportStatus,
+  type WorkspaceStylePayloadImportDecision,
+  type WorkspaceStylePayloadImportStatus,
+} from "@/lib/style-engine/v2-workspace-style-payload";
 import { buildLocalWorkspaceRecoveryContext } from "@/lib/workspace-recovery-local";
 import { hasToolExecutor } from "@/lib/tool-executors";
 import { fetchWithBackoff, isAbortLikeError } from "@/lib/stream-retry";
@@ -225,6 +235,11 @@ type WorkspaceSize = {
   height: number;
 };
 
+type WorkspaceStylePayloadReviewState = {
+  decision: WorkspaceStylePayloadImportDecision;
+  updatedAt: string;
+};
+
 type ClientStreamEvent =
   | {
       type: "meta";
@@ -269,6 +284,38 @@ function cssNumber(value: string | undefined, fallback: number) {
   const parsed = Number.parseFloat(value ?? "");
 
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function createWorkspaceStylePayloadImportNotice(
+  status: WorkspaceStylePayloadImportStatus,
+) {
+  if (status === "accepted") {
+    return "Workspace snapshot imported; style payload accepted for review";
+  }
+
+  if (status === "rejected-style-only") {
+    return "Workspace snapshot imported; style payload rejected";
+  }
+
+  if (status === "unsupported-version") {
+    return "Workspace snapshot imported; style payload version unsupported";
+  }
+
+  return "Workspace snapshot imported";
+}
+
+function createWorkspaceStylePayloadExportNotice(
+  status: WorkspaceStylePayloadExportStatus,
+) {
+  if (status === "included") {
+    return "Workspace snapshot exported with style payload";
+  }
+
+  if (status === "omitted-invalid") {
+    return "Workspace snapshot exported; style payload omitted";
+  }
+
+  return "Workspace snapshot exported";
 }
 
 function normalizeThemeConfig(
@@ -667,6 +714,8 @@ export function NexusOps() {
   const [activeRightPanel, setActiveRightPanel] = useState<RightDockPanelId | null>(null);
   const [leftDockOpen, setLeftDockOpen] = useState(false);
   const [notice, setNotice] = useState("Workspace persistence online");
+  const [workspaceStylePayloadReview, setWorkspaceStylePayloadReview] =
+    useState<WorkspaceStylePayloadReviewState | null>(null);
   const [macros, setMacros] = useState<WorkflowTemplateRecord[]>([]);
   const [macrosLoading, setMacrosLoading] = useState(false);
   const [macroError, setMacroError] = useState<string | undefined>();
@@ -1213,8 +1262,14 @@ export function NexusOps() {
 
   const handleExport = useCallback(() => {
     const downloadSnapshot = (snapshot: WorkspaceSnapshot) => {
+      const exportDecision = createWorkspaceStylePayloadExportSnapshot(
+        snapshot,
+        workspaceStylePayloadReview?.decision.status === "accepted"
+          ? workspaceStylePayloadReview.decision.payload
+          : undefined,
+      );
       const url = URL.createObjectURL(
-        new Blob([JSON.stringify(snapshot, null, 2)], {
+        new Blob([JSON.stringify(exportDecision.snapshot, null, 2)], {
           type: "application/json",
         }),
       );
@@ -1223,24 +1278,25 @@ export function NexusOps() {
       link.download = `nexus-ai-ops-${Date.now()}.json`;
       link.click();
       URL.revokeObjectURL(url);
+      return exportDecision.status;
     };
 
     void localSyncQueueAdapter
       .getOperations()
       .then((operations) => {
-        downloadSnapshot(
+        const exportStatus = downloadSnapshot(
           exportActiveWorkspace({
             notebookRecovery: createNotebookRecoveryMetadata(operations),
           }),
         );
-        setNotice("Workspace snapshot exported");
+        setNotice(createWorkspaceStylePayloadExportNotice(exportStatus));
       })
       .catch((error) => {
         console.error("[Workspace Export Sync Metadata Error]:", error);
-        downloadSnapshot(exportActiveWorkspace());
-        setNotice("Workspace snapshot exported");
+        const exportStatus = downloadSnapshot(exportActiveWorkspace());
+        setNotice(createWorkspaceStylePayloadExportNotice(exportStatus));
       });
-  }, [exportActiveWorkspace]);
+  }, [exportActiveWorkspace, workspaceStylePayloadReview]);
 
   const handleImport = useCallback(async (file?: File) => {
     if (!file) {
@@ -1250,11 +1306,15 @@ export function NexusOps() {
     try {
       const text = await file.text();
       const result = parseWorkspaceSnapshot(text);
-      const snapshot = JSON.parse(text) as Partial<WorkspaceSnapshot>;
 
       if (!result.ok) {
         throw new Error(result.error);
       }
+
+      const snapshot = JSON.parse(text) as Partial<WorkspaceSnapshot> & {
+        stylePack?: unknown;
+      };
+      const styleDecision = extractWorkspaceStylePayloadFromSnapshot(snapshot);
 
       importWorkspace({
         schemaVersion: 1,
@@ -1268,7 +1328,11 @@ export function NexusOps() {
         notebooks: Array.isArray(snapshot.notebooks) ? snapshot.notebooks : undefined,
         workspace: result.workspace,
       });
-      setNotice("Workspace snapshot imported");
+      setWorkspaceStylePayloadReview({
+        decision: styleDecision,
+        updatedAt: new Date().toISOString(),
+      });
+      setNotice(createWorkspaceStylePayloadImportNotice(styleDecision.status));
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Import failed");
     }

@@ -37,6 +37,18 @@ export type WorkspaceStylePayloadImportDecision = {
   reasons: string[];
 };
 
+export type WorkspaceStylePayloadExportStatus =
+  | "included"
+  | "omitted-missing"
+  | "omitted-invalid";
+
+export type WorkspaceStylePayloadExportDecision<TSnapshot extends object> = {
+  status: WorkspaceStylePayloadExportStatus;
+  snapshot: TSnapshot & { stylePack?: WorkspaceStylePayloadV1 };
+  payload: WorkspaceStylePayloadV1 | null;
+  reasons: string[];
+};
+
 const allowedPayloadKeys = new Set([
   "version",
   "source",
@@ -78,6 +90,45 @@ export function extractWorkspaceStylePayloadFromSnapshot(
   }
 
   return normalizeWorkspaceStylePayload(snapshot.stylePack);
+}
+
+export function createWorkspaceStylePayloadExportSnapshot<
+  TSnapshot extends object,
+>(
+  snapshot: TSnapshot,
+  candidate?: unknown,
+): WorkspaceStylePayloadExportDecision<TSnapshot> {
+  const snapshotWithoutStyle = omitStylePayload(snapshot);
+
+  if (candidate === undefined || candidate === null) {
+    return {
+      payload: null,
+      reasons: ["workspaceStylePayload.exportMissing"],
+      snapshot: snapshotWithoutStyle,
+      status: "omitted-missing",
+    };
+  }
+
+  const decision = normalizeWorkspaceStylePayload(candidate);
+
+  if (decision.status !== "accepted" || !decision.payload) {
+    return {
+      payload: null,
+      reasons: decision.reasons,
+      snapshot: snapshotWithoutStyle,
+      status: "omitted-invalid",
+    };
+  }
+
+  return {
+    payload: decision.payload,
+    reasons: [],
+    snapshot: {
+      ...snapshotWithoutStyle,
+      stylePack: decision.payload,
+    },
+    status: "included",
+  };
 }
 
 export function normalizeWorkspaceStylePayload(
@@ -220,6 +271,18 @@ function calculateJsonSize(value: unknown) {
 
 function cloneJsonRecord(value: Record<string, unknown>) {
   return JSON.parse(JSON.stringify(value)) as Record<string, unknown>;
+}
+
+function omitStylePayload<TSnapshot extends object>(
+  snapshot: TSnapshot,
+): TSnapshot & { stylePack?: WorkspaceStylePayloadV1 } {
+  const rest = { ...(snapshot as TSnapshot & { stylePack?: unknown }) };
+
+  delete (rest as TSnapshot & {
+    stylePack?: unknown;
+  }).stylePack;
+
+  return rest as TSnapshot & { stylePack?: WorkspaceStylePayloadV1 };
 }
 
 function scanUnsafeJson(value: unknown, path: string): string[] {

@@ -17,6 +17,11 @@ describe("Nexus production Theme panel live style controls", () => {
     "WorkspaceStyleControlsPanel",
     "ModelTuningSelect",
   );
+  const presetDefinitionsSource = extractConstSource(
+    source,
+    "workspaceStylePresetDefinitions",
+    "function WorkspaceStyleControlsPanel",
+  );
   const topBarSource = extractFunctionSource(source, "TopBar", "SyncBadge");
   const topMenuActionSource = extractFunctionSource(
     source,
@@ -53,6 +58,35 @@ describe("Nexus production Theme panel live style controls", () => {
     expect(controlsPanelSource).toContain("synced to workspace seed");
     expect(controlsPanelSource).toContain("workspace override saved");
     expect(controlsPanelSource).toContain("live override unsaved");
+  });
+
+  it("adds workspace style presets as Layer 4 shortcuts on the existing controls chain", () => {
+    expect(source).toContain("workspaceStylePresetDefinitions");
+    expect(source).toContain("type WorkspaceStylePresetDefinition");
+    expect(controlsPanelSource).toContain("Workspace Style Presets");
+    expect(controlsPanelSource).toContain('data-testid="workspace-style-presets"');
+    expect(controlsPanelSource).toContain(
+      'data-testid={`workspace-style-preset-${preset.id}`}',
+    );
+    expect(controlsPanelSource).toContain("applyWorkspaceStylePreset");
+    expect(controlsPanelSource).toContain("...baseThemeControls");
+    expect(controlsPanelSource).toContain("...preset.controls");
+    expect(controlsPanelSource).toContain("version: baseThemeControls.version");
+    expect(controlsPanelSource).toContain("compareWorkspaceThemeControls");
+    expect(controlsPanelSource).toContain("Layer 4");
+  });
+
+  it("keeps presets deterministic and free of raw style payload escape hatches", () => {
+    expect(presetDefinitionsSource).toContain('id: "neutral"');
+    expect(presetDefinitionsSource).toContain('id: "clear"');
+    expect(presetDefinitionsSource).toContain('id: "soft"');
+    expect(presetDefinitionsSource).toContain('id: "signal"');
+    expect(presetDefinitionsSource).toContain('accent: "custom"');
+    expect(presetDefinitionsSource).not.toContain("rawSelector");
+    expect(presetDefinitionsSource).not.toContain("rawJs");
+    expect(presetDefinitionsSource).not.toContain("javascript:");
+    expect(presetDefinitionsSource).not.toContain("http://");
+    expect(presetDefinitionsSource).not.toContain("https://");
   });
 
   it("uses the first-cut target selector and transaction planner for live preview", () => {
@@ -201,4 +235,18 @@ function extractCallbackSource(source: string, callbackName: string) {
   expect(start).toBeGreaterThanOrEqual(0);
 
   return source.slice(start, nextCallback === -1 ? undefined : nextCallback);
+}
+
+function extractConstSource(
+  source: string,
+  constName: string,
+  nextMarker: string,
+) {
+  const start = source.indexOf(`const ${constName}`);
+  const end = source.indexOf(nextMarker, start + 1);
+
+  expect(start).toBeGreaterThanOrEqual(0);
+  expect(end).toBeGreaterThan(start);
+
+  return source.slice(start, end);
 }

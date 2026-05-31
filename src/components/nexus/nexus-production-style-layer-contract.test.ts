@@ -94,6 +94,18 @@ describe("Nexus production style layer contract", () => {
     expect(controlsPanelSource).not.toContain("text-violet-100");
   });
 
+  it("keeps workspace style presets as Layer 4 control shortcuts, not a second apply path", () => {
+    expect(nexusOpsSource).toContain("workspaceStylePresetDefinitions");
+    expect(controlsPanelSource).toContain("Workspace Style Presets");
+    expect(controlsPanelSource).toContain("applyWorkspaceStylePreset");
+    expect(controlsPanelSource).toContain("updateControls({");
+    expect(controlsPanelSource).toContain("...preset.controls");
+    expect(controlsPanelSource).toContain("version: baseThemeControls.version");
+    expect(controlsPanelSource).not.toContain("querySelectorAll");
+    expect(controlsPanelSource).not.toContain("document.documentElement");
+    expect(controlsPanelSource).not.toContain("document.body");
+  });
+
   it("keeps workspace style export on normalized controls without backend persistence", () => {
     expect(nexusOpsSource).toContain("createWorkspaceThemeStylePayloadForExport");
     expect(nexusOpsSource).toContain("createWorkspaceThemeStyleControlsPayloadV1");

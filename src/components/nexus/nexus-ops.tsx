@@ -4399,6 +4399,76 @@ function AgentSettingsSidebar({
   );
 }
 
+type WorkspaceStylePresetDefinition = {
+  id: string;
+  label: string;
+  description: string;
+  controls: Omit<WorkspaceThemeStyleControlsV1, "version">;
+};
+
+const workspaceStylePresetDefinitions = [
+  {
+    controls: {
+      accent: "custom",
+      accentColor: "#e5e7eb",
+      blur: 16,
+      glass: 54,
+      radius: 18,
+      shadow: 34,
+      warmth: 48,
+      workspaceWash: 42,
+    },
+    description: "Neutral surface",
+    id: "neutral",
+    label: "Neutral",
+  },
+  {
+    controls: {
+      accent: "custom",
+      accentColor: "#8bd3ff",
+      blur: 8,
+      glass: 38,
+      radius: 14,
+      shadow: 20,
+      warmth: 36,
+      workspaceWash: 30,
+    },
+    description: "Low haze",
+    id: "clear",
+    label: "Clear",
+  },
+  {
+    controls: {
+      accent: "custom",
+      accentColor: "#f5f5f4",
+      blur: 24,
+      glass: 70,
+      radius: 24,
+      shadow: 48,
+      warmth: 52,
+      workspaceWash: 52,
+    },
+    description: "Soft panels",
+    id: "soft",
+    label: "Soft",
+  },
+  {
+    controls: {
+      accent: "custom",
+      accentColor: "#facc15",
+      blur: 14,
+      glass: 50,
+      radius: 16,
+      shadow: 58,
+      warmth: 44,
+      workspaceWash: 24,
+    },
+    description: "High signal",
+    id: "signal",
+    label: "Signal",
+  },
+] as const satisfies readonly WorkspaceStylePresetDefinition[];
+
 function WorkspaceStyleControlsPanel({
   onSaveWorkspaceThemeStyleControls,
   stylePayloadReview,
@@ -4732,6 +4802,17 @@ function WorkspaceStyleControlsPanel({
     updateControls(nextControls);
   }, [baseThemeControls, savedControls, updateControls]);
 
+  const applyWorkspaceStylePreset = useCallback(
+    (preset: WorkspaceStylePresetDefinition) => {
+      updateControls({
+        ...baseThemeControls,
+        ...preset.controls,
+        version: baseThemeControls.version,
+      });
+    },
+    [baseThemeControls, updateControls],
+  );
+
   const rangeControl = ({
     key,
     label,
@@ -4855,6 +4936,55 @@ function WorkspaceStyleControlsPanel({
             {previewState.error}
           </div>
         ) : null}
+      </div>
+
+      <div
+        className="mb-3 border p-3"
+        data-testid="workspace-style-presets"
+        style={{
+          ...panelMutedMaterialStyle,
+        }}
+      >
+        <div className="mb-2 flex items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+          <span>Workspace Style Presets</span>
+          <span className="text-slate-100">Layer 4</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {workspaceStylePresetDefinitions.map((preset) => {
+            const presetControls = {
+              ...baseThemeControls,
+              ...preset.controls,
+              version: baseThemeControls.version,
+            };
+            const isActivePreset = compareWorkspaceThemeControls(
+              controls,
+              presetControls,
+            );
+
+            return (
+              <button
+                className="min-h-14 border px-3 py-2 text-left font-mono uppercase tracking-[0.1em] text-slate-100 transition hover:bg-white/[0.06]"
+                data-testid={`workspace-style-preset-${preset.id}`}
+                key={preset.id}
+                onClick={() => applyWorkspaceStylePreset(preset)}
+                style={{
+                  background:
+                    "var(--nexus-layout-panel-muted-bg, linear-gradient(180deg, rgb(255 255 255 / 0.045), rgb(255 255 255 / 0.012))), var(--nexus-panel-bg, rgb(0 0 0 / 0.2))",
+                  borderColor: isActivePreset
+                    ? `${activeAccent}99`
+                    : "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.1)))",
+                  borderRadius: controlRadius,
+                }}
+                type="button"
+              >
+                <span className="block text-[10px]">{preset.label}</span>
+                <span className="mt-1 block text-[8px] text-slate-500">
+                  {preset.description}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="grid gap-2">

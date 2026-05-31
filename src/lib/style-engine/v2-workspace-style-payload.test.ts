@@ -154,6 +154,7 @@ describe("workspace style payload adapter", () => {
       first.variables["--nexus-panel-border"],
     );
     expect(first.variables["--nexus-workspace-minimap-mask"]).toContain("rgb(");
+    expect(first.variables["--nexus-workspace-wash"]).not.toContain("255 240 216");
     expect(first.variableNames.every((name) => name.startsWith("--"))).toBe(true);
     expect(JSON.stringify(first.variables)).not.toMatch(
       /<script|javascript:|https?:\/\/|url\(|body\s*\{|html\s*\{|:root\s*\{/i,
@@ -179,6 +180,9 @@ describe("workspace style payload adapter", () => {
 
     expect(lowWash.variables["--nexus-workspace-bg"]).not.toBe(
       highWash.variables["--nexus-workspace-bg"],
+    );
+    expect(lowWash.variables["--nexus-workspace-wash"]).not.toBe(
+      highWash.variables["--nexus-workspace-wash"],
     );
     expect(lowWash.variables["--nexus-body-frame-bg"]).not.toBe(
       highWash.variables["--nexus-body-frame-bg"],

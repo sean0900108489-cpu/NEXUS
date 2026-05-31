@@ -861,24 +861,22 @@ function createWorkspaceThemeStylePreviewVariables(
   const blur = `${controls.blur}px`;
   const shadowOpacity = 0.18 + shadow * 0.22;
   const accentGlowOpacity = 0.05 + shadow * 0.13;
-  const workspaceWashOpacity = 0.06 + wash * 0.28;
-  const workspaceDepth = 0.64 + wash * 0.36;
+  const workspaceBrightness = 0.42 + wash * 0.36;
+  const workspaceWashOpacity = 0.018 + wash * 0.065;
   const layoutTintOpacity = 0.08 + wash * 0.13;
   const panel = rgb([warmRed, warmGreen, warmBlue], panelOpacity);
   const glassPanel = rgb([Math.min(warmRed + 22, 255), Math.min(warmGreen + 20, 255), Math.min(warmBlue + 18, 255)], glassOpacity);
   const border = rgb(accent.rgb, borderOpacity);
   const layoutPanel = `linear-gradient(180deg, ${rgb(accent.rgb, layoutTintOpacity)}, ${rgb([warmRed, warmGreen, warmBlue], 0.16 + glass * 0.16)})`;
   const layoutPanelMuted = `linear-gradient(180deg, ${rgb(accent.rgb, 0.03 + wash * 0.06)}, ${rgb([warmRed, warmGreen, warmBlue], 0.08 + glass * 0.12)})`;
-  const workspaceBg = rgb(
-    [
-      Math.round((16 + warmth * 26 + wash * 34) * workspaceDepth),
-      Math.round((14 + warmth * 22 + wash * 30) * workspaceDepth),
-      Math.round((13 + warmth * 16 + wash * 24) * workspaceDepth),
-    ],
-    0.96,
-  );
+  const workspaceSurfaceRgb: [number, number, number] = [
+    Math.round((12 + warmth * 22 + wash * 18) * workspaceBrightness),
+    Math.round((11 + warmth * 18 + wash * 15) * workspaceBrightness),
+    Math.round((10 + warmth * 14 + wash * 12) * workspaceBrightness),
+  ];
+  const workspaceBg = rgb(workspaceSurfaceRgb, 0.98);
   const workspaceWash =
-    `linear-gradient(135deg, ${rgb([255, 240, 216], workspaceWashOpacity)}, ${rgb(accent.rgb, 0.04 + wash * 0.08)})`;
+    `linear-gradient(135deg, ${rgb(accent.rgb, workspaceWashOpacity)}, ${rgb([warmRed, warmGreen, warmBlue], 0.016 + wash * 0.045)})`;
   const shadowValue =
     `0 24px ${Math.round(42 + shadow * 58)}px rgb(48 32 20 / ${alpha(shadowOpacity)}), 0 0 ${Math.round(14 + shadow * 34)}px ${rgb(accent.rgb, accentGlowOpacity)}`;
   const outerShellBg =

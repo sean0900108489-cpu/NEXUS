@@ -921,6 +921,7 @@ export function NexusGraph({
           <WorkflowGraphStatus feedback={workflowFeedback} />
         </div>
         <Background
+          bgColor="transparent"
           color="var(--nexus-workspace-grid-primary, rgba(34, 211, 238, 0.22))"
           gap={28}
           size={1}

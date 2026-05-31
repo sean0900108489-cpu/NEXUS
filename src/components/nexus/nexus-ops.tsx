@@ -4877,7 +4877,7 @@ function WorkspaceStyleControlsPanel({
         })}
         {rangeControl({
           key: "workspaceWash",
-          label: "Surface Brightness",
+          label: "Surface Lightness",
           max: 100,
         })}
 

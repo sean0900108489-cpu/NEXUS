@@ -1206,3 +1206,63 @@ Remaining production-auth-only checks:
 - real notebook draft, save, delete, focus, scroll, drag/resize, and z-index
   behavior checks remain outside token alias work
 - upload/download/artifact checks remain outside this shell alias path
+
+## 24. V19 Production Skinning 60 Percent Gate
+
+Recorded during
+`20260531-v19-production-skinning-60-percent-gate`.
+
+Verdict:
+
+- Pass: V19 production skinning has reached the 60% readiness gate for
+  high-visibility shell, content, and chrome surfaces.
+- This is a controlled readiness pass, not a claim that every authenticated
+  production interaction has been re-smoked locally.
+
+Evidence basis:
+
+- Source-level alias coverage now exists for right dock, TopBar, outer shell,
+  workspace, message bubbles, AgentWindow, CommandPalette, modal shell, Datapad
+  shell, and the panel/glass bridge primitives.
+- The isolated `/style-lab` `Production Chrome Smoke` harness can visually
+  apply and revert the core chrome aliases without auth, store, sync, backend,
+  Supabase, API, Rnd, React Flow, or production behavior.
+- The latest token alias loops for CommandPalette, modal shell, and Datapad
+  shell passed focused tests, typecheck, targeted lint, build, and Style Lab
+  browser smoke.
+- Earlier direct browser apply/revert evidence exists for right dock, TopBar,
+  workspace primitive coverage, and message bubbles. AgentWindow's live local
+  production smoke remains auth-gated, but its aliases are now covered in the
+  isolated harness.
+
+Remaining gaps:
+
+- Real authenticated `/` smoke is still needed for live AgentWindow instances,
+  CommandPalette open/close/autofocus, AgentBranchModal open/close without
+  submit, Datapad open/close without save/delete, and any live right-dock active
+  panel checks.
+- Right-dock artifact/vault persistence panels remain intentionally excluded
+  from this gate unless a future selector-only pass proves a behavior-free
+  visual shell.
+- Runtime token persistence, production token apply, asset pack production
+  apply, layout preset production apply, backend/store/sync/API changes, React
+  Flow behavior, and drag/resize/focus/z-index behavior remain out of scope.
+
+Rollback readiness:
+
+- Each adopted surface has a narrow rollback path: revert the relevant loop
+  commit or remove the scoped selector alias block, focused guard assertions,
+  harness smoke variables, and map/checkpoint entry.
+- Fallback chains continue to route from dedicated aliases to panel/glass or
+  current cyberpunk baseline values.
+
+Next 60-to-80 route:
+
+- Next task seed: `V19 Render Plan To Production Alias Coverage Map`.
+- Goal: map V2 Render Plan / Bridge Plan variables to the adopted production
+  aliases and show coverage in Style Lab.
+- Prioritize a non-persistent coverage report and preview-only bridge
+  inspection over new production selectors or aliases.
+- Avoid right-dock artifact/vault persistence panels, backend/store/sync/API,
+  asset pack production apply, layout preset production apply, runtime
+  persistence, and broad `nexus-ops.tsx` refactors.

@@ -439,6 +439,18 @@ button {
   backdrop-filter: blur(var(--nexus-modal-shell-blur, var(--nexus-panel-blur, var(--glass-blur)))) !important;
 }
 
+.nexus-shell .nexus-datapad-shell {
+  background: var(--nexus-datapad-shell-bg, var(--nexus-panel-bg, rgb(2 6 23 / 0.94)));
+  border-color: var(--nexus-datapad-shell-border, var(--nexus-panel-border, rgb(110 231 183 / 0.3)));
+  border-radius: var(--nexus-datapad-shell-radius, var(--nexus-panel-radius, var(--surface-radius)));
+  box-shadow: var(
+    --nexus-datapad-shell-shadow,
+    var(--nexus-panel-shadow, 0 22px 70px rgb(0 0 0 / 0.55), 0 0 34px rgb(16 185 129 / 0.14))
+  );
+  -webkit-backdrop-filter: blur(var(--nexus-datapad-shell-blur, var(--nexus-panel-blur, var(--glass-blur)))) !important;
+  backdrop-filter: blur(var(--nexus-datapad-shell-blur, var(--nexus-panel-blur, var(--glass-blur)))) !important;
+}
+
 .nexus-shell .nexus-message-bubble {
   background: var(--nexus-message-bubble-bg, var(--nexus-panel-bg, rgb(34 211 238 / 0.07)));
   border-color: var(--nexus-message-bubble-border, var(--nexus-panel-border, rgb(103 232 249 / 0.25)));

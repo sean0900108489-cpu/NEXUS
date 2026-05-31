@@ -36,11 +36,25 @@ describe("Nexus datapad shell selector", () => {
     expect(source).toContain("onClick={() => deleteNotebook(notebook.id)}");
   });
 
-  it("does not add token aliases or frame extraction in this prep step", () => {
+  it("adds Datapad shell aliases in globals with panel and cyberpunk fallbacks", () => {
     const source = readDatapadWindowSource();
     const css = readGlobalsCssSource();
 
-    expect(css).not.toContain("--nexus-datapad-shell");
+    expect(css).toContain(".nexus-shell .nexus-datapad-shell");
+    expect(css).toContain(
+      "background: var(--nexus-datapad-shell-bg, var(--nexus-panel-bg, rgb(2 6 23 / 0.94)))",
+    );
+    expect(css).toContain(
+      "border-color: var(--nexus-datapad-shell-border, var(--nexus-panel-border, rgb(110 231 183 / 0.3)))",
+    );
+    expect(css).toContain(
+      "border-radius: var(--nexus-datapad-shell-radius, var(--nexus-panel-radius, var(--surface-radius)))",
+    );
+    expect(css).toContain("--nexus-datapad-shell-shadow");
+    expect(css).toContain("var(--nexus-panel-shadow, 0 22px 70px rgb(0 0 0 / 0.55)");
+    expect(css).toContain(
+      "backdrop-filter: blur(var(--nexus-datapad-shell-blur, var(--nexus-panel-blur, var(--glass-blur))))",
+    );
     expect(css).not.toContain("--nexus-datapad-bg");
     expect(css).not.toContain("--nexus-inspector");
     expect(source).not.toContain("DatapadShellFrame");

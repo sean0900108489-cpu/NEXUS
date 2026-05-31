@@ -1141,3 +1141,68 @@ Remaining future token step:
 - Do not tokenize title/content fields, save/delete/close buttons,
   drag/resize/z-index, scroll/focus behavior, file upload/download, artifact
   persistence, or notebook persistence in that alias loop.
+
+## 23. V19 Production Skinning 40-to-60 ROI Loop 10
+
+Implemented during
+`20260531-v19-production-skinning-40-to-60-roi-loop-10`.
+
+Target:
+
+- `DatapadWindow` inner shell/chrome token aliases
+
+Path:
+
+- CSS-only alias adoption on the existing `.nexus-datapad-shell` selector from
+  Loop 09.
+- No changes to `src/components/nexus/DatapadWindow.tsx`.
+- No notebook draft, save/delete/close, focus, scroll, drag/resize, z-index,
+  upload/download, artifact, persistence, or toolbar/action behavior changes.
+
+Aliases added:
+
+- `--nexus-datapad-shell-bg`
+- `--nexus-datapad-shell-border`
+- `--nexus-datapad-shell-shadow`
+- `--nexus-datapad-shell-radius`
+- `--nexus-datapad-shell-blur`
+
+Fallback chain:
+
+- dedicated Datapad shell alias
+- existing `.nexus-panel` alias
+- current cyberpunk baseline variable
+
+CSS scope:
+
+- `.nexus-shell .nexus-datapad-shell`
+
+Intentionally not tokenized:
+
+- title/content fields
+- save/delete/close buttons
+- toolbar controls
+- drag handle behavior
+- upload/download/artifact state
+- notebook draft or persistence
+- focus rings
+- scroll behavior
+- z-index, position, dimensions, layout geometry, overflow, pointer events, or
+  Rnd/window ownership
+
+Style Lab smoke:
+
+- Added Datapad shell smoke variables to the isolated `/style-lab`
+  `Production Chrome Smoke` harness.
+- Smoke variables still apply only to the local
+  `productionChromeSmokeTargetRef` container.
+- No document-root mutation, localStorage, IndexedDB, store, sync, backend,
+  Supabase, API, runtime token persistence, Datapad behavior, or production auth
+  was introduced.
+
+Remaining production-auth-only checks:
+
+- real authenticated `/` Datapad open/close smoke
+- real notebook draft, save, delete, focus, scroll, drag/resize, and z-index
+  behavior checks remain outside token alias work
+- upload/download/artifact checks remain outside this shell alias path

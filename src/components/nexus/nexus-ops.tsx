@@ -5813,7 +5813,7 @@ function ToolbarIconButton({
     <button
       aria-label={label}
       className={cx(
-        "grid h-7 w-7 place-items-center border text-slate-400 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35",
+        "nexus-control-icon-button-shell grid h-7 w-7 place-items-center border text-slate-400 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35",
         active && "border-cyan-300/50 bg-cyan-300/12 text-cyan-100",
         !active &&
           tone === "default" &&

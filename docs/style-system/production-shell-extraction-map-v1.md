@@ -1911,3 +1911,87 @@ Next seed:
   risk
 - add selectors only if an inert visual shell exists; otherwise produce a No-Go
   extraction map
+
+## 34. Production Control Primitive Selector-First Scan
+
+Recorded during
+`20260531-v19-production-control-primitive-selector-first-scan`.
+
+Selected path:
+
+- Path A selector prep
+
+Selected target:
+
+- AgentWindow toolbar icon-control shell in `src/components/nexus/nexus-ops.tsx`
+- helper: `ToolbarIconButton`
+- selector added: `nexus-control-icon-button-shell`
+
+Why selected:
+
+- highest ROI safe production control primitive found in the scan
+- drives many AgentWindow toolbar icon controls
+- close to the Warm Glass control chrome recipe specimen
+- selector could be added to the existing class string without changing
+  handlers, focus, keyboard, submit, validation, disabled logic, active logic,
+  state, layout, or styling
+
+Candidate ranking:
+
+1. AgentWindow toolbar icon controls
+   - selected
+   - behavior ownership remains in existing props:
+     `onClick`, `disabled`, `active`, and `tone`
+   - selector prep is source-only and CSS-free
+2. TopBar/menu action buttons and sync badge
+   - high visibility
+   - deferred because menu actions, retry behavior, active panel state, and
+     sync status behavior are directly attached
+3. AgentWindow composer input and send button
+   - high visual ROI
+   - deferred because form submit, keydown, focus, draft state, disabled state,
+     streaming/thinking state, and command execution are coupled
+4. Status badges and counters
+   - useful future primitive
+   - deferred because current status displays are scattered across sync, tools,
+     model vault, modal, and graph surfaces
+5. Command palette controls
+   - deferred because focus, keyboard, input state, close behavior, and command
+     execution are behavior-bearing
+6. Modal controls
+   - deferred because close, branch execution, busy state, validation, range
+     inputs, and form state are behavior-bearing
+7. Datapad controls
+   - deferred because save/delete/close, draft state, focus-on-mount, drag,
+     resize, and z-index ownership are behavior-bearing
+8. React Flow graph controls
+   - excluded because graph behavior is a standing forbidden boundary
+
+Verification:
+
+- focused source guard asserts the selector exists only as selector prep and
+  that `ToolbarIconButton` keeps `aria-label`, `disabled`, `onClick`, `title`,
+  `type`, active/default/danger branches, and disabled classes
+- focused source guard asserts no control primitive CSS aliases were added to
+  `src/app/globals.css`
+- `git diff --check`, focused test, typecheck, targeted lint, and build passed
+
+Browser smoke:
+
+- `/` loaded locally but showed the Identity Gate / Global Vault auth boundary
+- `.nexus-control-icon-button-shell` was not runtime-visible because
+  AgentWindow UI was not rendered without an authenticated session
+- observed network errors were only the known
+  `https://cdn.example.com/nexus/bg-cyberpunk.webp` placeholder baseline
+
+Readiness:
+
+- production skinning readiness estimate: about `78-79%`
+- this does not add aliases or styling, but it creates the first production
+  control primitive selector boundary for a high-visibility icon-control family
+
+Next seed:
+
+- `V19 Production Control Primitive Badge Selector Scan`
+- scan status badge/counter displays for a safe helper-level selector boundary
+  before any token alias work

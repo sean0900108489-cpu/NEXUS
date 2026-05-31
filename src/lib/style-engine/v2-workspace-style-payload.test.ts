@@ -3,10 +3,15 @@ import { describe, expect, it } from "vitest";
 import { createWarmGlassOpsSkinPackV2Fixture } from "./v2-fixtures";
 import {
   clearImportedWorkspaceStyleReviewState,
+  createDefaultWorkspaceThemeStyleControlsV1,
   createImportedWorkspaceStyleReviewState,
+  createWorkspaceThemeStyleControlsPayloadV1,
+  createWorkspaceThemeStylePreviewVariablesV1,
   createWorkspaceStylePayloadExportSnapshot,
+  extractWorkspaceThemeStyleControlsV1,
   extractWorkspaceStylePayloadFromSnapshot,
   normalizeWorkspaceStylePayload,
+  normalizeWorkspaceThemeStyleControlsV1,
   NEXUS_WORKSPACE_STYLE_PAYLOAD_MAX_BYTES,
   readImportedWorkspaceStyleReviewState,
   writeImportedWorkspaceStyleReviewState,
@@ -84,6 +89,107 @@ describe("workspace style payload adapter", () => {
     expect(result.payload?.controls?.palette).toBe("warm-glass");
   });
 
+  it("normalizes first-cut theme controls for workspace export/import", () => {
+    const controls = createDefaultWorkspaceThemeStyleControlsV1();
+    const payloadControls = createWorkspaceThemeStyleControlsPayloadV1({
+      ...controls,
+      accent: "custom",
+      accentColor: "#67e8f9",
+      radius: 20,
+      warmth: 72,
+    });
+    const result = normalizeWorkspaceStylePayload({
+      controls: payloadControls,
+      source: "warm-glass-controls",
+      version: "style-pack-v2",
+    });
+
+    expect(result.status).toBe("accepted");
+    expect(
+      extractWorkspaceThemeStyleControlsV1(result.payload?.controls).controls,
+    ).toMatchObject({
+      accent: "custom",
+      accentColor: "#67e8f9",
+      radius: 20,
+      warmth: 72,
+    });
+  });
+
+  it("maps theme controls to deterministic allowlisted production preview variables", () => {
+    const first = createWorkspaceThemeStylePreviewVariablesV1({
+      ...createDefaultWorkspaceThemeStyleControlsV1(),
+      accent: "custom",
+      accentColor: "#6ee7b7",
+      blur: 22,
+      radius: 16,
+    });
+    const second = createWorkspaceThemeStylePreviewVariablesV1({
+      ...createDefaultWorkspaceThemeStyleControlsV1(),
+      accent: "custom",
+      accentColor: "#6ee7b7",
+      blur: 22,
+      radius: 16,
+    });
+
+    expect(first.accepted).toBe(true);
+    expect(second.accepted).toBe(true);
+
+    if (!first.accepted || !second.accepted) {
+      throw new Error("Expected accepted controls.");
+    }
+
+    expect(first.checksum).toBe(second.checksum);
+    expect(first.variables["--nexus-panel-radius"]).toBe("16px");
+    expect(first.variables["--nexus-message-bubble-radius"]).toBe("16px");
+    expect(first.variables["--nexus-command-palette-radius"]).toBe("16px");
+    expect(first.variables["--nexus-modal-shell-radius"]).toBe("16px");
+    expect(first.variables["--nexus-datapad-shell-radius"]).toBe("16px");
+    expect(first.variables["--nexus-agent-window-handle-radius"]).toBe("16px");
+    expect(first.variables["--nexus-panel-blur"]).toBe("22px");
+    expect(first.variables["--nexus-accent-primary"]).toBe("#6ee7b7");
+    expect(first.variableNames.every((name) => name.startsWith("--"))).toBe(true);
+    expect(JSON.stringify(first.variables)).not.toMatch(
+      /<script|javascript:|https?:\/\/|url\(|body\s*\{|html\s*\{|:root\s*\{/i,
+    );
+  });
+
+  it("rejects invalid first-cut theme controls without rejecting old missing controls", () => {
+    expect(
+      normalizeWorkspaceThemeStyleControlsV1({
+        ...createDefaultWorkspaceThemeStyleControlsV1(),
+        radius: 88,
+      }).accepted,
+    ).toBe(false);
+    expect(
+      normalizeWorkspaceStylePayload({
+        controls: {
+          themeControlsV1: {
+            ...createDefaultWorkspaceThemeStyleControlsV1(),
+            accent: "remote-url",
+          },
+        },
+        source: "warm-glass-controls",
+        version: "style-pack-v2",
+      }).status,
+    ).toBe("rejected-style-only");
+    expect(
+      normalizeWorkspaceThemeStyleControlsV1({
+        ...createDefaultWorkspaceThemeStyleControlsV1(),
+        accent: "custom",
+        accentColor: "javascript:alert(1)",
+      }).accepted,
+    ).toBe(false);
+    expect(
+      normalizeWorkspaceStylePayload({
+        controls: {
+          palette: "warm-glass",
+        },
+        source: "warm-glass-controls",
+        version: "style-pack-v2",
+      }).status,
+    ).toBe("accepted");
+  });
+
   it("rejects unsafe controls with raw CSS, scripts, or remote URLs", () => {
     const result = normalizeWorkspaceStylePayload({
       controls: {
@@ -97,6 +203,21 @@ describe("workspace style payload adapter", () => {
 
     expect(result.status).toBe("rejected-style-only");
     expect(result.reasons.join(" ")).toContain("workspaceStylePayload.unsafeKey");
+  });
+
+  it("rejects raw selector strings in controls", () => {
+    const result = normalizeWorkspaceStylePayload({
+      controls: {
+        selector: ".nexus-shell",
+      },
+      source: "warm-glass-controls",
+      version: "style-pack-v2",
+    });
+
+    expect(result.status).toBe("rejected-style-only");
+    expect(result.reasons.join(" ")).toContain(
+      "workspaceStylePayload.unsafeString",
+    );
   });
 
   it("rejects oversized style payloads without leaking a normalized payload", () => {

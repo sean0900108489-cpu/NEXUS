@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Archive,
@@ -112,15 +111,31 @@ import {
 } from "@/lib/workspace-kernel";
 import {
   createImportedWorkspaceStyleReviewState,
+  createDefaultWorkspaceThemeStyleControlsV1,
+  createWorkspaceThemeStyleControlsPayloadV1,
+  createWorkspaceThemeStylePreviewVariablesV1,
   createWorkspaceStylePayloadExportSnapshot,
+  extractWorkspaceThemeStyleControlsV1,
   extractWorkspaceStylePayloadFromSnapshot,
+  normalizeWorkspaceStylePayload,
   readImportedWorkspaceStyleReviewState,
   subscribeImportedWorkspaceStyleReviewState,
   writeImportedWorkspaceStyleReviewState,
   type ImportedWorkspaceStyleReviewState,
+  type WorkspaceStylePayloadV1,
   type WorkspaceStylePayloadExportStatus,
   type WorkspaceStylePayloadImportStatus,
+  type WorkspaceThemeStyleControlsV1,
 } from "@/lib/style-engine/v2-workspace-style-payload";
+import {
+  createProductionPreviewApplyPlan,
+  createProductionPreviewResidueCheck,
+  createProductionPreviewRevertPlan,
+  NEXUS_PRODUCTION_PREVIEW_FIRST_CUT_TARGET_SELECTOR,
+  type ProductionPreviewApplyTransaction,
+  type ProductionPreviewInlineValueSnapshot,
+  type ProductionPreviewTargetFacts,
+} from "@/lib/style-engine/v2-production-preview-transaction";
 import { buildLocalWorkspaceRecoveryContext } from "@/lib/workspace-recovery-local";
 import { hasToolExecutor } from "@/lib/tool-executors";
 import { fetchWithBackoff, isAbortLikeError } from "@/lib/stream-retry";
@@ -147,7 +162,6 @@ import {
   type WorkflowAgentSnapshot,
 } from "@/lib/workflow-engine";
 import { useNexusStore } from "@/store/nexus-store";
-import { DynamicIcon } from "@/components/nexus/dynamic-icon";
 import { AgentBranchModal } from "@/components/nexus/AgentBranchModal";
 import { AuthScreen } from "@/components/nexus/auth-screen";
 import { DatapadWindow } from "@/components/nexus/DatapadWindow";
@@ -196,26 +210,46 @@ const LEGO_THEME_VARIABLES: Record<LegoThemeKey, string> = {
   chatOpacity: "--chat-panel-opacity",
 };
 
-const typographyOptions = [
-  {
-    id: "sans",
-    label: "Sans-serif",
-    value: "var(--font-geist-sans), Arial, Helvetica, sans-serif",
-  },
-  {
-    id: "mono",
-    label: "Monospace",
-    value:
-      "var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-  },
-  {
-    id: "serif",
-    label: "Serif",
-    value: "Georgia, Cambria, 'Times New Roman', Times, serif",
-  },
-] as const;
+type WorkspaceThemeLivePreviewStatus =
+  | "idle"
+  | "active"
+  | "saved"
+  | "reverted"
+  | "blocked";
 
-type NexusTheme = "cyberpunk" | "apple" | "tesla" | "terminal";
+type WorkspaceThemeLivePreviewTargetStatus = "ready" | "missing" | "blocked";
+
+type WorkspaceThemeLivePreviewState = {
+  applyDurationMs: number | null;
+  checksum: string;
+  error: string | null;
+  remainingPreviewVariableCount: number | null;
+  residueCheck: "not-run" | "pass" | "fail";
+  revertDurationMs: number | null;
+  status: WorkspaceThemeLivePreviewStatus;
+  targetCount: number | null;
+  targetStatus: WorkspaceThemeLivePreviewTargetStatus;
+  transactionId: string;
+  variableCount: number;
+};
+
+const workspaceThemeLivePreviewInitialState: WorkspaceThemeLivePreviewState = {
+  applyDurationMs: null,
+  checksum: "",
+  error: null,
+  remainingPreviewVariableCount: null,
+  residueCheck: "not-run",
+  revertDurationMs: null,
+  status: "idle",
+  targetCount: null,
+  targetStatus: "missing",
+  transactionId: "",
+  variableCount: 0,
+};
+
+const workspaceThemeLivePreviewNetworkBaselineWindowId =
+  "theme-panel-live-preview-local-scope";
+
 type RightDockPanelId =
   | "intel"
   | "providers"
@@ -226,13 +260,6 @@ type RightDockPanelId =
   | "workflows"
   | "trace"
   | "account";
-
-const themeOptions: Array<{ id: NexusTheme; label: string }> = [
-  { id: "cyberpunk", label: "Cyberpunk" },
-  { id: "apple", label: "Apple" },
-  { id: "tesla", label: "Tesla" },
-  { id: "terminal", label: "Terminal" },
-];
 
 type WorkspaceSize = {
   width: number;
@@ -279,12 +306,6 @@ function clampNumber(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function cssNumber(value: string | undefined, fallback: number) {
-  const parsed = Number.parseFloat(value ?? "");
-
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
 function createWorkspaceStylePayloadImportNotice(
   status: WorkspaceStylePayloadImportStatus,
 ) {
@@ -317,28 +338,6 @@ function createWorkspaceStylePayloadExportNotice(
   return "Workspace snapshot exported; no stylePack retained";
 }
 
-function normalizeThemeConfig(
-  config?: WorkspaceThemeConfig,
-): Required<WorkspaceThemeConfig> {
-  return {
-    ...LEGO_THEME_DEFAULTS,
-    ...(config ?? {}),
-    borderWidth: LEGO_THEME_DEFAULTS.borderWidth,
-  };
-}
-
-function normalizeTypographyValue(value?: string) {
-  if (value?.includes("font-geist-mono") || value?.includes("ui-monospace")) {
-    return typographyOptions[1].value;
-  }
-
-  if (value?.includes("Georgia") || value?.includes("Times")) {
-    return typographyOptions[2].value;
-  }
-
-  return typographyOptions[0].value;
-}
-
 function applyLegoThemeConfigToDom(config?: WorkspaceThemeConfig) {
   if (typeof document === "undefined") {
     return;
@@ -368,39 +367,94 @@ function applyLegoThemeConfigToDom(config?: WorkspaceThemeConfig) {
   );
 }
 
-function readLegoThemeConfigFromDom(
-  config?: WorkspaceThemeConfig,
-): Required<WorkspaceThemeConfig> {
+function createWorkspaceThemeStylePayloadForExport(
+  controls: WorkspaceThemeStyleControlsV1,
+  existingPayload?: WorkspaceStylePayloadV1 | null,
+): WorkspaceStylePayloadV1 | null {
+  const controlsPayload = {
+    ...(existingPayload?.controls ?? {}),
+    ...createWorkspaceThemeStyleControlsPayloadV1(controls),
+  };
+  const candidate: WorkspaceStylePayloadV1 = {
+    source: "warm-glass-controls",
+    version: "style-pack-v2",
+    ...(existingPayload?.skinPack ? { skinPack: existingPayload.skinPack } : {}),
+    ...(existingPayload?.bridgeSummary
+      ? { bridgeSummary: existingPayload.bridgeSummary }
+      : {}),
+    controls: controlsPayload,
+  };
+  const decision = normalizeWorkspaceStylePayload(candidate);
+
+  return decision.status === "accepted" ? decision.payload : null;
+}
+
+function getWorkspaceThemePreviewTargets() {
   if (typeof document === "undefined") {
-    return normalizeThemeConfig(config);
+    return [];
   }
 
-  const computed = getComputedStyle(document.documentElement);
-  const fromDom = (key: LegoThemeKey) =>
-    computed.getPropertyValue(LEGO_THEME_VARIABLES[key]).trim();
+  return Array.from(
+    document.querySelectorAll<HTMLElement>(
+      NEXUS_PRODUCTION_PREVIEW_FIRST_CUT_TARGET_SELECTOR,
+    ),
+  );
+}
+
+function createWorkspaceThemeTargetFacts(
+  targets: HTMLElement[],
+  target: HTMLElement | null,
+): ProductionPreviewTargetFacts {
+  const tagName = target?.tagName.toLowerCase() ?? "";
+  const rect = target?.getBoundingClientRect();
 
   return {
-    radius: config?.radius || fromDom("radius") || LEGO_THEME_DEFAULTS.radius,
-    blur: config?.blur || fromDom("blur") || LEGO_THEME_DEFAULTS.blur,
-    borderWidth: LEGO_THEME_DEFAULTS.borderWidth,
-    glowIntensity:
-      config?.glowIntensity ||
-      fromDom("glowIntensity") ||
-      LEGO_THEME_DEFAULTS.glowIntensity,
-    iconWeight:
-      config?.iconWeight || fromDom("iconWeight") || LEGO_THEME_DEFAULTS.iconWeight,
-    fontFamily: normalizeTypographyValue(
-      config?.fontFamily || fromDom("fontFamily") || LEGO_THEME_DEFAULTS.fontFamily,
-    ),
-    chatOpacity:
-      config?.chatOpacity || fromDom("chatOpacity") || LEGO_THEME_DEFAULTS.chatOpacity,
+    classList: target ? Array.from(target.classList) : [],
+    isBodyElement: tagName === "body",
+    isDocumentRoot:
+      typeof document !== "undefined" && target === document.documentElement,
+    isHtmlElement: tagName === "html",
+    selector: NEXUS_PRODUCTION_PREVIEW_FIRST_CUT_TARGET_SELECTOR,
+    tagName,
+    targetCount: targets.length,
+    visible: rect ? rect.width > 0 && rect.height > 0 : false,
   };
 }
 
-function normalizeTheme(value?: string): NexusTheme {
-  return themeOptions.some((option) => option.id === value)
-    ? (value as NexusTheme)
-    : "cyberpunk";
+function snapshotWorkspaceThemeInlineValues(
+  target: HTMLElement,
+  variableNames: string[],
+): ProductionPreviewInlineValueSnapshot {
+  return Object.fromEntries(
+    variableNames.map((name) => {
+      const value = target.style.getPropertyValue(name);
+
+      return [name, value.length > 0 ? value : undefined];
+    }),
+  );
+}
+
+function createWorkspaceThemePreviewId(kind: "session" | "transaction") {
+  return `nexus-workspace-style-controls:${kind}:${Date.now().toString(36)}`;
+}
+
+function getWorkspaceThemePreviewNow() {
+  return typeof performance === "undefined" ? Date.now() : performance.now();
+}
+
+function roundWorkspaceThemePreviewDuration(value: number) {
+  return Math.round(value * 100) / 100;
+}
+
+function compareWorkspaceThemeControls(
+  left: WorkspaceThemeStyleControlsV1,
+  right: WorkspaceThemeStyleControlsV1,
+) {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function formatWorkspaceThemeDuration(duration: number | null) {
+  return duration === null ? "not run" : `${duration.toFixed(2)}ms`;
 }
 
 function formatTime(value: string) {
@@ -692,7 +746,6 @@ function traceSeverityClass(severity: SystemEventRecord["severity"]) {
 }
 
 export function NexusOps() {
-  const { resolvedTheme, setTheme, theme } = useTheme();
   const workspaceRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const abortControllersRef = useRef<
@@ -726,7 +779,6 @@ export function NexusOps() {
   const [macroName, setMacroName] = useState("");
   const [macroDescription, setMacroDescription] = useState("");
   const [branchAgentId, setBranchAgentId] = useState<string | null>(null);
-  const [themeMounted, setThemeMounted] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [workspaceRecoveryItems, setWorkspaceRecoveryItems] = useState<
     WorkspaceRecoveryListItem[]
@@ -819,7 +871,6 @@ export function NexusOps() {
   const lockVault = useNexusStore((state) => state.lockVault);
   const unlockVault = useNexusStore((state) => state.unlockVault);
   const deleteApiKey = useNexusStore((state) => state.deleteApiKey);
-  const updateThemeConfig = useNexusStore((state) => state.updateThemeConfig);
   const updateBranchingSettings = useNexusStore(
     (state) => state.updateBranchingSettings,
   );
@@ -925,9 +976,6 @@ export function NexusOps() {
               }
             : null;
   const branchAgent = agents.find((agent) => agent.id === branchAgentId);
-  const activeTheme = themeMounted
-    ? normalizeTheme(theme ?? resolvedTheme)
-    : "cyberpunk";
   const [syncQueueStatus, setSyncQueueStatus] = useState<QueueStatusProjection>({
     conflicted: 0,
     failed: 0,
@@ -1072,12 +1120,6 @@ export function NexusOps() {
   }, [setNotebooksCache]);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => setThemeMounted(true), 0);
-
-    return () => window.clearTimeout(timeoutId);
-  }, []);
-
-  useEffect(() => {
     applyLegoThemeConfigToDom(themeConfig);
   }, [themeConfig, workspace?.id]);
 
@@ -1196,10 +1238,41 @@ export function NexusOps() {
     window.setTimeout(() => setNotice(message), 0);
   }, []);
 
-  const handleThemeChange = useCallback((nextTheme: NexusTheme) => {
-    setTheme(nextTheme);
-    setNotice(`Theme switched to ${themeOptions.find((option) => option.id === nextTheme)?.label ?? nextTheme}`);
-  }, [setTheme]);
+  const handleSaveWorkspaceThemeStyleControls = useCallback(
+    (controls: WorkspaceThemeStyleControlsV1) => {
+      const existingPayload =
+        workspaceStylePayloadReview?.decision.status === "accepted"
+          ? workspaceStylePayloadReview.decision.payload
+          : null;
+      const payload = createWorkspaceThemeStylePayloadForExport(
+        controls,
+        existingPayload,
+      );
+
+      if (!payload) {
+        setNotice("Workspace style controls rejected style-only; workspace kept");
+        return null;
+      }
+
+      const written = writeImportedWorkspaceStyleReviewState(
+        createImportedWorkspaceStyleReviewState(
+          {
+            payload,
+            reasons: [],
+            status: "accepted",
+          },
+          new Date().toISOString(),
+        ),
+      );
+
+      setWorkspaceStylePayloadReview(written);
+      setNotice(
+        "Workspace style controls saved to workspace export; not backend persisted",
+      );
+      return written;
+    },
+    [workspaceStylePayloadReview],
+  );
 
   const refreshMacros = useCallback(async () => {
     setMacrosLoading(true);
@@ -2381,14 +2454,12 @@ export function NexusOps() {
         onUpdateAgentProfile={updateAgentProfile}
         onSetAgentProfileLocked={setAgentProfileLocked}
         onUpdateMission={updateAgentMission}
-        onUpdateThemeConfig={updateThemeConfig}
+        onSaveWorkspaceThemeStyleControls={handleSaveWorkspaceThemeStyleControls}
         onUpdateBranchingSettings={updateBranchingSettings}
-        activeTheme={activeTheme}
-        onSetTheme={handleThemeChange}
         onUpdateAgentModel={updateAgentModel}
         open={Boolean(activeRightPanel)}
         streamMode={effectiveStreamMode}
-        themeConfig={themeConfig}
+        workspaceStylePayloadReview={workspaceStylePayloadReview}
       />
     </NexusOpsOuterShellFrame>
   );
@@ -2484,7 +2555,7 @@ const rightDockPanels: Array<{
   {
     id: "theme",
     label: "Theme",
-    detail: "LEGO theme engine controls",
+    detail: "Workspace style controls",
     icon: <Settings className="h-4 w-4" />,
   },
   {
@@ -2634,8 +2705,16 @@ function TopBar({
         <button
           aria-expanded={menuOpen}
           aria-label="Workspace menu"
-          className="flex h-8 max-w-[min(420px,calc(100vw-24px))] items-center gap-2 border border-cyan-300/25 bg-cyan-300/[0.045] px-2.5 text-left text-cyan-100 transition hover:border-cyan-300/50 hover:bg-cyan-300/10"
+          className="flex h-8 max-w-[min(420px,calc(100vw-24px))] items-center gap-2 border px-2.5 text-left text-slate-100 transition hover:bg-white/10"
           onClick={() => setMenuOpen((current) => !current)}
+          style={{
+            backgroundColor:
+              "color-mix(in srgb, var(--theme-primary, #67e8f9) 7%, transparent)",
+            borderColor:
+              "color-mix(in srgb, var(--theme-primary, #67e8f9) 28%, transparent)",
+            borderRadius:
+              "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
+          }}
           type="button"
         >
           <Menu className="h-4 w-4 shrink-0" />
@@ -2651,15 +2730,23 @@ function TopBar({
           {menuOpen && (
             <motion.div
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              className="absolute left-0 top-[calc(100%+8px)] z-[90] w-[min(420px,calc(100vw-24px))] border border-cyan-300/30 bg-slate-950/96 p-2 shadow-[0_22px_80px_rgba(0,0,0,0.55),0_0_36px_rgba(34,211,238,0.12)] backdrop-blur-xl"
+              className="absolute left-0 top-[calc(100%+8px)] z-[90] w-[min(420px,calc(100vw-24px))] border bg-slate-950/96 p-2 shadow-[0_22px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl"
               exit={{ opacity: 0, y: -6, scale: 0.98 }}
               initial={{ opacity: 0, y: -6, scale: 0.98 }}
+              style={{
+                borderColor:
+                  "color-mix(in srgb, var(--theme-primary, #67e8f9) 34%, transparent)",
+                borderRadius:
+                  "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
+                boxShadow:
+                  "0 22px 80px rgba(0,0,0,0.55), 0 0 36px color-mix(in srgb, var(--theme-primary, #67e8f9) 14%, transparent)",
+              }}
               transition={{ duration: 0.14 }}
             >
               <div className="border-b border-white/10 px-2 pb-2">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="font-mono text-[9px] uppercase tracking-[0.24em] text-cyan-200/70">
+                    <div className="font-mono text-[9px] uppercase tracking-[0.24em] text-slate-400">
                       Workspace
                     </div>
                     <div className="mt-1 truncate font-mono text-sm uppercase tracking-[0.14em] text-white">
@@ -2710,8 +2797,14 @@ function TopBar({
                   </form>
                 ) : (
                   <button
-                    className="mt-3 inline-flex h-7 items-center gap-2 border border-white/10 bg-white/[0.035] px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-slate-400 transition hover:border-cyan-300/40 hover:text-cyan-100"
+                    className="mt-3 inline-flex h-7 items-center gap-2 border bg-white/[0.035] px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-slate-400 transition hover:bg-white/10 hover:text-slate-100"
                     onClick={openRename}
+                    style={{
+                      borderColor:
+                        "color-mix(in srgb, var(--theme-primary, #67e8f9) 22%, transparent)",
+                      borderRadius:
+                        "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
+                    }}
                     type="button"
                   >
                     <Pencil className="h-3.5 w-3.5" />
@@ -2726,14 +2819,26 @@ function TopBar({
                     <button
                       key={mode}
                       className={cx(
-                        "border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition",
+                        "border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition hover:bg-white/10 hover:text-slate-100",
                         viewMode === mode
-                          ? "border-cyan-300/45 bg-cyan-300/12 text-cyan-100"
-                          : "border-white/10 bg-white/[0.025] text-slate-500 hover:text-slate-200",
+                          ? "text-slate-100"
+                          : "text-slate-500",
                       )}
                       onClick={() => {
                         onSetViewMode(mode);
                         setMenuOpen(false);
+                      }}
+                      style={{
+                        backgroundColor:
+                          viewMode === mode
+                            ? "color-mix(in srgb, var(--theme-primary, #67e8f9) 12%, transparent)"
+                            : "rgb(255 255 255 / 0.025)",
+                        borderColor:
+                          viewMode === mode
+                            ? "color-mix(in srgb, var(--theme-primary, #67e8f9) 45%, transparent)"
+                            : "rgb(255 255 255 / 0.1)",
+                        borderRadius:
+                          "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
                       }}
                       type="button"
                     >
@@ -2750,24 +2855,40 @@ function TopBar({
                       <button
                         key={workspace.id}
                         className={cx(
-                          "mb-1 flex w-full items-center gap-3 border px-3 py-2 text-left transition",
-                          active
-                            ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-50"
-                            : "border-white/10 bg-white/[0.025] text-slate-300 hover:border-cyan-300/30 hover:bg-cyan-300/10",
+                          "mb-1 flex w-full items-center gap-3 border px-3 py-2 text-left transition hover:bg-white/10",
+                          active ? "text-slate-100" : "text-slate-300",
                         )}
                         onClick={() => {
                           setMenuOpen(false);
                           onSwitchWorkspace(workspace.id);
+                        }}
+                        style={{
+                          backgroundColor: active
+                            ? "color-mix(in srgb, var(--theme-primary, #67e8f9) 11%, transparent)"
+                            : "rgb(255 255 255 / 0.025)",
+                          borderColor: active
+                            ? "color-mix(in srgb, var(--theme-primary, #67e8f9) 42%, transparent)"
+                            : "rgb(255 255 255 / 0.1)",
+                          borderRadius:
+                            "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
                         }}
                         type="button"
                       >
                         <span
                           className={cx(
                             "grid h-7 w-7 shrink-0 place-items-center border",
-                            active
-                              ? "border-cyan-300/50 bg-cyan-300/15 text-cyan-100"
-                              : "border-white/10 bg-black/20 text-slate-500",
+                            active ? "text-slate-100" : "text-slate-500",
                           )}
+                          style={{
+                            backgroundColor: active
+                              ? "color-mix(in srgb, var(--theme-primary, #67e8f9) 15%, transparent)"
+                              : "rgb(0 0 0 / 0.2)",
+                            borderColor: active
+                              ? "color-mix(in srgb, var(--theme-primary, #67e8f9) 52%, transparent)"
+                              : "rgb(255 255 255 / 0.1)",
+                            borderRadius:
+                              "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
+                          }}
                         >
                           {active ? <Check className="h-3.5 w-3.5" /> : <Database className="h-3.5 w-3.5" />}
                         </span>
@@ -2785,10 +2906,18 @@ function TopBar({
                 </div>
 
                 <button
-                  className="flex w-full items-center justify-center gap-2 border border-emerald-300/35 bg-emerald-300/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-100 transition hover:bg-emerald-300/20"
+                  className="flex w-full items-center justify-center gap-2 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-100 transition hover:bg-white/10"
                   onClick={() => {
                     setMenuOpen(false);
                     onCreateWorkspace();
+                  }}
+                  style={{
+                    backgroundColor:
+                      "color-mix(in srgb, var(--theme-primary, #67e8f9) 12%, transparent)",
+                    borderColor:
+                      "color-mix(in srgb, var(--theme-primary, #67e8f9) 45%, transparent)",
+                    borderRadius:
+                      "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
                   }}
                   type="button"
                 >
@@ -2933,12 +3062,17 @@ function TopMenuAction({
   return (
     <button
       className={cx(
-        "inline-flex h-8 items-center justify-center gap-2 border px-2 font-mono text-[9px] uppercase tracking-[0.14em] transition",
-        active
-          ? "border-cyan-300/45 bg-cyan-300/12 text-cyan-100"
-          : "border-white/10 bg-white/[0.035] text-slate-400 hover:border-cyan-300/35 hover:text-cyan-100",
+        "inline-flex h-8 items-center justify-center gap-2 border px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-slate-300 transition hover:bg-white/10 hover:text-slate-100",
+        active ? "bg-white/[0.075]" : "bg-white/[0.035]",
       )}
       onClick={onClick}
+      style={{
+        borderColor: active
+          ? "color-mix(in srgb, var(--theme-primary, #67e8f9) 55%, transparent)"
+          : "color-mix(in srgb, var(--theme-primary, #67e8f9) 22%, transparent)",
+        borderRadius:
+          "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
+      }}
       type="button"
     >
       {icon}
@@ -3317,7 +3451,6 @@ function AgentSettingsSidebar({
   open,
   activeAgent,
   activePanel,
-  activeTheme,
   agent,
   agents,
   authVault,
@@ -3332,7 +3465,7 @@ function AgentSettingsSidebar({
   openNotebookIds,
   branchingSettings,
   streamMode,
-  themeConfig,
+  workspaceStylePayloadReview,
   onAddAgent,
   onClose,
   onCopyArtifact,
@@ -3361,14 +3494,12 @@ function AgentSettingsSidebar({
   onUpdateAgentCallsign,
   onUpdateAgentProfile,
   onUpdateMission,
-  onUpdateThemeConfig,
+  onSaveWorkspaceThemeStyleControls,
   onUpdateAgentModel,
-  onSetTheme,
 }: {
   open: boolean;
   activeAgent?: NexusAgent;
   activePanel: RightDockPanelId;
-  activeTheme: NexusTheme;
   agent?: NexusAgent;
   agents: NexusAgent[];
   authVault: IAuthVault;
@@ -3383,7 +3514,7 @@ function AgentSettingsSidebar({
   openNotebookIds: string[];
   branchingSettings?: WorkspaceBranchingSettings;
   streamMode: StreamMode;
-  themeConfig?: WorkspaceThemeConfig;
+  workspaceStylePayloadReview: ImportedWorkspaceStyleReviewState | null;
   onAddAgent: (type: AgentCreationCapabilityType) => void;
   onClose: () => void;
   onCopyArtifact: (artifact: ArtifactVaultRecord) => void;
@@ -3416,9 +3547,10 @@ function AgentSettingsSidebar({
   onUpdateAgentCallsign: (agentId: string, callsign: string) => void;
   onUpdateAgentProfile: (agentId: string, profile: AgentProfileUpdate) => void;
   onUpdateMission: (agentId: string, mission: string) => void;
-  onUpdateThemeConfig: (config: Partial<WorkspaceThemeConfig>) => void;
+  onSaveWorkspaceThemeStyleControls: (
+    controls: WorkspaceThemeStyleControlsV1,
+  ) => ImportedWorkspaceStyleReviewState | null;
   onUpdateAgentModel: (agentId: string, model: string) => void;
-  onSetTheme: (theme: NexusTheme) => void;
 }) {
   const [newAgentType, setNewAgentType] =
     useState<AgentCreationCapabilityType>("chat");
@@ -3496,14 +3628,30 @@ function AgentSettingsSidebar({
       {open && (
         <motion.aside
           animate={{ opacity: 1, x: 0 }}
-	          className="fixed bottom-3 right-3 top-[88px] z-[120] flex w-[min(390px,calc(100vw-24px))] flex-col overflow-hidden border border-cyan-300/25 bg-slate-950/88 shadow-[0_24px_90px_rgba(0,0,0,0.55),0_0_44px_rgba(34,211,238,0.14)] backdrop-blur-xl xl:right-16"
+	          className="fixed bottom-3 right-3 top-[88px] z-[120] flex w-[min(390px,calc(100vw-24px))] flex-col overflow-hidden border shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-xl xl:right-16"
           exit={{ opacity: 0, x: 36 }}
           initial={{ opacity: 0, x: 48 }}
+          style={{
+            background:
+              "linear-gradient(180deg, color-mix(in srgb, var(--theme-primary, #67e8f9) 13%, rgba(15,23,42,0.92)), color-mix(in srgb, var(--theme-primary, #67e8f9) 6%, rgba(2,6,23,0.95)))",
+            borderColor:
+              "color-mix(in srgb, var(--theme-primary, #67e8f9) 28%, transparent)",
+            borderRadius:
+              "var(--nexus-right-dock-radius, var(--nexus-panel-radius, var(--surface-radius)))",
+            boxShadow:
+              "0 24px 90px rgba(0,0,0,0.55), 0 0 44px color-mix(in srgb, var(--theme-primary, #67e8f9) 14%, transparent)",
+          }}
           transition={{ duration: 0.22, ease: "easeOut" }}
         >
-	          <header className="flex items-center justify-between border-b border-white/10 bg-cyan-300/[0.04] p-4">
+	          <header
+              className="flex items-center justify-between border-b border-white/10 p-4"
+              style={{
+                backgroundColor:
+                  "color-mix(in srgb, var(--theme-primary, #67e8f9) 12%, transparent)",
+              }}
+            >
 	            <div>
-	              <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-cyan-100">
+	              <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-slate-100">
 	                {panelMeta.label}
 	              </div>
 	              <div className="mt-1 text-xs text-slate-500">{panelMeta.detail}</div>
@@ -3513,7 +3661,13 @@ function AgentSettingsSidebar({
 	            </IconButton>
 	          </header>
 
-          <div className="cyber-scroll min-h-0 flex-1 overflow-y-auto p-4">
+          <div
+            className="cyber-scroll min-h-0 flex-1 overflow-y-auto p-4"
+            style={{
+              backgroundColor:
+                "color-mix(in srgb, var(--theme-primary, #67e8f9) 4%, transparent)",
+            }}
+          >
 	            <div
 	              className={cx(
 	                "mb-4 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em]",
@@ -3551,40 +3705,15 @@ function AgentSettingsSidebar({
 	              />
 	            ) : null}
 
-	            <section
-	              className={cx(
-	                "mb-4 border border-white/10 bg-white/[0.025] p-2",
-	                activePanel !== "theme" && "hidden",
-	              )}
-	            >
-              <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.18em] text-slate-400">
-                Theme / Style
-              </div>
-              <div className="flex origin-left scale-75 flex-wrap gap-1">
-                {themeOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    aria-pressed={activeTheme === option.id}
-                    className={cx(
-                      "border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] transition",
-                      activeTheme === option.id
-                        ? "border-primary/45 bg-primary/12 text-primary"
-                        : "border-white/10 bg-black/20 text-muted hover:text-soft",
-                    )}
-                    onClick={() => onSetTheme(option.id)}
-                    type="button"
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </section>
-
 	            {activePanel === "theme" ? (
-	              <LegoThemeEngineControls
-	                onCommitThemeConfig={onUpdateThemeConfig}
-	                themeConfig={themeConfig}
-	              />
+                <>
+                  <WorkspaceStyleControlsPanel
+                    onSaveWorkspaceThemeStyleControls={
+                      onSaveWorkspaceThemeStyleControls
+                    }
+                    stylePayloadReview={workspaceStylePayloadReview}
+                  />
+                </>
 	            ) : null}
 
 	            <section
@@ -4259,190 +4388,575 @@ function AgentSettingsSidebar({
   );
 }
 
-function LegoThemeEngineControls({
-  onCommitThemeConfig,
-  themeConfig,
+function WorkspaceStyleControlsPanel({
+  onSaveWorkspaceThemeStyleControls,
+  stylePayloadReview,
 }: {
-  onCommitThemeConfig: (config: Partial<WorkspaceThemeConfig>) => void;
-  themeConfig?: WorkspaceThemeConfig;
+  onSaveWorkspaceThemeStyleControls: (
+    controls: WorkspaceThemeStyleControlsV1,
+  ) => ImportedWorkspaceStyleReviewState | null;
+  stylePayloadReview: ImportedWorkspaceStyleReviewState | null;
 }) {
-  const [localConfig, setLocalConfig] = useState<Required<WorkspaceThemeConfig>>(
-    LEGO_THEME_DEFAULTS,
-  );
-  const localConfigRef = useRef(localConfig);
+  const importedControls = useMemo(() => {
+    if (stylePayloadReview?.decision.status !== "accepted") {
+      return null;
+    }
 
-  const setNextConfig = useCallback((nextConfig: Required<WorkspaceThemeConfig>) => {
-    localConfigRef.current = nextConfig;
-    setLocalConfig(nextConfig);
-  }, []);
+    const result = extractWorkspaceThemeStyleControlsV1(
+      stylePayloadReview.decision.payload?.controls,
+    );
+
+    return result.accepted ? result.controls : null;
+  }, [stylePayloadReview]);
+  const baseThemeControls = useMemo(
+    () => createDefaultWorkspaceThemeStyleControlsV1(),
+    [],
+  );
+  const [controls, setControls] = useState<WorkspaceThemeStyleControlsV1>(
+    () => importedControls ?? baseThemeControls,
+  );
+  const [savedControls, setSavedControls] =
+    useState<WorkspaceThemeStyleControlsV1 | null>(importedControls);
+  const [previewState, setPreviewState] =
+    useState<WorkspaceThemeLivePreviewState>(
+      workspaceThemeLivePreviewInitialState,
+    );
+  const activeTransactionRef = useRef<ProductionPreviewApplyTransaction | null>(
+    null,
+  );
+  const sessionIdRef = useRef(createWorkspaceThemePreviewId("session"));
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
-      const nextConfig = readLegoThemeConfigFromDom(themeConfig);
+      if (!stylePayloadReview) {
+        return;
+      }
 
-      setNextConfig(nextConfig);
+      if (!importedControls) {
+        setControls(baseThemeControls);
+        setSavedControls(null);
+        return;
+      }
+
+      setControls(importedControls);
+      setSavedControls(importedControls);
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [setNextConfig, themeConfig]);
+  }, [baseThemeControls, importedControls, stylePayloadReview]);
 
-  const commitThemeConfig = useCallback(() => {
-    onCommitThemeConfig(localConfigRef.current);
-  }, [onCommitThemeConfig]);
-
-  const updateTransientThemeConfig = useCallback(
-    (key: LegoThemeKey, value: string) => {
-      if (typeof document !== "undefined") {
-        document.documentElement.style.setProperty(LEGO_THEME_VARIABLES[key], value);
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      if (
+        importedControls ||
+        savedControls ||
+        activeTransactionRef.current ||
+        previewState.status === "active" ||
+        previewState.status === "saved" ||
+        previewState.status === "blocked"
+      ) {
+        return;
       }
 
-      setNextConfig({
-        ...localConfigRef.current,
-        [key]: value,
+      setControls(baseThemeControls);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [baseThemeControls, importedControls, previewState.status, savedControls]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      const targets = getWorkspaceThemePreviewTargets();
+      const target = targets[0] ?? null;
+      const facts = createWorkspaceThemeTargetFacts(targets, target);
+      const nextTargetStatus =
+        targets.length === 1 &&
+        facts.tagName !== "html" &&
+        facts.tagName !== "body" &&
+        !facts.isDocumentRoot
+          ? "ready"
+          : targets.length === 0
+            ? "missing"
+            : "blocked";
+
+      setPreviewState((current) => ({
+        ...current,
+        targetCount: targets.length,
+        targetStatus: nextTargetStatus,
+      }));
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  const hasUnsavedChanges = savedControls
+    ? !compareWorkspaceThemeControls(controls, savedControls)
+    : !compareWorkspaceThemeControls(controls, baseThemeControls);
+  const isSyncedToBaseTheme =
+    !savedControls &&
+    !hasUnsavedChanges &&
+    compareWorkspaceThemeControls(controls, baseThemeControls);
+  const styleSystemRelation = savedControls
+    ? "workspace override saved"
+    : isSyncedToBaseTheme
+      ? "synced to workspace seed"
+      : "live override unsaved";
+  const controlsResult = createWorkspaceThemeStylePreviewVariablesV1(controls);
+  const previewVariableCount = controlsResult.accepted
+    ? controlsResult.variableNames.length
+    : 0;
+  const activeAccent = controls.accentColor;
+  const controlRadius = `${controls.radius}px`;
+
+  const applyPreview = useCallback(
+    (nextControls: WorkspaceThemeStyleControlsV1) => {
+      const variableResult =
+        createWorkspaceThemeStylePreviewVariablesV1(nextControls);
+
+      if (!variableResult.accepted) {
+        setPreviewState((current) => ({
+          ...current,
+          error: variableResult.reasons.join(", "),
+          status: "blocked",
+          targetStatus: "blocked",
+        }));
+        return;
+      }
+
+      const targets = getWorkspaceThemePreviewTargets();
+      const target = targets[0] ?? null;
+      const targetFacts = createWorkspaceThemeTargetFacts(targets, target);
+      const previousInlineValues =
+        activeTransactionRef.current?.previousInlineValues ??
+        (target
+          ? snapshotWorkspaceThemeInlineValues(
+              target,
+              variableResult.variableNames,
+            )
+          : {});
+      const transactionId = createWorkspaceThemePreviewId("transaction");
+      const startedAt = getWorkspaceThemePreviewNow();
+      const plan = createProductionPreviewApplyPlan({
+        checksums: {
+          bridgeChecksum: variableResult.checksum,
+          budgetChecksum: variableResult.checksum,
+          diagnosticsChecksum: variableResult.checksum,
+        },
+        createdAt: new Date().toISOString(),
+        hasAuthenticatedEvidence: true,
+        hasRollbackPlan: true,
+        networkBaselineWindowId: workspaceThemeLivePreviewNetworkBaselineWindowId,
+        preflightVerdict: "eligible",
+        previousInlineValues,
+        safetyFlags: {
+          mutatesDocumentRoot: false,
+          touchesProductionBehavior: false,
+          writesToBackend: false,
+          writesToStorage: false,
+          writesToStore: false,
+        },
+        sessionId: sessionIdRef.current,
+        target: targetFacts,
+        transactionId,
+        variables: variableResult.variables,
+      });
+
+      if (!target || plan.verdict !== "ready" || !plan.transaction) {
+        setPreviewState({
+          ...workspaceThemeLivePreviewInitialState,
+          checksum: variableResult.checksum,
+          error:
+            plan.reasons[0]?.message ??
+            "Workspace style preview failed closed.",
+          status: "blocked",
+          targetCount: targets.length,
+          targetStatus: targets.length === 0 ? "missing" : "blocked",
+          transactionId,
+          variableCount: variableResult.variableNames.length,
+        });
+        return;
+      }
+
+      for (const [name, value] of Object.entries(
+        plan.transaction.appliedVariables,
+      )) {
+        target.style.setProperty(name, value);
+      }
+
+      activeTransactionRef.current = plan.transaction;
+      setPreviewState({
+        applyDurationMs: roundWorkspaceThemePreviewDuration(
+          getWorkspaceThemePreviewNow() - startedAt,
+        ),
+        checksum: variableResult.checksum,
+        error: null,
+        remainingPreviewVariableCount: null,
+        residueCheck: "not-run",
+        revertDurationMs: null,
+        status: "active",
+        targetCount: targets.length,
+        targetStatus: "ready",
+        transactionId,
+        variableCount: variableResult.variableNames.length,
       });
     },
-    [setNextConfig],
+    [],
   );
+
+  const updateControls = useCallback(
+    (nextControls: WorkspaceThemeStyleControlsV1) => {
+      setControls(nextControls);
+      applyPreview(nextControls);
+    },
+    [applyPreview],
+  );
+
+  const revertPreview = useCallback(() => {
+    const transaction = activeTransactionRef.current;
+    const targets = getWorkspaceThemePreviewTargets();
+    const target = targets[0] ?? null;
+    const targetFacts = createWorkspaceThemeTargetFacts(targets, target);
+    const startedAt = getWorkspaceThemePreviewNow();
+    const revertPlan = createProductionPreviewRevertPlan({
+      expectedBridgeChecksum: transaction?.checksums.bridgeChecksum,
+      expectedSessionId: transaction?.sessionId,
+      target: targetFacts,
+      transaction,
+    });
+
+    if (!target || !transaction || revertPlan.verdict !== "ready") {
+      setPreviewState((current) => ({
+        ...current,
+        error:
+          revertPlan.reasons[0]?.message ??
+          "Workspace style revert failed closed.",
+        status: "blocked",
+        targetCount: targets.length,
+        targetStatus: targets.length === 0 ? "missing" : "blocked",
+      }));
+      return;
+    }
+
+    for (const operation of revertPlan.operations) {
+      if (operation.kind === "remove") {
+        target.style.removeProperty(operation.name);
+      } else {
+        target.style.setProperty(operation.name, operation.value);
+      }
+    }
+
+    const residue = createProductionPreviewResidueCheck({
+      currentInlineValues: snapshotWorkspaceThemeInlineValues(
+        target,
+        transaction.variableNames,
+      ),
+      transaction,
+    });
+    const revertDurationMs = roundWorkspaceThemePreviewDuration(
+      getWorkspaceThemePreviewNow() - startedAt,
+    );
+
+    if (residue.result === "pass") {
+      activeTransactionRef.current = null;
+    }
+
+    setPreviewState({
+      applyDurationMs: previewState.applyDurationMs,
+      checksum: transaction.checksums.bridgeChecksum,
+      error:
+        residue.result === "pass"
+          ? null
+          : `Residue check failed for ${residue.mismatchedVariableNames.length} variables.`,
+      remainingPreviewVariableCount: residue.remainingPreviewVariableCount,
+      residueCheck: residue.result,
+      revertDurationMs,
+      status: residue.result === "pass" ? "reverted" : "blocked",
+      targetCount: targets.length,
+      targetStatus: "ready",
+      transactionId: transaction.transactionId,
+      variableCount: transaction.variableCount,
+    });
+  }, [previewState.applyDurationMs]);
+
+  const saveControls = useCallback(() => {
+    const written = onSaveWorkspaceThemeStyleControls(controls);
+
+    if (!written || written.decision.status !== "accepted") {
+      setPreviewState((current) => ({
+        ...current,
+        error: "Workspace style controls were rejected style-only.",
+        status: "blocked",
+      }));
+      return;
+    }
+
+    setSavedControls(controls);
+    setPreviewState((current) => ({
+      ...current,
+      error: null,
+      status: current.status === "active" ? "saved" : current.status,
+    }));
+  }, [controls, onSaveWorkspaceThemeStyleControls]);
+
+  const resetControls = useCallback(() => {
+    const nextControls =
+      savedControls ?? baseThemeControls;
+
+    updateControls(nextControls);
+  }, [baseThemeControls, savedControls, updateControls]);
 
   const rangeControl = ({
     key,
     label,
     max,
-    min,
-    step = 1,
-    unit = "px",
+    min = 0,
   }: {
-    key: Exclude<LegoThemeKey, "fontFamily">;
+    key: Exclude<keyof WorkspaceThemeStyleControlsV1, "accent" | "accentColor" | "version">;
     label: string;
     max: number;
-    min: number;
-    step?: number;
-    unit?: "px" | "%";
-  }) => {
-    const value = cssNumber(localConfig[key], cssNumber(LEGO_THEME_DEFAULTS[key], min));
-    const updateValue = (nextValue: string) => {
-      updateTransientThemeConfig(key, `${nextValue}${unit}`);
-    };
-
-    return (
-      <label className="block border border-white/10 bg-black/20 p-3">
-        <span className="flex items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
-          <span>{label}</span>
-          <span className="text-cyan-100">{localConfig[key]}</span>
-        </span>
-        <input
-          className="mt-3 w-full accent-cyan-300"
-          max={max}
-          min={min}
-          onInput={(event) =>
-            updateValue(event.currentTarget.value)
-          }
-          onKeyUp={commitThemeConfig}
-          onMouseUp={commitThemeConfig}
-          onPointerUp={commitThemeConfig}
-          onTouchEnd={commitThemeConfig}
-          step={step}
-          type="range"
-          value={value}
-        />
-      </label>
-    );
-  };
+    min?: number;
+  }) => (
+    <label
+      className="block border bg-black/20 p-3"
+      data-testid={`workspace-style-control-${key}`}
+      style={{
+        backgroundColor: `${activeAccent}0a`,
+        borderColor: `${activeAccent}33`,
+        borderRadius: controlRadius,
+      }}
+    >
+      <span className="flex items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+        <span>{label}</span>
+        <span className="text-slate-100">{controls[key]}</span>
+      </span>
+      <input
+        className="mt-3 w-full"
+        max={max}
+        min={min}
+        onInput={(event) =>
+          updateControls({
+            ...controls,
+            [key]: Number(event.currentTarget.value),
+          })
+        }
+        style={{ accentColor: activeAccent }}
+        type="range"
+        value={controls[key]}
+      />
+    </label>
+  );
 
   return (
-    <section className="mb-4 border border-cyan-300/35 bg-cyan-300/[0.055] p-3 shadow-[0_0_36px_rgba(0,255,204,0.12)]">
+    <section
+      className="mb-4 border p-3"
+      data-testid="workspace-style-controls-panel"
+      style={{
+        background:
+          `linear-gradient(180deg, ${activeAccent}18, ${activeAccent}0b)`,
+        borderColor: `${activeAccent}59`,
+        borderRadius: controlRadius,
+        boxShadow: `0 0 36px ${activeAccent}1f`,
+      }}
+    >
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
-            <DynamicIcon className="h-4 w-4" name="Blocks" />
-            LEGO THEME ENGINE
+          <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-100">
+            <SlidersHorizontal className="h-4 w-4" />
+            Workspace Style Controls
           </div>
           <div className="mt-1 text-xs text-slate-500">
-            Transient DOM mutation with debounced workspace sync
+            Base theme seed plus scoped workspace override
           </div>
         </div>
-        <span className="border border-cyan-300/25 bg-black/25 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-cyan-100">
-          0ms
+        <span
+          className="border bg-black/25 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-slate-100"
+          data-testid="workspace-style-target-status"
+          style={{
+            borderColor: `${activeAccent}66`,
+            borderRadius: controlRadius,
+          }}
+        >
+          target {previewState.targetStatus}
         </span>
       </div>
 
-      <div className="mb-3 border border-cyan-300/25 bg-black/25 p-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] backdrop-blur">
-        <div className="mb-2 flex items-center justify-between gap-2 font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
-          <span className="flex items-center gap-2 text-cyan-100">
-            <DynamicIcon className="h-3.5 w-3.5" name="Sparkles" />
-            Live Token Preview
-          </span>
-          <span>
-            {localConfig.radius} / {localConfig.blur} / {localConfig.glowIntensity}
+      <div
+        className="mb-3 grid gap-2 border bg-black/20 p-3 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300"
+        style={{
+          backgroundColor: `${activeAccent}0d`,
+          borderColor: `${activeAccent}33`,
+          borderRadius: controlRadius,
+        }}
+      >
+        <div className="flex justify-between gap-3">
+          <span>live preview</span>
+          <span data-testid="workspace-style-live-status">{previewState.status}</span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span>workspace export</span>
+          <span data-testid="workspace-style-save-status">
+            {savedControls ? "saved to workspace export" : "not saved yet"}
+            {hasUnsavedChanges ? " / unsaved changes" : ""}
           </span>
         </div>
-        <button
-          className="flex w-full items-center justify-between border border-cyan-300/35 bg-cyan-300/10 px-3 py-2 text-left font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,0.12)] transition hover:bg-cyan-300/15"
-          type="button"
-        >
-          <span>Geometry + Glass Sample</span>
-          <DynamicIcon className="h-4 w-4" name="ScanLine" />
-        </button>
+        <div className="flex justify-between gap-3">
+          <span>style system</span>
+          <span data-testid="workspace-style-system-relation">
+            {styleSystemRelation}
+          </span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span>not backend persisted</span>
+          <span>not auto-applied to other workspaces</span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span>vars / checksum</span>
+          <span data-testid="workspace-style-preview-trace">
+            {previewVariableCount} / {controlsResult.accepted ? controlsResult.checksum : "blocked"}
+          </span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span>apply / revert</span>
+          <span>
+            {formatWorkspaceThemeDuration(previewState.applyDurationMs)} /{" "}
+            {formatWorkspaceThemeDuration(previewState.revertDurationMs)}
+          </span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span>residue</span>
+          <span data-testid="workspace-style-residue-status">
+            {previewState.residueCheck}
+            {previewState.remainingPreviewVariableCount !== null
+              ? ` / ${previewState.remainingPreviewVariableCount}`
+              : ""}
+          </span>
+        </div>
+        {previewState.error ? (
+          <div className="text-slate-100" data-testid="workspace-style-error">
+            {previewState.error}
+          </div>
+        ) : null}
       </div>
 
       <div className="grid gap-2">
         {rangeControl({
-          key: "radius",
-          label: "Border Radius",
-          min: 0,
-          max: 24,
+          key: "warmth",
+          label: "Warmth",
+          max: 100,
+        })}
+        {rangeControl({
+          key: "glass",
+          label: "Glass",
+          max: 100,
         })}
         {rangeControl({
           key: "blur",
-          label: "Glass Blur",
-          min: 0,
+          label: "Blur",
+          max: 40,
+        })}
+        {rangeControl({
+          key: "radius",
+          label: "Radius",
           max: 32,
         })}
         {rangeControl({
-          key: "glowIntensity",
-          label: "Agent Glow",
-          min: 0,
+          key: "shadow",
+          label: "Shadow",
           max: 100,
-          unit: "%",
         })}
         {rangeControl({
-          key: "chatOpacity",
-          label: "Chat Opacity",
-          min: 35,
+          key: "workspaceWash",
+          label: "Workspace Wash",
           max: 100,
-          unit: "%",
-        })}
-        {rangeControl({
-          key: "iconWeight",
-          label: "Icon Weight",
-          min: 1,
-          max: 3,
-          step: 0.5,
         })}
 
-        <label className="block border border-white/10 bg-black/20 p-3">
-          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
-            Typography
-          </span>
-          <select
-            className="mt-2 w-full border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs uppercase tracking-[0.14em] text-slate-100 outline-none transition focus:border-cyan-300/60"
-            onChange={(event) => {
-              updateTransientThemeConfig("fontFamily", event.currentTarget.value);
-              onCommitThemeConfig({
-                ...localConfigRef.current,
-                fontFamily: event.currentTarget.value,
-              });
-            }}
-            value={localConfig.fontFamily}
-          >
-            {typographyOptions.map((option) => (
-              <option key={option.id} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div
+          className="border bg-black/20 p-3"
+          style={{
+            backgroundColor: `${activeAccent}0a`,
+            borderColor: `${activeAccent}33`,
+            borderRadius: controlRadius,
+          }}
+        >
+          <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+            Accent
+          </div>
+          <div className="grid grid-cols-[48px_1fr] items-center gap-2">
+            <input
+              aria-label="Accent color"
+              className="h-10 w-12 cursor-pointer border bg-transparent p-1"
+              data-testid="workspace-style-accent-color"
+              onInput={(event) =>
+                updateControls({
+                  ...controls,
+                  accent: "custom",
+                  accentColor: event.currentTarget.value.toLowerCase(),
+                })
+              }
+              style={{
+                borderColor: `${activeAccent}66`,
+                borderRadius: controlRadius,
+              }}
+              title="Accent color"
+              type="color"
+              value={controls.accentColor}
+            />
+            <div
+              className="flex min-h-10 items-center justify-between gap-3 border bg-white/[0.03] px-3 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-100"
+              style={{
+                borderColor: `${activeAccent}55`,
+                borderRadius: controlRadius,
+              }}
+            >
+              <span>Color wheel</span>
+              <span>{controls.accentColor}</span>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <footer className="mt-3 grid grid-cols-3 gap-2">
+        <button
+          className="border px-2 py-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-100 transition hover:bg-white/10"
+          data-testid="workspace-style-save"
+          onClick={saveControls}
+          style={{
+            backgroundColor: `${activeAccent}1f`,
+            borderColor: `${activeAccent}59`,
+            borderRadius: controlRadius,
+          }}
+          title="Save to workspace style"
+          type="button"
+        >
+          Save
+        </button>
+        <button
+          className="border bg-black/25 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-200 transition hover:bg-white/10"
+          data-testid="workspace-style-revert"
+          onClick={revertPreview}
+          style={{
+            borderColor: `${activeAccent}40`,
+            borderRadius: controlRadius,
+          }}
+          title="Revert preview"
+          type="button"
+        >
+          Revert
+        </button>
+        <button
+          className="border bg-black/25 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-200 transition hover:bg-white/10"
+          data-testid="workspace-style-reset"
+          onClick={resetControls}
+          style={{
+            borderColor: `${activeAccent}40`,
+            borderRadius: controlRadius,
+          }}
+          title="Reset controls"
+          type="button"
+        >
+          Reset
+        </button>
+      </footer>
     </section>
   );
 }

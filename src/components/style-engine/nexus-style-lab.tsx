@@ -104,6 +104,7 @@ type StyleRuntimePreviewDiagnosticsState = {
   timestamp: string | null;
   variableCount: number;
 };
+type StyleRuntimePreviewPreflightVerdict = "PASS" | "HOLD" | "BLOCK";
 type ExportView = "manifest" | "package" | "review";
 type AuthoringContextView = "context" | "prompt" | "minimal" | "pixel";
 type VisibleIssueSeverity = "error" | "question" | "warning";
@@ -1347,6 +1348,140 @@ export function NexusStyleLab() {
       : styleRuntimePreviewDiagnostics.residueCheck === "fail"
         ? "residue detected"
         : "fail-safe clear";
+  const styleRuntimePreviewPreflight = useMemo(() => {
+    const budgetVerdict = warmGlassStyleRuntimeBudgetSummary.verdict;
+    const budgetChecksum = warmGlassStyleRuntimeBudgetSummary.checksum;
+    const diagnosticsChecksum = styleRuntimePreviewDiagnostics.checksum;
+    const hasChecksum =
+      budgetChecksum.trim().length > 0 && diagnosticsChecksum.trim().length > 0;
+    const checksumMatches = budgetChecksum === diagnosticsChecksum;
+    const diagnosticsError =
+      styleRuntimePreviewDiagnostics.lastError ??
+      (styleRuntimePreviewDiagnostics.status === "failed"
+        ? "diagnostics failed closed"
+        : null);
+    const evidenceRows = [
+      ["Budget", budgetVerdict],
+      ["Diagnostics", styleRuntimePreviewDiagnostics.status],
+      ["Residue", styleRuntimePreviewDiagnostics.residueCheck],
+      ["Checksum", hasChecksum ? diagnosticsChecksum : "missing"],
+      ["Vars", String(styleRuntimePreviewDiagnostics.variableCount)],
+    ];
+    const createResult = ({
+      nextAction,
+      reason,
+      verdict,
+    }: {
+      nextAction: string;
+      reason: string;
+      verdict: StyleRuntimePreviewPreflightVerdict;
+    }) => ({
+      evidenceRows,
+      nextAction,
+      reason,
+      verdict,
+    });
+
+    if (budgetVerdict === "block") {
+      return createResult({
+        nextAction: "Resolve budget or diagnostics failure",
+        reason: "Budget verdict is block.",
+        verdict: "BLOCK",
+      });
+    }
+
+    if (styleRuntimeBudgetCriticalGapCount > 0) {
+      return createResult({
+        nextAction: "Resolve unsupported critical gaps",
+        reason: "Unsupported critical production capability exists.",
+        verdict: "BLOCK",
+      });
+    }
+
+    if (diagnosticsError) {
+      return createResult({
+        nextAction: "Resolve budget or diagnostics failure",
+        reason: diagnosticsError,
+        verdict: "BLOCK",
+      });
+    }
+
+    if (styleRuntimePreviewDiagnostics.residueCheck === "fail") {
+      return createResult({
+        nextAction: "Resolve budget or diagnostics failure",
+        reason: "Residue check failed after local revert.",
+        verdict: "BLOCK",
+      });
+    }
+
+    if (styleRuntimePreviewDiagnostics.variableCount <= 0) {
+      return createResult({
+        nextAction: "Resolve budget or diagnostics failure",
+        reason: "No CSS variables are available for local smoke preview.",
+        verdict: "BLOCK",
+      });
+    }
+
+    if (!hasChecksum) {
+      return createResult({
+        nextAction: "Run local apply/revert smoke",
+        reason: "Checksum is missing, so the preview cannot be traced yet.",
+        verdict: "HOLD",
+      });
+    }
+
+    if (!checksumMatches) {
+      return createResult({
+        nextAction: "Resolve budget or diagnostics failure",
+        reason: "Budget and diagnostics checksum traces do not match.",
+        verdict: "BLOCK",
+      });
+    }
+
+    if (budgetVerdict === "warn") {
+      return createResult({
+        nextAction: "Review non-critical budget warnings before preflight",
+        reason: "Budget has non-critical warnings.",
+        verdict: "HOLD",
+      });
+    }
+
+    if (
+      styleRuntimePreviewDiagnostics.status === "reverted" &&
+      styleRuntimePreviewDiagnostics.residueCheck === "pass"
+    ) {
+      return createResult({
+        nextAction:
+          "Ready for preview diagnostics evidence; production bridge still requires separate plan",
+        reason: "Budget is safe and local apply/revert completed with residue pass.",
+        verdict: "PASS",
+      });
+    }
+
+    if (styleRuntimePreviewDiagnostics.status === "applied") {
+      return createResult({
+        nextAction: "Run local revert smoke",
+        reason: "Apply ran, but revert residue check is not confirmed.",
+        verdict: "HOLD",
+      });
+    }
+
+    return createResult({
+      nextAction: "Run local apply/revert smoke",
+      reason: "Budget is safe, but local diagnostics have not completed.",
+      verdict: "HOLD",
+    });
+  }, [
+    styleRuntimeBudgetCriticalGapCount,
+    styleRuntimePreviewDiagnostics,
+    warmGlassStyleRuntimeBudgetSummary,
+  ]);
+  const styleRuntimePreviewPreflightTone =
+    styleRuntimePreviewPreflight.verdict === "PASS"
+      ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+      : styleRuntimePreviewPreflight.verdict === "HOLD"
+        ? "border-amber-300/35 bg-amber-300/10 text-amber-100"
+        : "border-rose-300/35 bg-rose-300/10 text-rose-100";
   const acceptedLayoutPreset =
     layoutPresetReviewResult?.accepted === true
       ? layoutPresetReviewResult
@@ -4563,11 +4698,11 @@ export function NexusStyleLab() {
 	                    )}
 	                  </div>
 
-	                  <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-	                    {styleRuntimePreviewDiagnosticsTraceRows.map(
-	                      ([label, value]) => (
-	                        <div
-	                          key={`style-runtime-preview-diagnostics-trace:${label}`}
+                  <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                    {styleRuntimePreviewDiagnosticsTraceRows.map(
+                      ([label, value]) => (
+                        <div
+                          key={`style-runtime-preview-diagnostics-trace:${label}`}
 	                          className="min-w-0 border border-white/10 bg-black/20 p-2"
 	                        >
 	                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
@@ -4577,12 +4712,84 @@ export function NexusStyleLab() {
 	                            {value}
 	                          </div>
 	                        </div>
-	                      ),
-	                    )}
-	                  </div>
-	                </section>
+                      ),
+                    )}
+                  </div>
+                </section>
 
-	                <div className="mb-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                <section
+                  className="mb-4 border border-amber-300/15 bg-amber-300/[0.035] p-3"
+                  data-testid="style-runtime-preview-preflight-gate"
+                >
+                  <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-amber-100">
+                        Style Runtime Preview Preflight Gate
+                      </div>
+                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                        Style Lab only / not production authorization
+                      </div>
+                    </div>
+                    <span
+                      className={[
+                        "border px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em]",
+                        styleRuntimePreviewPreflightTone,
+                      ].join(" ")}
+                      data-testid="style-runtime-preview-preflight-verdict"
+                    >
+                      {styleRuntimePreviewPreflight.verdict}
+                    </span>
+                  </div>
+
+                  <div className="mb-3 grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(260px,0.42fr)]">
+                    <div
+                      className="min-w-0 border border-white/10 bg-black/20 p-3"
+                      data-testid="style-runtime-preview-preflight-reason"
+                    >
+                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-amber-100">
+                        Decision Reason
+                      </div>
+                      <div className="mt-2 text-xs leading-5 text-slate-400">
+                        {styleRuntimePreviewPreflight.reason}
+                      </div>
+                    </div>
+
+                    <div
+                      className="min-w-0 border border-white/10 bg-black/20 p-3"
+                      data-testid="style-runtime-preview-preflight-next-action"
+                    >
+                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Next Action
+                      </div>
+                      <div className="mt-2 text-xs leading-5 text-slate-300">
+                        {styleRuntimePreviewPreflight.nextAction}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    className="grid gap-2 md:grid-cols-2 xl:grid-cols-5"
+                    data-testid="style-runtime-preview-preflight-evidence"
+                  >
+                    {styleRuntimePreviewPreflight.evidenceRows.map(
+                      ([label, value]) => (
+                        <div
+                          key={`style-runtime-preview-preflight-evidence:${label}`}
+                          className="min-w-0 border border-white/10 bg-black/20 p-2"
+                        >
+                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                            {label}
+                          </div>
+                          <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+                            {value}
+                          </div>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </section>
+
+                <div className="mb-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
                   {specimenGalleryRows.map(([label, value]) => (
                     <div
                       key={`specimen-gallery:${label}`}

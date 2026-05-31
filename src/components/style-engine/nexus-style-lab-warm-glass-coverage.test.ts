@@ -75,6 +75,40 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
     expect(source).toContain("Smoke target ref missing; revert failed closed.");
   });
 
+  it("renders a Style Runtime Preview Preflight Gate from budget and diagnostics evidence", () => {
+    const source = readStyleLabSource();
+
+    expect(source).toContain("Style Runtime Preview Preflight Gate");
+    expect(source).toContain(
+      'data-testid="style-runtime-preview-preflight-gate"',
+    );
+    expect(source).toContain(
+      'data-testid="style-runtime-preview-preflight-verdict"',
+    );
+    expect(source).toContain(
+      'data-testid="style-runtime-preview-preflight-next-action"',
+    );
+    expect(source).toContain(
+      'data-testid="style-runtime-preview-preflight-evidence"',
+    );
+    expect(source).toContain("Style Lab only / not production authorization");
+    expect(source).toContain("StyleRuntimePreviewPreflightVerdict");
+    expect(source).toContain('verdict: "PASS"');
+    expect(source).toContain('verdict: "HOLD"');
+    expect(source).toContain('verdict: "BLOCK"');
+    expect(source).toContain("Budget is safe, but local diagnostics have not completed.");
+    expect(source).toContain(
+      "Budget is safe and local apply/revert completed with residue pass.",
+    );
+    expect(source).toContain("Run local apply/revert smoke");
+    expect(source).toContain("Ready for preview diagnostics evidence");
+    expect(source).toContain("styleRuntimePreviewPreflight.evidenceRows");
+    expect(source).toContain("styleRuntimePreviewDiagnostics.status");
+    expect(source).toContain("styleRuntimePreviewDiagnostics.residueCheck");
+    expect(source).toContain("warmGlassStyleRuntimeBudgetSummary.verdict");
+    expect(source).toContain("warmGlassStyleRuntimeBudgetSummary.checksum");
+  });
+
   it("renders a local Warm Glass scene preview with supported and missing capability groups", () => {
     const source = readStyleLabSource();
 
@@ -264,6 +298,12 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
       /styleRuntimePreviewDiagnostics[\s\S]*fetch\s*\(/,
       /styleRuntimePreviewDiagnostics[\s\S]*https?:\/\//,
       /styleRuntimePreviewDiagnostics[\s\S]*\burl\s*\(/,
+      /styleRuntimePreviewPreflight[\s\S]*document\.documentElement/,
+      /styleRuntimePreviewPreflight[\s\S]*window\.localStorage/,
+      /styleRuntimePreviewPreflight[\s\S]*indexedDB/,
+      /styleRuntimePreviewPreflight[\s\S]*fetch\s*\(/,
+      /styleRuntimePreviewPreflight[\s\S]*https?:\/\//,
+      /styleRuntimePreviewPreflight[\s\S]*\burl\s*\(/,
     ];
 
     expect(source).toContain("createWarmGlassOpsProductionAliasCoverageReportV1");

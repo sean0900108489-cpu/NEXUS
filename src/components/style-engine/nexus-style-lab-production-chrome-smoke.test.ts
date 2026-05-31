@@ -14,11 +14,15 @@ describe("Nexus Style Lab production chrome smoke harness", () => {
     expect(source).toContain("nexus-drag-handle");
     expect(source).toContain("nexus-top-bar-frame");
     expect(source).toContain("nexus-right-floating-dock-rail");
+    expect(source).toContain("nexus-command-palette-shell");
     expect(source).toContain("nexus-workspace");
     expect(source).toContain("nexus-message-bubble");
     expect(source).toContain("nexus-message-bubble-user");
     expect(source).toContain("nexus-message-bubble-assistant");
     expect(source).toContain("nexus-message-bubble-tool");
+    expect(source).toContain(
+      'data-testid="production-chrome-smoke-command-palette"',
+    );
   });
 
   it("applies and reverts smoke variables only through a local ref target", () => {

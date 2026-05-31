@@ -795,3 +795,81 @@ Next seed:
 - Command palette shell extraction-first remains the next high-ROI candidate,
   using the harness only for future visual selector/alias smoke after a safe
   inert shell boundary exists.
+
+## 18. V19 Production Skinning 40-to-60 ROI Loop 05
+
+Implemented during
+`20260531-v19-production-skinning-40-to-60-roi-loop-05`.
+
+Target:
+
+- `CommandPalette` shell/chrome
+
+Path:
+
+- Path A: selector-only prep on the existing visual shell
+- No command palette token aliases were added in this loop.
+- No inert frame was extracted in this loop.
+
+Ownership scan result:
+
+- `CommandPalette` is rendered from `src/components/nexus/nexus-ops.tsx`.
+- `NexusOps` owns `paletteOpen`, `setPaletteOpen`, global `Cmd/Ctrl+K`
+  toggling, Escape close behavior, command list construction, import file input
+  triggering, save/export/reset/spawn/arrange/restore/minimize commands, and
+  workspace mutation side effects.
+- `CommandPalette` owns query state, input ref, focus-on-open timing, filtered
+  command rendering, overlay click close, shell click propagation stop, close
+  button behavior, input updates, and command button execution.
+- The existing inner `motion.div` with `.nexus-panel` is the visual shell.
+  Adding `nexus-command-palette-shell` to that same class string preserves all
+  behavior props, child order, animation props, refs, state, focus, input, close,
+  overlay, z-index, and command execution ownership.
+
+Selector status:
+
+- Added `.nexus-command-palette-shell` to the existing command palette inner
+  visual shell:
+  `nexus-command-palette-shell nexus-panel mx-auto w-full max-w-2xl overflow-hidden`.
+- Added the same selector to the isolated `/style-lab` `Production Chrome Smoke`
+  harness as a static display-only specimen.
+
+Why no frame extraction:
+
+- The visual shell is also the owner of the propagation guard
+  `onMouseDown={(event) => event.stopPropagation()}` and Framer Motion animation
+  props.
+- A children-only inert frame would require moving or abstracting behavior-bearing
+  props, so extraction is deferred until a dedicated modal/shell frame boundary
+  can be designed without handler ownership transfer.
+
+Intentionally not changed:
+
+- command execution logic
+- `Cmd/Ctrl+K` keyboard shortcut behavior
+- Escape close behavior
+- focus timing or focus handling
+- input state, query filtering, or command ordering
+- overlay close behavior
+- z-index/modal positioning
+- token aliases, runtime token apply, token persistence, store, sync, backend,
+  Supabase, API, React Flow, Rnd, graph, workspace persistence, or production
+  auth
+
+Remaining future token step:
+
+- Add dedicated command palette aliases only after this selector survives source,
+  build, and browser/style-lab smoke:
+  `--nexus-command-palette-bg`,
+  `--nexus-command-palette-border`,
+  `--nexus-command-palette-shadow`,
+  `--nexus-command-palette-radius`, and optional overlay/input/item aliases
+  if they can remain visual-only.
+
+Remaining production-auth-only checks:
+
+- Real authenticated `/` palette opening via `Cmd/Ctrl+K`
+- Search input autofocus in the real production shell
+- Overlay click close and Escape close
+- Command buttons remain unexecuted during visual smoke unless a dedicated safe
+  interaction script exists

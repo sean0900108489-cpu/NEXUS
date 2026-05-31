@@ -434,6 +434,7 @@ const productionChromeSmokeSelectors = [
   ".nexus-drag-handle",
   ".nexus-top-bar-frame",
   ".nexus-right-floating-dock-rail",
+  ".nexus-command-palette-shell",
   ".nexus-workspace",
   ".nexus-message-bubble",
   ".nexus-message-bubble-user",
@@ -2728,6 +2729,40 @@ export function NexusStyleLab() {
                         <span className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-400">
                           inert
                         </span>
+                      </div>
+
+                      <div
+                        aria-hidden="true"
+                        className="nexus-command-palette-shell nexus-panel mx-auto w-full max-w-xl overflow-hidden border border-white/10 bg-slate-950/90"
+                        data-testid="production-chrome-smoke-command-palette"
+                      >
+                        <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2">
+                          <span className="h-2 w-2 border border-cyan-200/60 bg-cyan-200/40" />
+                          <span className="min-w-0 flex-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-400">
+                            Search command fabric
+                          </span>
+                          <span className="border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                            esc
+                          </span>
+                        </div>
+                        <div className="grid gap-1 p-2">
+                          {["Spawn Agent", "Arrange Workstations", "Save Snapshot"].map(
+                            (item) => (
+                              <div
+                                key={`production-chrome-smoke-command:${item}`}
+                                className="grid grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 border border-white/10 bg-white/[0.035] px-2 py-1.5"
+                              >
+                                <span className="h-2 w-2 bg-cyan-200/60" />
+                                <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-200">
+                                  {item}
+                                </span>
+                                <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                                  static
+                                </span>
+                              </div>
+                            ),
+                          )}
+                        </div>
                       </div>
 
                       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_72px]">

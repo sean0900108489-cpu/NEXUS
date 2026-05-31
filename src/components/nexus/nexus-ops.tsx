@@ -6456,7 +6456,7 @@ function CommandPalette({
         >
           <motion.div
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="nexus-panel mx-auto w-full max-w-2xl overflow-hidden"
+            className="nexus-command-palette-shell nexus-panel mx-auto w-full max-w-2xl overflow-hidden"
             exit={{ opacity: 0, y: -12, scale: 0.98 }}
             initial={{ opacity: 0, y: -12, scale: 0.98 }}
             onMouseDown={(event) => event.stopPropagation()}

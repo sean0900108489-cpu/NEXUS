@@ -1995,3 +1995,85 @@ Next seed:
 - `V19 Production Control Primitive Badge Selector Scan`
 - scan status badge/counter displays for a safe helper-level selector boundary
   before any token alias work
+
+## 35. V19 Production Skinning Pre-Landing Consolidation
+
+Execution checkpoint:
+
+- `docs/style-system/execution-runs/20260531-v19-production-skinning-pre-landing-consolidation/CHECKPOINT.md`
+
+Created docs:
+
+- `docs/style-system/v19-production-skinning-pre-landing-consolidation.md`
+- `docs/style-system/v19-warm-glass-ops-user-testing-guide.md`
+
+Purpose:
+
+- stop broad V19 implementation before risk rises further
+- map completed skinning capabilities to real production/workspace surfaces
+- separate production-adhered work from Style Lab-only specimens
+- identify which bridges need user testing, authenticated smoke, recipe
+  boundaries, or V20 gates
+
+Pre-landing verdict:
+
+- V19 is ready to enter pre-landing.
+- Current readiness estimate: about `78-79%`.
+- The work is closer to 80% than 60%, but remaining progress should not come
+  from blind badge/status/counter selector additions.
+
+Adhesion summary:
+
+- production-alias / production-selector / production-wrapper:
+  - RightDock rail
+  - TopBar frame
+  - OuterShell
+  - Workspace
+  - MessageBubble roles
+  - AgentWindow chrome
+  - CommandPalette shell
+  - Modal shell
+  - Datapad shell
+  - ToolbarIconButton selector prep
+- bridge/report:
+  - Warm Glass fixture
+  - V2 Render Plan
+  - Production Token Bridge
+  - production alias coverage report
+- Style Lab-only specimens:
+  - Production Chrome Smoke harness
+  - Warm Glass Scene Preview
+  - Right Metrics Panel specimen
+  - Agent Card Bank specimen
+  - Segmented Top Navigation specimen
+  - Icon/Button Chrome recipe specimen
+
+Recommended first track:
+
+- user testing guide track
+
+Reason:
+
+- Style Lab is now rich enough for real design/product feedback.
+- More production primitive work without feedback would raise risk faster than
+  it improves readiness.
+
+Tracks documented:
+
+1. user testing guide
+2. authenticated production smoke
+3. production alias-to-workspace bridge
+4. recipe boundary
+5. production primitive selector
+6. asset/layout gate
+
+Explicit stop list:
+
+- no blind badge/status/counter selector sweeps
+- no right-dock artifact/vault persistence panels
+- no runtime token apply
+- no token persistence
+- no production asset/background apply
+- no layout preset production apply
+- no broad `nexus-ops.tsx` refactor
+- no store/sync/backend/Supabase/API work

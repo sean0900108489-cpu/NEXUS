@@ -91,31 +91,117 @@ type BridgeVariableMapping = {
   transform?: (value: string) => string;
 };
 
+const productionPanelSurfaceTargets = [
+  "--panel-bg",
+  "--nexus-panel-bg",
+  "--nexus-glass-bg",
+  "--nexus-right-dock-bg",
+  "--nexus-top-bar-bg",
+  "--nexus-message-bubble-bg",
+  "--nexus-message-assistant-bg",
+  "--nexus-agent-window-bg",
+  "--nexus-command-palette-bg",
+  "--nexus-modal-shell-bg",
+  "--nexus-datapad-shell-bg",
+];
+
+const productionMutedSurfaceTargets = [
+  "--panel-muted",
+  "--nexus-agent-window-handle-bg",
+  "--nexus-message-tool-bg",
+];
+
+const productionRaisedSurfaceTargets = [
+  "--bg-elevated",
+  "--nexus-message-user-bg",
+];
+
+const productionBorderTargets = [
+  "--border-subtle",
+  "--nexus-panel-border",
+  "--nexus-glass-border",
+  "--nexus-workspace-border",
+  "--nexus-right-dock-border",
+  "--nexus-top-bar-border",
+  "--nexus-message-bubble-border",
+  "--nexus-agent-window-border",
+  "--nexus-agent-window-handle-border",
+  "--nexus-command-palette-border",
+  "--nexus-modal-shell-border",
+  "--nexus-datapad-shell-border",
+];
+
+const productionRadiusTargets = [
+  "--surface-radius",
+  "--nexus-panel-radius",
+  "--nexus-glass-radius",
+  "--nexus-workspace-radius",
+  "--nexus-right-dock-radius",
+  "--nexus-top-bar-radius",
+  "--nexus-message-bubble-radius",
+  "--nexus-agent-window-radius",
+  "--nexus-agent-window-handle-radius",
+  "--nexus-command-palette-radius",
+  "--nexus-modal-shell-radius",
+  "--nexus-datapad-shell-radius",
+];
+
+const productionShadowTargets = [
+  "--shadow-panel",
+  "--nexus-panel-shadow",
+  "--nexus-workspace-shadow",
+  "--nexus-right-dock-shadow",
+  "--nexus-top-bar-shadow",
+  "--nexus-message-bubble-shadow",
+  "--nexus-agent-window-shadow",
+  "--nexus-command-palette-shadow",
+  "--nexus-modal-shell-shadow",
+  "--nexus-datapad-shell-shadow",
+];
+
+const productionGlassBlurTargets = [
+  "--glass-blur",
+  "--nexus-panel-blur",
+  "--nexus-glass-blur",
+  "--nexus-right-dock-blur",
+  "--nexus-top-bar-blur",
+  "--nexus-agent-window-blur",
+  "--nexus-command-palette-blur",
+  "--nexus-modal-shell-blur",
+  "--nexus-datapad-shell-blur",
+];
+
+const productionTextTargets = [
+  "--text-main",
+  "--nexus-panel-text",
+  "--nexus-glass-text",
+];
+
 const bridgeVariableMappings: BridgeVariableMapping[] = [
   { source: "--nexus-accent-primary", targets: ["--theme-primary"] },
   { source: "--nexus-accent-primary-strong", targets: ["--theme-primary-strong"] },
   { source: "--nexus-accent-secondary", targets: ["--theme-secondary"] },
   { source: "--nexus-blur-backdrop", targets: ["--backdrop-blur"] },
-  { source: "--nexus-blur-glass", targets: ["--glass-blur"] },
+  { source: "--nexus-blur-glass", targets: productionGlassBlurTargets },
   { source: "--nexus-border-glow", targets: ["--border-glow"] },
-  { source: "--nexus-border-subtle", targets: ["--border-subtle"] },
+  { source: "--nexus-border-subtle", targets: productionBorderTargets },
   { source: "--nexus-radius-base", targets: ["--radius-base"] },
-  { source: "--nexus-radius-surface", targets: ["--surface-radius"] },
+  { source: "--nexus-radius-surface", targets: productionRadiusTargets },
   { source: "--nexus-shadow-glow", targets: ["--shadow-glow"] },
-  { source: "--nexus-shadow-panel", targets: ["--shadow-panel"] },
+  { source: "--nexus-shadow-panel", targets: productionShadowTargets },
   { source: "--nexus-status-danger", targets: ["--theme-danger"] },
   { source: "--nexus-status-success", targets: ["--theme-success"] },
   { source: "--nexus-status-warning", targets: ["--theme-warning"] },
   { source: "--nexus-surface-app", targets: ["--bg-base"] },
-  { source: "--nexus-surface-panel", targets: ["--panel-bg"] },
-  { source: "--nexus-surface-panel-muted", targets: ["--panel-muted"] },
-  { source: "--nexus-surface-raised", targets: ["--bg-elevated"] },
+  { source: "--nexus-surface-panel", targets: productionPanelSurfaceTargets },
+  { source: "--nexus-surface-panel-muted", targets: productionMutedSurfaceTargets },
+  { source: "--nexus-surface-raised", targets: productionRaisedSurfaceTargets },
   {
     source: "--nexus-surface-workspace",
     targets: ["--bg-workspace", "--nexus-workspace-bg"],
   },
   { source: "--nexus-text-muted", targets: ["--text-muted"] },
-  { source: "--nexus-text-primary", targets: ["--text-main"] },
+  { source: "--nexus-text-primary", targets: productionTextTargets },
   { source: "--nexus-text-secondary", targets: ["--text-soft"] },
   {
     source: "--nexus-workspace-grid-primary",

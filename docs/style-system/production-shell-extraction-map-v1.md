@@ -1337,3 +1337,81 @@ Next seed:
   stages
 - keep the next step pure and Style Lab scoped unless a separate production
   gate explicitly opens runtime apply
+
+## 26. Warm Glass Ops Production Alias Bridge Expansion
+
+Recorded during
+`20260531-v19-warm-glass-ops-production-alias-bridge-expansion`.
+
+Selected target:
+
+- pure Production Token Bridge output expansion for already adopted V19
+  production alias families
+- no new selectors, no `globals.css` changes, no production runtime apply, no
+  persistence, no production shell behavior changes
+
+Ranking summary:
+
+- Panel/glass primitives were the safest baseline because many component
+  aliases already fall back to them.
+- AgentWindow, CommandPalette, modal shell, and Datapad shell were the highest
+  chrome ROI because they define the rounded glass window/control/modal feel of
+  Warm Glass Ops.
+- Message bubbles were the highest content ROI and already had role-safe
+  aliases.
+- Right dock and TopBar were high-visibility shell chrome already represented
+  in the Style Lab smoke harness.
+- Workspace already had direct bridge coverage for background/grid/wash, but
+  now also receives direct border/shadow/radius coverage through the same safe
+  token derivation.
+
+Direct bridge outputs added:
+
+- `--nexus-panel-*`
+- `--nexus-glass-*`
+- `--nexus-workspace-border`
+- `--nexus-workspace-shadow`
+- `--nexus-workspace-radius`
+- `--nexus-right-dock-*`
+- `--nexus-top-bar-*`
+- `--nexus-message-bubble-*`
+- `--nexus-message-user-bg`
+- `--nexus-message-assistant-bg`
+- `--nexus-message-tool-bg`
+- `--nexus-agent-window-*`
+- `--nexus-command-palette-*`
+- `--nexus-modal-shell-*`
+- `--nexus-datapad-shell-*`
+
+Coverage movement:
+
+- before: 1 of 10 families directly driven; 4 of 58 adopted aliases directly
+  emitted by the Bridge Plan
+- after: 10 of 10 families directly driven; 58 of 58 adopted aliases directly
+  emitted by the Bridge Plan
+- Warm Glass Bridge Plan variable count increased from about 29 to 83
+
+Interpretation:
+
+- Direct Bridge output is preview/readiness output only.
+- `eligibility.canApplyProduction` remains `false`.
+- Runtime token persistence, production token apply, asset/background apply,
+  layout preset production apply, authenticated production smoke, and
+  production shell behavior remain outside this stage.
+
+Remaining gaps toward 80:
+
+- direct aliases do not create new production layout or recipes
+- desert atelier background scene still needs an asset/background pipeline
+- right metrics panel and agent card recipes still need selector-only or
+  specimen-first boundaries
+- segmented navigation and typography cleanup remain separate gates
+- authenticated production `/` smoke remains required for live behavior-bearing
+  surfaces
+
+Next seed:
+
+- `V19 Warm Glass Ops Direct Alias Preview Audit`
+- verify whether the Style Lab token preview can demonstrate the direct alias
+  Bridge Plan outputs across the Warm Glass coverage panel and production
+  chrome smoke specimens without adding runtime apply or persistence

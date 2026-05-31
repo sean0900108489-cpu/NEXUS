@@ -9,6 +9,7 @@ export const NEXUS_PRODUCTION_ALIAS_COVERAGE_VERSION_V1 =
   "nexus-production-alias-coverage-v1" as const;
 
 export type NexusProductionAliasCoverageModeV1 =
+  | "direct-bridge"
   | "mixed-bridge"
   | "fallback-driven"
   | "style-lab-smoke-only"
@@ -47,9 +48,16 @@ export type NexusProductionAliasCoverageReportV1 = {
   bridgeVariableCount: number;
   familyCount: number;
   directlyDrivenFamilyCount: number;
+  directFamilyCoveragePercent: number;
+  totalAliasCount: number;
+  directlyDrivenAliasCount: number;
+  directAliasCoveragePercent: number;
   fallbackDrivenFamilyCount: number;
+  fallbackDrivenAliasCount: number;
   smokeOnlyFamilyCount: number;
+  smokeOnlyAliasCount: number;
   unsupportedFamilyCount: number;
+  unsupportedAliasCount: number;
   families: NexusProductionAliasCoverageFamilyV1[];
   gaps: NexusProductionAliasCoverageGapV1[];
 };
@@ -477,26 +485,60 @@ export function createNexusProductionAliasCoverageReportV1({
   const families = warmGlassAliasFamilies.map((family) =>
     createCoverageFamily(family, bridgeVariables),
   );
+  const totalAliasCount = families.reduce(
+    (total, family) => total + family.aliases.length,
+    0,
+  );
+  const directlyDrivenAliasCount = families.reduce(
+    (total, family) => total + family.directAliases.length,
+    0,
+  );
+  const fallbackDrivenAliasCount = families.reduce(
+    (total, family) => total + family.fallbackDrivenAliases.length,
+    0,
+  );
+  const smokeOnlyAliasCount = families.reduce(
+    (total, family) => total + family.smokeOnlyAliases.length,
+    0,
+  );
+  const unsupportedAliasCount = families.reduce(
+    (total, family) => total + family.unsupportedAliases.length,
+    0,
+  );
+  const directlyDrivenFamilyCount = families.filter(
+    (family) => family.directAliases.length > 0,
+  ).length;
 
   return {
     bridgePlanAccepted,
     bridgeVariableCount: Object.keys(bridgePlan?.variables ?? {}).length,
-    directlyDrivenFamilyCount: families.filter(
-      (family) => family.directAliases.length > 0,
-    ).length,
+    directAliasCoveragePercent: percentage(
+      directlyDrivenAliasCount,
+      totalAliasCount,
+    ),
+    directFamilyCoveragePercent: percentage(
+      directlyDrivenFamilyCount,
+      families.length,
+    ),
+    directlyDrivenAliasCount,
+    directlyDrivenFamilyCount,
     displayName,
     fallbackDrivenFamilyCount: families.filter(
       (family) => family.mode === "fallback-driven" || family.mode === "mixed-bridge",
     ).length,
+    fallbackDrivenAliasCount,
     families,
     familyCount: families.length,
     gaps: warmGlassOpsTargetCapabilityGapsV1,
     kind: "nexus-production-alias-coverage",
     renderPlanAccepted,
     skinPackId,
+    smokeOnlyAliasCount,
     smokeOnlyFamilyCount: families.filter(
       (family) => family.mode === "style-lab-smoke-only",
     ).length,
+    totalAliasCount,
+    unsupportedAliasCount,
     unsupportedFamilyCount: families.filter(
       (family) => family.mode === "unsupported",
     ).length,
@@ -553,6 +595,10 @@ function getCoverageMode({
   fallbackDrivenAliases: string[];
   smokeOnlyAliases: string[];
 }): NexusProductionAliasCoverageModeV1 {
+  if (directAliases.length > 0 && fallbackDrivenAliases.length === 0) {
+    return "direct-bridge";
+  }
+
   if (directAliases.length > 0) {
     return "mixed-bridge";
   }
@@ -566,4 +612,12 @@ function getCoverageMode({
   }
 
   return "unsupported";
+}
+
+function percentage(value: number, max: number) {
+  if (!Number.isFinite(value) || !Number.isFinite(max) || max <= 0) {
+    return 0;
+  }
+
+  return Math.round((value / max) * 10_000) / 100;
 }

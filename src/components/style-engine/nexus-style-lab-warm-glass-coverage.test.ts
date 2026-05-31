@@ -13,6 +13,9 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
     expect(source).toContain("createWarmGlassOpsSkinPackV2Fixture");
     expect(source).toContain("warmGlassOpsCoverageFamilies");
     expect(source).toContain("warmGlassOpsGapRows");
+    expect(source).toContain("directAliasCoveragePercent");
+    expect(source).toContain("directlyDrivenAliasCount");
+    expect(source).toContain("totalAliasCount");
   });
 
   it("keeps the coverage panel detached from production runtime mutation", () => {

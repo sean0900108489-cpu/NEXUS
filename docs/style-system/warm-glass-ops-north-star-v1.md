@@ -139,3 +139,28 @@ The important question becomes:
 
 The first 60-to-80 loop should improve answer quality, not production runtime
 scope.
+
+## Production Alias Bridge Expansion Status
+
+Loop `20260531-v19-warm-glass-ops-production-alias-bridge-expansion` upgrades
+Warm Glass from mostly fallback-driven production alias evidence to direct
+Bridge Plan output for the already adopted shell/content/chrome alias families.
+
+Direct bridge output now covers:
+
+- panel primitive aliases
+- glass primitive aliases
+- workspace aliases
+- right dock rail aliases
+- TopBar chrome aliases
+- message bubble and role background aliases
+- AgentWindow chrome aliases
+- CommandPalette shell aliases
+- modal shell aliases
+- Datapad shell aliases
+
+This does not change production runtime behavior. It only means the accepted
+Warm Glass fixture can compile into a preview/readiness Bridge Plan that emits
+those production alias variables directly. Production apply, persistence,
+assets, layout presets, authenticated runtime smoke, and background image
+integration remain separate gates.

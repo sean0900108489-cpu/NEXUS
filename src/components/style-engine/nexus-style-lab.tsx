@@ -827,7 +827,16 @@ export function NexusStyleLab() {
         "Bridge Plan",
         warmGlassOpsCoverageReport.bridgePlanAccepted ? "accepted" : "blocked",
       ],
+      ["Bridge Vars", String(warmGlassOpsCoverageReport.bridgeVariableCount)],
       ["Families", String(warmGlassOpsCoverageReport.familyCount)],
+      [
+        "Direct %",
+        `${warmGlassOpsCoverageReport.directAliasCoveragePercent}%`,
+      ],
+      [
+        "Direct Aliases",
+        `${warmGlassOpsCoverageReport.directlyDrivenAliasCount}/${warmGlassOpsCoverageReport.totalAliasCount}`,
+      ],
       [
         "Fallback",
         String(warmGlassOpsCoverageReport.fallbackDrivenFamilyCount),

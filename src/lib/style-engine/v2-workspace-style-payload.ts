@@ -159,15 +159,15 @@ const allowedThemeControlAccents = new Set<WorkspaceThemeStyleAccentV1>([
 ]);
 
 const workspaceThemeStyleDefaultControls: WorkspaceThemeStyleControlsV1 = {
-  accent: "amber",
-  accentColor: "#f4c27a",
+  accent: "custom",
+  accentColor: "#e5e7eb",
   blur: 18,
   glass: 58,
   radius: 18,
   shadow: 42,
   version: NEXUS_WORKSPACE_THEME_STYLE_CONTROLS_VERSION_V1,
-  warmth: 68,
-  workspaceWash: 54,
+  warmth: 50,
+  workspaceWash: 48,
 };
 
 const workspaceThemeStyleAccentTokens: Record<
@@ -210,10 +210,10 @@ const workspaceThemeStyleAccentTokens: Record<
     secondary: "#ede9fe",
   },
   custom: {
-    primary: "#f4c27a",
-    primaryStrong: "#f59e0b",
-    rgb: [244, 194, 122],
-    secondary: "#f7dbc0",
+    primary: "#e5e7eb",
+    primaryStrong: "#cbd5e1",
+    rgb: [229, 231, 235],
+    secondary: "#f8fafc",
   },
 };
 
@@ -390,8 +390,8 @@ export function normalizeWorkspaceThemeStyleControlsV1(
   }
 
   const result: WorkspaceThemeStyleControlsV1 = {
-    accent: "amber",
-    accentColor: "#f4c27a",
+    accent: "custom",
+    accentColor: "#e5e7eb",
     blur: 0,
     glass: 0,
     radius: 0,
@@ -425,7 +425,7 @@ export function normalizeWorkspaceThemeStyleControlsV1(
   if (candidate.accent === undefined) {
     result.accent = isSafeThemeHexColor(candidate.accentColor)
       ? "custom"
-      : "amber";
+      : "custom";
   } else if (!allowedThemeControlAccents.has(candidate.accent as WorkspaceThemeStyleAccentV1)) {
     reasons.push("workspaceThemeStyleControls.invalidAccent");
   } else {
@@ -851,9 +851,6 @@ function createWorkspaceThemeStylePreviewVariables(
   const shadow = controlRatio(controls, "shadow");
   const wash = controlRatio(controls, "workspaceWash");
   const accent = createThemeAccentTokensFromColor(controls.accentColor);
-  const warmRed = Math.round(42 + warmth * 74);
-  const warmGreen = Math.round(32 + warmth * 48);
-  const warmBlue = Math.round(24 + warmth * 28);
   const panelOpacity = 0.1 + glass * 0.22;
   const glassOpacity = 0.08 + glass * 0.18;
   const borderOpacity = 0.18 + glass * 0.18;
@@ -861,28 +858,33 @@ function createWorkspaceThemeStylePreviewVariables(
   const blur = `${controls.blur}px`;
   const shadowOpacity = 0.18 + shadow * 0.22;
   const accentGlowOpacity = 0.05 + shadow * 0.13;
-  const workspaceBrightness = 0.42 + wash * 0.36;
-  const workspaceWashOpacity = 0.018 + wash * 0.065;
-  const layoutTintOpacity = 0.08 + wash * 0.13;
-  const panel = rgb([warmRed, warmGreen, warmBlue], panelOpacity);
-  const glassPanel = rgb([Math.min(warmRed + 22, 255), Math.min(warmGreen + 20, 255), Math.min(warmBlue + 18, 255)], glassOpacity);
-  const border = rgb(accent.rgb, borderOpacity);
-  const layoutPanel = `linear-gradient(180deg, ${rgb(accent.rgb, layoutTintOpacity)}, ${rgb([warmRed, warmGreen, warmBlue], 0.16 + glass * 0.16)})`;
-  const layoutPanelMuted = `linear-gradient(180deg, ${rgb(accent.rgb, 0.03 + wash * 0.06)}, ${rgb([warmRed, warmGreen, warmBlue], 0.08 + glass * 0.12)})`;
-  const workspaceSurfaceRgb: [number, number, number] = [
-    Math.round((12 + warmth * 22 + wash * 18) * workspaceBrightness),
-    Math.round((11 + warmth * 18 + wash * 15) * workspaceBrightness),
-    Math.round((10 + warmth * 14 + wash * 12) * workspaceBrightness),
+  const workspaceWashOpacity = 0.014 + wash * 0.045;
+  const layoutTintOpacity = 0.05 + wash * 0.08;
+  const surfaceWarmShift = (warmth - 0.5) * 6;
+  const neutralSurface = (level: number): [number, number, number] => [
+    clampColorChannel(level + surfaceWarmShift),
+    clampColorChannel(level + surfaceWarmShift * 0.25),
+    clampColorChannel(level - surfaceWarmShift * 0.25),
   ];
+  const surfaceDeep = neutralSurface(8 + wash * 10);
+  const surfaceBase = neutralSurface(14 + wash * 18);
+  const surfacePanel = neutralSurface(22 + wash * 20);
+  const surfaceRaised = neutralSurface(32 + wash * 22);
+  const panel = rgb(surfacePanel, panelOpacity);
+  const glassPanel = rgb(surfaceRaised, glassOpacity);
+  const border = rgb(accent.rgb, borderOpacity);
+  const layoutPanel = `linear-gradient(180deg, ${rgb(accent.rgb, layoutTintOpacity)}, ${rgb(surfaceBase, 0.16 + glass * 0.16)})`;
+  const layoutPanelMuted = `linear-gradient(180deg, ${rgb(accent.rgb, 0.025 + wash * 0.045)}, ${rgb(surfaceBase, 0.08 + glass * 0.12)})`;
+  const workspaceSurfaceRgb = neutralSurface(9 + wash * 30);
   const workspaceBg = rgb(workspaceSurfaceRgb, 0.98);
   const workspaceWash =
-    `linear-gradient(135deg, ${rgb(accent.rgb, workspaceWashOpacity)}, ${rgb([warmRed, warmGreen, warmBlue], 0.016 + wash * 0.045)})`;
+    `linear-gradient(135deg, ${rgb(accent.rgb, workspaceWashOpacity)}, ${rgb(surfaceBase, 0.012 + wash * 0.032)})`;
   const shadowValue =
-    `0 24px ${Math.round(42 + shadow * 58)}px rgb(48 32 20 / ${alpha(shadowOpacity)}), 0 0 ${Math.round(14 + shadow * 34)}px ${rgb(accent.rgb, accentGlowOpacity)}`;
+    `0 24px ${Math.round(42 + shadow * 58)}px rgb(0 0 0 / ${alpha(shadowOpacity)}), 0 0 ${Math.round(14 + shadow * 34)}px ${rgb(accent.rgb, accentGlowOpacity)}`;
   const outerShellBg =
-    `linear-gradient(135deg, ${rgb([Math.max(warmRed - 34, 0), Math.max(warmGreen - 28, 0), Math.max(warmBlue - 20, 0)], 0.98)}, ${rgb([warmRed, warmGreen, warmBlue], 0.86)} 48%, ${rgb(accent.rgb, 0.07 + wash * 0.11)})`;
+    `linear-gradient(135deg, ${rgb(surfaceDeep, 0.98)}, ${rgb(surfaceBase, 0.86)} 48%, ${rgb(accent.rgb, 0.04 + wash * 0.07)})`;
   const bodyFrameBg =
-    `linear-gradient(180deg, ${rgb(accent.rgb, 0.025 + wash * 0.055)}, ${rgb([warmRed, warmGreen, warmBlue], 0.055 + wash * 0.095)})`;
+    `linear-gradient(180deg, ${rgb(accent.rgb, 0.02 + wash * 0.035)}, ${rgb(surfaceBase, 0.05 + wash * 0.07)})`;
 
   return ensureThemePreviewVariableOrder({
     "--nexus-body-frame-bg": bodyFrameBg,
@@ -921,7 +923,7 @@ function createWorkspaceThemeStylePreviewVariables(
     "--nexus-right-dock-border": border,
     "--nexus-right-dock-radius": radius,
     "--nexus-right-dock-shadow": shadowValue,
-    "--nexus-top-bar-bg": rgb([warmRed + 8, warmGreen + 6, warmBlue + 4], 0.12 + glass * 0.16),
+    "--nexus-top-bar-bg": rgb(surfacePanel, 0.12 + glass * 0.16),
     "--nexus-top-bar-blur": blur,
     "--nexus-top-bar-border": border,
     "--nexus-top-bar-radius": radius,
@@ -931,11 +933,7 @@ function createWorkspaceThemeStylePreviewVariables(
     "--nexus-workspace-grid-primary": rgb(accent.rgb, 0.07 + wash * 0.08),
     "--nexus-workspace-grid-secondary": rgb(accent.rgb, 0.03 + wash * 0.05),
     "--nexus-workspace-minimap-mask": rgb(
-      [
-        Math.round(10 + warmth * 18 + wash * 18),
-        Math.round(9 + warmth * 15 + wash * 15),
-        Math.round(8 + warmth * 12 + wash * 12),
-      ],
+      neutralSurface(10 + wash * 24),
       0.76,
     ),
     "--nexus-workspace-radius": radius,

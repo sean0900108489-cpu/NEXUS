@@ -115,6 +115,17 @@ describe("workspace style payload adapter", () => {
     });
   });
 
+  it("uses neutral default theme controls instead of the old amber preview preset", () => {
+    const controls = createDefaultWorkspaceThemeStyleControlsV1();
+
+    expect(controls).toMatchObject({
+      accent: "custom",
+      accentColor: "#e5e7eb",
+      warmth: 50,
+      workspaceWash: 48,
+    });
+  });
+
   it("maps theme controls to deterministic allowlisted production preview variables", () => {
     const first = createWorkspaceThemeStylePreviewVariablesV1({
       ...createDefaultWorkspaceThemeStyleControlsV1(),
@@ -190,6 +201,33 @@ describe("workspace style payload adapter", () => {
     expect(lowWash.variables["--nexus-layout-panel-bg"]).not.toBe(
       highWash.variables["--nexus-layout-panel-bg"],
     );
+  });
+
+  it("keeps saturated accents from reintroducing the old brown surface preset", () => {
+    const result = createWorkspaceThemeStylePreviewVariablesV1({
+      ...createDefaultWorkspaceThemeStyleControlsV1(),
+      accent: "custom",
+      accentColor: "#f6fa00",
+      warmth: 80,
+      workspaceWash: 54,
+    });
+
+    expect(result.accepted).toBe(true);
+
+    if (!result.accepted) {
+      throw new Error("Expected accepted controls.");
+    }
+
+    const serializedVariables = JSON.stringify(result.variables);
+
+    expect(result.variables["--theme-primary"]).toBe("#f6fa00");
+    expect(result.variables["--nexus-workspace-grid-primary"]).toContain(
+      "246 250 0",
+    );
+    expect(serializedVariables).not.toMatch(
+      /48 32 20|42 32 24|67 42 26|101 70 46|109 76 50|123 90 64|255 240 216/i,
+    );
+    expect(result.variables["--nexus-panel-shadow"]).toContain("rgb(0 0 0");
   });
 
   it("rejects invalid first-cut theme controls without rejecting old missing controls", () => {

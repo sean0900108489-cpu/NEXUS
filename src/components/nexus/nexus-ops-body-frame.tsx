@@ -5,5 +5,9 @@ export type NexusOpsBodyFrameProps = {
 };
 
 export function NexusOpsBodyFrame({ children }: NexusOpsBodyFrameProps) {
-  return <section className="flex min-h-0 flex-1 gap-2 p-2">{children}</section>;
+  return (
+    <section className="flex min-h-0 flex-1 gap-2 [background:var(--nexus-body-frame-bg,transparent)] p-2">
+      {children}
+    </section>
+  );
 }

@@ -2281,7 +2281,7 @@ export function NexusOps() {
 
         <section
           ref={workspaceRef}
-          className="nexus-workspace nexus-scanline relative z-0 isolate min-h-0 min-w-0 flex-1 overflow-hidden border border-white/10 bg-slate-950/80 shadow-2xl"
+          className="nexus-workspace nexus-scanline relative z-0 isolate min-h-0 min-w-0 flex-1 overflow-hidden border"
         >
           {viewMode === "panels" ? (
             <>
@@ -2489,10 +2489,19 @@ function SidebarToggleButton({
     <button
       aria-label={label}
       className={cx(
-        "absolute top-3 z-[70] grid h-8 w-8 place-items-center border border-cyan-300/35 bg-slate-950/95 text-cyan-100 shadow-[0_0_24px_rgba(34,211,238,0.16)] transition hover:bg-cyan-300/10",
+        "absolute top-3 z-[70] grid h-8 w-8 place-items-center border text-slate-100 shadow-[0_0_24px_rgba(34,211,238,0.16)] transition hover:bg-white/10",
         side === "left" ? "right-1" : "left-1",
       )}
       onClick={onClick}
+      style={{
+        background: "var(--nexus-layout-panel-bg, var(--nexus-panel-bg, rgb(2 6 23 / 0.95)))",
+        borderColor:
+          "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(103 232 249 / 0.35)))",
+        borderRadius:
+          "var(--nexus-panel-radius, var(--surface-radius))",
+        boxShadow:
+          "var(--nexus-layout-panel-shadow, var(--nexus-panel-shadow, 0 0 24px rgba(34,211,238,0.16)))",
+      }}
       title={label}
       type="button"
     >
@@ -2734,12 +2743,14 @@ function TopBar({
               exit={{ opacity: 0, y: -6, scale: 0.98 }}
               initial={{ opacity: 0, y: -6, scale: 0.98 }}
               style={{
+                background:
+                  "var(--nexus-layout-panel-bg, var(--nexus-panel-bg, rgb(2 6 23 / 0.96)))",
                 borderColor:
-                  "color-mix(in srgb, var(--theme-primary, #67e8f9) 34%, transparent)",
+                  "var(--nexus-layout-panel-border, color-mix(in srgb, var(--theme-primary, #67e8f9) 34%, transparent))",
                 borderRadius:
                   "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
                 boxShadow:
-                  "0 22px 80px rgba(0,0,0,0.55), 0 0 36px color-mix(in srgb, var(--theme-primary, #67e8f9) 14%, transparent)",
+                  "var(--nexus-layout-panel-shadow, 0 22px 80px rgba(0,0,0,0.55), 0 0 36px color-mix(in srgb, var(--theme-primary, #67e8f9) 14%, transparent))",
               }}
               transition={{ duration: 0.14 }}
             >
@@ -3633,21 +3644,21 @@ function AgentSettingsSidebar({
           initial={{ opacity: 0, x: 48 }}
           style={{
             background:
-              "linear-gradient(180deg, color-mix(in srgb, var(--theme-primary, #67e8f9) 13%, rgba(15,23,42,0.92)), color-mix(in srgb, var(--theme-primary, #67e8f9) 6%, rgba(2,6,23,0.95)))",
+              "var(--nexus-layout-panel-bg, linear-gradient(180deg, color-mix(in srgb, var(--theme-primary, #67e8f9) 13%, rgba(15,23,42,0.92)), color-mix(in srgb, var(--theme-primary, #67e8f9) 6%, rgba(2,6,23,0.95))))",
             borderColor:
-              "color-mix(in srgb, var(--theme-primary, #67e8f9) 28%, transparent)",
+              "var(--nexus-layout-panel-border, color-mix(in srgb, var(--theme-primary, #67e8f9) 28%, transparent))",
             borderRadius:
               "var(--nexus-right-dock-radius, var(--nexus-panel-radius, var(--surface-radius)))",
             boxShadow:
-              "0 24px 90px rgba(0,0,0,0.55), 0 0 44px color-mix(in srgb, var(--theme-primary, #67e8f9) 14%, transparent)",
+              "var(--nexus-layout-panel-shadow, 0 24px 90px rgba(0,0,0,0.55), 0 0 44px color-mix(in srgb, var(--theme-primary, #67e8f9) 14%, transparent))",
           }}
           transition={{ duration: 0.22, ease: "easeOut" }}
         >
 	          <header
               className="flex items-center justify-between border-b border-white/10 p-4"
               style={{
-                backgroundColor:
-                  "color-mix(in srgb, var(--theme-primary, #67e8f9) 12%, transparent)",
+                background:
+                  "var(--nexus-layout-panel-muted-bg, color-mix(in srgb, var(--theme-primary, #67e8f9) 12%, transparent))",
               }}
             >
 	            <div>
@@ -3664,8 +3675,8 @@ function AgentSettingsSidebar({
           <div
             className="cyber-scroll min-h-0 flex-1 overflow-y-auto p-4"
             style={{
-              backgroundColor:
-                "color-mix(in srgb, var(--theme-primary, #67e8f9) 4%, transparent)",
+              background:
+                "var(--nexus-body-frame-bg, color-mix(in srgb, var(--theme-primary, #67e8f9) 4%, transparent))",
             }}
           >
 	            <div

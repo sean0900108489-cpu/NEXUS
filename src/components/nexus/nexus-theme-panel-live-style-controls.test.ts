@@ -4,6 +4,14 @@ import { describe, expect, it } from "vitest";
 
 describe("Nexus production Theme panel live style controls", () => {
   const source = readFileSync(new URL("nexus-ops.tsx", import.meta.url), "utf8");
+  const bodyFrameSource = readFileSync(
+    new URL("nexus-ops-body-frame.tsx", import.meta.url),
+    "utf8",
+  );
+  const graphSource = readFileSync(
+    new URL("nexus-graph.tsx", import.meta.url),
+    "utf8",
+  );
   const controlsPanelSource = extractFunctionSource(
     source,
     "WorkspaceStyleControlsPanel",
@@ -139,9 +147,25 @@ describe("Nexus production Theme panel live style controls", () => {
     expect(source).toContain("color-mix(in srgb, var(--theme-primary, #67e8f9) 13%");
     expect(source).toContain("color-mix(in srgb, var(--theme-primary, #67e8f9) 12%");
     expect(source).toContain("color-mix(in srgb, var(--theme-primary, #67e8f9) 4%");
+    expect(source).toContain("var(--nexus-layout-panel-bg");
+    expect(source).toContain("var(--nexus-layout-panel-muted-bg");
+    expect(source).toContain("var(--nexus-layout-panel-border");
     expect(controlsPanelSource).toContain("linear-gradient(180deg, ${activeAccent}18, ${activeAccent}0b)");
     expect(controlsPanelSource).toContain("backgroundColor: `${activeAccent}0d`");
     expect(controlsPanelSource).toContain("backgroundColor: `${activeAccent}0a`");
+  });
+
+  it("syncs central panels and graph backgrounds to shared layout material variables", () => {
+    expect(source).toContain("nexus-workspace nexus-scanline");
+    expect(source).not.toContain("bg-slate-950/80 shadow-2xl");
+    expect(bodyFrameSource).toContain(
+      "[background:var(--nexus-body-frame-bg,transparent)]",
+    );
+    expect(graphSource).toContain(
+      "[background:var(--nexus-workspace-bg,transparent)]",
+    );
+    expect(graphSource).toContain("--nexus-workspace-grid-primary");
+    expect(graphSource).toContain("--nexus-workspace-minimap-mask");
   });
 });
 

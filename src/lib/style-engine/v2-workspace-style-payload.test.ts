@@ -147,9 +147,44 @@ describe("workspace style payload adapter", () => {
     expect(first.variables["--nexus-agent-window-handle-radius"]).toBe("16px");
     expect(first.variables["--nexus-panel-blur"]).toBe("22px");
     expect(first.variables["--nexus-accent-primary"]).toBe("#6ee7b7");
+    expect(first.variables["--nexus-outer-shell-bg"]).toContain("linear-gradient");
+    expect(first.variables["--nexus-body-frame-bg"]).toContain("linear-gradient");
+    expect(first.variables["--nexus-layout-panel-bg"]).toContain("linear-gradient");
+    expect(first.variables["--nexus-layout-panel-border"]).toBe(
+      first.variables["--nexus-panel-border"],
+    );
+    expect(first.variables["--nexus-workspace-minimap-mask"]).toContain("rgb(");
     expect(first.variableNames.every((name) => name.startsWith("--"))).toBe(true);
     expect(JSON.stringify(first.variables)).not.toMatch(
       /<script|javascript:|https?:\/\/|url\(|body\s*\{|html\s*\{|:root\s*\{/i,
+    );
+  });
+
+  it("uses workspace wash as a shared layout brightness control", () => {
+    const lowWash = createWorkspaceThemeStylePreviewVariablesV1({
+      ...createDefaultWorkspaceThemeStyleControlsV1(),
+      workspaceWash: 8,
+    });
+    const highWash = createWorkspaceThemeStylePreviewVariablesV1({
+      ...createDefaultWorkspaceThemeStyleControlsV1(),
+      workspaceWash: 92,
+    });
+
+    expect(lowWash.accepted).toBe(true);
+    expect(highWash.accepted).toBe(true);
+
+    if (!lowWash.accepted || !highWash.accepted) {
+      throw new Error("Expected accepted controls.");
+    }
+
+    expect(lowWash.variables["--nexus-workspace-bg"]).not.toBe(
+      highWash.variables["--nexus-workspace-bg"],
+    );
+    expect(lowWash.variables["--nexus-body-frame-bg"]).not.toBe(
+      highWash.variables["--nexus-body-frame-bg"],
+    );
+    expect(lowWash.variables["--nexus-layout-panel-bg"]).not.toBe(
+      highWash.variables["--nexus-layout-panel-bg"],
     );
   });
 

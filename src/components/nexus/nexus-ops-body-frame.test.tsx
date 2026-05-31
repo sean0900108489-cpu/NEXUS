@@ -31,7 +31,9 @@ describe("NexusOpsBodyFrame", () => {
       </NexusOpsBodyFrame>,
     );
 
-    expect(html).toContain('class="flex min-h-0 flex-1 gap-2 p-2"');
+    expect(html).toContain(
+      'class="flex min-h-0 flex-1 gap-2 [background:var(--nexus-body-frame-bg,transparent)] p-2"',
+    );
   });
 
   it("does not expose behavior authority through props", () => {

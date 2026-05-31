@@ -847,7 +847,7 @@ export function NexusGraph({
   };
 
   return (
-    <div className="h-full min-h-0 w-full">
+    <div className="h-full min-h-0 w-full [background:var(--nexus-workspace-bg,transparent)]">
       <ReactFlow
         colorMode="dark"
         defaultEdgeOptions={{
@@ -920,9 +920,13 @@ export function NexusGraph({
           />
           <WorkflowGraphStatus feedback={workflowFeedback} />
         </div>
-        <Background color="rgba(34, 211, 238, 0.22)" gap={28} size={1} />
+        <Background
+          color="var(--nexus-workspace-grid-primary, rgba(34, 211, 238, 0.22))"
+          gap={28}
+          size={1}
+        />
         <MiniMap
-          maskColor="rgba(2, 6, 23, 0.76)"
+          maskColor="var(--nexus-workspace-minimap-mask, rgba(2, 6, 23, 0.76))"
           nodeColor={(node) => agentById.get(node.id)?.accent ?? "#22d3ee"}
           nodeStrokeWidth={3}
           pannable

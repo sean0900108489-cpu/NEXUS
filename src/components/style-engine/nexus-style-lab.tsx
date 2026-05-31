@@ -46,6 +46,7 @@ import {
   createWarmGlassOpsSkinPackV2Fixture,
   createReactFlowStyleAdapterFromManifestV1,
   createTopBottomSwappedWorkspaceLayoutPresetV1,
+  compileNexusSkinPackRenderPlanV2,
   compileNexusSkinPackRenderPlanTextV2,
   emitReactFlowAdapterCssVariablesV1,
   getNexusSkinPackIssueRepairHintV1,
@@ -71,6 +72,10 @@ import {
   type NexusStyleManifestV1,
   type NexusWorkspaceLayoutPresetReviewResultV1,
 } from "@/lib/style-engine";
+import {
+  createStyleRuntimeBudgetSummary,
+  createStyleRuntimeBudgetSummaryFromRenderPlan,
+} from "@/lib/style-engine/v2-style-runtime-budget";
 import { useNexusStyleRuntimeV1 } from "@/components/style-engine/nexus-style-runtime-provider";
 
 type PreviewState = "idle" | "previewing" | "reverted";
@@ -104,6 +109,36 @@ const maxVisibleBridgePreserveVariables = 8;
 const maxVisibleBridgeUnsupportedVariables = 6;
 const maxVisibleWarmGlassCoverageFamilies = 10;
 const maxVisibleWarmGlassGaps = 6;
+const maxVisibleStyleRuntimeBudgetHints = 3;
+
+const warmGlassOpsCoverageReportStatic =
+  createWarmGlassOpsProductionAliasCoverageReportV1();
+
+const warmGlassStyleRuntimeBudgetSummaryStatic = (() => {
+  const warmGlassRenderPlanResult = compileNexusSkinPackRenderPlanV2(
+    createWarmGlassOpsSkinPackV2Fixture(),
+  );
+
+  if (!warmGlassRenderPlanResult.accepted) {
+    return createStyleRuntimeBudgetSummary({
+      coverage: warmGlassOpsCoverageReportStatic,
+    });
+  }
+
+  const warmGlassBridgeResult = createNexusProductionTokenBridgePlanV1(
+    warmGlassRenderPlanResult.renderPlan,
+  );
+
+  return createStyleRuntimeBudgetSummaryFromRenderPlan(
+    warmGlassRenderPlanResult.renderPlan,
+    {
+      bridgePlan: warmGlassBridgeResult.accepted
+        ? warmGlassBridgeResult.bridgePlan
+        : null,
+      coverage: warmGlassOpsCoverageReportStatic,
+    },
+  );
+})();
 
 const comparisonVariables = [
   "--nexus-surface-app",
@@ -995,10 +1030,9 @@ export function NexusStyleLab() {
     productionBridgePlanResult?.accepted === true
       ? productionBridgePlanResult.bridgePlan
       : null;
-  const warmGlassOpsCoverageReport = useMemo(
-    () => createWarmGlassOpsProductionAliasCoverageReportV1(),
-    [],
-  );
+  const warmGlassOpsCoverageReport = warmGlassOpsCoverageReportStatic;
+  const warmGlassStyleRuntimeBudgetSummary =
+    warmGlassStyleRuntimeBudgetSummaryStatic;
   const specimenGallery =
     renderPlan?.specimenGallery ?? null;
   const hasRejectedSkinPackReview = skinPackReviewResult?.accepted === false;
@@ -1133,6 +1167,77 @@ export function NexusStyleLab() {
   const warmGlassOpsGapRows = useMemo(
     () => warmGlassOpsCoverageReport.gaps.slice(0, maxVisibleWarmGlassGaps),
     [warmGlassOpsCoverageReport],
+  );
+  const styleRuntimeBudgetCriticalGapCount = useMemo(
+    () =>
+      warmGlassStyleRuntimeBudgetSummary.unsupportedCapabilities.filter(
+        (capability) => capability.severity === "critical",
+      ).length,
+    [warmGlassStyleRuntimeBudgetSummary],
+  );
+  const styleRuntimeBudgetInfoGapCount = useMemo(
+    () =>
+      warmGlassStyleRuntimeBudgetSummary.unsupportedCapabilities.filter(
+        (capability) => capability.severity === "info",
+      ).length,
+    [warmGlassStyleRuntimeBudgetSummary],
+  );
+  const styleRuntimeBudgetVerdictTone =
+    warmGlassStyleRuntimeBudgetSummary.verdict === "safe"
+      ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+      : warmGlassStyleRuntimeBudgetSummary.verdict === "warn"
+        ? "border-amber-300/35 bg-amber-300/10 text-amber-100"
+        : "border-rose-300/35 bg-rose-300/10 text-rose-100";
+  const styleRuntimeBudgetEligibility =
+    warmGlassStyleRuntimeBudgetSummary.verdict === "safe"
+      ? "preview diagnostics ready"
+      : warmGlassStyleRuntimeBudgetSummary.verdict === "warn"
+        ? "degraded diagnostics only"
+        : "preview diagnostics blocked";
+  const styleRuntimeBudgetPrimaryReason =
+    warmGlassStyleRuntimeBudgetSummary.reasons[0]?.message ??
+    "Within runtime budget; no degradation required.";
+  const styleRuntimeBudgetPressureRows = useMemo(
+    () => [
+      [
+        "CSS Vars",
+        `${warmGlassStyleRuntimeBudgetSummary.cssVariableCount}/${warmGlassStyleRuntimeBudgetSummary.thresholds.safeCssVariableCount}`,
+      ],
+      [
+        "Apply Cost",
+        `${warmGlassStyleRuntimeBudgetSummary.estimatedApplyCost.score}/${warmGlassStyleRuntimeBudgetSummary.thresholds.safeEstimatedApplyCost}`,
+      ],
+      [
+        "High-Cost FX",
+        `${warmGlassStyleRuntimeBudgetSummary.highCostEffectCount}/${warmGlassStyleRuntimeBudgetSummary.thresholds.warnHighCostEffectCount}`,
+      ],
+      ["Critical Gaps", String(styleRuntimeBudgetCriticalGapCount)],
+    ],
+    [styleRuntimeBudgetCriticalGapCount, warmGlassStyleRuntimeBudgetSummary],
+  );
+  const styleRuntimeBudgetDetailRows = useMemo(
+    () => [
+      ["Direct Aliases", String(warmGlassStyleRuntimeBudgetSummary.directAliasCount)],
+      ["Families", String(warmGlassStyleRuntimeBudgetSummary.aliasFamilyCount)],
+      ["Fallback", String(warmGlassStyleRuntimeBudgetSummary.fallbackDrivenCount)],
+      ["Smoke Only", String(warmGlassStyleRuntimeBudgetSummary.smokeOnlyCount)],
+      ["Info Gaps", String(styleRuntimeBudgetInfoGapCount)],
+      [
+        "Hints",
+        warmGlassStyleRuntimeBudgetSummary.degradationHints.length > 0
+          ? String(warmGlassStyleRuntimeBudgetSummary.degradationHints.length)
+          : "none",
+      ],
+    ],
+    [styleRuntimeBudgetInfoGapCount, warmGlassStyleRuntimeBudgetSummary],
+  );
+  const styleRuntimeBudgetHints = useMemo(
+    () =>
+      warmGlassStyleRuntimeBudgetSummary.degradationHints.slice(
+        0,
+        maxVisibleStyleRuntimeBudgetHints,
+      ),
+    [warmGlassStyleRuntimeBudgetSummary],
   );
   const acceptedLayoutPreset =
     layoutPresetReviewResult?.accepted === true
@@ -3105,6 +3210,125 @@ export function NexusStyleLab() {
                         </div>
                       </div>
                   </div>
+                  </section>
+
+                  <section
+                    className="mb-4 border border-emerald-300/15 bg-emerald-300/[0.035] p-3"
+                    data-testid="style-runtime-budget-panel"
+                  >
+                    <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
+                          Style Runtime Budget
+                        </div>
+                        <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                          read-only / no production apply / no persistence
+                        </div>
+                      </div>
+                      <span
+                        className={[
+                          "border px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em]",
+                          styleRuntimeBudgetVerdictTone,
+                        ].join(" ")}
+                        data-testid="style-runtime-budget-verdict"
+                      >
+                        {warmGlassStyleRuntimeBudgetSummary.verdict}
+                      </span>
+                    </div>
+
+                    <div className="mb-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px]">
+                      <div
+                        className="min-w-0 border border-white/10 bg-black/20 p-3"
+                        data-testid="style-runtime-budget-eligibility"
+                      >
+                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-emerald-100">
+                          Preview Diagnostics
+                        </div>
+                        <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.1em] text-slate-300">
+                          {styleRuntimeBudgetEligibility}
+                        </div>
+                        <div className="mt-2 text-xs leading-5 text-slate-500">
+                          {styleRuntimeBudgetPrimaryReason}
+                        </div>
+                        <div className="mt-3 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                          next roi step: preview diagnostics instrumentation
+                        </div>
+                      </div>
+
+                      <div
+                        className="min-w-0 border border-white/10 bg-black/20 p-3"
+                        data-testid="style-runtime-budget-traceability"
+                      >
+                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                          Checksum
+                        </div>
+                        <div className="mt-2 break-all font-mono text-[9px] text-emerald-100">
+                          {warmGlassStyleRuntimeBudgetSummary.checksum}
+                        </div>
+                        <div className="mt-2 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                          summary trace
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mb-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                      {styleRuntimeBudgetPressureRows.map(([label, value]) => (
+                        <div
+                          key={`style-runtime-budget-pressure:${label}`}
+                          className="min-w-0 border border-white/10 bg-black/20 p-2"
+                        >
+                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                            {label}
+                          </div>
+                          <div className="mt-1 truncate font-mono text-[9px] text-emerald-100">
+                            {value}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_280px]">
+                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        {styleRuntimeBudgetDetailRows.map(([label, value]) => (
+                          <div
+                            key={`style-runtime-budget-detail:${label}`}
+                            className="min-w-0 border border-white/10 bg-black/20 p-2"
+                          >
+                            <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                              {label}
+                            </div>
+                            <div className="mt-1 truncate font-mono text-[8px] text-slate-300">
+                              {value}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div
+                        className="min-w-0 border border-white/10 bg-black/20 p-2"
+                        data-testid="style-runtime-budget-degradation-hints"
+                      >
+                        <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.12em] text-slate-500">
+                          Degradation Hints
+                        </div>
+                        {styleRuntimeBudgetHints.length > 0 ? (
+                          <div className="grid gap-1">
+                            {styleRuntimeBudgetHints.map((hint) => (
+                              <div
+                                key={`style-runtime-budget-hint:${hint}`}
+                                className="truncate font-mono text-[8px] uppercase tracking-[0.08em] text-amber-100"
+                              >
+                                {hint}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="font-mono text-[8px] uppercase tracking-[0.1em] text-emerald-100">
+                            none
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </section>
 
                   <section

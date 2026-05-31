@@ -18,6 +18,30 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
     expect(source).toContain("totalAliasCount");
   });
 
+  it("renders an ROI-gated Style Runtime Budget read-only report", () => {
+    const source = readStyleLabSource();
+
+    expect(source).toContain("Style Runtime Budget");
+    expect(source).toContain('data-testid="style-runtime-budget-panel"');
+    expect(source).toContain('data-testid="style-runtime-budget-verdict"');
+    expect(source).toContain('data-testid="style-runtime-budget-eligibility"');
+    expect(source).toContain('data-testid="style-runtime-budget-traceability"');
+    expect(source).toContain(
+      'data-testid="style-runtime-budget-degradation-hints"',
+    );
+    expect(source).toContain("createStyleRuntimeBudgetSummaryFromRenderPlan");
+    expect(source).toContain("createStyleRuntimeBudgetSummary");
+    expect(source).toContain("styleRuntimeBudgetEligibility");
+    expect(source).toContain("Preview Diagnostics");
+    expect(source).toContain("CSS Vars");
+    expect(source).toContain("Apply Cost");
+    expect(source).toContain("High-Cost FX");
+    expect(source).toContain("Critical Gaps");
+    expect(source).toContain("Checksum");
+    expect(source).toContain("Direct Aliases");
+    expect(source).toContain("Families");
+  });
+
   it("renders a local Warm Glass scene preview with supported and missing capability groups", () => {
     const source = readStyleLabSource();
 
@@ -195,6 +219,12 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
       /warmGlassControlChrome[\s\S]*fetch\s*\(/,
       /warmGlassControlChrome[\s\S]*https?:\/\//,
       /warmGlassControlChrome[\s\S]*\burl\s*\(/,
+      /styleRuntimeBudget[\s\S]*document\.documentElement/,
+      /styleRuntimeBudget[\s\S]*window\.localStorage/,
+      /styleRuntimeBudget[\s\S]*indexedDB/,
+      /styleRuntimeBudget[\s\S]*fetch\s*\(/,
+      /styleRuntimeBudget[\s\S]*https?:\/\//,
+      /styleRuntimeBudget[\s\S]*\burl\s*\(/,
     ];
 
     expect(source).toContain("createWarmGlassOpsProductionAliasCoverageReportV1");

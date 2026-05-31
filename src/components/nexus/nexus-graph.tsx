@@ -122,7 +122,7 @@ function AgentNode({ data, selected }: NodeProps<AgentFlowNode>) {
     <section
       data-active={active}
       className={cx(
-        "nexus-agent-node w-64 border-2 bg-black/35 p-3 text-slate-100 backdrop-blur-sm",
+        "nexus-agent-node w-64 border-2 p-3 text-slate-100 backdrop-blur-sm [background:var(--nexus-layout-panel-muted-bg,var(--nexus-panel-bg,rgba(0,0,0,0.35)))]",
         active && "nexus-agent-node-active",
         selected && "shadow-[0_0_28px_var(--agent-accent)]",
       )}
@@ -172,7 +172,7 @@ function AgentNode({ data, selected }: NodeProps<AgentFlowNode>) {
 
       <button
         aria-label={`Open ${agent.callsign}`}
-        className="nodrag absolute right-2 top-2 grid h-6 w-6 place-items-center border border-white/10 bg-black/55 text-slate-400 transition hover:border-cyan-300/45 hover:bg-cyan-300/10 hover:text-cyan-100"
+        className="nodrag absolute right-2 top-2 grid h-6 w-6 place-items-center border border-white/10 text-slate-400 transition hover:border-cyan-300/45 hover:text-cyan-100 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.55))] hover:[background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.1))]"
         onClick={() => onOpenAgent(agent.id)}
         title={`${agent.callsign} // ${agent.title}`}
         type="button"
@@ -194,7 +194,7 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
   return (
     <section
       className={cx(
-        "nexus-runtime-node w-72 border bg-slate-950/88 p-3 text-slate-100 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-md",
+        "nexus-runtime-node w-72 border p-3 text-slate-100 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-md [background:var(--nexus-layout-panel-bg,var(--nexus-panel-bg,rgba(2,6,23,0.88)))]",
         selected && "border-cyan-200/70 shadow-[0_0_28px_rgba(34,211,238,0.22)]",
         !selected && "border-white/12",
       )}
@@ -203,7 +203,7 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
 
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="grid h-7 w-7 shrink-0 place-items-center border border-cyan-300/30 bg-cyan-300/10 text-cyan-100">
+          <span className="grid h-7 w-7 shrink-0 place-items-center border border-cyan-300/30 text-cyan-100 [background:var(--nexus-layout-panel-muted-bg,rgba(34,211,238,0.1))]">
             {node.type === "input.text" ? (
               <Type className="h-4 w-4" />
             ) : node.type === "model.llm" ? (
@@ -262,7 +262,7 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
               <Copy className="h-3.5 w-3.5" />
             </button>
           </div>
-          <div className="min-h-28 max-h-44 overflow-y-auto whitespace-pre-wrap border border-white/10 bg-black/35 px-3 py-2 text-xs leading-5 text-slate-200">
+          <div className="min-h-28 max-h-44 overflow-y-auto whitespace-pre-wrap border border-white/10 px-3 py-2 text-xs leading-5 text-slate-200 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]">
             {outputText || (
               <span className="text-slate-600">Waiting for upstream context...</span>
             )}
@@ -314,7 +314,7 @@ function InputTextRuntimeEditor({
         Seed Text
       </span>
       <textarea
-        className="nodrag min-h-28 resize-none border border-white/10 bg-black/35 px-3 py-2 text-xs leading-5 text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/55"
+        className="nodrag min-h-28 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
         onChange={(event) =>
           onUpdateNodeData(node.id, { text: event.currentTarget.value })
         }
@@ -350,7 +350,7 @@ function ModelRuntimeEditor({
           Prompt
         </span>
         <textarea
-          className="nodrag min-h-24 resize-none border border-white/10 bg-black/35 px-3 py-2 text-xs leading-5 text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-fuchsia-300/55"
+          className="nodrag min-h-24 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-fuchsia-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
           onChange={(event) =>
             onUpdateNodeData(node.id, { prompt: event.currentTarget.value })
           }
@@ -364,7 +364,7 @@ function ModelRuntimeEditor({
           Model
         </span>
         <select
-          className="nodrag border border-white/10 bg-black/35 px-2.5 py-2 font-mono text-[11px] text-slate-100 outline-none transition focus:border-fuchsia-300/55"
+          className="nodrag border border-white/10 px-2.5 py-2 font-mono text-[11px] text-slate-100 outline-none transition focus:border-fuchsia-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
           onChange={(event) =>
             onUpdateNodeData(node.id, { model: event.currentTarget.value })
           }
@@ -393,8 +393,8 @@ function ModelRuntimeEditor({
             className={cx(
               "nodrag min-h-20 max-h-40 overflow-y-auto whitespace-pre-wrap border px-3 py-2 text-xs leading-5 text-slate-200",
               node.status === "running"
-                ? "border-cyan-300/30 bg-cyan-300/5"
-                : "border-white/10 bg-black/35",
+                ? "border-cyan-300/30 [background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.05))]"
+                : "border-white/10 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]",
             )}
           >
             {outputText || (
@@ -951,7 +951,7 @@ function WorkflowGraphAction({
 }) {
   return (
     <button
-      className="pointer-events-auto inline-flex h-8 items-center gap-2 border border-white/10 bg-slate-950/82 px-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md transition hover:border-cyan-300/40 hover:bg-cyan-300/10 hover:text-cyan-100 disabled:opacity-45"
+      className="pointer-events-auto inline-flex h-8 items-center gap-2 border border-white/10 px-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md transition hover:border-cyan-300/40 hover:text-cyan-100 disabled:opacity-45 [background:var(--nexus-layout-panel-bg,rgba(2,6,23,0.82))] hover:[background:var(--nexus-layout-panel-muted-bg,rgba(34,211,238,0.1))]"
       disabled={disabled}
       onClick={onClick}
       type="button"

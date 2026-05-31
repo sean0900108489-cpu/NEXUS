@@ -5246,7 +5246,7 @@ function LeftDock({
             return (
               <article
                 key={template.id}
-                className="border border-white/10 bg-white/[0.035] transition hover:border-cyan-300/30"
+                className="border border-white/10 transition hover:border-cyan-300/30 [background:var(--nexus-layout-panel-muted-bg,rgba(255,255,255,0.035))]"
               >
                 <div className="flex items-start gap-2 p-3">
                   <button
@@ -5284,9 +5284,9 @@ function LeftDock({
                     aria-expanded={open}
                     aria-label={`${profile.callsign} custom agent settings`}
                     className={cx(
-                      "grid h-7 w-7 shrink-0 place-items-center border text-slate-500 transition hover:border-cyan-300/45 hover:bg-cyan-300/10 hover:text-cyan-100",
+                      "grid h-7 w-7 shrink-0 place-items-center border text-slate-500 transition hover:border-cyan-300/45 hover:text-cyan-100 hover:[background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.1))]",
                       open &&
-                        "border-cyan-300/55 bg-cyan-300/15 text-cyan-100",
+                        "border-cyan-300/55 text-cyan-100 [background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.15))]",
                     )}
                     onClick={() =>
                       setExpandedTemplateId((current) =>
@@ -5327,8 +5327,8 @@ function LeftDock({
               className={cx(
                 "border transition",
                 selectedAgentId === agent.id
-                  ? "border-cyan-300/45 bg-cyan-300/10"
-                  : "border-white/10 bg-white/[0.035] hover:border-white/25",
+                  ? "border-cyan-300/45 [background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.1))]"
+                  : "border-white/10 hover:border-white/25 [background:var(--nexus-layout-panel-muted-bg,rgba(255,255,255,0.035))]",
               )}
             >
               <div className="flex items-start gap-2 p-3">
@@ -5368,9 +5368,9 @@ function LeftDock({
                   aria-expanded={expandedAgentId === agent.id}
                   aria-label={`${agent.callsign} model settings`}
                   className={cx(
-                    "grid h-7 w-7 shrink-0 place-items-center border text-slate-500 transition hover:border-cyan-300/45 hover:bg-cyan-300/10 hover:text-cyan-100",
+                    "grid h-7 w-7 shrink-0 place-items-center border text-slate-500 transition hover:border-cyan-300/45 hover:text-cyan-100 hover:[background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.1))]",
                     expandedAgentId === agent.id &&
-                      "border-cyan-300/55 bg-cyan-300/15 text-cyan-100",
+                      "border-cyan-300/55 text-cyan-100 [background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.15))]",
                   )}
                   onClick={() =>
                     setExpandedAgentId((current) =>

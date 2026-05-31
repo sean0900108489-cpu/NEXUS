@@ -66,6 +66,26 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
     );
   });
 
+  it("renders a static Warm Glass agent card bank recipe specimen", () => {
+    const source = readStyleLabSource();
+
+    expect(source).toContain("warmGlassAgentCardRows");
+    expect(source).toContain("warmGlassAgentBankSpecimenStyle");
+    expect(source).toContain('data-testid="warm-glass-agent-card-bank-specimen"');
+    expect(source).toContain('data-testid="warm-glass-agent-card-bank-header"');
+    expect(source).toContain('data-testid="warm-glass-agent-card-bank-roster"');
+    expect(source).toContain('data-testid="warm-glass-agent-card-bank-action"');
+    expect(source).toContain('data-testid="warm-glass-agent-card-avatar"');
+    expect(source).toContain(
+      'data-testid="warm-glass-agent-status-indicator"',
+    );
+    expect(source).toContain("Architect");
+    expect(source).toContain("Explorer");
+    expect(source).toContain("Sentinel");
+    expect(source).toContain("Auditor");
+    expect(source).toContain("Steward");
+  });
+
   it("keeps the coverage panel detached from production runtime mutation", () => {
     const source = readStyleLabSource();
     const forbiddenPatterns = [
@@ -91,6 +111,12 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
       /warmGlassRightMetrics[\s\S]*fetch\s*\(/,
       /warmGlassRightMetrics[\s\S]*https?:\/\//,
       /warmGlassRightMetrics[\s\S]*\burl\s*\(/,
+      /warmGlassAgent[\s\S]*document\.documentElement/,
+      /warmGlassAgent[\s\S]*window\.localStorage/,
+      /warmGlassAgent[\s\S]*indexedDB/,
+      /warmGlassAgent[\s\S]*fetch\s*\(/,
+      /warmGlassAgent[\s\S]*https?:\/\//,
+      /warmGlassAgent[\s\S]*\burl\s*\(/,
     ];
 
     expect(source).toContain("createWarmGlassOpsProductionAliasCoverageReportV1");

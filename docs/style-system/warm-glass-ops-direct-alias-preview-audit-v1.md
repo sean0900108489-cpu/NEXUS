@@ -279,3 +279,36 @@ Updated estimate after this specimen:
 The next highest ROI visual gaps remain agent card/bank recipe, segmented top
 navigation specimen, and then typography density policy before any production
 layout or asset pipeline gate.
+
+## Agent Card Bank Specimen Follow-Up
+
+Loop `20260531-v19-warm-glass-ops-agent-card-bank-specimen` upgraded the
+Style Lab scene preview with a static agent card bank recipe specimen.
+
+Added specimen evidence:
+
+- agent bank panel
+- five compact agent cards
+- Architect / Explorer / Sentinel / Auditor / Steward role identities
+- soft initial avatar blocks
+- role labels and status text
+- status dots
+- load and queue micro-metrics
+- inert add affordance
+
+The specimen remains isolated:
+
+- no production AgentWindow or shell import
+- no store, sync, backend, Supabase, or API calls
+- no persistence
+- no event handlers or runtime apply
+- no `globals.css` or production selector changes
+
+Updated estimate after this specimen:
+
+- visual similarity in Style Lab: about `63-66%`
+- production skinning readiness: about `72-75%`
+
+The next highest ROI visual gaps are segmented top navigation specimen,
+typography/icon/button polish, and then production confidence work such as
+authenticated `/` smoke.

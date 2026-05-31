@@ -1613,3 +1613,73 @@ Next seed:
 - `V19 Warm Glass Ops Agent Card Bank Specimen`
 - create a Style Lab-only static agent card/bank recipe specimen using current
   direct aliases, without touching production AgentWindow behavior
+
+## 30. Warm Glass Ops Agent Card Bank Specimen
+
+Recorded during
+`20260531-v19-warm-glass-ops-agent-card-bank-specimen`.
+
+Selected target:
+
+- Style Lab-only agent card bank recipe/specimen inside the Warm Glass scene
+  preview
+- no production AgentWindow or shell behavior
+- no persistence, store, sync, backend, Supabase, or API calls
+- no `src/components/nexus/**`, `src/app/globals.css`, selectors, or runtime
+  apply changes
+
+Specimen structure:
+
+- agent bank panel
+- five compact agent cards
+- role identity chips for Architect, Explorer, Sentinel, Auditor, and Steward
+- soft initial avatar blocks
+- status dot and status text
+- load and queue micro-metrics
+- inert add affordance
+
+Supported now:
+
+- static left-side agent roster hierarchy can reuse local Warm Glass
+  panel/glass variables
+- direct alias preview can show warm glass cards next to workspace and right
+  metrics specimens
+- Style Lab can visually compare the north-star left bank, central workspace,
+  and right metrics composition together
+
+Simulated only:
+
+- agent roster data
+- role identity state
+- status state
+- load and queue metrics
+- add affordance
+- actual production AgentWindow or roster behavior
+
+Still missing production capability:
+
+- production agent card selector/recipe boundary
+- safe adoption path for real roster/card content
+- store-backed agent status data
+- authenticated production `/` smoke
+- segmented top navigation specimen
+- typography/icon/button polish
+
+Verification:
+
+- source guard covers the agent card bank specimen sections and roles
+- no document-root mutation, storage, fetch, remote URL, or production Nexus
+  import was introduced
+- full verification is recorded in the loop checkpoint
+
+Estimate after this loop:
+
+- Style Lab visual similarity: about `63-66%`
+- readiness: about `72-75%`
+
+Next seed:
+
+- `V19 Warm Glass Ops Segmented Top Navigation Specimen`
+- create a Style Lab-only static segmented top navigation recipe specimen using
+  current direct aliases, without touching TopBar controls or keyboard/action
+  behavior

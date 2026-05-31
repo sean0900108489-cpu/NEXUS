@@ -559,6 +559,65 @@ const warmGlassSceneAgentWindowStyle = {
   boxShadow: "var(--nexus-agent-window-shadow, 0 24px 68px rgb(73 49 30 / 0.24))",
 } as CSSProperties;
 
+const warmGlassAgentCardRows = [
+  {
+    id: "architect",
+    initial: "A",
+    load: "32%",
+    name: "Architect",
+    queue: "06m",
+    role: "system architect",
+    status: "online",
+    tone: "bg-emerald-200/[0.16] text-emerald-50",
+  },
+  {
+    id: "explorer",
+    initial: "E",
+    load: "41%",
+    name: "Explorer",
+    queue: "11m",
+    role: "data scout",
+    status: "mapping",
+    tone: "bg-cyan-200/[0.14] text-cyan-50",
+  },
+  {
+    id: "sentinel",
+    initial: "S",
+    load: "28%",
+    name: "Sentinel",
+    queue: "03m",
+    role: "risk watch",
+    status: "guarding",
+    tone: "bg-amber-200/[0.14] text-amber-50",
+  },
+  {
+    id: "auditor",
+    initial: "U",
+    load: "19%",
+    name: "Auditor",
+    queue: "14m",
+    role: "compliance lens",
+    status: "review",
+    tone: "bg-white/[0.1] text-amber-50",
+  },
+  {
+    id: "steward",
+    initial: "T",
+    load: "24%",
+    name: "Steward",
+    queue: "09m",
+    role: "memory steward",
+    status: "syncing",
+    tone: "bg-[rgb(184_137_92_/_0.16)] text-amber-50",
+  },
+] as const;
+
+const warmGlassAgentBankSpecimenStyle = {
+  ...warmGlassScenePanelStyle,
+  background:
+    "linear-gradient(180deg, rgb(255 248 235 / 0.17), rgb(74 48 29 / 0.12)), var(--nexus-panel-bg, rgb(255 244 226 / 0.24))",
+} as CSSProperties;
+
 const warmGlassSceneCapabilityGroups = [
   {
     id: "supported",
@@ -3044,36 +3103,87 @@ export function NexusStyleLab() {
 
                       <div className="grid gap-3 xl:grid-cols-[220px_minmax(0,1fr)_280px]">
                         <aside
-                          className="grid content-start gap-2 border p-3"
+                          className="grid content-start gap-3 border p-3"
                           data-testid="warm-glass-scene-agent-bank"
-                          style={warmGlassScenePanelStyle}
+                          style={warmGlassAgentBankSpecimenStyle}
                         >
-                          <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
-                            Agent Bank
-                          </div>
-                          {[
-                            ["A", "Architect", "System architect"],
-                            ["E", "Explorer", "Data explorer"],
-                            ["S", "Sentinel", "Threat detection"],
-                            ["U", "Auditor", "Compliance auditor"],
-                          ].map(([initial, name, detail]) => (
-                            <article
-                              key={`warm-glass-scene-agent:${name}`}
-                              className="grid grid-cols-[34px_minmax(0,1fr)] gap-2 border border-white/15 bg-white/[0.1] p-2"
+                          <div
+                            className="grid gap-3"
+                            data-testid="warm-glass-agent-card-bank-specimen"
+                          >
+                            <div
+                              className="flex items-start justify-between gap-2"
+                              data-testid="warm-glass-agent-card-bank-header"
                             >
-                              <span className="grid h-8 w-8 place-items-center bg-white/20 font-mono text-[10px] text-amber-50">
-                                {initial}
+                              <div className="min-w-0">
+                                <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
+                                  Agent Bank
+                                </div>
+                                <div className="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/60">
+                                  roster recipe specimen
+                                </div>
+                              </div>
+                              <span
+                                aria-hidden="true"
+                                className="shrink-0 border border-white/15 bg-white/[0.08] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/75"
+                                data-testid="warm-glass-agent-card-bank-action"
+                              >
+                                Add
                               </span>
-                              <span className="min-w-0">
-                                <span className="block truncate font-mono text-[9px] uppercase tracking-[0.1em] text-amber-50">
-                                  {name}
-                                </span>
-                                <span className="mt-0.5 block truncate text-[10px] text-amber-50/70">
-                                  {detail}
-                                </span>
-                              </span>
-                            </article>
-                          ))}
+                            </div>
+
+                            <div
+                              className="grid gap-2"
+                              data-testid="warm-glass-agent-card-bank-roster"
+                            >
+                              {warmGlassAgentCardRows.map((agent) => (
+                                <article
+                                  key={`warm-glass-agent-card:${agent.id}`}
+                                  className="grid gap-2 border border-white/15 bg-white/[0.08] p-2"
+                                  data-testid={`warm-glass-agent-card-${agent.id}`}
+                                >
+                                  <div className="grid grid-cols-[34px_minmax(0,1fr)] gap-2">
+                                    <span
+                                      className={[
+                                        "grid h-8 w-8 place-items-center rounded-full border border-white/15 font-mono text-[10px]",
+                                        agent.tone,
+                                      ].join(" ")}
+                                      data-testid="warm-glass-agent-card-avatar"
+                                    >
+                                      {agent.initial}
+                                    </span>
+                                    <span className="min-w-0">
+                                      <span className="flex min-w-0 items-center justify-between gap-2">
+                                        <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-amber-50">
+                                          {agent.name}
+                                        </span>
+                                        <span className="shrink-0 border border-white/10 bg-white/[0.06] px-1.5 py-0.5 font-mono text-[7px] uppercase tracking-[0.08em] text-amber-50/60">
+                                          {agent.load}
+                                        </span>
+                                      </span>
+                                      <span className="mt-0.5 block truncate text-[10px] text-amber-50/70">
+                                        {agent.role}
+                                      </span>
+                                    </span>
+                                  </div>
+                                  <div className="flex min-w-0 items-center justify-between gap-2 border-t border-white/10 pt-2">
+                                    <span
+                                      className="flex min-w-0 items-center gap-1.5"
+                                      data-testid="warm-glass-agent-status-indicator"
+                                    >
+                                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-100/70" />
+                                      <span className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/65">
+                                        {agent.status}
+                                      </span>
+                                    </span>
+                                    <span className="shrink-0 font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/50">
+                                      {agent.queue}
+                                    </span>
+                                  </div>
+                                </article>
+                              ))}
+                            </div>
+                          </div>
                         </aside>
 
                         <main

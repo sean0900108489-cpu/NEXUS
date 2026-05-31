@@ -1475,3 +1475,77 @@ Boundaries held:
   context
 - no production runtime, store, sync, backend, Supabase, API, asset production
   apply, or layout production apply changes
+
+## 28. Warm Glass Ops Style Lab Scene Wash Preview
+
+Recorded during
+`20260531-v19-warm-glass-ops-style-lab-scene-wash-preview`.
+
+Selected target:
+
+- Style Lab-only scene/wash preview for Warm Glass Ops
+- no production runtime apply
+- no persistence
+- no remote image URL
+- no copied reference image
+- no `globals.css` or production shell changes
+
+Preview design:
+
+- local isolated preview container
+- direct Warm Glass production alias variables applied to that container
+- CSS gradients approximate desert/atelier warmth and soft backlit wash
+- static frosted workspace board
+- static agent bank/cards
+- static right metrics panel
+- mini Command/Modal/Datapad chrome row
+- supported / simulated-only / missing capability summary
+
+Supported surfaces shown:
+
+- panel/glass aliases
+- workspace background/border/shadow/radius feel
+- agent-window chrome aliases
+- message bubble surface aliases
+- command/modal/datapad shell alias direction
+
+Simulated only:
+
+- desert atelier scene
+- agent bank/card composition
+- right metrics panel composition
+- segmented top-navigation mood
+- command-center layout arrangement
+
+Still missing production capability:
+
+- asset/background pipeline
+- right metrics recipe/selector boundary
+- agent card recipe/selector boundary
+- segmented nav recipe/selector boundary
+- typography density policy
+- layout preset production apply
+- authenticated production `/` smoke
+
+Browser smoke result:
+
+- `/style-lab` loaded
+- scene preview rendered
+- warm gradient/background wash detected
+- supported/simulated/missing summaries rendered
+- Warm Glass fixture review accepted
+- token preview/revert worked
+- Production Chrome Smoke apply/revert still worked
+- console errors: none observed
+
+Estimate after this loop:
+
+- Style Lab visual similarity: about `52-55%`
+- readiness: about `68-72%`
+
+Next seed:
+
+- `V19 Warm Glass Ops Right Metrics Panel Specimen`
+- create a Style Lab-only static right metrics panel specimen/recipe candidate
+  using direct aliases, without touching right-dock artifact/vault persistence
+  panels or production behavior

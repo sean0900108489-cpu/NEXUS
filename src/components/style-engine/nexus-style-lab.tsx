@@ -481,6 +481,120 @@ const productionChromeSmokeVariables = [
   ["--nexus-message-tool-bg", "rgb(16 185 129 / 0.3)"],
 ] as const;
 
+const warmGlassScenePreviewVariables = [
+  ["--nexus-panel-bg", "rgb(255 244 226 / 0.24)"],
+  ["--nexus-panel-border", "rgb(255 244 226 / 0.24)"],
+  ["--nexus-panel-shadow", "0 24px 72px rgb(74 48 29 / 0.24)"],
+  ["--nexus-panel-radius", "18px"],
+  ["--nexus-panel-blur", "18px"],
+  ["--nexus-glass-bg", "rgb(255 248 235 / 0.18)"],
+  ["--nexus-glass-border", "rgb(255 248 235 / 0.2)"],
+  ["--nexus-glass-radius", "18px"],
+  ["--nexus-glass-blur", "20px"],
+  ["--nexus-workspace-bg", "rgb(76 54 38 / 0.34)"],
+  ["--nexus-workspace-border", "rgb(255 244 226 / 0.18)"],
+  ["--nexus-workspace-shadow", "0 34px 90px rgb(65 42 26 / 0.28)"],
+  ["--nexus-workspace-radius", "22px"],
+  ["--nexus-agent-window-bg", "rgb(255 244 226 / 0.2)"],
+  ["--nexus-agent-window-border", "rgb(255 248 235 / 0.26)"],
+  ["--nexus-agent-window-shadow", "0 24px 68px rgb(73 49 30 / 0.24)"],
+  ["--nexus-agent-window-radius", "18px"],
+  ["--nexus-agent-window-blur", "20px"],
+  ["--nexus-command-palette-bg", "rgb(255 244 226 / 0.2)"],
+  ["--nexus-command-palette-border", "rgb(255 248 235 / 0.22)"],
+  ["--nexus-command-palette-radius", "16px"],
+  ["--nexus-command-palette-shadow", "0 20px 60px rgb(74 48 29 / 0.22)"],
+  ["--nexus-modal-shell-bg", "rgb(255 244 226 / 0.18)"],
+  ["--nexus-modal-shell-border", "rgb(255 248 235 / 0.2)"],
+  ["--nexus-modal-shell-radius", "18px"],
+  ["--nexus-datapad-shell-bg", "rgb(255 244 226 / 0.16)"],
+  ["--nexus-datapad-shell-border", "rgb(255 248 235 / 0.2)"],
+  ["--nexus-datapad-shell-radius", "16px"],
+  ["--nexus-message-user-bg", "rgb(255 248 235 / 0.24)"],
+  ["--nexus-message-assistant-bg", "rgb(255 244 226 / 0.18)"],
+  ["--nexus-message-tool-bg", "rgb(184 137 92 / 0.16)"],
+] as const;
+
+const warmGlassScenePreviewVariableStyle = Object.fromEntries(
+  warmGlassScenePreviewVariables,
+) as CSSProperties;
+
+const warmGlassScenePreviewTargetStyle = {
+  ...warmGlassScenePreviewVariableStyle,
+  background:
+    "radial-gradient(circle at 18% 22%, rgb(255 248 235 / 0.52), transparent 26%), radial-gradient(circle at 72% 28%, rgb(184 137 92 / 0.28), transparent 30%), linear-gradient(135deg, rgb(229 211 184) 0%, rgb(176 127 84) 44%, rgb(84 59 40) 100%)",
+  color: "rgb(255 248 235)",
+} as CSSProperties;
+
+const warmGlassSceneGlassStyle = {
+  backdropFilter: "blur(var(--nexus-glass-blur, 18px))",
+  background: "var(--nexus-glass-bg, rgb(255 248 235 / 0.18))",
+  borderColor: "var(--nexus-glass-border, rgb(255 248 235 / 0.2))",
+  borderRadius: "var(--nexus-glass-radius, 18px)",
+  boxShadow: "var(--nexus-panel-shadow, 0 24px 72px rgb(74 48 29 / 0.24))",
+} as CSSProperties;
+
+const warmGlassSceneWorkspaceStyle = {
+  background:
+    "linear-gradient(90deg, rgb(255 248 235 / 0.08) 1px, transparent 1px), linear-gradient(rgb(255 248 235 / 0.08) 1px, transparent 1px), var(--nexus-workspace-bg, rgb(76 54 38 / 0.34))",
+  backgroundSize: "34px 34px",
+  borderColor: "var(--nexus-workspace-border, rgb(255 244 226 / 0.18))",
+  borderRadius: "var(--nexus-workspace-radius, 22px)",
+  boxShadow: "var(--nexus-workspace-shadow, 0 34px 90px rgb(65 42 26 / 0.28))",
+} as CSSProperties;
+
+const warmGlassScenePanelStyle = {
+  backdropFilter: "blur(var(--nexus-panel-blur, 18px))",
+  background: "var(--nexus-panel-bg, rgb(255 244 226 / 0.24))",
+  borderColor: "var(--nexus-panel-border, rgb(255 244 226 / 0.24))",
+  borderRadius: "var(--nexus-panel-radius, 18px)",
+  boxShadow: "var(--nexus-panel-shadow, 0 24px 72px rgb(74 48 29 / 0.24))",
+} as CSSProperties;
+
+const warmGlassSceneAgentWindowStyle = {
+  backdropFilter: "blur(var(--nexus-agent-window-blur, 20px))",
+  background: "var(--nexus-agent-window-bg, rgb(255 244 226 / 0.2))",
+  borderColor: "var(--nexus-agent-window-border, rgb(255 248 235 / 0.26))",
+  borderRadius: "var(--nexus-agent-window-radius, 18px)",
+  boxShadow: "var(--nexus-agent-window-shadow, 0 24px 68px rgb(73 49 30 / 0.24))",
+} as CSSProperties;
+
+const warmGlassSceneCapabilityGroups = [
+  {
+    id: "supported",
+    label: "Supported Now",
+    tone: "text-emerald-100",
+    values: [
+      "direct bridge aliases",
+      "workspace wash",
+      "glass chrome",
+      "message surfaces",
+    ],
+  },
+  {
+    id: "simulated",
+    label: "Simulated In Style Lab Only",
+    tone: "text-amber-100",
+    values: [
+      "desert scene gradients",
+      "agent bank cards",
+      "right metrics panel",
+      "segmented nav mood",
+    ],
+  },
+  {
+    id: "missing",
+    label: "Missing Production Capability",
+    tone: "text-rose-100",
+    values: [
+      "asset/background pipeline",
+      "right metrics recipe",
+      "agent card recipe",
+      "layout preset apply",
+    ],
+  },
+] as const;
+
 export function NexusStyleLab() {
   const runtime = useNexusStyleRuntimeV1();
   const productionBridgeTargetRef = useRef<HTMLDivElement | null>(null);
@@ -2829,6 +2943,273 @@ export function NexusStyleLab() {
                           ))}
                         </div>
                       </div>
+                  </div>
+                  </section>
+
+                  <section
+                    className="mb-4 border border-amber-200/20 bg-amber-100/[0.035] p-3"
+                    data-testid="warm-glass-scene-preview-panel"
+                  >
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-amber-100">
+                        Warm Glass Scene Preview
+                      </div>
+                      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                        local preview / no persistence
+                      </div>
+                    </div>
+
+                    <div className="mb-3 grid gap-2 md:grid-cols-3">
+                      {[
+                        ["Direct Vars", String(warmGlassScenePreviewVariables.length)],
+                        ["Scene", "gradient wash"],
+                        ["Scope", "local container"],
+                      ].map(([label, value]) => (
+                        <div
+                          key={`warm-glass-scene-summary:${label}`}
+                          className="min-w-0 border border-white/10 bg-black/20 p-2"
+                        >
+                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                            {label}
+                          </div>
+                          <div className="mt-1 truncate font-mono text-[9px] text-amber-100">
+                            {value}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div
+                      className="relative isolate min-h-[520px] overflow-hidden border border-amber-100/20 p-4"
+                      data-testid="warm-glass-scene-preview-target"
+                      style={warmGlassScenePreviewTargetStyle}
+                    >
+                      <div className="absolute inset-0 -z-10 opacity-80">
+                        <div className="absolute left-[8%] top-[12%] h-36 w-56 bg-white/30 blur-3xl" />
+                        <div className="absolute bottom-[-12%] left-[28%] h-56 w-72 rotate-6 bg-[rgb(124_80_48_/_0.34)] blur-2xl" />
+                        <div className="absolute right-[12%] top-[16%] h-64 w-64 rounded-full bg-[rgb(255_202_142_/_0.16)] blur-3xl" />
+                        <div className="absolute bottom-0 right-[10%] h-56 w-64 rounded-t-full border border-amber-100/15 bg-[rgb(94_61_38_/_0.26)]" />
+                      </div>
+
+                      <div
+                        className="mb-3 grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border p-2"
+                        data-testid="warm-glass-scene-segmented-nav"
+                        style={warmGlassSceneGlassStyle}
+                      >
+                        <div className="flex min-w-0 flex-wrap items-center gap-2">
+                          {["Panels", "Graph", "Apple", "Terminal"].map((item) => (
+                            <span
+                              key={`warm-glass-scene-nav:${item}`}
+                              className="border border-white/15 bg-white/[0.08] px-3 py-1.5 font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50"
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="hidden gap-2 sm:flex">
+                          {["5", "0", "0"].map((value, index) => (
+                            <span
+                              key={`warm-glass-scene-counter:${index}`}
+                              className="grid h-8 w-10 place-items-center border border-white/15 bg-white/[0.08] font-mono text-[9px] text-amber-50"
+                            >
+                              {value}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 xl:grid-cols-[220px_minmax(0,1fr)_240px]">
+                        <aside
+                          className="grid content-start gap-2 border p-3"
+                          data-testid="warm-glass-scene-agent-bank"
+                          style={warmGlassScenePanelStyle}
+                        >
+                          <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
+                            Agent Bank
+                          </div>
+                          {[
+                            ["A", "Architect", "System architect"],
+                            ["E", "Explorer", "Data explorer"],
+                            ["S", "Sentinel", "Threat detection"],
+                            ["U", "Auditor", "Compliance auditor"],
+                          ].map(([initial, name, detail]) => (
+                            <article
+                              key={`warm-glass-scene-agent:${name}`}
+                              className="grid grid-cols-[34px_minmax(0,1fr)] gap-2 border border-white/15 bg-white/[0.1] p-2"
+                            >
+                              <span className="grid h-8 w-8 place-items-center bg-white/20 font-mono text-[10px] text-amber-50">
+                                {initial}
+                              </span>
+                              <span className="min-w-0">
+                                <span className="block truncate font-mono text-[9px] uppercase tracking-[0.1em] text-amber-50">
+                                  {name}
+                                </span>
+                                <span className="mt-0.5 block truncate text-[10px] text-amber-50/70">
+                                  {detail}
+                                </span>
+                              </span>
+                            </article>
+                          ))}
+                        </aside>
+
+                        <main
+                          className="nexus-workspace min-h-[370px] min-w-0 overflow-hidden border p-3"
+                          data-testid="warm-glass-scene-workspace-board"
+                          style={warmGlassSceneWorkspaceStyle}
+                        >
+                          <div className="mb-3 flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
+                                Workspace Live
+                              </div>
+                              <div className="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/65">
+                                scene wash over direct bridge aliases
+                              </div>
+                            </div>
+                            <span className="border border-white/15 bg-white/[0.08] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/75">
+                              supported
+                            </span>
+                          </div>
+
+                          <div className="grid gap-3">
+                            <section
+                              className="nexus-agent-window border p-3"
+                              data-testid="warm-glass-scene-agent-window"
+                              style={warmGlassSceneAgentWindowStyle}
+                            >
+                              <div className="mb-3 flex items-center justify-between gap-2">
+                                <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
+                                  Architect / Idle
+                                </div>
+                                <div className="flex gap-1">
+                                  {[0, 1, 2].map((item) => (
+                                    <span
+                                      key={`warm-glass-scene-dot:${item}`}
+                                      className="h-2 w-2 rounded-full bg-amber-50/40"
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="grid gap-2">
+                                <article className="nexus-message-bubble nexus-message-bubble-assistant border border-white/15 bg-white/[0.09] p-2">
+                                  <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                                    Mission
+                                  </div>
+                                  <p className="mt-1 text-xs leading-5 text-amber-50/85">
+                                    Map product intent into executable plans.
+                                  </p>
+                                </article>
+                                <article className="nexus-message-bubble nexus-message-bubble-tool border border-white/15 bg-[rgb(184_137_92_/_0.12)] p-2">
+                                  <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                                    Tool
+                                  </div>
+                                  <p className="mt-1 text-xs leading-5 text-amber-50/85">
+                                    Static Style Lab scene specimen.
+                                  </p>
+                                </article>
+                              </div>
+                            </section>
+
+                            <section
+                              className="grid content-start gap-2 border p-3"
+                              data-testid="warm-glass-scene-chrome-row"
+                              style={warmGlassScenePanelStyle}
+                            >
+                              <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
+                                Mini Chrome
+                              </div>
+                              {["Command", "Modal", "Datapad"].map((item) => (
+                                <div
+                                  key={`warm-glass-scene-mini:${item}`}
+                                  className="border border-white/15 bg-white/[0.08] p-2"
+                                >
+                                  <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/80">
+                                    {item}
+                                  </div>
+                                  <div className="mt-2 h-1.5 w-3/4 bg-amber-50/25" />
+                                  <div className="mt-1.5 h-1.5 w-1/2 bg-amber-50/15" />
+                                </div>
+                              ))}
+                            </section>
+                          </div>
+                        </main>
+
+                        <aside
+                          className="grid content-start gap-3 border p-3"
+                          data-testid="warm-glass-scene-metrics-panel"
+                          style={warmGlassScenePanelStyle}
+                        >
+                          <div>
+                            <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
+                              Metrics
+                            </div>
+                            <div className="mt-1 font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/60">
+                              static scene specimen
+                            </div>
+                          </div>
+                          <div className="grid gap-2 border border-white/15 bg-white/[0.08] p-2">
+                            {["Scope Depth", "Schema Forge", "Protocol"].map(
+                              (label, index) => (
+                                <div
+                                  key={`warm-glass-scene-metric:${label}`}
+                                  className="grid grid-cols-[minmax(0,1fr)_64px] items-center gap-2"
+                                >
+                                  <span className="truncate text-[10px] text-amber-50/80">
+                                    {label}
+                                  </span>
+                                  <span className="h-1 bg-white/15">
+                                    <span
+                                      className="block h-full bg-amber-50/55"
+                                      style={{ width: `${52 + index * 16}%` }}
+                                    />
+                                  </span>
+                                </div>
+                              ),
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            {["ARCHITECT", "AUDITOR", "SENTINEL", "EXPLORER"].map(
+                              (item) => (
+                                <span
+                                  key={`warm-glass-scene-map:${item}`}
+                                  className="border border-white/15 bg-white/[0.07] px-2 py-2 text-center font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/80"
+                                >
+                                  {item}
+                                </span>
+                              ),
+                            )}
+                          </div>
+                        </aside>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 grid gap-2 lg:grid-cols-3">
+                      {warmGlassSceneCapabilityGroups.map((group) => (
+                        <div
+                          key={`warm-glass-scene-capability:${group.id}`}
+                          className="min-w-0 border border-white/10 bg-black/20 p-2"
+                          data-testid={`warm-glass-scene-${group.id}`}
+                        >
+                          <div
+                            className={[
+                              "truncate font-mono text-[9px] uppercase tracking-[0.12em]",
+                              group.tone,
+                            ].join(" ")}
+                          >
+                            {group.label}
+                          </div>
+                          <div className="mt-2 grid gap-1">
+                            {group.values.map((value) => (
+                              <div
+                                key={`warm-glass-scene-capability:${group.id}:${value}`}
+                                className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-400"
+                              >
+                                {value}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </section>
 

@@ -18,6 +18,26 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
     expect(source).toContain("totalAliasCount");
   });
 
+  it("renders a local Warm Glass scene preview with supported and missing capability groups", () => {
+    const source = readStyleLabSource();
+
+    expect(source).toContain("Warm Glass Scene Preview");
+    expect(source).toContain('data-testid="warm-glass-scene-preview-panel"');
+    expect(source).toContain('data-testid="warm-glass-scene-preview-target"');
+    expect(source).toContain('data-testid="warm-glass-scene-agent-bank"');
+    expect(source).toContain('data-testid="warm-glass-scene-workspace-board"');
+    expect(source).toContain('data-testid="warm-glass-scene-metrics-panel"');
+    expect(source).toContain('data-testid={`warm-glass-scene-${group.id}`}');
+    expect(source).toContain('id: "supported"');
+    expect(source).toContain('id: "simulated"');
+    expect(source).toContain('id: "missing"');
+    expect(source).toContain("warmGlassScenePreviewVariables");
+    expect(source).toContain("--nexus-agent-window-bg");
+    expect(source).toContain("--nexus-command-palette-bg");
+    expect(source).toContain("--nexus-modal-shell-bg");
+    expect(source).toContain("--nexus-datapad-shell-bg");
+  });
+
   it("keeps the coverage panel detached from production runtime mutation", () => {
     const source = readStyleLabSource();
     const forbiddenPatterns = [
@@ -31,6 +51,12 @@ describe("Nexus Style Lab Warm Glass Ops coverage panel", () => {
       /warmGlassOps[\s\S]*document\.documentElement/,
       /warmGlassOps[\s\S]*window\.localStorage/,
       /warmGlassOps[\s\S]*indexedDB/,
+      /warmGlassScene[\s\S]*document\.documentElement/,
+      /warmGlassScene[\s\S]*window\.localStorage/,
+      /warmGlassScene[\s\S]*indexedDB/,
+      /warmGlassScene[\s\S]*fetch\s*\(/,
+      /warmGlassScene[\s\S]*https?:\/\//,
+      /warmGlassScene[\s\S]*\burl\s*\(/,
     ];
 
     expect(source).toContain("createWarmGlassOpsProductionAliasCoverageReportV1");

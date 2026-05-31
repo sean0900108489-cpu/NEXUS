@@ -212,3 +212,37 @@ Warm Glass visual similarity is not yet at the 80 percent phase target. The
 next high-ROI work should improve Style Lab visual proof, starting with a
 scene/wash preview, before adding more production aliases or touching
 behavior-bearing production panels.
+
+## Scene Wash Preview Follow-Up
+
+Loop `20260531-v19-warm-glass-ops-style-lab-scene-wash-preview` added a
+Style Lab-only scene preview for the highest ROI visual gap identified in this
+audit.
+
+Added preview evidence:
+
+- warm desert/atelier gradient wash
+- local direct-alias variables on the preview container
+- frosted workspace board
+- static agent bank/cards
+- static right metrics panel
+- segmented-navigation mood strip
+- mini Command/Modal/Datapad chrome row
+- supported / simulated-only / missing capability groups
+
+The preview remains isolated:
+
+- no production `/` apply
+- no persistence
+- no reference image copied into the repository
+- no remote image URL
+- no asset pipeline or layout preset production apply
+
+Updated estimate after this scene preview:
+
+- visual similarity in Style Lab: about `52-55%`
+- production skinning readiness: about `68-72%`
+
+The remaining path to 80 percent should prioritize real recipe/specimen
+coverage for right metrics, agent cards, segmented navigation, and typography
+density before adding more low-level aliases.

@@ -129,6 +129,26 @@ describe("Nexus production Theme panel live style controls", () => {
     expect(saveHandlerSource).not.toContain("localSyncQueueAdapter");
   });
 
+  it("restores imported workspace style controls as the Theme panel saved baseline", () => {
+    expect(controlsPanelSource).toContain("const importedControls = useMemo");
+    expect(controlsPanelSource).toContain(
+      "stylePayloadReview?.decision.status !== \"accepted\"",
+    );
+    expect(controlsPanelSource).toContain(
+      "extractWorkspaceThemeStyleControlsV1",
+    );
+    expect(controlsPanelSource).toContain(
+      "stylePayloadReview.decision.payload?.controls",
+    );
+    expect(controlsPanelSource).toContain(
+      "() => importedControls ?? baseThemeControls",
+    );
+    expect(controlsPanelSource).toContain("setControls(importedControls)");
+    expect(controlsPanelSource).toContain("setSavedControls(importedControls)");
+    expect(controlsPanelSource).toContain("setControls(baseThemeControls)");
+    expect(controlsPanelSource).toContain("setSavedControls(null)");
+  });
+
   it("keeps the mapping and payload validation in pure style-engine helpers", () => {
     expect(source).toContain("createWorkspaceThemeStylePreviewVariablesV1");
     expect(source).toContain("createWorkspaceThemeStyleControlsPayloadV1");

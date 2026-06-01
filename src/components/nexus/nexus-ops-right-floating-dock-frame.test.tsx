@@ -110,7 +110,7 @@ describe("NexusOpsRightFloatingDockFrame", () => {
     }
   });
 
-  it("declares right dock CSS variable aliases with panel and baseline fallback", () => {
+  it("declares right dock CSS variable aliases with shared layout panel fallback", () => {
     const css = readGlobalsCssSource();
 
     expect(css).toContain(".nexus-right-floating-dock-rail");
@@ -119,11 +119,18 @@ describe("NexusOpsRightFloatingDockFrame", () => {
     expect(css).toContain("--nexus-right-dock-shadow");
     expect(css).toContain("--nexus-right-dock-blur");
     expect(css).toContain("--nexus-right-dock-radius");
+    expect(css).toContain("var(--nexus-layout-panel-bg, var(--nexus-panel-bg");
+    expect(css).toContain(
+      "var(--nexus-layout-panel-border, var(--nexus-panel-border",
+    );
+    expect(css).toMatch(
+      /var\(\s*--nexus-layout-panel-shadow,\s*var\(\s*--nexus-panel-shadow/,
+    );
     expect(css).toContain("var(--nexus-panel-bg");
     expect(css).toContain("var(--nexus-panel-border");
     expect(css).toContain("var(--nexus-panel-shadow");
     expect(css).toContain("var(--nexus-panel-blur");
-    expect(css).toContain("var(--nexus-panel-radius");
+    expect(css).toContain("var(--nexus-panel-radius, var(--surface-radius))");
   });
 });
 

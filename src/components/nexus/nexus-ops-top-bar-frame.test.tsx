@@ -45,7 +45,7 @@ describe("NexusOpsTopBarFrame", () => {
     expect(html).toContain("relative z-[110]");
   });
 
-  it("has dedicated TopBar CSS aliases with panel and cyberpunk fallbacks", () => {
+  it("has dedicated TopBar CSS aliases with shared layout panel fallbacks", () => {
     const css = readGlobalsCssSource();
 
     expect(css).toContain(".nexus-shell .nexus-top-bar-frame");
@@ -54,13 +54,17 @@ describe("NexusOpsTopBarFrame", () => {
     expect(css).toContain("--nexus-top-bar-shadow");
     expect(css).toContain("--nexus-top-bar-blur");
     expect(css).toContain("--nexus-top-bar-radius");
-    expect(css).toContain("var(--nexus-panel-bg, rgb(0 0 0 / 0.2))");
     expect(css).toContain(
-      "var(--nexus-panel-border, rgb(255 255 255 / 0.1))",
+      "var(--nexus-layout-panel-bg, var(--nexus-panel-bg, rgb(0 0 0 / 0.2)))",
     );
-    expect(css).toContain("var(--nexus-panel-shadow, 0 0 0 transparent)");
+    expect(css).toContain(
+      "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.1)))",
+    );
+    expect(css).toContain(
+      "var(--nexus-layout-panel-shadow, var(--nexus-panel-shadow, 0 0 0 transparent))",
+    );
     expect(css).toContain("var(--nexus-panel-blur, var(--glass-blur))");
-    expect(css).toContain("var(--nexus-panel-radius, 0)");
+    expect(css).toContain("var(--nexus-panel-radius, var(--surface-radius))");
   });
 
   it("does not expose behavior authority through props", () => {

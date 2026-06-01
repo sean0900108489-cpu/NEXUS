@@ -394,15 +394,27 @@ button {
 }
 
 .nexus-shell .nexus-right-floating-dock-rail {
-  background: var(--nexus-right-dock-bg, var(--nexus-panel-bg, rgb(2 6 23 / 0.9)));
-  border-color: var(--nexus-right-dock-border, var(--nexus-panel-border, rgb(103 232 249 / 0.25)));
-  border-radius: var(--nexus-right-dock-radius, var(--nexus-panel-radius, 0));
+  background: var(
+    --nexus-right-dock-bg,
+    var(--nexus-layout-panel-bg, var(--nexus-panel-bg, rgb(2 6 23 / 0.9)))
+  );
+  border-color: var(
+    --nexus-right-dock-border,
+    var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(103 232 249 / 0.25)))
+  );
+  border-radius: var(
+    --nexus-right-dock-radius,
+    var(--nexus-panel-radius, var(--surface-radius))
+  );
   box-shadow: var(
     --nexus-right-dock-shadow,
     var(
-      --nexus-panel-shadow,
-      0 18px 60px rgb(0 0 0 / 0.45),
-      0 0 32px rgb(34 211 238 / 0.14)
+      --nexus-layout-panel-shadow,
+      var(
+        --nexus-panel-shadow,
+        0 18px 60px rgb(0 0 0 / 0.45),
+        0 0 32px rgb(34 211 238 / 0.14)
+      )
     )
   );
   -webkit-backdrop-filter: blur(var(--nexus-right-dock-blur, var(--nexus-panel-blur, var(--glass-blur)))) !important;
@@ -410,10 +422,22 @@ button {
 }
 
 .nexus-shell .nexus-top-bar-frame {
-  background: var(--nexus-top-bar-bg, var(--nexus-panel-bg, rgb(0 0 0 / 0.2)));
-  border-bottom-color: var(--nexus-top-bar-border, var(--nexus-panel-border, rgb(255 255 255 / 0.1)));
-  border-radius: var(--nexus-top-bar-radius, var(--nexus-panel-radius, 0));
-  box-shadow: var(--nexus-top-bar-shadow, var(--nexus-panel-shadow, 0 0 0 transparent));
+  background: var(
+    --nexus-top-bar-bg,
+    var(--nexus-layout-panel-bg, var(--nexus-panel-bg, rgb(0 0 0 / 0.2)))
+  );
+  border-bottom-color: var(
+    --nexus-top-bar-border,
+    var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.1)))
+  );
+  border-radius: var(
+    --nexus-top-bar-radius,
+    var(--nexus-panel-radius, var(--surface-radius))
+  );
+  box-shadow: var(
+    --nexus-top-bar-shadow,
+    var(--nexus-layout-panel-shadow, var(--nexus-panel-shadow, 0 0 0 transparent))
+  );
   -webkit-backdrop-filter: blur(var(--nexus-top-bar-blur, var(--nexus-panel-blur, var(--glass-blur)))) !important;
   backdrop-filter: blur(var(--nexus-top-bar-blur, var(--nexus-panel-blur, var(--glass-blur)))) !important;
 }

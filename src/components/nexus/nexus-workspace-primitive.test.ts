@@ -8,8 +8,9 @@ describe("Nexus workspace production primitive", () => {
 
     expect(source).toContain('ref={workspaceRef}');
     expect(source).toContain(
-      'className="nexus-workspace nexus-scanline relative z-0 isolate min-h-0 min-w-0 flex-1 overflow-hidden border border-white/10 bg-slate-950/80 shadow-2xl"',
+      'className="nexus-workspace nexus-scanline relative z-0 isolate min-h-0 min-w-0 flex-1 overflow-hidden border"',
     );
+    expect(source).not.toContain("bg-slate-950/80 shadow-2xl");
     expect(source).toContain('viewMode === "panels"');
     expect(source).toContain("<NexusGraph");
   });

@@ -362,6 +362,66 @@ describe("workspace style payload adapter", () => {
     expect(result.snapshot.workspace).toEqual(snapshot.workspace);
   });
 
+  it("round-trips saved theme controls through workspace export/import payloads", () => {
+    const snapshot = {
+      exportedAt: "2026-05-31T00:00:00.000Z",
+      schemaVersion: 1,
+      workspace: { id: "workspace-with-theme-controls" },
+    };
+    const before = structuredClone(snapshot);
+    const controls = {
+      ...createDefaultWorkspaceThemeStyleControlsV1(),
+      accent: "custom" as const,
+      accentColor: "#f6fa00",
+      glass: 58,
+      radius: 22,
+      warmth: 64,
+      workspaceWash: 42,
+    };
+    const payloadDecision = normalizeWorkspaceStylePayload({
+      controls: createWorkspaceThemeStyleControlsPayloadV1(controls),
+      source: "warm-glass-controls",
+      version: "style-pack-v2",
+    });
+
+    expect(payloadDecision.status).toBe("accepted");
+
+    const exportDecision = createWorkspaceStylePayloadExportSnapshot(
+      snapshot,
+      payloadDecision.payload,
+    );
+
+    expect(exportDecision.status).toBe("included");
+    expect(snapshot).toEqual(before);
+    expect(exportDecision.snapshot.workspace).toEqual(snapshot.workspace);
+    expect(exportDecision.snapshot.stylePack?.controls).toBeDefined();
+
+    const importDecision = extractWorkspaceStylePayloadFromSnapshot(
+      exportDecision.snapshot,
+    );
+
+    expect(importDecision.status).toBe("accepted");
+
+    const importedControls = extractWorkspaceThemeStyleControlsV1(
+      importDecision.payload?.controls,
+    );
+
+    expect(importedControls.accepted).toBe(true);
+
+    if (!importedControls.accepted) {
+      throw new Error("Expected imported controls to be accepted.");
+    }
+
+    expect(importedControls.controls).toMatchObject({
+      accent: "custom",
+      accentColor: "#f6fa00",
+      glass: 58,
+      radius: 22,
+      warmth: 64,
+      workspaceWash: 42,
+    });
+  });
+
   it("omits invalid style payloads during export without mutating the input", () => {
     const snapshot = {
       exportedAt: "2026-05-31T00:00:00.000Z",

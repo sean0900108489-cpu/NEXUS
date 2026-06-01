@@ -44,6 +44,36 @@ describe("Nexus workspace style payload export/import wiring", () => {
     expect(handleImportSource).not.toContain("localStorage");
     expect(handleImportSource).not.toContain("indexedDB");
   });
+
+  it("saves theme controls into accepted review state before workspace export", () => {
+    const handleSaveSource = extractCallbackSource(
+      source,
+      "handleSaveWorkspaceThemeStyleControls",
+    );
+    const handleExportSource = extractCallbackSource(source, "handleExport");
+
+    expect(source).toContain("createWorkspaceThemeStylePayloadForExport");
+    expect(handleSaveSource).toContain(
+      "createWorkspaceThemeStylePayloadForExport",
+    );
+    expect(handleSaveSource).toContain(
+      "writeImportedWorkspaceStyleReviewState",
+    );
+    expect(handleSaveSource).toContain("setWorkspaceStylePayloadReview");
+    expect(handleSaveSource).toContain(
+      "Workspace style controls saved to workspace export; not backend persisted",
+    );
+    expect(handleExportSource).toContain(
+      "workspaceStylePayloadReview?.decision.status === \"accepted\"",
+    );
+    expect(handleExportSource).toContain(
+      "workspaceStylePayloadReview.decision.payload",
+    );
+    expect(handleExportSource).not.toContain("setProperty(");
+    expect(handleExportSource).not.toContain("document.documentElement");
+    expect(handleExportSource).not.toContain("localStorage");
+    expect(handleExportSource).not.toContain("indexedDB");
+  });
 });
 
 function extractCallbackSource(source: string, callbackName: string) {

@@ -4469,6 +4469,17 @@ const workspaceStylePresetDefinitions = [
   },
 ] as const satisfies readonly WorkspaceStylePresetDefinition[];
 
+function createWorkspaceStylePresetControls(
+  baseControls: WorkspaceThemeStyleControlsV1,
+  preset: WorkspaceStylePresetDefinition,
+): WorkspaceThemeStyleControlsV1 {
+  return {
+    ...baseControls,
+    ...preset.controls,
+    version: baseControls.version,
+  };
+}
+
 function WorkspaceStyleControlsPanel({
   onSaveWorkspaceThemeStyleControls,
   stylePayloadReview,
@@ -4582,6 +4593,37 @@ function WorkspaceStyleControlsPanel({
     : isSyncedToBaseTheme
       ? "synced to workspace seed"
       : "live override unsaved";
+  const activePreset = useMemo(
+    () =>
+      workspaceStylePresetDefinitions.find((preset) =>
+        compareWorkspaceThemeControls(
+          controls,
+          createWorkspaceStylePresetControls(baseThemeControls, preset),
+        ),
+      ) ?? null,
+    [baseThemeControls, controls],
+  );
+  const savedPreset = useMemo(() => {
+    if (!savedControls) {
+      return null;
+    }
+
+    return (
+      workspaceStylePresetDefinitions.find((preset) =>
+        compareWorkspaceThemeControls(
+          savedControls,
+          createWorkspaceStylePresetControls(baseThemeControls, preset),
+        ),
+      ) ?? null
+    );
+  }, [baseThemeControls, savedControls]);
+  const presetStatus = activePreset ? activePreset.label : "Custom";
+  const savedBaselineStatus = savedControls
+    ? savedPreset
+      ? `${savedPreset.label} saved`
+      : "Custom saved"
+    : "Workspace seed";
+  const changeStatus = hasUnsavedChanges ? "Unsaved changes" : "In sync";
   const controlsResult = createWorkspaceThemeStylePreviewVariablesV1(controls);
   const previewVariableCount = controlsResult.accepted
     ? controlsResult.variableNames.length
@@ -4804,11 +4846,9 @@ function WorkspaceStyleControlsPanel({
 
   const applyWorkspaceStylePreset = useCallback(
     (preset: WorkspaceStylePresetDefinition) => {
-      updateControls({
-        ...baseThemeControls,
-        ...preset.controls,
-        version: baseThemeControls.version,
-      });
+      updateControls(
+        createWorkspaceStylePresetControls(baseThemeControls, preset),
+      );
     },
     [baseThemeControls, updateControls],
   );
@@ -4906,6 +4946,18 @@ function WorkspaceStyleControlsPanel({
           </span>
         </div>
         <div className="flex justify-between gap-3">
+          <span>current preset</span>
+          <span data-testid="workspace-style-current-preset-status">
+            {presetStatus} / {changeStatus}
+          </span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span>saved baseline</span>
+          <span data-testid="workspace-style-baseline-status">
+            {savedBaselineStatus}
+          </span>
+        </div>
+        <div className="flex justify-between gap-3">
           <span>not backend persisted</span>
           <span>not auto-applied to other workspaces</span>
         </div>
@@ -4951,11 +5003,10 @@ function WorkspaceStyleControlsPanel({
         </div>
         <div className="grid grid-cols-2 gap-2">
           {workspaceStylePresetDefinitions.map((preset) => {
-            const presetControls = {
-              ...baseThemeControls,
-              ...preset.controls,
-              version: baseThemeControls.version,
-            };
+            const presetControls = createWorkspaceStylePresetControls(
+              baseThemeControls,
+              preset,
+            );
             const isActivePreset = compareWorkspaceThemeControls(
               controls,
               presetControls,
@@ -4963,6 +5014,7 @@ function WorkspaceStyleControlsPanel({
 
             return (
               <button
+                aria-pressed={isActivePreset}
                 className="min-h-14 border px-3 py-2 text-left font-mono uppercase tracking-[0.1em] text-slate-100 transition hover:bg-white/[0.06]"
                 data-testid={`workspace-style-preset-${preset.id}`}
                 key={preset.id}

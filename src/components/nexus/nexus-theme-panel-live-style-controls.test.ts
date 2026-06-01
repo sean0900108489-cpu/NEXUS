@@ -58,21 +58,30 @@ describe("Nexus production Theme panel live style controls", () => {
     expect(controlsPanelSource).toContain("synced to workspace seed");
     expect(controlsPanelSource).toContain("workspace override saved");
     expect(controlsPanelSource).toContain("live override unsaved");
+    expect(controlsPanelSource).toContain("workspace-style-current-preset-status");
+    expect(controlsPanelSource).toContain("workspace-style-baseline-status");
+    expect(controlsPanelSource).toContain("current preset");
+    expect(controlsPanelSource).toContain("saved baseline");
+    expect(controlsPanelSource).toContain("Unsaved changes");
+    expect(controlsPanelSource).toContain("In sync");
+    expect(controlsPanelSource).toContain("Custom saved");
   });
 
   it("adds workspace style presets as Layer 4 shortcuts on the existing controls chain", () => {
     expect(source).toContain("workspaceStylePresetDefinitions");
     expect(source).toContain("type WorkspaceStylePresetDefinition");
+    expect(source).toContain("createWorkspaceStylePresetControls");
     expect(controlsPanelSource).toContain("Workspace Style Presets");
     expect(controlsPanelSource).toContain('data-testid="workspace-style-presets"');
     expect(controlsPanelSource).toContain(
       'data-testid={`workspace-style-preset-${preset.id}`}',
     );
     expect(controlsPanelSource).toContain("applyWorkspaceStylePreset");
-    expect(controlsPanelSource).toContain("...baseThemeControls");
-    expect(controlsPanelSource).toContain("...preset.controls");
-    expect(controlsPanelSource).toContain("version: baseThemeControls.version");
+    expect(controlsPanelSource).toContain(
+      "createWorkspaceStylePresetControls(baseThemeControls, preset)",
+    );
     expect(controlsPanelSource).toContain("compareWorkspaceThemeControls");
+    expect(controlsPanelSource).toContain("aria-pressed={isActivePreset}");
     expect(controlsPanelSource).toContain("Layer 4");
   });
 

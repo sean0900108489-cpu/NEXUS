@@ -96,11 +96,15 @@ describe("Nexus production style layer contract", () => {
 
   it("keeps workspace style presets as Layer 4 control shortcuts, not a second apply path", () => {
     expect(nexusOpsSource).toContain("workspaceStylePresetDefinitions");
+    expect(nexusOpsSource).toContain("createWorkspaceStylePresetControls");
     expect(controlsPanelSource).toContain("Workspace Style Presets");
     expect(controlsPanelSource).toContain("applyWorkspaceStylePreset");
-    expect(controlsPanelSource).toContain("updateControls({");
-    expect(controlsPanelSource).toContain("...preset.controls");
-    expect(controlsPanelSource).toContain("version: baseThemeControls.version");
+    expect(controlsPanelSource).toContain("updateControls(");
+    expect(controlsPanelSource).toContain(
+      "createWorkspaceStylePresetControls(baseThemeControls, preset)",
+    );
+    expect(controlsPanelSource).toContain("workspace-style-current-preset-status");
+    expect(controlsPanelSource).toContain("workspace-style-baseline-status");
     expect(controlsPanelSource).not.toContain("querySelectorAll");
     expect(controlsPanelSource).not.toContain("document.documentElement");
     expect(controlsPanelSource).not.toContain("document.body");

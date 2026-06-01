@@ -340,8 +340,8 @@ describe("ProviderAdapter fallback boundary", () => {
 });
 
 describe("agent task API and migration contract", () => {
-  it("runs stream lifecycle from created task through meta, first token, and completed task", async () => {
-    const outputMessageId = `message_${crypto.randomUUID()}`;
+  it("persists workflow-style output ids before completing a streamed task", async () => {
+    const outputMessageId = `workflow_run:${crypto.randomUUID()}:llm-node:output`;
     const createResponse = await createTaskPost(
       makeTaskRequest({
         model: "gpt-4o-mini",
@@ -359,6 +359,8 @@ describe("agent task API and migration contract", () => {
       task: { id: string; outputMessageId?: string | null };
       session: { id: string };
     };
+
+    expect(createData.task.outputMessageId).toBe(outputMessageId);
     const streamResponse = await streamPost(
       new Request("http://localhost/api/v1/agents/agent-stream-life/stream", {
         body: JSON.stringify({

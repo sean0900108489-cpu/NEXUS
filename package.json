@@ -13,7 +13,8 @@
     "check:preflight": "node scripts/check-preflight.mjs",
     "check:auth-boundary": "node scripts/auth-boundary-scan.mjs && npm test -- src/lib/backend/security/auth-boundary-gate.test.ts src/lib/backend/security/route-spoof-boundary.test.ts",
     "check:auth-boundary:live": "node scripts/live-auth-boundary-probe.mjs",
-    "check": "npm run check:auth-boundary && npm run lint && npm run typecheck && npm run test && npm run build"
+    "check:output-durability": "node scripts/generated-output-durability-scan.mjs && npm test -- src/lib/backend/runtime/agent-runtime.test.ts",
+    "check": "npm run check:auth-boundary && npm run check:output-durability && npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.1",

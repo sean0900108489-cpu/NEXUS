@@ -41,12 +41,18 @@ Target state:
 | `04-results/` | Completed post-fix scan reports. |
 | `05-regression-tests/` | Required and observed regression test inventory. |
 | `06-release-gates/` | Final release gate checklists and sign-off notes. |
+| `07-generated-output-durability/` | Protocol 96 follow-up lane for exact generated-output authority and recovery scans. |
 
 ## Primary Protocol
 
 Run this after the full phase-one fix is implemented:
 
 - [V20_PHASE_1_AUTH_BOUNDARY_POST_FIX_SCAN.md](./01-protocols/V20_PHASE_1_AUTH_BOUNDARY_POST_FIX_SCAN.md)
+
+Generated-output durability follow-up lane:
+
+- [V20 Generated Output Durability Lane](./07-generated-output-durability/README.md)
+- [V20_GENERATED_OUTPUT_DURABILITY_POST_FIX_SCAN.md](./07-generated-output-durability/01-protocols/V20_GENERATED_OUTPUT_DURABILITY_POST_FIX_SCAN.md)
 
 ## Latest Technical Closeout
 

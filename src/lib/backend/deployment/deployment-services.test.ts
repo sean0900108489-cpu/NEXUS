@@ -64,6 +64,25 @@ describe("EnvironmentValidator", () => {
     expect(result.missing).not.toContain("providerCredential");
   });
 
+  it("classifies Vercel preview as staging even though Next.js sets NODE_ENV production", () => {
+    const validator = new EnvironmentValidator({
+      env: {
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon",
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+        NODE_ENV: "production",
+        VERCEL_ENV: "preview",
+      },
+    });
+
+    expect(validator.getEnvironment()).toBe("staging");
+
+    const result = validator.validate();
+
+    expect(result.mode).toBe("staging");
+    expect(result.status).toBe("passed");
+    expect(result.checks.serverProviderCredentialRequired).toBe(false);
+  });
+
   it("can explicitly require server provider credentials outside production", () => {
     const validator = new EnvironmentValidator({
       env: {

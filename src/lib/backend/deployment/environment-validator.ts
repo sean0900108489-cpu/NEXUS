@@ -95,12 +95,16 @@ export class EnvironmentValidator {
       return explicit;
     }
 
-    if (env.VERCEL_ENV === "production" || env.NODE_ENV === "production") {
+    if (env.VERCEL_ENV === "production") {
       return "production";
     }
 
     if (env.VERCEL_ENV === "preview" || env.VERCEL_ENV === "staging") {
       return "staging";
+    }
+
+    if (env.NODE_ENV === "production") {
+      return "production";
     }
 
     return "local";

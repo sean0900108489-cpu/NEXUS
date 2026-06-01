@@ -46,6 +46,41 @@ describe("EnvironmentValidator", () => {
     expect(result.missing).toContain("providerCredential");
     expect(JSON.stringify(result)).not.toContain("OPENAI_API_KEY");
   });
+
+  it("allows staging live mode to use user-scoped provider credentials", () => {
+    const validator = new EnvironmentValidator({
+      env: {
+        DEPLOYMENT_ENV: "staging",
+        NEXUS_RUNTIME_MODE: "live",
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon",
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      },
+    });
+    const result = validator.validate("staging");
+
+    expect(result.status).toBe("passed");
+    expect(result.checks.providerCredentialConfigured).toBe(false);
+    expect(result.checks.serverProviderCredentialRequired).toBe(false);
+    expect(result.missing).not.toContain("providerCredential");
+  });
+
+  it("can explicitly require server provider credentials outside production", () => {
+    const validator = new EnvironmentValidator({
+      env: {
+        DEPLOYMENT_ENV: "staging",
+        NEXUS_REQUIRE_SERVER_PROVIDER_CREDENTIAL: "true",
+        NEXUS_RUNTIME_MODE: "live",
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon",
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      },
+    });
+    const result = validator.validate("staging");
+
+    expect(result.status).toBe("failed");
+    expect(result.checks.serverProviderCredentialRequired).toBe(true);
+    expect(result.missing).toContain("providerCredential");
+    expect(JSON.stringify(result)).not.toContain("OPENAI_API_KEY");
+  });
 });
 
 describe("FeatureFlagService", () => {

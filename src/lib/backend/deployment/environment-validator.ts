@@ -45,8 +45,12 @@ export class EnvironmentValidator {
       }
     }
 
-    const liveProviderRequired =
-      runtimeMode === "live" && (environment === "staging" || environment === "production");
+    const liveProviderRequired = isServerProviderCredentialRequired(
+      env,
+      environment,
+      runtimeMode,
+    );
+    checks.serverProviderCredentialRequired = liveProviderRequired;
 
     for (const { envKey, safeKey, safeMissingKey } of LIVE_PROVIDER_ENV) {
       const present = hasValue(env[envKey]);
@@ -118,6 +122,26 @@ function getRuntimeMode(
   }
 
   return "live";
+}
+
+function isServerProviderCredentialRequired(
+  env: Record<string, string | undefined>,
+  environment: DeploymentEnvironment,
+  runtimeMode: EnvironmentValidationResult["runtimeMode"],
+) {
+  if (runtimeMode !== "live") {
+    return false;
+  }
+
+  const explicit =
+    env.NEXUS_REQUIRE_SERVER_PROVIDER_CREDENTIAL ??
+    env.REQUIRE_SERVER_PROVIDER_CREDENTIAL;
+
+  if (typeof explicit === "string") {
+    return ["1", "true", "yes"].includes(explicit.trim().toLowerCase());
+  }
+
+  return environment === "production";
 }
 
 function hasValue(value: string | undefined) {

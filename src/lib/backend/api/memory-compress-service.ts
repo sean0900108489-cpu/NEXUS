@@ -85,10 +85,7 @@ export function getBearerToken(header: string | null) {
 }
 
 export function getRuntimeBearerToken(headers: Headers) {
-  return (
-    getBearerToken(headers.get("X-Nexus-Runtime-Authorization")) ||
-    getBearerToken(headers.get("authorization"))
-  );
+  return getBearerToken(headers.get("X-Nexus-Runtime-Authorization"));
 }
 
 export function getCompatibleBaseUrl(value: string | null | undefined) {

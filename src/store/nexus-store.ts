@@ -156,19 +156,15 @@ function normalizeAuthVault(value: unknown): IAuthVault {
   }
 
   const vault = value as Partial<IAuthVault>;
-  const globalApiKey =
-    typeof vault.globalApiKey === "string" && vault.globalApiKey.trim()
-      ? vault.globalApiKey
-      : null;
 
   return {
     user: vault.user ?? null,
-    globalApiKey,
+    globalApiKey: null,
     globalBaseUrl:
       typeof vault.globalBaseUrl === "string" && vault.globalBaseUrl.trim()
         ? vault.globalBaseUrl.trim()
         : DEFAULT_BASE_URL,
-    isLocked: vault.isLocked ?? Boolean(globalApiKey),
+    isLocked: true,
     providerCredentials: normalizeProviderCredentials(vault.providerCredentials),
   };
 }
@@ -186,10 +182,6 @@ function normalizeProviderCredentials(value: unknown): IAuthVault["providerCrede
     }
 
     const record = entry as NonNullable<IAuthVault["providerCredentials"]>[string];
-    const apiKey =
-      typeof record.apiKey === "string" && record.apiKey.trim()
-        ? record.apiKey
-        : null;
     const provider = getProviderOption(providerId);
     const baseUrl =
       typeof record.baseUrl === "string" && record.baseUrl.trim()
@@ -197,16 +189,20 @@ function normalizeProviderCredentials(value: unknown): IAuthVault["providerCrede
         : provider?.defaultBaseUrl ?? null;
 
     credentials[providerId] = {
-      apiKey,
+      apiKey: null,
       baseUrl,
-      isLocked: record.isLocked ?? Boolean(apiKey),
-      liveVerifiedAt: record.liveVerifiedAt ?? null,
-      verificationStatus: record.verificationStatus ?? "untested",
-      verificationError: record.verificationError ?? null,
+      isLocked: true,
+      liveVerifiedAt: null,
+      verificationStatus: "untested",
+      verificationError: null,
     };
 
     return credentials;
   }, {});
+}
+
+export function prepareAuthVaultForLocalPersistence(authVault: IAuthVault): IAuthVault {
+  return normalizeAuthVault(authVault);
 }
 
 const EMPTY_ARTIFACT_VAULT_CACHE: ArtifactVaultCache = {
@@ -3866,7 +3862,7 @@ export const useNexusStore = create<NexusStore>()(
     {
       name: PERSIST_STORAGE_NAME,
       storage: createJSONStorage(() => indexedDbStateStorage),
-      version: 14,
+      version: 15,
       onRehydrateStorage: () => (state) => {
         state?.materializeDefaultWorkspace();
         logHydratedMemoryState(state);
@@ -3966,7 +3962,7 @@ export const useNexusStore = create<NexusStore>()(
       partialize: (state) => ({
         activeWorkspaceId: state.activeWorkspaceId,
         artifactVault: state.artifactVault,
-        authVault: state.authVault,
+        authVault: prepareAuthVaultForLocalPersistence(state.authVault),
         deletedNotebooksCache: state.deletedNotebooksCache,
         notebookDrafts: state.notebookDrafts,
         notebooksCache: state.notebooksCache,

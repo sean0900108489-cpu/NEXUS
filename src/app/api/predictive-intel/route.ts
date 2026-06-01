@@ -1,3 +1,4 @@
+import { blockLegacyToolRouteInProduction } from "@/lib/backend/security/legacy-tool-route-boundary";
 import { normalizePredictiveIntelSuggestions } from "@/lib/predictive-intel";
 import {
   getModelCapabilityProfile,
@@ -117,6 +118,12 @@ function buildPredictiveIntelBody(model: string, lastMessage: string) {
 }
 
 export async function POST(request: Request) {
+  const blocked = blockLegacyToolRouteInProduction();
+
+  if (blocked) {
+    return blocked;
+  }
+
   let payload: PredictiveIntelRequest;
 
   try {

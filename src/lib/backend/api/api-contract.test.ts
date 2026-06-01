@@ -3,9 +3,14 @@ import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST as memoryCompressPost } from "@/app/api/v1/agents/memory-compress/route";
+import { POST as imageGenPost } from "@/app/api/image-gen/route";
 import { POST as legacyMemoryCompressPost } from "@/app/api/memory-compress/route";
+import { POST as predictiveIntelPost } from "@/app/api/predictive-intel/route";
 import { POST as streamPost } from "@/app/api/v1/agents/[agentId]/stream/route";
 import { POST as legacyStreamPost } from "@/app/api/agent-stream/route";
+import { GET as fsScannerGet } from "@/app/api/tools/fs-scanner/route";
+import { POST as providerVerifyPost } from "@/app/api/v1/providers/verify/route";
+import { GET as webSurferGet } from "@/app/api/tools/web-surfer/route";
 import { GET as healthGet } from "@/app/api/v1/health/route";
 import { nexusApiClient, NexusApiError } from "@/lib/api/nexus-api-client";
 import { apiHandler } from "@/lib/backend/api/api-handler";
@@ -17,6 +22,7 @@ import {
   resetAgentStreamMessageHistoryServiceFactoryForTests,
   setAgentStreamMessageHistoryServiceFactoryForTests,
 } from "@/lib/backend/api/agent-stream-service";
+import { getRuntimeBearerToken } from "@/lib/backend/api/memory-compress-service";
 import { createRequestValidator, validationIssue } from "@/lib/backend/api/api-request-validator";
 import { InMemoryIdempotencyRepository } from "@/lib/backend/api/idempotency-repository";
 import { createRequestHash } from "@/lib/backend/api/request-hash";
@@ -65,6 +71,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   resetApiAuthSessionVerifierForTests();
   resetAgentStreamMessageHistoryServiceFactoryForTests();
   getInMemoryMessageRepository().clear();
@@ -400,6 +407,58 @@ describe("idempotency contract", () => {
 });
 
 describe("routing compatibility and health", () => {
+  it("blocks legacy tool and provider egress routes in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+
+    const fsResponse = await fsScannerGet(
+      new Request("http://localhost/api/tools/fs-scanner?path=src&maxDepth=0"),
+    );
+    const webResponse = await webSurferGet(
+      new Request("http://localhost/api/tools/web-surfer?url=https://example.com"),
+    );
+    const legacyStreamResponse = await legacyStreamPost(
+      makeJsonRequest("http://localhost/api/agent-stream", {}),
+    );
+    const legacyMemoryResponse = await legacyMemoryCompressPost(
+      makeJsonRequest("http://localhost/api/memory-compress", {}),
+    );
+    const imageResponse = await imageGenPost(
+      makeJsonRequest("http://localhost/api/image-gen", { prompt: "test" }),
+    );
+    const predictiveResponse = await predictiveIntelPost(
+      makeJsonRequest("http://localhost/api/predictive-intel", {}),
+    );
+    const providerVerifyResponse = await providerVerifyPost(
+      makeJsonRequest("http://localhost/api/v1/providers/verify", {}),
+    );
+
+    for (const response of [
+      fsResponse,
+      webResponse,
+      legacyStreamResponse,
+      legacyMemoryResponse,
+      imageResponse,
+      predictiveResponse,
+      providerVerifyResponse,
+    ]) {
+      expect(response.status).toBe(404);
+      await expect(response.json()).resolves.toEqual({ error: "Not found." });
+    }
+  });
+
+  it("keeps runtime provider credentials separate from Supabase Authorization", () => {
+    const sessionOnlyHeaders = new Headers({
+      Authorization: "Bearer supabase-session-token",
+    });
+    const runtimeHeaders = new Headers({
+      Authorization: "Bearer supabase-session-token",
+      "X-Nexus-Runtime-Authorization": "Bearer sk-runtime-test",
+    });
+
+    expect(getRuntimeBearerToken(sessionOnlyHeaders)).toBe("");
+    expect(getRuntimeBearerToken(runtimeHeaders)).toBe("sk-runtime-test");
+  });
+
   it("keeps v1 and legacy memory-compress routes available", async () => {
     useTestAuthSession();
 
@@ -519,6 +578,40 @@ describe("streaming contract", () => {
       },
       type: "error",
     });
+  });
+
+  it("does not let workflow-lite stream headers skip workspace permission", async () => {
+    useTestAuthSession("local-viewer");
+
+    const response = await streamPost(
+      new Request("http://localhost/api/v1/agents/agent-a/stream", {
+        body: JSON.stringify({
+          ...streamPayload,
+          workspaceId: "workspace-a",
+        }),
+        headers: {
+          Authorization: "Bearer supabase-session",
+          "Content-Type": "application/json",
+          "X-Nexus-Workflow-Runtime": "lite",
+          "X-Request-Id": "req-stream-workflow-lite",
+          "X-Trace-Id": "trace-stream-workflow-lite",
+          "X-User-Id": "local-viewer",
+          "X-Workspace-Id": "workspace-a",
+        },
+        method: "POST",
+      }),
+      { params: Promise.resolve({ agentId: "agent-a" }) },
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(403);
+    expect(json).toMatchObject({
+      error: {
+        code: "PERMISSION_DENIED",
+      },
+      type: "error",
+    });
+    expect(JSON.stringify(json)).not.toContain("supabase-session");
   });
 
   it("keeps legacy stream route available through a shared wrapper", async () => {

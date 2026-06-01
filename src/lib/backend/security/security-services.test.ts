@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { PermissionDecision } from "../contracts/permission";
+import {
+  canBootstrapWorkspaceMembership,
+  createWorkspaceStatePermissionService,
+} from "../workspace/workspace-permission";
 
 import { PermissionService } from "./permission-service";
 import {
@@ -95,6 +99,10 @@ const viewerMembership: WorkspaceMembership = {
   userId: "00000000-0000-4000-8000-000000000003",
   workspaceId: "workspace-a",
 };
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe("PermissionService", () => {
   it("allows a workspace owner and writes a sanitized audit log", async () => {
@@ -227,6 +235,47 @@ describe("PermissionService", () => {
       reasonCode: "OBSERVABILITY_EXPORT_FAILED",
       riskLevel: "critical",
     });
+  });
+
+  it("fails closed for production local membership fallback without service-role config", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "");
+
+    const service = createWorkspaceStatePermissionService();
+    const decision = await service.check({
+      action: "workspace.read",
+      resourceType: "workspace",
+      userId: ownerMembership.userId,
+      workspaceId: ownerMembership.workspaceId,
+    });
+
+    expect(decision).toMatchObject({
+      decision: "deny",
+      reasonCode: "PERMISSION_DENIED",
+    });
+  });
+
+  it("blocks permission-lookup workspace owner bootstrap in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+
+    expect(
+      canBootstrapWorkspaceMembership(
+        "workspace-nexus-ops",
+        "00000000-0000-4000-8000-000000000001",
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps local-first workspace owner bootstrap available outside production", () => {
+    vi.stubEnv("NODE_ENV", "development");
+
+    expect(
+      canBootstrapWorkspaceMembership(
+        "workspace-nexus-ops",
+        "00000000-0000-4000-8000-000000000001",
+      ),
+    ).toBe(true);
   });
 });
 

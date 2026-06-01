@@ -36,12 +36,7 @@ class LocalWorkspaceMembershipStore implements WorkspaceMembershipStore {
       return null;
     }
 
-    // Production deployments without a service-role key use in-memory backend
-    // repositories; keep that fallback scoped to authenticated local-first IDs.
-    if (
-      process.env.NODE_ENV === "production" &&
-      !canUseEphemeralWorkspaceMembership(workspaceId, userId)
-    ) {
+    if (process.env.NODE_ENV === "production") {
       return null;
     }
 
@@ -198,18 +193,16 @@ export function createWorkspaceStatePermissionService() {
   return localPermissionService;
 }
 
-function canBootstrapWorkspaceMembership(workspaceId: string, userId: string) {
+export function canBootstrapWorkspaceMembership(workspaceId: string, userId: string) {
   return (
+    !isProductionRuntime() &&
     UUID_PATTERN.test(userId) &&
     (UUID_PATTERN.test(workspaceId) || WORKSPACE_ID_PATTERN.test(workspaceId))
   );
 }
 
-function canUseEphemeralWorkspaceMembership(workspaceId: string, userId: string) {
-  return (
-    UUID_PATTERN.test(userId) &&
-    (UUID_PATTERN.test(workspaceId) || WORKSPACE_ID_PATTERN.test(workspaceId))
-  );
+function isProductionRuntime() {
+  return process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
 }
 
 function mapWorkspaceMembership(row: Workspace_Memberships): WorkspaceMembership {

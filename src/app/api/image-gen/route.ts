@@ -3,6 +3,7 @@ import {
   MockImageAdapter,
   normalizeImageBaseUrl,
 } from "@/lib/adapters/image-adapter";
+import { blockLegacyToolRouteInProduction } from "@/lib/backend/security/legacy-tool-route-boundary";
 
 export const runtime = "nodejs";
 
@@ -31,6 +32,12 @@ function getString(value: unknown, fallback: string) {
 }
 
 export async function POST(request: Request) {
+  const blocked = blockLegacyToolRouteInProduction();
+
+  if (blocked) {
+    return blocked;
+  }
+
   let payload: ImageGenerationPayload;
 
   try {

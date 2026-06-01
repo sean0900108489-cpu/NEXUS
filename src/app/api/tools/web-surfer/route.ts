@@ -1,4 +1,5 @@
 import type { WebSurferResult } from "@/lib/nexus-types";
+import { blockLegacyToolRouteInProduction } from "@/lib/backend/security/legacy-tool-route-boundary";
 
 export const runtime = "nodejs";
 
@@ -107,6 +108,12 @@ async function surfUrl(url: string) {
 }
 
 export async function GET(request: Request) {
+  const blocked = blockLegacyToolRouteInProduction();
+
+  if (blocked) {
+    return blocked;
+  }
+
   const requestUrl = new URL(request.url);
   const url = normalizeTargetUrl(requestUrl.searchParams.get("url"));
 
@@ -121,6 +128,12 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const blocked = blockLegacyToolRouteInProduction();
+
+  if (blocked) {
+    return blocked;
+  }
+
   const url = await readPostUrl(request);
 
   if (!url) {

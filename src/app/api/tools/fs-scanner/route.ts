@@ -2,6 +2,7 @@ import { readdir, realpath } from "node:fs/promises";
 import path from "node:path";
 
 import type { FileSystemScanResult, FileSystemTreeNode } from "@/lib/nexus-types";
+import { blockLegacyToolRouteInProduction } from "@/lib/backend/security/legacy-tool-route-boundary";
 import { LOCAL_FS_SCANNER_PERMISSIONS } from "@/lib/tools/fs-scanner-executor";
 
 export const runtime = "nodejs";
@@ -187,6 +188,12 @@ function errorResponse(error: unknown) {
 }
 
 export async function GET(request: Request) {
+  const blocked = blockLegacyToolRouteInProduction();
+
+  if (blocked) {
+    return blocked;
+  }
+
   try {
     const url = new URL(request.url);
     const maxDepthParam = url.searchParams.get("maxDepth");
@@ -203,6 +210,12 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const blocked = blockLegacyToolRouteInProduction();
+
+  if (blocked) {
+    return blocked;
+  }
+
   let payload: ScannerPayload = {};
 
   try {

@@ -139,9 +139,6 @@ export async function createAgentStreamResponse({
       traceId,
       userId,
     },
-    {
-      skipPermissionCheck: isWorkflowRuntimeLite && Boolean(apiKey),
-    },
   );
   const providerAdapter = new OpenAICompatibleAdapter();
   let providerStream;

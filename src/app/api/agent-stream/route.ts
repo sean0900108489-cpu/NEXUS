@@ -2,11 +2,18 @@ import {
   createAgentStreamResponse,
   createStreamId,
 } from "@/lib/backend/api/agent-stream-service";
+import { blockLegacyToolRouteInProduction } from "@/lib/backend/security/legacy-tool-route-boundary";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
 export async function POST(request: Request) {
+  const blocked = blockLegacyToolRouteInProduction();
+
+  if (blocked) {
+    return blocked;
+  }
+
   return createAgentStreamResponse({
     agentId: "legacy-agent",
     eventShape: "legacy",

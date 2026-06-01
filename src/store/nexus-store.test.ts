@@ -10,6 +10,7 @@ import { createDefaultWorkspace } from "@/lib/nexus-defaults";
 import type {
   AgentMessage,
   AgentMemoryBlock,
+  IAuthVault,
   NexusWorkspace,
   NotebookRecord,
   PromptRecord,
@@ -17,7 +18,11 @@ import type {
   WorkspaceNotebookRecoveryMetadata,
 } from "@/lib/nexus-types";
 
-import { prepareWorkspacesForLocalPersistence, useNexusStore } from "./nexus-store";
+import {
+  prepareAuthVaultForLocalPersistence,
+  prepareWorkspacesForLocalPersistence,
+  useNexusStore,
+} from "./nexus-store";
 
 vi.mock("@/lib/state-sync", () => {
   const synced = async () => ({
@@ -111,7 +116,76 @@ describe("prepareWorkspacesForLocalPersistence", () => {
     expect(persisted?.settings.viewMode).toBe(workspace.settings.viewMode);
   });
 
-  it("rehydrates v13 persisted workspaces into v14 metadata without losing active data", async () => {
+  it("strips raw provider secrets from locally persisted auth vaults", () => {
+    const persisted = prepareAuthVaultForLocalPersistence({
+      user: {
+        email: "sean@example.com",
+        id: "user-secret-test",
+      } as IAuthVault["user"],
+      globalApiKey: "sk-global-secret",
+      globalBaseUrl: "https://api.example.test/v1",
+      isLocked: false,
+      providerCredentials: {
+        deepseek: {
+          apiKey: "sk-provider-secret",
+          baseUrl: "https://deepseek.example.test/v1",
+          isLocked: false,
+          liveVerifiedAt: "2026-06-01T00:00:00.000Z",
+          verificationError: "secret-shaped diagnostic",
+          verificationStatus: "verified",
+        },
+      },
+    });
+
+    expect(persisted.user?.id).toBe("user-secret-test");
+    expect(persisted.globalApiKey).toBeNull();
+    expect(persisted.globalBaseUrl).toBe("https://api.example.test/v1");
+    expect(persisted.isLocked).toBe(true);
+    expect(persisted.providerCredentials?.deepseek).toEqual({
+      apiKey: null,
+      baseUrl: "https://deepseek.example.test/v1",
+      isLocked: true,
+      liveVerifiedAt: null,
+      verificationError: null,
+      verificationStatus: "untested",
+    });
+    expect(JSON.stringify(persisted)).not.toContain("sk-global-secret");
+    expect(JSON.stringify(persisted)).not.toContain("sk-provider-secret");
+  });
+
+  it("does not write raw auth secrets through the local persistence adapter", async () => {
+    type PersistOptions = Parameters<typeof useNexusStore.persist.setOptions>[0];
+    type TestStorage = NonNullable<PersistOptions["storage"]>;
+    const originalStorage = useNexusStore.persist.getOptions().storage;
+    const setItem = vi.fn();
+    const storage: TestStorage = {
+      getItem: vi.fn(() => null),
+      removeItem: vi.fn(),
+      setItem,
+    };
+
+    useNexusStore.persist.setOptions({ storage });
+
+    try {
+      useNexusStore.getState().setGlobalApiKey("sk-local-global-secret");
+      useNexusStore.getState().setProviderApiKey("deepseek", "sk-local-provider-secret");
+      await Promise.resolve();
+    } finally {
+      useNexusStore.persist.setOptions({ storage: originalStorage });
+      useNexusStore.getState().deleteApiKey();
+      useNexusStore.getState().deleteProviderCredential("deepseek");
+    }
+
+    const persistedWrites = JSON.stringify(setItem.mock.calls);
+
+    expect(setItem).toHaveBeenCalled();
+    expect(persistedWrites).not.toContain("sk-local-global-secret");
+    expect(persistedWrites).not.toContain("sk-local-provider-secret");
+    expect(persistedWrites).toContain('"globalApiKey":null');
+    expect(persistedWrites).toContain('"apiKey":null');
+  });
+
+  it("rehydrates v13 persisted workspaces into v15 metadata without losing active data", async () => {
     const workspace = createDefaultWorkspace({
       id: "workspace-v13-migration",
       name: "V13 Migration",
@@ -214,8 +288,101 @@ describe("prepareWorkspacesForLocalPersistence", () => {
     });
     expect(setItem).toHaveBeenCalledWith(
       "nexus-ai-ops-workspace",
-      expect.objectContaining({ version: 14 }),
+      expect.objectContaining({ version: 15 }),
     );
+  });
+
+  it("scrubs legacy v14 persisted auth secrets during rehydrate", async () => {
+    const workspace = createDefaultWorkspace({
+      id: "workspace-v14-secret-migration",
+      name: "V14 Secret Migration",
+      timestamp: "2026-06-01T00:00:00.000Z",
+    });
+    const legacyState = {
+      activeWorkspaceId: workspace.id,
+      artifactVault: {
+        byId: {},
+        hasMore: false,
+        ids: [],
+        nextCursor: null,
+      },
+      authVault: {
+        globalApiKey: "sk-legacy-global-secret",
+        globalBaseUrl: "https://api.example.test/v1",
+        isLocked: false,
+        providerCredentials: {
+          deepseek: {
+            apiKey: "sk-legacy-provider-secret",
+            baseUrl: "https://deepseek.example.test/v1",
+            isLocked: false,
+            liveVerifiedAt: "2026-06-01T00:00:00.000Z",
+            verificationError: "legacy diagnostic",
+            verificationStatus: "verified",
+          },
+        },
+        user: {
+          email: "sean@example.com",
+          id: "user-v14-secret",
+        },
+      },
+      branchingStatus: "idle",
+      deletedNotebooksCache: [],
+      historicalMessages: {},
+      isVaultManagerOpen: false,
+      lastImportError: undefined,
+      lastSavedAt: "2026-06-01T00:00:00.000Z",
+      nextZIndex: 10,
+      notebookDrafts: {},
+      notebookWindowLayers: {},
+      notebooksCache: [],
+      openNotebookIds: [],
+      promptsCache: [],
+      selectedAgentId: workspace.selectedAgentId,
+      streamMode: "live",
+      transactionHistory: [],
+      viewMode: "panels",
+      workspaces: [workspace],
+    };
+    const storageValue = {
+      state: legacyState,
+      version: 14,
+    };
+    type PersistOptions = Parameters<typeof useNexusStore.persist.setOptions>[0];
+    type TestStorage = NonNullable<PersistOptions["storage"]>;
+    const originalStorage = useNexusStore.persist.getOptions().storage;
+    const setItem = vi.fn();
+    const storage: TestStorage = {
+      getItem: vi.fn(() => storageValue),
+      removeItem: vi.fn(),
+      setItem,
+    };
+
+    useNexusStore.persist.setOptions({ storage });
+
+    try {
+      await useNexusStore.persist.rehydrate();
+    } finally {
+      useNexusStore.persist.setOptions({ storage: originalStorage });
+    }
+
+    const authVault = useNexusStore.getState().authVault;
+    const persistedWrites = JSON.stringify(setItem.mock.calls);
+
+    expect(authVault.user?.id).toBe("user-v14-secret");
+    expect(authVault.globalApiKey).toBeNull();
+    expect(authVault.globalBaseUrl).toBe("https://api.example.test/v1");
+    expect(authVault.isLocked).toBe(true);
+    expect(authVault.providerCredentials?.deepseek).toEqual({
+      apiKey: null,
+      baseUrl: "https://deepseek.example.test/v1",
+      isLocked: true,
+      liveVerifiedAt: null,
+      verificationError: null,
+      verificationStatus: "untested",
+    });
+    expect(useNexusStore.getState().streamMode).toBe("mock");
+    expect(persistedWrites).not.toContain("sk-legacy-global-secret");
+    expect(persistedWrites).not.toContain("sk-legacy-provider-secret");
   });
 });
 

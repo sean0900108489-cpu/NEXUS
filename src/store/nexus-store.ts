@@ -331,6 +331,10 @@ type NexusStore = {
   saveWorkspaceSnapshot: () => void;
   createWorkspace: () => WorkspaceIdentity;
   switchWorkspace: (workspaceId: string) => void;
+  bindActiveWorkspaceToCloudSession: (input: {
+    workspaceId: string;
+    workspaceName?: string;
+  }) => void;
   renameWorkspace: (name: string) => void;
   exportActiveWorkspace: (options?: {
     notebookRecovery?: WorkspaceNotebookRecoveryMetadata;
@@ -1546,6 +1550,72 @@ export const useNexusStore = create<NexusStore>()(
         queuePromptsCacheRefresh(workspace.id);
       },
 
+      bindActiveWorkspaceToCloudSession: ({ workspaceId, workspaceName }) => {
+        const state = get();
+        const nextWorkspaceId = workspaceId.trim();
+        const activeWorkspace = getActiveWorkspace(state);
+
+        if (!activeWorkspace || !nextWorkspaceId) {
+          return;
+        }
+
+        const existingWorkspace = state.workspaces.find(
+          (candidate) => candidate.id === nextWorkspaceId,
+        );
+
+        if (existingWorkspace) {
+          if (existingWorkspace.id !== state.activeWorkspaceId) {
+            set({
+              activeWorkspaceId: existingWorkspace.id,
+              selectedAgentId:
+                existingWorkspace.selectedAgentId ?? existingWorkspace.agents[0]?.id,
+              streamMode: resolveStreamMode(existingWorkspace, state.authVault),
+              viewMode: existingWorkspace.settings.viewMode,
+            });
+          }
+
+          queuePromptsCacheRefresh(existingWorkspace.id);
+          return;
+        }
+
+        const previousWorkspaceId = activeWorkspace.id;
+        const now = new Date().toISOString();
+        const reboundWorkspace: NexusWorkspace = {
+          ...activeWorkspace,
+          id: nextWorkspaceId,
+          name: workspaceName?.trim() || activeWorkspace.name,
+          updatedAt: now,
+        };
+
+        set((current) => ({
+          activeWorkspaceId: reboundWorkspace.id,
+          lastSavedAt: now,
+          notebookDrafts: Object.fromEntries(
+            Object.entries(current.notebookDrafts).map(([notebookId, draft]) => [
+              notebookId,
+              draft.workspaceId === previousWorkspaceId
+                ? { ...draft, workspaceId: reboundWorkspace.id }
+                : draft,
+            ]),
+          ),
+          notebooksCache: current.notebooksCache.map((notebook) =>
+            notebook.workspace_id === previousWorkspaceId
+              ? { ...notebook, workspace_id: reboundWorkspace.id }
+              : notebook,
+          ),
+          selectedAgentId:
+            reboundWorkspace.selectedAgentId ?? reboundWorkspace.agents[0]?.id,
+          streamMode: resolveStreamMode(reboundWorkspace, current.authVault),
+          viewMode: reboundWorkspace.settings.viewMode,
+          workspaces: current.workspaces.map((workspace) =>
+            workspace.id === previousWorkspaceId ? reboundWorkspace : workspace,
+          ),
+        }));
+
+        queueWorkspaceCloudSync(reboundWorkspace);
+        queuePromptsCacheRefresh(reboundWorkspace.id);
+      },
+
       renameWorkspace: (name) => {
         const state = get();
         const workspace = getActiveWorkspace(state);
@@ -2648,12 +2718,12 @@ export const useNexusStore = create<NexusStore>()(
         const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
         const contentText = content.trim();
 
-        if (!workspace || !contentText) {
+        if (!workspace || !contentText || !state.authVault.user?.id) {
           return;
         }
 
         const sourceMessageId = agent?.messages.at(-1)?.id ?? makeId("artifact-source");
-        const userId = state.authVault.user?.id ?? "local-owner";
+        const userId = state.authVault.user.id;
 
         void supabaseStateSyncManager
           .saveArtifact(workspace.id, sourceMessageId, contentText, type, {
@@ -2687,7 +2757,12 @@ export const useNexusStore = create<NexusStore>()(
         const state = get();
         const workspace = getActiveWorkspace(state);
         const workspaceId = workspace?.id ?? ACTIVE_WORKSPACE_ID;
-        const userId = state.authVault.user?.id ?? "local-owner";
+        const userId = state.authVault.user?.id;
+
+        if (!userId) {
+          return [];
+        }
+
         const response = await supabaseStateSyncManager.fetchArtifacts(workspaceId, userId);
         const artifacts = response.artifacts;
 

@@ -20,6 +20,8 @@ import type {
   StateSyncStatus,
   WorkspaceRecoveryListResponse,
   WorkspaceRecoveryStateResponse,
+  WorkspaceSessionEnsureRequest,
+  WorkspaceSessionEnsureResponse,
   WorkspaceStateGetResponse,
   WorkspaceStatePutRequest,
   WorkflowTemplateBlueprintData,
@@ -393,6 +395,19 @@ export class MockStateSyncManager implements IStateSyncManager {
     };
   }
 
+  async ensureWorkspaceSession(
+    input: WorkspaceSessionEnsureRequest & { userId: string },
+  ): Promise<WorkspaceSessionEnsureResponse | null> {
+    return {
+      created: false,
+      preferredWorkspaceId: input.preferredWorkspaceId ?? null,
+      reason: "preferred_workspace_member",
+      role: "owner",
+      workspaceId: input.preferredWorkspaceId?.trim() || "__global__",
+      workspaceName: input.preferredWorkspaceName?.trim() || "NEXUS // AI OPS",
+    };
+  }
+
   async syncActiveUiState(snapshot: ActiveUiStateSnapshot): Promise<StateSyncResult> {
     void snapshot;
     this.status = "syncing";
@@ -626,7 +641,7 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
         request,
         {
           idempotencyKey: createClientMutationId(),
-          userId: options?.userId ?? "local-owner",
+          userId: options?.userId,
           workspaceId,
         },
       );
@@ -650,7 +665,7 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
 
   async fetchArtifacts(
     workspaceId = "__global__",
-    userId = "local-owner",
+    userId?: string,
   ): Promise<ArtifactListResponse> {
     this.status = "syncing";
 
@@ -1001,6 +1016,53 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
         plan: null,
         userId: input.userId,
       };
+    }
+  }
+
+  async ensureWorkspaceSession(
+    input: WorkspaceSessionEnsureRequest & { userId: string },
+  ): Promise<WorkspaceSessionEnsureResponse | null> {
+    this.status = "syncing";
+
+    try {
+      const accessToken = await resolveStateSyncAccessToken();
+
+      if (!accessToken) {
+        this.status = "idle";
+
+        return null;
+      }
+
+      const response = await nexusApiClient.post<
+        WorkspaceSessionEnsureResponse,
+        WorkspaceSessionEnsureRequest
+      >(
+        "/api/v1/workspaces/session",
+        {
+          preferredWorkspaceId: input.preferredWorkspaceId ?? null,
+          preferredWorkspaceName: input.preferredWorkspaceName ?? null,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          idempotencyKey: [
+            "workspace_session",
+            input.userId,
+            input.preferredWorkspaceId?.trim() || "none",
+          ].join("_"),
+          workspaceId: input.preferredWorkspaceId ?? "__global__",
+        },
+      );
+
+      this.status = "idle";
+
+      return response;
+    } catch (error) {
+      logSupabaseSyncError(error);
+      this.status = "idle";
+
+      return null;
     }
   }
 

@@ -1369,13 +1369,42 @@ export function NexusOps() {
     setWorkspaceRecoveryLoading(true);
     void buildLocalWorkspaceRecoveryContext(localWorkspace)
       .then(async (localRecovery) => {
+        let recoveryContext = localRecovery;
+        const sessionWorkspace = await supabaseStateSyncManager.ensureWorkspaceSession({
+          preferredWorkspaceId: localRecovery.localWorkspaceId,
+          preferredWorkspaceName: localWorkspace?.name,
+          userId,
+        });
+
+        if (
+          sessionWorkspace &&
+          sessionWorkspace.workspaceId !== localRecovery.localWorkspaceId
+        ) {
+          useNexusStore.getState().bindActiveWorkspaceToCloudSession({
+            workspaceId: sessionWorkspace.workspaceId,
+            workspaceName: sessionWorkspace.workspaceName,
+          });
+
+          const reboundWorkspace = useNexusStore
+            .getState()
+            .workspaces.find(
+              (candidate) => candidate.id === sessionWorkspace.workspaceId,
+            );
+          recoveryContext = await buildLocalWorkspaceRecoveryContext(reboundWorkspace);
+          setNotice(
+            sessionWorkspace.created
+              ? "Workspace cloud session created"
+              : "Workspace cloud session linked",
+          );
+        }
+
         const [recovery, recoveryList] = await Promise.all([
           supabaseStateSyncManager.fetchLatestWorkspaceRecoveryState({
-            ...localRecovery,
+            ...recoveryContext,
             userId,
           }),
           supabaseStateSyncManager.fetchWorkspaceRecoveryList({
-            localChecksum: localRecovery.localChecksum,
+            localChecksum: recoveryContext.localChecksum,
             userId,
           }),
         ]);
@@ -1888,7 +1917,7 @@ export function NexusOps() {
     }, 900);
   }, [saveArtifactToCloud]);
 
-  const artifactRequestUserId = authVault.user?.id ?? "local-owner";
+  const artifactRequestUserId = authVault.user?.id;
   const handleCopyArtifact = useCallback((artifact: ArtifactVaultRecord) => {
     void (async () => {
       try {
@@ -2922,7 +2951,7 @@ export function NexusOps() {
             onOpenArtifacts={() => setActiveRightPanel("artifacts")}
             onSend={handleSend}
             onUpdateAgentModelSettings={updateAgentModelSettings}
-            userId={authVault.user?.id ?? "local-owner"}
+            userId={authVault.user?.id ?? ""}
             workspaceId={activeWorkspaceId}
           />
         </div>

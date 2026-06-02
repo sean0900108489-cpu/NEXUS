@@ -46,6 +46,17 @@ vi.mock("@/lib/state-sync", () => {
       fetchPrompts: async () => [],
       flush: synced,
       getStatus: () => "idle",
+      ensureWorkspaceSession: async (input: {
+        preferredWorkspaceId?: string | null;
+        preferredWorkspaceName?: string | null;
+      }) => ({
+        created: false,
+        preferredWorkspaceId: input.preferredWorkspaceId ?? null,
+        reason: "preferred_workspace_member",
+        role: "owner",
+        workspaceId: input.preferredWorkspaceId ?? "workspace-v15-test",
+        workspaceName: input.preferredWorkspaceName ?? "Workspace",
+      }),
       insertMessage: synced,
       saveArtifact: synced,
       saveMacro: synced,
@@ -761,6 +772,61 @@ describe("prompt cache hydration", () => {
 });
 
 describe("workspace login recovery", () => {
+  it("rebinds the active local workspace to the writable cloud session id", () => {
+    const localWorkspace = createDefaultWorkspace({
+      id: "workspace-shared-local",
+      name: "Shared Local",
+      timestamp: "2026-05-28T04:00:00.000Z",
+    });
+    localWorkspace.agents[0]?.messages.push({
+      content: "Keep this active message",
+      createdAt: "2026-05-28T04:01:00.000Z",
+      id: "message-local",
+      role: "user",
+    });
+
+    useNexusStore.setState({
+      activeWorkspaceId: localWorkspace.id,
+      notebookDrafts: {
+        "notebook-1": {
+          content: "draft",
+          notebookId: "notebook-1",
+          title: "Draft",
+          updatedAt: "2026-05-28T04:01:00.000Z",
+          workspaceId: localWorkspace.id,
+        },
+      },
+      notebooksCache: [
+        {
+          content: "body",
+          id: "notebook-1",
+          title: "Notebook",
+          workspace_id: localWorkspace.id,
+        },
+      ],
+      selectedAgentId: localWorkspace.selectedAgentId,
+      workspaces: [localWorkspace],
+    });
+
+    useNexusStore.getState().bindActiveWorkspaceToCloudSession({
+      workspaceId: "workspace-owned-cloud",
+      workspaceName: "Owned Cloud",
+    });
+    const state = useNexusStore.getState();
+    const reboundWorkspace = state.workspaces[0];
+
+    expect(state.activeWorkspaceId).toBe("workspace-owned-cloud");
+    expect(reboundWorkspace?.id).toBe("workspace-owned-cloud");
+    expect(reboundWorkspace?.name).toBe("Owned Cloud");
+    expect(reboundWorkspace?.agents[0]?.messages).toEqual(
+      localWorkspace.agents[0]?.messages,
+    );
+    expect(state.notebooksCache[0]?.workspace_id).toBe("workspace-owned-cloud");
+    expect(state.notebookDrafts["notebook-1"]?.workspaceId).toBe(
+      "workspace-owned-cloud",
+    );
+  });
+
   it("applies a missing cloud workspace recovery snapshot without full message content", () => {
     const localWorkspace = createDefaultWorkspace({
       id: "workspace-local",

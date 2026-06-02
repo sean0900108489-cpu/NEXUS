@@ -26,6 +26,10 @@ describe("Nexus workspace chat composer shell", () => {
     new URL("../../lib/composer/composer-actions.ts", import.meta.url),
     "utf8",
   );
+  const stateSyncSource = readFileSync(
+    new URL("../../lib/state-sync.ts", import.meta.url),
+    "utf8",
+  );
 
   it("keeps the composer as a visual sibling below the workspace stage", () => {
     expect(source).toContain("nexus-workspace-stage-stack");
@@ -183,6 +187,14 @@ describe("Nexus workspace chat composer shell", () => {
     expect(source).toContain("isMockGeneratedMediaUrl");
     expect(source).toContain("!isMockGeneratedMediaUrl(artifact.contentUrl)");
     expect(source).toContain("!isMockGeneratedMediaUrl(message.media?.url)");
+  });
+
+  it("binds authenticated recovery to the server-approved workspace session", () => {
+    expect(source).toContain("ensureWorkspaceSession");
+    expect(source).toContain("bindActiveWorkspaceToCloudSession");
+    expect(stateSyncSource).toContain('"/api/v1/workspaces/session"');
+    expect(stateSyncSource).toContain("WorkspaceSessionEnsureResponse");
+    expect(source).not.toContain('userId={authVault.user?.id ?? "local-owner"}');
   });
 
   it("uses shared workspace material variables", () => {

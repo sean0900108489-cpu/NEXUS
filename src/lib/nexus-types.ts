@@ -781,6 +781,25 @@ export type WorkspaceRecoveryListResponse = {
   userId: string;
 };
 
+export type WorkspaceSessionEnsureRequest = {
+  preferredWorkspaceId?: string | null;
+  preferredWorkspaceName?: string | null;
+};
+
+export type WorkspaceSessionEnsureReason =
+  | "preferred_workspace_member"
+  | "existing_writable_workspace"
+  | "created_user_workspace";
+
+export type WorkspaceSessionEnsureResponse = {
+  created: boolean;
+  preferredWorkspaceId: string | null;
+  reason: WorkspaceSessionEnsureReason;
+  role: "owner" | "admin" | "editor";
+  workspaceId: string;
+  workspaceName: string;
+};
+
 export type WorkspaceRecoveryApplyResult =
   | {
       status: "applied";
@@ -1666,6 +1685,9 @@ export interface IStateSyncManager {
     localChecksum?: string | null;
     userId: string;
   }): Promise<WorkspaceRecoveryListResponse>;
+  ensureWorkspaceSession(
+    input: WorkspaceSessionEnsureRequest & { userId: string },
+  ): Promise<WorkspaceSessionEnsureResponse | null>;
   syncActiveUiState(snapshot: ActiveUiStateSnapshot): Promise<StateSyncResult>;
   syncHistoricalMessage(record: HistoricalMessageRecord): Promise<StateSyncResult>;
   syncHistoricalArtifact(record: HistoricalArtifactRecord): Promise<StateSyncResult>;

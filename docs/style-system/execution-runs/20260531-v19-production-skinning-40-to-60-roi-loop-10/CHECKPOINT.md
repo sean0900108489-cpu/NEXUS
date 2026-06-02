@@ -36,13 +36,13 @@ Fallback chain:
 
 - dedicated Datapad shell alias
 - existing `.nexus-panel` alias
-- current cyberpunk baseline value
+- current surface-shell baseline value
 
 Example source-level fallback:
 
 ```css
-background: var(--nexus-datapad-shell-bg, var(--nexus-panel-bg, rgb(2 6 23 / 0.94)));
-border-color: var(--nexus-datapad-shell-border, var(--nexus-panel-border, rgb(110 231 183 / 0.3)));
+background: var(--nexus-datapad-shell-bg, var(--nexus-panel-bg, rgb(16 16 16 / 0.94)));
+border-color: var(--nexus-datapad-shell-border, var(--nexus-panel-border, rgb(214 214 214 / 0.3)));
 border-radius: var(--nexus-datapad-shell-radius, var(--nexus-panel-radius, var(--surface-radius)));
 box-shadow: var(
   --nexus-datapad-shell-shadow,
@@ -131,7 +131,7 @@ Forbidden boundaries held:
 
 Known baseline vs regressions:
 
-- `bg-cyberpunk.webp` placeholder load failure belongs to production `/` and was
+- `bg-surface-shell.webp` placeholder load failure belongs to production `/` and was
   not part of this `/style-lab` smoke.
 - Chrome Translate hydration mismatch was avoided with an untranslated local
   style-lab session.

@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   compileNexusStyleManifestV1,
-  createCyberpunkCompatibleSkinPackV2,
-  createLegacyCyberpunkStyleManifestV1,
+  createSurfaceShellCompatibleSkinPackV2,
+  createBaselineSurfaceShellStyleManifestV1,
   createNexusStyleExportPackageV1,
   createNexusStylePreviewPatchV1,
   createOverBudgetSkinPackV2,
@@ -18,7 +18,7 @@ import {
 describe("NEXUS Style Engine V2 review-only import", () => {
   it("produces an accepted display-safe summary for a valid V2 fixture", () => {
     const result = parseNexusSkinPackReviewImportTextV2(
-      JSON.stringify(createCyberpunkCompatibleSkinPackV2()),
+      JSON.stringify(createSurfaceShellCompatibleSkinPackV2()),
     );
 
     expect(result.accepted).toBe(true);
@@ -26,14 +26,14 @@ describe("NEXUS Style Engine V2 review-only import", () => {
     expect(result.summary.metadata.rows).toEqual(
       expect.arrayContaining([
         { label: "Status", value: "accepted" },
-        { label: "Pack", value: "cyberpunk-compatible-skin" },
+        { label: "Pack", value: "surface-shell-compatible-skin" },
         { label: "Compatibility", value: "compatible_with_warnings" },
       ]),
     );
     expect(result.summary.assets.rows).toEqual(
       expect.arrayContaining([
         { label: "Binding", value: "referenced" },
-        { label: "Asset Pack", value: "cyberpunk-safe-assets" },
+        { label: "Asset Pack", value: "surface-shell-safe-assets" },
       ]),
     );
     expect(result.summary.recipes.rows).toEqual(
@@ -140,7 +140,7 @@ describe("NEXUS Style Engine V2 review-only import", () => {
 
   it("does not generate a preview patch for the V2 review path", () => {
     const result = parseNexusSkinPackReviewImportTextV2(
-      JSON.stringify(createCyberpunkCompatibleSkinPackV2()),
+      JSON.stringify(createSurfaceShellCompatibleSkinPackV2()),
     );
     const helperSource = readFileSync(
       new URL("v2-review-import.ts", import.meta.url),
@@ -157,7 +157,7 @@ describe("NEXUS Style Engine V2 review-only import", () => {
   });
 
   it("keeps the existing V1 import and preview helpers intact", () => {
-    const manifest = createLegacyCyberpunkStyleManifestV1();
+    const manifest = createBaselineSurfaceShellStyleManifestV1();
     const exportResult = createNexusStyleExportPackageV1(manifest);
 
     expect(exportResult.accepted).toBe(true);

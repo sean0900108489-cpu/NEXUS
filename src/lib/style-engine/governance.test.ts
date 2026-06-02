@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   compileNexusStyleManifestV1,
-  createLegacyCyberpunkStyleManifestV1,
+  createBaselineSurfaceShellStyleManifestV1,
   createNexusStylePreviewPatchV1,
   getNexusStylePackPermissionsV1,
   reviewNexusStylePackV1,
@@ -10,7 +10,7 @@ import {
 
 describe("NEXUS Style Engine governance review", () => {
   it("marks warning manifests as previewable but not directly applyable", () => {
-    const review = reviewNexusStylePackV1(createLegacyCyberpunkStyleManifestV1());
+    const review = reviewNexusStylePackV1(createBaselineSurfaceShellStyleManifestV1());
 
     expect(review).toMatchObject({
       adapterCoverage: {
@@ -20,7 +20,7 @@ describe("NEXUS Style Engine governance review", () => {
       compatibility: "compatible_with_warnings",
       compilerVersion: "nexus-style-compiler-v1",
       governanceVersion: "nexus-style-governance-v1",
-      manifestId: "legacy-cyberpunk",
+      manifestId: "baseline-surface-shell",
       manifestVersion: 1,
       permissions: {
         canApply: false,
@@ -43,7 +43,7 @@ describe("NEXUS Style Engine governance review", () => {
   });
 
   it("marks warning-free manifests as validated and applyable", () => {
-    const manifest = createLegacyCyberpunkStyleManifestV1();
+    const manifest = createBaselineSurfaceShellStyleManifestV1();
 
     manifest.intent.contrast = "high";
 
@@ -60,7 +60,7 @@ describe("NEXUS Style Engine governance review", () => {
   });
 
   it("keeps preview variable count aligned with the actual preview patch", () => {
-    const manifest = createLegacyCyberpunkStyleManifestV1();
+    const manifest = createBaselineSurfaceShellStyleManifestV1();
     const review = reviewNexusStylePackV1(manifest);
     const compiled = compileNexusStyleManifestV1(manifest);
 
@@ -74,7 +74,7 @@ describe("NEXUS Style Engine governance review", () => {
   });
 
   it("rejects unsafe manifests without echoing unsafe values", () => {
-    const manifest = createLegacyCyberpunkStyleManifestV1();
+    const manifest = createBaselineSurfaceShellStyleManifestV1();
 
     manifest.tokens.surface.app = "service_role=super-secret-value";
 
@@ -97,7 +97,7 @@ describe("NEXUS Style Engine governance review", () => {
   });
 
   it("rejects compiler-failed manifests without preview metadata", () => {
-    const manifest = createLegacyCyberpunkStyleManifestV1();
+    const manifest = createBaselineSurfaceShellStyleManifestV1();
 
     manifest.intent.contrast = "high";
     manifest.constraints.maxCssVariableCount = 1;

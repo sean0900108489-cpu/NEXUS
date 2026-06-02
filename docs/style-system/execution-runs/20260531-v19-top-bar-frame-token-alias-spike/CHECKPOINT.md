@@ -138,7 +138,7 @@ this checkpoint. The visible UI smoke and alias apply/revert behavior passed.
 
 ## Known Baseline Issues Separated From Regressions
 
-- `bg-cyberpunk.webp` placeholder asset load failure is a known baseline issue
+- `bg-surface-shell.webp` placeholder asset load failure is a known baseline issue
   from the previous triage and was not introduced by this run.
 - Chrome Translate was active in the observed Chrome tab, which can mutate
   visible text and cause the known hydration mismatch. It must not be treated
@@ -168,7 +168,7 @@ To rollback this spike:
 3. Revert the TopBar test and extraction map entries from this run.
 
 The legacy Tailwind classes remain on the TopBar frame, so rollback preserves
-the existing cyberpunk baseline.
+the existing surface-shell baseline.
 
 ## Next Recommended Smallest Unit
 

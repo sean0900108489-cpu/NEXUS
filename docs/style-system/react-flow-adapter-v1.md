@@ -152,7 +152,7 @@ Future implementation should be incremental:
 
 1. Add pure adapter type and default object in a style-engine module.
 2. Add unit tests proving forbidden fields cannot exist in adapter output.
-3. Map `legacy-cyberpunk` to adapter values.
+3. Map `baseline-surface-shell` to adapter values.
 4. Use adapter only in an isolated graph specimen.
 5. Browser smoke graph specimen.
 6. Only then consider production `nexus-graph.tsx` visual migration.

@@ -26,9 +26,9 @@ import {
 import {
   compileNexusStyleManifestV1,
   createNexusSkinPackAuthoringContextV1,
-  createCyberpunkCompatibleSkinPackV2,
+  createSurfaceShellCompatibleSkinPackV2,
   createHighContrastCarbonStyleManifestV1,
-  createLegacyCyberpunkStyleManifestV1,
+  createBaselineSurfaceShellStyleManifestV1,
   createNexusStyleManifestDraftFromIntentV1,
   createNexusStyleExportPackageV1,
   createNexusStylePreviewPatchV1,
@@ -43,8 +43,8 @@ import {
   createPageShellFeatureMountPlanV1,
   createPageShellLayoutPresetV1,
   createPixelWorkshopSkinPackV2,
-  createWarmGlassOpsProductionAliasCoverageReportV1,
-  createWarmGlassOpsSkinPackV2Fixture,
+  createSurfaceStyleOpsProductionAliasCoverageReportV1,
+  createSurfaceStyleOpsSkinPackV2Fixture,
   createReactFlowStyleAdapterFromManifestV1,
   createTopBottomSwappedWorkspaceLayoutPresetV1,
   compileNexusSkinPackRenderPlanV2,
@@ -52,7 +52,7 @@ import {
   emitReactFlowAdapterCssVariablesV1,
   getNexusSkinPackIssueRepairHintV1,
   HIGH_CONTRAST_CARBON_STYLE_ID,
-  LEGACY_CYBERPUNK_STYLE_ID,
+  BASELINE_SURFACE_SHELL_STYLE_ID,
   compileNexusSkinPackTokenPreviewTextV2,
   normalizeNexusStyleIntentV1,
   parseNexusSkinPackReviewImportTextV2,
@@ -132,37 +132,37 @@ const maxVisibleSpecimenFallbacks = 4;
 const maxVisibleBridgeVariables = 10;
 const maxVisibleBridgePreserveVariables = 8;
 const maxVisibleBridgeUnsupportedVariables = 6;
-const maxVisibleWarmGlassCoverageFamilies = 10;
-const maxVisibleWarmGlassGaps = 6;
+const maxVisibleSurfaceStyleCoverageFamilies = 10;
+const maxVisibleSurfaceStyleGaps = 6;
 const maxVisibleStyleRuntimeBudgetHints = 3;
 const styleRuntimePreviewDiagnosticsTargetScope =
   "style-lab-production-chrome-smoke";
 
-const warmGlassOpsCoverageReportStatic =
-  createWarmGlassOpsProductionAliasCoverageReportV1();
+const surfaceStyleOpsCoverageReportStatic =
+  createSurfaceStyleOpsProductionAliasCoverageReportV1();
 
-const warmGlassStyleRuntimeBudgetSummaryStatic = (() => {
-  const warmGlassRenderPlanResult = compileNexusSkinPackRenderPlanV2(
-    createWarmGlassOpsSkinPackV2Fixture(),
+const surfaceStyleStyleRuntimeBudgetSummaryStatic = (() => {
+  const surfaceStyleRenderPlanResult = compileNexusSkinPackRenderPlanV2(
+    createSurfaceStyleOpsSkinPackV2Fixture(),
   );
 
-  if (!warmGlassRenderPlanResult.accepted) {
+  if (!surfaceStyleRenderPlanResult.accepted) {
     return createStyleRuntimeBudgetSummary({
-      coverage: warmGlassOpsCoverageReportStatic,
+      coverage: surfaceStyleOpsCoverageReportStatic,
     });
   }
 
-  const warmGlassBridgeResult = createNexusProductionTokenBridgePlanV1(
-    warmGlassRenderPlanResult.renderPlan,
+  const surfaceStyleBridgeResult = createNexusProductionTokenBridgePlanV1(
+    surfaceStyleRenderPlanResult.renderPlan,
   );
 
   return createStyleRuntimeBudgetSummaryFromRenderPlan(
-    warmGlassRenderPlanResult.renderPlan,
+    surfaceStyleRenderPlanResult.renderPlan,
     {
-      bridgePlan: warmGlassBridgeResult.accepted
-        ? warmGlassBridgeResult.bridgePlan
+      bridgePlan: surfaceStyleBridgeResult.accepted
+        ? surfaceStyleBridgeResult.bridgePlan
         : null,
-      coverage: warmGlassOpsCoverageReportStatic,
+      coverage: surfaceStyleOpsCoverageReportStatic,
     },
   );
 })();
@@ -177,9 +177,9 @@ const comparisonVariables = [
 
 const builtInPresets = [
   {
-    create: createLegacyCyberpunkStyleManifestV1,
-    id: LEGACY_CYBERPUNK_STYLE_ID,
-    label: "Cyberpunk",
+    create: createBaselineSurfaceShellStyleManifestV1,
+    id: BASELINE_SURFACE_SHELL_STYLE_ID,
+    label: "Surface Shell",
   },
   {
     create: createHighContrastCarbonStyleManifestV1,
@@ -215,72 +215,72 @@ function toVisibleStyleIssue(
 }
 
 const surfaceStyle = {
-  background: "var(--nexus-surface-panel, rgb(8 16 22 / 0.78))",
+  background: "var(--nexus-surface-panel, rgb(20 20 20 / 0.78))",
   borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
   boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
-  color: "var(--nexus-text-primary, #f8fafc)",
+  color: "var(--nexus-text-primary, #f5f5f5)",
 };
 
 const sampleStyle = {
-  background: "var(--nexus-surface-workspace, #020617)",
-  borderColor: "var(--nexus-accent-primary, #67e8f9)",
-  color: "var(--nexus-text-primary, #f8fafc)",
+  background: "var(--nexus-surface-workspace, #111111)",
+  borderColor: "var(--nexus-accent-primary, #e5e5e5)",
+  color: "var(--nexus-text-primary, #f5f5f5)",
 };
 
 const primitivePanelStyle = {
-  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
+  background: "var(--nexus-surface-panel-muted, rgb(18 18 18 / 0.62))",
   borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
   boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
-  color: "var(--nexus-text-primary, #f8fafc)",
+  color: "var(--nexus-text-primary, #f5f5f5)",
 };
 
 const primitiveButtonStyle = {
-  background: "var(--nexus-accent-primary, #67e8f9)",
-  borderColor: "var(--nexus-accent-primary-strong, #22d3ee)",
-  color: "var(--nexus-text-inverse, #020617)",
+  background: "var(--nexus-accent-primary, #e5e5e5)",
+  borderColor: "var(--nexus-accent-primary-strong, #d4d4d4)",
+  color: "var(--nexus-text-inverse, #111111)",
 };
 
 const primitiveInputStyle = {
-  background: "var(--nexus-surface-input, rgb(15 23 42 / 0.72))",
+  background: "var(--nexus-surface-input, rgb(18 18 18 / 0.72))",
   borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
-  color: "var(--nexus-text-primary, #f8fafc)",
+  color: "var(--nexus-text-primary, #f5f5f5)",
 };
 
 const primitiveBadgeStyle = {
-  background: "var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62))",
-  borderColor: "var(--nexus-status-warning, #fcd34d)",
-  color: "var(--nexus-status-warning, #fcd34d)",
+  background: "var(--nexus-surface-panel-muted, rgb(18 18 18 / 0.62))",
+  borderColor: "var(--nexus-status-warning, #eeeeee)",
+  color: "var(--nexus-status-warning, #eeeeee)",
 };
 
 const primitiveModalBackdropStyle = {
   background:
-    "var(--nexus-recipe-modal-backdrop, rgb(2 6 23 / 0.72))",
+    "var(--nexus-recipe-modal-backdrop, rgb(16 16 16 / 0.72))",
 };
 
 const primitiveModalSurfaceStyle = {
   background:
-    "var(--nexus-recipe-modal-surface, var(--nexus-surface-panel, rgb(8 16 22 / 0.78)))",
+    "var(--nexus-recipe-modal-surface, var(--nexus-surface-panel, rgb(20 20 20 / 0.78)))",
   borderColor:
     "var(--nexus-recipe-modal-border, var(--nexus-border-strong, rgb(226 232 240 / 0.18)))",
   boxShadow:
     "var(--nexus-recipe-modal-shadow, var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38)))",
-  color: "var(--nexus-recipe-modal-body-text, var(--nexus-text-primary, #f8fafc))",
+  color: "var(--nexus-recipe-modal-body-text, var(--nexus-text-primary, #f5f5f5))",
 };
 
 const primitiveModalFooterStyle = {
   background:
-    "var(--nexus-recipe-modal-footer-surface, var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62)))",
+    "var(--nexus-recipe-modal-footer-surface, var(--nexus-surface-panel-muted, rgb(18 18 18 / 0.62)))",
   borderColor:
     "var(--nexus-recipe-modal-border, var(--nexus-border-subtle, rgb(226 232 240 / 0.12)))",
 };
 
 const primitiveModalCalloutStyle = {
   background:
-    "var(--nexus-recipe-modal-header-surface, var(--nexus-surface-input, rgb(15 23 42 / 0.72)))",
+    "var(--nexus-recipe-modal-header-surface, var(--nexus-surface-input, rgb(18 18 18 / 0.72)))",
   borderColor:
-    "var(--nexus-recipe-modal-danger-callout, var(--nexus-status-warning, #fcd34d))",
+    "var(--nexus-recipe-modal-danger-callout, var(--nexus-status-warning, #eeeeee))",
   color:
-    "var(--nexus-recipe-modal-danger-callout, var(--nexus-status-warning, #fcd34d))",
+    "var(--nexus-recipe-modal-danger-callout, var(--nexus-status-warning, #eeeeee))",
 };
 
 const primitiveCommandPaletteItems = [
@@ -291,213 +291,213 @@ const primitiveCommandPaletteItems = [
 
 const primitiveCommandPaletteOverlayStyle = {
   background:
-    "var(--nexus-recipe-command-palette-overlay, rgb(2 6 23 / 0.76))",
+    "var(--nexus-recipe-command-palette-overlay, rgb(16 16 16 / 0.76))",
 };
 
 const primitiveCommandPaletteSurfaceStyle = {
   background:
-    "var(--nexus-recipe-command-palette-surface, var(--nexus-surface-panel, rgb(8 16 22 / 0.78)))",
+    "var(--nexus-recipe-command-palette-surface, var(--nexus-surface-panel, rgb(20 20 20 / 0.78)))",
   borderColor: "var(--nexus-border-strong, rgb(226 232 240 / 0.18))",
   boxShadow: "var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
-  color: "var(--nexus-text-primary, #f8fafc)",
+  color: "var(--nexus-text-primary, #f5f5f5)",
 };
 
 const primitiveCommandPaletteInputStyle = {
   background:
-    "var(--nexus-recipe-command-palette-input, var(--nexus-surface-input, rgb(15 23 42 / 0.72)))",
+    "var(--nexus-recipe-command-palette-input, var(--nexus-surface-input, rgb(18 18 18 / 0.72)))",
   borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
-  color: "var(--nexus-text-secondary, #cbd5e1)",
+  color: "var(--nexus-text-secondary, #d0d0d0)",
 };
 
 const primitiveCommandPaletteItemStyle = {
   background:
-    "var(--nexus-recipe-command-palette-item-default, var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62)))",
+    "var(--nexus-recipe-command-palette-item-default, var(--nexus-surface-panel-muted, rgb(18 18 18 / 0.62)))",
   borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
-  color: "var(--nexus-text-primary, #f8fafc)",
+  color: "var(--nexus-text-primary, #f5f5f5)",
 };
 
 const primitiveCommandPaletteActiveItemStyle = {
   background:
-    "var(--nexus-recipe-command-palette-item-active, var(--nexus-accent-primary, #67e8f9))",
-  borderColor: "var(--nexus-accent-primary-strong, #22d3ee)",
-  color: "var(--nexus-text-inverse, #020617)",
+    "var(--nexus-recipe-command-palette-item-active, var(--nexus-accent-primary, #e5e5e5))",
+  borderColor: "var(--nexus-accent-primary-strong, #d4d4d4)",
+  color: "var(--nexus-text-inverse, #111111)",
 };
 
 const primitiveCommandPaletteIconStyle = {
   background:
-    "var(--nexus-recipe-command-palette-icon, var(--nexus-accent-primary, #67e8f9))",
+    "var(--nexus-recipe-command-palette-icon, var(--nexus-accent-primary, #e5e5e5))",
 };
 
 const primitivePromptVaultSurfaceStyle = {
   background:
-    "var(--nexus-recipe-modal-surface, var(--nexus-surface-panel, rgb(8 16 22 / 0.78)))",
+    "var(--nexus-recipe-modal-surface, var(--nexus-surface-panel, rgb(20 20 20 / 0.78)))",
   borderColor:
     "var(--nexus-recipe-modal-border, var(--nexus-border-strong, rgb(226 232 240 / 0.18)))",
   boxShadow:
     "var(--nexus-recipe-modal-shadow, var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38)))",
-  color: "var(--nexus-recipe-modal-body-text, var(--nexus-text-primary, #f8fafc))",
+  color: "var(--nexus-recipe-modal-body-text, var(--nexus-text-primary, #f5f5f5))",
 };
 
 const primitivePromptVaultHeaderStyle = {
   background:
-    "var(--nexus-recipe-modal-header-surface, var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62)))",
+    "var(--nexus-recipe-modal-header-surface, var(--nexus-surface-panel-muted, rgb(18 18 18 / 0.62)))",
   borderColor:
     "var(--nexus-recipe-modal-border, var(--nexus-border-subtle, rgb(226 232 240 / 0.12)))",
-  color: "var(--nexus-recipe-modal-title-text, var(--nexus-accent-primary, #67e8f9))",
+  color: "var(--nexus-recipe-modal-title-text, var(--nexus-accent-primary, #e5e5e5))",
 };
 
 const primitivePromptVaultSidebarStyle = {
   background:
-    "var(--nexus-recipe-modal-backdrop, var(--nexus-surface-workspace, #020617))",
+    "var(--nexus-recipe-modal-backdrop, var(--nexus-surface-workspace, #111111))",
   borderColor:
     "var(--nexus-recipe-modal-border, var(--nexus-border-subtle, rgb(226 232 240 / 0.12)))",
 };
 
 const primitivePromptVaultRecordStyle = {
   background:
-    "var(--nexus-recipe-modal-footer-surface, var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62)))",
+    "var(--nexus-recipe-modal-footer-surface, var(--nexus-surface-panel-muted, rgb(18 18 18 / 0.62)))",
   borderColor:
-    "var(--nexus-recipe-modal-focus-ring, var(--nexus-accent-primary, #67e8f9))",
+    "var(--nexus-recipe-modal-focus-ring, var(--nexus-accent-primary, #e5e5e5))",
 };
 
 const primitivePromptVaultContentStyle = {
   background:
-    "var(--nexus-recipe-modal-header-surface, var(--nexus-surface-input, rgb(15 23 42 / 0.72)))",
+    "var(--nexus-recipe-modal-header-surface, var(--nexus-surface-input, rgb(18 18 18 / 0.72)))",
   borderColor:
     "var(--nexus-recipe-modal-border, var(--nexus-border-subtle, rgb(226 232 240 / 0.12)))",
 };
 
 const primitiveWindowSurfaceStyle = {
   background:
-    "var(--nexus-recipe-window-surface, var(--nexus-surface-panel, rgb(8 16 22 / 0.78)))",
+    "var(--nexus-recipe-window-surface, var(--nexus-surface-panel, rgb(20 20 20 / 0.78)))",
   borderColor:
     "var(--nexus-recipe-window-border, var(--nexus-border-strong, rgb(226 232 240 / 0.18)))",
   boxShadow:
     "var(--nexus-recipe-window-shadow, var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38)))",
-  color: "var(--nexus-text-primary, #f8fafc)",
+  color: "var(--nexus-text-primary, #f5f5f5)",
 };
 
 const primitiveWindowChromeStyle = {
   background:
-    "var(--nexus-recipe-window-chrome-surface, var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62)))",
+    "var(--nexus-recipe-window-chrome-surface, var(--nexus-surface-panel-muted, rgb(18 18 18 / 0.62)))",
   borderColor:
     "var(--nexus-recipe-window-chrome-border, var(--nexus-border-subtle, rgb(226 232 240 / 0.12)))",
-  color: "var(--nexus-recipe-window-chrome-text, var(--nexus-text-secondary, #cbd5e1))",
+  color: "var(--nexus-recipe-window-chrome-text, var(--nexus-text-secondary, #d0d0d0))",
 };
 
 const primitiveWindowBodyStyle = {
   background:
-    "var(--nexus-recipe-window-body-surface, var(--nexus-surface-workspace, #020617))",
+    "var(--nexus-recipe-window-body-surface, var(--nexus-surface-workspace, #111111))",
 };
 
 const primitiveWindowHandleStyle = {
   background:
-    "var(--nexus-recipe-window-handle-visual, var(--nexus-accent-primary, #67e8f9))",
+    "var(--nexus-recipe-window-handle-visual, var(--nexus-accent-primary, #e5e5e5))",
 };
 
 const primitiveDatapadSurfaceStyle = {
   background:
-    "var(--nexus-recipe-window-surface, var(--nexus-surface-panel, rgb(8 16 22 / 0.78)))",
+    "var(--nexus-recipe-window-surface, var(--nexus-surface-panel, rgb(20 20 20 / 0.78)))",
   borderColor:
-    "var(--nexus-recipe-window-border, var(--nexus-status-success, #6ee7b7))",
+    "var(--nexus-recipe-window-border, var(--nexus-status-success, #d6d6d6))",
   boxShadow:
     "var(--nexus-recipe-window-shadow, var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38)))",
-  color: "var(--nexus-text-primary, #f8fafc)",
+  color: "var(--nexus-text-primary, #f5f5f5)",
 };
 
 const primitiveDatapadChromeStyle = {
   background:
-    "var(--nexus-recipe-window-chrome-surface, var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62)))",
+    "var(--nexus-recipe-window-chrome-surface, var(--nexus-surface-panel-muted, rgb(18 18 18 / 0.62)))",
   borderColor:
     "var(--nexus-recipe-window-chrome-border, var(--nexus-border-subtle, rgb(226 232 240 / 0.12)))",
-  color: "var(--nexus-status-success, #6ee7b7)",
+  color: "var(--nexus-status-success, #d6d6d6)",
 };
 
 const primitiveDatapadBodyStyle = {
   background:
-    "var(--nexus-recipe-window-body-surface, var(--nexus-surface-input, rgb(15 23 42 / 0.72)))",
+    "var(--nexus-recipe-window-body-surface, var(--nexus-surface-input, rgb(18 18 18 / 0.72)))",
 };
 
 const primitiveDatapadFooterStyle = {
   background:
-    "var(--nexus-recipe-window-body-surface, var(--nexus-surface-workspace, #020617))",
+    "var(--nexus-recipe-window-body-surface, var(--nexus-surface-workspace, #111111))",
   borderColor:
     "var(--nexus-recipe-window-chrome-border, var(--nexus-border-subtle, rgb(226 232 240 / 0.12)))",
 };
 
 const primitiveDatapadActionStyle = {
-  background: "var(--nexus-status-success, #6ee7b7)",
-  borderColor: "var(--nexus-status-success, #6ee7b7)",
-  color: "var(--nexus-text-inverse, #020617)",
+  background: "var(--nexus-status-success, #d6d6d6)",
+  borderColor: "var(--nexus-status-success, #d6d6d6)",
+  color: "var(--nexus-text-inverse, #111111)",
 };
 
 const primitiveAgentChromeSurfaceStyle = {
   background:
-    "var(--nexus-recipe-window-surface, var(--nexus-surface-panel, rgb(8 16 22 / 0.78)))",
+    "var(--nexus-recipe-window-surface, var(--nexus-surface-panel, rgb(20 20 20 / 0.78)))",
   borderColor:
-    "var(--nexus-recipe-window-border, var(--nexus-accent-primary, #67e8f9))",
+    "var(--nexus-recipe-window-border, var(--nexus-accent-primary, #e5e5e5))",
   boxShadow:
     "var(--nexus-recipe-window-shadow, var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38)))",
-  color: "var(--nexus-text-primary, #f8fafc)",
+  color: "var(--nexus-text-primary, #f5f5f5)",
 };
 
 const primitiveAgentChromeTopStyle = {
   background:
-    "var(--nexus-recipe-window-handle-visual, var(--nexus-accent-primary, #67e8f9))",
+    "var(--nexus-recipe-window-handle-visual, var(--nexus-accent-primary, #e5e5e5))",
 };
 
 const primitiveAgentChromeToolbarStyle = {
   background:
-    "var(--nexus-recipe-window-chrome-surface, var(--nexus-surface-panel-muted, rgb(15 23 42 / 0.62)))",
+    "var(--nexus-recipe-window-chrome-surface, var(--nexus-surface-panel-muted, rgb(18 18 18 / 0.62)))",
   borderColor:
     "var(--nexus-recipe-window-chrome-border, var(--nexus-border-subtle, rgb(226 232 240 / 0.12)))",
 };
 
 const primitiveAgentChromeBodyStyle = {
   background:
-    "var(--nexus-recipe-window-body-surface, var(--nexus-surface-workspace, #020617))",
+    "var(--nexus-recipe-window-body-surface, var(--nexus-surface-workspace, #111111))",
 };
 
 const graphCanvasStyle = {
   background:
-    "var(--nexus-graph-background-color, var(--nexus-surface-workspace, #020617))",
+    "var(--nexus-graph-background-color, var(--nexus-surface-workspace, #111111))",
   borderColor: "var(--nexus-border-subtle, rgb(226 232 240 / 0.12))",
 };
 
 const graphNodeStyle = {
   background:
-    "var(--nexus-graph-node-agent-surface, var(--nexus-surface-panel, rgb(8 16 22 / 0.78)))",
+    "var(--nexus-graph-node-agent-surface, var(--nexus-surface-panel, rgb(20 20 20 / 0.78)))",
   borderColor:
-    "var(--nexus-graph-node-agent-border, var(--nexus-accent-primary, #67e8f9))",
+    "var(--nexus-graph-node-agent-border, var(--nexus-accent-primary, #e5e5e5))",
   boxShadow:
     "var(--nexus-graph-node-runtime-shadow, var(--nexus-shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38)))",
-  color: "var(--nexus-graph-node-agent-text, var(--nexus-text-primary, #f8fafc))",
+  color: "var(--nexus-graph-node-agent-text, var(--nexus-text-primary, #f5f5f5))",
 };
 
 const graphEdgeStyle = {
   background:
-    "linear-gradient(90deg, var(--nexus-graph-edge-default-stroke, #67e8f9), var(--nexus-graph-edge-selected-stroke, #6ee7b7))",
+    "linear-gradient(90deg, var(--nexus-graph-edge-default-stroke, #e5e5e5), var(--nexus-graph-edge-selected-stroke, #d6d6d6))",
   transform: "rotate(14deg)",
 };
 
 const productionBridgeTargetSurfaceStyle = {
-  background: "var(--panel-bg, rgb(8 16 22 / 0.78))",
+  background: "var(--panel-bg, rgb(20 20 20 / 0.78))",
   borderColor: "var(--border-subtle, rgb(226 232 240 / 0.12))",
   borderRadius: "var(--surface-radius, 4px)",
   boxShadow: "var(--shadow-panel, 0 24px 80px rgb(0 0 0 / 0.38))",
-  color: "var(--text-main, #f8fafc)",
+  color: "var(--text-main, #f5f5f5)",
 };
 
 const productionBridgeTargetButtonStyle = {
-  background: "var(--theme-primary, #67e8f9)",
-  borderColor: "var(--theme-primary-strong, #22d3ee)",
-  color: "var(--bg-base, #020617)",
+  background: "var(--theme-primary, #e5e5e5)",
+  borderColor: "var(--theme-primary-strong, #d4d4d4)",
+  color: "var(--bg-base, #111111)",
 };
 
 const productionBridgeTargetMutedStyle = {
   background: "var(--panel-muted, rgb(255 255 255 / 0.04))",
-  borderColor: "var(--border-glow, rgb(34 211 238 / 0.42))",
-  color: "var(--text-soft, #cbd5e1)",
+  borderColor: "var(--border-glow, rgb(210 210 210 / 0.42))",
+  color: "var(--text-soft, #d0d0d0)",
 };
 
 const productionChromeSmokeSelectors = [
@@ -517,16 +517,16 @@ const productionChromeSmokeSelectors = [
 
 const productionChromeSmokeVariables = [
   ["--nexus-agent-window-bg", "rgb(126 34 206 / 0.82)"],
-  ["--nexus-agent-window-border", "rgb(34 211 238 / 0.92)"],
-  ["--nexus-agent-window-shadow", "0 0 0 2px rgb(34 211 238 / 0.36), 0 24px 74px rgb(126 34 206 / 0.42)"],
+  ["--nexus-agent-window-border", "rgb(210 210 210 / 0.92)"],
+  ["--nexus-agent-window-shadow", "0 0 0 2px rgb(210 210 210 / 0.36), 0 24px 74px rgb(126 34 206 / 0.42)"],
   ["--nexus-agent-window-radius", "10px"],
-  ["--nexus-agent-window-handle-bg", "rgb(34 211 238 / 0.32)"],
-  ["--nexus-agent-window-handle-border", "rgb(103 232 249 / 0.72)"],
-  ["--nexus-top-bar-bg", "rgb(20 184 166 / 0.26)"],
+  ["--nexus-agent-window-handle-bg", "rgb(210 210 210 / 0.32)"],
+  ["--nexus-agent-window-handle-border", "rgb(210 210 210 / 0.72)"],
+  ["--nexus-top-bar-bg", "rgb(210 210 210 / 0.26)"],
   ["--nexus-top-bar-border", "rgb(45 212 191 / 0.86)"],
   ["--nexus-right-dock-bg", "rgb(59 7 100 / 0.84)"],
   ["--nexus-right-dock-border", "rgb(216 180 254 / 0.78)"],
-  ["--nexus-command-palette-bg", "rgb(15 23 42 / 0.98)"],
+  ["--nexus-command-palette-bg", "rgb(18 18 18 / 0.98)"],
   ["--nexus-command-palette-border", "rgb(251 191 36 / 0.88)"],
   ["--nexus-command-palette-shadow", "0 0 0 2px rgb(251 191 36 / 0.28), 0 22px 70px rgb(8 13 27 / 0.56)"],
   ["--nexus-command-palette-radius", "12px"],
@@ -544,13 +544,13 @@ const productionChromeSmokeVariables = [
   ["--nexus-workspace-bg", "rgb(3 7 18 / 0.96)"],
   ["--nexus-workspace-border", "rgb(45 212 191 / 0.64)"],
   ["--nexus-message-user-bg", "rgb(236 72 153 / 0.34)"],
-  ["--nexus-message-assistant-bg", "rgb(34 211 238 / 0.26)"],
+  ["--nexus-message-assistant-bg", "rgb(210 210 210 / 0.26)"],
   ["--nexus-message-tool-bg", "rgb(16 185 129 / 0.3)"],
 ] as const;
 
 const initialStyleRuntimePreviewDiagnostics: StyleRuntimePreviewDiagnosticsState = {
   applyDurationMs: null,
-  checksum: warmGlassStyleRuntimeBudgetSummaryStatic.checksum,
+  checksum: surfaceStyleStyleRuntimeBudgetSummaryStatic.checksum,
   lastError: null,
   residueCheck: "not-run",
   revertDurationMs: null,
@@ -579,7 +579,7 @@ function roundStyleRuntimePreviewDuration(durationMs: number) {
   return Math.max(0, Math.round(durationMs * 100) / 100);
 }
 
-const warmGlassScenePreviewVariables = [
+const surfaceStyleScenePreviewVariables = [
   ["--nexus-panel-bg", "rgb(255 244 226 / 0.24)"],
   ["--nexus-panel-border", "rgb(255 244 226 / 0.24)"],
   ["--nexus-panel-shadow", "0 24px 72px rgb(74 48 29 / 0.24)"],
@@ -613,18 +613,18 @@ const warmGlassScenePreviewVariables = [
   ["--nexus-message-tool-bg", "rgb(184 137 92 / 0.16)"],
 ] as const;
 
-const warmGlassScenePreviewVariableStyle = Object.fromEntries(
-  warmGlassScenePreviewVariables,
+const surfaceStyleScenePreviewVariableStyle = Object.fromEntries(
+  surfaceStyleScenePreviewVariables,
 ) as CSSProperties;
 
-const warmGlassScenePreviewTargetStyle = {
-  ...warmGlassScenePreviewVariableStyle,
+const surfaceStyleScenePreviewTargetStyle = {
+  ...surfaceStyleScenePreviewVariableStyle,
   background:
     "radial-gradient(circle at 18% 22%, rgb(255 248 235 / 0.52), transparent 26%), radial-gradient(circle at 72% 28%, rgb(184 137 92 / 0.28), transparent 30%), linear-gradient(135deg, rgb(229 211 184) 0%, rgb(176 127 84) 44%, rgb(84 59 40) 100%)",
   color: "rgb(255 248 235)",
 } as CSSProperties;
 
-const warmGlassSceneGlassStyle = {
+const surfaceStyleSceneGlassStyle = {
   backdropFilter: "blur(var(--nexus-glass-blur, 18px))",
   background: "var(--nexus-glass-bg, rgb(255 248 235 / 0.18))",
   borderColor: "var(--nexus-glass-border, rgb(255 248 235 / 0.2))",
@@ -632,7 +632,7 @@ const warmGlassSceneGlassStyle = {
   boxShadow: "var(--nexus-panel-shadow, 0 24px 72px rgb(74 48 29 / 0.24))",
 } as CSSProperties;
 
-const warmGlassSceneWorkspaceStyle = {
+const surfaceStyleSceneWorkspaceStyle = {
   background:
     "linear-gradient(90deg, rgb(255 248 235 / 0.08) 1px, transparent 1px), linear-gradient(rgb(255 248 235 / 0.08) 1px, transparent 1px), var(--nexus-workspace-bg, rgb(76 54 38 / 0.34))",
   backgroundSize: "34px 34px",
@@ -641,7 +641,7 @@ const warmGlassSceneWorkspaceStyle = {
   boxShadow: "var(--nexus-workspace-shadow, 0 34px 90px rgb(65 42 26 / 0.28))",
 } as CSSProperties;
 
-const warmGlassScenePanelStyle = {
+const surfaceStyleScenePanelStyle = {
   backdropFilter: "blur(var(--nexus-panel-blur, 18px))",
   background: "var(--nexus-panel-bg, rgb(255 244 226 / 0.24))",
   borderColor: "var(--nexus-panel-border, rgb(255 244 226 / 0.24))",
@@ -649,7 +649,7 @@ const warmGlassScenePanelStyle = {
   boxShadow: "var(--nexus-panel-shadow, 0 24px 72px rgb(74 48 29 / 0.24))",
 } as CSSProperties;
 
-const warmGlassSceneAgentWindowStyle = {
+const surfaceStyleSceneAgentWindowStyle = {
   backdropFilter: "blur(var(--nexus-agent-window-blur, 20px))",
   background: "var(--nexus-agent-window-bg, rgb(255 244 226 / 0.2))",
   borderColor: "var(--nexus-agent-window-border, rgb(255 248 235 / 0.26))",
@@ -657,80 +657,80 @@ const warmGlassSceneAgentWindowStyle = {
   boxShadow: "var(--nexus-agent-window-shadow, 0 24px 68px rgb(73 49 30 / 0.24))",
 } as CSSProperties;
 
-const warmGlassSegmentedNavRows = [
+const surfaceStyleSegmentedNavRows = [
   { active: true, label: "View: Panels" },
   { active: false, label: "View: Graph" },
-  { active: false, label: "Cyberpunk" },
+  { active: false, label: "Surface Shell" },
   { active: false, label: "Apple" },
   { active: false, label: "Tesla" },
   { active: false, label: "Terminal" },
 ] as const;
 
-const warmGlassSegmentedNavCounters = [
+const surfaceStyleSegmentedNavCounters = [
   ["Agents", "5"],
   ["Streams", "0"],
   ["Tokens", "0"],
   ["Tasks", "0"],
 ] as const;
 
-const warmGlassSegmentedNavSpecimenStyle = {
-  ...warmGlassSceneGlassStyle,
+const surfaceStyleSegmentedNavSpecimenStyle = {
+  ...surfaceStyleSceneGlassStyle,
   background:
     "linear-gradient(180deg, rgb(255 248 235 / 0.2), rgb(74 48 29 / 0.1)), var(--nexus-glass-bg, rgb(255 248 235 / 0.18))",
 } as CSSProperties;
 
-const warmGlassControlChromeIconButtons = [
+const surfaceStyleControlChromeIconButtons = [
   { Icon: Sun, id: "theme", label: "Theme" },
   { Icon: Bell, id: "alert", label: "Alert" },
   { Icon: Maximize2, id: "focus", label: "Focus" },
   { Icon: Plus, id: "new", label: "New" },
 ] as const;
 
-const warmGlassControlChromeStatusBadges = [
+const surfaceStyleControlChromeStatusBadges = [
   {
-    dot: "bg-emerald-100/75",
+    dot: "bg-neutral-100/75",
     id: "live",
     label: "Live",
-    tone: "border-emerald-100/25 bg-emerald-200/[0.12] text-emerald-50",
+    tone: "border-neutral-100/25 bg-neutral-200/[0.12] text-neutral-50",
   },
   {
-    dot: "bg-amber-100/65",
+    dot: "bg-neutral-100/65",
     id: "idle",
     label: "Idle",
-    tone: "border-amber-100/20 bg-amber-100/[0.1] text-amber-50",
+    tone: "border-neutral-100/20 bg-neutral-100/[0.1] text-neutral-50",
   },
   {
-    dot: "bg-cyan-100/65",
+    dot: "bg-neutral-100/65",
     id: "syncing",
     label: "Syncing",
-    tone: "border-cyan-100/20 bg-cyan-100/[0.1] text-cyan-50",
+    tone: "border-neutral-100/20 bg-neutral-100/[0.1] text-neutral-50",
   },
   {
     dot: "bg-white/55",
     id: "local",
     label: "Local",
-    tone: "border-white/15 bg-white/[0.08] text-amber-50/75",
+    tone: "border-white/15 bg-white/[0.08] text-neutral-50/75",
   },
 ] as const;
 
-const warmGlassControlChromeAffordances = [
+const surfaceStyleControlChromeAffordances = [
   { id: "active", label: "Active", value: "ready" },
   { id: "inert", label: "Inert", value: "display" },
 ] as const;
 
-const warmGlassControlChromeCapabilityRows = [
-  ["Supported now", "local warm glass variables"],
+const surfaceStyleControlChromeCapabilityRows = [
+  ["Supported now", "local surface style variables"],
   ["Specimen only", "control recipe language"],
   ["Missing", "production primitive selectors"],
 ] as const;
 
-const warmGlassControlChromeSpecimenStyle = {
-  ...warmGlassSceneGlassStyle,
+const surfaceStyleControlChromeSpecimenStyle = {
+  ...surfaceStyleSceneGlassStyle,
   background:
     "linear-gradient(180deg, rgb(255 248 235 / 0.18), rgb(74 48 29 / 0.1)), var(--nexus-glass-bg, rgb(255 248 235 / 0.18))",
 } as CSSProperties;
 
-const warmGlassAgentCardRows = [
+const surfaceStyleAgentCardRows = [
   {
     id: "architect",
     initial: "A",
@@ -739,7 +739,7 @@ const warmGlassAgentCardRows = [
     queue: "06m",
     role: "system architect",
     status: "online",
-    tone: "bg-emerald-200/[0.16] text-emerald-50",
+    tone: "bg-neutral-200/[0.16] text-neutral-50",
   },
   {
     id: "explorer",
@@ -749,7 +749,7 @@ const warmGlassAgentCardRows = [
     queue: "11m",
     role: "data scout",
     status: "mapping",
-    tone: "bg-cyan-200/[0.14] text-cyan-50",
+    tone: "bg-neutral-200/[0.14] text-neutral-50",
   },
   {
     id: "sentinel",
@@ -759,7 +759,7 @@ const warmGlassAgentCardRows = [
     queue: "03m",
     role: "risk watch",
     status: "guarding",
-    tone: "bg-amber-200/[0.14] text-amber-50",
+    tone: "bg-neutral-200/[0.14] text-neutral-50",
   },
   {
     id: "auditor",
@@ -769,7 +769,7 @@ const warmGlassAgentCardRows = [
     queue: "14m",
     role: "compliance lens",
     status: "review",
-    tone: "bg-white/[0.1] text-amber-50",
+    tone: "bg-white/[0.1] text-neutral-50",
   },
   {
     id: "steward",
@@ -779,21 +779,21 @@ const warmGlassAgentCardRows = [
     queue: "09m",
     role: "memory steward",
     status: "syncing",
-    tone: "bg-[rgb(184_137_92_/_0.16)] text-amber-50",
+    tone: "bg-[rgb(184_137_92_/_0.16)] text-neutral-50",
   },
 ] as const;
 
-const warmGlassAgentBankSpecimenStyle = {
-  ...warmGlassScenePanelStyle,
+const surfaceStyleAgentBankSpecimenStyle = {
+  ...surfaceStyleScenePanelStyle,
   background:
     "linear-gradient(180deg, rgb(255 248 235 / 0.17), rgb(74 48 29 / 0.12)), var(--nexus-panel-bg, rgb(255 244 226 / 0.24))",
 } as CSSProperties;
 
-const warmGlassSceneCapabilityGroups = [
+const surfaceStyleSceneCapabilityGroups = [
   {
     id: "supported",
     label: "Supported Now",
-    tone: "text-emerald-100",
+    tone: "text-neutral-100",
     values: [
       "direct bridge aliases",
       "workspace wash",
@@ -804,7 +804,7 @@ const warmGlassSceneCapabilityGroups = [
   {
     id: "simulated",
     label: "Simulated In Style Lab Only",
-    tone: "text-amber-100",
+    tone: "text-neutral-100",
     values: [
       "desert scene gradients",
       "agent bank cards",
@@ -815,7 +815,7 @@ const warmGlassSceneCapabilityGroups = [
   {
     id: "missing",
     label: "Missing Production Capability",
-    tone: "text-rose-100",
+    tone: "text-neutral-100",
     values: [
       "asset/background pipeline",
       "right metrics recipe",
@@ -825,26 +825,26 @@ const warmGlassSceneCapabilityGroups = [
   },
 ] as const;
 
-const warmGlassRightMetricsGoalRows = [
+const surfaceStyleRightMetricsGoalRows = [
   { label: "Plan Health", value: "91", width: "91%" },
   { label: "Context Fit", value: "76", width: "76%" },
   { label: "Risk Held", value: "18", width: "18%" },
 ] as const;
 
-const warmGlassRightMetricsContextRows = [
-  ["North Star", "warm glass ops"],
+const surfaceStyleRightMetricsContextRows = [
+  ["North Star", "surface style ops"],
   ["Active Loop", "scene recipe"],
   ["Guardrail", "style lab only"],
 ] as const;
 
-const warmGlassRightMetricsHistoryRows = [
+const surfaceStyleRightMetricsHistoryRows = [
   ["12:16", "Fixture accepted"],
   ["12:18", "Bridge vars ready"],
   ["12:21", "Specimen staged"],
 ] as const;
 
-const warmGlassRightMetricsSpecimenStyle = {
-  ...warmGlassScenePanelStyle,
+const surfaceStyleRightMetricsSpecimenStyle = {
+  ...surfaceStyleScenePanelStyle,
   background:
     "linear-gradient(180deg, rgb(255 248 235 / 0.16), rgb(184 137 92 / 0.08)), var(--nexus-panel-bg, rgb(255 244 226 / 0.24))",
 } as CSSProperties;
@@ -856,15 +856,15 @@ export function NexusStyleLab() {
   const styleRuntimePreviewDiagnosticsCounterRef = useRef(0);
   const pageShellPrototypeTargetRef = useRef<HTMLDivElement | null>(null);
   const baselineManifest = useMemo(
-    () => createLegacyCyberpunkStyleManifestV1(),
+    () => createBaselineSurfaceShellStyleManifestV1(),
     [],
   );
   const [previewState, setPreviewState] = useState<PreviewState>("idle");
   const [selectedBuiltInPreset, setSelectedBuiltInPreset] = useState<string>(
-    LEGACY_CYBERPUNK_STYLE_ID,
+    BASELINE_SURFACE_SHELL_STYLE_ID,
   );
   const [manifest, setManifest] = useState<NexusStyleManifestV1>(() =>
-    createLegacyCyberpunkStyleManifestV1(),
+    createBaselineSurfaceShellStyleManifestV1(),
   );
   const [draftText, setDraftText] = useState("");
   const [briefText, setBriefText] = useState("");
@@ -1213,9 +1213,9 @@ export function NexusStyleLab() {
     productionBridgePlanResult?.accepted === true
       ? productionBridgePlanResult.bridgePlan
       : null;
-  const warmGlassOpsCoverageReport = warmGlassOpsCoverageReportStatic;
-  const warmGlassStyleRuntimeBudgetSummary =
-    warmGlassStyleRuntimeBudgetSummaryStatic;
+  const surfaceStyleOpsCoverageReport = surfaceStyleOpsCoverageReportStatic;
+  const surfaceStyleStyleRuntimeBudgetSummary =
+    surfaceStyleStyleRuntimeBudgetSummaryStatic;
   const specimenGallery =
     renderPlan?.specimenGallery ?? null;
   const hasRejectedSkinPackReview = skinPackReviewResult?.accepted === false;
@@ -1308,128 +1308,128 @@ export function NexusStyleLab() {
         : [],
     [productionBridgePlan],
   );
-  const warmGlassOpsCoverageRows = useMemo(
+  const surfaceStyleOpsCoverageRows = useMemo(
     () => [
-      ["Fixture", warmGlassOpsCoverageReport.displayName],
+      ["Fixture", surfaceStyleOpsCoverageReport.displayName],
       [
         "Render Plan",
-        warmGlassOpsCoverageReport.renderPlanAccepted ? "accepted" : "blocked",
+        surfaceStyleOpsCoverageReport.renderPlanAccepted ? "accepted" : "blocked",
       ],
       [
         "Bridge Plan",
-        warmGlassOpsCoverageReport.bridgePlanAccepted ? "accepted" : "blocked",
+        surfaceStyleOpsCoverageReport.bridgePlanAccepted ? "accepted" : "blocked",
       ],
-      ["Bridge Vars", String(warmGlassOpsCoverageReport.bridgeVariableCount)],
-      ["Families", String(warmGlassOpsCoverageReport.familyCount)],
+      ["Bridge Vars", String(surfaceStyleOpsCoverageReport.bridgeVariableCount)],
+      ["Families", String(surfaceStyleOpsCoverageReport.familyCount)],
       [
         "Direct %",
-        `${warmGlassOpsCoverageReport.directAliasCoveragePercent}%`,
+        `${surfaceStyleOpsCoverageReport.directAliasCoveragePercent}%`,
       ],
       [
         "Direct Aliases",
-        `${warmGlassOpsCoverageReport.directlyDrivenAliasCount}/${warmGlassOpsCoverageReport.totalAliasCount}`,
+        `${surfaceStyleOpsCoverageReport.directlyDrivenAliasCount}/${surfaceStyleOpsCoverageReport.totalAliasCount}`,
       ],
       [
         "Fallback",
-        String(warmGlassOpsCoverageReport.fallbackDrivenFamilyCount),
+        String(surfaceStyleOpsCoverageReport.fallbackDrivenFamilyCount),
       ],
-      ["Direct", String(warmGlassOpsCoverageReport.directlyDrivenFamilyCount)],
-      ["Smoke Only", String(warmGlassOpsCoverageReport.smokeOnlyFamilyCount)],
-      ["Gaps", String(warmGlassOpsCoverageReport.gaps.length)],
+      ["Direct", String(surfaceStyleOpsCoverageReport.directlyDrivenFamilyCount)],
+      ["Smoke Only", String(surfaceStyleOpsCoverageReport.smokeOnlyFamilyCount)],
+      ["Gaps", String(surfaceStyleOpsCoverageReport.gaps.length)],
     ],
-    [warmGlassOpsCoverageReport],
+    [surfaceStyleOpsCoverageReport],
   );
-  const warmGlassOpsCoverageFamilies = useMemo(
+  const surfaceStyleOpsCoverageFamilies = useMemo(
     () =>
-      warmGlassOpsCoverageReport.families.slice(
+      surfaceStyleOpsCoverageReport.families.slice(
         0,
-        maxVisibleWarmGlassCoverageFamilies,
+        maxVisibleSurfaceStyleCoverageFamilies,
       ),
-    [warmGlassOpsCoverageReport],
+    [surfaceStyleOpsCoverageReport],
   );
-  const warmGlassOpsGapRows = useMemo(
-    () => warmGlassOpsCoverageReport.gaps.slice(0, maxVisibleWarmGlassGaps),
-    [warmGlassOpsCoverageReport],
+  const surfaceStyleOpsGapRows = useMemo(
+    () => surfaceStyleOpsCoverageReport.gaps.slice(0, maxVisibleSurfaceStyleGaps),
+    [surfaceStyleOpsCoverageReport],
   );
   const styleRuntimeBudgetCriticalGapCount = useMemo(
     () =>
-      warmGlassStyleRuntimeBudgetSummary.unsupportedCapabilities.filter(
+      surfaceStyleStyleRuntimeBudgetSummary.unsupportedCapabilities.filter(
         (capability) => capability.severity === "critical",
       ).length,
-    [warmGlassStyleRuntimeBudgetSummary],
+    [surfaceStyleStyleRuntimeBudgetSummary],
   );
   const styleRuntimeBudgetInfoGapCount = useMemo(
     () =>
-      warmGlassStyleRuntimeBudgetSummary.unsupportedCapabilities.filter(
+      surfaceStyleStyleRuntimeBudgetSummary.unsupportedCapabilities.filter(
         (capability) => capability.severity === "info",
       ).length,
-    [warmGlassStyleRuntimeBudgetSummary],
+    [surfaceStyleStyleRuntimeBudgetSummary],
   );
   const styleRuntimeBudgetVerdictTone =
-    warmGlassStyleRuntimeBudgetSummary.verdict === "safe"
-      ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
-      : warmGlassStyleRuntimeBudgetSummary.verdict === "warn"
-        ? "border-amber-300/35 bg-amber-300/10 text-amber-100"
-        : "border-rose-300/35 bg-rose-300/10 text-rose-100";
+    surfaceStyleStyleRuntimeBudgetSummary.verdict === "safe"
+      ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
+      : surfaceStyleStyleRuntimeBudgetSummary.verdict === "warn"
+        ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
+        : "border-neutral-300/35 bg-neutral-300/10 text-neutral-100";
   const styleRuntimeBudgetEligibility =
-    warmGlassStyleRuntimeBudgetSummary.verdict === "safe"
+    surfaceStyleStyleRuntimeBudgetSummary.verdict === "safe"
       ? "preview diagnostics ready"
-      : warmGlassStyleRuntimeBudgetSummary.verdict === "warn"
+      : surfaceStyleStyleRuntimeBudgetSummary.verdict === "warn"
         ? "degraded diagnostics only"
         : "preview diagnostics blocked";
   const styleRuntimeBudgetPrimaryReason =
-    warmGlassStyleRuntimeBudgetSummary.reasons[0]?.message ??
+    surfaceStyleStyleRuntimeBudgetSummary.reasons[0]?.message ??
     "Within runtime budget; no degradation required.";
   const styleRuntimeBudgetPressureRows = useMemo(
     () => [
       [
         "CSS Vars",
-        `${warmGlassStyleRuntimeBudgetSummary.cssVariableCount}/${warmGlassStyleRuntimeBudgetSummary.thresholds.safeCssVariableCount}`,
+        `${surfaceStyleStyleRuntimeBudgetSummary.cssVariableCount}/${surfaceStyleStyleRuntimeBudgetSummary.thresholds.safeCssVariableCount}`,
       ],
       [
         "Apply Cost",
-        `${warmGlassStyleRuntimeBudgetSummary.estimatedApplyCost.score}/${warmGlassStyleRuntimeBudgetSummary.thresholds.safeEstimatedApplyCost}`,
+        `${surfaceStyleStyleRuntimeBudgetSummary.estimatedApplyCost.score}/${surfaceStyleStyleRuntimeBudgetSummary.thresholds.safeEstimatedApplyCost}`,
       ],
       [
         "High-Cost FX",
-        `${warmGlassStyleRuntimeBudgetSummary.highCostEffectCount}/${warmGlassStyleRuntimeBudgetSummary.thresholds.warnHighCostEffectCount}`,
+        `${surfaceStyleStyleRuntimeBudgetSummary.highCostEffectCount}/${surfaceStyleStyleRuntimeBudgetSummary.thresholds.warnHighCostEffectCount}`,
       ],
       ["Critical Gaps", String(styleRuntimeBudgetCriticalGapCount)],
     ],
-    [styleRuntimeBudgetCriticalGapCount, warmGlassStyleRuntimeBudgetSummary],
+    [styleRuntimeBudgetCriticalGapCount, surfaceStyleStyleRuntimeBudgetSummary],
   );
   const styleRuntimeBudgetDetailRows = useMemo(
     () => [
-      ["Direct Aliases", String(warmGlassStyleRuntimeBudgetSummary.directAliasCount)],
-      ["Families", String(warmGlassStyleRuntimeBudgetSummary.aliasFamilyCount)],
-      ["Fallback", String(warmGlassStyleRuntimeBudgetSummary.fallbackDrivenCount)],
-      ["Smoke Only", String(warmGlassStyleRuntimeBudgetSummary.smokeOnlyCount)],
+      ["Direct Aliases", String(surfaceStyleStyleRuntimeBudgetSummary.directAliasCount)],
+      ["Families", String(surfaceStyleStyleRuntimeBudgetSummary.aliasFamilyCount)],
+      ["Fallback", String(surfaceStyleStyleRuntimeBudgetSummary.fallbackDrivenCount)],
+      ["Smoke Only", String(surfaceStyleStyleRuntimeBudgetSummary.smokeOnlyCount)],
       ["Info Gaps", String(styleRuntimeBudgetInfoGapCount)],
       [
         "Hints",
-        warmGlassStyleRuntimeBudgetSummary.degradationHints.length > 0
-          ? String(warmGlassStyleRuntimeBudgetSummary.degradationHints.length)
+        surfaceStyleStyleRuntimeBudgetSummary.degradationHints.length > 0
+          ? String(surfaceStyleStyleRuntimeBudgetSummary.degradationHints.length)
           : "none",
       ],
     ],
-    [styleRuntimeBudgetInfoGapCount, warmGlassStyleRuntimeBudgetSummary],
+    [styleRuntimeBudgetInfoGapCount, surfaceStyleStyleRuntimeBudgetSummary],
   );
   const styleRuntimeBudgetHints = useMemo(
     () =>
-      warmGlassStyleRuntimeBudgetSummary.degradationHints.slice(
+      surfaceStyleStyleRuntimeBudgetSummary.degradationHints.slice(
         0,
         maxVisibleStyleRuntimeBudgetHints,
       ),
-    [warmGlassStyleRuntimeBudgetSummary],
+    [surfaceStyleStyleRuntimeBudgetSummary],
   );
   const styleRuntimePreviewDiagnosticsTone =
     styleRuntimePreviewDiagnostics.status === "failed"
-      ? "border-rose-300/35 bg-rose-300/10 text-rose-100"
+      ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
       : styleRuntimePreviewDiagnostics.status === "applied"
-        ? "border-fuchsia-300/35 bg-fuchsia-300/10 text-fuchsia-100"
+        ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
         : styleRuntimePreviewDiagnostics.status === "reverted"
-          ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
-          : "border-white/10 bg-white/[0.04] text-slate-400";
+          ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
+          : "border-white/10 bg-white/[0.04] text-neutral-400";
   const styleRuntimePreviewDiagnosticsEligibility =
     styleRuntimePreviewDiagnostics.status === "failed"
       ? "diagnostics blocked / failed closed"
@@ -1473,8 +1473,8 @@ export function NexusStyleLab() {
         ? "residue detected"
         : "fail-safe clear";
   const styleRuntimePreviewPreflight = useMemo(() => {
-    const budgetVerdict = warmGlassStyleRuntimeBudgetSummary.verdict;
-    const budgetChecksum = warmGlassStyleRuntimeBudgetSummary.checksum;
+    const budgetVerdict = surfaceStyleStyleRuntimeBudgetSummary.verdict;
+    const budgetChecksum = surfaceStyleStyleRuntimeBudgetSummary.checksum;
     const diagnosticsChecksum = styleRuntimePreviewDiagnostics.checksum;
     const hasChecksum =
       budgetChecksum.trim().length > 0 && diagnosticsChecksum.trim().length > 0;
@@ -1598,14 +1598,14 @@ export function NexusStyleLab() {
   }, [
     styleRuntimeBudgetCriticalGapCount,
     styleRuntimePreviewDiagnostics,
-    warmGlassStyleRuntimeBudgetSummary,
+    surfaceStyleStyleRuntimeBudgetSummary,
   ]);
   const styleRuntimePreviewPreflightTone =
     styleRuntimePreviewPreflight.verdict === "PASS"
-      ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+      ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
       : styleRuntimePreviewPreflight.verdict === "HOLD"
-        ? "border-amber-300/35 bg-amber-300/10 text-amber-100"
-        : "border-rose-300/35 bg-rose-300/10 text-rose-100";
+        ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
+        : "border-neutral-300/35 bg-neutral-300/10 text-neutral-100";
   const acceptedLayoutPreset =
     layoutPresetReviewResult?.accepted === true
       ? layoutPresetReviewResult
@@ -1989,7 +1989,7 @@ export function NexusStyleLab() {
   }) => {
     setStyleRuntimePreviewDiagnostics({
       applyDurationMs,
-      checksum: warmGlassStyleRuntimeBudgetSummary.checksum,
+      checksum: surfaceStyleStyleRuntimeBudgetSummary.checksum,
       lastError,
       residueCheck: "fail",
       revertDurationMs,
@@ -2142,7 +2142,7 @@ export function NexusStyleLab() {
     setProductionChromeSmokeState("applied");
     setStyleRuntimePreviewDiagnostics({
       applyDurationMs,
-      checksum: warmGlassStyleRuntimeBudgetSummary.checksum,
+      checksum: surfaceStyleStyleRuntimeBudgetSummary.checksum,
       lastError: null,
       residueCheck: "not-run",
       revertDurationMs: null,
@@ -2189,7 +2189,7 @@ export function NexusStyleLab() {
     setProductionChromeSmokeState("reverted");
     setStyleRuntimePreviewDiagnostics({
       applyDurationMs: styleRuntimePreviewDiagnostics.applyDurationMs,
-      checksum: warmGlassStyleRuntimeBudgetSummary.checksum,
+      checksum: surfaceStyleStyleRuntimeBudgetSummary.checksum,
       lastError:
         residueCheck === "pass"
           ? null
@@ -2296,7 +2296,7 @@ export function NexusStyleLab() {
   };
 
   const resetToBaseline = () => {
-    loadBuiltInPreset(LEGACY_CYBERPUNK_STYLE_ID);
+    loadBuiltInPreset(BASELINE_SURFACE_SHELL_STYLE_ID);
   };
 
   const loadDraft = () => {
@@ -2324,7 +2324,7 @@ export function NexusStyleLab() {
   const loadValidSkinPackFixture = () => {
     clearProductionBridgePreview();
     setSkinPackText(
-      JSON.stringify(createCyberpunkCompatibleSkinPackV2(), null, 2),
+      JSON.stringify(createSurfaceShellCompatibleSkinPackV2(), null, 2),
     );
     setSkinPackReviewResult(null);
     setSkinPackTokenPreviewResult(null);
@@ -2349,10 +2349,10 @@ export function NexusStyleLab() {
     setSkinPackTokenPreviewState("idle");
   };
 
-  const loadWarmGlassSkinPackFixture = () => {
+  const loadSurfaceStyleSkinPackFixture = () => {
     clearProductionBridgePreview();
     setSkinPackText(
-      JSON.stringify(createWarmGlassOpsSkinPackV2Fixture(), null, 2),
+      JSON.stringify(createSurfaceStyleOpsSkinPackV2Fixture(), null, 2),
     );
     setSkinPackReviewResult(null);
     setSkinPackTokenPreviewResult(null);
@@ -2449,15 +2449,15 @@ export function NexusStyleLab() {
     );
 
   return (
-    <main className="min-h-dvh overflow-hidden bg-slate-950 text-slate-100">
+    <main className="min-h-dvh overflow-hidden bg-neutral-950 text-neutral-100">
       <section className="grid min-h-dvh grid-rows-[auto_1fr]">
         <header className="border-b border-white/10 bg-black/30 px-5 py-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h1 className="font-mono text-sm uppercase tracking-[0.22em] text-cyan-100">
+                <h1 className="font-mono text-sm uppercase tracking-[0.22em] text-neutral-100">
                   NEXUS Style Lab
                 </h1>
-                <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-500">
                   {manifest.id} / {review.state}
                 </div>
                 <div
@@ -2473,8 +2473,8 @@ export function NexusStyleLab() {
                         className={[
                           "h-8 border px-3 font-mono text-[10px] uppercase tracking-[0.12em] transition",
                           active
-                            ? "border-cyan-300/45 bg-cyan-300/15 text-cyan-100"
-                            : "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/25 hover:bg-white/10",
+                            ? "border-neutral-300/45 bg-neutral-300/15 text-neutral-100"
+                            : "border-white/10 bg-white/[0.04] text-neutral-400 hover:border-white/25 hover:bg-white/10",
                         ].join(" ")}
                         onClick={() => loadBuiltInPreset(preset.id)}
                         type="button"
@@ -2488,7 +2488,7 @@ export function NexusStyleLab() {
 
             <div className="flex items-center gap-2">
               <button
-                className="inline-flex h-9 items-center gap-2 border border-cyan-300/35 bg-cyan-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+                className="inline-flex h-9 items-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
                 disabled={!canPreview}
                 onClick={startPreview}
                 type="button"
@@ -2497,7 +2497,7 @@ export function NexusStyleLab() {
                 Preview
               </button>
               <button
-                className="inline-flex h-9 items-center gap-2 border border-white/10 bg-white/[0.04] px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                className="inline-flex h-9 items-center gap-2 border border-white/10 bg-white/[0.04] px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10"
                 onClick={resetToBaseline}
                 type="button"
               >
@@ -2505,7 +2505,7 @@ export function NexusStyleLab() {
                 Baseline
               </button>
               <button
-                className="inline-flex h-9 items-center gap-2 border border-white/10 bg-white/[0.04] px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                className="inline-flex h-9 items-center gap-2 border border-white/10 bg-white/[0.04] px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10"
                 onClick={revertPreview}
                 type="button"
               >
@@ -2522,16 +2522,16 @@ export function NexusStyleLab() {
             style={surfaceStyle}
           >
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
-              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                 {statusIcon}
                 {review.compatibility}
               </div>
               <div className="grid justify-items-end gap-1">
-                <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-400">
                   {runtimeStatus}
                 </div>
                 {previewBlockReason ? (
-                  <div className="max-w-64 truncate font-mono text-[10px] uppercase tracking-[0.14em] text-amber-200">
+                  <div className="max-w-64 truncate font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-200">
                     {previewBlockReason}
                   </div>
                 ) : null}
@@ -2540,7 +2540,7 @@ export function NexusStyleLab() {
 
             <div className="grid min-h-0 gap-4 overflow-y-auto py-4 lg:grid-cols-2">
               <section className="border border-white/10 bg-black/20 p-4">
-                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-400">
                   Token Map
                 </div>
                 <div className="grid gap-2">
@@ -2555,10 +2555,10 @@ export function NexusStyleLab() {
                         style={{ background: token.value }}
                       />
                       <span className="min-w-0">
-                        <span className="block truncate font-mono text-[10px] text-slate-200">
+                        <span className="block truncate font-mono text-[10px] text-neutral-200">
                           {token.name}
                         </span>
-                        <span className="mt-1 block truncate font-mono text-[9px] text-slate-500">
+                        <span className="mt-1 block truncate font-mono text-[9px] text-neutral-500">
                           {token.value}
                         </span>
                       </span>
@@ -2568,7 +2568,7 @@ export function NexusStyleLab() {
               </section>
 
               <section className="grid min-h-0 grid-rows-[auto_1fr] border border-white/10 bg-black/20 p-4">
-                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-400">
                   Preview Surface
                 </div>
                 <div
@@ -2576,7 +2576,7 @@ export function NexusStyleLab() {
                   style={sampleStyle}
                 >
                   <div className="w-full max-w-sm border border-white/10 bg-black/30 p-4">
-                    <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
                       {manifest.name}
                     </div>
                     <div className="mt-3 h-2 bg-white/10">
@@ -2584,7 +2584,7 @@ export function NexusStyleLab() {
                         className="h-full w-2/3"
                         style={{
                           background:
-                            "var(--nexus-accent-primary, #67e8f9)",
+                            "var(--nexus-accent-primary, #e5e5e5)",
                         }}
                       />
                     </div>
@@ -2592,7 +2592,7 @@ export function NexusStyleLab() {
                       {["panel", "window", "dock"].map((item) => (
                         <div
                           key={item}
-                          className="border border-white/10 bg-white/[0.04] p-2 text-center font-mono text-[9px] uppercase tracking-[0.12em] text-slate-300"
+                          className="border border-white/10 bg-white/[0.04] p-2 text-center font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-300"
                         >
                           {item}
                         </div>
@@ -2611,10 +2611,10 @@ export function NexusStyleLab() {
                     style={primitiveWindowChromeStyle}
                   >
                     <div className="min-w-0">
-                      <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                      <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                         Window Specimen
                       </div>
-                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                         {manifest.name}
                       </div>
                     </div>
@@ -2639,7 +2639,7 @@ export function NexusStyleLab() {
                       {["agent", "tool", "log"].map((item) => (
                         <span
                           key={item}
-                          className="truncate border border-white/10 bg-white/[0.04] px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.12em] text-slate-300"
+                          className="truncate border border-white/10 bg-white/[0.04] px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-300"
                         >
                           {item}
                         </span>
@@ -2661,11 +2661,11 @@ export function NexusStyleLab() {
                       <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em]">
                         Datapad Shell Specimen
                       </div>
-                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                         Global Notes
                       </div>
                     </div>
-                    <span className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300">
+                    <span className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300">
                       visual
                     </span>
                   </div>
@@ -2678,7 +2678,7 @@ export function NexusStyleLab() {
                     className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t px-4 py-3"
                     style={primitiveDatapadFooterStyle}
                   >
-                    <span className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                    <span className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                       Local shell preview
                     </span>
                     <span
@@ -2701,10 +2701,10 @@ export function NexusStyleLab() {
                     style={primitiveAgentChromeToolbarStyle}
                   >
                     <div className="min-w-0">
-                      <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                      <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                         Agent Chrome Specimen
                       </div>
-                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                         Operator Window
                       </div>
                     </div>
@@ -2712,7 +2712,7 @@ export function NexusStyleLab() {
                       {["run", "dock", "view"].map((item) => (
                         <span
                           key={item}
-                          className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300"
+                          className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300"
                         >
                           {item}
                         </span>
@@ -2734,7 +2734,7 @@ export function NexusStyleLab() {
                       {["stream", "tools", "state"].map((item) => (
                         <span
                           key={item}
-                          className="truncate border border-white/10 bg-white/[0.04] px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300"
+                          className="truncate border border-white/10 bg-white/[0.04] px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300"
                         >
                           {item}
                         </span>
@@ -2752,10 +2752,10 @@ export function NexusStyleLab() {
                     className="mx-auto grid max-w-md gap-3 border p-4"
                     style={primitiveModalSurfaceStyle}
                   >
-                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                       Modal Specimen
                     </div>
-                    <div className="truncate text-sm text-slate-200">
+                    <div className="truncate text-sm text-neutral-200">
                       {manifest.name}
                     </div>
                     <div
@@ -2768,7 +2768,7 @@ export function NexusStyleLab() {
                       className="grid grid-cols-2 gap-2 border-t pt-3"
                       style={primitiveModalFooterStyle}
                     >
-                      <span className="border border-white/10 bg-white/[0.04] px-3 py-2 text-center font-mono text-[10px] uppercase tracking-[0.12em] text-slate-300">
+                      <span className="border border-white/10 bg-white/[0.04] px-3 py-2 text-center font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-300">
                         Cancel
                       </span>
                       <span
@@ -2794,11 +2794,11 @@ export function NexusStyleLab() {
                       <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em]">
                         Prompt Vault Specimen
                       </div>
-                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                         Surface Preview
                       </div>
                     </div>
-                    <span className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300">
+                    <span className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300">
                       visual
                     </span>
                   </div>
@@ -2811,7 +2811,7 @@ export function NexusStyleLab() {
                         (item) => (
                           <span
                             key={item}
-                            className="min-w-0 border px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100"
+                            className="min-w-0 border px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100"
                             style={primitivePromptVaultRecordStyle}
                           >
                             {item}
@@ -2820,7 +2820,7 @@ export function NexusStyleLab() {
                       )}
                     </div>
                     <div className="grid gap-3 p-4" style={primitivePromptVaultContentStyle}>
-                      <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-fuchsia-100">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-100">
                         Selected Prompt
                       </div>
                       <div className="grid gap-2">
@@ -2832,7 +2832,7 @@ export function NexusStyleLab() {
                         {["view", "meta", "state"].map((item) => (
                           <span
                             key={item}
-                            className="truncate border border-white/10 bg-white/[0.04] px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300"
+                            className="truncate border border-white/10 bg-white/[0.04] px-2 py-2 text-center font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300"
                           >
                             {item}
                           </span>
@@ -2851,7 +2851,7 @@ export function NexusStyleLab() {
                     className="mx-auto grid max-w-md gap-3 border p-3"
                     style={primitiveCommandPaletteSurfaceStyle}
                   >
-                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                       Command Palette Specimen
                     </div>
                     <div
@@ -2889,7 +2889,7 @@ export function NexusStyleLab() {
               </section>
 
               <section className="border border-white/10 bg-black/20 p-4 lg:col-span-2">
-                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-400">
                   Comparison
                 </div>
 
@@ -2899,7 +2899,7 @@ export function NexusStyleLab() {
                       key={row.name}
                       className="grid gap-2 border border-white/10 bg-white/[0.03] p-2 md:grid-cols-[minmax(150px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]"
                     >
-                      <div className="truncate font-mono text-[10px] text-slate-300">
+                      <div className="truncate font-mono text-[10px] text-neutral-300">
                         {row.name}
                       </div>
                       <div className="grid min-w-0 grid-cols-[24px_minmax(0,1fr)] items-center gap-2">
@@ -2908,7 +2908,7 @@ export function NexusStyleLab() {
                           className="h-6 w-6 border border-white/15"
                           style={{ background: row.baseline || "transparent" }}
                         />
-                        <span className="truncate font-mono text-[9px] text-slate-500">
+                        <span className="truncate font-mono text-[9px] text-neutral-500">
                           {row.baseline || "n/a"}
                         </span>
                       </div>
@@ -2918,7 +2918,7 @@ export function NexusStyleLab() {
                           className="h-6 w-6 border border-white/15"
                           style={{ background: row.active || "transparent" }}
                         />
-                        <span className="truncate font-mono text-[9px] text-slate-200">
+                        <span className="truncate font-mono text-[9px] text-neutral-200">
                           {row.active || "n/a"}
                         </span>
                       </div>
@@ -2928,16 +2928,16 @@ export function NexusStyleLab() {
               </section>
 
               <section className="border border-white/10 bg-black/20 p-4 lg:col-span-2">
-                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-400">
                   Primitive Specimen
                 </div>
 
                 <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.75fr)]">
                   <div className="min-w-0 border p-4" style={primitivePanelStyle}>
-                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                       Panel
                     </div>
-                    <div className="mt-3 truncate text-sm text-slate-200">
+                    <div className="mt-3 truncate text-sm text-neutral-200">
                       {manifest.name}
                     </div>
                     <div className="mt-2 h-2 bg-white/10">
@@ -2945,7 +2945,7 @@ export function NexusStyleLab() {
                         className="h-full w-1/2"
                         style={{
                           background:
-                            "var(--nexus-accent-primary, #67e8f9)",
+                            "var(--nexus-accent-primary, #e5e5e5)",
                         }}
                       />
                     </div>
@@ -2979,21 +2979,21 @@ export function NexusStyleLab() {
               </section>
 
               <section
-                className="border border-violet-300/15 bg-black/20 p-4 lg:col-span-2"
+                className="border border-neutral-300/15 bg-black/20 p-4 lg:col-span-2"
                 data-testid="v2-layout-boundary-panel"
               >
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-violet-100">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                     Layout Boundary
                   </div>
                   <div
                     className={[
                       "font-mono text-[10px] uppercase tracking-[0.12em]",
                       layoutPresetReviewResult?.accepted
-                        ? "text-emerald-200"
+                        ? "text-neutral-200"
                         : layoutPresetReviewResult
-                          ? "text-rose-200"
-                          : "text-slate-500",
+                          ? "text-neutral-200"
+                          : "text-neutral-500",
                     ].join(" ")}
                     data-testid="v2-layout-boundary-status"
                   >
@@ -3010,10 +3010,10 @@ export function NexusStyleLab() {
                       key={`layout-boundary:${label}`}
                       className="min-w-0 border border-white/10 bg-black/20 p-2"
                     >
-                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                         {label}
                       </div>
-                      <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+                      <div className="mt-1 truncate font-mono text-[9px] text-neutral-300">
                         {value}
                       </div>
                     </div>
@@ -3024,7 +3024,7 @@ export function NexusStyleLab() {
                   <div className="grid min-w-0 gap-3">
                     <textarea
                       aria-label="Workspace layout preset JSON"
-                      className="min-h-56 resize-none overflow-auto border border-white/10 bg-black/20 p-3 font-mono text-[10px] leading-5 text-slate-300 outline-none placeholder:text-slate-700"
+                      className="min-h-56 resize-none overflow-auto border border-white/10 bg-black/20 p-3 font-mono text-[10px] leading-5 text-neutral-300 outline-none placeholder:text-neutral-700"
                       data-testid="v2-layout-boundary-json"
                       onChange={(event: ChangeEvent<HTMLTextAreaElement>) => {
                         setLayoutPresetText(event.target.value);
@@ -3036,7 +3036,7 @@ export function NexusStyleLab() {
 
                     <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
                       <button
-                        className="inline-flex h-9 min-w-0 items-center justify-center border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                        className="inline-flex h-9 min-w-0 items-center justify-center border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10"
                         data-testid="v2-layout-boundary-default-fixture"
                         onClick={() =>
                           loadLayoutPresetFixture(
@@ -3048,7 +3048,7 @@ export function NexusStyleLab() {
                         <span className="truncate">Default</span>
                       </button>
                       <button
-                        className="inline-flex h-9 min-w-0 items-center justify-center border border-violet-300/35 bg-violet-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-violet-100 transition hover:bg-violet-300/20"
+                        className="inline-flex h-9 min-w-0 items-center justify-center border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20"
                         data-testid="v2-layout-boundary-left-right-fixture"
                         onClick={() =>
                           loadLayoutPresetFixture(
@@ -3060,7 +3060,7 @@ export function NexusStyleLab() {
                         <span className="truncate">Swap L/R</span>
                       </button>
                       <button
-                        className="inline-flex h-9 min-w-0 items-center justify-center border border-violet-300/35 bg-violet-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-violet-100 transition hover:bg-violet-300/20"
+                        className="inline-flex h-9 min-w-0 items-center justify-center border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20"
                         data-testid="v2-layout-boundary-top-bottom-fixture"
                         onClick={() =>
                           loadLayoutPresetFixture(
@@ -3072,7 +3072,7 @@ export function NexusStyleLab() {
                         <span className="truncate">Swap T/B</span>
                       </button>
                       <button
-                        className="inline-flex h-9 min-w-0 items-center justify-center border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                        className="inline-flex h-9 min-w-0 items-center justify-center border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10"
                         data-testid="v2-layout-boundary-settings-fixture"
                         onClick={() =>
                           loadLayoutPresetFixture(
@@ -3084,7 +3084,7 @@ export function NexusStyleLab() {
                         <span className="truncate">Settings</span>
                       </button>
                       <button
-                        className="inline-flex h-9 min-w-0 items-center justify-center border border-rose-300/35 bg-rose-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-rose-100 transition hover:bg-rose-300/20"
+                        className="inline-flex h-9 min-w-0 items-center justify-center border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20"
                         data-testid="v2-layout-boundary-invalid-fixture"
                         onClick={() =>
                           loadLayoutPresetFixture(
@@ -3098,7 +3098,7 @@ export function NexusStyleLab() {
                     </div>
 
                     <button
-                      className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-violet-300/35 bg-violet-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-violet-100 transition hover:bg-violet-300/20 disabled:opacity-40"
+                      className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
                       data-testid="v2-layout-boundary-review-button"
                       disabled={layoutPresetText.trim().length === 0}
                       onClick={reviewLayoutPresetText}
@@ -3111,10 +3111,10 @@ export function NexusStyleLab() {
 
                   <div className="grid min-w-0 gap-3">
                     <div
-                      className="grid gap-2 border border-violet-300/15 bg-violet-300/[0.035] p-3"
+                      className="grid gap-2 border border-neutral-300/15 bg-neutral-300/[0.035] p-3"
                       data-testid="v2-layout-boundary-specimen"
                     >
-                      <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-violet-100">
+                      <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100">
                         Slot Arrangement Specimen
                       </div>
                       {acceptedLayoutPreset ? (
@@ -3124,7 +3124,7 @@ export function NexusStyleLab() {
                               key={`layout-region:${region.regionId}`}
                               className="grid min-w-0 grid-cols-[72px_minmax(0,1fr)] gap-2"
                             >
-                              <span className="truncate border border-white/10 bg-black/20 px-2 py-2 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                              <span className="truncate border border-white/10 bg-black/20 px-2 py-2 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
                                 {region.regionId}
                               </span>
                               <div className="flex min-w-0 flex-wrap gap-1 border border-white/10 bg-black/20 p-1.5">
@@ -3132,13 +3132,13 @@ export function NexusStyleLab() {
                                   region.slots.map((slot) => (
                                     <span
                                       key={`layout-region:${region.regionId}:${slot}`}
-                                      className="max-w-full truncate border border-violet-300/20 bg-violet-300/10 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-violet-100"
+                                      className="max-w-full truncate border border-neutral-300/20 bg-neutral-300/10 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-100"
                                     >
                                       {slot}
                                     </span>
                                   ))
                                 ) : (
-                                  <span className="truncate px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-600">
+                                  <span className="truncate px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-600">
                                     empty
                                   </span>
                                 )}
@@ -3147,14 +3147,14 @@ export function NexusStyleLab() {
                           ))}
                         </div>
                       ) : (
-                        <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                        <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                           accepted layout preset required
                         </div>
                       )}
                     </div>
 
                     <div className="min-w-0 border border-white/10 bg-black/20 p-3">
-                      <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                      <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                         Redacted Layout Issues
                       </div>
                       {layoutBoundaryIssueRows.length > 0 ? (
@@ -3164,17 +3164,17 @@ export function NexusStyleLab() {
                               key={`${issue.path}:${issue.code}`}
                               className="min-w-0 border border-white/10 bg-white/[0.03] p-2"
                             >
-                              <div className="truncate font-mono text-[10px] text-amber-100">
+                              <div className="truncate font-mono text-[10px] text-neutral-100">
                                 {issue.code}
                               </div>
-                              <div className="mt-1 truncate font-mono text-[9px] text-slate-500">
+                              <div className="mt-1 truncate font-mono text-[9px] text-neutral-500">
                                 {issue.path} / {issue.message}
                               </div>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                        <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                           none
                         </div>
                       )}
@@ -3184,15 +3184,15 @@ export function NexusStyleLab() {
               </section>
 
               <section
-                className="border border-cyan-300/15 bg-black/20 p-4 lg:col-span-2"
+                className="border border-neutral-300/15 bg-black/20 p-4 lg:col-span-2"
                 data-testid="v2-page-shell-prototype-panel"
               >
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                     Page Shell Prototype
                   </div>
                   <div
-                    className="font-mono text-[10px] uppercase tracking-[0.12em] text-cyan-200"
+                    className="font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-200"
                     data-testid="v2-page-shell-prototype-status"
                   >
                     {acceptedPageShellPrototypeCount} isolated shells ready
@@ -3222,8 +3222,8 @@ export function NexusStyleLab() {
                               className={[
                                 "shrink-0 font-mono text-[8px] uppercase tracking-[0.1em]",
                                 result.accepted
-                                  ? "text-emerald-200"
-                                  : "text-rose-200",
+                                  ? "text-neutral-200"
+                                  : "text-neutral-200",
                               ].join(" ")}
                             >
                               {result.accepted ? "accepted" : "rejected"}
@@ -3234,7 +3234,7 @@ export function NexusStyleLab() {
                             <div className="grid gap-3">
                               <div className="grid grid-cols-2 gap-2">
                                 <div className="nexus-glass min-w-0 p-2">
-                                  <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                                  <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
                                     Shell
                                   </div>
                                   <div className="mt-1 truncate font-mono text-[9px]">
@@ -3242,7 +3242,7 @@ export function NexusStyleLab() {
                                   </div>
                                 </div>
                                 <div className="nexus-glass min-w-0 p-2">
-                                  <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                                  <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
                                     Arrangement
                                   </div>
                                   <div className="mt-1 truncate font-mono text-[9px]">
@@ -3257,7 +3257,7 @@ export function NexusStyleLab() {
                                     key={`page-shell-region:${item.id}:${region.regionId}`}
                                     className="grid min-w-0 grid-cols-[72px_minmax(0,1fr)] gap-2"
                                   >
-                                    <span className="nexus-glass truncate px-2 py-2 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-400">
+                                    <span className="nexus-glass truncate px-2 py-2 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-400">
                                       {region.regionId}
                                     </span>
                                     <div className="flex min-w-0 flex-wrap gap-1 border border-white/10 bg-black/20 p-1.5">
@@ -3265,7 +3265,7 @@ export function NexusStyleLab() {
                                         region.slots.map((slot) => (
                                           <span
                                             key={`page-shell-slot:${item.id}:${region.regionId}:${slot.slotId}`}
-                                            className="max-w-full truncate border border-cyan-300/20 bg-cyan-300/10 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-cyan-100"
+                                            className="max-w-full truncate border border-neutral-300/20 bg-neutral-300/10 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-100"
                                           >
                                             {slot.slotId}
                                             {slot.features.length > 0
@@ -3276,7 +3276,7 @@ export function NexusStyleLab() {
                                           </span>
                                         ))
                                       ) : (
-                                        <span className="truncate px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-600">
+                                        <span className="truncate px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-600">
                                           empty
                                         </span>
                                       )}
@@ -3286,7 +3286,7 @@ export function NexusStyleLab() {
                               </div>
 
                               <div className="grid gap-1 border border-white/10 bg-black/20 p-2">
-                                <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                                <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
                                   Slot Feature Placement
                                 </div>
                                 {result.prototype.featurePlacementSummary.map(
@@ -3295,10 +3295,10 @@ export function NexusStyleLab() {
                                       key={`page-shell-placement:${item.id}:${placement.featureId}`}
                                       className="grid min-w-0 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-2"
                                     >
-                                      <span className="truncate font-mono text-[8px] text-slate-400">
+                                      <span className="truncate font-mono text-[8px] text-neutral-400">
                                         {placement.slotId}
                                       </span>
-                                      <span className="truncate font-mono text-[8px] text-slate-200">
+                                      <span className="truncate font-mono text-[8px] text-neutral-200">
                                         {placement.label}
                                       </span>
                                     </div>
@@ -3307,16 +3307,16 @@ export function NexusStyleLab() {
                               </div>
                             </div>
                           ) : (
-                            <div className="grid gap-2 border border-rose-300/20 bg-rose-300/[0.04] p-2">
+                            <div className="grid gap-2 border border-neutral-300/20 bg-neutral-300/[0.04] p-2">
                               {result.issues.map((issue) => (
                                 <div
                                   key={`page-shell-prototype-issue:${item.id}:${issue.path}:${issue.code}`}
                                   className="min-w-0"
                                 >
-                                  <div className="truncate font-mono text-[9px] text-rose-100">
+                                  <div className="truncate font-mono text-[9px] text-neutral-100">
                                     {issue.code}
                                   </div>
-                                  <div className="mt-1 truncate font-mono text-[8px] text-slate-500">
+                                  <div className="mt-1 truncate font-mono text-[8px] text-neutral-500">
                                     {issue.path} / {issue.message}
                                   </div>
                                 </div>
@@ -3331,17 +3331,17 @@ export function NexusStyleLab() {
               </section>
 
               <section
-                className="border border-emerald-300/15 bg-black/20 p-4 lg:col-span-2"
+                className="border border-neutral-300/15 bg-black/20 p-4 lg:col-span-2"
                 data-testid="v2-specimen-gallery"
               >
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                     V2 Specimen Gallery
                   </div>
                   <div
                     className={[
                       "font-mono text-[10px] uppercase tracking-[0.12em]",
-                      specimenGallery ? "text-emerald-200" : "text-slate-500",
+                      specimenGallery ? "text-neutral-200" : "text-neutral-500",
                     ].join(" ")}
                     data-testid="v2-specimen-gallery-status"
                   >
@@ -3350,17 +3350,17 @@ export function NexusStyleLab() {
                 </div>
 
                 <div
-                  className="mb-4 border border-emerald-300/15 bg-emerald-300/[0.035] p-3"
+                  className="mb-4 border border-neutral-300/15 bg-neutral-300/[0.035] p-3"
                   data-testid="v2-render-plan-summary"
                 >
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                       Render Plan IR
                     </div>
                     <div
                       className={[
                         "font-mono text-[10px] uppercase tracking-[0.12em]",
-                        renderPlan ? "text-emerald-200" : "text-slate-500",
+                        renderPlan ? "text-neutral-200" : "text-neutral-500",
                       ].join(" ")}
                       data-testid="v2-render-plan-status"
                     >
@@ -3374,10 +3374,10 @@ export function NexusStyleLab() {
                         key={`render-plan:${label}`}
                         className="min-w-0 border border-white/10 bg-black/20 p-2"
                       >
-                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                           {label}
                         </div>
-                        <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+                        <div className="mt-1 truncate font-mono text-[9px] text-neutral-300">
                           {value}
                         </div>
                       </div>
@@ -3396,7 +3396,7 @@ export function NexusStyleLab() {
                     <div
                       className={[
                         "font-mono text-[10px] uppercase tracking-[0.12em]",
-                        productionBridgePlan ? "text-sky-200" : "text-slate-500",
+                        productionBridgePlan ? "text-sky-200" : "text-neutral-500",
                       ].join(" ")}
                       data-testid="v2-production-bridge-status"
                     >
@@ -3410,10 +3410,10 @@ export function NexusStyleLab() {
                         key={`production-bridge:${label}`}
                         className="min-w-0 border border-white/10 bg-black/20 p-2"
                       >
-                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                           {label}
                         </div>
-                        <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+                        <div className="mt-1 truncate font-mono text-[9px] text-neutral-300">
                           {value}
                         </div>
                       </div>
@@ -3445,7 +3445,7 @@ export function NexusStyleLab() {
                             className="h-full w-2/3"
                             style={{
                               background:
-                                "var(--theme-primary, #67e8f9)",
+                                "var(--theme-primary, #e5e5e5)",
                             }}
                           />
                         </div>
@@ -3523,7 +3523,7 @@ export function NexusStyleLab() {
                           <span className="truncate">Preview Bridge</span>
                         </button>
                         <button
-                          className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10 disabled:opacity-40"
+                          className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10 disabled:opacity-40"
                           data-testid="v2-production-bridge-revert"
                           disabled={
                             !productionBridgePreviewSession &&
@@ -3539,7 +3539,7 @@ export function NexusStyleLab() {
 
                       <div className="grid gap-2 md:grid-cols-3">
                         <div className="min-w-0 border border-white/10 bg-black/20 p-2">
-                          <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                          <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                             Bridge Variables
                           </div>
                           {productionBridgeVariableRows.length > 0 ? (
@@ -3553,7 +3553,7 @@ export function NexusStyleLab() {
                                     <span className="truncate font-mono text-[9px] text-sky-100">
                                       {name}
                                     </span>
-                                    <span className="truncate font-mono text-[9px] text-slate-300">
+                                    <span className="truncate font-mono text-[9px] text-neutral-300">
                                       {value}
                                     </span>
                                   </div>
@@ -3561,14 +3561,14 @@ export function NexusStyleLab() {
                               )}
                             </div>
                           ) : (
-                            <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                            <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                               accepted render plan required
                             </div>
                           )}
                         </div>
 
                         <div className="min-w-0 border border-white/10 bg-black/20 p-2">
-                          <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                          <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                             Preserve
                           </div>
                           {productionBridgePreserveRows.length > 0 ? (
@@ -3582,7 +3582,7 @@ export function NexusStyleLab() {
                                     <span className="truncate font-mono text-[9px] text-sky-100">
                                       {name}
                                     </span>
-                                    <span className="truncate font-mono text-[9px] text-slate-300">
+                                    <span className="truncate font-mono text-[9px] text-neutral-300">
                                       {reason}
                                     </span>
                                   </div>
@@ -3590,14 +3590,14 @@ export function NexusStyleLab() {
                               )}
                             </div>
                           ) : (
-                            <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                            <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                               none
                             </div>
                           )}
                         </div>
 
                         <div className="min-w-0 border border-white/10 bg-black/20 p-2">
-                          <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                          <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                             Unsupported
                           </div>
                           {productionBridgeUnsupportedRows.length > 0 ? (
@@ -3607,17 +3607,17 @@ export function NexusStyleLab() {
                                   key={`production-bridge-unsupported:${row.name}`}
                                   className="min-w-0"
                                 >
-                                  <div className="truncate font-mono text-[9px] text-amber-100">
+                                  <div className="truncate font-mono text-[9px] text-neutral-100">
                                     {row.name}
                                   </div>
-                                  <div className="truncate font-mono text-[9px] text-slate-500">
+                                  <div className="truncate font-mono text-[9px] text-neutral-500">
                                     {row.reasonCode}
                                   </div>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-emerald-200">
+                            <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-200">
                               none
                             </div>
                           )}
@@ -3628,34 +3628,34 @@ export function NexusStyleLab() {
                   </div>
 
                   <section
-                    className="mb-4 border border-amber-300/15 bg-amber-300/[0.04] p-3"
-                    data-testid="warm-glass-ops-coverage-panel"
+                    className="mb-4 border border-neutral-300/15 bg-neutral-300/[0.04] p-3"
+                    data-testid="surface-style-ops-coverage-panel"
                   >
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-amber-100">
-                        Warm Glass Ops Coverage
+                      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
+                        Surface Style Ops Coverage
                       </div>
                       <button
-                        className="inline-flex h-8 min-w-0 items-center justify-center gap-2 border border-amber-300/35 bg-amber-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-amber-100 transition hover:bg-amber-300/20"
-                        data-testid="warm-glass-ops-load-fixture"
-                        onClick={loadWarmGlassSkinPackFixture}
+                        className="inline-flex h-8 min-w-0 items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20"
+                        data-testid="surface-style-ops-load-fixture"
+                        onClick={loadSurfaceStyleSkinPackFixture}
                         type="button"
                       >
                         <Sparkles className="h-4 w-4 shrink-0" />
-                        <span className="truncate">Use Warm Glass</span>
+                        <span className="truncate">Use Surface Style</span>
                       </button>
                     </div>
 
                     <div className="mb-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-                      {warmGlassOpsCoverageRows.map(([label, value]) => (
+                      {surfaceStyleOpsCoverageRows.map(([label, value]) => (
                         <div
-                          key={`warm-glass-coverage:${label}`}
+                          key={`surface-style-coverage:${label}`}
                           className="min-w-0 border border-white/10 bg-black/20 p-2"
                         >
-                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                             {label}
                           </div>
-                          <div className="mt-1 truncate font-mono text-[9px] text-amber-100">
+                          <div className="mt-1 truncate font-mono text-[9px] text-neutral-100">
                             {value}
                           </div>
                         </div>
@@ -3664,28 +3664,28 @@ export function NexusStyleLab() {
 
                     <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_260px]">
                       <div className="grid min-w-0 gap-2">
-                        {warmGlassOpsCoverageFamilies.map((family) => (
+                        {surfaceStyleOpsCoverageFamilies.map((family) => (
                           <div
-                            key={`warm-glass-family:${family.id}`}
+                            key={`surface-style-family:${family.id}`}
                             className="grid min-w-0 gap-2 border border-white/10 bg-black/20 p-2 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)_auto]"
                           >
                             <div className="min-w-0">
-                              <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-amber-100">
+                              <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100">
                                 {family.label}
                               </div>
-                              <div className="mt-1 truncate font-mono text-[8px] text-slate-500">
+                              <div className="mt-1 truncate font-mono text-[8px] text-neutral-500">
                                 {family.selectors.join(", ")}
                               </div>
                             </div>
                             <div className="min-w-0">
-                              <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                              <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
                                 {family.tokenIntents.slice(0, 4).join(", ")}
                               </div>
-                              <div className="mt-1 truncate font-mono text-[8px] text-slate-300">
+                              <div className="mt-1 truncate font-mono text-[8px] text-neutral-300">
                                 {family.aliases.slice(0, 4).join(", ")}
                               </div>
                             </div>
-                            <span className="self-start justify-self-start border border-amber-300/25 bg-amber-300/10 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-amber-100 md:justify-self-end">
+                            <span className="self-start justify-self-start border border-neutral-300/25 bg-neutral-300/10 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-100 md:justify-self-end">
                               {family.mode}
                             </span>
                           </div>
@@ -3693,19 +3693,19 @@ export function NexusStyleLab() {
                       </div>
 
                       <div className="min-w-0 border border-white/10 bg-black/20 p-2">
-                        <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                           Missing Capabilities
                         </div>
                         <div className="grid gap-2">
-                          {warmGlassOpsGapRows.map((gap) => (
+                          {surfaceStyleOpsGapRows.map((gap) => (
                             <div
-                              key={`warm-glass-gap:${gap.id}`}
+                              key={`surface-style-gap:${gap.id}`}
                               className="min-w-0 border border-white/10 bg-white/[0.03] p-2"
                             >
-                              <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-amber-100">
+                              <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100">
                                 {gap.label}
                               </div>
-                              <div className="mt-1 truncate font-mono text-[8px] text-slate-500">
+                              <div className="mt-1 truncate font-mono text-[8px] text-neutral-500">
                                 {gap.nextGate}
                               </div>
                             </div>
@@ -3716,15 +3716,15 @@ export function NexusStyleLab() {
                   </section>
 
                   <section
-                    className="mb-4 border border-emerald-300/15 bg-emerald-300/[0.035] p-3"
+                    className="mb-4 border border-neutral-300/15 bg-neutral-300/[0.035] p-3"
                     data-testid="style-runtime-budget-panel"
                   >
                     <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
+                        <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                           Style Runtime Budget
                         </div>
-                        <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                        <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                           read-only / no production apply / no persistence
                         </div>
                       </div>
@@ -3735,7 +3735,7 @@ export function NexusStyleLab() {
                         ].join(" ")}
                         data-testid="style-runtime-budget-verdict"
                       >
-                        {warmGlassStyleRuntimeBudgetSummary.verdict}
+                        {surfaceStyleStyleRuntimeBudgetSummary.verdict}
                       </span>
                     </div>
 
@@ -3744,16 +3744,16 @@ export function NexusStyleLab() {
                         className="min-w-0 border border-white/10 bg-black/20 p-3"
                         data-testid="style-runtime-budget-eligibility"
                       >
-                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-emerald-100">
+                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100">
                           Preview Diagnostics
                         </div>
-                        <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.1em] text-slate-300">
+                        <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.1em] text-neutral-300">
                           {styleRuntimeBudgetEligibility}
                         </div>
-                        <div className="mt-2 text-xs leading-5 text-slate-500">
+                        <div className="mt-2 text-xs leading-5 text-neutral-500">
                           {styleRuntimeBudgetPrimaryReason}
                         </div>
-                        <div className="mt-3 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                        <div className="mt-3 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
                           next roi step: preview diagnostics instrumentation
                         </div>
                       </div>
@@ -3762,13 +3762,13 @@ export function NexusStyleLab() {
                         className="min-w-0 border border-white/10 bg-black/20 p-3"
                         data-testid="style-runtime-budget-traceability"
                       >
-                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                           Checksum
                         </div>
-                        <div className="mt-2 break-all font-mono text-[9px] text-emerald-100">
-                          {warmGlassStyleRuntimeBudgetSummary.checksum}
+                        <div className="mt-2 break-all font-mono text-[9px] text-neutral-100">
+                          {surfaceStyleStyleRuntimeBudgetSummary.checksum}
                         </div>
-                        <div className="mt-2 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                        <div className="mt-2 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
                           summary trace
                         </div>
                       </div>
@@ -3780,10 +3780,10 @@ export function NexusStyleLab() {
                           key={`style-runtime-budget-pressure:${label}`}
                           className="min-w-0 border border-white/10 bg-black/20 p-2"
                         >
-                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                             {label}
                           </div>
-                          <div className="mt-1 truncate font-mono text-[9px] text-emerald-100">
+                          <div className="mt-1 truncate font-mono text-[9px] text-neutral-100">
                             {value}
                           </div>
                         </div>
@@ -3797,10 +3797,10 @@ export function NexusStyleLab() {
                             key={`style-runtime-budget-detail:${label}`}
                             className="min-w-0 border border-white/10 bg-black/20 p-2"
                           >
-                            <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                            <div className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
                               {label}
                             </div>
-                            <div className="mt-1 truncate font-mono text-[8px] text-slate-300">
+                            <div className="mt-1 truncate font-mono text-[8px] text-neutral-300">
                               {value}
                             </div>
                           </div>
@@ -3811,7 +3811,7 @@ export function NexusStyleLab() {
                         className="min-w-0 border border-white/10 bg-black/20 p-2"
                         data-testid="style-runtime-budget-degradation-hints"
                       >
-                        <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.12em] text-slate-500">
+                        <div className="mb-2 font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-500">
                           Degradation Hints
                         </div>
                         {styleRuntimeBudgetHints.length > 0 ? (
@@ -3819,14 +3819,14 @@ export function NexusStyleLab() {
                             {styleRuntimeBudgetHints.map((hint) => (
                               <div
                                 key={`style-runtime-budget-hint:${hint}`}
-                                className="truncate font-mono text-[8px] uppercase tracking-[0.08em] text-amber-100"
+                                className="truncate font-mono text-[8px] uppercase tracking-[0.08em] text-neutral-100"
                               >
                                 {hint}
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <div className="font-mono text-[8px] uppercase tracking-[0.1em] text-emerald-100">
+                          <div className="font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-100">
                             none
                           </div>
                         )}
@@ -3835,32 +3835,32 @@ export function NexusStyleLab() {
                   </section>
 
                   <section
-                    className="mb-4 border border-amber-200/20 bg-amber-100/[0.035] p-3"
-                    data-testid="warm-glass-scene-preview-panel"
+                    className="mb-4 border border-neutral-200/20 bg-neutral-100/[0.035] p-3"
+                    data-testid="surface-style-scene-preview-panel"
                   >
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-amber-100">
-                        Warm Glass Scene Preview
+                      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
+                        Surface Style Scene Preview
                       </div>
-                      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-500">
                         local preview / no persistence
                       </div>
                     </div>
 
                     <div className="mb-3 grid gap-2 md:grid-cols-3">
                       {[
-                        ["Direct Vars", String(warmGlassScenePreviewVariables.length)],
+                        ["Direct Vars", String(surfaceStyleScenePreviewVariables.length)],
                         ["Scene", "gradient wash"],
                         ["Scope", "local container"],
                       ].map(([label, value]) => (
                         <div
-                          key={`warm-glass-scene-summary:${label}`}
+                          key={`surface-style-scene-summary:${label}`}
                           className="min-w-0 border border-white/10 bg-black/20 p-2"
                         >
-                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                             {label}
                           </div>
-                          <div className="mt-1 truncate font-mono text-[9px] text-amber-100">
+                          <div className="mt-1 truncate font-mono text-[9px] text-neutral-100">
                             {value}
                           </div>
                         </div>
@@ -3868,43 +3868,43 @@ export function NexusStyleLab() {
                     </div>
 
                     <div
-                      className="relative isolate min-h-[520px] overflow-hidden border border-amber-100/20 p-4"
-                      data-testid="warm-glass-scene-preview-target"
-                      style={warmGlassScenePreviewTargetStyle}
+                      className="relative isolate min-h-[520px] overflow-hidden border border-neutral-100/20 p-4"
+                      data-testid="surface-style-scene-preview-target"
+                      style={surfaceStyleScenePreviewTargetStyle}
                     >
                       <div className="absolute inset-0 -z-10 opacity-80">
                         <div className="absolute left-[8%] top-[12%] h-36 w-56 bg-white/30 blur-3xl" />
                         <div className="absolute bottom-[-12%] left-[28%] h-56 w-72 rotate-6 bg-[rgb(124_80_48_/_0.34)] blur-2xl" />
                         <div className="absolute right-[12%] top-[16%] h-64 w-64 rounded-full bg-[rgb(255_202_142_/_0.16)] blur-3xl" />
-                        <div className="absolute bottom-0 right-[10%] h-56 w-64 rounded-t-full border border-amber-100/15 bg-[rgb(94_61_38_/_0.26)]" />
+                        <div className="absolute bottom-0 right-[10%] h-56 w-64 rounded-t-full border border-neutral-100/15 bg-[rgb(94_61_38_/_0.26)]" />
                       </div>
 
                       <div
                         className="mb-3 grid min-h-12 gap-3 border p-2 xl:grid-cols-[minmax(0,1fr)_auto_auto]"
-                        data-testid="warm-glass-scene-segmented-nav"
-                        style={warmGlassSegmentedNavSpecimenStyle}
+                        data-testid="surface-style-scene-segmented-nav"
+                        style={surfaceStyleSegmentedNavSpecimenStyle}
                       >
                         <div
                           className="flex min-w-0 flex-wrap items-center gap-1 rounded-full border border-white/15 bg-white/[0.07] p-1"
-                          data-testid="warm-glass-segmented-top-nav-specimen"
+                          data-testid="surface-style-segmented-top-nav-specimen"
                         >
-                          {warmGlassSegmentedNavRows.map((segment, index) => (
+                          {surfaceStyleSegmentedNavRows.map((segment, index) => (
                             <span
-                              key={`warm-glass-segmented-nav:${segment.label}`}
+                              key={`surface-style-segmented-nav:${segment.label}`}
                               className={[
                                 "min-w-0 rounded-full px-3 py-1.5 font-mono text-[8px] uppercase tracking-[0.1em]",
                                 segment.active
-                                  ? "border border-white/30 bg-white/[0.2] text-amber-50 shadow-[0_10px_28px_rgb(74_48_29_/_0.2)]"
-                                  : "text-amber-50/70",
+                                  ? "border border-white/30 bg-white/[0.2] text-neutral-50 shadow-[0_10px_28px_rgb(74_48_29_/_0.2)]"
+                                  : "text-neutral-50/70",
                               ].join(" ")}
                               data-testid={
                                 segment.active
-                                  ? "warm-glass-segmented-active-segment"
+                                  ? "surface-style-segmented-active-segment"
                                   : undefined
                               }
                             >
                               <span className="truncate">{segment.label}</span>
-                              {index < warmGlassSegmentedNavRows.length - 1 ? (
+                              {index < surfaceStyleSegmentedNavRows.length - 1 ? (
                                 <span className="ml-3 hidden h-3 w-px align-middle opacity-30 sm:inline-block" />
                               ) : null}
                             </span>
@@ -3913,17 +3913,17 @@ export function NexusStyleLab() {
 
                         <div
                           className="grid grid-cols-2 gap-1 sm:grid-cols-4"
-                          data-testid="warm-glass-segmented-top-nav-counters"
+                          data-testid="surface-style-segmented-top-nav-counters"
                         >
-                          {warmGlassSegmentedNavCounters.map(([label, value]) => (
+                          {surfaceStyleSegmentedNavCounters.map(([label, value]) => (
                             <span
-                              key={`warm-glass-segmented-counter:${label}`}
+                              key={`surface-style-segmented-counter:${label}`}
                               className="min-w-[52px] border border-white/15 bg-white/[0.08] px-2 py-1"
                             >
-                              <span className="block truncate font-mono text-[7px] uppercase tracking-[0.1em] text-amber-50/55">
+                              <span className="block truncate font-mono text-[7px] uppercase tracking-[0.1em] text-neutral-50/55">
                                 {label}
                               </span>
-                              <span className="mt-0.5 block font-mono text-[10px] text-amber-50">
+                              <span className="mt-0.5 block font-mono text-[10px] text-neutral-50">
                                 {value}
                               </span>
                             </span>
@@ -3933,12 +3933,12 @@ export function NexusStyleLab() {
                         <div
                           aria-hidden="true"
                           className="flex items-center gap-1 justify-self-start xl:justify-self-end"
-                          data-testid="warm-glass-segmented-top-nav-actions"
+                          data-testid="surface-style-segmented-top-nav-actions"
                         >
                           {["Sun", "Bell", "Focus", "Add"].map((label) => (
                             <span
-                              key={`warm-glass-segmented-action:${label}`}
-                              className="grid h-8 w-8 place-items-center rounded-full border border-white/15 bg-white/[0.08] font-mono text-[8px] uppercase tracking-[0.08em] text-amber-50/70"
+                              key={`surface-style-segmented-action:${label}`}
+                              className="grid h-8 w-8 place-items-center rounded-full border border-white/15 bg-white/[0.08] font-mono text-[8px] uppercase tracking-[0.08em] text-neutral-50/70"
                             >
                               {label.slice(0, 1)}
                             </span>
@@ -3949,29 +3949,29 @@ export function NexusStyleLab() {
                       <div className="grid gap-3 xl:grid-cols-[220px_minmax(0,1fr)_280px]">
                         <aside
                           className="grid content-start gap-3 border p-3"
-                          data-testid="warm-glass-scene-agent-bank"
-                          style={warmGlassAgentBankSpecimenStyle}
+                          data-testid="surface-style-scene-agent-bank"
+                          style={surfaceStyleAgentBankSpecimenStyle}
                         >
                           <div
                             className="grid gap-3"
-                            data-testid="warm-glass-agent-card-bank-specimen"
+                            data-testid="surface-style-agent-card-bank-specimen"
                           >
                             <div
                               className="flex items-start justify-between gap-2"
-                              data-testid="warm-glass-agent-card-bank-header"
+                              data-testid="surface-style-agent-card-bank-header"
                             >
                               <div className="min-w-0">
-                                <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
+                                <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-50">
                                   Agent Bank
                                 </div>
-                                <div className="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/60">
+                                <div className="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-50/60">
                                   roster recipe specimen
                                 </div>
                               </div>
                               <span
                                 aria-hidden="true"
-                                className="shrink-0 border border-white/15 bg-white/[0.08] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/75"
-                                data-testid="warm-glass-agent-card-bank-action"
+                                className="shrink-0 border border-white/15 bg-white/[0.08] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-50/75"
+                                data-testid="surface-style-agent-card-bank-action"
                               >
                                 Add
                               </span>
@@ -3979,13 +3979,13 @@ export function NexusStyleLab() {
 
                             <div
                               className="grid gap-2"
-                              data-testid="warm-glass-agent-card-bank-roster"
+                              data-testid="surface-style-agent-card-bank-roster"
                             >
-                              {warmGlassAgentCardRows.map((agent) => (
+                              {surfaceStyleAgentCardRows.map((agent) => (
                                 <article
-                                  key={`warm-glass-agent-card:${agent.id}`}
+                                  key={`surface-style-agent-card:${agent.id}`}
                                   className="grid gap-2 border border-white/15 bg-white/[0.08] p-2"
-                                  data-testid={`warm-glass-agent-card-${agent.id}`}
+                                  data-testid={`surface-style-agent-card-${agent.id}`}
                                 >
                                   <div className="grid grid-cols-[34px_minmax(0,1fr)] gap-2">
                                     <span
@@ -3993,20 +3993,20 @@ export function NexusStyleLab() {
                                         "grid h-8 w-8 place-items-center rounded-full border border-white/15 font-mono text-[10px]",
                                         agent.tone,
                                       ].join(" ")}
-                                      data-testid="warm-glass-agent-card-avatar"
+                                      data-testid="surface-style-agent-card-avatar"
                                     >
                                       {agent.initial}
                                     </span>
                                     <span className="min-w-0">
                                       <span className="flex min-w-0 items-center justify-between gap-2">
-                                        <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-amber-50">
+                                        <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-50">
                                           {agent.name}
                                         </span>
-                                        <span className="shrink-0 border border-white/10 bg-white/[0.06] px-1.5 py-0.5 font-mono text-[7px] uppercase tracking-[0.08em] text-amber-50/60">
+                                        <span className="shrink-0 border border-white/10 bg-white/[0.06] px-1.5 py-0.5 font-mono text-[7px] uppercase tracking-[0.08em] text-neutral-50/60">
                                           {agent.load}
                                         </span>
                                       </span>
-                                      <span className="mt-0.5 block truncate text-[10px] text-amber-50/70">
+                                      <span className="mt-0.5 block truncate text-[10px] text-neutral-50/70">
                                         {agent.role}
                                       </span>
                                     </span>
@@ -4014,14 +4014,14 @@ export function NexusStyleLab() {
                                   <div className="flex min-w-0 items-center justify-between gap-2 border-t border-white/10 pt-2">
                                     <span
                                       className="flex min-w-0 items-center gap-1.5"
-                                      data-testid="warm-glass-agent-status-indicator"
+                                      data-testid="surface-style-agent-status-indicator"
                                     >
-                                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-100/70" />
-                                      <span className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/65">
+                                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-100/70" />
+                                      <span className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-50/65">
                                         {agent.status}
                                       </span>
                                     </span>
-                                    <span className="shrink-0 font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/50">
+                                    <span className="shrink-0 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-50/50">
                                       {agent.queue}
                                     </span>
                                   </div>
@@ -4033,19 +4033,19 @@ export function NexusStyleLab() {
 
                         <main
                           className="nexus-workspace min-h-[370px] min-w-0 overflow-hidden border p-3"
-                          data-testid="warm-glass-scene-workspace-board"
-                          style={warmGlassSceneWorkspaceStyle}
+                          data-testid="surface-style-scene-workspace-board"
+                          style={surfaceStyleSceneWorkspaceStyle}
                         >
                           <div className="mb-3 flex items-center justify-between gap-3">
                             <div className="min-w-0">
-                              <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
+                              <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-50">
                                 Workspace Live
                               </div>
-                              <div className="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/65">
+                              <div className="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-50/65">
                                 scene wash over direct bridge aliases
                               </div>
                             </div>
-                            <span className="border border-white/15 bg-white/[0.08] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/75">
+                            <span className="border border-white/15 bg-white/[0.08] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-50/75">
                               supported
                             </span>
                           </div>
@@ -4053,36 +4053,36 @@ export function NexusStyleLab() {
                           <div className="grid gap-3">
                             <section
                               className="nexus-agent-window border p-3"
-                              data-testid="warm-glass-scene-agent-window"
-                              style={warmGlassSceneAgentWindowStyle}
+                              data-testid="surface-style-scene-agent-window"
+                              style={surfaceStyleSceneAgentWindowStyle}
                             >
                               <div className="mb-3 flex items-center justify-between gap-2">
-                                <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
+                                <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-50">
                                   Architect / Idle
                                 </div>
                                 <div className="flex gap-1">
                                   {[0, 1, 2].map((item) => (
                                     <span
-                                      key={`warm-glass-scene-dot:${item}`}
-                                      className="h-2 w-2 rounded-full bg-amber-50/40"
+                                      key={`surface-style-scene-dot:${item}`}
+                                      className="h-2 w-2 rounded-full bg-neutral-50/40"
                                     />
                                   ))}
                                 </div>
                               </div>
                               <div className="grid gap-2">
                                 <article className="nexus-message-bubble nexus-message-bubble-assistant border border-white/15 bg-white/[0.09] p-2">
-                                  <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                                  <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-50/70">
                                     Mission
                                   </div>
-                                  <p className="mt-1 text-xs leading-5 text-amber-50/85">
+                                  <p className="mt-1 text-xs leading-5 text-neutral-50/85">
                                     Map product intent into executable plans.
                                   </p>
                                 </article>
                                 <article className="nexus-message-bubble nexus-message-bubble-tool border border-white/15 bg-[rgb(184_137_92_/_0.12)] p-2">
-                                  <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                                  <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-50/70">
                                     Tool
                                   </div>
-                                  <p className="mt-1 text-xs leading-5 text-amber-50/85">
+                                  <p className="mt-1 text-xs leading-5 text-neutral-50/85">
                                     Static Style Lab scene specimen.
                                   </p>
                                 </article>
@@ -4091,22 +4091,22 @@ export function NexusStyleLab() {
 
                             <section
                               className="grid content-start gap-2 border p-3"
-                              data-testid="warm-glass-scene-chrome-row"
-                              style={warmGlassScenePanelStyle}
+                              data-testid="surface-style-scene-chrome-row"
+                              style={surfaceStyleScenePanelStyle}
                             >
-                              <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
+                              <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-50">
                                 Mini Chrome
                               </div>
                               {["Command", "Modal", "Datapad"].map((item) => (
                                 <div
-                                  key={`warm-glass-scene-mini:${item}`}
+                                  key={`surface-style-scene-mini:${item}`}
                                   className="border border-white/15 bg-white/[0.08] p-2"
                                 >
-                                  <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/80">
+                                  <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-50/80">
                                     {item}
                                   </div>
-                                  <div className="mt-2 h-1.5 w-3/4 bg-amber-50/25" />
-                                  <div className="mt-1.5 h-1.5 w-1/2 bg-amber-50/15" />
+                                  <div className="mt-2 h-1.5 w-3/4 bg-neutral-50/25" />
+                                  <div className="mt-1.5 h-1.5 w-1/2 bg-neutral-50/15" />
                                 </div>
                               ))}
                             </section>
@@ -4115,40 +4115,40 @@ export function NexusStyleLab() {
 
                         <aside
                           className="grid content-start gap-3 border p-3"
-                          data-testid="warm-glass-scene-metrics-panel"
-                          style={warmGlassRightMetricsSpecimenStyle}
+                          data-testid="surface-style-scene-metrics-panel"
+                          style={surfaceStyleRightMetricsSpecimenStyle}
                         >
                           <div
                             className="grid gap-3"
-                            data-testid="warm-glass-right-metrics-specimen"
+                            data-testid="surface-style-right-metrics-specimen"
                           >
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0">
-                                <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
+                                <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-50">
                                   Right Metrics
                                 </div>
-                                <div className="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/60">
+                                <div className="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-50/60">
                                   inspector recipe specimen
                                 </div>
                               </div>
-                              <span className="shrink-0 border border-emerald-100/20 bg-emerald-200/[0.12] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-emerald-50">
+                              <span className="shrink-0 border border-neutral-100/20 bg-neutral-200/[0.12] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-50">
                                 static
                               </span>
                             </div>
 
                             <section
                               className="grid gap-2 border border-white/15 bg-white/[0.08] p-2"
-                              data-testid="warm-glass-right-metrics-selected-agent"
+                              data-testid="surface-style-right-metrics-selected-agent"
                             >
                               <div className="flex items-center gap-2">
-                                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[rgb(143_189_183_/_0.22)] font-mono text-[10px] text-emerald-50">
+                                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[rgb(143_189_183_/_0.22)] font-mono text-[10px] text-neutral-50">
                                   A
                                 </span>
                                 <span className="min-w-0">
-                                  <span className="block truncate font-mono text-[9px] uppercase tracking-[0.12em] text-amber-50">
+                                  <span className="block truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-50">
                                     Architect
                                   </span>
-                                  <span className="mt-0.5 block truncate text-[10px] text-amber-50/70">
+                                  <span className="mt-0.5 block truncate text-[10px] text-neutral-50/70">
                                     orchestration lead / calm queue
                                   </span>
                                 </span>
@@ -4160,13 +4160,13 @@ export function NexusStyleLab() {
                                   ["ETA", "06m"],
                                 ].map(([label, value]) => (
                                   <span
-                                    key={`warm-glass-right-agent:${label}`}
+                                    key={`surface-style-right-agent:${label}`}
                                     className="min-w-0 border border-white/10 bg-white/[0.06] px-2 py-1"
                                   >
-                                    <span className="block truncate font-mono text-[7px] uppercase tracking-[0.1em] text-amber-50/50">
+                                    <span className="block truncate font-mono text-[7px] uppercase tracking-[0.1em] text-neutral-50/50">
                                       {label}
                                     </span>
-                                    <span className="mt-0.5 block truncate font-mono text-[9px] text-amber-50">
+                                    <span className="mt-0.5 block truncate font-mono text-[9px] text-neutral-50">
                                       {value}
                                     </span>
                                   </span>
@@ -4176,22 +4176,22 @@ export function NexusStyleLab() {
 
                             <section
                               className="grid gap-2 border border-white/15 bg-white/[0.07] p-2"
-                              data-testid="warm-glass-right-metrics-collaboration-map"
+                              data-testid="surface-style-right-metrics-collaboration-map"
                             >
-                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-50/70">
                                 Collaboration Map
                               </div>
                               <div className="grid grid-cols-2 gap-2">
                                 {[
-                                  ["Architect", "bg-emerald-200/[0.16]"],
-                                  ["Explorer", "bg-cyan-200/[0.12]"],
-                                  ["Sentinel", "bg-amber-200/[0.12]"],
+                                  ["Architect", "bg-neutral-200/[0.16]"],
+                                  ["Explorer", "bg-neutral-200/[0.12]"],
+                                  ["Sentinel", "bg-neutral-200/[0.12]"],
                                   ["Auditor", "bg-white/[0.08]"],
                                 ].map(([label, tone]) => (
                                   <span
-                                    key={`warm-glass-right-map:${label}`}
+                                    key={`surface-style-right-map:${label}`}
                                     className={[
-                                      "min-w-0 border border-white/15 px-2 py-2 text-center font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/80",
+                                      "min-w-0 border border-white/15 px-2 py-2 text-center font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-50/80",
                                       tone,
                                     ].join(" ")}
                                   >
@@ -4203,21 +4203,21 @@ export function NexusStyleLab() {
 
                             <section
                               className="grid gap-2 border border-white/15 bg-white/[0.07] p-2"
-                              data-testid="warm-glass-right-metrics-context-stack"
+                              data-testid="surface-style-right-metrics-context-stack"
                             >
-                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-50/70">
                                 Context Stack
                               </div>
-                              {warmGlassRightMetricsContextRows.map(
+                              {surfaceStyleRightMetricsContextRows.map(
                                 ([label, value]) => (
                                   <div
-                                    key={`warm-glass-right-context:${label}`}
+                                    key={`surface-style-right-context:${label}`}
                                     className="grid grid-cols-[86px_minmax(0,1fr)] gap-2"
                                   >
-                                    <span className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/45">
+                                    <span className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-50/45">
                                       {label}
                                     </span>
-                                    <span className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/75">
+                                    <span className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-50/75">
                                       {value}
                                     </span>
                                   </div>
@@ -4227,17 +4227,17 @@ export function NexusStyleLab() {
 
                             <section
                               className="grid gap-2 border border-white/15 bg-white/[0.08] p-2"
-                              data-testid="warm-glass-right-metrics-goal-metrics"
+                              data-testid="surface-style-right-metrics-goal-metrics"
                             >
-                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-50/70">
                                 Goal Metrics
                               </div>
-                              {warmGlassRightMetricsGoalRows.map((metric) => (
+                              {surfaceStyleRightMetricsGoalRows.map((metric) => (
                                 <div
-                                  key={`warm-glass-right-goal:${metric.label}`}
+                                  key={`surface-style-right-goal:${metric.label}`}
                                   className="grid grid-cols-[minmax(0,1fr)_64px] items-center gap-2"
                                 >
-                                  <span className="truncate text-[10px] text-amber-50/80">
+                                  <span className="truncate text-[10px] text-neutral-50/80">
                                     {metric.label}
                                   </span>
                                   <span className="h-1.5 bg-white/15">
@@ -4253,16 +4253,16 @@ export function NexusStyleLab() {
 
                             <section
                               className="grid gap-2 border border-white/15 bg-white/[0.07] p-2"
-                              data-testid="warm-glass-right-metrics-run-execution"
+                              data-testid="surface-style-right-metrics-run-execution"
                             >
-                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-50/70">
                                 Run Execution
                               </div>
                               <div className="grid grid-cols-3 gap-1">
                                 {["Plan", "Dry Run", "Hold"].map((label) => (
                                   <span
-                                    key={`warm-glass-right-run:${label}`}
-                                    className="border border-white/15 bg-white/[0.08] px-1.5 py-1.5 text-center font-mono text-[7px] uppercase tracking-[0.08em] text-amber-50/80"
+                                    key={`surface-style-right-run:${label}`}
+                                    className="border border-white/15 bg-white/[0.08] px-1.5 py-1.5 text-center font-mono text-[7px] uppercase tracking-[0.08em] text-neutral-50/80"
                                   >
                                     {label}
                                   </span>
@@ -4270,9 +4270,9 @@ export function NexusStyleLab() {
                               </div>
                               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                                 <span className="h-1.5 bg-white/15">
-                                  <span className="block h-full w-[68%] bg-emerald-100/55" />
+                                  <span className="block h-full w-[68%] bg-neutral-100/55" />
                                 </span>
-                                <span className="font-mono text-[8px] text-emerald-50">
+                                <span className="font-mono text-[8px] text-neutral-50">
                                   READY
                                 </span>
                               </div>
@@ -4280,21 +4280,21 @@ export function NexusStyleLab() {
 
                             <section
                               className="grid gap-2 border border-white/15 bg-white/[0.07] p-2"
-                              data-testid="warm-glass-right-metrics-memory-history"
+                              data-testid="surface-style-right-metrics-memory-history"
                             >
-                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-50/70">
                                 Memory / History
                               </div>
-                              {warmGlassRightMetricsHistoryRows.map(
+                              {surfaceStyleRightMetricsHistoryRows.map(
                                 ([time, label]) => (
                                   <div
-                                    key={`warm-glass-right-history:${time}:${label}`}
+                                    key={`surface-style-right-history:${time}:${label}`}
                                     className="grid grid-cols-[38px_minmax(0,1fr)] gap-2"
                                   >
-                                    <span className="font-mono text-[8px] text-amber-50/45">
+                                    <span className="font-mono text-[8px] text-neutral-50/45">
                                       {time}
                                     </span>
-                                    <span className="truncate text-[10px] text-amber-50/75">
+                                    <span className="truncate text-[10px] text-neutral-50/75">
                                       {label}
                                     </span>
                                   </div>
@@ -4307,32 +4307,32 @@ export function NexusStyleLab() {
 
                       <section
                         className="mt-3 grid gap-3 border p-3 lg:grid-cols-[minmax(0,1fr)_260px]"
-                        data-testid="warm-glass-control-chrome-specimen"
-                        style={warmGlassControlChromeSpecimenStyle}
+                        data-testid="surface-style-control-chrome-specimen"
+                        style={surfaceStyleControlChromeSpecimenStyle}
                       >
                         <div className="grid gap-3">
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="min-w-0">
-                              <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-amber-50">
+                              <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-50">
                                 Control Chrome
                               </div>
-                              <div className="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/60">
+                              <div className="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-50/60">
                                 icon / button / badge / input recipe
                               </div>
                             </div>
                             <div
                               aria-hidden="true"
                               className="flex flex-wrap gap-1"
-                              data-testid="warm-glass-control-icon-action-cluster"
+                              data-testid="surface-style-control-icon-action-cluster"
                             >
-                              {warmGlassControlChromeIconButtons.map((action) => {
+                              {surfaceStyleControlChromeIconButtons.map((action) => {
                                 const Icon = action.Icon;
 
                                 return (
                                   <span
-                                    key={`warm-glass-control-icon:${action.id}`}
-                                    className="grid h-9 w-9 place-items-center rounded-full border border-white/15 bg-white/[0.1] text-amber-50/80 shadow-[0_12px_30px_rgb(74_48_29_/_0.16)]"
-                                    data-testid={`warm-glass-control-icon-${action.id}`}
+                                    key={`surface-style-control-icon:${action.id}`}
+                                    className="grid h-9 w-9 place-items-center rounded-full border border-white/15 bg-white/[0.1] text-neutral-50/80 shadow-[0_12px_30px_rgb(74_48_29_/_0.16)]"
+                                    data-testid={`surface-style-control-icon-${action.id}`}
                                     title={action.label}
                                   >
                                     <Icon size={14} strokeWidth={1.8} />
@@ -4345,29 +4345,29 @@ export function NexusStyleLab() {
                           <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto]">
                             <div
                               className="grid min-h-10 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-full border border-white/15 bg-white/[0.08] px-3 py-2"
-                              data-testid="warm-glass-control-command-field"
+                              data-testid="surface-style-control-command-field"
                             >
-                              <span className="truncate text-[11px] text-amber-50/75">
+                              <span className="truncate text-[11px] text-neutral-50/75">
                                 Transmit mission packet
                               </span>
                               <Send
                                 aria-hidden="true"
-                                className="text-amber-50/70"
+                                className="text-neutral-50/70"
                                 size={14}
                                 strokeWidth={1.8}
                               />
                             </div>
 
                             <span
-                              className="grid min-h-10 place-items-center rounded-full border border-amber-50/25 bg-amber-50/[0.16] px-4 py-2 text-center font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50 shadow-[0_14px_34px_rgb(74_48_29_/_0.2)]"
-                              data-testid="warm-glass-primary-action-button"
+                              className="grid min-h-10 place-items-center rounded-full border border-neutral-50/25 bg-neutral-50/[0.16] px-4 py-2 text-center font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-50 shadow-[0_14px_34px_rgb(74_48_29_/_0.2)]"
+                              data-testid="surface-style-primary-action-button"
                             >
                               Run Execution
                             </span>
 
                             <span
-                              className="grid min-h-10 place-items-center rounded-full border border-white/15 bg-white/[0.08] px-4 py-2 text-center font-mono text-[8px] uppercase tracking-[0.1em] text-amber-50/75"
-                              data-testid="warm-glass-secondary-action-button"
+                              className="grid min-h-10 place-items-center rounded-full border border-white/15 bg-white/[0.08] px-4 py-2 text-center font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-50/75"
+                              data-testid="surface-style-secondary-action-button"
                             >
                               Sync Analysis
                             </span>
@@ -4375,16 +4375,16 @@ export function NexusStyleLab() {
 
                           <div
                             className="flex flex-wrap gap-1.5"
-                            data-testid="warm-glass-control-status-badges"
+                            data-testid="surface-style-control-status-badges"
                           >
-                            {warmGlassControlChromeStatusBadges.map((badge) => (
+                            {surfaceStyleControlChromeStatusBadges.map((badge) => (
                               <span
-                                key={`warm-glass-control-badge:${badge.id}`}
+                                key={`surface-style-control-badge:${badge.id}`}
                                 className={[
                                   "inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[8px] uppercase tracking-[0.09em]",
                                   badge.tone,
                                 ].join(" ")}
-                                data-testid={`warm-glass-control-badge-${badge.id}`}
+                                data-testid={`surface-style-control-badge-${badge.id}`}
                               >
                                 <span
                                   aria-hidden="true"
@@ -4400,22 +4400,22 @@ export function NexusStyleLab() {
 
                         <aside
                           className="grid content-start gap-2 border border-white/10 bg-black/10 p-2"
-                          data-testid="warm-glass-control-affordance-examples"
+                          data-testid="surface-style-control-affordance-examples"
                         >
-                          <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-amber-50/70">
+                          <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-50/70">
                             Affordance
                           </div>
                           <div className="grid grid-cols-2 gap-1">
-                            {warmGlassControlChromeAffordances.map((item) => (
+                            {surfaceStyleControlChromeAffordances.map((item) => (
                               <span
-                                key={`warm-glass-control-affordance:${item.id}`}
+                                key={`surface-style-control-affordance:${item.id}`}
                                 className={[
                                   "border px-2 py-2 text-center font-mono uppercase",
                                   item.id === "active"
-                                    ? "border-amber-50/25 bg-amber-50/[0.14] text-amber-50"
-                                    : "border-white/10 bg-white/[0.06] text-amber-50/50",
+                                    ? "border-neutral-50/25 bg-neutral-50/[0.14] text-neutral-50"
+                                    : "border-white/10 bg-white/[0.06] text-neutral-50/50",
                                 ].join(" ")}
-                                data-testid={`warm-glass-control-affordance-${item.id}`}
+                                data-testid={`surface-style-control-affordance-${item.id}`}
                               >
                                 <span className="block text-[8px] tracking-[0.1em]">
                                   {item.label}
@@ -4428,18 +4428,18 @@ export function NexusStyleLab() {
                           </div>
                           <div
                             className="grid gap-1 border-t border-white/10 pt-2"
-                            data-testid="warm-glass-control-chrome-boundary"
+                            data-testid="surface-style-control-chrome-boundary"
                           >
-                            {warmGlassControlChromeCapabilityRows.map(
+                            {surfaceStyleControlChromeCapabilityRows.map(
                               ([label, value]) => (
                                 <div
-                                  key={`warm-glass-control-capability:${label}`}
+                                  key={`surface-style-control-capability:${label}`}
                                   className="grid grid-cols-[90px_minmax(0,1fr)] gap-2"
                                 >
-                                  <span className="truncate font-mono text-[7px] uppercase tracking-[0.09em] text-amber-50/45">
+                                  <span className="truncate font-mono text-[7px] uppercase tracking-[0.09em] text-neutral-50/45">
                                     {label}
                                   </span>
-                                  <span className="truncate font-mono text-[7px] uppercase tracking-[0.09em] text-amber-50/70">
+                                  <span className="truncate font-mono text-[7px] uppercase tracking-[0.09em] text-neutral-50/70">
                                     {value}
                                   </span>
                                 </div>
@@ -4451,11 +4451,11 @@ export function NexusStyleLab() {
                     </div>
 
                     <div className="mt-3 grid gap-2 lg:grid-cols-3">
-                      {warmGlassSceneCapabilityGroups.map((group) => (
+                      {surfaceStyleSceneCapabilityGroups.map((group) => (
                         <div
-                          key={`warm-glass-scene-capability:${group.id}`}
+                          key={`surface-style-scene-capability:${group.id}`}
                           className="min-w-0 border border-white/10 bg-black/20 p-2"
-                          data-testid={`warm-glass-scene-${group.id}`}
+                          data-testid={`surface-style-scene-${group.id}`}
                         >
                           <div
                             className={[
@@ -4468,8 +4468,8 @@ export function NexusStyleLab() {
                           <div className="mt-2 grid gap-1">
                             {group.values.map((value) => (
                               <div
-                                key={`warm-glass-scene-capability:${group.id}:${value}`}
-                                className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-400"
+                                key={`surface-style-scene-capability:${group.id}:${value}`}
+                                className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-400"
                               >
                                 {value}
                               </div>
@@ -4481,21 +4481,21 @@ export function NexusStyleLab() {
                   </section>
 
                   <section
-                    className="mb-4 border border-fuchsia-300/15 bg-fuchsia-300/[0.035] p-3"
+                    className="mb-4 border border-neutral-300/15 bg-neutral-300/[0.035] p-3"
                     data-testid="production-chrome-smoke-panel"
                 >
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-fuchsia-100">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                       Production Chrome Smoke
                     </div>
                     <div
                       className={[
                         "font-mono text-[10px] uppercase tracking-[0.12em]",
                         productionChromeSmokeState === "applied"
-                          ? "text-fuchsia-100"
+                          ? "text-neutral-100"
                           : productionChromeSmokeState === "reverted"
-                            ? "text-emerald-200"
-                            : "text-slate-500",
+                            ? "text-neutral-200"
+                            : "text-neutral-500",
                       ].join(" ")}
                       data-testid="production-chrome-smoke-status"
                     >
@@ -4517,10 +4517,10 @@ export function NexusStyleLab() {
                         key={`production-chrome-smoke:${label}`}
                         className="min-w-0 border border-white/10 bg-black/20 p-2"
                       >
-                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                        <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                           {label}
                         </div>
-                        <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+                        <div className="mt-1 truncate font-mono text-[9px] text-neutral-300">
                           {value}
                         </div>
                       </div>
@@ -4530,32 +4530,32 @@ export function NexusStyleLab() {
                   <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px]">
                     <div
                       ref={productionChromeSmokeTargetRef}
-                      className="nexus-shell grid min-w-0 gap-3 border border-white/10 bg-slate-950/80 p-3"
+                      className="nexus-shell grid min-w-0 gap-3 border border-white/10 bg-neutral-950/80 p-3"
                       data-testid="production-chrome-smoke-target"
                     >
                       <div
                         className="nexus-top-bar-frame flex h-11 shrink-0 items-center justify-between border-b border-white/10 bg-black/20 px-3"
                         data-testid="production-chrome-smoke-top-bar"
                       >
-                        <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-cyan-100">
+                        <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-100">
                           TopBar
                         </span>
-                        <span className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-400">
+                        <span className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-400">
                           inert
                         </span>
                       </div>
 
                       <div
                         aria-hidden="true"
-                        className="nexus-command-palette-shell nexus-panel mx-auto w-full max-w-xl overflow-hidden border border-white/10 bg-slate-950/90"
+                        className="nexus-command-palette-shell nexus-panel mx-auto w-full max-w-xl overflow-hidden border border-white/10 bg-neutral-950/90"
                         data-testid="production-chrome-smoke-command-palette"
                       >
                         <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2">
-                          <span className="h-2 w-2 border border-cyan-200/60 bg-cyan-200/40" />
-                          <span className="min-w-0 flex-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-400">
+                          <span className="h-2 w-2 border border-neutral-200/60 bg-neutral-200/40" />
+                          <span className="min-w-0 flex-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-400">
                             Search command fabric
                           </span>
-                          <span className="border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                          <span className="border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
                             esc
                           </span>
                         </div>
@@ -4566,11 +4566,11 @@ export function NexusStyleLab() {
                                 key={`production-chrome-smoke-command:${item}`}
                                 className="grid grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 border border-white/10 bg-white/[0.035] px-2 py-1.5"
                               >
-                                <span className="h-2 w-2 bg-cyan-200/60" />
-                                <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-200">
+                                <span className="h-2 w-2 bg-neutral-200/60" />
+                                <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-200">
                                   {item}
                                 </span>
-                                <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                                <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
                                   static
                                 </span>
                               </div>
@@ -4581,36 +4581,36 @@ export function NexusStyleLab() {
 
                       <div
                         aria-hidden="true"
-                        className="nexus-agent-branch-modal-shell mx-auto w-full max-w-xl overflow-hidden border border-cyan-300/25 bg-slate-950/95 shadow-[0_0_38px_rgba(34,211,238,0.12),0_18px_54px_rgba(0,0,0,0.48)]"
+                        className="nexus-agent-branch-modal-shell mx-auto w-full max-w-xl overflow-hidden border border-neutral-300/25 bg-neutral-950/95 shadow-[0_0_38px_rgba(34,211,238,0.12),0_18px_54px_rgba(0,0,0,0.48)]"
                         data-testid="production-chrome-smoke-modal-dialog"
                       >
-                        <div className="flex items-center justify-between border-b border-cyan-300/15 px-3 py-2">
+                        <div className="flex items-center justify-between border-b border-neutral-300/15 px-3 py-2">
                           <div className="min-w-0">
-                            <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-cyan-100">
+                            <div className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100">
                               Branch Modal
                             </div>
-                            <div className="mt-0.5 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                            <div className="mt-0.5 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
                               static dialog shell
                             </div>
                           </div>
-                          <span className="grid h-6 w-6 place-items-center border border-white/10 text-[9px] text-slate-500">
+                          <span className="grid h-6 w-6 place-items-center border border-white/10 text-[9px] text-neutral-500">
                             x
                           </span>
                         </div>
                         <div className="grid gap-2 p-3">
                           <div className="border border-white/10 bg-white/[0.035] p-2">
-                            <div className="font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                            <div className="font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
                               source callsign
                             </div>
-                            <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100">
+                            <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100">
                               atlas
                             </div>
                           </div>
                           <div className="grid grid-cols-2 gap-2">
-                            <span className="border border-cyan-300/30 bg-cyan-300/10 px-2 py-1.5 font-mono text-[8px] uppercase tracking-[0.1em] text-cyan-100">
+                            <span className="border border-neutral-300/30 bg-neutral-300/10 px-2 py-1.5 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-100">
                               full branch
                             </span>
-                            <span className="border border-white/10 bg-black/25 px-2 py-1.5 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                            <span className="border border-white/10 bg-black/25 px-2 py-1.5 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
                               summary
                             </span>
                           </div>
@@ -4619,27 +4619,27 @@ export function NexusStyleLab() {
 
                       <div
                         aria-hidden="true"
-                        className="nexus-datapad-shell nexus-datapad-window mx-auto flex min-h-48 w-full max-w-xl flex-col overflow-hidden border border-emerald-300/30 bg-slate-950/94 text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.45),0_0_34px_rgba(16,185,129,0.12)] backdrop-blur-xl"
+                        className="nexus-datapad-shell nexus-datapad-window mx-auto flex min-h-48 w-full max-w-xl flex-col overflow-hidden border border-neutral-300/30 bg-neutral-950/94 text-neutral-100 shadow-[0_22px_70px_rgba(0,0,0,0.45),0_0_34px_rgba(16,185,129,0.12)] backdrop-blur-xl"
                         data-testid="production-chrome-smoke-datapad"
                       >
-                        <div className="datapad-drag-handle flex h-10 shrink-0 items-center justify-between border-b border-emerald-300/15 bg-emerald-300/[0.045] px-3">
-                          <span className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-50">
+                        <div className="datapad-drag-handle flex h-10 shrink-0 items-center justify-between border-b border-neutral-300/15 bg-neutral-300/[0.045] px-3">
+                          <span className="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-50">
                             Datapad Shell
                           </span>
-                          <span className="border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+                          <span className="border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
                             static
                           </span>
                         </div>
                         <div className="grid gap-2 bg-black/35 p-3">
-                          <div className="h-2 w-3/4 bg-emerald-100/20" />
+                          <div className="h-2 w-3/4 bg-neutral-100/20" />
                           <div className="h-2 w-5/6 bg-white/10" />
                           <div className="h-2 w-2/3 bg-white/10" />
                         </div>
                         <div className="flex h-10 shrink-0 items-center justify-between border-t border-white/10 bg-black/28 px-3">
-                          <span className="font-mono text-[8px] uppercase tracking-[0.12em] text-slate-500">
+                          <span className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-500">
                             Global Datapad
                           </span>
-                          <span className="border border-emerald-300/30 bg-emerald-300/10 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-emerald-100">
+                          <span className="border border-neutral-300/30 bg-neutral-300/10 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-100">
                             save
                           </span>
                         </div>
@@ -4647,20 +4647,20 @@ export function NexusStyleLab() {
 
                       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_72px]">
                         <div
-                          className="nexus-workspace min-h-64 min-w-0 overflow-hidden border border-white/10 bg-slate-950/80 p-3 shadow-2xl"
+                          className="nexus-workspace min-h-64 min-w-0 overflow-hidden border border-white/10 bg-neutral-950/80 p-3 shadow-2xl"
                           data-testid="production-chrome-smoke-workspace"
                         >
                           <div
-                            className="nexus-agent-window min-h-56 overflow-hidden border-2 bg-slate-950/88 shadow-[0_22px_70px_rgba(0,0,0,0.45)]"
+                            className="nexus-agent-window min-h-56 overflow-hidden border-2 bg-neutral-950/88 shadow-[0_22px_70px_rgba(0,0,0,0.45)]"
                             data-testid="production-chrome-smoke-agent-window"
                             style={
                               {
                                 "--nexus-agent-window-default-bg":
                                   "color-mix(in srgb, var(--bg-elevated) var(--chat-panel-opacity), transparent)",
                                 "--nexus-agent-window-default-border":
-                                  "rgb(34 211 238 / 0.68)",
+                                  "rgb(210 210 210 / 0.68)",
                                 "--nexus-agent-window-default-shadow":
-                                  "0 0 24px rgb(34 211 238 / 0.18), 0 22px 70px rgb(0 0 0 / 0.38)",
+                                  "0 0 24px rgb(210 210 210 / 0.18), 0 22px 70px rgb(0 0 0 / 0.38)",
                               } as CSSProperties
                             }
                           >
@@ -4670,10 +4670,10 @@ export function NexusStyleLab() {
                               data-testid="production-chrome-smoke-agent-handle"
                             />
                             <div className="border-b border-white/10 px-3 py-2">
-                              <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                              <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                                 Agent Window
                               </div>
-                              <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                              <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                                 static chrome specimen
                               </div>
                             </div>
@@ -4682,10 +4682,10 @@ export function NexusStyleLab() {
                                 className="nexus-message-bubble nexus-message-bubble-user border p-3"
                                 data-testid="production-chrome-smoke-message-user"
                               >
-                                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-slate-400">
+                                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-400">
                                   user bubble
                                 </div>
-                                <p className="mt-1 text-xs text-slate-100">
+                                <p className="mt-1 text-xs text-neutral-100">
                                   Local smoke variable target.
                                 </p>
                               </article>
@@ -4693,10 +4693,10 @@ export function NexusStyleLab() {
                                 className="nexus-message-bubble nexus-message-bubble-assistant border p-3"
                                 data-testid="production-chrome-smoke-message-assistant"
                               >
-                                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-slate-400">
+                                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-400">
                                   assistant bubble
                                 </div>
-                                <p className="mt-1 text-xs text-slate-100">
+                                <p className="mt-1 text-xs text-neutral-100">
                                   Visual apply/revert only.
                                 </p>
                               </article>
@@ -4704,10 +4704,10 @@ export function NexusStyleLab() {
                                 className="nexus-message-bubble nexus-message-bubble-tool border p-3"
                                 data-testid="production-chrome-smoke-message-tool"
                               >
-                                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-slate-400">
+                                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-400">
                                   tool bubble
                                 </div>
-                                <p className="mt-1 text-xs text-slate-100">
+                                <p className="mt-1 text-xs text-neutral-100">
                                   No runtime persistence.
                                 </p>
                               </article>
@@ -4716,13 +4716,13 @@ export function NexusStyleLab() {
                         </div>
 
                         <div
-                          className="nexus-right-floating-dock-rail grid content-start gap-2 border border-cyan-300/25 bg-slate-950/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.45),0_0_32px_rgba(34,211,238,0.14)] backdrop-blur-xl"
+                          className="nexus-right-floating-dock-rail grid content-start gap-2 border border-neutral-300/25 bg-neutral-950/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.45),0_0_32px_rgba(34,211,238,0.14)] backdrop-blur-xl"
                           data-testid="production-chrome-smoke-right-dock"
                         >
                           {["Intel", "Theme", "Trace", "Vault"].map((item) => (
                             <span
                               key={`production-chrome-smoke-dock:${item}`}
-                              className="grid h-9 place-items-center border border-white/10 bg-white/[0.04] font-mono text-[8px] uppercase tracking-[0.1em] text-slate-300"
+                              className="grid h-9 place-items-center border border-white/10 bg-white/[0.04] font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-300"
                             >
                               {item}
                             </span>
@@ -4733,7 +4733,7 @@ export function NexusStyleLab() {
 
                     <div className="grid min-w-0 content-start gap-2">
                       <button
-                        className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-fuchsia-300/35 bg-fuchsia-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-fuchsia-100 transition hover:bg-fuchsia-300/20"
+                        className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20"
                         data-testid="production-chrome-smoke-apply"
                         onClick={applyProductionChromeSmokeVars}
                         type="button"
@@ -4742,7 +4742,7 @@ export function NexusStyleLab() {
                         <span className="truncate">Apply Smoke Vars</span>
                       </button>
                       <button
-                        className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                        className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10"
                         data-testid="production-chrome-smoke-revert"
                         onClick={revertProductionChromeSmokeVars}
                         type="button"
@@ -4751,14 +4751,14 @@ export function NexusStyleLab() {
                         <span className="truncate">Revert Smoke Vars</span>
                       </button>
                       <div className="border border-white/10 bg-black/20 p-2">
-                        <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                           Smoke Variables
                         </div>
                         <div className="grid max-h-52 gap-1 overflow-hidden">
                           {productionChromeSmokeVariables.slice(0, 8).map(([name]) => (
                             <div
                               key={`production-chrome-smoke-var:${name}`}
-                              className="truncate font-mono text-[9px] text-fuchsia-100"
+                              className="truncate font-mono text-[9px] text-neutral-100"
                             >
                               {name}
                             </div>
@@ -4770,15 +4770,15 @@ export function NexusStyleLab() {
 	                </section>
 
 	                <section
-	                  className="mb-4 border border-emerald-300/15 bg-emerald-300/[0.035] p-3"
+	                  className="mb-4 border border-neutral-300/15 bg-neutral-300/[0.035] p-3"
 	                  data-testid="style-runtime-preview-diagnostics-panel"
 	                >
 	                  <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
 	                    <div className="min-w-0">
-	                      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
+	                      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
 	                        Style Runtime Preview Diagnostics
 	                      </div>
-	                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+	                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
 	                        local scope / no production apply / no persistence
 	                      </div>
 	                    </div>
@@ -4798,13 +4798,13 @@ export function NexusStyleLab() {
 	                      className="min-w-0 border border-white/10 bg-black/20 p-3"
 	                      data-testid="style-runtime-preview-diagnostics-eligibility"
 	                    >
-	                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-emerald-100">
+	                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100">
 	                        Preview Preflight
 	                      </div>
-	                      <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.1em] text-slate-300">
+	                      <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.1em] text-neutral-300">
 	                        {styleRuntimePreviewDiagnosticsEligibility}
 	                      </div>
-	                      <div className="mt-2 text-xs leading-5 text-slate-500">
+	                      <div className="mt-2 text-xs leading-5 text-neutral-500">
 	                        {styleRuntimePreviewDiagnosticsFailSafe}
 	                      </div>
 	                    </div>
@@ -4813,13 +4813,13 @@ export function NexusStyleLab() {
 	                      className="min-w-0 border border-white/10 bg-black/20 p-3"
 	                      data-testid="style-runtime-preview-diagnostics-trace"
 	                    >
-	                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+	                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
 	                        Session
 	                      </div>
-	                      <div className="mt-2 break-all font-mono text-[9px] text-emerald-100">
+	                      <div className="mt-2 break-all font-mono text-[9px] text-neutral-100">
 	                        {styleRuntimePreviewDiagnostics.sessionId}
 	                      </div>
-	                      <div className="mt-2 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-slate-500">
+	                      <div className="mt-2 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
 	                        {styleRuntimePreviewDiagnostics.targetScope}
 	                      </div>
 	                    </div>
@@ -4832,10 +4832,10 @@ export function NexusStyleLab() {
 	                          key={`style-runtime-preview-diagnostics-primary:${label}`}
 	                          className="min-w-0 border border-white/10 bg-black/20 p-2"
 	                        >
-	                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+	                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
 	                            {label}
 	                          </div>
-	                          <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+	                          <div className="mt-1 truncate font-mono text-[9px] text-neutral-300">
 	                            {value}
 	                          </div>
 	                        </div>
@@ -4850,10 +4850,10 @@ export function NexusStyleLab() {
                           key={`style-runtime-preview-diagnostics-trace:${label}`}
 	                          className="min-w-0 border border-white/10 bg-black/20 p-2"
 	                        >
-	                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+	                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
 	                            {label}
 	                          </div>
-	                          <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+	                          <div className="mt-1 truncate font-mono text-[9px] text-neutral-300">
 	                            {value}
 	                          </div>
 	                        </div>
@@ -4863,15 +4863,15 @@ export function NexusStyleLab() {
                 </section>
 
                 <section
-                  className="mb-4 border border-amber-300/15 bg-amber-300/[0.035] p-3"
+                  className="mb-4 border border-neutral-300/15 bg-neutral-300/[0.035] p-3"
                   data-testid="style-runtime-preview-preflight-gate"
                 >
                   <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-amber-100">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                         Style Runtime Preview Preflight Gate
                       </div>
-                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                         Style Lab only / not production authorization
                       </div>
                     </div>
@@ -4891,10 +4891,10 @@ export function NexusStyleLab() {
                       className="min-w-0 border border-white/10 bg-black/20 p-3"
                       data-testid="style-runtime-preview-preflight-reason"
                     >
-                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-amber-100">
+                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100">
                         Decision Reason
                       </div>
-                      <div className="mt-2 text-xs leading-5 text-slate-400">
+                      <div className="mt-2 text-xs leading-5 text-neutral-400">
                         {styleRuntimePreviewPreflight.reason}
                       </div>
                     </div>
@@ -4903,10 +4903,10 @@ export function NexusStyleLab() {
                       className="min-w-0 border border-white/10 bg-black/20 p-3"
                       data-testid="style-runtime-preview-preflight-next-action"
                     >
-                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                         Next Action
                       </div>
-                      <div className="mt-2 text-xs leading-5 text-slate-300">
+                      <div className="mt-2 text-xs leading-5 text-neutral-300">
                         {styleRuntimePreviewPreflight.nextAction}
                       </div>
                     </div>
@@ -4922,10 +4922,10 @@ export function NexusStyleLab() {
                           key={`style-runtime-preview-preflight-evidence:${label}`}
                           className="min-w-0 border border-white/10 bg-black/20 p-2"
                         >
-                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                          <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                             {label}
                           </div>
-                          <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+                          <div className="mt-1 truncate font-mono text-[9px] text-neutral-300">
                             {value}
                           </div>
                         </div>
@@ -4940,10 +4940,10 @@ export function NexusStyleLab() {
                       key={`specimen-gallery:${label}`}
                       className="min-w-0 border border-white/10 bg-white/[0.03] p-2"
                     >
-                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                      <div className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                         {label}
                       </div>
-                      <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+                      <div className="mt-1 truncate font-mono text-[9px] text-neutral-300">
                         {value}
                       </div>
                     </div>
@@ -5179,7 +5179,7 @@ export function NexusStyleLab() {
                     </div>
 
                     <div className="border border-white/10 bg-white/[0.03] p-3">
-                      <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                      <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                         Fallback Summary
                       </div>
                       {specimenFallbackRows.length > 0 ? (
@@ -5189,31 +5189,31 @@ export function NexusStyleLab() {
                               key={`${issue.path}:${issue.code}`}
                               className="min-w-0 border border-white/10 bg-black/20 p-2"
                             >
-                              <div className="truncate font-mono text-[9px] text-amber-100">
+                              <div className="truncate font-mono text-[9px] text-neutral-100">
                                 {issue.code}
                               </div>
-                              <div className="mt-1 truncate font-mono text-[9px] text-slate-500">
+                              <div className="mt-1 truncate font-mono text-[9px] text-neutral-500">
                                 {issue.path}
                               </div>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-200">
+                        <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-200">
                           none
                         </div>
                       )}
                     </div>
                   </div>
                 ) : (
-                  <div className="border border-white/10 bg-white/[0.03] p-4 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                  <div className="border border-white/10 bg-white/[0.03] p-4 font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-500">
                     accepted token preview result required
                   </div>
                 )}
               </section>
 
               <section className="border border-white/10 bg-black/20 p-4 lg:col-span-2">
-                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-400">
                   Governance Report
                 </div>
 
@@ -5224,10 +5224,10 @@ export function NexusStyleLab() {
                         key={label}
                         className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 border border-white/10 bg-white/[0.03] p-2"
                       >
-                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-500">
                           {label}
                         </span>
-                        <span className="truncate font-mono text-[10px] text-slate-200">
+                        <span className="truncate font-mono text-[10px] text-neutral-200">
                           {value}
                         </span>
                       </div>
@@ -5235,7 +5235,7 @@ export function NexusStyleLab() {
                   </div>
 
                   <div className="min-w-0 border border-white/10 bg-black/20 p-3">
-                    <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">
+                    <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-500">
                       Issues
                     </div>
                     {governanceIssues.length > 0 ? (
@@ -5245,23 +5245,23 @@ export function NexusStyleLab() {
                             key={`${issue.path}:${issue.code}`}
                             className="min-w-0 border border-white/10 bg-white/[0.03] p-2"
                           >
-                            <div className="mb-1 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                            <div className="mb-1 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                               {issue.severity}
                             </div>
-                            <div className="truncate font-mono text-[10px] text-amber-100">
+                            <div className="truncate font-mono text-[10px] text-neutral-100">
                               {issue.code}
                             </div>
-                            <div className="mt-1 truncate font-mono text-[9px] text-slate-300">
+                            <div className="mt-1 truncate font-mono text-[9px] text-neutral-300">
                               {issue.message}
                             </div>
-                            <div className="mt-1 truncate font-mono text-[9px] text-slate-500">
+                            <div className="mt-1 truncate font-mono text-[9px] text-neutral-500">
                               {issue.path}
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-200">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-200">
                         none
                       </div>
                     )}
@@ -5270,7 +5270,7 @@ export function NexusStyleLab() {
               </section>
 
               <section className="border border-white/10 bg-black/20 p-4 lg:col-span-2">
-                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-400">
                   Graph Specimen
                 </div>
 
@@ -5289,7 +5289,7 @@ export function NexusStyleLab() {
                     className="absolute left-5 top-8 w-40 max-w-[42%] border p-3"
                     style={graphNodeStyle}
                   >
-                    <div className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-cyan-100">
+                    <div className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-100">
                       Source
                     </div>
                     <div className="mt-2 h-1.5 bg-white/10">
@@ -5297,7 +5297,7 @@ export function NexusStyleLab() {
                         className="h-full w-3/5"
                         style={{
                           background:
-                            "var(--nexus-graph-handle-source-fill, var(--nexus-accent-primary, #67e8f9))",
+                            "var(--nexus-graph-handle-source-fill, var(--nexus-accent-primary, #e5e5e5))",
                         }}
                       />
                     </div>
@@ -5307,7 +5307,7 @@ export function NexusStyleLab() {
                     className="absolute bottom-8 right-5 w-44 max-w-[46%] border p-3"
                     style={graphNodeStyle}
                   >
-                    <div className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-emerald-100">
+                    <div className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-100">
                       Target
                     </div>
                     <div className="mt-2 grid grid-cols-3 gap-1">
@@ -5316,7 +5316,7 @@ export function NexusStyleLab() {
                         className="h-1.5"
                         style={{
                           background:
-                            "var(--nexus-graph-handle-target-fill, var(--nexus-status-success, #6ee7b7))",
+                            "var(--nexus-graph-handle-target-fill, var(--nexus-status-success, #d6d6d6))",
                         }}
                       />
                       <span className="h-1.5 bg-white/15" />
@@ -5337,18 +5337,18 @@ export function NexusStyleLab() {
           <aside className="grid min-h-0 auto-rows-min gap-4 overflow-y-auto pr-1">
             <section className="grid min-h-[260px] grid-rows-[auto_1fr_auto] overflow-hidden border border-white/10 bg-black/30">
               <header className="flex items-center justify-between gap-3 border-b border-white/10 p-4">
-                <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                   <FileJson className="h-4 w-4 shrink-0" />
                   <span className="truncate">Draft Input</span>
                 </div>
-                <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-500">
                   {importStatus}
                 </span>
               </header>
 
               <textarea
                 aria-label="Style import JSON"
-                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-slate-300 outline-none placeholder:text-slate-700"
+                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-neutral-300 outline-none placeholder:text-neutral-700"
                 onChange={handleDraftTextChange}
                 placeholder="{}"
                 spellCheck={false}
@@ -5359,7 +5359,7 @@ export function NexusStyleLab() {
                 <div className="mb-3 min-h-12 border border-white/10 bg-white/[0.03] p-2">
                   {importResult ? (
                     importResult.accepted ? (
-                      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-200">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-200">
                         {importResult.manifest.id} loaded
                       </div>
                     ) : (
@@ -5369,10 +5369,10 @@ export function NexusStyleLab() {
                             key={`${issue.path}:${issue.code}`}
                             className="min-w-0"
                           >
-                            <div className="truncate font-mono text-[10px] text-rose-200">
+                            <div className="truncate font-mono text-[10px] text-neutral-200">
                               {issue.severity} / {issue.code}
                             </div>
-                            <div className="mt-1 truncate font-mono text-[9px] text-slate-500">
+                            <div className="mt-1 truncate font-mono text-[9px] text-neutral-500">
                               {issue.path} / {issue.message}
                             </div>
                           </div>
@@ -5380,7 +5380,7 @@ export function NexusStyleLab() {
                       </div>
                     )
                   ) : (
-                    <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-500">
                       idle
                     </div>
                   )}
@@ -5388,7 +5388,7 @@ export function NexusStyleLab() {
 
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    className="inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-3 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                    className="inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-3 font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10"
                     onClick={loadCurrentExport}
                     type="button"
                   >
@@ -5396,7 +5396,7 @@ export function NexusStyleLab() {
                     Use Export
                   </button>
                   <button
-                    className="inline-flex h-9 items-center justify-center gap-2 border border-cyan-300/35 bg-cyan-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.12em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+                    className="inline-flex h-9 items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
                     disabled={draftText.trim().length === 0}
                     onClick={loadDraft}
                     type="button"
@@ -5409,16 +5409,16 @@ export function NexusStyleLab() {
             </section>
 
             <section
-              className="grid min-h-[420px] grid-rows-[auto_auto_1fr_auto] overflow-hidden border border-emerald-300/15 bg-black/30"
+              className="grid min-h-[420px] grid-rows-[auto_auto_1fr_auto] overflow-hidden border border-neutral-300/15 bg-black/30"
               data-testid="v2-authoring-context"
             >
               <header className="grid gap-3 border-b border-white/10 p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
+                  <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                     <FileJson className="h-4 w-4 shrink-0" />
                     <span className="truncate">V2 Authoring Context</span>
                   </div>
-                  <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                  <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-500">
                     token-only
                   </span>
                 </div>
@@ -5435,8 +5435,8 @@ export function NexusStyleLab() {
                         className={[
                           "h-8 min-w-0 border px-2 font-mono text-[9px] uppercase tracking-[0.1em] transition",
                           active
-                            ? "border-emerald-300/45 bg-emerald-300/15 text-emerald-100"
-                            : "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/25 hover:bg-white/10",
+                            ? "border-neutral-300/45 bg-neutral-300/15 text-neutral-100"
+                            : "border-white/10 bg-white/[0.04] text-neutral-400 hover:border-white/25 hover:bg-white/10",
                         ].join(" ")}
                         onClick={() => setAuthoringContextView(view.id)}
                         type="button"
@@ -5454,10 +5454,10 @@ export function NexusStyleLab() {
                     key={`authoring:${label}`}
                     className="grid grid-cols-[88px_minmax(0,1fr)] gap-2 border border-white/10 bg-white/[0.03] p-2"
                   >
-                    <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                    <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                       {label}
                     </span>
-                    <span className="truncate font-mono text-[9px] text-slate-300">
+                    <span className="truncate font-mono text-[9px] text-neutral-300">
                       {value}
                     </span>
                   </div>
@@ -5466,7 +5466,7 @@ export function NexusStyleLab() {
 
               <textarea
                 aria-label="V2 authoring context text"
-                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[10px] leading-5 text-slate-300 outline-none"
+                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[10px] leading-5 text-neutral-300 outline-none"
                 data-testid="v2-authoring-context-text"
                 readOnly
                 spellCheck={false}
@@ -5475,7 +5475,7 @@ export function NexusStyleLab() {
 
               <footer className="grid grid-cols-2 gap-2 border-t border-white/10 p-3">
                 <button
-                  className="inline-flex h-9 min-w-0 items-center justify-center border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                  className="inline-flex h-9 min-w-0 items-center justify-center border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10"
                   data-testid="v2-skin-pack-minimal-fixture"
                   onClick={loadMinimalSkinPackFixture}
                   type="button"
@@ -5483,7 +5483,7 @@ export function NexusStyleLab() {
                   <span className="truncate">Use Minimal</span>
                 </button>
                 <button
-                  className="inline-flex h-9 min-w-0 items-center justify-center border border-emerald-300/35 bg-emerald-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-emerald-100 transition hover:bg-emerald-300/20"
+                  className="inline-flex h-9 min-w-0 items-center justify-center border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20"
                   data-testid="v2-skin-pack-pixel-fixture"
                   onClick={loadPixelSkinPackFixture}
                   type="button"
@@ -5494,11 +5494,11 @@ export function NexusStyleLab() {
             </section>
 
             <section
-              className="grid min-h-[300px] grid-rows-[auto_1fr_auto] overflow-hidden border border-amber-300/15 bg-black/30"
+              className="grid min-h-[300px] grid-rows-[auto_1fr_auto] overflow-hidden border border-neutral-300/15 bg-black/30"
               data-testid="imported-workspace-style-panel"
             >
               <header className="flex items-center justify-between gap-3 border-b border-white/10 p-4">
-                <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-amber-100">
+                <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                   <FileJson className="h-4 w-4 shrink-0" />
                   <span className="truncate">Imported Workspace Style</span>
                 </div>
@@ -5506,12 +5506,12 @@ export function NexusStyleLab() {
                   className={[
                     "shrink-0 font-mono text-[10px] uppercase tracking-[0.12em]",
                     importedWorkspaceStyleStatus === "accepted"
-                      ? "text-emerald-200"
+                      ? "text-neutral-200"
                       : importedWorkspaceStyleStatus === "rejected-style-only"
-                        ? "text-rose-200"
+                        ? "text-neutral-200"
                         : importedWorkspaceStyleStatus === "unsupported-version"
-                          ? "text-amber-200"
-                          : "text-slate-500",
+                          ? "text-neutral-200"
+                          : "text-neutral-500",
                   ].join(" ")}
                   data-testid="imported-workspace-style-status"
                 >
@@ -5525,39 +5525,39 @@ export function NexusStyleLab() {
                     key={`imported-workspace-style:${label}`}
                     className="grid grid-cols-[104px_minmax(0,1fr)] gap-2 border border-white/10 bg-white/[0.03] p-2"
                   >
-                    <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                    <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                       {label}
                     </span>
-                    <span className="truncate font-mono text-[9px] text-slate-300">
+                    <span className="truncate font-mono text-[9px] text-neutral-300">
                       {value}
                     </span>
                   </div>
                 ))}
 
                 <div
-                  className="grid gap-2 border border-amber-300/15 bg-amber-300/[0.04] p-2 font-mono text-[9px] uppercase tracking-[0.1em]"
+                  className="grid gap-2 border border-neutral-300/15 bg-neutral-300/[0.04] p-2 font-mono text-[9px] uppercase tracking-[0.1em]"
                   data-testid="imported-workspace-style-landing-note"
                 >
                   <div
-                    className="text-amber-100"
+                    className="text-neutral-100"
                     data-testid="imported-workspace-style-status-note"
                   >
                     {importedWorkspaceStyleStatusNote}
                   </div>
                   <div
-                    className="text-slate-300"
+                    className="text-neutral-300"
                     data-testid="imported-workspace-style-retention"
                   >
                     {importedWorkspaceStyleExportRetention}
                   </div>
                   <div
-                    className="text-slate-400"
+                    className="text-neutral-400"
                     data-testid="imported-workspace-style-auto-apply"
                   >
                     not auto-applied
                   </div>
                   <div
-                    className="text-slate-400"
+                    className="text-neutral-400"
                     data-testid="imported-workspace-style-load-state"
                   >
                     {importedWorkspaceStyleNextAction}
@@ -5568,10 +5568,10 @@ export function NexusStyleLab() {
                   className="min-w-0 border border-white/10 bg-black/20 p-2"
                   data-testid="imported-workspace-style-reasons"
                 >
-                  <div className="mb-1 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                  <div className="mb-1 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                     Review Result
                   </div>
-                  <div className="truncate font-mono text-[9px] text-slate-300">
+                  <div className="truncate font-mono text-[9px] text-neutral-300">
                     {importedWorkspaceStyleReasonSummary}
                   </div>
                 </div>
@@ -5579,7 +5579,7 @@ export function NexusStyleLab() {
 
               <footer className="grid gap-2 border-t border-white/10 p-3">
                 <button
-                  className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-amber-300/35 bg-amber-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-amber-100 transition hover:bg-amber-300/20 disabled:opacity-40"
+                  className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
                   data-testid="imported-workspace-style-load-review"
                   disabled={!importedWorkspaceStyleCanLoadSkinPack}
                   onClick={loadImportedWorkspaceStyleIntoReview}
@@ -5588,18 +5588,18 @@ export function NexusStyleLab() {
                   <FileJson className="h-4 w-4 shrink-0" />
                   <span className="truncate">Load Into Style Lab Review</span>
                 </button>
-                <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                   review-only / not auto-applied
                 </div>
               </footer>
             </section>
 
             <section
-              className="grid min-h-[360px] grid-rows-[auto_minmax(130px,0.55fr)_auto] overflow-hidden border border-cyan-300/15 bg-black/30"
+              className="grid min-h-[360px] grid-rows-[auto_minmax(130px,0.55fr)_auto] overflow-hidden border border-neutral-300/15 bg-black/30"
               data-testid="v2-skin-pack-review"
             >
               <header className="flex items-center justify-between gap-3 border-b border-white/10 p-4">
-                <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                   <FileJson className="h-4 w-4 shrink-0" />
                   <span className="truncate">V2 Skin Pack Review</span>
                 </div>
@@ -5607,10 +5607,10 @@ export function NexusStyleLab() {
                   className={[
                     "shrink-0 font-mono text-[10px] uppercase tracking-[0.12em]",
                     skinPackReviewResult?.accepted
-                      ? "text-emerald-200"
+                      ? "text-neutral-200"
                       : skinPackReviewResult
-                        ? "text-rose-200"
-                        : "text-slate-500",
+                        ? "text-neutral-200"
+                        : "text-neutral-500",
                   ].join(" ")}
                 >
                   {skinPackReviewStatus}
@@ -5619,7 +5619,7 @@ export function NexusStyleLab() {
 
               <textarea
                 aria-label="V2 skin pack JSON"
-                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-slate-300 outline-none placeholder:text-slate-700"
+                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-neutral-300 outline-none placeholder:text-neutral-700"
                 data-testid="v2-skin-pack-json"
                 onChange={handleSkinPackTextChange}
                 placeholder="{}"
@@ -5635,8 +5635,8 @@ export function NexusStyleLab() {
                         className={[
                           "font-mono text-[10px] uppercase tracking-[0.12em]",
                           skinPackReviewResult.accepted
-                            ? "text-emerald-200"
-                            : "text-rose-200",
+                            ? "text-neutral-200"
+                            : "text-neutral-200",
                         ].join(" ")}
                       >
                         V2 skin pack {skinPackReviewStatus}
@@ -5648,7 +5648,7 @@ export function NexusStyleLab() {
                             key={section.title}
                             className="min-w-0 border border-white/10 bg-black/20 p-2"
                           >
-                            <div className="mb-2 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                            <div className="mb-2 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                               {section.title}
                             </div>
                             <div className="grid gap-1">
@@ -5657,10 +5657,10 @@ export function NexusStyleLab() {
                                   key={`${section.title}:${row.label}`}
                                   className="grid grid-cols-[88px_minmax(0,1fr)] gap-2"
                                 >
-                                  <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                                  <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                                     {row.label}
                                   </span>
-                                  <span className="truncate font-mono text-[9px] text-slate-300">
+                                  <span className="truncate font-mono text-[9px] text-neutral-300">
                                     {row.value}
                                   </span>
                                 </div>
@@ -5671,7 +5671,7 @@ export function NexusStyleLab() {
                       </div>
 
                       <div className="min-w-0 border border-white/10 bg-black/20 p-2">
-                        <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                           Redacted Issues
                         </div>
                         {skinPackReviewIssueRows.length > 0 ? (
@@ -5681,41 +5681,41 @@ export function NexusStyleLab() {
                                 key={`${issue.path}:${issue.code}`}
                                 className="min-w-0 border border-white/10 bg-white/[0.03] p-2"
                               >
-                                <div className="truncate font-mono text-[10px] text-amber-100">
+                                <div className="truncate font-mono text-[10px] text-neutral-100">
                                   {issue.code}
                                 </div>
-                                <div className="mt-1 truncate font-mono text-[9px] text-slate-500">
+                                <div className="mt-1 truncate font-mono text-[9px] text-neutral-500">
                                   {issue.path} / {issue.message}
                                 </div>
-                                <div className="mt-1 max-h-8 overflow-hidden font-mono text-[9px] leading-4 text-slate-300">
+                                <div className="mt-1 max-h-8 overflow-hidden font-mono text-[9px] leading-4 text-neutral-300">
                                   {issue.repair}
                                 </div>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-200">
+                          <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-200">
                             none
                           </div>
                         )}
                       </div>
 
                       <div
-                        className="min-w-0 border border-cyan-300/15 bg-cyan-300/[0.04] p-2"
+                        className="min-w-0 border border-neutral-300/15 bg-neutral-300/[0.04] p-2"
                         data-testid="v2-token-preview-status"
                       >
                         <div className="mb-2 flex items-center justify-between gap-3">
-                          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                             Token Preview
                           </span>
                           <span
                             className={[
                               "truncate font-mono text-[9px] uppercase tracking-[0.1em]",
                               skinPackTokenPreviewState === "previewing"
-                                ? "text-cyan-100"
+                                ? "text-neutral-100"
                                 : canPreviewSkinPackTokens
-                                  ? "text-emerald-200"
-                                  : "text-slate-500",
+                                  ? "text-neutral-200"
+                                  : "text-neutral-500",
                             ].join(" ")}
                           >
                             {skinPackTokenPreviewStatus}
@@ -5727,10 +5727,10 @@ export function NexusStyleLab() {
                               key={`token-preview:${label}`}
                               className="grid grid-cols-[88px_minmax(0,1fr)] gap-2"
                             >
-                              <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                              <span className="truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                                 {label}
                               </span>
-                              <span className="truncate font-mono text-[9px] text-slate-300">
+                              <span className="truncate font-mono text-[9px] text-neutral-300">
                                 {value}
                               </span>
                             </div>
@@ -5740,7 +5740,7 @@ export function NexusStyleLab() {
                           className="mt-3 border border-white/10 bg-black/20 p-2"
                           data-testid="v2-token-preview-variables"
                         >
-                          <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                          <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                             Scoped Variables
                           </div>
                           {skinPackTokenPreviewVariables.length > 0 ? (
@@ -5751,10 +5751,10 @@ export function NexusStyleLab() {
                                     key={`token-preview-variable:${name}`}
                                     className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] gap-2"
                                   >
-                                    <span className="truncate font-mono text-[9px] text-cyan-100">
+                                    <span className="truncate font-mono text-[9px] text-neutral-100">
                                       {name}
                                     </span>
-                                    <span className="truncate font-mono text-[9px] text-slate-300">
+                                    <span className="truncate font-mono text-[9px] text-neutral-300">
                                       {value}
                                     </span>
                                   </div>
@@ -5762,7 +5762,7 @@ export function NexusStyleLab() {
                               )}
                             </div>
                           ) : (
-                            <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-slate-500">
+                            <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500">
                               preview tokens to inspect emitted variables
                             </div>
                           )}
@@ -5770,7 +5770,7 @@ export function NexusStyleLab() {
                       </div>
                     </div>
                   ) : (
-                    <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-500">
                       idle
                     </div>
                   )}
@@ -5778,7 +5778,7 @@ export function NexusStyleLab() {
 
                 <div className="grid grid-cols-4 gap-2">
                   <button
-                    className="inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                    className="inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10"
                     data-testid="v2-skin-pack-valid-fixture"
                     onClick={loadValidSkinPackFixture}
                     type="button"
@@ -5786,14 +5786,14 @@ export function NexusStyleLab() {
                     Valid
                   </button>
                   <button
-                    className="inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                    className="inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10"
                     onClick={loadPixelSkinPackFixture}
                     type="button"
                   >
                     Pixel
                   </button>
                   <button
-                    className="inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                    className="inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10"
                     data-testid="v2-skin-pack-invalid-fixture"
                     onClick={loadInvalidSkinPackFixture}
                     type="button"
@@ -5801,7 +5801,7 @@ export function NexusStyleLab() {
                     Invalid
                   </button>
                   <button
-                    className="inline-flex h-9 items-center justify-center gap-2 border border-cyan-300/35 bg-cyan-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+                    className="inline-flex h-9 items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
                     data-testid="v2-skin-pack-review-button"
                     disabled={skinPackText.trim().length === 0}
                     onClick={reviewSkinPackText}
@@ -5812,7 +5812,7 @@ export function NexusStyleLab() {
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <button
-                    className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-cyan-300/35 bg-cyan-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+                    className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
                     data-testid="v2-skin-pack-preview-tokens"
                     disabled={!canPreviewSkinPackTokens}
                     onClick={previewSkinPackTokens}
@@ -5822,7 +5822,7 @@ export function NexusStyleLab() {
                     <span className="truncate">Preview Tokens</span>
                   </button>
                   <button
-                    className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300 transition hover:border-white/25 hover:bg-white/10 disabled:opacity-40"
+                    className="inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10 disabled:opacity-40"
                     data-testid="v2-skin-pack-revert-tokens"
                     disabled={!canRevertSkinPackTokens}
                     onClick={revertSkinPackTokens}
@@ -5837,18 +5837,18 @@ export function NexusStyleLab() {
 
             <section className="grid min-h-[260px] grid-rows-[auto_1fr_auto] overflow-hidden border border-white/10 bg-black/30">
               <header className="flex items-center justify-between gap-3 border-b border-white/10 p-4">
-                <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
+                <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                   <FileJson className="h-4 w-4 shrink-0" />
                   <span className="truncate">Brief Input</span>
                 </div>
-                <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-500">
                   {briefStatus}
                 </span>
               </header>
 
               <textarea
                 aria-label="Style brief text"
-                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-slate-300 outline-none placeholder:text-slate-700"
+                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-neutral-300 outline-none placeholder:text-neutral-700"
                 onChange={handleBriefTextChange}
                 placeholder="brief"
                 spellCheck={false}
@@ -5859,7 +5859,7 @@ export function NexusStyleLab() {
                 <div className="mb-3 min-h-12 border border-white/10 bg-white/[0.03] p-2">
                   {briefResult?.draft?.accepted ? (
                     <div className="grid gap-2">
-                      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-200">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-200">
                         {briefResult.draft.manifest.id} loaded
                       </div>
                       <div className="grid gap-1">
@@ -5868,10 +5868,10 @@ export function NexusStyleLab() {
                             key={label}
                             className="grid grid-cols-[72px_minmax(0,1fr)] gap-2"
                           >
-                            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                               {label}
                             </span>
-                            <span className="truncate font-mono text-[9px] text-slate-300">
+                            <span className="truncate font-mono text-[9px] text-neutral-300">
                               {value}
                             </span>
                           </div>
@@ -5885,24 +5885,24 @@ export function NexusStyleLab() {
                           key={`${issue.path}:${issue.code}`}
                           className="min-w-0"
                         >
-                          <div className="truncate font-mono text-[10px] text-amber-100">
+                          <div className="truncate font-mono text-[10px] text-neutral-100">
                             {issue.severity} / {issue.code}
                           </div>
-                          <div className="mt-1 truncate font-mono text-[9px] text-slate-500">
+                          <div className="mt-1 truncate font-mono text-[9px] text-neutral-500">
                             {issue.path} / {issue.message}
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-500">
                       idle
                     </div>
                   )}
                 </div>
 
                 <button
-                  className="inline-flex h-9 w-full items-center justify-center gap-2 border border-emerald-300/35 bg-emerald-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-100 transition hover:bg-emerald-300/20 disabled:opacity-40"
+                  className="inline-flex h-9 w-full items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
                   disabled={briefText.trim().length === 0}
                   onClick={loadBriefDraft}
                   type="button"
@@ -5916,11 +5916,11 @@ export function NexusStyleLab() {
             <section className="grid min-h-[320px] grid-rows-[auto_1fr] overflow-hidden border border-white/10 bg-black/30">
               <header className="grid gap-3 border-b border-white/10 p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-fuchsia-100">
+                  <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                     <FileJson className="h-4 w-4 shrink-0" />
                     <span className="truncate">Export Text</span>
                   </div>
-                  <span className="shrink-0 font-mono text-[10px] text-slate-500">
+                  <span className="shrink-0 font-mono text-[10px] text-neutral-500">
                     {review.validation.warningCount}W /{" "}
                     {review.validation.errorCount}E
                   </span>
@@ -5938,8 +5938,8 @@ export function NexusStyleLab() {
                         className={[
                           "h-8 min-w-0 border px-2 font-mono text-[9px] uppercase tracking-[0.1em] transition",
                           active
-                            ? "border-fuchsia-300/45 bg-fuchsia-300/15 text-fuchsia-100"
-                            : "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/25 hover:bg-white/10",
+                            ? "border-neutral-300/45 bg-neutral-300/15 text-neutral-100"
+                            : "border-white/10 bg-white/[0.04] text-neutral-400 hover:border-white/25 hover:bg-white/10",
                         ].join(" ")}
                         onClick={() => setExportView(view.id)}
                         type="button"
@@ -5951,7 +5951,7 @@ export function NexusStyleLab() {
                 </div>
               </header>
               <textarea
-                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-slate-300 outline-none"
+                className="min-h-0 resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[11px] leading-5 text-neutral-300 outline-none"
                 readOnly
                 spellCheck={false}
                 value={exportText}

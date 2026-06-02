@@ -81,10 +81,10 @@ Fallback chain:
 
 - `--nexus-outer-shell-bg`
 - `--shell-surface`
-- cyberpunk baseline shell gradients
+- surface-shell baseline shell gradients
 
 The asset background URL was intentionally not tokenized because the current
-`bg-cyberpunk.webp` placeholder load failure is a known baseline issue and not
+`bg-surface-shell.webp` placeholder load failure is a known baseline issue and not
 a safe skinning target for this loop.
 
 ## Intentionally Not Tokenized
@@ -151,7 +151,7 @@ chain. No browser mutation was persisted.
 
 Known baseline / tooling-only observations:
 
-- `bg-cyberpunk.webp` placeholder asset load failure remains a known baseline
+- `bg-surface-shell.webp` placeholder asset load failure remains a known baseline
   issue if observed; the asset URL was not changed.
 - Chrome Translate hydration mismatch remains a known baseline issue. The
   in-app browser smoke showed `NEXUS // AI OPS`, not the translated title.
@@ -179,7 +179,7 @@ To rollback this loop:
 4. Revert the extraction map entry and this checkpoint.
 
 The existing `nexus-shell` class and theme-level `--shell-surface` baseline
-remain intact, so rollback restores the prior cyberpunk shell surface.
+remain intact, so rollback restores the prior surface-shell shell surface.
 
 ## Residual Risk
 

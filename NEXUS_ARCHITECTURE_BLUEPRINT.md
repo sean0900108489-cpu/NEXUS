@@ -1142,7 +1142,7 @@ Root component:
 
 Main shell:
 
-- `<main className="nexus-shell flex h-dvh min-h-0 flex-col overflow-hidden text-slate-100">`
+- `<main className="nexus-shell flex h-dvh min-h-0 flex-col overflow-hidden text-neutral-100">`
 
 Primary regions:
 
@@ -1295,7 +1295,7 @@ Runtime behavior:
 Theme foundation:
 
 - `next-themes` controls high-level theme id:
-  - `cyberpunk`
+  - `surface-shell`
   - `apple`
   - `tesla`
   - `terminal`

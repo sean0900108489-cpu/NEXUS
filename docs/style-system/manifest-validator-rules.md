@@ -104,7 +104,7 @@ Reject any string value containing:
 - `serializeActiveUiStateSnapshot`
 - `workspace_state_entities`
 - `z-[`
-- Tailwind arbitrary value classes such as `bg-[#0f172a]`
+- Tailwind arbitrary value classes such as `bg-[#171717]`
 - `pointer-events`
 - `nodrag`
 - `nopan`

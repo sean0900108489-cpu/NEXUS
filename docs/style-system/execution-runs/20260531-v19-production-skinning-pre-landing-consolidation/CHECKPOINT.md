@@ -22,11 +22,11 @@ Confirmed:
 
 - branch: `codex/v19-production-shell-style-upgrade`
 - recent commits include:
-  - `e4fc5e8 feat: add warm glass scene preview`
-  - `530c466 feat: add warm glass right metrics specimen`
-  - `f5d3fd5 feat: add warm glass agent card specimen`
-  - `b7378b8 feat: add warm glass segmented nav specimen`
-  - `fa68807 feat: add warm glass control chrome specimen`
+  - `e4fc5e8 feat: add surface style scene preview`
+  - `530c466 feat: add surface style right metrics specimen`
+  - `f5d3fd5 feat: add surface style agent card specimen`
+  - `b7378b8 feat: add surface style segmented nav specimen`
+  - `fa68807 feat: add surface style control chrome specimen`
   - `ae69652 feat: add production control primitive selector`
 - pre-existing untracked file preserved and not staged:
   - `docs/style-system/v19-production-shell-style-required-reading.md`
@@ -36,7 +36,7 @@ Confirmed:
 Required consolidation sources were reviewed:
 
 - production extraction map
-- Warm Glass north-star document
+- Surface Style north-star document
 - direct alias preview audit
 - typography/icon/button polish audit
 - 60 percent gate checkpoint
@@ -47,7 +47,7 @@ Required consolidation sources were reviewed:
 - segmented top navigation specimen checkpoint
 - icon/button chrome recipe specimen checkpoint
 - production control primitive selector-first checkpoint
-- Style Lab Warm Glass / smoke harness source anchors
+- Style Lab Surface Style / smoke harness source anchors
 - production token bridge source anchors
 - production alias coverage source anchors
 
@@ -56,7 +56,7 @@ Targeted production-source evidence was collected with `rg` only.
 ## Docs Created
 
 - `docs/style-system/v19-production-skinning-pre-landing-consolidation.md`
-- `docs/style-system/v19-warm-glass-ops-user-testing-guide.md`
+- `docs/style-system/v19-surface-style-ops-user-testing-guide.md`
 - `docs/style-system/execution-runs/20260531-v19-production-skinning-pre-landing-consolidation/CHECKPOINT.md`
 
 Updated:
@@ -80,14 +80,14 @@ Production-adhered:
 
 Bridge/report adhered:
 
-- Warm Glass fixture
+- Surface Style fixture
 - Render Plan / Production Token Bridge
 - production alias coverage report
 
 Style Lab-only specimens:
 
 - Production Chrome Smoke harness
-- Warm Glass Scene Preview
+- Surface Style Scene Preview
 - Right Metrics Panel specimen
 - Agent Card Bank specimen
 - Segmented Top Navigation specimen
@@ -110,7 +110,7 @@ Current estimate:
 Classification:
 
 - ready for Style Lab user testing:
-  Warm Glass fixture, coverage panel, scene preview, recipe specimens,
+  Surface Style fixture, coverage panel, scene preview, recipe specimens,
   Production Chrome Smoke
 - ready for authenticated production smoke:
   current adopted production aliases/selectors and ToolbarIconButton selector
@@ -223,7 +223,7 @@ Held:
 
 Task name:
 
-`V19 Warm Glass Ops User Testing Pass`
+`V19 Surface Style Ops User Testing Pass`
 
 Goal:
 

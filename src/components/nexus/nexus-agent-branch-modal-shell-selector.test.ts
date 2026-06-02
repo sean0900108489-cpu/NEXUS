@@ -16,7 +16,7 @@ describe("Nexus agent branch modal shell selector", () => {
       'className="nexus-agent-branch-modal-shell w-full max-w-3xl border border-white/10 bg-black/70 shadow-[0_24px_80px_rgba(0,0,0,0.5)]"',
     );
     expect(source).not.toContain(
-      'className="nexus-agent-branch-modal-shell w-full max-w-3xl border border-cyan-300/25 bg-slate-950/95 shadow-[0_0_48px_rgba(34,211,238,0.14),0_24px_80px_rgba(0,0,0,0.6)]"',
+      'className="nexus-agent-branch-modal-shell w-full max-w-3xl border border-neutral-300/25 bg-neutral-950/95 shadow-[0_0_48px_rgba(34,211,238,0.14),0_24px_80px_rgba(0,0,0,0.6)]"',
     );
   });
 
@@ -39,22 +39,22 @@ describe("Nexus agent branch modal shell selector", () => {
     expect(source).toContain("void executeBranchConfiguration();");
   });
 
-  it("adds modal shell aliases in globals with panel and cyberpunk fallbacks", () => {
+  it("adds modal shell aliases in globals with panel and surface-shell fallbacks", () => {
     const source = readAgentBranchModalSource();
     const css = readGlobalsCssSource();
 
     expect(css).toContain(".nexus-shell .nexus-agent-branch-modal-shell");
     expect(css).toContain(
-      "background: var(--nexus-modal-shell-bg, var(--nexus-panel-bg, rgb(2 6 23 / 0.95)))",
+      "background: var(--nexus-modal-shell-bg, var(--nexus-panel-bg, rgb(16 16 16 / 0.95)))",
     );
     expect(css).toContain(
-      "border-color: var(--nexus-modal-shell-border, var(--nexus-panel-border, rgb(103 232 249 / 0.25)))",
+      "border-color: var(--nexus-modal-shell-border, var(--nexus-panel-border, rgb(210 210 210 / 0.25)))",
     );
     expect(css).toContain(
       "border-radius: var(--nexus-modal-shell-radius, var(--nexus-panel-radius, var(--surface-radius)))",
     );
     expect(css).toContain("--nexus-modal-shell-shadow");
-    expect(css).toContain("var(--nexus-panel-shadow, 0 0 48px rgb(34 211 238 / 0.14)");
+    expect(css).toContain("var(--nexus-panel-shadow, 0 0 48px rgb(210 210 210 / 0.14)");
     expect(css).toContain(
       "backdrop-filter: blur(var(--nexus-modal-shell-blur, var(--nexus-panel-blur, var(--glass-blur))))",
     );

@@ -41,7 +41,7 @@ Result: confirmed for production build output.
 - Extracted production CSS rule:
 
 ```css
-.nexus-shell .nexus-right-floating-dock-rail{background:var(--nexus-right-dock-bg,var(--nexus-panel-bg,#020617e6));border-color:var(--nexus-right-dock-border,var(--nexus-panel-border,#67e8f940));border-radius:var(--nexus-right-dock-radius,var(--nexus-panel-radius,0));box-shadow:var(--nexus-right-dock-shadow,var(--nexus-panel-shadow,0 18px 60px #00000073, 0 0 32px #22d3ee24));-webkit-backdrop-filter:blur(var(--nexus-right-dock-blur,var(--nexus-panel-blur,var(--glass-blur))))!important;backdrop-filter:blur(var(--nexus-right-dock-blur,var(--nexus-panel-blur,var(--glass-blur))))!important}
+.nexus-shell .nexus-right-floating-dock-rail{background:var(--nexus-right-dock-bg,var(--nexus-panel-bg,#111111e6));border-color:var(--nexus-right-dock-border,var(--nexus-panel-border,#e5e5e540));border-radius:var(--nexus-right-dock-radius,var(--nexus-panel-radius,0));box-shadow:var(--nexus-right-dock-shadow,var(--nexus-panel-shadow,0 18px 60px #00000073, 0 0 32px #d4d4d424));-webkit-backdrop-filter:blur(var(--nexus-right-dock-blur,var(--nexus-panel-blur,var(--glass-blur))))!important;backdrop-filter:blur(var(--nexus-right-dock-blur,var(--nexus-panel-blur,var(--glass-blur))))!important}
 ```
 
 ## Runtime Check

@@ -53,7 +53,7 @@ and backend persistence as four different states.
 
 Minimum-friction direction:
 
-1. Preserve the current app and legacy cyberpunk baseline.
+1. Preserve the current app and baseline surface-shell baseline.
 2. Create a style contract before touching components.
 3. Build a pure manifest validator and compiler before runtime preview.
 4. Keep preview local-only until explicit persistence contracts exist.
@@ -107,7 +107,7 @@ The current foundation is useful but mixed:
 
 | Layer | Current State | Upgrade Meaning |
 | --- | --- | --- |
-| Theme presets | `data-theme="cyberpunk/apple/tesla/terminal"` | Keep as legacy preset registry and bridge. |
+| Theme presets | `data-theme="surface-shell/apple/tesla/terminal"` | Keep as legacy preset registry and bridge. |
 | CSS variables | `--bg-base`, `--panel-bg`, `--theme-primary`, shadows, radius, blur | Promote into semantic token registry. |
 | Tailwind bridge | Tailwind maps to CSS variables | Keep Tailwind structural; do not generate runtime classes from manifest. |
 | LEGO theme controls | DOM variable patching plus committed `themeConfig` | Split preview from applied durable config. |
@@ -541,7 +541,7 @@ Forbidden:
 
 Gate:
 
-- Contract can express current cyberpunk style and at least one non-cyberpunk
+- Contract can express current surface-shell style and at least one non-surface-shell
   style without adding component-specific color names.
 
 #### V3 - Manifest Schema And Safety Validator
@@ -581,7 +581,7 @@ Deliverables:
 
 - manifest spec
 - validator rules
-- valid examples: `legacy-cyberpunk`, `soft-os`
+- valid examples: `baseline-surface-shell`, `soft-os`
 - invalid examples and error reasons
 
 Gate:
@@ -656,7 +656,7 @@ Map the existing CSS variable and `data-theme` system into Style Engine output.
 
 Deliverables:
 
-- `legacy-cyberpunk` manifest
+- `baseline-surface-shell` manifest
 - mapping from current CSS variables to semantic tokens
 - compatibility notes for apple/tesla/terminal presets
 
@@ -671,7 +671,7 @@ Forbidden:
 
 Gate:
 
-- Legacy cyberpunk can be represented without visual collapse.
+- Baseline surface-shell can be represented without visual collapse.
 
 #### V7 - Primitive Specimens
 

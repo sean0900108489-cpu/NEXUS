@@ -48,7 +48,6 @@ import {
 import {
   type CSSProperties,
   type FormEvent,
-  type KeyboardEvent,
   type ReactNode,
   useCallback,
   useEffect,
@@ -70,6 +69,7 @@ import type {
   AgentCapabilityType,
   AgentCreationCapabilityType,
   AgentMediaArtifact,
+  ArtifactCreateResponse,
   ArtifactGetResponse,
   ArtifactVaultRecord,
   AgentModelSettings,
@@ -83,6 +83,7 @@ import type {
   AgentTaskCreateRequest,
   AgentTaskCreateResponse,
   AgentTemplate,
+  CreateArtifactRequest,
   IAuthVault,
   NexusReasoningDetail,
   NexusReasoningEffort,
@@ -90,7 +91,6 @@ import type {
   NexusAgent,
   NexusWorkspace,
   NotebookRecord,
-  PromptRecord,
   StreamMode,
   SystemEventListResponse,
   SystemEventRecord,
@@ -146,7 +146,38 @@ import {
   getNexusSupabaseClient,
 } from "@/lib/supabase/client";
 import { getEmbeddableUrl, getIframeBlockReason } from "@/lib/embed-url";
-import { buildMockPredictiveIntelSuggestions } from "@/lib/predictive-intel";
+import { executeImageAdapterForAgent } from "@/lib/adapters/image-adapter";
+import {
+  getGeneratedImageMimeType,
+  getGeneratedImageUrlKind,
+} from "@/lib/media/generated-image-artifact";
+import {
+  createNoopAttachmentCompilerMetadata,
+  NEXUS_ATTACHMENT_NOOP_COMPILER,
+  NEXUS_ATTACHMENT_NOOP_TARGETS,
+} from "@/lib/attachments/attachment-compiler-registry";
+import { WORKSPACE_ATTACHMENT_INPUT_ACTIONS } from "@/lib/attachments/attachment-input-actions";
+import type {
+  WorkspaceAttachmentInputActionId,
+  WorkspaceComposerAttachment,
+} from "@/lib/attachments/attachment-types";
+import {
+  getWorkspaceComposerActions,
+  type WorkspaceComposerActionId,
+} from "@/lib/composer/composer-actions";
+import {
+  getWorkspaceComposerMode,
+  toggleWorkspaceComposerMode,
+  type WorkspaceComposerMode,
+  type WorkspaceComposerModeByAgentId,
+} from "@/lib/composer/composer-mode-types";
+import {
+  WORKSPACE_COMPOSER_IMAGE_ASPECT_RATIO_OPTIONS,
+  WORKSPACE_COMPOSER_IMAGE_MODEL_OPTIONS,
+  WORKSPACE_COMPOSER_IMAGE_QUALITY_OPTIONS,
+  normalizeWorkspaceComposerImageSettings,
+  type WorkspaceComposerImageSettings,
+} from "@/lib/composer/image-generation-settings";
 import {
   PROVIDER_REGISTRY,
   getModelOption,
@@ -233,6 +264,21 @@ type WorkspaceThemeLivePreviewState = {
   variableCount: number;
 };
 
+type WorkspaceThemeSeedApplyResult =
+  | {
+      checksum: string;
+      status: "applied";
+      targetCount: number;
+      variableCount: number;
+    }
+  | {
+      checksum: string | null;
+      reason: string;
+      status: "blocked";
+      targetCount: number;
+      variableCount: number;
+    };
+
 const workspaceThemeLivePreviewInitialState: WorkspaceThemeLivePreviewState = {
   applyDurationMs: null,
   checksum: "",
@@ -249,6 +295,25 @@ const workspaceThemeLivePreviewInitialState: WorkspaceThemeLivePreviewState = {
 
 const workspaceThemeLivePreviewNetworkBaselineWindowId =
   "theme-panel-live-preview-local-scope";
+const WORKSPACE_ATTACHMENT_BINARY_INLINE_MAX_BYTES = 4 * 1024 * 1024;
+const WORKSPACE_ATTACHMENT_CONTEXT_MAX_CHARS = 12_000;
+const WORKSPACE_ATTACHMENT_TEXT_EXTENSIONS = new Set([
+  ".css",
+  ".csv",
+  ".html",
+  ".js",
+  ".json",
+  ".jsx",
+  ".md",
+  ".text",
+  ".ts",
+  ".tsx",
+  ".tsv",
+  ".txt",
+  ".xml",
+  ".yaml",
+  ".yml",
+]);
 
 type RightDockPanelId =
   | "intel"
@@ -257,6 +322,7 @@ type RightDockPanelId =
   | "theme"
   | "memory"
   | "artifacts"
+  | "generations"
   | "workflows"
   | "trace"
   | "account";
@@ -376,7 +442,7 @@ function createWorkspaceThemeStylePayloadForExport(
     ...createWorkspaceThemeStyleControlsPayloadV1(controls),
   };
   const candidate: WorkspaceStylePayloadV1 = {
-    source: "warm-glass-controls",
+    source: "surface-style-controls",
     version: "style-pack-v2",
     ...(existingPayload?.skinPack ? { skinPack: existingPayload.skinPack } : {}),
     ...(existingPayload?.bridgeSummary
@@ -399,6 +465,93 @@ function getWorkspaceThemePreviewTargets() {
       NEXUS_PRODUCTION_PREVIEW_FIRST_CUT_TARGET_SELECTOR,
     ),
   );
+}
+
+function resolveWorkspaceThemeControlsForBoot(
+  stylePayloadReview: ImportedWorkspaceStyleReviewState | null,
+): WorkspaceThemeStyleControlsV1 {
+  if (stylePayloadReview?.decision.status === "accepted") {
+    const importedControls = extractWorkspaceThemeStyleControlsV1(
+      stylePayloadReview.decision.payload?.controls,
+    );
+
+    if (importedControls.accepted) {
+      return importedControls.controls;
+    }
+  }
+
+  return createDefaultWorkspaceThemeStyleControlsV1();
+}
+
+function applyWorkspaceThemeControlsToProductionTarget(
+  controls: WorkspaceThemeStyleControlsV1,
+): WorkspaceThemeSeedApplyResult {
+  const variableResult = createWorkspaceThemeStylePreviewVariablesV1(controls);
+
+  if (!variableResult.accepted) {
+    return {
+      checksum: null,
+      reason: variableResult.reasons.join(", "),
+      status: "blocked",
+      targetCount: 0,
+      variableCount: 0,
+    };
+  }
+
+  const targets = getWorkspaceThemePreviewTargets();
+  const target = targets[0] ?? null;
+  const targetFacts = createWorkspaceThemeTargetFacts(targets, target);
+  const plan = createProductionPreviewApplyPlan({
+    checksums: {
+      bridgeChecksum: variableResult.checksum,
+      budgetChecksum: variableResult.checksum,
+      diagnosticsChecksum: variableResult.checksum,
+    },
+    createdAt: new Date().toISOString(),
+    hasAuthenticatedEvidence: true,
+    hasRollbackPlan: true,
+    networkBaselineWindowId: workspaceThemeLivePreviewNetworkBaselineWindowId,
+    preflightVerdict: "eligible",
+    previousInlineValues: target
+      ? snapshotWorkspaceThemeInlineValues(target, variableResult.variableNames)
+      : {},
+    safetyFlags: {
+      mutatesDocumentRoot: false,
+      touchesProductionBehavior: false,
+      writesToBackend: false,
+      writesToStorage: false,
+      writesToStore: false,
+    },
+    sessionId: createWorkspaceThemePreviewId("session"),
+    target: targetFacts,
+    transactionId: createWorkspaceThemePreviewId("transaction"),
+    variables: variableResult.variables,
+  });
+
+  if (!target || plan.verdict !== "ready" || !plan.transaction) {
+    return {
+      checksum: variableResult.checksum,
+      reason:
+        plan.reasons[0]?.message ??
+        "Workspace theme seed apply failed closed.",
+      status: "blocked",
+      targetCount: targets.length,
+      variableCount: variableResult.variableNames.length,
+    };
+  }
+
+  for (const [name, value] of Object.entries(
+    plan.transaction.appliedVariables,
+  )) {
+    target.style.setProperty(name, value);
+  }
+
+  return {
+    checksum: variableResult.checksum,
+    status: "applied",
+    targetCount: targets.length,
+    variableCount: variableResult.variableNames.length,
+  };
 }
 
 function createWorkspaceThemeTargetFacts(
@@ -451,10 +604,6 @@ function compareWorkspaceThemeControls(
   right: WorkspaceThemeStyleControlsV1,
 ) {
   return JSON.stringify(left) === JSON.stringify(right);
-}
-
-function formatWorkspaceThemeDuration(duration: number | null) {
-  return duration === null ? "not run" : `${duration.toFixed(2)}ms`;
 }
 
 function formatTime(value: string) {
@@ -655,8 +804,8 @@ function IconButton({
     <button
       aria-label={label}
       className={cx(
-        "grid h-9 w-9 place-items-center border border-white/10 bg-white/[0.045] text-slate-300 transition hover:border-cyan-300/50 hover:bg-cyan-300/10 hover:text-cyan-100",
-        active && "border-cyan-300/60 bg-cyan-300/15 text-cyan-100",
+        "grid h-9 w-9 place-items-center border border-white/10 bg-white/[0.045] text-neutral-300 transition hover:border-neutral-300/50 hover:bg-neutral-300/10 hover:text-neutral-100",
+        active && "border-neutral-300/60 bg-neutral-300/15 text-neutral-100",
         disabled && "pointer-events-none opacity-40",
       )}
       disabled={disabled}
@@ -709,14 +858,14 @@ async function resolveSupabaseAccessToken() {
 
 function streamModeTone(streamMode: StreamMode) {
   if (streamMode === "live") {
-    return "border-cyan-300/40 bg-cyan-300/10 text-cyan-100";
+    return "border-neutral-300/40 bg-neutral-300/10 text-neutral-100";
   }
 
   if (streamMode === "mixed") {
-    return "border-fuchsia-300/40 bg-fuchsia-300/10 text-fuchsia-100";
+    return "border-neutral-300/40 bg-neutral-300/10 text-neutral-100";
   }
 
-  return "border-amber-300/40 bg-amber-300/10 text-amber-100";
+  return "border-neutral-300/40 bg-neutral-300/10 text-neutral-100";
 }
 
 function artifactPreview(value: string) {
@@ -729,20 +878,234 @@ function artifactPreview(value: string) {
   return `${compact.slice(0, 117)}...`;
 }
 
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getFileExtension(fileName: string) {
+  const dotIndex = fileName.lastIndexOf(".");
+
+  return dotIndex >= 0 ? fileName.slice(dotIndex).toLowerCase() : "";
+}
+
+function isTextLikeAttachmentFile(file: File) {
+  return (
+    file.type.startsWith("text/") ||
+    file.type === "application/json" ||
+    file.type === "application/xml" ||
+    WORKSPACE_ATTACHMENT_TEXT_EXTENSIONS.has(getFileExtension(file.name))
+  );
+}
+
+function readFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onerror = () => reject(reader.error ?? new Error("File read failed."));
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error("File read did not return a data URL."));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function getMimeTypeFromDataUrl(url: string) {
+  return /^data:([^;,]+)/.exec(url)?.[1] ?? "";
+}
+
+function inferDownloadExtension(input: {
+  mimeType?: string | null;
+  type?: MediaAgentCapabilityType | string;
+  url?: string | null;
+}) {
+  const mimeType = input.mimeType || (input.url ? getMimeTypeFromDataUrl(input.url) : "");
+
+  if (mimeType.includes("svg")) {
+    return "svg";
+  }
+
+  if (mimeType.includes("webp")) {
+    return "webp";
+  }
+
+  if (mimeType.includes("jpeg") || mimeType.includes("jpg")) {
+    return "jpg";
+  }
+
+  if (mimeType.includes("png")) {
+    return "png";
+  }
+
+  if (mimeType.includes("mp4")) {
+    return "mp4";
+  }
+
+  if (mimeType.includes("json")) {
+    return "json";
+  }
+
+  if (mimeType.startsWith("text/")) {
+    return "txt";
+  }
+
+  return input.type === "video" ? "mp4" : input.type === "image" ? "png" : "txt";
+}
+
+function sanitizeDownloadFileName(value: string) {
+  return (
+    value
+      .trim()
+      .replace(/[^\w.-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 80) || "nexus-generated-asset"
+  );
+}
+
+function appendDownloadExtension(fileName: string, extension: string) {
+  return fileName.toLowerCase().endsWith(`.${extension}`)
+    ? fileName
+    : `${fileName}.${extension}`;
+}
+
+function createMediaDownloadFilename(artifact: AgentMediaArtifact) {
+  const extension = inferDownloadExtension({
+    type: artifact.type,
+    url: artifact.url,
+  });
+  const baseName = sanitizeDownloadFileName(
+    `${artifact.type}-${artifact.prompt.slice(0, 48)}`,
+  );
+
+  return appendDownloadExtension(baseName, extension);
+}
+
+function createArtifactDownloadFilename(artifact: ArtifactVaultRecord) {
+  const extension = inferDownloadExtension({
+    mimeType: artifact.mimeType,
+    type: artifact.type,
+    url: artifact.contentUrl,
+  });
+  const baseName = sanitizeDownloadFileName(
+    artifact.title ?? `${artifact.type}-${artifact.id.slice(0, 8)}`,
+  );
+
+  return appendDownloadExtension(baseName, extension);
+}
+
+function downloadUrlPayload(url: string, fileName: string) {
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = fileName;
+  link.rel = "noopener";
+  document.body.append(link);
+  link.click();
+  link.remove();
+}
+
+function downloadTextPayload(text: string, fileName: string, mimeType?: string | null) {
+  const blob = new Blob([text], { type: mimeType ?? "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  try {
+    downloadUrlPayload(url, fileName);
+  } finally {
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+}
+
+function downloadMediaArtifact(artifact: AgentMediaArtifact) {
+  downloadUrlPayload(artifact.url, createMediaDownloadFilename(artifact));
+}
+
+function isMockGeneratedMediaUrl(url: string | null | undefined) {
+  return Boolean(
+    url?.startsWith("data:image/svg+xml") &&
+      (url.includes("MOCK%20IMAGE%20ARTIFACT") ||
+        url.includes("MOCK%2520IMAGE%2520ARTIFACT")),
+  );
+}
+
+function isGeneratedArtifactRecord(artifact: ArtifactVaultRecord) {
+  return (
+    artifact.type.startsWith("generated-") &&
+    !isMockGeneratedMediaUrl(artifact.contentUrl)
+  );
+}
+
+function createWorkspaceAttachmentMessagePayload(
+  content: string,
+  attachments: WorkspaceComposerAttachment[],
+) {
+  const trimmed = content.trim();
+  const readyAttachments = attachments.filter(
+    (attachment) => attachment.status === "ready" && attachment.artifactId,
+  );
+
+  if (!readyAttachments.length) {
+    return trimmed;
+  }
+
+  const attachmentBlock = readyAttachments
+    .map((attachment, index) => {
+      const source = attachment.textContent ?? attachment.previewText;
+      const body =
+        attachment.contentKind === "text"
+          ? source.slice(0, WORKSPACE_ATTACHMENT_CONTEXT_MAX_CHARS).trim()
+          : [
+              `${attachment.contentKind} attachment is recorded in Artifact Vault.`,
+              "Attach a compiler lane before direct model ingestion.",
+            ].join(" ");
+      const truncated = source.length > WORKSPACE_ATTACHMENT_CONTEXT_MAX_CHARS;
+
+      return [
+        `[attachment:${index + 1}] ${attachment.name}`,
+        `artifactId: ${attachment.artifactId}`,
+        `rawArtifactId: ${attachment.rawArtifactId ?? attachment.artifactId}`,
+        `compiledArtifactId: ${attachment.compiledArtifactId ?? attachment.artifactId}`,
+        `compiler: ${attachment.compilerId}@${attachment.compilerVersion}`,
+        `contentKind: ${attachment.contentKind}`,
+        `mimeType: ${attachment.mimeType}`,
+        `size: ${attachment.sizeBytes} bytes`,
+        "compiledContent:",
+        body || attachment.previewText,
+        truncated ? "[truncated for model context]" : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+    })
+    .join("\n\n");
+
+  return [trimmed, "[workspace attachments]", attachmentBlock].filter(Boolean).join("\n\n");
+}
+
 function traceSeverityClass(severity: SystemEventRecord["severity"]) {
   if (severity === "critical" || severity === "error") {
-    return "text-rose-200";
+    return "text-neutral-200";
   }
 
   if (severity === "warn") {
-    return "text-amber-200";
+    return "text-neutral-200";
   }
 
   if (severity === "debug") {
-    return "text-slate-500";
+    return "text-neutral-500";
   }
 
-  return "text-cyan-100";
+  return "text-neutral-100";
 }
 
 export function NexusOps() {
@@ -768,6 +1131,9 @@ export function NexusOps() {
   const [notice, setNotice] = useState("Workspace persistence online");
   const [workspaceStylePayloadReview, setWorkspaceStylePayloadReview] =
     useState<ImportedWorkspaceStyleReviewState | null>(null);
+  const [workspaceStyleReviewLoaded, setWorkspaceStyleReviewLoaded] =
+    useState(false);
+  const workspaceThemeBootAppliedRef = useRef<string | null>(null);
   const [macros, setMacros] = useState<WorkflowTemplateRecord[]>([]);
   const [macrosLoading, setMacrosLoading] = useState(false);
   const [macroError, setMacroError] = useState<string | undefined>();
@@ -775,6 +1141,10 @@ export function NexusOps() {
   const [artifactsLoading, setArtifactsLoading] = useState(false);
   const [artifactError, setArtifactError] = useState<string | undefined>();
   const [artifactRefreshToken, setArtifactRefreshToken] = useState(0);
+  const [composerModeByAgentId, setComposerModeByAgentId] =
+    useState<WorkspaceComposerModeByAgentId>({});
+  const [composerImageSettingsByAgentId, setComposerImageSettingsByAgentId] =
+    useState<Record<string, WorkspaceComposerImageSettings>>({});
   const [macroComposerOpen, setMacroComposerOpen] = useState(false);
   const [macroName, setMacroName] = useState("");
   const [macroDescription, setMacroDescription] = useState("");
@@ -788,6 +1158,7 @@ export function NexusOps() {
   useEffect(() => {
     const syncImportedWorkspaceStyleReview = () => {
       setWorkspaceStylePayloadReview(readImportedWorkspaceStyleReviewState());
+      setWorkspaceStyleReviewLoaded(true);
     };
 
     syncImportedWorkspaceStyleReview();
@@ -804,7 +1175,6 @@ export function NexusOps() {
   const isVaultManagerOpen = useNexusStore((state) => state.isVaultManagerOpen);
   const authVault = useNexusStore((state) => state.authVault);
   const artifactVaultCache = useNexusStore((state) => state.artifactVault);
-  const promptsCache = useNexusStore((state) => state.promptsCache);
   const notebooksCache = useNexusStore((state) => state.notebooksCache);
   const openNotebookIds = useNexusStore((state) => state.openNotebookIds);
   const materializeDefaultWorkspace = useNexusStore(
@@ -897,6 +1267,9 @@ export function NexusOps() {
   const connectWorkflowRuntimeNodes = useNexusStore(
     (state) => state.connectWorkflowRuntimeNodes,
   );
+  const removeWorkflowRuntimeNodes = useNexusStore(
+    (state) => state.removeWorkflowRuntimeNodes,
+  );
   const removeWorkflowRuntimeEdges = useNexusStore(
     (state) => state.removeWorkflowRuntimeEdges,
   );
@@ -905,9 +1278,6 @@ export function NexusOps() {
   );
   const runTool = useNexusStore((state) => state.runTool);
   const historicalMessages = useNexusStore((state) => state.historicalMessages);
-  const fetchHistoricalMessages = useNexusStore(
-    (state) => state.fetchHistoricalMessages,
-  );
 
   const workspace =
     workspaces.find((candidate) => candidate.id === activeWorkspaceId) ?? workspaces[0];
@@ -932,6 +1302,13 @@ export function NexusOps() {
   const minimizedAgents = agents.filter((agent) => agent.minimized);
   const selectedAgent =
     agents.find((agent) => agent.id === selectedAgentId) ?? agents[0];
+  const selectedComposerMode = getWorkspaceComposerMode(
+    composerModeByAgentId,
+    selectedAgent?.id,
+  );
+  const selectedComposerImageSettings = normalizeWorkspaceComposerImageSettings(
+    selectedAgent ? composerImageSettingsByAgentId[selectedAgent.id] : undefined,
+  );
   const activeAgent =
     agents.find((agent) => agent.id === activeAgentId) ?? selectedAgent;
   const workflowRunning = Boolean(
@@ -1122,6 +1499,45 @@ export function NexusOps() {
   useEffect(() => {
     applyLegoThemeConfigToDom(themeConfig);
   }, [themeConfig, workspace?.id]);
+
+  useEffect(() => {
+    const userId = authVault.user?.id;
+
+    if (!authChecked || !userId || !workspaceStyleReviewLoaded) {
+      return;
+    }
+
+    const controls = resolveWorkspaceThemeControlsForBoot(
+      workspaceStylePayloadReview,
+    );
+    const variableResult = createWorkspaceThemeStylePreviewVariablesV1(controls);
+    const applyKey = [
+      userId,
+      activeWorkspaceId ?? "workspace",
+      workspaceStylePayloadReview?.decision.status ?? "theme-seed",
+      variableResult.accepted ? variableResult.checksum : "blocked",
+    ].join(":");
+
+    if (workspaceThemeBootAppliedRef.current === applyKey) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      const result = applyWorkspaceThemeControlsToProductionTarget(controls);
+
+      if (result.status === "applied") {
+        workspaceThemeBootAppliedRef.current = applyKey;
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    activeWorkspaceId,
+    authChecked,
+    authVault.user?.id,
+    workspaceStylePayloadReview,
+    workspaceStyleReviewLoaded,
+  ]);
 
   useEffect(() => {
     let mounted = true;
@@ -1499,6 +1915,48 @@ export function NexusOps() {
     })();
   }, [artifactRequestUserId]);
 
+  const handleDownloadArtifact = useCallback((artifact: ArtifactVaultRecord) => {
+    void (async () => {
+      try {
+        const response = await nexusApiClient.get<ArtifactGetResponse>(
+          `/api/v1/artifacts/${encodeURIComponent(artifact.id)}?workspaceId=${encodeURIComponent(artifact.workspaceId)}`,
+          {
+            userId: artifactRequestUserId,
+            workspaceId: artifact.workspaceId,
+          },
+        );
+        const detail = response.artifact;
+        const fileName = createArtifactDownloadFilename({
+          ...artifact,
+          mimeType: detail.mimeType ?? artifact.mimeType,
+          title: detail.title ?? artifact.title,
+        });
+
+        if (detail.contentUrl) {
+          downloadUrlPayload(detail.contentUrl, fileName);
+          setNotice("Generated asset download started");
+          return;
+        }
+
+        if (detail.contentText) {
+          downloadTextPayload(detail.contentText, fileName, detail.mimeType);
+          setNotice("Generated asset download started");
+          return;
+        }
+
+        if (artifact.contentUrl) {
+          downloadUrlPayload(artifact.contentUrl, fileName);
+          setNotice("Generated asset download started");
+          return;
+        }
+
+        throw new Error("Artifact has no downloadable payload.");
+      } catch {
+        setNotice("Generated asset download unavailable");
+      }
+    })();
+  }, [artifactRequestUserId]);
+
   const handleSend = useCallback(async (agentId: string, content: string) => {
     const trimmed = content.trim();
 
@@ -1797,78 +2255,6 @@ export function NexusOps() {
     }
   }, []);
 
-  const handlePredictiveIntel = useCallback(async (agentId: string) => {
-    const state = useNexusStore.getState();
-    const workspace =
-      state.workspaces.find((candidate) => candidate.id === state.activeWorkspaceId) ??
-      state.workspaces[0];
-    const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
-    const lastAssistantMessage =
-      [...(agent?.messages ?? [])]
-        .reverse()
-        .find((message) => message.role === "assistant" && !message.streaming)
-        ?.content.trim() ?? "";
-    const fallback = buildMockPredictiveIntelSuggestions({
-      agent,
-      lastAssistantMessage,
-    });
-    const runtimeCredential = resolveRuntimeCredentialForModel(
-      state.authVault,
-      agent?.model ?? workspace?.settings.model ?? "gpt-4o-mini",
-      agent?.provider ?? workspace?.settings.provider,
-    );
-    const safeKey = runtimeCredential.apiKey;
-    const safeBaseUrl = runtimeCredential.baseUrl;
-
-    if (!agent || !lastAssistantMessage) {
-      return fallback;
-    }
-
-    try {
-      const headers = new Headers({
-        "Content-Type": "application/json",
-      });
-
-      if (safeKey) {
-        headers.set("Authorization", `Bearer ${safeKey}`);
-      }
-
-      headers.set("x-nexus-base-url", safeBaseUrl);
-      headers.set("x-nexus-provider-id", runtimeCredential.providerId);
-
-      const response = await fetch("/api/predictive-intel", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          lastMessage: lastAssistantMessage,
-          model: agent.model,
-          agent: {
-            callsign: agent.callsign,
-            capabilityType: getCapabilityType(agent),
-            mission: agent.mission,
-            title: agent.title,
-          },
-          lastAssistantMessage,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Predictive Intel failed with ${response.status}.`);
-      }
-
-      const data = (await response.json()) as {
-        suggestions?: unknown;
-      };
-      const suggestions = Array.isArray(data.suggestions)
-        ? data.suggestions.filter((item): item is string => typeof item === "string")
-        : [];
-
-      return suggestions.length === 3 ? suggestions : fallback;
-    } catch {
-      return fallback;
-    }
-  }, []);
-
   const handleStop = useCallback((agentId: string) => {
     const active = abortControllersRef.current.get(agentId);
 
@@ -1968,6 +2354,134 @@ export function NexusOps() {
       useNexusStore.getState().setAgentStatus(agentId, "idle");
     }
   }, []);
+
+  const handleComposerImageGenerate = useCallback(
+    async (
+      agentId: string,
+      content: string,
+      imageSettingsInput?: Partial<WorkspaceComposerImageSettings>,
+    ) => {
+      const prompt = content.trim();
+
+      if (!prompt) {
+        return;
+      }
+
+      const state = useNexusStore.getState();
+      const workspace =
+        state.workspaces.find((candidate) => candidate.id === state.activeWorkspaceId) ??
+        state.workspaces[0];
+      const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
+
+      if (!agent || agent.status === "streaming" || agent.status === "thinking") {
+        return;
+      }
+
+      const imageSettings =
+        normalizeWorkspaceComposerImageSettings(imageSettingsInput);
+      const userMessage: AgentMessage = {
+        id: makeId("message"),
+        role: "user",
+        content: `Generate image: ${prompt}`,
+        createdAt: new Date().toISOString(),
+      };
+
+      state.focusAgent(agentId);
+      state.addMessage(agentId, userMessage);
+      state.setAgentStatus(agentId, "thinking");
+      setNotice(`${agent.callsign} composer image generation queued`);
+
+      try {
+        await wait(180);
+        useNexusStore.getState().setAgentStatus(agentId, "streaming");
+
+        const result = await executeImageAdapterForAgent({
+          agent: {
+            accent: agent.accent,
+            callsign: agent.callsign,
+            model: imageSettings.modelId,
+          },
+          apiKey: state.authVault.globalApiKey?.trim(),
+          imageSettings,
+          prompt,
+          toolName: "Composer Image Mode",
+        });
+        const assistantMessageId = makeId("message");
+        const artifactResponse = await nexusApiClient.post<
+          ArtifactCreateResponse,
+          CreateArtifactRequest
+        >(
+          "/api/v1/artifacts",
+          {
+            contentUrl: result.media.url,
+            metadata: {
+              aspectRatio: imageSettings.aspectRatio,
+              composerMode: "image",
+              imageGenerationMode: result.mode,
+              mediaUrlKind: getGeneratedImageUrlKind(result.media.url),
+              modelId: imageSettings.modelId,
+              prompt,
+              quality: imageSettings.quality,
+              revisedPrompt: result.revisedPrompt ?? null,
+              source: "workspace-composer",
+            },
+            mimeType: getGeneratedImageMimeType(result.media.url),
+            sourceAgentId: agent.id,
+            sourceMessageId: assistantMessageId,
+            title: `Generated image - ${prompt.slice(0, 48)}`,
+            type: "generated-image",
+            workspaceId: workspace?.id ?? state.activeWorkspaceId,
+          },
+          {
+            idempotencyKey: `generated_image_${assistantMessageId}`,
+            userId: state.authVault.user?.id,
+            workspaceId: workspace?.id ?? state.activeWorkspaceId,
+          },
+        );
+        const artifactId = artifactResponse.artifact.id;
+
+        const assistantMessage: AgentMessage = {
+          id: assistantMessageId,
+          role: "assistant",
+          content: [
+            `Composer Image Mode generated an image${result.mode === "mock" ? " (mock)" : ""}.`,
+            `Prompt: ${prompt}`,
+            `Model: ${imageSettings.modelId}`,
+            `Quality: ${imageSettings.quality}`,
+            `Aspect ratio: ${imageSettings.aspectRatio}`,
+            `Artifact: ${artifactId}`,
+            result.revisedPrompt ? `Revised prompt: ${result.revisedPrompt}` : "",
+          ]
+            .filter(Boolean)
+            .join("\n"),
+          createdAt: new Date().toISOString(),
+          media: {
+            ...result.media,
+            artifactId,
+          },
+        };
+
+        useNexusStore.getState().addMessage(agentId, assistantMessage);
+        setArtifactRefreshToken((current) => current + 1);
+        useNexusStore.getState().updateAgentTelemetry(agentId, prompt.length + 640);
+        setNotice(`${agent.callsign} composer image generated`);
+      } catch (error) {
+        const detail =
+          error instanceof Error ? error.message : "Composer image generation failed.";
+
+        useNexusStore.getState().addMessage(agentId, {
+          id: makeId("message"),
+          role: "assistant",
+          content: `[image fault] ${detail}`,
+          createdAt: new Date().toISOString(),
+        });
+        useNexusStore.getState().setAgentStatus(agentId, "error");
+      } finally {
+        useNexusStore.getState().setAgentStatus(agentId, "idle");
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     workflowAgentSnapshotsRef.current.clear();
@@ -2186,52 +2700,56 @@ export function NexusOps() {
         type="file"
       />
 
-      <TopBar
-        activeWorkspaceId={activeWorkspaceId}
-        notice={notice}
-        onCreateWorkspace={() => {
-          const nextWorkspace = createWorkspace();
-          setNotice(`Workspace ${nextWorkspace.name} created and synced to cloud.`);
-        }}
-        onExport={handleExport}
-        onImport={() => fileInputRef.current?.click()}
-        onOpenPalette={() => setPaletteOpen(true)}
-        onRenameWorkspace={(name) => {
-          renameWorkspace(name);
-          setNotice("Workspace renamed");
-        }}
-        onRecoverWorkspace={recoverSelectedWorkspace}
-        onSwitchWorkspace={(workspaceId) => {
-          const target = workspaces.find((candidate) => candidate.id === workspaceId);
-          switchWorkspace(workspaceId);
-          setNotice(`${target?.name ?? "Workspace"} active`);
-        }}
-        onToggleSettings={() =>
-          setActiveRightPanel((current) => (current ? null : "providers"))
-        }
-        onSave={() => {
-          saveWorkspaceSnapshot();
-          setNotice("Workspace snapshot saved");
-        }}
-        onSaveMacro={openMacroComposer}
-        onSpawn={() => {
-          const id = spawnAgent();
-          focusAgent(id);
-          setNotice("Agent spawned");
-        }}
-        onSyncRetry={retryFailedSyncOperation}
-        settingsOpen={Boolean(activeRightPanel)}
-        streamMode={effectiveStreamMode}
-        syncStatus={syncQueueStatus}
-        viewMode={viewMode}
-        workspaceRecoveryItems={workspaceRecoveryItems}
-        workspaceRecoveryLoading={workspaceRecoveryLoading}
-        onSetViewMode={setViewMode}
-        workspaceName={workspaceName}
-        workspaces={workspaces}
-      />
+      <section
+        className="flex min-h-dvh min-w-0 shrink-0 flex-col"
+        data-testid="nexus-workspace-primary-page"
+      >
+        <TopBar
+          activeWorkspaceId={activeWorkspaceId}
+          notice={notice}
+          onCreateWorkspace={() => {
+            const nextWorkspace = createWorkspace();
+            setNotice(`Workspace ${nextWorkspace.name} created and synced to cloud.`);
+          }}
+          onExport={handleExport}
+          onImport={() => fileInputRef.current?.click()}
+          onOpenPalette={() => setPaletteOpen(true)}
+          onRenameWorkspace={(name) => {
+            renameWorkspace(name);
+            setNotice("Workspace renamed");
+          }}
+          onRecoverWorkspace={recoverSelectedWorkspace}
+          onSwitchWorkspace={(workspaceId) => {
+            const target = workspaces.find((candidate) => candidate.id === workspaceId);
+            switchWorkspace(workspaceId);
+            setNotice(`${target?.name ?? "Workspace"} active`);
+          }}
+          onToggleSettings={() =>
+            setActiveRightPanel((current) => (current ? null : "providers"))
+          }
+          onSave={() => {
+            saveWorkspaceSnapshot();
+            setNotice("Workspace snapshot saved");
+          }}
+          onSaveMacro={openMacroComposer}
+          onSpawn={() => {
+            const id = spawnAgent();
+            focusAgent(id);
+            setNotice("Agent spawned");
+          }}
+          onSyncRetry={retryFailedSyncOperation}
+          settingsOpen={Boolean(activeRightPanel)}
+          streamMode={effectiveStreamMode}
+          syncStatus={syncQueueStatus}
+          viewMode={viewMode}
+          workspaceRecoveryItems={workspaceRecoveryItems}
+          workspaceRecoveryLoading={workspaceRecoveryLoading}
+          onSetViewMode={setViewMode}
+          workspaceName={workspaceName}
+          workspaces={workspaces}
+        />
 
-      <NexusOpsBodyFrame>
+        <NexusOpsBodyFrame>
         <motion.aside
           animate={{ width: leftDockOpen ? 266 : 44 }}
           className="relative hidden h-full min-h-0 shrink-0 overflow-hidden xl:block"
@@ -2279,188 +2797,219 @@ export function NexusOps() {
           </AnimatePresence>
         </motion.aside>
 
-        <section
-          ref={workspaceRef}
-          className="nexus-workspace nexus-scanline relative z-0 isolate min-h-0 min-w-0 flex-1 overflow-hidden border"
-        >
-          {viewMode === "panels" ? (
-            <>
-              <AnimatePresence>
-                {visibleAgents.map((agent) => (
-                  <AgentWindow
-                    key={agent.id}
-                    agent={agent}
-                    onClear={clearAgentMessages}
-                    onClose={removeAgent}
-                    onDuplicate={duplicateAgent}
-                    onFocus={focusAgent}
-                    onMinimize={minimizeAgent}
-                    onGeneratePredictiveIntel={handlePredictiveIntel}
-                    onGenerateMedia={handleMediaGenerate}
-                    onOpenVaultManager={openVaultManager}
-                    onOpenBranchInterface={setBranchAgentId}
-                    promptsCache={promptsCache}
-                    onSend={handleSend}
-                    onStop={handleStop}
-                    onToggleMaximize={(agentId) =>
-                      toggleMaximizeAgent(agentId, workspaceSize)
-                    }
-                    onSaveArtifact={handleSaveSandboxArtifact}
-                    onUpdateSandboxCode={updateSandboxCode}
-                    onUpdateSandboxUrl={updateSandboxUrl}
-                    onUpdateLayout={updateLayout}
-                    historicalPage={
-                      historicalMessages[`${activeWorkspaceId}::${agent.id}`]
-                    }
-                    onLoadHistory={fetchHistoricalMessages}
-                    selected={agent.id === selectedAgent?.id}
-                    workspaceId={activeWorkspaceId}
-                  />
-                ))}
-              </AnimatePresence>
+        <div className="nexus-workspace-stage-stack flex min-h-0 min-w-0 flex-1 flex-col gap-2">
+          <section
+            ref={workspaceRef}
+            className="nexus-workspace nexus-scanline relative z-0 isolate min-h-0 min-w-0 flex-1 overflow-hidden border"
+          >
+            {viewMode === "panels" ? (
+              <>
+                <AnimatePresence>
+                  {visibleAgents.map((agent) => (
+                    <AgentWindow
+                      key={agent.id}
+                      agent={agent}
+                      onClear={clearAgentMessages}
+                      onClose={removeAgent}
+                      onDuplicate={duplicateAgent}
+                      onFocus={focusAgent}
+                      onMinimize={minimizeAgent}
+                      onOpenVaultManager={openVaultManager}
+                      onOpenBranchInterface={setBranchAgentId}
+                      onStop={handleStop}
+                      onToggleMaximize={(agentId) =>
+                        toggleMaximizeAgent(agentId, workspaceSize)
+                      }
+                      onSaveArtifact={handleSaveSandboxArtifact}
+                      onUpdateSandboxCode={updateSandboxCode}
+                      onUpdateSandboxUrl={updateSandboxUrl}
+                      onUpdateLayout={updateLayout}
+                      historicalPage={
+                        historicalMessages[`${activeWorkspaceId}::${agent.id}`]
+                      }
+                      selected={agent.id === selectedAgent?.id}
+                    />
+                  ))}
+                </AnimatePresence>
 
-              <MinimizedRail agents={minimizedAgents} onRestore={restoreAgent} />
-            </>
-          ) : (
-            <NexusGraph
-              agents={agents}
-              graph={workspace?.graph ?? EMPTY_GRAPH}
-              onAddWorkflowNode={(type) => {
-                addWorkflowRuntimeNode(type);
-                setNotice(`${type} node added`);
-              }}
-              onConnectAgents={connectGraphAgents}
-              onConnectWorkflowNodes={connectWorkflowRuntimeNodes}
-              onCopyWorkflowOutput={handleCopyWorkflowOutput}
-              onFocusAgent={selectAgent}
-              onOpenAgent={(agentId) => {
-                setViewMode("panels");
-                focusAgent(agentId);
-              }}
-              onRemoveAgent={removeAgent}
-              onRemoveEdges={removeGraphEdges}
-              onRemoveWorkflowEdges={removeWorkflowRuntimeEdges}
-              onRunWorkflow={() => {
-                void handleRunWorkflowRuntimeLite();
-              }}
-              onUpdateWorkflowNodeData={updateWorkflowRuntimeNodeData}
-              onUpdateWorkflowNodePosition={updateWorkflowRuntimeNodePosition}
-              onUpdateNodePosition={updateGraphNodePosition}
-              workflowFeedback={workflowFeedback}
-              workflowRunning={workflowRunning}
-            />
-          )}
+                <MinimizedRail agents={minimizedAgents} onRestore={restoreAgent} />
+              </>
+            ) : (
+              <NexusGraph
+                agents={agents}
+                graph={workspace?.graph ?? EMPTY_GRAPH}
+                onAddWorkflowNode={(type) => {
+                  addWorkflowRuntimeNode(type);
+                  setNotice(`${type} node added`);
+                }}
+                onConnectAgents={connectGraphAgents}
+                onConnectWorkflowNodes={connectWorkflowRuntimeNodes}
+                onCopyWorkflowOutput={handleCopyWorkflowOutput}
+                onFocusAgent={selectAgent}
+                onOpenAgent={(agentId) => {
+                  setViewMode("panels");
+                  focusAgent(agentId);
+                }}
+                onRemoveAgent={removeAgent}
+                onRemoveEdges={removeGraphEdges}
+                onRemoveWorkflowEdges={removeWorkflowRuntimeEdges}
+                onRemoveWorkflowNodes={removeWorkflowRuntimeNodes}
+                onRunWorkflow={() => {
+                  void handleRunWorkflowRuntimeLite();
+                }}
+                onUpdateWorkflowNodeData={updateWorkflowRuntimeNodeData}
+                onUpdateWorkflowNodePosition={updateWorkflowRuntimeNodePosition}
+                onUpdateNodePosition={updateGraphNodePosition}
+                workflowFeedback={workflowFeedback}
+                workflowRunning={workflowRunning}
+              />
+            )}
 
-          <AnimatePresence>
-            {openNotebookIds.map((notebookId) => (
-              <DatapadWindow key={notebookId} notebookId={notebookId} />
-            ))}
-          </AnimatePresence>
-        </section>
+            <AnimatePresence>
+              {openNotebookIds.map((notebookId) => (
+                <DatapadWindow key={notebookId} notebookId={notebookId} />
+              ))}
+            </AnimatePresence>
+          </section>
 
-      </NexusOpsBodyFrame>
-
-      <RightFloatingDock
-        activePanel={activeRightPanel}
-        onTogglePanel={(panel) =>
-          setActiveRightPanel((current) => (current === panel ? null : panel))
-        }
-      />
-
-      <CommandPalette
-        commands={commands}
-        onClose={() => setPaletteOpen(false)}
-        open={paletteOpen}
-      />
-
-      <MacroComposerModal
-        description={macroDescription}
-        name={macroName}
-        onClose={() => setMacroComposerOpen(false)}
-        onConfirm={handleSaveMacro}
-        onDescriptionChange={setMacroDescription}
-        onNameChange={setMacroName}
-        open={macroComposerOpen}
-      />
-
-      <AnimatePresence>
-        {isVaultManagerOpen && <PromptVaultManager />}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {branchAgent ? (
-          <AgentBranchModal
-            agent={branchAgent}
-            defaultRetentionRatio={
-              branchingSettings?.defaultRetentionRatio
+          <WorkspaceChatComposerShell
+            agent={selectedAgent}
+            composerMode={selectedComposerMode}
+            imageSettings={selectedComposerImageSettings}
+            onAttachmentSaved={() => setArtifactRefreshToken((current) => current + 1)}
+            onComposerModeChange={(agentId, mode) =>
+              setComposerModeByAgentId((current) => ({
+                ...current,
+                [agentId]: mode,
+              }))
             }
-            onBranchComplete={(newAgentId) => {
-              focusAgent(newAgentId);
-              setNotice("[BRANCH SECURED] New agent deployed to canvas.");
+            onImageSettingsChange={(agentId, settings) =>
+              setComposerImageSettingsByAgentId((current) => ({
+                ...current,
+                [agentId]: normalizeWorkspaceComposerImageSettings(settings),
+              }))
+            }
+            onFocusAgent={(agentId) => {
+              setViewMode("panels");
+              focusAgent(agentId);
             }}
-            onClose={() => setBranchAgentId(null)}
+            onGenerateImage={handleComposerImageGenerate}
+            onGenerateMedia={handleMediaGenerate}
+            onNotify={setNotice}
+            onOpenArtifacts={() => setActiveRightPanel("artifacts")}
+            onSend={handleSend}
+            onUpdateAgentModelSettings={updateAgentModelSettings}
+            userId={authVault.user?.id ?? "local-owner"}
+            workspaceId={activeWorkspaceId}
           />
-        ) : null}
-      </AnimatePresence>
+        </div>
 
-      <AgentSettingsSidebar
-        activeAgent={activeAgent}
-        activePanel={activeRightPanel ?? "providers"}
-        agents={agents}
-        agent={selectedAgent}
-        authVault={authVault}
-        artifactError={artifactError}
-        artifacts={artifactVault}
-        artifactsLoading={artifactsLoading}
-        workspaceId={workspace?.id ?? activeWorkspaceId}
-        macroError={macroError}
-        macros={macros}
-        macrosLoading={macrosLoading}
-        notebooks={notebooksCache}
-        openNotebookIds={openNotebookIds}
-        branchingSettings={branchingSettings}
-        onAddAgent={(type) => {
-          const id = spawnAgent(undefined, type);
-          focusAgent(id);
-          setNotice(`${type.toUpperCase()} agent spawned`);
-        }}
-        onClose={() => setActiveRightPanel(null)}
-        onCopyArtifact={handleCopyArtifact}
-        onCreateNotebook={() => {
-          const id = createNotebook();
-          setNotice("Global datapad created");
-          return id;
-        }}
-        onRefreshArtifacts={refreshArtifacts}
-        onRefreshMacros={refreshMacros}
-        onSpawnMacro={handleSpawnMacro}
-        onToggleNotebook={toggleNotebookOpen}
-        onDeleteApiKey={deleteApiKey}
-        onDeleteProviderCredential={deleteProviderCredential}
-        onLockVault={lockVault}
-        onLockProviderCredential={lockProviderCredential}
-        onLogout={logout}
-        onRunTool={runTool}
-        onSelectAgent={selectAgent}
-        onSetGlobalApiKey={setGlobalApiKey}
-        onSetGlobalBaseUrl={setGlobalBaseUrl}
-        onSetProviderApiKey={setProviderApiKey}
-        onSetProviderBaseUrl={setProviderBaseUrl}
-        onSetProviderVerificationStatus={setProviderVerificationStatus}
-        onUnlockVault={unlockVault}
-        onUnlockProviderCredential={unlockProviderCredential}
-        onUpdateMemory={updateMemoryBlock}
-        onUpdateAgentCallsign={updateAgentCallsign}
-        onUpdateAgentProfile={updateAgentProfile}
-        onSetAgentProfileLocked={setAgentProfileLocked}
-        onUpdateMission={updateAgentMission}
-        onSaveWorkspaceThemeStyleControls={handleSaveWorkspaceThemeStyleControls}
-        onUpdateBranchingSettings={updateBranchingSettings}
-        onUpdateAgentModel={updateAgentModel}
-        open={Boolean(activeRightPanel)}
-        streamMode={effectiveStreamMode}
-        workspaceStylePayloadReview={workspaceStylePayloadReview}
-      />
+        </NexusOpsBodyFrame>
+
+        <RightFloatingDock
+          activePanel={activeRightPanel}
+          onTogglePanel={(panel) =>
+            setActiveRightPanel((current) => (current === panel ? null : panel))
+          }
+        />
+
+        <CommandPalette
+          commands={commands}
+          onClose={() => setPaletteOpen(false)}
+          open={paletteOpen}
+        />
+
+        <MacroComposerModal
+          description={macroDescription}
+          name={macroName}
+          onClose={() => setMacroComposerOpen(false)}
+          onConfirm={handleSaveMacro}
+          onDescriptionChange={setMacroDescription}
+          onNameChange={setMacroName}
+          open={macroComposerOpen}
+        />
+
+        <AnimatePresence>
+          {isVaultManagerOpen && <PromptVaultManager />}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {branchAgent ? (
+            <AgentBranchModal
+              agent={branchAgent}
+              defaultRetentionRatio={
+                branchingSettings?.defaultRetentionRatio
+              }
+              onBranchComplete={(newAgentId) => {
+                focusAgent(newAgentId);
+                setNotice("[BRANCH SECURED] New agent deployed to canvas.");
+              }}
+              onClose={() => setBranchAgentId(null)}
+            />
+          ) : null}
+        </AnimatePresence>
+
+        <AgentSettingsSidebar
+          activeAgent={activeAgent}
+          activePanel={activeRightPanel ?? "providers"}
+          agents={agents}
+          agent={selectedAgent}
+          authVault={authVault}
+          artifactError={artifactError}
+          artifacts={artifactVault}
+          artifactsLoading={artifactsLoading}
+          workspaceId={workspace?.id ?? activeWorkspaceId}
+          macroError={macroError}
+          macros={macros}
+          macrosLoading={macrosLoading}
+          notebooks={notebooksCache}
+          openNotebookIds={openNotebookIds}
+          branchingSettings={branchingSettings}
+          onAddAgent={(type) => {
+            const id = spawnAgent(undefined, type);
+            focusAgent(id);
+            setNotice(`${type.toUpperCase()} agent spawned`);
+          }}
+          onClose={() => setActiveRightPanel(null)}
+          onCopyArtifact={handleCopyArtifact}
+          onCreateNotebook={() => {
+            const id = createNotebook();
+            setNotice("Global datapad created");
+            return id;
+          }}
+          onDownloadArtifact={handleDownloadArtifact}
+          onRefreshArtifacts={refreshArtifacts}
+          onRefreshMacros={refreshMacros}
+          onSpawnMacro={handleSpawnMacro}
+          onToggleNotebook={toggleNotebookOpen}
+          onDeleteApiKey={deleteApiKey}
+          onDeleteProviderCredential={deleteProviderCredential}
+          onLockVault={lockVault}
+          onLockProviderCredential={lockProviderCredential}
+          onLogout={logout}
+          onRunTool={runTool}
+          onSelectAgent={selectAgent}
+          onSetGlobalApiKey={setGlobalApiKey}
+          onSetGlobalBaseUrl={setGlobalBaseUrl}
+          onSetProviderApiKey={setProviderApiKey}
+          onSetProviderBaseUrl={setProviderBaseUrl}
+          onSetProviderVerificationStatus={setProviderVerificationStatus}
+          onUnlockVault={unlockVault}
+          onUnlockProviderCredential={unlockProviderCredential}
+          onUpdateMemory={updateMemoryBlock}
+          onUpdateAgentCallsign={updateAgentCallsign}
+          onUpdateAgentProfile={updateAgentProfile}
+          onSetAgentProfileLocked={setAgentProfileLocked}
+          onUpdateMission={updateAgentMission}
+          onSaveWorkspaceThemeStyleControls={handleSaveWorkspaceThemeStyleControls}
+          onUpdateBranchingSettings={updateBranchingSettings}
+          onUpdateAgentModel={updateAgentModel}
+          open={Boolean(activeRightPanel)}
+          streamMode={effectiveStreamMode}
+          workspaceStylePayloadReview={workspaceStylePayloadReview}
+        />
+      </section>
+
     </NexusOpsOuterShellFrame>
   );
 }
@@ -2489,14 +3038,14 @@ function SidebarToggleButton({
     <button
       aria-label={label}
       className={cx(
-        "absolute top-3 z-[70] grid h-8 w-8 place-items-center border text-slate-100 shadow-[0_0_24px_rgba(34,211,238,0.16)] transition hover:bg-white/10",
+        "absolute top-3 z-[70] grid h-8 w-8 place-items-center border text-neutral-100 shadow-[0_0_24px_rgba(34,211,238,0.16)] transition hover:bg-white/10",
         side === "left" ? "right-1" : "left-1",
       )}
       onClick={onClick}
       style={{
-        background: "var(--nexus-layout-panel-bg, var(--nexus-panel-bg, rgb(2 6 23 / 0.95)))",
+        background: "var(--nexus-layout-panel-bg, var(--nexus-panel-bg, rgb(16 16 16 / 0.95)))",
         borderColor:
-          "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(103 232 249 / 0.35)))",
+          "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(210 210 210 / 0.35)))",
         borderRadius:
           "var(--nexus-panel-radius, var(--surface-radius))",
         boxShadow:
@@ -2509,6 +3058,14 @@ function SidebarToggleButton({
     </button>
   );
 }
+
+const workspaceBodyMaterialStyle = {
+  background: "var(--nexus-body-frame-bg, rgb(18 18 18))",
+  borderColor:
+    "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.1)))",
+  boxShadow:
+    "inset 0 1px 0 rgb(255 255 255 / 0.04), var(--nexus-layout-panel-shadow, 0 18px 60px rgb(0 0 0 / 0.2))",
+} satisfies CSSProperties;
 
 function CollapsedSidebarRail({
   label,
@@ -2523,12 +3080,13 @@ function CollapsedSidebarRail({
       className="nexus-panel flex h-full items-center justify-center"
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
+      style={workspaceBodyMaterialStyle}
       transition={{ duration: 0.14 }}
     >
       <div
         className={cx(
-          "rotate-180 font-mono text-[10px] uppercase tracking-[0.28em] text-slate-500 [writing-mode:vertical-rl]",
-          side === "right" && "text-cyan-200/70",
+          "rotate-180 font-mono text-[10px] uppercase tracking-[0.28em] text-neutral-500 [writing-mode:vertical-rl]",
+          side === "right" && "text-neutral-200/70",
         )}
       >
         {label}
@@ -2580,6 +3138,12 @@ const rightDockPanels: Array<{
     icon: <Archive className="h-4 w-4" />,
   },
   {
+    id: "generations",
+    label: "生成紀錄",
+    detail: "Generated file asset records",
+    icon: <PackageCheck className="h-4 w-4" />,
+  },
+  {
     id: "workflows",
     label: "Workflows",
     detail: "Macro blueprint vault",
@@ -2618,10 +3182,10 @@ function RightFloatingDock({
           aria-label={panel.label}
           aria-pressed={activePanel === panel.id}
           className={cx(
-            "grid h-9 w-9 place-items-center border text-slate-400 transition",
+            "grid h-9 w-9 place-items-center border text-neutral-400 transition",
             activePanel === panel.id
-              ? "border-cyan-300/55 bg-cyan-300/15 text-cyan-100"
-              : "border-white/10 bg-black/25 hover:border-cyan-300/35 hover:text-cyan-100",
+              ? "border-neutral-300/55 bg-neutral-300/15 text-neutral-100"
+              : "border-white/10 bg-black/25 hover:border-neutral-300/35 hover:text-neutral-100",
           )}
           onClick={() => onTogglePanel(panel.id)}
           title={panel.label}
@@ -2714,13 +3278,13 @@ function TopBar({
         <button
           aria-expanded={menuOpen}
           aria-label="Workspace menu"
-          className="flex h-8 max-w-[min(420px,calc(100vw-24px))] items-center gap-2 border px-2.5 text-left text-slate-100 transition hover:bg-white/10"
+          className="flex h-8 max-w-[min(420px,calc(100vw-24px))] items-center gap-2 border px-2.5 text-left text-neutral-100 transition hover:bg-white/10"
           onClick={() => setMenuOpen((current) => !current)}
           style={{
             backgroundColor:
-              "color-mix(in srgb, var(--theme-primary, #67e8f9) 7%, transparent)",
+              "color-mix(in srgb, var(--theme-primary, #e5e5e5) 7%, transparent)",
             borderColor:
-              "color-mix(in srgb, var(--theme-primary, #67e8f9) 28%, transparent)",
+              "color-mix(in srgb, var(--theme-primary, #e5e5e5) 28%, transparent)",
             borderRadius:
               "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
           }}
@@ -2739,31 +3303,31 @@ function TopBar({
           {menuOpen && (
             <motion.div
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              className="absolute left-0 top-[calc(100%+8px)] z-[90] w-[min(420px,calc(100vw-24px))] border bg-slate-950/96 p-2 shadow-[0_22px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+              className="absolute left-0 top-[calc(100%+8px)] z-[90] w-[min(420px,calc(100vw-24px))] border bg-neutral-950/96 p-2 shadow-[0_22px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl"
               exit={{ opacity: 0, y: -6, scale: 0.98 }}
               initial={{ opacity: 0, y: -6, scale: 0.98 }}
               style={{
                 background:
-                  "var(--nexus-layout-panel-bg, var(--nexus-panel-bg, rgb(2 6 23 / 0.96)))",
+                  "var(--nexus-layout-panel-bg, var(--nexus-panel-bg, rgb(16 16 16 / 0.96)))",
                 borderColor:
-                  "var(--nexus-layout-panel-border, color-mix(in srgb, var(--theme-primary, #67e8f9) 34%, transparent))",
+                  "var(--nexus-layout-panel-border, color-mix(in srgb, var(--theme-primary, #e5e5e5) 34%, transparent))",
                 borderRadius:
                   "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
                 boxShadow:
-                  "var(--nexus-layout-panel-shadow, 0 22px 80px rgba(0,0,0,0.55), 0 0 36px color-mix(in srgb, var(--theme-primary, #67e8f9) 14%, transparent))",
+                  "var(--nexus-layout-panel-shadow, 0 22px 80px rgba(0,0,0,0.55), 0 0 36px color-mix(in srgb, var(--theme-primary, #e5e5e5) 14%, transparent))",
               }}
               transition={{ duration: 0.14 }}
             >
               <div className="border-b border-white/10 px-2 pb-2">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="font-mono text-[9px] uppercase tracking-[0.24em] text-slate-400">
+                    <div className="font-mono text-[9px] uppercase tracking-[0.24em] text-neutral-400">
                       Workspace
                     </div>
                     <div className="mt-1 truncate font-mono text-sm uppercase tracking-[0.14em] text-white">
                       {workspaceName}
                     </div>
-                    <div className="mt-1 truncate text-xs text-slate-500">{notice}</div>
+                    <div className="mt-1 truncate text-xs text-neutral-500">{notice}</div>
                   </div>
                   <span
                     className={cx(
@@ -2780,7 +3344,7 @@ function TopBar({
                     <input
                       aria-label="Workspace name"
                       autoFocus
-                      className="min-w-0 flex-1 border border-cyan-300/30 bg-black/40 px-3 py-2 font-mono text-xs uppercase tracking-[0.14em] text-white outline-none transition focus:border-cyan-200"
+                      className="min-w-0 flex-1 border border-neutral-300/30 bg-black/40 px-3 py-2 font-mono text-xs uppercase tracking-[0.14em] text-white outline-none transition focus:border-neutral-200"
                       onChange={(event) => setDraftName(event.target.value)}
                       onKeyDown={(event) => {
                         if (event.key === "Escape") {
@@ -2792,14 +3356,14 @@ function TopBar({
                     />
                     <button
                       aria-label="Apply workspace name"
-                      className="grid h-8 w-8 place-items-center border border-emerald-300/40 bg-emerald-300/10 text-emerald-100 transition hover:bg-emerald-300/20"
+                      className="grid h-8 w-8 place-items-center border border-neutral-300/40 bg-neutral-300/10 text-neutral-100 transition hover:bg-neutral-300/20"
                       type="submit"
                     >
                       <Check className="h-4 w-4" />
                     </button>
                     <button
                       aria-label="Cancel workspace rename"
-                      className="grid h-8 w-8 place-items-center border border-white/10 bg-white/[0.045] text-slate-400 transition hover:text-white"
+                      className="grid h-8 w-8 place-items-center border border-white/10 bg-white/[0.045] text-neutral-400 transition hover:text-white"
                       onClick={cancelRename}
                       type="button"
                     >
@@ -2808,11 +3372,11 @@ function TopBar({
                   </form>
                 ) : (
                   <button
-                    className="mt-3 inline-flex h-7 items-center gap-2 border bg-white/[0.035] px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-slate-400 transition hover:bg-white/10 hover:text-slate-100"
+                    className="mt-3 inline-flex h-7 items-center gap-2 border bg-white/[0.035] px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-400 transition hover:bg-white/10 hover:text-neutral-100"
                     onClick={openRename}
                     style={{
                       borderColor:
-                        "color-mix(in srgb, var(--theme-primary, #67e8f9) 22%, transparent)",
+                        "color-mix(in srgb, var(--theme-primary, #e5e5e5) 22%, transparent)",
                       borderRadius:
                         "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
                     }}
@@ -2830,10 +3394,10 @@ function TopBar({
                     <button
                       key={mode}
                       className={cx(
-                        "border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition hover:bg-white/10 hover:text-slate-100",
+                        "border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition hover:bg-white/10 hover:text-neutral-100",
                         viewMode === mode
-                          ? "text-slate-100"
-                          : "text-slate-500",
+                          ? "text-neutral-100"
+                          : "text-neutral-500",
                       )}
                       onClick={() => {
                         onSetViewMode(mode);
@@ -2842,11 +3406,11 @@ function TopBar({
                       style={{
                         backgroundColor:
                           viewMode === mode
-                            ? "color-mix(in srgb, var(--theme-primary, #67e8f9) 12%, transparent)"
+                            ? "color-mix(in srgb, var(--theme-primary, #e5e5e5) 12%, transparent)"
                             : "rgb(255 255 255 / 0.025)",
                         borderColor:
                           viewMode === mode
-                            ? "color-mix(in srgb, var(--theme-primary, #67e8f9) 45%, transparent)"
+                            ? "color-mix(in srgb, var(--theme-primary, #e5e5e5) 45%, transparent)"
                             : "rgb(255 255 255 / 0.1)",
                         borderRadius:
                           "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
@@ -2858,7 +3422,7 @@ function TopBar({
                   ))}
                 </div>
 
-                <div className="cyber-scroll max-h-44 overflow-y-auto">
+                <div className="system-scroll max-h-44 overflow-y-auto">
                   {workspaces.map((workspace) => {
                     const active = workspace.id === activeWorkspaceId;
 
@@ -2867,7 +3431,7 @@ function TopBar({
                         key={workspace.id}
                         className={cx(
                           "mb-1 flex w-full items-center gap-3 border px-3 py-2 text-left transition hover:bg-white/10",
-                          active ? "text-slate-100" : "text-slate-300",
+                          active ? "text-neutral-100" : "text-neutral-300",
                         )}
                         onClick={() => {
                           setMenuOpen(false);
@@ -2875,10 +3439,10 @@ function TopBar({
                         }}
                         style={{
                           backgroundColor: active
-                            ? "color-mix(in srgb, var(--theme-primary, #67e8f9) 11%, transparent)"
+                            ? "color-mix(in srgb, var(--theme-primary, #e5e5e5) 11%, transparent)"
                             : "rgb(255 255 255 / 0.025)",
                           borderColor: active
-                            ? "color-mix(in srgb, var(--theme-primary, #67e8f9) 42%, transparent)"
+                            ? "color-mix(in srgb, var(--theme-primary, #e5e5e5) 42%, transparent)"
                             : "rgb(255 255 255 / 0.1)",
                           borderRadius:
                             "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
@@ -2888,14 +3452,14 @@ function TopBar({
                         <span
                           className={cx(
                             "grid h-7 w-7 shrink-0 place-items-center border",
-                            active ? "text-slate-100" : "text-slate-500",
+                            active ? "text-neutral-100" : "text-neutral-500",
                           )}
                           style={{
                             backgroundColor: active
-                              ? "color-mix(in srgb, var(--theme-primary, #67e8f9) 15%, transparent)"
+                              ? "color-mix(in srgb, var(--theme-primary, #e5e5e5) 15%, transparent)"
                               : "rgb(0 0 0 / 0.2)",
                             borderColor: active
-                              ? "color-mix(in srgb, var(--theme-primary, #67e8f9) 52%, transparent)"
+                              ? "color-mix(in srgb, var(--theme-primary, #e5e5e5) 52%, transparent)"
                               : "rgb(255 255 255 / 0.1)",
                             borderRadius:
                               "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
@@ -2907,7 +3471,7 @@ function TopBar({
                           <span className="block truncate font-mono text-xs uppercase tracking-[0.16em]">
                             {workspace.name}
                           </span>
-                          <span className="mt-0.5 block truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                          <span className="mt-0.5 block truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                             {workspace.id}
                           </span>
                         </span>
@@ -2917,16 +3481,16 @@ function TopBar({
                 </div>
 
                 <button
-                  className="flex w-full items-center justify-center gap-2 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-100 transition hover:bg-white/10"
+                  className="flex w-full items-center justify-center gap-2 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100 transition hover:bg-white/10"
                   onClick={() => {
                     setMenuOpen(false);
                     onCreateWorkspace();
                   }}
                   style={{
                     backgroundColor:
-                      "color-mix(in srgb, var(--theme-primary, #67e8f9) 12%, transparent)",
+                      "color-mix(in srgb, var(--theme-primary, #e5e5e5) 12%, transparent)",
                     borderColor:
-                      "color-mix(in srgb, var(--theme-primary, #67e8f9) 45%, transparent)",
+                      "color-mix(in srgb, var(--theme-primary, #e5e5e5) 45%, transparent)",
                     borderRadius:
                       "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
                   }}
@@ -2939,11 +3503,11 @@ function TopBar({
 
               {(workspaceRecoveryItems.length || workspaceRecoveryLoading) ? (
                 <div className="grid gap-1 border-b border-white/10 p-2">
-                  <div className="px-1 font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500">
+                  <div className="px-1 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-500">
                     Cloud Recovery
                   </div>
                   {workspaceRecoveryLoading ? (
-                    <div className="border border-white/10 bg-white/[0.025] px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                    <div className="border border-white/10 bg-white/[0.025] px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                       Refreshing
                     </div>
                   ) : null}
@@ -2953,8 +3517,8 @@ function TopBar({
                       className={cx(
                         "flex w-full items-center gap-3 border px-3 py-2 text-left transition",
                         item.isLocalChecksumMatch
-                          ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
-                          : "border-white/10 bg-white/[0.025] text-slate-300 hover:border-cyan-300/30 hover:bg-cyan-300/10",
+                          ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
+                          : "border-white/10 bg-white/[0.025] text-neutral-300 hover:border-neutral-300/30 hover:bg-neutral-300/10",
                       )}
                       onClick={() => {
                         setMenuOpen(false);
@@ -2967,7 +3531,7 @@ function TopBar({
                         <span className="block truncate font-mono text-xs uppercase tracking-[0.14em]">
                           {item.workspaceName}
                         </span>
-                        <span className="mt-0.5 block truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        <span className="mt-0.5 block truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                           {item.isLocalChecksumMatch ? "Current checksum" : item.updatedAt}
                         </span>
                       </span>
@@ -3045,10 +3609,10 @@ function SyncBadge({
       className={cx(
         "inline-flex h-8 items-center gap-2 border px-2 font-mono text-[9px] uppercase tracking-[0.14em] transition",
         hasIssue
-          ? "border-rose-300/45 bg-rose-300/12 text-rose-100 hover:bg-rose-300/20"
+          ? "border-neutral-300/45 bg-neutral-300/12 text-neutral-100 hover:bg-neutral-300/20"
           : active
-            ? "border-amber-300/35 bg-amber-300/10 text-amber-100"
-            : "border-emerald-300/25 bg-emerald-300/[0.06] text-emerald-100",
+            ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
+            : "border-neutral-300/25 bg-neutral-300/[0.06] text-neutral-100",
       )}
       onClick={hasIssue ? onRetry : undefined}
       type="button"
@@ -3073,14 +3637,14 @@ function TopMenuAction({
   return (
     <button
       className={cx(
-        "inline-flex h-8 items-center justify-center gap-2 border px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-slate-300 transition hover:bg-white/10 hover:text-slate-100",
+        "inline-flex h-8 items-center justify-center gap-2 border px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-300 transition hover:bg-white/10 hover:text-neutral-100",
         active ? "bg-white/[0.075]" : "bg-white/[0.035]",
       )}
       onClick={onClick}
       style={{
         borderColor: active
-          ? "color-mix(in srgb, var(--theme-primary, #67e8f9) 55%, transparent)"
-          : "color-mix(in srgb, var(--theme-primary, #67e8f9) 22%, transparent)",
+          ? "color-mix(in srgb, var(--theme-primary, #e5e5e5) 55%, transparent)"
+          : "color-mix(in srgb, var(--theme-primary, #e5e5e5) 22%, transparent)",
         borderRadius:
           "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
       }}
@@ -3126,7 +3690,7 @@ function MacroComposerModal({
         >
           <motion.form
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="w-[min(520px,calc(100vw-32px))] border border-fuchsia-300/35 bg-slate-950/96 p-5 shadow-[0_28px_100px_rgba(0,0,0,0.62),0_0_52px_rgba(217,70,239,0.16)]"
+            className="w-[min(520px,calc(100vw-32px))] border border-neutral-300/35 bg-neutral-950/96 p-5 shadow-[0_28px_100px_rgba(0,0,0,0.62),0_0_52px_rgba(217,70,239,0.16)]"
             exit={{ opacity: 0, scale: 0.98, y: 8 }}
             initial={{ opacity: 0, scale: 0.98, y: 10 }}
             onSubmit={submit}
@@ -3134,11 +3698,11 @@ function MacroComposerModal({
           >
             <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
               <div className="min-w-0">
-                <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.22em] text-fuchsia-100">
+                <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.22em] text-neutral-100">
                   <PackageCheck className="h-4 w-4" />
                   Pack Workflow
                 </div>
-                <p className="mt-2 text-sm leading-6 text-slate-400">
+                <p className="mt-2 text-sm leading-6 text-neutral-400">
                   Freeze the current graph topology, agent configs, and visual wiring
                   into a reusable cloud blueprint.
                 </p>
@@ -3149,12 +3713,12 @@ function MacroComposerModal({
             </div>
 
             <label className="mt-4 block">
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-400">
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400">
                 Macro Name
               </span>
               <input
                 autoFocus
-                className="mt-2 w-full border border-fuchsia-300/25 bg-black/35 px-3 py-2.5 font-mono text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-fuchsia-300/70"
+                className="mt-2 w-full border border-neutral-300/25 bg-black/35 px-3 py-2.5 font-mono text-sm text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/70"
                 onChange={(event) => onNameChange(event.target.value)}
                 placeholder="NEXUS Incident Response Mesh"
                 type="text"
@@ -3163,11 +3727,11 @@ function MacroComposerModal({
             </label>
 
             <label className="mt-4 block">
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-400">
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400">
                 Description
               </span>
               <textarea
-                className="mt-2 min-h-28 w-full resize-none border border-white/10 bg-black/35 px-3 py-2.5 text-sm leading-6 text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-fuchsia-300/70"
+                className="mt-2 min-h-28 w-full resize-none border border-white/10 bg-black/35 px-3 py-2.5 text-sm leading-6 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/70"
                 onChange={(event) => onDescriptionChange(event.target.value)}
                 placeholder="Describe when this blueprint should be spawned."
                 value={description}
@@ -3176,14 +3740,14 @@ function MacroComposerModal({
 
             <div className="mt-5 flex items-center justify-end gap-2">
               <button
-                className="border border-white/10 bg-white/[0.045] px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-300 transition hover:text-white"
+                className="border border-white/10 bg-white/[0.045] px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-300 transition hover:text-white"
                 onClick={onClose}
                 type="button"
               >
                 Cancel
               </button>
               <button
-                className="border border-fuchsia-300/45 bg-fuchsia-300/12 px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.16em] text-fuchsia-100 transition hover:bg-fuchsia-300/22 disabled:opacity-40"
+                className="border border-neutral-300/45 bg-neutral-300/12 px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100 transition hover:bg-neutral-300/22 disabled:opacity-40"
                 disabled={!name.trim()}
                 type="submit"
               >
@@ -3301,13 +3865,13 @@ function ProviderVaultPanel({
   };
 
   return (
-    <section className="mb-4 border border-cyan-300/25 bg-cyan-300/[0.045] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]">
+    <section className="mb-4 border border-neutral-300/25 bg-neutral-300/[0.045] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
             Providers / Model Vault
           </div>
-          <div className="mt-1 text-xs text-slate-500">
+          <div className="mt-1 text-xs text-neutral-500">
             DeepSeek is routed through the provider registry.
           </div>
         </div>
@@ -3315,10 +3879,10 @@ function ProviderVaultPanel({
           className={cx(
             "border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em]",
             credential?.verificationStatus === "verified"
-              ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+              ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
               : credential?.verificationStatus === "failed"
-                ? "border-rose-300/35 bg-rose-300/10 text-rose-100"
-                : "border-amber-300/35 bg-amber-300/10 text-amber-100",
+                ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
+                : "border-neutral-300/35 bg-neutral-300/10 text-neutral-100",
           )}
         >
           {credential?.verificationStatus ?? "untested"}
@@ -3327,11 +3891,11 @@ function ProviderVaultPanel({
 
       <div className="grid gap-3">
         <label className="grid gap-2">
-          <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
+          <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
             DeepSeek Base URL
           </span>
           <input
-            className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-xs text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
+            className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-xs text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/60"
             onBlur={() => onSetProviderBaseUrl(providerId, baseUrlDraft)}
             onChange={(event) => setBaseUrlDraft(event.target.value)}
             placeholder={provider.defaultBaseUrl}
@@ -3342,13 +3906,13 @@ function ProviderVaultPanel({
         </label>
 
         {credential?.apiKey && credential.isLocked ? (
-          <div className="border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-slate-300">
+          <div className="border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-neutral-300">
             ••••••••••••••••
           </div>
         ) : (
           <input
             autoComplete="new-password"
-            className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
+            className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/60"
             onChange={(event) => setKeyDraft(event.target.value)}
             placeholder="DeepSeek API key"
             type="password"
@@ -3358,7 +3922,7 @@ function ProviderVaultPanel({
 
         <div className="grid grid-cols-4 gap-2">
           <button
-            className="border border-emerald-300/35 bg-emerald-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-emerald-100 transition hover:bg-emerald-300/20 disabled:opacity-40"
+            className="border border-neutral-300/35 bg-neutral-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
             disabled={!keyDraft.trim()}
             onClick={() => {
               onSetProviderBaseUrl(providerId, baseUrlDraft);
@@ -3371,7 +3935,7 @@ function ProviderVaultPanel({
             Save
           </button>
           <button
-            className="border border-cyan-300/35 bg-cyan-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+            className="border border-neutral-300/35 bg-neutral-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
             disabled={!credential?.apiKey}
             onClick={() =>
               credential?.isLocked
@@ -3383,7 +3947,7 @@ function ProviderVaultPanel({
             {credential?.isLocked ? "Unlock" : "Lock"}
           </button>
           <button
-            className="border border-cyan-300/35 bg-cyan-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+            className="border border-neutral-300/35 bg-neutral-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
             disabled={!credential?.apiKey || verifying}
             onClick={() => void verifyProvider()}
             type="button"
@@ -3391,7 +3955,7 @@ function ProviderVaultPanel({
             {verifying ? "Checking" : "Verify"}
           </button>
           <button
-            className="border border-rose-300/35 bg-rose-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-rose-100 transition hover:bg-rose-300/20 disabled:opacity-40"
+            className="border border-neutral-300/35 bg-neutral-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
             disabled={!credential?.apiKey}
             onClick={() => onDeleteProviderCredential(providerId)}
             type="button"
@@ -3401,7 +3965,7 @@ function ProviderVaultPanel({
         </div>
 
         {credential?.verificationError ? (
-          <div className="border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-[11px] text-rose-100">
+          <div className="border border-neutral-300/25 bg-neutral-300/10 px-3 py-2 text-[11px] text-neutral-100">
             {credential.verificationError}
           </div>
         ) : null}
@@ -3420,13 +3984,13 @@ function ProviderVaultPanel({
                   <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-white">
                     {model.label}
                   </div>
-                  <div className="mt-1 text-xs text-slate-500">{model.id}</div>
+                  <div className="mt-1 text-xs text-neutral-500">{model.id}</div>
                 </div>
-                <span className="border border-cyan-300/25 bg-cyan-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100">
+                <span className="border border-neutral-300/25 bg-neutral-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100">
                   {model.tier ?? "standard"}
                 </span>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+              <div className="mt-3 grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                 <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
                   Provider: {provider.label}
                 </span>
@@ -3441,7 +4005,7 @@ function ProviderVaultPanel({
                 </span>
               </div>
               {thinking?.supported ? (
-                <div className="mt-3 border border-cyan-300/20 bg-cyan-300/[0.04] p-2 text-[11px] leading-5 text-slate-400">
+                <div className="mt-3 border border-neutral-300/20 bg-neutral-300/[0.04] p-2 text-[11px] leading-5 text-neutral-400">
                   <div>
                     Effort: {thinking.supportedReasoningEfforts.join(" / ")}; xhigh maps
                     to {effortMap?.xhigh ?? "xhigh"}
@@ -3483,6 +4047,7 @@ function AgentSettingsSidebar({
   onCreateNotebook,
   onDeleteApiKey,
   onDeleteProviderCredential,
+  onDownloadArtifact,
   onLockVault,
   onLockProviderCredential,
   onLogout,
@@ -3532,6 +4097,7 @@ function AgentSettingsSidebar({
   onCreateNotebook: () => string;
   onDeleteApiKey: () => void;
   onDeleteProviderCredential: (providerId: string) => void;
+  onDownloadArtifact: (artifact: ArtifactVaultRecord) => void;
   onLockVault: () => void;
   onLockProviderCredential: (providerId: string) => void;
   onLogout: () => void;
@@ -3568,6 +4134,10 @@ function AgentSettingsSidebar({
   const [vaultKeyDraft, setVaultKeyDraft] = useState("");
   const [vaultBaseUrlDraft, setVaultBaseUrlDraft] = useState(
     authVault.globalBaseUrl ?? DEFAULT_BASE_URL,
+  );
+  const generatedArtifacts = useMemo(
+    () => artifacts.filter(isGeneratedArtifactRecord),
+    [artifacts],
   );
   const [traceEvents, setTraceEvents] = useState<SystemEventRecord[]>([]);
   const [traceEventsCursor, setTraceEventsCursor] = useState<string | null>(null);
@@ -3644,13 +4214,13 @@ function AgentSettingsSidebar({
           initial={{ opacity: 0, x: 48 }}
           style={{
             background:
-              "var(--nexus-layout-panel-bg, linear-gradient(180deg, color-mix(in srgb, var(--theme-primary, #67e8f9) 13%, rgba(15,23,42,0.92)), color-mix(in srgb, var(--theme-primary, #67e8f9) 6%, rgba(2,6,23,0.95))))",
+              "var(--nexus-layout-panel-bg, linear-gradient(180deg, color-mix(in srgb, var(--theme-primary, #e5e5e5) 13%, rgba(15,23,42,0.92)), color-mix(in srgb, var(--theme-primary, #e5e5e5) 6%, rgba(2,6,23,0.95))))",
             borderColor:
-              "var(--nexus-layout-panel-border, color-mix(in srgb, var(--theme-primary, #67e8f9) 28%, transparent))",
+              "var(--nexus-layout-panel-border, color-mix(in srgb, var(--theme-primary, #e5e5e5) 28%, transparent))",
             borderRadius:
               "var(--nexus-right-dock-radius, var(--nexus-panel-radius, var(--surface-radius)))",
             boxShadow:
-              "var(--nexus-layout-panel-shadow, 0 24px 90px rgba(0,0,0,0.55), 0 0 44px color-mix(in srgb, var(--theme-primary, #67e8f9) 14%, transparent))",
+              "var(--nexus-layout-panel-shadow, 0 24px 90px rgba(0,0,0,0.55), 0 0 44px color-mix(in srgb, var(--theme-primary, #e5e5e5) 14%, transparent))",
           }}
           transition={{ duration: 0.22, ease: "easeOut" }}
         >
@@ -3658,14 +4228,14 @@ function AgentSettingsSidebar({
               className="flex items-center justify-between border-b border-white/10 p-4"
               style={{
                 background:
-                  "var(--nexus-layout-panel-muted-bg, color-mix(in srgb, var(--theme-primary, #67e8f9) 12%, transparent))",
+                  "var(--nexus-layout-panel-muted-bg, color-mix(in srgb, var(--theme-primary, #e5e5e5) 12%, transparent))",
               }}
             >
 	            <div>
-	              <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-slate-100">
+	              <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-neutral-100">
 	                {panelMeta.label}
 	              </div>
-	              <div className="mt-1 text-xs text-slate-500">{panelMeta.detail}</div>
+	              <div className="mt-1 text-xs text-neutral-500">{panelMeta.detail}</div>
 	            </div>
 	            <IconButton label="Close panel" onClick={onClose}>
 	              <X className="h-4 w-4" />
@@ -3673,10 +4243,10 @@ function AgentSettingsSidebar({
 	          </header>
 
           <div
-            className="cyber-scroll min-h-0 flex-1 overflow-y-auto p-4"
+            className="system-scroll min-h-0 flex-1 overflow-y-auto p-4"
             style={{
               background:
-                "var(--nexus-body-frame-bg, color-mix(in srgb, var(--theme-primary, #67e8f9) 4%, transparent))",
+                "var(--nexus-body-frame-bg, color-mix(in srgb, var(--theme-primary, #e5e5e5) 4%, transparent))",
             }}
           >
 	            <div
@@ -3729,20 +4299,20 @@ function AgentSettingsSidebar({
 
 	            <section
 	              className={cx(
-	                "mb-4 border border-fuchsia-300/25 bg-fuchsia-300/[0.045] p-3 shadow-[0_0_28px_rgba(217,70,239,0.08)]",
+	                "mb-4 border border-neutral-300/25 bg-neutral-300/[0.045] p-3 shadow-[0_0_28px_rgba(217,70,239,0.08)]",
 	                activePanel !== "memory" && "hidden",
 	              )}
 	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fuchsia-100">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
                     🧬 Branching & Memory Compression
                   </div>
-                  <div className="mt-1 text-xs text-slate-500">
+                  <div className="mt-1 text-xs text-neutral-500">
                     Global defaults for summary branch extraction
                   </div>
                 </div>
-                <span className="border border-fuchsia-300/30 bg-fuchsia-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-fuchsia-100">
+                <span className="border border-neutral-300/30 bg-neutral-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100">
                   {branchingSettings?.defaultRetentionRatio ??
                     DEFAULT_WORKSPACE_BRANCHING_SETTINGS.defaultRetentionRatio}
                   %
@@ -3750,11 +4320,11 @@ function AgentSettingsSidebar({
               </div>
 
               <label className="grid gap-2">
-                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
                   Default Summary Retention Ratio
                 </span>
                 <input
-                  className="accent-fuchsia-300"
+                  className="accent-neutral-300"
                   max={100}
                   min={5}
                   onChange={(event) =>
@@ -3768,7 +4338,7 @@ function AgentSettingsSidebar({
                     DEFAULT_WORKSPACE_BRANCHING_SETTINGS.defaultRetentionRatio
                   }
                 />
-                <span className="text-xs leading-5 text-slate-400">
+                <span className="text-xs leading-5 text-neutral-400">
                   New summary branches start by retaining the most important{" "}
                   {branchingSettings?.defaultRetentionRatio ??
                     DEFAULT_WORKSPACE_BRANCHING_SETTINGS.defaultRetentionRatio}
@@ -3776,14 +4346,14 @@ function AgentSettingsSidebar({
                 </span>
               </label>
 
-              <div className="mt-3 border border-dashed border-fuchsia-300/20 bg-black/25 p-3 opacity-60">
-                <div className="flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
+              <div className="mt-3 border border-dashed border-neutral-300/20 bg-black/25 p-3 opacity-60">
+                <div className="flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
                   Future Default Weights
-                  <span className="border border-amber-300/25 px-2 py-0.5 text-[8px] text-amber-100">
+                  <span className="border border-neutral-300/25 px-2 py-0.5 text-[8px] text-neutral-100">
                     Reserved
                   </span>
                 </div>
-                <div className="mt-2 grid gap-1.5 text-[11px] text-slate-500">
+                <div className="mt-2 grid gap-1.5 text-[11px] text-neutral-500">
                   <div className="flex items-center justify-between gap-3">
                     <span>Architecture</span>
                     <span className="h-px flex-1 bg-white/10" />
@@ -3810,21 +4380,21 @@ function AgentSettingsSidebar({
 
 	            <section
 	              className={cx(
-	                "mb-4 border border-cyan-300/25 bg-cyan-300/[0.045] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]",
+	                "mb-4 border border-neutral-300/25 bg-neutral-300/[0.045] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]",
 	                activePanel !== "account" && "hidden",
 	              )}
 	            >
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
                     Account Profile
                   </div>
-                  <div className="mt-1 truncate text-xs text-slate-400">
+                  <div className="mt-1 truncate text-xs text-neutral-400">
                     {authVault.user?.email ?? "Authenticated operator"}
                   </div>
                 </div>
                 <button
-                  className="border border-rose-300/30 bg-rose-300/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-rose-100 transition hover:bg-rose-300/20"
+                  className="border border-neutral-300/30 bg-neutral-300/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100 transition hover:bg-neutral-300/20"
                   onClick={onLogout}
                   type="button"
                 >
@@ -3835,16 +4405,16 @@ function AgentSettingsSidebar({
 
 	            <section
 	              className={cx(
-	                "mb-4 border border-fuchsia-300/25 bg-fuchsia-300/[0.045] p-3 shadow-[0_0_28px_rgba(217,70,239,0.08)]",
+	                "mb-4 border border-neutral-300/25 bg-neutral-300/[0.045] p-3 shadow-[0_0_28px_rgba(217,70,239,0.08)]",
 	                activePanel !== "providers" && "hidden",
 	              )}
 	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fuchsia-100">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
                     Global API Vault
                   </div>
-                  <div className="mt-1 text-xs text-slate-500">
+                  <div className="mt-1 text-xs text-neutral-500">
                     One local runtime key for every workspace and agent
                   </div>
                 </div>
@@ -3853,9 +4423,9 @@ function AgentSettingsSidebar({
                     "border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em]",
                     authVault.globalApiKey
                       ? authVault.isLocked
-                        ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
-                        : "border-amber-300/35 bg-amber-300/10 text-amber-100"
-                      : "border-rose-300/35 bg-rose-300/10 text-rose-100",
+                        ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
+                        : "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
+                      : "border-neutral-300/35 bg-neutral-300/10 text-neutral-100",
                   )}
                 >
                   {authVault.globalApiKey
@@ -3868,15 +4438,15 @@ function AgentSettingsSidebar({
 
               {authVault.globalApiKey && authVault.isLocked ? (
                 <div className="grid gap-3">
-                  <div className="border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-slate-300">
+                  <div className="border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-neutral-300">
                     ••••••••••••••••
                   </div>
                   <label className="grid gap-2">
-                    <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
                       OpenAI-compatible Base URL
                     </span>
                     <input
-                      className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-xs text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-fuchsia-300/60"
+                      className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-xs text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/60"
                       onBlur={() => onSetGlobalBaseUrl(vaultBaseUrlDraft)}
                       onChange={(event) => setVaultBaseUrlDraft(event.target.value)}
                       placeholder={DEFAULT_BASE_URL}
@@ -3887,14 +4457,14 @@ function AgentSettingsSidebar({
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
-                      className="border border-cyan-300/35 bg-cyan-300/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100 transition hover:bg-cyan-300/20"
+                      className="border border-neutral-300/35 bg-neutral-300/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100 transition hover:bg-neutral-300/20"
                       onClick={onUnlockVault}
                       type="button"
                     >
                       Unlock
                     </button>
                     <button
-                      className="border border-rose-300/35 bg-rose-300/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-rose-100 transition hover:bg-rose-300/20"
+                      className="border border-neutral-300/35 bg-neutral-300/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100 transition hover:bg-neutral-300/20"
                       onClick={onDeleteApiKey}
                       type="button"
                     >
@@ -3905,11 +4475,11 @@ function AgentSettingsSidebar({
               ) : (
                 <div className="grid gap-3">
                   <label className="grid gap-2">
-                    <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
                       OpenAI-compatible Base URL
                     </span>
                     <input
-                      className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-xs text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-fuchsia-300/60"
+                      className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-xs text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/60"
                       onBlur={() => onSetGlobalBaseUrl(vaultBaseUrlDraft)}
                       onChange={(event) => setVaultBaseUrlDraft(event.target.value)}
                       placeholder={DEFAULT_BASE_URL}
@@ -3920,7 +4490,7 @@ function AgentSettingsSidebar({
                   </label>
                   <input
                     autoComplete="new-password"
-                    className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-fuchsia-300/60"
+                    className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/60"
                     onChange={(event) => setVaultKeyDraft(event.target.value)}
                     placeholder="sk-..."
                     type="password"
@@ -3928,7 +4498,7 @@ function AgentSettingsSidebar({
                   />
                   <div className="grid grid-cols-2 gap-2">
                     <button
-                      className="border border-emerald-300/35 bg-emerald-300/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100 transition hover:bg-emerald-300/20 disabled:opacity-40"
+                      className="border border-neutral-300/35 bg-neutral-300/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
                       disabled={!vaultKeyDraft.trim()}
                       onClick={() => {
                         onSetGlobalBaseUrl(vaultBaseUrlDraft);
@@ -3941,7 +4511,7 @@ function AgentSettingsSidebar({
                       Save & Lock
                     </button>
                     <button
-                      className="border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-300 transition hover:border-white/25 hover:bg-white/10"
+                      className="border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10"
                       onClick={authVault.globalApiKey ? onLockVault : onDeleteApiKey}
                       type="button"
                     >
@@ -3954,17 +4524,17 @@ function AgentSettingsSidebar({
 
 	            <section
 	              className={cx(
-	                "mb-4 border border-cyan-300/25 bg-cyan-300/[0.035] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]",
+	                "mb-4 border border-neutral-300/25 bg-neutral-300/[0.035] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]",
 	                activePanel !== "models" && "hidden",
 	              )}
 	            >
               <div className="mb-3 flex items-center gap-2">
-                <BrainCircuit className="h-4 w-4 text-cyan-100" />
+                <BrainCircuit className="h-4 w-4 text-neutral-100" />
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
                     🧠 Agent Routing & Models
                   </div>
-                  <div className="mt-1 text-xs text-slate-500">
+                  <div className="mt-1 text-xs text-neutral-500">
                     Per-agent model selection. Authentication stays in the Global API Vault.
                   </div>
                 </div>
@@ -3991,16 +4561,16 @@ function AgentSettingsSidebar({
                           <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-white">
                             {agent.callsign}
                           </div>
-                          <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                          <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
                             {getCapabilityType(agent)}
                           </div>
                         </div>
-                        <span className="max-w-32 truncate border border-cyan-300/25 bg-cyan-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100">
+                        <span className="max-w-32 truncate border border-neutral-300/25 bg-neutral-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100">
                           {getModelLabel(agent.model)}
                         </span>
                       </div>
 	                      <select
-	                        className="w-full border border-white/10 bg-black/40 px-2.5 py-2 font-mono text-[11px] text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
+	                        className="w-full border border-white/10 bg-black/40 px-2.5 py-2 font-mono text-[11px] text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/60"
                         onChange={(event) =>
                           onUpdateAgentModel(agent.id, event.currentTarget.value)
                         }
@@ -4016,7 +4586,7 @@ function AgentSettingsSidebar({
 	                          </optgroup>
 	                        ))}
 	                      </select>
-	                      <div className="mt-2 grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+	                      <div className="mt-2 grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
 	                        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
 	                          Provider: {getProviderLabel(capability?.providerId ?? agent.provider)}
 	                        </span>
@@ -4030,22 +4600,22 @@ function AgentSettingsSidebar({
 	                          className={cx(
 	                            "border px-2 py-1",
 	                            providerVerified
-	                              ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
-	                              : "border-amber-300/25 bg-amber-300/10 text-amber-100",
+	                              ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
+	                              : "border-neutral-300/25 bg-neutral-300/10 text-neutral-100",
 	                          )}
 	                        >
 	                          Live: {providerVerified ? "Verified" : "Untested"}
 	                        </span>
 	                      </div>
 	                      {capability?.thinking.supported ? (
-	                        <div className="mt-2 border border-cyan-300/20 bg-cyan-300/[0.04] p-2 text-[11px] leading-5 text-slate-400">
-	                          <span className="font-mono uppercase tracking-[0.14em] text-cyan-100">
+	                        <div className="mt-2 border border-neutral-300/20 bg-neutral-300/[0.04] p-2 text-[11px] leading-5 text-neutral-400">
+	                          <span className="font-mono uppercase tracking-[0.14em] text-neutral-100">
 	                            Reasoning
 	                          </span>
 	                          <span className="ml-2">
 	                            {capability.thinking.supportedReasoningEfforts.join(" / ")}
 	                          </span>
-	                          <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+	                          <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
 	                            xhigh maps to{" "}
 	                            {capability.thinking.providerReasoningEffortMap?.xhigh ?? "xhigh"};
 	                            disabled params:{" "}
@@ -4067,15 +4637,15 @@ function AgentSettingsSidebar({
 	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
                     Add New Agent
                   </div>
-                  <div className="mt-1 text-xs text-slate-500">
+                  <div className="mt-1 text-xs text-neutral-500">
                     Chat, image, video, or sandbox workstation
                   </div>
                 </div>
                 <button
-                  className="grid h-9 w-9 place-items-center border border-cyan-300/35 bg-cyan-300/10 text-cyan-100 transition hover:bg-cyan-300/20"
+                  className="grid h-9 w-9 place-items-center border border-neutral-300/35 bg-neutral-300/10 text-neutral-100 transition hover:bg-neutral-300/20"
                   onClick={() => onAddAgent(newAgentType)}
                   title="Add new agent"
                   type="button"
@@ -4090,8 +4660,8 @@ function AgentSettingsSidebar({
                     className={cx(
                       "border px-2 py-2 text-left transition",
                       newAgentType === option.type
-                        ? "border-cyan-300/45 bg-cyan-300/10 text-cyan-100"
-                        : "border-white/10 bg-black/20 text-slate-400 hover:border-white/25",
+                        ? "border-neutral-300/45 bg-neutral-300/10 text-neutral-100"
+                        : "border-white/10 bg-black/20 text-neutral-400 hover:border-white/25",
                     )}
                     onClick={() => setNewAgentType(option.type)}
                     type="button"
@@ -4106,21 +4676,21 @@ function AgentSettingsSidebar({
 
 	            <section
 	              className={cx(
-	                "mb-4 border border-emerald-300/30 bg-emerald-300/[0.045] p-3 shadow-[0_0_28px_rgba(16,185,129,0.09)]",
+	                "mb-4 border border-neutral-300/30 bg-neutral-300/[0.045] p-3 shadow-[0_0_28px_rgba(16,185,129,0.09)]",
 	                activePanel !== "memory" && "hidden",
 	              )}
 	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-100">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
                     📓 Global Datapads
                   </div>
-                  <div className="mt-1 text-xs text-slate-500">
+                  <div className="mt-1 text-xs text-neutral-500">
                     Cross-workspace notebooks for durable operator context
                   </div>
                 </div>
                 <button
-                  className="border border-emerald-300/40 bg-emerald-300/10 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-100 transition hover:bg-emerald-300/20"
+                  className="border border-neutral-300/40 bg-neutral-300/10 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/20"
                   onClick={onCreateNotebook}
                   type="button"
                 >
@@ -4139,16 +4709,16 @@ function AgentSettingsSidebar({
                         className={cx(
                           "min-h-20 border p-2 text-left transition",
                           active
-                            ? "border-emerald-300/60 bg-emerald-300/12 shadow-[0_0_22px_rgba(16,185,129,0.14)]"
-                            : "border-white/10 bg-black/25 hover:border-emerald-300/35 hover:bg-emerald-300/10",
+                            ? "border-neutral-300/60 bg-neutral-300/12 shadow-[0_0_22px_rgba(16,185,129,0.14)]"
+                            : "border-white/10 bg-black/25 hover:border-neutral-300/35 hover:bg-neutral-300/10",
                         )}
                         onClick={() => onToggleNotebook(notebook.id)}
                         type="button"
                       >
-                        <span className="block line-clamp-2 font-mono text-[10px] uppercase tracking-[0.13em] text-emerald-50">
+                        <span className="block line-clamp-2 font-mono text-[10px] uppercase tracking-[0.13em] text-neutral-50">
                           {notebook.title || "Untitled Datapad"}
                         </span>
-                        <span className="mt-2 block line-clamp-2 text-[11px] leading-4 text-slate-500">
+                        <span className="mt-2 block line-clamp-2 text-[11px] leading-4 text-neutral-500">
                           {notebook.content.trim() || "Empty global notebook"}
                         </span>
                       </button>
@@ -4156,7 +4726,7 @@ function AgentSettingsSidebar({
                   })}
                 </div>
               ) : (
-                <div className="border border-dashed border-emerald-300/20 bg-black/20 px-3 py-4 text-xs leading-5 text-slate-500">
+                <div className="border border-dashed border-neutral-300/20 bg-black/20 px-3 py-4 text-xs leading-5 text-neutral-500">
                   No global datapads yet. Create one to keep notes available across
                   every workspace.
                 </div>
@@ -4165,21 +4735,21 @@ function AgentSettingsSidebar({
 
 	            <section
 	              className={cx(
-	                "mt-5 border border-emerald-300/35 bg-emerald-300/[0.05] p-3 shadow-[0_0_34px_rgba(16,185,129,0.1)]",
+	                "mt-5 border border-neutral-300/35 bg-neutral-300/[0.05] p-3 shadow-[0_0_34px_rgba(16,185,129,0.1)]",
 	                activePanel !== "artifacts" && "hidden",
 	              )}
 	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-100">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
                     🗃️ Artifact Vault
                   </div>
-                  <div className="mt-1 text-xs text-slate-500">
+                  <div className="mt-1 text-xs text-neutral-500">
                     Saved code payloads, URLs, and generated interface artifacts
                   </div>
                 </div>
                 <button
-                  className="grid h-9 w-9 place-items-center border border-emerald-300/35 bg-emerald-300/10 text-emerald-100 transition hover:bg-emerald-300/20"
+                  className="grid h-9 w-9 place-items-center border border-neutral-300/35 bg-neutral-300/10 text-neutral-100 transition hover:bg-neutral-300/20"
                   onClick={onRefreshArtifacts}
                   title="Refresh artifact vault"
                   type="button"
@@ -4189,20 +4759,20 @@ function AgentSettingsSidebar({
               </div>
 
               {artifactError ? (
-                <div className="border border-rose-300/30 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
+                <div className="border border-neutral-300/30 bg-neutral-300/10 px-3 py-2 text-xs text-neutral-100">
                   {artifactError}
                 </div>
               ) : null}
 
               <div className="grid gap-2">
                 {artifactsLoading && !artifacts.length ? (
-                  <div className="border border-white/10 bg-black/25 px-3 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                  <div className="border border-white/10 bg-black/25 px-3 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-500">
                     Loading artifacts
                   </div>
                 ) : null}
 
                 {!artifactsLoading && !artifacts.length ? (
-                  <div className="border border-white/10 bg-black/25 px-3 py-3 text-xs text-slate-500">
+                  <div className="border border-white/10 bg-black/25 px-3 py-3 text-xs text-neutral-500">
                     No artifacts saved yet. Use Save Artifact inside a Sandbox workstation.
                   </div>
                 ) : null}
@@ -4210,19 +4780,19 @@ function AgentSettingsSidebar({
                 {artifacts.map((artifact) => (
                   <article
                     key={artifact.id}
-                    className="border border-white/10 bg-black/25 p-3 transition hover:border-emerald-300/35 hover:bg-emerald-300/10"
+                    className="border border-white/10 bg-black/25 p-3 transition hover:border-neutral-300/35 hover:bg-neutral-300/10"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="border border-emerald-300/30 bg-emerald-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-100">
+                          <span className="border border-neutral-300/30 bg-neutral-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100">
                             {artifact.type}
                           </span>
-                          <span className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                          <span className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                             {formatTime(artifact.createdAt)}
                           </span>
                         </div>
-                        <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-400">
+                        <p className="mt-2 line-clamp-2 text-xs leading-5 text-neutral-400">
                           {artifactPreview(
                             artifact.previewText ??
                               artifact.contentUrl ??
@@ -4233,7 +4803,7 @@ function AgentSettingsSidebar({
                         </p>
                       </div>
                       <button
-                        className="shrink-0 border border-emerald-300/45 bg-emerald-300/12 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-100 transition hover:bg-emerald-300/22"
+                        className="shrink-0 border border-neutral-300/45 bg-neutral-300/12 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/22"
                         onClick={() => onCopyArtifact(artifact)}
                         type="button"
                       >
@@ -4247,21 +4817,119 @@ function AgentSettingsSidebar({
 
 	            <section
 	              className={cx(
-	                "mt-5 border border-cyan-300/25 bg-cyan-300/[0.045] p-3",
+	                "mt-5 border border-neutral-300/35 bg-neutral-300/[0.05] p-3 shadow-[0_0_34px_rgba(34,211,238,0.1)]",
+	                activePanel !== "generations" && "hidden",
+	              )}
+	            >
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
+                    生成紀錄
+                  </div>
+                  <div className="mt-1 text-xs text-neutral-500">
+                    Generated files from image and future media modes
+                  </div>
+                </div>
+                <button
+                  className="grid h-9 w-9 place-items-center border border-neutral-300/35 bg-neutral-300/10 text-neutral-100 transition hover:bg-neutral-300/20"
+                  onClick={onRefreshArtifacts}
+                  title="Refresh generation records"
+                  type="button"
+                >
+                  <RefreshCcw className={cx("h-4 w-4", artifactsLoading && "animate-spin")} />
+                </button>
+              </div>
+
+              {artifactError ? (
+                <div className="border border-neutral-300/30 bg-neutral-300/10 px-3 py-2 text-xs text-neutral-100">
+                  {artifactError}
+                </div>
+              ) : null}
+
+              <div className="grid gap-2">
+                {artifactsLoading && !generatedArtifacts.length ? (
+                  <div className="border border-white/10 bg-black/25 px-3 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-500">
+                    Loading generation records
+                  </div>
+                ) : null}
+
+                {!artifactsLoading && !generatedArtifacts.length ? (
+                  <div className="border border-white/10 bg-black/25 px-3 py-3 text-xs leading-5 text-neutral-500">
+                    No generated files yet. Switch the composer to image mode and
+                    generate an asset to populate this ledger.
+                  </div>
+                ) : null}
+
+                {generatedArtifacts.map((artifact) => (
+                  <article
+                    key={artifact.id}
+                    className="border border-white/10 bg-black/25 p-3 transition hover:border-neutral-300/35 hover:bg-neutral-300/10"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="border border-neutral-300/30 bg-neutral-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100">
+                            {artifact.type}
+                          </span>
+                          <span className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
+                            {formatTime(artifact.createdAt)}
+                          </span>
+                        </div>
+                        <p className="mt-2 line-clamp-2 text-xs leading-5 text-neutral-300">
+                          {artifact.title ??
+                            artifactPreview(
+                              artifact.previewText ??
+                                artifact.contentUrl ??
+                                artifact.contentHash ??
+                                artifact.id,
+                            )}
+                        </p>
+                        <p className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-600">
+                          {artifact.mimeType ?? "downloadable asset"} / v
+                          {artifact.version}
+                        </p>
+                      </div>
+                      <div className="grid shrink-0 gap-1.5">
+                        <button
+                          className="inline-flex items-center justify-center gap-1.5 border border-neutral-300/45 bg-neutral-300/12 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/22"
+                          onClick={() => onDownloadArtifact(artifact)}
+                          type="button"
+                        >
+                          <Download className="h-3 w-3" />
+                          Download
+                        </button>
+                        <button
+                          className="inline-flex items-center justify-center gap-1.5 border border-white/15 bg-white/[0.045] px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-300 transition hover:border-neutral-300/35 hover:text-neutral-100"
+                          onClick={() => onCopyArtifact(artifact)}
+                          type="button"
+                        >
+                          <Copy className="h-3 w-3" />
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+	            <section
+	              className={cx(
+	                "mt-5 border border-neutral-300/25 bg-neutral-300/[0.045] p-3",
 	                activePanel !== "trace" && "hidden",
 	              )}
 	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-100">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
                     Trace Viewer
                   </div>
-                  <div className="mt-1 text-[11px] text-slate-500">
+                  <div className="mt-1 text-[11px] text-neutral-500">
                     Latest workspace events
                   </div>
                 </div>
                 <button
-                  className="border border-cyan-300/35 bg-cyan-300/10 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+                  className="border border-neutral-300/35 bg-neutral-300/10 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
                   disabled={traceEventsLoading}
                   onClick={() => void loadTraceEvents("reset")}
                   type="button"
@@ -4271,14 +4939,14 @@ function AgentSettingsSidebar({
               </div>
 
               {traceEventsError ? (
-                <div className="mb-2 border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-[11px] text-amber-100">
+                <div className="mb-2 border border-neutral-300/25 bg-neutral-300/10 px-3 py-2 text-[11px] text-neutral-100">
                   {traceEventsError}
                 </div>
               ) : null}
 
               <div className="grid gap-2">
                 {!traceEvents.length && !traceEventsLoading ? (
-                  <div className="border border-white/10 bg-black/25 px-3 py-3 text-xs text-slate-500">
+                  <div className="border border-white/10 bg-black/25 px-3 py-3 text-xs text-neutral-500">
                     No trace events loaded.
                   </div>
                 ) : null}
@@ -4292,14 +4960,14 @@ function AgentSettingsSidebar({
                       <span className={`font-mono text-[9px] uppercase tracking-[0.14em] ${traceSeverityClass(event.severity)}`}>
                         {event.severity}
                       </span>
-                      <span className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                      <span className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                         {formatTime(event.createdAt)}
                       </span>
                     </div>
-                    <div className="mt-1 truncate font-mono text-[10px] text-slate-300">
+                    <div className="mt-1 truncate font-mono text-[10px] text-neutral-300">
                       {event.source} / {event.eventType}
                     </div>
-                    <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-slate-500">
+                    <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-neutral-500">
                       {event.message ?? event.resourceType ?? event.traceId}
                     </p>
                   </article>
@@ -4308,7 +4976,7 @@ function AgentSettingsSidebar({
 
               {traceEventsHasMore ? (
                 <button
-                  className="mt-3 w-full border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-300 transition hover:border-cyan-300/35 hover:bg-cyan-300/10 disabled:opacity-40"
+                  className="mt-3 w-full border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-300 transition hover:border-neutral-300/35 hover:bg-neutral-300/10 disabled:opacity-40"
                   disabled={traceEventsLoading}
                   onClick={() => void loadTraceEvents("next")}
                   type="button"
@@ -4320,21 +4988,21 @@ function AgentSettingsSidebar({
 
 	            <section
 	              className={cx(
-	                "mt-5 border border-fuchsia-300/35 bg-fuchsia-300/[0.055] p-3 shadow-[0_0_34px_rgba(217,70,239,0.12)]",
+	                "mt-5 border border-neutral-300/35 bg-neutral-300/[0.055] p-3 shadow-[0_0_34px_rgba(217,70,239,0.12)]",
 	                activePanel !== "workflows" && "hidden",
 	              )}
 	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fuchsia-100">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
                     📁 Macro Blueprint Vault
                   </div>
-                  <div className="mt-1 text-xs text-slate-500">
+                  <div className="mt-1 text-xs text-neutral-500">
                     Spawn saved cloud topologies into the active canvas
                   </div>
                 </div>
                 <button
-                  className="grid h-9 w-9 place-items-center border border-fuchsia-300/35 bg-fuchsia-300/10 text-fuchsia-100 transition hover:bg-fuchsia-300/20"
+                  className="grid h-9 w-9 place-items-center border border-neutral-300/35 bg-neutral-300/10 text-neutral-100 transition hover:bg-neutral-300/20"
                   onClick={onRefreshMacros}
                   title="Refresh macro vault"
                   type="button"
@@ -4344,20 +5012,20 @@ function AgentSettingsSidebar({
               </div>
 
               {macroError ? (
-                <div className="border border-rose-300/30 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
+                <div className="border border-neutral-300/30 bg-neutral-300/10 px-3 py-2 text-xs text-neutral-100">
                   {macroError}
                 </div>
               ) : null}
 
               <div className="grid gap-2">
                 {macrosLoading && !macros.length ? (
-                  <div className="border border-white/10 bg-black/25 px-3 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                  <div className="border border-white/10 bg-black/25 px-3 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-500">
                     Loading blueprints
                   </div>
                 ) : null}
 
                 {!macrosLoading && !macros.length ? (
-                  <div className="border border-white/10 bg-black/25 px-3 py-3 text-xs text-slate-500">
+                  <div className="border border-white/10 bg-black/25 px-3 py-3 text-xs text-neutral-500">
                     No macros saved yet. Switch to Graph view and run Pack Workflow.
                   </div>
                 ) : null}
@@ -4365,26 +5033,26 @@ function AgentSettingsSidebar({
                 {macros.map((macro) => (
                   <article
                     key={macro.id}
-                    className="border border-white/10 bg-black/25 p-3 transition hover:border-fuchsia-300/35 hover:bg-fuchsia-300/10"
+                    className="border border-white/10 bg-black/25 p-3 transition hover:border-neutral-300/35 hover:bg-neutral-300/10"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="truncate font-mono text-[11px] uppercase tracking-[0.16em] text-white">
                           {macro.name}
                         </div>
-                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
+                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-neutral-500">
                           {macro.description || "No description"}
                         </p>
                       </div>
                       <button
-                        className="shrink-0 border border-fuchsia-300/45 bg-fuchsia-300/12 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-fuchsia-100 transition hover:bg-fuchsia-300/22"
+                        className="shrink-0 border border-neutral-300/45 bg-neutral-300/12 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/22"
                         onClick={() => onSpawnMacro(macro)}
                         type="button"
                       >
                         [ SPAWN ]
                       </button>
                     </div>
-                    <div className="mt-3 flex items-center justify-between gap-2 font-mono text-[9px] uppercase tracking-[0.14em] text-fuchsia-200/70">
+                    <div className="mt-3 flex items-center justify-between gap-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-200/70">
                       <span>{macro.blueprintData.agents.length} agents</span>
                       <span>{macro.blueprintData.graph.edges.length} edges</span>
                     </div>
@@ -4455,7 +5123,7 @@ const workspaceStylePresetDefinitions = [
   {
     controls: {
       accent: "custom",
-      accentColor: "#facc15",
+      accentColor: "#eeeeee",
       blur: 14,
       glass: 50,
       radius: 16,
@@ -4581,58 +5249,11 @@ function WorkspaceStyleControlsPanel({
     return () => window.clearTimeout(timeoutId);
   }, []);
 
-  const hasUnsavedChanges = savedControls
-    ? !compareWorkspaceThemeControls(controls, savedControls)
-    : !compareWorkspaceThemeControls(controls, baseThemeControls);
-  const isSyncedToBaseTheme =
-    !savedControls &&
-    !hasUnsavedChanges &&
-    compareWorkspaceThemeControls(controls, baseThemeControls);
-  const styleSystemRelation = savedControls
-    ? "workspace override saved"
-    : isSyncedToBaseTheme
-      ? "synced to workspace seed"
-      : "live override unsaved";
-  const activePreset = useMemo(
-    () =>
-      workspaceStylePresetDefinitions.find((preset) =>
-        compareWorkspaceThemeControls(
-          controls,
-          createWorkspaceStylePresetControls(baseThemeControls, preset),
-        ),
-      ) ?? null,
-    [baseThemeControls, controls],
-  );
-  const savedPreset = useMemo(() => {
-    if (!savedControls) {
-      return null;
-    }
-
-    return (
-      workspaceStylePresetDefinitions.find((preset) =>
-        compareWorkspaceThemeControls(
-          savedControls,
-          createWorkspaceStylePresetControls(baseThemeControls, preset),
-        ),
-      ) ?? null
-    );
-  }, [baseThemeControls, savedControls]);
-  const presetStatus = activePreset ? activePreset.label : "Custom";
-  const savedBaselineStatus = savedControls
-    ? savedPreset
-      ? `${savedPreset.label} saved`
-      : "Custom saved"
-    : "Workspace seed";
-  const changeStatus = hasUnsavedChanges ? "Unsaved changes" : "In sync";
-  const controlsResult = createWorkspaceThemeStylePreviewVariablesV1(controls);
-  const previewVariableCount = controlsResult.accepted
-    ? controlsResult.variableNames.length
-    : 0;
   const activeAccent = controls.accentColor;
   const controlRadius = `${controls.radius}px`;
   const panelMaterialStyle = {
     background:
-      "var(--nexus-layout-panel-bg, linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02))), var(--nexus-panel-bg, rgb(2 6 23 / 0.95))",
+      "var(--nexus-layout-panel-bg, linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02))), var(--nexus-panel-bg, rgb(16 16 16 / 0.95))",
     borderColor:
       "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.12)))",
     borderRadius: controlRadius,
@@ -4641,7 +5262,7 @@ function WorkspaceStyleControlsPanel({
   } satisfies CSSProperties;
   const panelMutedMaterialStyle = {
     background:
-      "var(--nexus-layout-panel-muted-bg, linear-gradient(180deg, rgb(255 255 255 / 0.045), rgb(255 255 255 / 0.012))), var(--nexus-panel-bg, rgb(2 6 23 / 0.82))",
+      "var(--nexus-layout-panel-muted-bg, linear-gradient(180deg, rgb(255 255 255 / 0.045), rgb(255 255 255 / 0.012))), var(--nexus-panel-bg, rgb(16 16 16 / 0.82))",
     borderColor:
       "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.1)))",
     borderRadius: controlRadius,
@@ -4859,7 +5480,10 @@ function WorkspaceStyleControlsPanel({
     max,
     min = 0,
   }: {
-    key: Exclude<keyof WorkspaceThemeStyleControlsV1, "accent" | "accentColor" | "version">;
+    key: Exclude<
+      keyof WorkspaceThemeStyleControlsV1,
+      "accent" | "accentColor" | "version"
+    >;
     label: string;
     max: number;
     min?: number;
@@ -4871,9 +5495,9 @@ function WorkspaceStyleControlsPanel({
         ...panelMutedMaterialStyle,
       }}
     >
-      <span className="flex items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+      <span className="flex items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-400">
         <span>{label}</span>
-        <span className="text-slate-100">{controls[key]}</span>
+        <span className="text-neutral-100">{controls[key]}</span>
       </span>
       <input
         className="mt-3 w-full"
@@ -4902,89 +5526,22 @@ function WorkspaceStyleControlsPanel({
     >
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-100">
+          <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
             <SlidersHorizontal className="h-4 w-4" />
             Workspace Style Controls
           </div>
-          <div className="mt-1 text-xs text-slate-500">
+          <div className="mt-1 text-xs text-neutral-500">
             Base theme seed plus scoped workspace override
           </div>
         </div>
-        <span
-          className="border bg-black/25 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-slate-100"
-          data-testid="workspace-style-target-status"
-          style={{
-            borderColor: `${activeAccent}66`,
-            borderRadius: controlRadius,
-          }}
-        >
-          target {previewState.targetStatus}
-        </span>
-      </div>
-
-      <div
-        className="mb-3 grid gap-2 border bg-black/20 p-3 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-300"
-        style={{
-          ...panelMutedMaterialStyle,
-        }}
-      >
-        <div className="flex justify-between gap-3">
-          <span>live preview</span>
-          <span data-testid="workspace-style-live-status">{previewState.status}</span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>workspace export</span>
-          <span data-testid="workspace-style-save-status">
-            {savedControls ? "saved to workspace export" : "not saved yet"}
-            {hasUnsavedChanges ? " / unsaved changes" : ""}
-          </span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>style system</span>
-          <span data-testid="workspace-style-system-relation">
-            {styleSystemRelation}
-          </span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>current preset</span>
-          <span data-testid="workspace-style-current-preset-status">
-            {presetStatus} / {changeStatus}
-          </span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>saved baseline</span>
-          <span data-testid="workspace-style-baseline-status">
-            {savedBaselineStatus}
-          </span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>not backend persisted</span>
-          <span>not auto-applied to other workspaces</span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>vars / checksum</span>
-          <span data-testid="workspace-style-preview-trace">
-            {previewVariableCount} / {controlsResult.accepted ? controlsResult.checksum : "blocked"}
-          </span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>apply / revert</span>
-          <span>
-            {formatWorkspaceThemeDuration(previewState.applyDurationMs)} /{" "}
-            {formatWorkspaceThemeDuration(previewState.revertDurationMs)}
-          </span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span>residue</span>
-          <span data-testid="workspace-style-residue-status">
-            {previewState.residueCheck}
-            {previewState.remainingPreviewVariableCount !== null
-              ? ` / ${previewState.remainingPreviewVariableCount}`
-              : ""}
-          </span>
-        </div>
         {previewState.error ? (
-          <div className="text-slate-100" data-testid="workspace-style-error">
+          <div
+            className="mt-3 border p-3 text-xs text-neutral-100"
+            data-testid="workspace-style-error"
+            style={{
+              ...panelMutedMaterialStyle,
+            }}
+          >
             {previewState.error}
           </div>
         ) : null}
@@ -4997,9 +5554,9 @@ function WorkspaceStyleControlsPanel({
           ...panelMutedMaterialStyle,
         }}
       >
-        <div className="mb-2 flex items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+        <div className="mb-2 flex items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-400">
           <span>Workspace Style Presets</span>
-          <span className="text-slate-100">Layer 4</span>
+          <span className="text-neutral-100">Layer 4</span>
         </div>
         <div className="grid grid-cols-2 gap-2">
           {workspaceStylePresetDefinitions.map((preset) => {
@@ -5015,7 +5572,7 @@ function WorkspaceStyleControlsPanel({
             return (
               <button
                 aria-pressed={isActivePreset}
-                className="min-h-14 border px-3 py-2 text-left font-mono uppercase tracking-[0.1em] text-slate-100 transition hover:bg-white/[0.06]"
+                className="min-h-14 border px-3 py-2 text-left font-mono uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-white/[0.06]"
                 data-testid={`workspace-style-preset-${preset.id}`}
                 key={preset.id}
                 onClick={() => applyWorkspaceStylePreset(preset)}
@@ -5030,7 +5587,7 @@ function WorkspaceStyleControlsPanel({
                 type="button"
               >
                 <span className="block text-[10px]">{preset.label}</span>
-                <span className="mt-1 block text-[8px] text-slate-500">
+                <span className="mt-1 block text-[8px] text-neutral-500">
                   {preset.description}
                 </span>
               </button>
@@ -5071,55 +5628,11 @@ function WorkspaceStyleControlsPanel({
           max: 100,
         })}
 
-        <div
-          className="border bg-black/20 p-3"
-          style={{
-            ...panelMutedMaterialStyle,
-          }}
-        >
-          <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
-            Accent
-          </div>
-          <div className="grid grid-cols-[48px_1fr] items-center gap-2">
-            <input
-              aria-label="Accent color"
-              className="h-10 w-12 cursor-pointer border bg-transparent p-1"
-              data-testid="workspace-style-accent-color"
-              onInput={(event) =>
-                updateControls({
-                  ...controls,
-                  accent: "custom",
-                  accentColor: event.currentTarget.value.toLowerCase(),
-                })
-              }
-              style={{
-                borderColor: `${activeAccent}66`,
-                borderRadius: controlRadius,
-              }}
-              title="Accent color"
-              type="color"
-              value={controls.accentColor}
-            />
-            <div
-              className="flex min-h-10 items-center justify-between gap-3 border bg-white/[0.03] px-3 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-100"
-              style={{
-                background:
-                  "var(--nexus-layout-panel-bg, linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02))), var(--nexus-panel-bg, rgb(255 255 255 / 0.03))",
-                borderColor:
-                  "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.12)))",
-                borderRadius: controlRadius,
-              }}
-            >
-              <span>Color wheel</span>
-              <span>{controls.accentColor}</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       <footer className="mt-3 grid grid-cols-3 gap-2">
         <button
-          className="border px-2 py-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-100 transition hover:bg-white/10"
+          className="border px-2 py-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-white/10"
           data-testid="workspace-style-save"
           onClick={saveControls}
           style={{
@@ -5134,7 +5647,7 @@ function WorkspaceStyleControlsPanel({
           Save
         </button>
         <button
-          className="border bg-black/25 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-200 transition hover:bg-white/10"
+          className="border bg-black/25 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-200 transition hover:bg-white/10"
           data-testid="workspace-style-revert"
           onClick={revertPreview}
           style={{
@@ -5149,7 +5662,7 @@ function WorkspaceStyleControlsPanel({
           Revert
         </button>
         <button
-          className="border bg-black/25 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-200 transition hover:bg-white/10"
+          className="border bg-black/25 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-200 transition hover:bg-white/10"
           data-testid="workspace-style-reset"
           onClick={resetControls}
           style={{
@@ -5185,11 +5698,11 @@ function ModelTuningSelect<TValue extends string>({
 
   return (
     <label className="grid gap-1.5">
-      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
         {label}
       </span>
       <select
-        className="w-full border border-white/10 bg-black/45 px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-100 outline-none transition focus:border-cyan-300/60"
+        className="w-full border border-white/10 bg-black/45 px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-100 outline-none transition focus:border-neutral-300/60"
         onChange={(event) => onChange(event.currentTarget.value as TValue)}
         value={value ?? options[0]}
       >
@@ -5220,13 +5733,13 @@ function AgentModelTuningPanel({
   const settings = agent.modelSettings ?? {};
 
   return (
-    <div className="mx-3 mb-3 grid gap-3 border border-cyan-300/20 bg-black/25 p-3">
+    <div className="mx-3 mb-3 grid gap-3 border border-neutral-300/20 bg-black/25 p-3">
       <label className="grid gap-1.5">
-        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
           Model
         </span>
         <select
-          className="w-full border border-white/10 bg-black/45 px-2 py-1.5 font-mono text-[10px] text-slate-100 outline-none transition focus:border-cyan-300/60"
+          className="w-full border border-white/10 bg-black/45 px-2 py-1.5 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/60"
           onChange={(event) =>
             onUpdateAgentModel(agent.id, event.currentTarget.value)
           }
@@ -5271,7 +5784,7 @@ function AgentModelTuningPanel({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+      <div className="grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
         <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
           Provider: {getProviderLabel(capability?.providerId ?? agent.provider)}
         </span>
@@ -5297,15 +5810,15 @@ function AgentTemplateProfilePanel({
   const locked = profile.profileLocked;
 
   return (
-    <div className="mx-3 mb-3 grid gap-2 border border-cyan-300/20 bg-black/25 p-3">
+    <div className="mx-3 mb-3 grid gap-2 border border-neutral-300/20 bg-black/25 p-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
           Custom Agent
         </span>
         <div className="flex items-center gap-1.5">
           <button
             aria-label={`${profile.callsign} launch custom agent`}
-            className="grid h-7 w-7 place-items-center border border-cyan-300/35 bg-cyan-300/10 text-cyan-100 transition hover:bg-cyan-300/20"
+            className="grid h-7 w-7 place-items-center border border-neutral-300/35 bg-neutral-300/10 text-neutral-100 transition hover:bg-neutral-300/20"
             onClick={() => onSpawn(template)}
             title={`${profile.callsign} launch custom agent`}
             type="button"
@@ -5317,8 +5830,8 @@ function AgentTemplateProfilePanel({
             className={cx(
               "grid h-7 w-7 place-items-center border transition",
               locked
-                ? "border-emerald-300/45 bg-emerald-300/10 text-emerald-100"
-                : "border-white/10 bg-white/[0.035] text-slate-500 hover:border-cyan-300/45 hover:text-cyan-100",
+                ? "border-neutral-300/45 bg-neutral-300/10 text-neutral-100"
+                : "border-white/10 bg-white/[0.035] text-neutral-500 hover:border-neutral-300/45 hover:text-neutral-100",
             )}
             onClick={() => onUpdate(template.id, { profileLocked: !locked })}
             title={locked ? "Unlock custom agent" : "Lock custom agent"}
@@ -5333,11 +5846,11 @@ function AgentTemplateProfilePanel({
         </div>
       </div>
       <label className="grid gap-1.5">
-        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
           Name
         </span>
         <input
-          className="w-full border border-white/10 bg-black/35 px-2 py-1.5 font-mono text-[11px] text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+          className="w-full border border-white/10 bg-black/35 px-2 py-1.5 font-mono text-[11px] text-neutral-100 outline-none transition focus:border-neutral-300/60 disabled:opacity-45"
           disabled={locked}
           onChange={(event) =>
             onUpdate(template.id, { callsign: event.currentTarget.value })
@@ -5346,11 +5859,11 @@ function AgentTemplateProfilePanel({
         />
       </label>
       <label className="grid gap-1.5">
-        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
           Role
         </span>
         <input
-          className="w-full border border-white/10 bg-black/35 px-2 py-1.5 text-xs text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+          className="w-full border border-white/10 bg-black/35 px-2 py-1.5 text-xs text-neutral-100 outline-none transition focus:border-neutral-300/60 disabled:opacity-45"
           disabled={locked}
           onChange={(event) =>
             onUpdate(template.id, { identity: event.currentTarget.value })
@@ -5359,11 +5872,11 @@ function AgentTemplateProfilePanel({
         />
       </label>
       <label className="grid gap-1.5">
-        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
           Task
         </span>
         <textarea
-          className="min-h-16 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+          className="min-h-16 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-neutral-100 outline-none transition focus:border-neutral-300/60 disabled:opacity-45"
           disabled={locked}
           onChange={(event) =>
             onUpdate(template.id, { mission: event.currentTarget.value })
@@ -5372,11 +5885,11 @@ function AgentTemplateProfilePanel({
         />
       </label>
       <label className="grid gap-1.5">
-        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
           Execution
         </span>
         <textarea
-          className="min-h-20 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+          className="min-h-20 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-neutral-100 outline-none transition focus:border-neutral-300/60 disabled:opacity-45"
           disabled={locked}
           onChange={(event) =>
             onUpdate(template.id, { executionPrompt: event.currentTarget.value })
@@ -5423,13 +5936,16 @@ function LeftDock({
   const [expandedTemplateId, setExpandedTemplateId] = useState<string | null>(null);
 
   return (
-    <div className="nexus-panel flex min-h-0 flex-col overflow-hidden">
+    <div
+      className="nexus-panel flex min-h-0 flex-col overflow-hidden"
+      style={workspaceBodyMaterialStyle}
+    >
       <div className="border-b border-white/10 p-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-mono text-xs uppercase tracking-[0.22em] text-slate-300">
+          <h2 className="font-mono text-xs uppercase tracking-[0.22em] text-neutral-300">
             Agent Bay
           </h2>
-          <BrainCircuit className="h-4 w-4 text-cyan-200" />
+          <BrainCircuit className="h-4 w-4 text-neutral-200" />
         </div>
         <div className="mt-4 grid gap-2">
           {agentTemplates.map((template) => {
@@ -5442,7 +5958,7 @@ function LeftDock({
             return (
               <article
                 key={template.id}
-                className="border border-white/10 transition hover:border-cyan-300/30 [background:var(--nexus-layout-panel-muted-bg,rgba(255,255,255,0.035))]"
+                className="border border-white/10 transition hover:border-neutral-300/30 [background:var(--nexus-layout-panel-muted-bg,rgba(255,255,255,0.035))]"
               >
                 <div className="flex items-start gap-2 p-3">
                   <button
@@ -5467,10 +5983,10 @@ function LeftDock({
                             {profile.callsign}
                           </span>
                           {profile.profileLocked ? (
-                            <Lock className="h-3 w-3 shrink-0 text-emerald-200" />
+                            <Lock className="h-3 w-3 shrink-0 text-neutral-200" />
                           ) : null}
                         </span>
-                        <span className="mt-0.5 block truncate text-xs text-slate-400">
+                        <span className="mt-0.5 block truncate text-xs text-neutral-400">
                           {profile.title}
                         </span>
                       </span>
@@ -5480,9 +5996,9 @@ function LeftDock({
                     aria-expanded={open}
                     aria-label={`${profile.callsign} custom agent settings`}
                     className={cx(
-                      "grid h-7 w-7 shrink-0 place-items-center border text-slate-500 transition hover:border-cyan-300/45 hover:text-cyan-100 hover:[background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.1))]",
+                      "grid h-7 w-7 shrink-0 place-items-center border text-neutral-500 transition hover:border-neutral-300/45 hover:text-neutral-100 hover:[background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.1))]",
                       open &&
-                        "border-cyan-300/55 text-cyan-100 [background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.15))]",
+                        "border-neutral-300/55 text-neutral-100 [background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.15))]",
                     )}
                     onClick={() =>
                       setExpandedTemplateId((current) =>
@@ -5509,12 +6025,12 @@ function LeftDock({
         </div>
       </div>
 
-      <div className="cyber-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+      <div className="system-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-mono text-xs uppercase tracking-[0.22em] text-slate-300">
+          <h2 className="font-mono text-xs uppercase tracking-[0.22em] text-neutral-300">
             Operators
           </h2>
-          <span className="font-mono text-[10px] text-slate-500">{agents.length}</span>
+          <span className="font-mono text-[10px] text-neutral-500">{agents.length}</span>
         </div>
         <div className="grid gap-2">
           {agents.map((agent) => (
@@ -5523,7 +6039,7 @@ function LeftDock({
               className={cx(
                 "border transition",
                 selectedAgentId === agent.id
-                  ? "border-cyan-300/45 [background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.1))]"
+                  ? "border-neutral-300/45 [background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.1))]"
                   : "border-white/10 hover:border-white/25 [background:var(--nexus-layout-panel-muted-bg,rgba(255,255,255,0.035))]",
               )}
             >
@@ -5551,10 +6067,10 @@ function LeftDock({
                           {agent.callsign}
                         </span>
                         {activeAgentId === agent.id && (
-                          <Zap className="h-3.5 w-3.5 shrink-0 text-amber-200" />
+                          <Zap className="h-3.5 w-3.5 shrink-0 text-neutral-200" />
                         )}
                       </span>
-                      <span className="mt-1 block truncate text-xs text-slate-400">
+                      <span className="mt-1 block truncate text-xs text-neutral-400">
                         {getCapabilityType(agent)} / {agent.model}
                       </span>
                     </span>
@@ -5564,9 +6080,9 @@ function LeftDock({
                   aria-expanded={expandedAgentId === agent.id}
                   aria-label={`${agent.callsign} model settings`}
                   className={cx(
-                    "grid h-7 w-7 shrink-0 place-items-center border text-slate-500 transition hover:border-cyan-300/45 hover:text-cyan-100 hover:[background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.1))]",
+                    "grid h-7 w-7 shrink-0 place-items-center border text-neutral-500 transition hover:border-neutral-300/45 hover:text-neutral-100 hover:[background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.1))]",
                     expandedAgentId === agent.id &&
-                      "border-cyan-300/55 text-cyan-100 [background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.15))]",
+                      "border-neutral-300/55 text-neutral-100 [background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.15))]",
                   )}
                   onClick={() =>
                     setExpandedAgentId((current) =>
@@ -5604,19 +6120,13 @@ function AgentWindow({
   onClose,
   onDuplicate,
   onClear,
-  onGeneratePredictiveIntel,
-  onGenerateMedia,
   onOpenBranchInterface,
   onOpenVaultManager,
   onSaveArtifact,
-  promptsCache,
   historicalPage,
-  onLoadHistory,
-  onSend,
   onStop,
   onUpdateSandboxCode,
   onUpdateSandboxUrl,
-  workspaceId,
 }: {
   agent: NexusAgent;
   selected: boolean;
@@ -5635,26 +6145,17 @@ function AgentWindow({
   onClose: (agentId: string) => void;
   onDuplicate: (agentId: string) => void;
   onClear: (agentId: string) => void;
-  onGeneratePredictiveIntel: (agentId: string) => Promise<string[]>;
-  onGenerateMedia: (agentId: string, content: string) => Promise<void>;
   onOpenBranchInterface: (agentId: string) => void;
   onOpenVaultManager: () => void;
   onSaveArtifact: (agentId: string, content: string) => void;
-  promptsCache: PromptRecord[];
   historicalPage?: AgentHistoricalPage;
-  onLoadHistory: (agentId: string) => Promise<void>;
-  onSend: (agentId: string, content: string) => Promise<void>;
   onStop: (agentId: string) => void;
   onUpdateSandboxCode: (agentId: string, sandboxCode: string) => void;
   onUpdateSandboxUrl: (agentId: string, sandboxUrl: string) => void;
-  workspaceId: string;
 }) {
-  const [draft, setDraft] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [sandboxEditorCollapsed, setSandboxEditorCollapsed] = useState(false);
   const [sandboxInteractionLocked, setSandboxInteractionLocked] = useState(false);
   const bodyRef = useRef<HTMLDivElement | null>(null);
-  const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const capabilityType = getCapabilityType(agent);
   const isMediaAgent = isMediaCapability(capabilityType);
   const isSandboxAgent = isSandboxCapability(capabilityType);
@@ -5691,47 +6192,6 @@ function AgentWindow({
     });
   };
 
-  const submit = async (event?: FormEvent) => {
-    event?.preventDefault();
-    if (isSandboxAgent) {
-      return;
-    }
-
-    const value = draft;
-
-    if (!value.trim() || isSubmitting) {
-      return;
-    }
-
-    setDraft("");
-    setIsSubmitting(true);
-
-    try {
-      await (isMediaAgent ? onGenerateMedia(agent.id, value) : onSend(agent.id, value));
-    } catch {
-      setDraft(value);
-      window.setTimeout(() => composerRef.current?.focus(), 0);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const onComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      void submit();
-    }
-  };
-
-  const fillPrompt = (value: string) => {
-    setDraft(value);
-    composerRef.current?.focus();
-  };
-
-  const startNewReply = () => {
-    setDraft("");
-    composerRef.current?.focus();
-  };
   const agentGlowColor = `color-mix(in srgb, ${agent.accent} var(--agent-glow-intensity), transparent)`;
   const agentWindowBackground = isSandboxAgent
     ? "color-mix(in srgb, var(--bg-elevated) 72%, transparent)"
@@ -5780,7 +6240,7 @@ function AgentWindow({
       <motion.section
         animate={{ opacity: 1, scale: 1 }}
         className={cx(
-          "nexus-agent-window relative flex h-full min-h-0 flex-col overflow-visible bg-slate-950/88 shadow-[0_22px_70px_rgba(0,0,0,0.45)]",
+          "nexus-agent-window relative flex h-full min-h-0 flex-col overflow-visible bg-neutral-950/88 shadow-[0_22px_70px_rgba(0,0,0,0.45)]",
           isSandboxAgent ? "border-0" : "border-2",
         )}
         exit={{ opacity: 0, scale: 0.96 }}
@@ -5827,10 +6287,7 @@ function AgentWindow({
           onClear={() => onClear(agent.id)}
           onClose={() => onClose(agent.id)}
           onDuplicate={() => onDuplicate(agent.id)}
-          onFillPrompt={fillPrompt}
-          onGeneratePredictiveIntel={() => onGeneratePredictiveIntel(agent.id)}
           onMinimize={() => onMinimize(agent.id)}
-          onNewReply={startNewReply}
           onOpenBranchInterface={() => onOpenBranchInterface(agent.id)}
           onOpenVaultManager={onOpenVaultManager}
           onSaveSandboxArtifact={
@@ -5852,8 +6309,6 @@ function AgentWindow({
           }
           onStop={() => onStop(agent.id)}
           onToggleMaximize={() => onToggleMaximize(agent.id)}
-          promptsCache={promptsCache}
-          workspaceId={workspaceId}
         />
 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden pr-7">
@@ -5872,24 +6327,11 @@ function AgentWindow({
               ) : (
                 <div
                   ref={bodyRef}
-                  className="cyber-scroll min-h-0 flex-1 overflow-y-auto p-3"
+                  className="system-scroll min-h-0 flex-1 overflow-y-auto p-3"
                 >
                   <div className="grid gap-3">
-                    {(historicalPage?.hasMore ?? true) ? (
-                      <div className="flex justify-center">
-                        <button
-                          className="inline-flex items-center gap-2 border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-slate-300 transition hover:border-cyan-300/40 hover:text-cyan-100 disabled:opacity-45"
-                          disabled={Boolean(historicalPage?.loading)}
-                          onClick={() => void onLoadHistory(agent.id)}
-                          type="button"
-                        >
-                          <Archive className="h-3.5 w-3.5" />
-                          {historicalPage?.loading ? "Loading" : "Load history"}
-                        </button>
-                      </div>
-                    ) : null}
                     {historicalPage?.error ? (
-                      <div className="border border-rose-300/20 bg-rose-500/10 px-3 py-2 text-xs text-rose-100">
+                      <div className="border border-neutral-300/20 bg-neutral-500/10 px-3 py-2 text-xs text-neutral-100">
                         {historicalPage.error}
                       </div>
                     ) : null}
@@ -5903,40 +6345,6 @@ function AgentWindow({
                   </div>
                 </div>
               )}
-              <form className="border-t border-white/10 p-3" onSubmit={submit}>
-                <div className="flex gap-2">
-                  <textarea
-                    ref={composerRef}
-                    className="min-h-16 flex-1 resize-none border border-white/10 bg-black/30 p-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60"
-                    disabled={
-                      isSubmitting ||
-                      agent.status === "streaming" ||
-                      agent.status === "thinking"
-                    }
-                    onChange={(event) => setDraft(event.target.value)}
-                    onKeyDown={onComposerKeyDown}
-                    placeholder={
-                      isMediaAgent
-                        ? `Describe ${capabilityType} generation`
-                        : "Transmit mission packet"
-                    }
-                    value={draft}
-                  />
-                  <button
-                    aria-label="Send message"
-                    className="grid w-12 place-items-center border border-cyan-300/40 bg-cyan-300/12 text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
-                    disabled={
-                      isSubmitting ||
-                      agent.status === "streaming" ||
-                      agent.status === "thinking" ||
-                      !draft.trim()
-                    }
-                    type="submit"
-                  >
-                    <SendHorizontal className="h-4 w-4" />
-                  </button>
-                </div>
-              </form>
             </>
           )}
         </div>
@@ -6060,15 +6468,15 @@ function SandboxCanvas({
               className={cx(
                 "flex h-9 items-center gap-2 bg-white/[0.045] px-3 outline outline-1 transition focus-within:bg-white/[0.07]",
                 sandboxUrlError
-                  ? "outline-rose-300/40"
+                  ? "outline-neutral-300/40"
                   : "outline-white/[0.055] focus-within:outline-white/20",
               )}
             >
-              <RadioTower className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+              <RadioTower className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
               <input
                 aria-label={`${agent.callsign} sandbox preview URL`}
                 autoCapitalize="none"
-                className="min-w-0 flex-1 bg-transparent font-mono text-[11px] text-slate-100 outline-none placeholder:text-slate-600"
+                className="min-w-0 flex-1 bg-transparent font-mono text-[11px] text-neutral-100 outline-none placeholder:text-neutral-600"
                 inputMode="url"
                 disabled={interactionLocked}
                 onBlur={() => commitSandboxUrl()}
@@ -6090,14 +6498,14 @@ function SandboxCanvas({
               />
             </div>
             {sandboxUrlError ? (
-              <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.14em] text-rose-200">
+              <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-200">
                 {sandboxUrlError}
               </div>
             ) : null}
           </form>
           <textarea
             aria-label={`${agent.callsign} sandbox code`}
-            className="cyber-scroll min-h-0 flex-1 resize-none border-0 bg-transparent px-4 pb-4 pt-2 font-mono text-xs leading-5 text-slate-100 outline-none placeholder:text-slate-600 focus:bg-white/[0.02]"
+            className="system-scroll min-h-0 flex-1 resize-none border-0 bg-transparent px-4 pb-4 pt-2 font-mono text-xs leading-5 text-neutral-100 outline-none placeholder:text-neutral-600 focus:bg-white/[0.02]"
             disabled={interactionLocked}
             onChange={(event) => onUpdateSandboxCode(agent.id, event.target.value)}
             spellCheck={false}
@@ -6148,20 +6556,20 @@ function SandboxCanvas({
         style={previewPaneStyle}
       >
         {iframeBlockReason ? (
-          <div className="grid min-h-0 flex-1 place-items-center bg-slate-950 p-6">
+          <div className="grid min-h-0 flex-1 place-items-center bg-neutral-950 p-6">
             <div className="max-w-md text-center">
-              <div className="mx-auto mb-4 grid h-11 w-11 place-items-center bg-white/[0.06] text-amber-100">
+              <div className="mx-auto mb-4 grid h-11 w-11 place-items-center bg-white/[0.06] text-neutral-100">
                 <ShieldCheck className="h-5 w-5" />
               </div>
-              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-100">
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-100">
                 External-Only Surface
               </div>
-              <p className="mt-3 text-xs leading-5 text-slate-400">
+              <p className="mt-3 text-xs leading-5 text-neutral-400">
                 {iframeBlockReason}
               </p>
               <button
                 aria-label="Open preview URL in browser"
-                className="mt-5 inline-grid h-9 w-9 place-items-center bg-white/[0.08] text-amber-100 transition hover:bg-white/[0.14]"
+                className="mt-5 inline-grid h-9 w-9 place-items-center bg-white/[0.08] text-neutral-100 transition hover:bg-white/[0.14]"
                 onClick={openExternalPreview}
                 title="Open site"
                 type="button"
@@ -6199,7 +6607,7 @@ function SandboxCanvas({
           onPointerDown={(event) => event.stopPropagation()}
           onTouchStart={(event) => event.stopPropagation()}
         >
-          <div className="pointer-events-none grid h-8 w-8 place-items-center border border-cyan-300/24 bg-slate-950/58 text-cyan-100/75 shadow-[0_10px_24px_rgba(0,0,0,0.3)] backdrop-blur-md">
+          <div className="pointer-events-none grid h-8 w-8 place-items-center border border-neutral-300/24 bg-neutral-950/58 text-neutral-100/75 shadow-[0_10px_24px_rgba(0,0,0,0.3)] backdrop-blur-md">
             <Lock className="h-3.5 w-3.5" />
           </div>
         </div>
@@ -6215,11 +6623,8 @@ function AgentActionToolbar({
   onClear,
   onClose,
   onDuplicate,
-  onFillPrompt,
-  onGeneratePredictiveIntel,
   onOpenBranchInterface,
   onMinimize,
-  onNewReply,
   onOpenVaultManager,
   onSaveSandboxArtifact,
   onToggleSandboxEditor,
@@ -6228,8 +6633,6 @@ function AgentActionToolbar({
   onToggleSandboxInteractionLock,
   onStop,
   onToggleMaximize,
-  promptsCache,
-  workspaceId,
 }: {
   agent: NexusAgent;
   isMediaAgent: boolean;
@@ -6237,11 +6640,8 @@ function AgentActionToolbar({
   onClear: () => void;
   onClose: () => void;
   onDuplicate: () => void;
-  onFillPrompt: (value: string) => void;
-  onGeneratePredictiveIntel: () => Promise<string[]>;
   onOpenBranchInterface: () => void;
   onMinimize: () => void;
-  onNewReply: () => void;
   onOpenVaultManager: () => void;
   onSaveSandboxArtifact?: () => void;
   onToggleSandboxEditor?: () => void;
@@ -6250,12 +6650,8 @@ function AgentActionToolbar({
   onToggleSandboxInteractionLock?: () => void;
   onStop: () => void;
   onToggleMaximize: () => void;
-  promptsCache: PromptRecord[];
-  workspaceId: string;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [vaultOpen, setVaultOpen] = useState(false);
-  const [intelOpen, setIntelOpen] = useState(false);
   const busy = agent.status === "thinking" || agent.status === "streaming";
   const latestResponse = useMemo(
     () =>
@@ -6265,65 +6661,6 @@ function AgentActionToolbar({
         ?.content.trim() ?? "",
     [agent.messages],
   );
-  const [intelItems, setIntelItems] = useState<string[]>(() =>
-    buildMockPredictiveIntelSuggestions({
-      agent,
-      lastAssistantMessage: "",
-    }),
-  );
-  const [intelLoading, setIntelLoading] = useState(false);
-  const workspacePrompts = useMemo(
-    () => promptsCache.filter((prompt) => prompt.workspace_id === workspaceId),
-    [promptsCache, workspaceId],
-  );
-
-  useEffect(() => {
-    if (intelOpen) {
-      return undefined;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      setIntelItems(
-        buildMockPredictiveIntelSuggestions({
-          agent,
-          lastAssistantMessage: latestResponse,
-        }),
-      );
-    }, 0);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [agent, intelOpen, latestResponse]);
-
-  const refreshPredictiveIntel = useCallback(() => {
-    setIntelLoading(true);
-    void onGeneratePredictiveIntel()
-      .then((suggestions) => {
-        setIntelItems(
-          suggestions.length === 3
-            ? suggestions
-            : buildMockPredictiveIntelSuggestions({
-                agent,
-                lastAssistantMessage: latestResponse,
-              }),
-        );
-      })
-      .catch(() => {
-        setIntelItems(
-          buildMockPredictiveIntelSuggestions({
-            agent,
-            lastAssistantMessage: latestResponse,
-          }),
-        );
-      })
-      .finally(() => setIntelLoading(false));
-  }, [agent, latestResponse, onGeneratePredictiveIntel]);
-
-  const fillPrompt = (value: string) => {
-    onFillPrompt(value);
-    setVaultOpen(false);
-    setIntelOpen(false);
-  };
-
   const copyLastResponse = () => {
     if (!latestResponse || typeof navigator === "undefined") {
       return;
@@ -6339,30 +6676,26 @@ function AgentActionToolbar({
       className="nodrag absolute right-1 top-4 z-40"
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => {
-        if (!vaultOpen && !intelOpen) {
-          setExpanded(false);
-        }
+        setExpanded(false);
       }}
       onPointerDown={(event) => event.stopPropagation()}
     >
       <button
-        aria-expanded={expanded || vaultOpen || intelOpen}
+        aria-expanded={expanded}
         aria-label={
           railUnlockActive ? "Unlock sandbox interactions" : "Expand agent action toolbar"
         }
         className={cx(
-          "relative z-50 grid h-12 place-items-center border bg-black/70 backdrop-blur transition hover:border-cyan-300/40 hover:text-cyan-100",
+          "relative z-50 grid h-12 place-items-center border bg-black/70 backdrop-blur transition hover:border-neutral-300/40 hover:text-neutral-100",
           railUnlockActive ? "w-7" : "w-3",
           railUnlockActive
-            ? "border-cyan-300/45 text-cyan-100"
-            : "border-white/10 text-slate-400",
+            ? "border-neutral-300/45 text-neutral-100"
+            : "border-white/10 text-neutral-400",
         )}
         onClick={() => {
           if (railUnlockActive) {
             onToggleSandboxInteractionLock?.();
             setExpanded(false);
-            setVaultOpen(false);
-            setIntelOpen(false);
             return;
           }
 
@@ -6377,12 +6710,12 @@ function AgentActionToolbar({
         )}
       </button>
 
-      <AnimatePresence>
-        {(expanded || vaultOpen || intelOpen) && (
+        <AnimatePresence>
+        {expanded && (
           <motion.div
             animate={{ opacity: 1, x: 0 }}
             className={cx(
-              "absolute top-0 z-40 flex flex-col gap-1 border border-white/10 bg-slate-950/92 p-1 shadow-[0_18px_44px_rgba(0,0,0,0.45)] backdrop-blur-xl",
+              "absolute top-0 z-40 flex flex-col gap-1 border border-white/10 bg-neutral-950/92 p-1 shadow-[0_18px_44px_rgba(0,0,0,0.45)] backdrop-blur-xl",
               railUnlockActive ? "right-8" : "right-0",
             )}
             exit={{ opacity: 0, x: 8 }}
@@ -6452,40 +6785,10 @@ function AgentActionToolbar({
               <Copy className="h-3.5 w-3.5" />
             </ToolbarIconButton>
             <ToolbarIconButton
-              disabled={isSandboxAgent}
-              label="New reply"
-              onClick={onNewReply}
-            >
-              <SendHorizontal className="h-3.5 w-3.5" />
-            </ToolbarIconButton>
-            <ToolbarIconButton
-              active={vaultOpen}
               label="Prompt Vault"
-              onClick={() => {
-                setVaultOpen((current) => !current);
-                setIntelOpen(false);
-              }}
+              onClick={onOpenVaultManager}
             >
               <Database className="h-3.5 w-3.5" />
-            </ToolbarIconButton>
-            <ToolbarIconButton
-              active={intelOpen}
-              disabled={isSandboxAgent}
-              label="Predictive Intel"
-              onClick={() => {
-                setIntelOpen((current) => {
-                  const nextOpen = !current;
-
-                  if (nextOpen) {
-                    refreshPredictiveIntel();
-                  }
-
-                  return nextOpen;
-                });
-                setVaultOpen(false);
-              }}
-            >
-              <BrainCircuit className="h-3.5 w-3.5" />
             </ToolbarIconButton>
             <ToolbarIconButton label="Clear transcript" onClick={onClear}>
               <Trash2 className="h-3.5 w-3.5" />
@@ -6495,98 +6798,6 @@ function AgentActionToolbar({
                 <Square className="h-3.5 w-3.5" />
               </ToolbarIconButton>
             ) : null}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {vaultOpen && (
-          <motion.div
-            animate={{ opacity: 1, x: 0 }}
-            className="absolute right-12 top-0 z-30 w-72 border border-fuchsia-300/25 bg-slate-950/95 p-1 shadow-[0_18px_50px_rgba(0,0,0,0.45)] backdrop-blur"
-            exit={{ opacity: 0, x: 8 }}
-            initial={{ opacity: 0, x: 8 }}
-            transition={{ duration: 0.12 }}
-          >
-            <div className="cyber-scroll max-h-60 overflow-y-auto">
-              {workspacePrompts.length ? (
-                workspacePrompts.map((prompt) => (
-                  <button
-                    key={prompt.id}
-                    className="block w-full border border-transparent px-3 py-2 text-left transition hover:border-fuchsia-300/30 hover:bg-fuchsia-300/10"
-                    onClick={() => fillPrompt(prompt.content)}
-                    type="button"
-                  >
-                    <span className="block truncate font-mono text-[10px] uppercase tracking-[0.14em] text-fuchsia-100">
-                      {prompt.title}
-                    </span>
-                    <span className="mt-1 block line-clamp-2 text-[11px] leading-4 text-slate-400">
-                      {prompt.content}
-                    </span>
-                  </button>
-                ))
-              ) : (
-                <div className="px-3 py-5 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">
-                  Vault Empty
-                </div>
-              )}
-            </div>
-            <div className="sticky bottom-0 grid grid-cols-2 gap-1 border-t border-fuchsia-300/20 bg-slate-950/98 p-1">
-              <button
-                className="inline-flex h-8 items-center justify-center border border-fuchsia-300/20 bg-transparent px-2 font-mono text-[9px] uppercase tracking-[0.12em] text-fuchsia-100 transition hover:border-fuchsia-300/50 hover:bg-fuchsia-300/10"
-                onClick={() => {
-                  console.log("Creating new prompt placeholder");
-                }}
-                type="button"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                New Prompt
-              </button>
-              <button
-                className="inline-flex h-8 items-center justify-center border border-cyan-300/20 bg-transparent px-2 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-100 transition hover:border-cyan-300/50 hover:bg-cyan-300/10"
-                onClick={() => {
-                  setVaultOpen(false);
-                  onOpenVaultManager();
-                }}
-                type="button"
-              >
-                <Home className="mr-2 h-4 w-4" />
-                Vault Manager
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {intelOpen && (
-          <motion.div
-            animate={{ opacity: 1, x: 0 }}
-            className="absolute right-12 top-20 z-30 w-64 border border-emerald-300/25 bg-slate-950/95 p-2 shadow-[0_18px_50px_rgba(0,0,0,0.45)] backdrop-blur"
-            exit={{ opacity: 0, x: 8 }}
-            initial={{ opacity: 0, x: 8 }}
-            transition={{ duration: 0.12 }}
-          >
-            <div className="mb-2 flex items-center justify-between gap-2 border-b border-emerald-300/15 pb-2">
-              <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-emerald-100">
-                Predictive Intel
-              </span>
-              {intelLoading ? (
-                <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-300/70">
-                  Thinking
-                </span>
-              ) : null}
-            </div>
-            {(intelItems.length ? intelItems : buildMockPredictiveIntelSuggestions({ agent, lastAssistantMessage: latestResponse })).map((prompt) => (
-              <button
-                key={prompt}
-                className="block w-full border border-transparent px-3 py-2 text-left text-xs leading-5 text-slate-300 transition hover:border-emerald-300/30 hover:bg-emerald-300/10 hover:text-emerald-100"
-                onClick={() => fillPrompt(prompt)}
-                type="button"
-              >
-                {prompt}
-              </button>
-            ))}
           </motion.div>
         )}
       </AnimatePresence>
@@ -6613,14 +6824,14 @@ function ToolbarIconButton({
     <button
       aria-label={label}
       className={cx(
-        "nexus-control-icon-button-shell grid h-7 w-7 place-items-center border text-slate-400 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35",
-        active && "border-cyan-300/50 bg-cyan-300/12 text-cyan-100",
+        "nexus-control-icon-button-shell grid h-7 w-7 place-items-center border text-neutral-400 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35",
+        active && "border-neutral-300/50 bg-neutral-300/12 text-neutral-100",
         !active &&
           tone === "default" &&
-          "border-white/10 bg-black/35 hover:border-cyan-300/35 hover:text-cyan-100",
+          "border-white/10 bg-black/35 hover:border-neutral-300/35 hover:text-neutral-100",
         !active &&
           tone === "danger" &&
-          "border-rose-300/20 bg-rose-300/5 text-rose-100 hover:border-rose-300/45",
+          "border-neutral-300/20 bg-neutral-300/5 text-neutral-100 hover:border-neutral-300/45",
       )}
       disabled={disabled}
       onClick={onClick}
@@ -6641,11 +6852,11 @@ function MediaCanvas({ agent }: { agent: NexusAgent }) {
     .slice(-4);
 
   return (
-    <div className="cyber-scroll min-h-0 flex-1 overflow-y-auto p-3">
+    <div className="system-scroll min-h-0 flex-1 overflow-y-auto p-3">
       <div className="grid gap-3">
         <div className="border border-white/10 bg-black/30 p-3">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-400">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400">
               {capabilityType} generation canvas
             </div>
             <span
@@ -6660,7 +6871,7 @@ function MediaCanvas({ agent }: { agent: NexusAgent }) {
             </span>
           </div>
 
-          <div className="relative grid aspect-video place-items-center overflow-hidden border border-white/10 bg-slate-950">
+          <div className="relative grid aspect-video place-items-center overflow-hidden border border-white/10 bg-neutral-950">
             {artifact ? (
               <MediaArtifactPreview artifact={artifact} />
             ) : (
@@ -6675,15 +6886,15 @@ function MediaCanvas({ agent }: { agent: NexusAgent }) {
                 >
                   {capabilityType === "image" ? "IMG" : "VID"}
                 </div>
-                <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-300">
+                <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-neutral-300">
                   No media artifact yet
                 </div>
               </div>
             )}
 
             {generating && (
-              <div className="absolute inset-x-4 bottom-4 border border-cyan-300/30 bg-black/70 p-3 backdrop-blur">
-                <div className="mb-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+              <div className="absolute inset-x-4 bottom-4 border border-neutral-300/30 bg-black/70 p-3 backdrop-blur">
+                <div className="mb-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                   <span>Generating</span>
                   <span>{capabilityType}</span>
                 </div>
@@ -6704,11 +6915,11 @@ function MediaCanvas({ agent }: { agent: NexusAgent }) {
         <div className="grid gap-2">
           {recent.map((message) => (
             <div key={message.id} className="border border-white/10 bg-white/[0.035] p-3">
-              <div className="mb-1 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500">
+              <div className="mb-1 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-500">
                 <span>{message.media ? "artifact" : "prompt"}</span>
                 <span>{formatTime(message.createdAt)}</span>
               </div>
-              <p className="line-clamp-2 text-xs leading-5 text-slate-300">
+              <p className="line-clamp-2 text-xs leading-5 text-neutral-300">
                 {message.media?.prompt ?? message.content}
               </p>
             </div>
@@ -6719,15 +6930,50 @@ function MediaCanvas({ agent }: { agent: NexusAgent }) {
   );
 }
 
-function MediaArtifactPreview({ artifact }: { artifact: AgentMediaArtifact }) {
+function MediaArtifactPreview({
+  artifact,
+  presentation = "canvas",
+}: {
+  artifact: AgentMediaArtifact;
+  presentation?: "canvas" | "message";
+}) {
+  const messagePresentation = presentation === "message";
+
   return (
-    <div className="relative h-full w-full">
-      <div
-        aria-label={`${artifact.type} preview for ${artifact.prompt}`}
-        className="h-full w-full bg-cover bg-center"
-        role="img"
-        style={{ backgroundImage: `url("${artifact.url}")` }}
-      />
+    <div
+      className={cx(
+        "relative w-full overflow-hidden",
+        messagePresentation ? "bg-black/35" : "h-full bg-neutral-950",
+      )}
+    >
+      {artifact.type === "image" ? (
+        // eslint-disable-next-line @next/next/no-img-element -- generated data URLs and provider URLs render directly in chat.
+        <img
+          alt={`Generated image for ${artifact.prompt}`}
+          className={cx(
+            "block w-full object-contain",
+            messagePresentation ? "max-h-[520px]" : "h-full",
+          )}
+          draggable={false}
+          src={artifact.url}
+        />
+      ) : (
+        <div
+          aria-label={`${artifact.type} preview for ${artifact.prompt}`}
+          className="h-full w-full bg-cover bg-center"
+          role="img"
+          style={{ backgroundImage: `url("${artifact.url}")` }}
+        />
+      )}
+      <button
+        aria-label={`Download ${artifact.type} preview`}
+        className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center border border-white/18 bg-black/62 text-neutral-100 backdrop-blur transition hover:border-neutral-300/50 hover:bg-neutral-300/16 hover:text-neutral-100"
+        onClick={() => downloadMediaArtifact(artifact)}
+        title={`Download ${artifact.type} preview`}
+        type="button"
+      >
+        <Download className="h-3.5 w-3.5" />
+      </button>
       {artifact.type === "video" && (
         <div className="absolute inset-0 grid place-items-center bg-black/18">
           <div className="grid h-16 w-16 place-items-center border border-white/35 bg-black/55 text-white backdrop-blur">
@@ -6735,11 +6981,16 @@ function MediaArtifactPreview({ artifact }: { artifact: AgentMediaArtifact }) {
           </div>
         </div>
       )}
-      <div className="absolute inset-x-0 bottom-0 bg-black/68 p-3 backdrop-blur">
-        <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+      <div
+        className={cx(
+          "absolute inset-x-0 bottom-0 bg-black/68 p-3 backdrop-blur",
+          messagePresentation && artifact.type === "image" && "sr-only",
+        )}
+      >
+        <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
           {artifact.type} preview
         </div>
-        <p className="mt-1 line-clamp-1 text-xs text-slate-300">{artifact.prompt}</p>
+        <p className="mt-1 line-clamp-1 text-xs text-neutral-300">{artifact.prompt}</p>
       </div>
     </div>
   );
@@ -6770,6 +7021,8 @@ function MessageBubble({
   const reasoningPreview = message.reasoningContent
     ? getReasoningPreview(message.reasoningContent, reasoningDetail)
     : "";
+  const showMediaPreview =
+    Boolean(message.media) && !isMockGeneratedMediaUrl(message.media?.url);
 
   return (
     <article
@@ -6779,47 +7032,686 @@ function MessageBubble({
         isAssistant && "nexus-message-bubble-assistant",
         isTool && "nexus-message-bubble-tool",
         isUser
-          ? "ml-8 border-fuchsia-300/30 bg-fuchsia-300/10"
+          ? "ml-8 border-neutral-300/30 bg-neutral-300/10"
           : isTool
-            ? "mr-8 border-emerald-300/25 bg-emerald-300/[0.07]"
-            : "mr-8 border-cyan-300/25 bg-cyan-300/[0.07]",
+            ? "mr-8 border-neutral-300/25 bg-neutral-300/[0.07]"
+            : "mr-8 border-neutral-300/25 bg-neutral-300/[0.07]",
       )}
     >
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-400">
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400">
           {isUser ? "operator" : isTool ? "tool" : "agent"}
         </span>
-        <span className="font-mono text-[10px] text-slate-600">
+        <span className="font-mono text-[10px] text-neutral-600">
           {formatTime(message.createdAt)}
         </span>
       </div>
-      <p className="whitespace-pre-wrap break-words text-sm leading-6 text-slate-100">
+      <p className="whitespace-pre-wrap break-words text-sm leading-6 text-neutral-100">
         {message.content}
         {message.streaming && (
-          <span className="ml-1 inline-block h-4 w-2 animate-pulse bg-cyan-200 align-middle" />
+          <span className="ml-1 inline-block h-4 w-2 animate-pulse bg-neutral-200 align-middle" />
         )}
         {message.interrupted && (
-          <span className="mt-2 block font-mono text-[10px] uppercase tracking-[0.16em] text-amber-200">
+          <span className="mt-2 block font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-200">
             interrupted
           </span>
         )}
       </p>
       {message.reasoningContent ? (
-        <details className="mt-3 border border-cyan-300/20 bg-black/22 p-2">
-          <summary className="cursor-pointer font-mono text-[9px] uppercase tracking-[0.16em] text-cyan-100">
+        <details className="mt-3 border border-neutral-300/20 bg-black/22 p-2">
+          <summary className="cursor-pointer font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-100">
             Provider reasoning
           </summary>
-          <p className="mt-2 max-h-36 overflow-y-auto whitespace-pre-wrap break-words text-[11px] leading-5 text-slate-400">
+          <p className="mt-2 max-h-36 overflow-y-auto whitespace-pre-wrap break-words text-[11px] leading-5 text-neutral-400">
             {reasoningPreview}
           </p>
         </details>
       ) : null}
-      {message.media && (
-        <div className="mt-3 aspect-video overflow-hidden border border-white/10 bg-black/25">
-          <MediaArtifactPreview artifact={message.media} />
+      {message.media && showMediaPreview ? (
+        <div className="mt-3 overflow-hidden border border-white/10 bg-black/25">
+          <MediaArtifactPreview artifact={message.media} presentation="message" />
         </div>
-      )}
+      ) : null}
     </article>
+  );
+}
+
+function WorkspaceChatComposerShell({
+  agent,
+  composerMode,
+  imageSettings,
+  onAttachmentSaved,
+  onComposerModeChange,
+  onFocusAgent,
+  onGenerateImage,
+  onGenerateMedia,
+  onImageSettingsChange,
+  onNotify,
+  onOpenArtifacts,
+  onSend,
+  onUpdateAgentModelSettings,
+  userId,
+  workspaceId,
+}: {
+  agent?: NexusAgent;
+  composerMode: WorkspaceComposerMode;
+  imageSettings: WorkspaceComposerImageSettings;
+  onAttachmentSaved: () => void;
+  onComposerModeChange: (agentId: string, mode: WorkspaceComposerMode) => void;
+  onFocusAgent: (agentId: string) => void;
+  onGenerateImage: (
+    agentId: string,
+    content: string,
+    imageSettings: WorkspaceComposerImageSettings,
+  ) => Promise<void>;
+  onGenerateMedia: (agentId: string, content: string) => Promise<void>;
+  onImageSettingsChange: (
+    agentId: string,
+    settings: WorkspaceComposerImageSettings,
+  ) => void;
+  onNotify: (message: string) => void;
+  onOpenArtifacts: () => void;
+  onSend: (agentId: string, content: string) => Promise<void>;
+  onUpdateAgentModelSettings: (
+    agentId: string,
+    settings: Partial<AgentModelSettings>,
+  ) => void;
+  userId: string;
+  workspaceId: string;
+}) {
+  const [draft, setDraft] = useState("");
+  const [attachmentMenuOpen, setAttachmentMenuOpen] = useState(false);
+  const [attachments, setAttachments] = useState<WorkspaceComposerAttachment[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const capabilityType = agent ? getCapabilityType(agent) : "chat";
+  const modelCapability = getModelCapabilityProfile(agent?.model);
+  const reasoningOptions = modelCapability?.thinking.supportedReasoningEfforts ?? [];
+  const composerActions = getWorkspaceComposerActions(composerMode);
+  const selectedReasoningEffort =
+    agent?.modelSettings?.reasoningEffort &&
+    reasoningOptions.includes(agent.modelSettings.reasoningEffort)
+      ? agent.modelSettings.reasoningEffort
+      : modelCapability?.thinking.defaultReasoningEffort ?? reasoningOptions[0];
+  const imageModeActive = composerMode === "image";
+  const isMediaAgent = isMediaCapability(capabilityType);
+  const isSandboxAgent = isSandboxCapability(capabilityType);
+  const agentBusy = agent?.status === "streaming" || agent?.status === "thinking";
+  const hasReadyAttachments = attachments.some(
+    (attachment) => attachment.status === "ready",
+  );
+  const hasPendingAttachments = attachments.some(
+    (attachment) => attachment.status === "uploading",
+  );
+  const submitDisabled =
+    !agent ||
+    isSubmitting ||
+    agentBusy ||
+    isSandboxAgent ||
+    hasPendingAttachments ||
+    (!draft.trim() && !hasReadyAttachments);
+  const latestMessage = agent?.messages.at(-1);
+  const targetLabel = agent
+    ? `${agent.callsign} / ${capabilityType}`
+    : "No agent selected";
+  const latestMessagePreview = latestMessage?.content.trim()
+    ? latestMessage.content.trim().replace(/\s+/g, " ").slice(0, 88)
+    : latestMessage?.streaming
+      ? "Streaming response..."
+      : agent
+        ? `${agent.callsign} ready for workspace input.`
+        : "Select an agent to start.";
+  const reasoningDisabled = !agent || reasoningOptions.length === 0;
+
+  const handleComposerAction = (actionId: WorkspaceComposerActionId) => {
+    setAttachmentMenuOpen(false);
+
+    if (!agent) {
+      onNotify("Select a chatroom before switching composer mode.");
+      return;
+    }
+
+    if (actionId === "toggle-image-generation") {
+      const nextMode = toggleWorkspaceComposerMode(composerMode);
+
+      onComposerModeChange(agent.id, nextMode);
+      onNotify(
+        nextMode === "image"
+          ? `${agent.callsign} composer switched to image generation mode.`
+          : `${agent.callsign} composer switched to language model mode.`,
+      );
+    }
+  };
+
+  const handleAttachmentAction = (actionId: WorkspaceAttachmentInputActionId) => {
+    setAttachmentMenuOpen(false);
+
+    if (actionId === "local-file-upload") {
+      if (!agent) {
+        onNotify("Select a chatroom before attaching a file.");
+        return;
+      }
+
+      if (isSubmitting || agentBusy) {
+        onNotify(`${agent.callsign} is already processing.`);
+        return;
+      }
+
+      fileInputRef.current?.click();
+      return;
+    }
+
+    const action = WORKSPACE_ATTACHMENT_INPUT_ACTIONS.find(
+      (candidate) => candidate.id === actionId,
+    );
+
+    if (actionId === "artifact-vault-reference") {
+      onOpenArtifacts();
+    }
+
+    onNotify(`${action?.label ?? "Attachment"} slot is reserved for a V21 upgrade.`);
+  };
+
+  const attachLocalFile = async (file?: File) => {
+    if (!file) {
+      return;
+    }
+
+    if (!agent) {
+      onNotify("Select a chatroom before attaching a file.");
+      return;
+    }
+
+    const attachmentId = makeId("attachment");
+    const mimeType = file.type || "text/plain";
+    const contentKind = isTextLikeAttachmentFile(file) ? "text" : "binary";
+    const optimisticAttachment: WorkspaceComposerAttachment = {
+      compilerId: NEXUS_ATTACHMENT_NOOP_COMPILER.id,
+      compilerVersion: NEXUS_ATTACHMENT_NOOP_COMPILER.version,
+      contentKind,
+      id: attachmentId,
+      mimeType,
+      name: file.name,
+      previewText: "Recording attachment...",
+      sizeBytes: file.size,
+      status: "uploading",
+      targetCapabilities: [...NEXUS_ATTACHMENT_NOOP_TARGETS],
+    };
+
+    setAttachments((current) => [...current, optimisticAttachment]);
+
+    try {
+      const contentText = contentKind === "text" ? await file.text() : undefined;
+      const contentUrl =
+        contentKind === "binary"
+          ? file.size <= WORKSPACE_ATTACHMENT_BINARY_INLINE_MAX_BYTES
+            ? await readFileAsDataUrl(file)
+            : `workspace-attachment-pending://compiler/${encodeURIComponent(attachmentId)}/${encodeURIComponent(file.name)}`
+          : undefined;
+      const artifactResponse = await nexusApiClient.post<
+        ArtifactCreateResponse,
+        CreateArtifactRequest
+      >(
+        "/api/v1/artifacts",
+        {
+          contentText,
+          contentUrl,
+          metadata: createNoopAttachmentCompilerMetadata({
+            contentKind,
+            fileName: file.name,
+            lastModified: file.lastModified,
+            sizeBytes: file.size,
+            source: "workspace-composer",
+          }),
+          mimeType,
+          sourceAgentId: agent.id,
+          title: file.name,
+          type: "attachment",
+          workspaceId,
+        },
+        {
+          idempotencyKey: `attachment_${attachmentId}`,
+          userId,
+          workspaceId,
+        },
+      );
+      const artifact = artifactResponse.artifact;
+      const previewText =
+        artifact.previewText ||
+        contentText?.slice(0, 180) ||
+        `${contentKind} attachment recorded.`;
+
+      setAttachments((current) =>
+        current.map((attachment) =>
+          attachment.id === attachmentId
+            ? {
+                ...attachment,
+                artifactId: artifact.id,
+                compiledArtifactId: artifact.id,
+                contentUrl,
+                mimeType: artifact.mimeType ?? mimeType,
+                previewText,
+                rawArtifactId: artifact.id,
+                sizeBytes: artifact.contentSizeBytes ?? file.size,
+                status: "ready",
+                textContent: contentText,
+              }
+            : attachment,
+        ),
+      );
+      onAttachmentSaved();
+      onNotify(`${file.name} attached with backend artifact record.`);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "Attachment failed.";
+
+      setAttachments((current) =>
+        current.map((attachment) =>
+          attachment.id === attachmentId
+            ? {
+                ...attachment,
+                error: detail,
+                previewText: "Attachment failed.",
+                status: "error",
+              }
+            : attachment,
+        ),
+      );
+      onNotify(`${file.name} could not be attached: ${detail}`);
+    }
+  };
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!agent) {
+      onNotify("Select an agent before sending.");
+      return;
+    }
+
+    if (isSandboxAgent) {
+      onNotify(`${agent.callsign} uses the sandbox editor instead of chat input.`);
+      return;
+    }
+
+    if (agentBusy || isSubmitting) {
+      onNotify(`${agent.callsign} is already processing.`);
+      return;
+    }
+
+    const readyAttachments = attachments.filter(
+      (attachment) => attachment.status === "ready",
+    );
+    const value = imageModeActive
+      ? draft.trim()
+      : createWorkspaceAttachmentMessagePayload(draft, readyAttachments);
+
+    if (!value) {
+      return;
+    }
+
+    if (imageModeActive && readyAttachments.length) {
+      onNotify("Image mode attachment compiler is not connected yet.");
+      return;
+    }
+
+    setDraft("");
+    setIsSubmitting(true);
+    onFocusAgent(agent.id);
+
+    try {
+      await (imageModeActive
+        ? onGenerateImage(agent.id, value, imageSettings)
+        : isMediaAgent
+          ? onGenerateMedia(agent.id, value)
+          : onSend(agent.id, value));
+      setAttachments((current) =>
+        current.filter((attachment) => attachment.status !== "ready"),
+      );
+    } catch {
+      setDraft(draft);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <section
+      className="nexus-workspace-chat-composer-shell flex min-h-[118px] shrink-0 items-center justify-center border px-3 py-3"
+      data-testid="workspace-chat-composer-shell"
+      style={{
+        ...workspaceBodyMaterialStyle,
+        borderRadius:
+          "var(--nexus-workspace-radius, var(--nexus-panel-radius, var(--surface-radius)))",
+      }}
+    >
+      <div className="grid w-full max-w-[720px] gap-2">
+        <button
+          className="flex h-8 w-full items-center justify-between gap-3 overflow-hidden border pl-5 pr-4 text-left font-mono text-[9px] tracking-[0.04em] text-neutral-400 transition hover:text-neutral-200 disabled:opacity-50"
+          data-testid="workspace-chat-thread-card"
+          disabled={!agent}
+          style={{
+            background:
+              "var(--nexus-layout-panel-muted-bg, var(--nexus-panel-bg, rgb(255 255 255 / 0.035)))",
+            borderColor:
+              "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.1)))",
+            borderRadius:
+              "var(--nexus-panel-radius, var(--surface-radius))",
+          }}
+          type="button"
+        >
+          <span className="min-w-0 flex-1 truncate">
+            Latest thread - {targetLabel}: {latestMessagePreview}
+          </span>
+        </button>
+
+        <form aria-label="Workspace message composer" onSubmit={submit}>
+          <input
+            ref={fileInputRef}
+            className="hidden"
+            data-testid="workspace-attachment-file-input"
+            onChange={(event) => {
+              void attachLocalFile(event.currentTarget.files?.[0]);
+              event.currentTarget.value = "";
+            }}
+            type="file"
+          />
+          <div
+            className="relative border"
+            data-testid="workspace-chat-input-card"
+            style={{
+              background:
+                "var(--nexus-layout-panel-muted-bg, var(--nexus-panel-bg, rgb(255 255 255 / 0.045)))",
+              borderColor:
+                "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.1)))",
+              borderRadius:
+                "calc(var(--nexus-panel-radius, var(--surface-radius)) + 10px)",
+            }}
+          >
+            <div className="flex min-w-0 items-center gap-2 px-3 py-2">
+              <div className="relative shrink-0">
+                <button
+                  aria-expanded={attachmentMenuOpen}
+                  aria-label="Add attachment"
+                  className="grid h-9 w-9 place-items-center rounded-full border text-neutral-400 transition hover:text-neutral-100"
+                  data-testid="workspace-attachment-menu-trigger"
+                  onClick={() => setAttachmentMenuOpen((current) => !current)}
+                  style={{
+                    borderColor:
+                      "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.1)))",
+                  }}
+                  type="button"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+
+                {attachmentMenuOpen ? (
+                  <div
+                    className="absolute bottom-12 left-0 z-[120] w-64 overflow-hidden border bg-neutral-950/95 p-1 shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+                    data-testid="workspace-attachment-menu"
+                    style={{
+                      borderColor:
+                        "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.1)))",
+                      borderRadius:
+                        "var(--nexus-panel-radius, var(--surface-radius))",
+                    }}
+                  >
+                    {composerActions.map((action) => (
+                      <button
+                        key={action.id}
+                        className="flex w-full items-start gap-2 px-3 py-2 text-left text-neutral-100 transition hover:bg-neutral-300/[0.08]"
+                        data-composer-mode={composerMode}
+                        data-testid={`workspace-composer-action-${action.id}`}
+                        onClick={() => handleComposerAction(action.id)}
+                        type="button"
+                      >
+                        {composerMode === "image" ? (
+                          <BrainCircuit className="mt-0.5 h-4 w-4 shrink-0" />
+                        ) : (
+                          <Layers3 className="mt-0.5 h-4 w-4 shrink-0" />
+                        )}
+                        <span className="min-w-0">
+                          <span className="block font-mono text-[10px] uppercase tracking-[0.12em]">
+                            {action.label}
+                          </span>
+                          <span className="mt-0.5 block text-[11px] leading-4 text-neutral-200/65">
+                            {action.detail}
+                          </span>
+                        </span>
+                      </button>
+                    ))}
+                    <div className="my-1 h-px bg-white/10" />
+                    {WORKSPACE_ATTACHMENT_INPUT_ACTIONS.map((action) => (
+                      <button
+                        key={action.id}
+                        className="flex w-full items-start gap-2 px-3 py-2 text-left text-neutral-300 transition hover:bg-white/[0.06] hover:text-neutral-100"
+                        data-placeholder={action.status === "placeholder"}
+                        data-testid={`workspace-attachment-action-${action.id}`}
+                        onClick={() => handleAttachmentAction(action.id)}
+                        type="button"
+                      >
+                        {action.id === "local-file-upload" ? (
+                          <FileUp className="mt-0.5 h-4 w-4 shrink-0" />
+                        ) : action.id === "artifact-vault-reference" ? (
+                          <Archive className="mt-0.5 h-4 w-4 shrink-0" />
+                        ) : action.id === "notebook-context" ? (
+                          <Pencil className="mt-0.5 h-4 w-4 shrink-0" />
+                        ) : (
+                          <PackageCheck className="mt-0.5 h-4 w-4 shrink-0" />
+                        )}
+                        <span className="min-w-0">
+                          <span className="block font-mono text-[10px] uppercase tracking-[0.12em]">
+                            {action.label}
+                          </span>
+                          <span className="mt-0.5 block text-[11px] leading-4 text-neutral-500">
+                            {action.detail}
+                          </span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+
+              <input
+                className="min-w-0 flex-1 bg-transparent text-sm text-neutral-100 outline-none placeholder:text-neutral-500"
+                data-testid="workspace-chat-composer-input"
+                disabled={!agent || isSubmitting || agentBusy || isSandboxAgent}
+                onChange={(event) => setDraft(event.currentTarget.value)}
+                placeholder={
+                  agent
+                    ? isSandboxAgent
+                      ? "Sandbox agents use the embedded editor"
+                      : imageModeActive
+                        ? "Describe the image to generate"
+                        : isMediaAgent
+                          ? `Describe ${capabilityType} generation`
+                          : "Ask for follow-up changes"
+                    : "Select an agent to start"
+                }
+                value={draft}
+              />
+
+              <label
+                className="hidden shrink-0 items-center gap-1 rounded-full px-2 py-1 font-mono text-[10px] uppercase tracking-[0.08em] text-neutral-300 transition sm:inline-flex"
+                data-mode={composerMode}
+                data-testid="workspace-composer-mode-control"
+              >
+                <span className="sr-only">Chatroom reasoning effort</span>
+                {imageModeActive ? (
+                  <div
+                    className="flex items-center gap-1"
+                    data-testid="workspace-image-settings-controls"
+                  >
+                    <select
+                      aria-label="Image model"
+                      className="max-w-[92px] bg-transparent uppercase outline-none"
+                      data-testid="workspace-image-model-select"
+                      onChange={(event) => {
+                        if (!agent) {
+                          return;
+                        }
+
+                        onImageSettingsChange(agent.id, {
+                          ...imageSettings,
+                          modelId: event.currentTarget.value,
+                        });
+                      }}
+                      value={imageSettings.modelId}
+                    >
+                      {WORKSPACE_COMPOSER_IMAGE_MODEL_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      aria-label="Image quality"
+                      className="max-w-[76px] bg-transparent uppercase outline-none"
+                      data-testid="workspace-image-quality-select"
+                      onChange={(event) => {
+                        if (!agent) {
+                          return;
+                        }
+
+                        onImageSettingsChange(agent.id, {
+                          ...imageSettings,
+                          quality: event.currentTarget
+                            .value as WorkspaceComposerImageSettings["quality"],
+                        });
+                      }}
+                      value={imageSettings.quality}
+                    >
+                      {WORKSPACE_COMPOSER_IMAGE_QUALITY_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      aria-label="Image aspect ratio"
+                      className="max-w-[62px] bg-transparent uppercase outline-none"
+                      data-testid="workspace-image-ratio-select"
+                      onChange={(event) => {
+                        if (!agent) {
+                          return;
+                        }
+
+                        onImageSettingsChange(agent.id, {
+                          ...imageSettings,
+                          aspectRatio: event.currentTarget
+                            .value as WorkspaceComposerImageSettings["aspectRatio"],
+                        });
+                      }}
+                      value={imageSettings.aspectRatio}
+                    >
+                      {WORKSPACE_COMPOSER_IMAGE_ASPECT_RATIO_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      aria-label="Chatroom reasoning effort"
+                      className="max-w-[116px] bg-transparent uppercase outline-none disabled:opacity-45"
+                      data-testid="workspace-chat-reasoning-select"
+                      disabled={reasoningDisabled}
+                      onChange={(event) => {
+                        if (!agent) {
+                          return;
+                        }
+
+                        const reasoningEffort = event.currentTarget
+                          .value as NexusReasoningEffort;
+
+                        onUpdateAgentModelSettings(agent.id, { reasoningEffort });
+                        onNotify(
+                          `${agent.callsign} reasoning set to ${reasoningEffort}.`,
+                        );
+                      }}
+                      value={selectedReasoningEffort ?? ""}
+                    >
+                      {reasoningOptions.length ? (
+                        reasoningOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">no reasoning</option>
+                      )}
+                    </select>
+                  </>
+                )}
+              </label>
+
+              <button
+                aria-label="Send workspace message"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-neutral-950 transition hover:opacity-90 disabled:opacity-40"
+                data-testid="workspace-chat-composer-action"
+                disabled={submitDisabled}
+                style={{
+                  background:
+                    "var(--theme-primary, var(--nexus-accent-primary, #e5e5e5))",
+                }}
+                type="submit"
+              >
+                <SendHorizontal className="h-4 w-4" />
+              </button>
+            </div>
+
+            {attachments.length ? (
+              <div
+                className="flex flex-wrap gap-1.5 border-t border-white/10 px-3 py-2"
+                data-testid="workspace-attachment-chip-list"
+              >
+                {attachments.map((attachment) => (
+                  <span
+                    key={attachment.id}
+                    className={cx(
+                      "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em]",
+                      attachment.status === "ready" &&
+                        "border-neutral-300/30 bg-neutral-300/10 text-neutral-100",
+                      attachment.status === "uploading" &&
+                        "border-white/15 bg-white/[0.045] text-neutral-200",
+                      attachment.status === "error" &&
+                        "border-neutral-300/30 bg-neutral-300/10 text-neutral-100",
+                    )}
+                    data-testid="workspace-attachment-chip"
+                    title={
+                      attachment.error ??
+                      `${attachment.name} - ${formatFileSize(attachment.sizeBytes)}`
+                    }
+                  >
+                    <FileUp className="h-3 w-3 shrink-0" />
+                    <span className="max-w-[180px] truncate">{attachment.name}</span>
+                    <span className="text-neutral-500">
+                      {attachment.status === "ready"
+                        ? "recorded"
+                        : attachment.status}
+                    </span>
+                    <button
+                      aria-label={`Remove ${attachment.name}`}
+                      className="grid h-4 w-4 place-items-center rounded-full text-neutral-400 transition hover:text-neutral-100"
+                      onClick={() =>
+                        setAttachments((current) =>
+                          current.filter((candidate) => candidate.id !== attachment.id),
+                        )
+                      }
+                      type="button"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </form>
+      </div>
+    </section>
   );
 }
 
@@ -6839,7 +7731,7 @@ function MinimizedRail({
       {agents.map((agent) => (
         <button
           key={agent.id}
-          className="flex min-w-44 items-center gap-2 border border-white/10 bg-black/70 px-3 py-2 text-left shadow-xl backdrop-blur transition hover:border-cyan-300/50"
+          className="flex min-w-44 items-center gap-2 border border-white/10 bg-black/70 px-3 py-2 text-left shadow-xl backdrop-blur transition hover:border-neutral-300/50"
           onClick={() => onRestore(agent.id)}
           type="button"
         >
@@ -6851,7 +7743,7 @@ function MinimizedRail({
             <span className="block truncate font-mono text-[11px] uppercase tracking-[0.16em] text-white">
               {agent.callsign}
             </span>
-            <span className="block truncate text-xs text-slate-500">
+            <span className="block truncate text-xs text-neutral-500">
               {getCapabilityType(agent)} / {agent.model}
             </span>
           </span>
@@ -6892,19 +7784,19 @@ function RightIntel({
     <aside className="nexus-panel hidden h-full min-h-0 flex-col overflow-hidden xl:flex">
       <div className="border-b border-white/10 p-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-mono text-xs uppercase tracking-[0.22em] text-slate-300">
+          <h2 className="font-mono text-xs uppercase tracking-[0.22em] text-neutral-300">
             Ops Matrix
           </h2>
-          <PanelRight className="h-4 w-4 text-fuchsia-200" />
+          <PanelRight className="h-4 w-4 text-neutral-200" />
         </div>
         <div className="mt-4 border border-white/10 bg-white/[0.035] p-3">
           <div className="mb-2 flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-emerald-200" />
+            <ShieldCheck className="h-4 w-4 text-neutral-200" />
             <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-white">
               Selected Agent
             </span>
           </div>
-          <p className="text-sm text-slate-300">
+          <p className="text-sm text-neutral-300">
             {agent ? `${agent.callsign} / ${agent.title}` : "No agent selected"}
           </p>
         </div>
@@ -6919,7 +7811,7 @@ function RightIntel({
                 key={candidate.id}
                 className={cx(
                   "border bg-black/24 transition",
-                  selected ? "border-cyan-300/35" : "border-white/10",
+                  selected ? "border-neutral-300/35" : "border-white/10",
                 )}
               >
                 <div className="flex items-start gap-2 px-3 py-2">
@@ -6934,10 +7826,10 @@ function RightIntel({
                           {candidate.callsign}
                         </span>
                         {locked ? (
-                          <Lock className="h-3 w-3 shrink-0 text-emerald-200" />
+                          <Lock className="h-3 w-3 shrink-0 text-neutral-200" />
                         ) : null}
                       </span>
-                      <span className="block truncate text-[11px] text-slate-500">
+                      <span className="block truncate text-[11px] text-neutral-500">
                         {candidate.model}
                       </span>
                     </span>
@@ -6946,9 +7838,9 @@ function RightIntel({
                     aria-expanded={open}
                     aria-label={`${candidate.callsign} custom settings`}
                     className={cx(
-                      "grid h-7 w-7 shrink-0 place-items-center border text-slate-500 transition hover:border-cyan-300/45 hover:bg-cyan-300/10 hover:text-cyan-100",
+                      "grid h-7 w-7 shrink-0 place-items-center border text-neutral-500 transition hover:border-neutral-300/45 hover:bg-neutral-300/10 hover:text-neutral-100",
                       open &&
-                        "border-cyan-300/55 bg-cyan-300/15 text-cyan-100",
+                        "border-neutral-300/55 bg-neutral-300/15 text-neutral-100",
                     )}
                     onClick={() => {
                       onSelectAgent(candidate.id);
@@ -6965,7 +7857,7 @@ function RightIntel({
                 {open ? (
                   <div className="grid gap-2 border-t border-white/10 p-3">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
                         Custom Agent
                       </span>
                       <button
@@ -6973,8 +7865,8 @@ function RightIntel({
                         className={cx(
                           "grid h-7 w-7 place-items-center border transition",
                           locked
-                            ? "border-emerald-300/45 bg-emerald-300/10 text-emerald-100"
-                            : "border-white/10 bg-white/[0.035] text-slate-500 hover:border-cyan-300/45 hover:text-cyan-100",
+                            ? "border-neutral-300/45 bg-neutral-300/10 text-neutral-100"
+                            : "border-white/10 bg-white/[0.035] text-neutral-500 hover:border-neutral-300/45 hover:text-neutral-100",
                         )}
                         onClick={() => onSetAgentProfileLocked(candidate.id, !locked)}
                         title={locked ? "Unlock custom agent" : "Lock custom agent"}
@@ -6988,11 +7880,11 @@ function RightIntel({
                       </button>
                     </div>
                     <label className="grid gap-1.5">
-                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
                         Name
                       </span>
                       <input
-                        className="w-full border border-white/10 bg-black/35 px-2 py-1.5 font-mono text-[11px] text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+                        className="w-full border border-white/10 bg-black/35 px-2 py-1.5 font-mono text-[11px] text-neutral-100 outline-none transition focus:border-neutral-300/60 disabled:opacity-45"
                         disabled={locked}
                         onChange={(event) =>
                           onUpdateAgentCallsign(candidate.id, event.currentTarget.value)
@@ -7001,11 +7893,11 @@ function RightIntel({
                       />
                     </label>
                     <label className="grid gap-1.5">
-                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
                         Role
                       </span>
                       <input
-                        className="w-full border border-white/10 bg-black/35 px-2 py-1.5 text-xs text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+                        className="w-full border border-white/10 bg-black/35 px-2 py-1.5 text-xs text-neutral-100 outline-none transition focus:border-neutral-300/60 disabled:opacity-45"
                         disabled={locked}
                         onChange={(event) =>
                           onUpdateAgentProfile(candidate.id, {
@@ -7016,11 +7908,11 @@ function RightIntel({
                       />
                     </label>
                     <label className="grid gap-1.5">
-                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
                         Task
                       </span>
                       <textarea
-                        className="min-h-20 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+                        className="min-h-20 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-neutral-100 outline-none transition focus:border-neutral-300/60 disabled:opacity-45"
                         disabled={locked}
                         onChange={(event) =>
                           onUpdateMission(candidate.id, event.currentTarget.value)
@@ -7029,11 +7921,11 @@ function RightIntel({
                       />
                     </label>
                     <label className="grid gap-1.5">
-                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
                         Execution
                       </span>
                       <textarea
-                        className="min-h-24 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-slate-100 outline-none transition focus:border-cyan-300/60 disabled:opacity-45"
+                        className="min-h-24 w-full resize-none border border-white/10 bg-black/35 p-2 text-xs leading-5 text-neutral-100 outline-none transition focus:border-neutral-300/60 disabled:opacity-45"
                         disabled={locked}
                         onChange={(event) =>
                           onUpdateAgentProfile(candidate.id, {
@@ -7051,58 +7943,58 @@ function RightIntel({
         </div>
       </div>
 
-      <div className="cyber-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+      <div className="system-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">
+            <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">
               Collaboration Graph
             </h3>
-            <Workflow className="h-4 w-4 text-cyan-200" />
+            <Workflow className="h-4 w-4 text-neutral-200" />
           </div>
           <div className="relative h-48 border border-white/10 bg-black/28">
             <GraphNode
-              accent="#22d3ee"
+              accent="#d4d4d4"
               label={activeAgent?.callsign ?? "ACTIVE"}
               x="18%"
               y="22%"
             />
             <GraphNode
-              accent="#f472b6"
+              accent="#c4c4c4"
               label={agent?.callsign ?? "SELECT"}
               x="58%"
               y="42%"
             />
-            <GraphNode accent="#34d399" label="TOOLS" x="28%" y="70%" />
-            <GraphNode accent="#f59e0b" label="MEMORY" x="70%" y="72%" />
-            <div className="absolute left-[28%] top-[31%] h-px w-[34%] rotate-[18deg] bg-cyan-200/30" />
-            <div className="absolute left-[38%] top-[67%] h-px w-[32%] -rotate-[24deg] bg-emerald-200/30" />
-            <div className="absolute left-[63%] top-[52%] h-px w-[20%] rotate-[56deg] bg-amber-200/30" />
+            <GraphNode accent="#c8c8c8" label="TOOLS" x="28%" y="70%" />
+            <GraphNode accent="#d0d0d0" label="MEMORY" x="70%" y="72%" />
+            <div className="absolute left-[28%] top-[31%] h-px w-[34%] rotate-[18deg] bg-neutral-200/30" />
+            <div className="absolute left-[38%] top-[67%] h-px w-[32%] -rotate-[24deg] bg-neutral-200/30" />
+            <div className="absolute left-[63%] top-[52%] h-px w-[20%] rotate-[56deg] bg-neutral-200/30" />
           </div>
         </section>
 
         {agent && (
           <>
             <section className="mt-5">
-              <div className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">
-                <GitBranch className="h-4 w-4 text-cyan-200" />
+              <div className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">
+                <GitBranch className="h-4 w-4 text-neutral-200" />
                 Context Stack
               </div>
               <div className="grid gap-2">
                 {agent.contextNotes.map((item) => (
                   <div key={item.id} className="border border-white/10 bg-white/[0.035] p-3">
-                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                       {item.source}
                     </div>
-                    <div className="mt-1 text-sm text-slate-200">{item.title}</div>
-                    <p className="mt-1 text-xs leading-5 text-slate-500">{item.value}</p>
+                    <div className="mt-1 text-sm text-neutral-200">{item.title}</div>
+                    <p className="mt-1 text-xs leading-5 text-neutral-500">{item.value}</p>
                   </div>
                 ))}
               </div>
             </section>
 
             <section className="mt-5">
-              <div className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">
-                <SlidersHorizontal className="h-4 w-4 text-fuchsia-200" />
+              <div className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">
+                <SlidersHorizontal className="h-4 w-4 text-neutral-200" />
                 Tool Ports
               </div>
               <div className="grid gap-2">
@@ -7113,10 +8005,10 @@ function RightIntel({
                   >
                     <div className="flex items-center justify-between gap-3">
                       <span className="min-w-0">
-                        <span className="block truncate text-sm text-slate-200">
+                        <span className="block truncate text-sm text-neutral-200">
                           {tool.name}
                         </span>
-                        <span className="block truncate text-xs text-slate-500">
+                        <span className="block truncate text-xs text-neutral-500">
                           {tool.scope}
                         </span>
                       </span>
@@ -7124,10 +8016,10 @@ function RightIntel({
                         className={cx(
                           "shrink-0 border px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em]",
                           tool.status === "available" || tool.status === "done"
-                            ? "border-emerald-300/35 text-emerald-100"
+                            ? "border-neutral-300/35 text-neutral-100"
                             : tool.status === "running"
-                              ? "border-cyan-300/35 text-cyan-100"
-                              : "border-amber-300/35 text-amber-100",
+                              ? "border-neutral-300/35 text-neutral-100"
+                              : "border-neutral-300/35 text-neutral-100",
                         )}
                       >
                         {hasToolExecutor(tool) ? tool.status : "planned"}
@@ -7135,7 +8027,7 @@ function RightIntel({
                     </div>
                     {hasToolExecutor(tool) && (
                       <button
-                        className="border border-cyan-300/30 bg-cyan-300/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+                        className="border border-neutral-300/30 bg-neutral-300/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
                         disabled={tool.status === "running"}
                         onClick={() => {
                           void onRunTool(agent.id, tool.id);
@@ -7151,8 +8043,8 @@ function RightIntel({
             </section>
 
             <section className="mt-5">
-              <div className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">
-                <Database className="h-4 w-4 text-emerald-200" />
+              <div className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">
+                <Database className="h-4 w-4 text-neutral-200" />
                 Memory Edit
               </div>
               <div className="grid gap-2">
@@ -7161,11 +8053,11 @@ function RightIntel({
                     key={memory.id}
                     className="grid gap-2 border border-white/10 bg-white/[0.035] p-3"
                   >
-                    <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
                       {memory.label}
                     </span>
                     <textarea
-                      className="min-h-20 resize-none border border-white/10 bg-black/30 p-2 text-xs leading-5 text-slate-200 outline-none transition focus:border-emerald-300/50"
+                      className="min-h-20 resize-none border border-white/10 bg-black/30 p-2 text-xs leading-5 text-neutral-200 outline-none transition focus:border-neutral-300/50"
                       onChange={(event) =>
                         onUpdateMemory(agent.id, memory.id, event.target.value)
                       }
@@ -7263,46 +8155,46 @@ function CommandPalette({
             transition={{ duration: 0.16 }}
           >
             <div className="flex items-center gap-3 border-b border-white/10 p-4">
-              <Search className="h-5 w-5 text-cyan-200" />
+              <Search className="h-5 w-5 text-neutral-200" />
               <input
                 ref={inputRef}
-                className="min-w-0 flex-1 bg-transparent text-base text-white outline-none placeholder:text-slate-600"
+                className="min-w-0 flex-1 bg-transparent text-base text-white outline-none placeholder:text-neutral-600"
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search command fabric"
                 value={query}
               />
               <button
                 aria-label="Close command palette"
-                className="grid h-8 w-8 place-items-center border border-white/10 text-slate-400 transition hover:text-white"
+                className="grid h-8 w-8 place-items-center border border-white/10 text-neutral-400 transition hover:text-white"
                 onClick={close}
                 type="button"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="cyber-scroll max-h-[420px] overflow-y-auto p-2">
+            <div className="system-scroll max-h-[420px] overflow-y-auto p-2">
               {filtered.map((command) => (
                 <button
                   key={command.id}
-                  className="flex w-full items-center gap-3 border border-transparent p-3 text-left transition hover:border-cyan-300/40 hover:bg-cyan-300/10"
+                  className="flex w-full items-center gap-3 border border-transparent p-3 text-left transition hover:border-neutral-300/40 hover:bg-neutral-300/10"
                   onClick={command.run}
                   type="button"
                 >
-                  <span className="grid h-9 w-9 shrink-0 place-items-center border border-white/10 bg-white/[0.045] text-cyan-100">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center border border-white/10 bg-white/[0.045] text-neutral-100">
                     {command.icon}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm text-white">
                       {command.label}
                     </span>
-                    <span className="mt-0.5 block truncate text-xs text-slate-500">
+                    <span className="mt-0.5 block truncate text-xs text-neutral-500">
                       {command.detail}
                     </span>
                   </span>
                 </button>
               ))}
               {!filtered.length && (
-                <div className="p-8 text-center text-sm text-slate-500">
+                <div className="p-8 text-center text-sm text-neutral-500">
                   No matching command.
                 </div>
               )}

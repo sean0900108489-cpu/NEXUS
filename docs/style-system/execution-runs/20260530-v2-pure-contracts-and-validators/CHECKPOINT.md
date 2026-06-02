@@ -89,7 +89,7 @@ Required verification before commit:
 
 Focused V2 tests cover:
 
-- valid minimal and cyberpunk-compatible skin packs passing
+- valid minimal and surface-shell-compatible skin packs passing
 - invalid packs failing closed
 - display-safe redacted reports
 - rejected skin pack validation returning no `skinPack`

@@ -57,7 +57,7 @@ The guide includes a first-cut validation checklist covering:
 
 Known baseline entries recorded:
 
-- `bg-cyberpunk.webp` placeholder/load issue, if present
+- `bg-surface-shell.webp` placeholder/load issue, if present
 - normal route-load `POST /api/v1/sync/operations 200`
 - existing notebook/prompt/recovery/workspace/sync fetches
 - edge runtime static-generation build warning

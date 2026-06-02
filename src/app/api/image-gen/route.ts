@@ -4,6 +4,7 @@ import {
   normalizeImageBaseUrl,
 } from "@/lib/adapters/image-adapter";
 import { blockLegacyToolRouteInProduction } from "@/lib/backend/security/legacy-tool-route-boundary";
+import { normalizeWorkspaceComposerImageSettings } from "@/lib/composer/image-generation-settings";
 
 export const runtime = "nodejs";
 
@@ -12,6 +13,7 @@ type ImageGenerationPayload = {
     accent?: unknown;
     callsign?: unknown;
   };
+  imageSettings?: unknown;
   model?: unknown;
   prompt?: unknown;
   toolName?: unknown;
@@ -29,6 +31,18 @@ function getBearerToken(header: string | null) {
 
 function getString(value: unknown, fallback: string) {
   return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function getServerImageApiKey() {
+  return process.env.OPENAI_API_KEY?.replace(/[^\x20-\x7E]/g, "").trim() ?? "";
+}
+
+function getServerImageBaseUrl() {
+  return (
+    process.env.OPENAI_IMAGE_BASE_URL?.trim() ||
+    process.env.OPENAI_BASE_URL?.trim() ||
+    undefined
+  );
 }
 
 export async function POST(request: Request) {
@@ -52,13 +66,19 @@ export async function POST(request: Request) {
     return Response.json({ error: "Image prompt is required." }, { status: 400 });
   }
 
-  const apiKey = getBearerToken(request.headers.get("authorization"));
-  const baseUrl = normalizeImageBaseUrl(request.headers.get("x-openai-base-url") ?? undefined);
+  const apiKey =
+    getBearerToken(request.headers.get("authorization")) || getServerImageApiKey();
+  const baseUrl = normalizeImageBaseUrl(
+    request.headers.get("x-openai-base-url") ?? getServerImageBaseUrl(),
+  );
   const agent = {
     accent: getString(payload.agent?.accent, "#a78bfa"),
     callsign: getString(payload.agent?.callsign, "IMAGE"),
-    model: getString(payload.model, "dall-e-3"),
+    model: getString(payload.model, process.env.OPENAI_IMAGE_MODEL ?? "img2"),
   };
+  const imageSettings = isRecord(payload.imageSettings)
+    ? normalizeWorkspaceComposerImageSettings(payload.imageSettings)
+    : undefined;
   const toolName = getString(payload.toolName, "Image Adapter");
 
   try {
@@ -67,12 +87,14 @@ export async function POST(request: Request) {
           agent,
           apiKey,
           baseUrl,
+          imageSettings,
           model: agent.model,
           prompt,
           toolName,
         })
       : new MockImageAdapter({
           agent,
+          imageSettings,
           prompt,
           toolName,
         });
@@ -84,4 +106,8 @@ export async function POST(request: Request) {
 
     return Response.json({ error: detail }, { status: 502 });
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }

@@ -81,7 +81,7 @@ function makeAuthVault(): IAuthVault {
 
 function makeAgent(): NexusAgent {
   return {
-    accent: "cyan",
+    accent: "neutral",
     avatar: "AI",
     callsign: "TEST",
     capabilities: {

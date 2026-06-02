@@ -10,10 +10,10 @@ describe("Nexus datapad shell selector", () => {
     expect(source).toContain("<Rnd");
     expect(source).toContain('dragHandleClassName="datapad-drag-handle"');
     expect(source).toContain(
-      'className="nexus-datapad-shell nexus-datapad-window flex h-full min-h-0 flex-col overflow-hidden border border-white/10 bg-black/70 text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.48)] backdrop-blur-xl"',
+      'className="nexus-datapad-shell nexus-datapad-window flex h-full min-h-0 flex-col overflow-hidden border border-white/10 bg-black/70 text-neutral-100 shadow-[0_22px_70px_rgba(0,0,0,0.48)] backdrop-blur-xl"',
     );
     expect(source).not.toContain(
-      'className="nexus-datapad-shell nexus-datapad-window flex h-full min-h-0 flex-col overflow-hidden border border-emerald-300/30 bg-slate-950/94 text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.55),0_0_34px_rgba(16,185,129,0.14)] backdrop-blur-xl"',
+      'className="nexus-datapad-shell nexus-datapad-window flex h-full min-h-0 flex-col overflow-hidden border border-neutral-300/30 bg-neutral-950/94 text-neutral-100 shadow-[0_22px_70px_rgba(0,0,0,0.55),0_0_34px_rgba(16,185,129,0.14)] backdrop-blur-xl"',
     );
   });
 
@@ -39,16 +39,16 @@ describe("Nexus datapad shell selector", () => {
     expect(source).toContain("onClick={() => deleteNotebook(notebook.id)}");
   });
 
-  it("adds Datapad shell aliases in globals with panel and cyberpunk fallbacks", () => {
+  it("adds Datapad shell aliases in globals with panel and surface-shell fallbacks", () => {
     const source = readDatapadWindowSource();
     const css = readGlobalsCssSource();
 
     expect(css).toContain(".nexus-shell .nexus-datapad-shell");
     expect(css).toContain(
-      "background: var(--nexus-datapad-shell-bg, var(--nexus-panel-bg, rgb(2 6 23 / 0.94)))",
+      "background: var(--nexus-datapad-shell-bg, var(--nexus-panel-bg, rgb(16 16 16 / 0.94)))",
     );
     expect(css).toContain(
-      "border-color: var(--nexus-datapad-shell-border, var(--nexus-panel-border, rgb(110 231 183 / 0.3)))",
+      "border-color: var(--nexus-datapad-shell-border, var(--nexus-panel-border, rgb(214 214 214 / 0.3)))",
     );
     expect(css).toContain(
       "border-radius: var(--nexus-datapad-shell-radius, var(--nexus-panel-radius, var(--surface-radius)))",

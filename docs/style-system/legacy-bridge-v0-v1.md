@@ -26,7 +26,7 @@ It does not authorize deleting or replacing legacy CSS.
 | --- | --- | --- |
 | Tailwind config pointer | `src/app/globals.css:1` | Uses `@config "../../tailwind.config.ts"`. |
 | Tailwind import | `src/app/globals.css:2` | Imports Tailwind. |
-| `cyberpunk` preset | `src/app/globals.css:5` | Default dark baseline. |
+| `surface-shell` preset | `src/app/globals.css:5` | Default dark baseline. |
 | `apple` preset | `src/app/globals.css:45` | Light preset. |
 | `tesla` preset | `src/app/globals.css:85` | Dark red/neutral preset. |
 | `terminal` preset | `src/app/globals.css:125` | Dark terminal preset. |
@@ -91,12 +91,12 @@ Current `@theme inline` already maps common Tailwind utilities:
 | `primary` | `--color-primary` | `accent.primary` |
 | `panel` | `--color-panel`, `--color-panel-muted` | `surface.panel`, `surface.panelMuted` |
 | `border/glow` | `--color-border`, `--color-glow` | `border.subtle`, `border.glow` |
-| `slate-*` | mapped to text/surface variables | text hierarchy and elevated surfaces |
-| `cyan-*` | mapped to primary accent | `accent.primary` |
-| `fuchsia-*` | mapped to secondary accent | `accent.secondary` |
-| `emerald-*` | mapped to success | `status.success` |
-| `amber-*` | mapped to warning | `status.warning` |
-| `rose-*` / `red-500` | mapped to danger | `status.danger` |
+| `neutral-*` | mapped to text/surface variables | text hierarchy and elevated surfaces |
+| `neutral-*` | mapped to primary accent | `accent.primary` |
+| `neutral-*` | mapped to secondary accent | `accent.secondary` |
+| `neutral-*` | mapped to success | `status.success` |
+| `neutral-*` | mapped to warning | `status.warning` |
+| `neutral-*` / `red-500` | mapped to danger | `status.danger` |
 | Geist fonts | literal font names | Keep per Next/Tailwind v4 parse-time behavior. |
 
 Rule:
@@ -106,17 +106,17 @@ visual smoke proves no collapse across all legacy presets.
 
 ## 5. Preset Compatibility Notes
 
-### Cyberpunk
+### Surface Shell
 
 Role:
 
 - Default baseline.
 - Primary compatibility target.
-- Should be representable as `legacy-cyberpunk` manifest.
+- Should be representable as `baseline-surface-shell` manifest.
 
 Risk:
 
-- Many components visually assume cyan/fuchsia glow.
+- Many components visually assume neutral/neutral glow.
 - Graph and dock visuals are tuned to this baseline.
 
 ### Apple
@@ -128,7 +128,7 @@ Role:
 Risk:
 
 - Some hardcoded `text-white`, `bg-black`, and deep shadows may fight the light preset.
-- Future contract must prove text/surface tokens work without component-specific cyberpunk names.
+- Future contract must prove text/surface tokens work without component-specific surface-shell names.
 
 ### Tesla
 
@@ -155,7 +155,7 @@ Risk:
 Future implementation order:
 
 1. Add namespaced V1 variables that mirror current legacy variables.
-2. Compile `legacy-cyberpunk` into both namespaced and legacy variables.
+2. Compile `baseline-surface-shell` into both namespaced and legacy variables.
 3. Keep `data-theme` preset values as fallback.
 4. Apply preview variables in a scoped local-only preview root.
 5. Migrate one primitive/specimen to namespaced variables.
@@ -166,14 +166,14 @@ Forbidden:
 - Deleting `data-theme` presets.
 - Deleting `@theme inline`.
 - Rewriting `tailwind.config.ts` before compiler/bridge tests.
-- Replacing all `text-slate-*` or `bg-black/*` by search.
+- Replacing all `text-neutral-*` or `bg-black/*` by search.
 - Deleting React Flow selectors before adapter coverage.
 
 ## 7. Verification Gate For Future Bridge Code
 
 When bridge code is implemented later:
 
-- `legacy-cyberpunk` preview matches current baseline closely.
+- `baseline-surface-shell` preview matches current baseline closely.
 - Apple/Tesla/Terminal presets still switch with `next-themes`.
 - Tailwind utility classes still resolve.
 - `nexus-panel`, `nexus-glass`, agent windows, datapads, modals, and React Flow remain styled.

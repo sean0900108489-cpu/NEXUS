@@ -1,4 +1,4 @@
-import { createWarmGlassOpsSkinPackV2Fixture } from "./v2-fixtures";
+import { createSurfaceStyleOpsSkinPackV2Fixture } from "./v2-fixtures";
 import {
   createNexusProductionTokenBridgePlanFromRenderPlanResultV1,
   type NexusProductionTokenBridgePlanV1,
@@ -73,7 +73,7 @@ type AliasFamilyDefinition = {
   authSmokeStatus: NexusProductionAliasCoverageFamilyV1["authSmokeStatus"];
 };
 
-const warmGlassAliasFamilies: AliasFamilyDefinition[] = [
+const surfaceStyleAliasFamilies: AliasFamilyDefinition[] = [
   {
     aliases: [
       "--nexus-panel-bg",
@@ -404,7 +404,7 @@ const warmGlassAliasFamilies: AliasFamilyDefinition[] = [
   },
 ];
 
-export const warmGlassOpsTargetCapabilityGapsV1: NexusProductionAliasCoverageGapV1[] = [
+export const surfaceStyleOpsTargetCapabilityGapsV1: NexusProductionAliasCoverageGapV1[] = [
   {
     id: "background-scene",
     label: "Desert atelier background image or scene",
@@ -449,9 +449,9 @@ export const warmGlassOpsTargetCapabilityGapsV1: NexusProductionAliasCoverageGap
   },
 ];
 
-export function createWarmGlassOpsProductionAliasCoverageReportV1():
+export function createSurfaceStyleOpsProductionAliasCoverageReportV1():
   NexusProductionAliasCoverageReportV1 {
-  const skinPack = createWarmGlassOpsSkinPackV2Fixture();
+  const skinPack = createSurfaceStyleOpsSkinPackV2Fixture();
   const renderPlanResult = compileNexusSkinPackRenderPlanV2(skinPack);
   const bridgeResult =
     createNexusProductionTokenBridgePlanFromRenderPlanResultV1(
@@ -482,7 +482,7 @@ export function createNexusProductionAliasCoverageReportV1({
   skinPackId: string;
 }): NexusProductionAliasCoverageReportV1 {
   const bridgeVariables = new Set(Object.keys(bridgePlan?.variables ?? {}));
-  const families = warmGlassAliasFamilies.map((family) =>
+  const families = surfaceStyleAliasFamilies.map((family) =>
     createCoverageFamily(family, bridgeVariables),
   );
   const totalAliasCount = families.reduce(
@@ -529,7 +529,7 @@ export function createNexusProductionAliasCoverageReportV1({
     fallbackDrivenAliasCount,
     families,
     familyCount: families.length,
-    gaps: warmGlassOpsTargetCapabilityGapsV1,
+    gaps: surfaceStyleOpsTargetCapabilityGapsV1,
     kind: "nexus-production-alias-coverage",
     renderPlanAccepted,
     skinPackId,

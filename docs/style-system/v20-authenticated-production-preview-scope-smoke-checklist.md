@@ -71,7 +71,7 @@ CommandPalette, Modal, Datapad, or any behavior-bearing workflow.
 | Browser console warnings | 0 | `tab.dev.logs` returned no `warn` / `warning` entries. |
 | Hydration mismatch | none observed | No hydration error appeared in browser console logs. |
 | Chrome Translate mismatch | not observed | Page `lang` was `en`; no Translate-related mismatch was observed. |
-| `bg-cyberpunk.webp` baseline | not observed | The auth gate did not surface this known placeholder issue. |
+| `bg-surface-shell.webp` baseline | not observed | The auth gate did not surface this known placeholder issue. |
 | V20 preview-scope regression | none observed | No preview implementation exists in this run. |
 
 ## Route-Load Server Baseline

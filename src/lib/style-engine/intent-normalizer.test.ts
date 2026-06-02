@@ -5,7 +5,7 @@ import { normalizeNexusStyleIntentV1 } from "@/lib/style-engine";
 describe("NEXUS Style Engine intent normalizer", () => {
   it("normalizes inert brief text into draft-only intent metadata", () => {
     const result = normalizeNexusStyleIntentV1(
-      "High contrast terminal dashboard with reduced motion, glass panels, cyan graph nodes.",
+      "High contrast terminal dashboard with reduced motion, glass panels, neutral graph nodes.",
       { source: "ai-draft" },
     );
 

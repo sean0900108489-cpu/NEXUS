@@ -66,8 +66,8 @@ export const DEFAULT_SANDBOX_CODE = `<!doctype html>
         min-height: 100vh;
         display: grid;
         place-items: center;
-        background: #020617;
-        color: #67e8f9;
+        background: #111111;
+        color: #e5e5e5;
         font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       }
 
@@ -101,7 +101,7 @@ export const agentTemplates: AgentTemplate[] = [
     title: "Custom Agent",
     identity: "",
     avatar: "N1",
-    accent: "#22d3ee",
+    accent: "#d4d4d4",
     mission: "",
     executionPrompt: "",
     profileLocked: false,
@@ -119,7 +119,7 @@ export const agentTemplates: AgentTemplate[] = [
     title: "Custom Agent",
     identity: "",
     avatar: "N2",
-    accent: "#f472b6",
+    accent: "#c4c4c4",
     mission: "",
     executionPrompt: "",
     profileLocked: false,
@@ -137,7 +137,7 @@ export const agentTemplates: AgentTemplate[] = [
     title: "Custom Agent",
     identity: "",
     avatar: "N3",
-    accent: "#f59e0b",
+    accent: "#d0d0d0",
     mission: "",
     executionPrompt: "",
     profileLocked: false,
@@ -155,7 +155,7 @@ export const agentTemplates: AgentTemplate[] = [
     title: "Custom Agent",
     identity: "",
     avatar: "N4",
-    accent: "#34d399",
+    accent: "#c8c8c8",
     mission: "",
     executionPrompt: "",
     profileLocked: false,
@@ -319,7 +319,7 @@ export function createMediaAgent(
   const image = type === "image";
   const callsign = `${image ? "IMAGE" : "VIDEO"}-${index}`;
   const model = image ? "dall-e-3" : "sora";
-  const accent = image ? "#a78bfa" : "#fb7185";
+  const accent = image ? "#a78bfa" : "#c7c7c7";
   const provider = image ? "openai-image" : "openai-video";
   const title = image ? "Image Generator" : "Video Generator";
   const mission = image

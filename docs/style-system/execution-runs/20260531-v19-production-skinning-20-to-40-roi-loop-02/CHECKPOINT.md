@@ -146,7 +146,7 @@ Browser-only apply/revert result:
 
 Known baseline / non-regression observations:
 
-- `bg-cyberpunk.webp` placeholder asset load failure remains a known baseline
+- `bg-surface-shell.webp` placeholder asset load failure remains a known baseline
   issue if observed; this run did not touch asset URLs.
 - Chrome Translate hydration mismatch remains a known baseline issue only when
   Translate is active. The smoke title/text showed `NEXUS // AI OPS`.

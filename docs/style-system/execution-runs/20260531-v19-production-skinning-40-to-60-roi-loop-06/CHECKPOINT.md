@@ -135,7 +135,7 @@ Observed:
 
 ## Known Baseline Issues Vs Regressions
 
-- Known baseline: `bg-cyberpunk.webp` placeholder failure belongs to production
+- Known baseline: `bg-surface-shell.webp` placeholder failure belongs to production
   `/` if it appears.
 - Known baseline/tooling: Chrome Translate hydration mismatch only if Translate
   is active; not observed here.

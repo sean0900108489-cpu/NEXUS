@@ -10,7 +10,7 @@ describe("Nexus workspace production primitive", () => {
     expect(source).toContain(
       'className="nexus-workspace nexus-scanline relative z-0 isolate min-h-0 min-w-0 flex-1 overflow-hidden border"',
     );
-    expect(source).not.toContain("bg-slate-950/80 shadow-2xl");
+    expect(source).not.toContain("bg-neutral-950/80 shadow-2xl");
     expect(source).toContain('viewMode === "panels"');
     expect(source).toContain("<NexusGraph");
   });
@@ -29,7 +29,7 @@ describe("Nexus workspace production primitive", () => {
     expect(css).toContain("--nexus-workspace-radius");
   });
 
-  it("uses panel aliases and cyberpunk baselines as workspace chrome fallbacks", () => {
+  it("uses panel aliases and surface-shell baselines as workspace chrome fallbacks", () => {
     const css = readGlobalsCssSource();
 
     expect(css).toContain(

@@ -206,7 +206,7 @@ Every applied style preference needs a fallback chain:
 current style pack
 -> fallback style pack
 -> built-in legacy preset
--> default legacy cyberpunk variables
+-> default baseline surface-shell variables
 ```
 
 Fallback must work when:

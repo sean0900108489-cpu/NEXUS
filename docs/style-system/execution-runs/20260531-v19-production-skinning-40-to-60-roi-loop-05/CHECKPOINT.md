@@ -158,7 +158,7 @@ Production `/`:
 
 ## Known Baseline Issues Vs Regressions
 
-- Known baseline: `bg-cyberpunk.webp` placeholder failure if it appears on `/`.
+- Known baseline: `bg-surface-shell.webp` placeholder failure if it appears on `/`.
 - Known baseline/tooling: Chrome Translate hydration mismatch only if Translate
   is active; not observed in this `/style-lab` smoke.
 - Auth boundary: local `/` remains gated and was not bypassed.

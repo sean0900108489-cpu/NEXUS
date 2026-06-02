@@ -10,7 +10,7 @@ The first cut is intentionally narrow:
 
 - URL gate: `/?nexusPreviewFirstCut=1`
 - target scope: `main.nexus-shell.nexus-outer-shell-frame`
-- variable source: Warm Glass direct production bridge variables
+- variable source: Surface Style direct production bridge variables
 - persistence: none
 - backend/store/API writes from preview: none
 - document root/body/html mutation: blocked
@@ -169,7 +169,7 @@ Use this checklist for a first-cut smoke run.
 
 Known baseline signals:
 
-- `bg-cyberpunk.webp` placeholder/load issue, if present.
+- `bg-surface-shell.webp` placeholder/load issue, if present.
 - Normal route-load network activity, including `POST /api/v1/sync/operations 200`.
 - Existing route data fetches for notebooks, prompts, recovery, workspace state, or sync.
 - Edge runtime static-generation warning during build.

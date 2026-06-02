@@ -75,7 +75,7 @@ It does not over-constrain every visual class, so feature work can continue.
 Resume feature work using the layer intake checklist.
 
 If another style stabilization unit is needed, do the source semantics
-compatibility plan for `warm-glass-controls`; do not start broad fallback cleanup.
+compatibility plan for `surface-style-controls`; do not start broad fallback cleanup.
 
 ## Forbidden Boundaries Held
 

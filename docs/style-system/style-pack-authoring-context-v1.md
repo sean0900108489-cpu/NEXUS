@@ -165,12 +165,12 @@ preview. It omits `assets` and `layoutPreset`.
         "accent": {
           "primary": "#93c5fd",
           "primaryStrong": "#60a5fa",
-          "secondary": "#facc15"
+          "secondary": "#eeeeee"
         },
         "status": {
           "success": "#22c55e",
-          "warning": "#facc15",
-          "danger": "#fb7185",
+          "warning": "#eeeeee",
+          "danger": "#c7c7c7",
           "info": "#93c5fd"
         },
         "border": {
@@ -339,9 +339,9 @@ preview. It omits `assets` and `layoutPreset`.
     "result": "compatible"
   },
   "fallback": {
-    "fallbackPackId": "legacy-cyberpunk-skin",
-    "fallbackManifestId": "legacy-cyberpunk",
-    "fallbackLegacyPreset": "cyberpunk",
+    "fallbackPackId": "baseline-surface-shell-skin",
+    "fallbackManifestId": "baseline-surface-shell",
+    "fallbackLegacyPreset": "surface-shell",
     "onAssetFailure": "omit-asset",
     "onLayoutFailure": "use-default-layout",
     "onBudgetFailure": "reject-pack"
@@ -613,8 +613,8 @@ state. The `assets` and `layoutPreset` sections are safe review-only metadata.
   },
   "fallback": {
     "fallbackPackId": "minimal-carbon-skin",
-    "fallbackManifestId": "legacy-cyberpunk",
-    "fallbackLegacyPreset": "cyberpunk",
+    "fallbackManifestId": "baseline-surface-shell",
+    "fallbackLegacyPreset": "surface-shell",
     "onAssetFailure": "omit-asset",
     "onLayoutFailure": "use-default-layout",
     "onBudgetFailure": "reject-pack"

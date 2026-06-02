@@ -82,7 +82,7 @@ Rejected targets:
 
 Future variable source:
 
-- existing Warm Glass direct Bridge Plan aliases
+- existing Surface Style direct Bridge Plan aliases
 - existing production alias bridge output
 - existing budget summary
 - existing Style Lab budget/diagnostics/preflight evidence

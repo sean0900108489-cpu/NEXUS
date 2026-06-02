@@ -73,7 +73,7 @@ Spike status:
 - `.nexus-panel` may consume surface-specific aliases
   `--nexus-panel-bg`, `--nexus-panel-border`, `--nexus-panel-text`,
   `--nexus-panel-radius`, `--nexus-panel-shadow`, and `--nexus-panel-blur`.
-- The aliases fall back to existing legacy variables, so the cyberpunk baseline
+- The aliases fall back to existing legacy variables, so the surface-shell baseline
   remains the fallback when no bridge variables are scoped.
 - Style Lab contains an isolated `.nexus-panel` compatibility specimen for
   bridge preview/revert smoke.
@@ -85,7 +85,7 @@ Second spike status:
   `--nexus-glass-bg`, `--nexus-glass-border`, `--nexus-glass-text`,
   `--nexus-glass-radius`, and `--nexus-glass-blur`.
 - The aliases fall back first to panel aliases where useful, then to existing
-  legacy variables, so the cyberpunk baseline remains the fallback when no
+  legacy variables, so the surface-shell baseline remains the fallback when no
   bridge variables are scoped.
 - Style Lab contains an isolated `.nexus-glass` compatibility specimen for
   bridge preview/revert smoke.
@@ -98,7 +98,7 @@ Third spike status:
   `--nexus-workspace-bg`, `--nexus-workspace-grid-primary`,
   `--nexus-workspace-grid-secondary`, and `--nexus-workspace-wash`.
 - The aliases fall back to existing legacy workspace variables, so the
-  cyberpunk baseline remains the fallback when no bridge variables are scoped.
+  surface-shell baseline remains the fallback when no bridge variables are scoped.
 - The current bridge helper emits the workspace wash as a controlled solid
   gradient layer generated from the validated color token, keeping
   `background-image` valid without accepting raw CSS or URLs.
@@ -135,15 +135,15 @@ Do not start with:
 | Glass primitive | `src/app/globals.css:289` | CSS class `.nexus-glass` uses bridge aliases with legacy fallback | `--nexus-glass-bg`, `--nexus-glass-border`, `--nexus-glass-text`, `--nexus-glass-radius`, `--nexus-glass-blur` | Low-Medium | Isolated Style Lab compatibility specimen first; no production TSX behavior | `/style-lab` bridge smoke verifies change/revert | Remove glass aliases/specimen; legacy theme vars remain |
 | Workspace canvas | `src/app/globals.css:253`, `src/components/nexus/nexus-ops.tsx:2127` | `.nexus-workspace` uses bridge aliases with legacy workspace variable fallback plus hardcoded Tailwind layout classes | `--nexus-workspace-bg`, `--nexus-workspace-grid-primary`, `--nexus-workspace-grid-secondary`, `--nexus-workspace-wash` | Medium | Color/background/grid/wash only; no geometry, overflow, scroll, pointer, z-index, React Flow, canvas behavior, or workspace state | `/style-lab` bridge smoke verifies change/revert; future production smoke must confirm pan/zoom unchanged and no console errors | Remove workspace aliases/specimen; legacy workspace vars remain |
 | Shell root | `src/app/globals.css:246`, `src/components/nexus/nexus-ops.tsx:2020` | `.nexus-shell` uses shell surface and asset background | `--bg-base`, `--text-main`; defer `--shell-surface` and asset image | Medium-High | Text/base color only; no asset background | Home load smoke, auth smoke, no background URL from Skin Pack | Remove shell bridge variables |
-| Topbar and command palette entry | `src/components/nexus/nexus-ops.tsx:2553` | Tailwind classes with cyan/black hardcoded colors | `--panel-muted`, `--border-subtle`, `--theme-primary`, `--text-main` | Medium | Extract visual primitive class or CSS var-backed inline style | Keyboard command smoke, click/search unchanged | Revert primitive extraction |
+| Topbar and command palette entry | `src/components/nexus/nexus-ops.tsx:2553` | Tailwind classes with neutral/black hardcoded colors | `--panel-muted`, `--border-subtle`, `--theme-primary`, `--text-main` | Medium | Extract visual primitive class or CSS var-backed inline style | Keyboard command smoke, click/search unchanged | Revert primitive extraction |
 | Right dock rail | `src/components/nexus/nexus-ops.tsx:2454` | Tailwind hardcoded bg/border/shadow | `--panel-bg`, `--border-subtle`, `--theme-primary`, `--shadow-panel` | Medium | Visual-only dock recipe adapter after Style Lab coverage | Dock open/close smoke, panel selection unchanged | Remove dock recipe bridge |
 | Right dock panel | `src/components/nexus/nexus-ops.tsx:3420` | Fixed panel with hardcoded bg/border/shadow/backdrop | `--panel-bg`, `--border-subtle`, `--shadow-panel`, `--glass-blur` | Medium | Use window/modal recipe after primitive adoption | Open each dock tab, no store writes from skin | Revert class mapping |
-| Datapad window | `src/components/nexus/DatapadWindow.tsx:97` | `Rnd`, hardcoded emerald colors, `.nexus-datapad-window` radius | Window recipe plus status vars | High | Only after window recipe adapter; do not change Rnd props | Drag/resize/save/delete smoke | Revert visual adapter class |
+| Datapad window | `src/components/nexus/DatapadWindow.tsx:97` | `Rnd`, hardcoded neutral colors, `.nexus-datapad-window` radius | Window recipe plus status vars | High | Only after window recipe adapter; do not change Rnd props | Drag/resize/save/delete smoke | Revert visual adapter class |
 | Agent window chrome | `src/app/globals.css:392`, `src/components/nexus/nexus-ops.tsx` adjacent agent window blocks | `.nexus-agent-window` plus Rnd behavior and hardcoded chat styles | Window recipe, `--chat-panel-opacity` preserve-only | High | Token-only visual shell after Rnd behavior tests | Drag/resize/focus/z-index smoke | Remove visual bridge scope |
 | React Flow graph canvas | `src/components/nexus/nexus-graph.tsx:542`, `src/app/globals.css:453` | React Flow classes, graph CSS, selected/animated effects | Graph adapter vars, status vars | High | Separate graph visual adapter; no behavior props | Pan/zoom/connect/delete smoke, perf smoke | Revert graph adapter scope |
 | Graph node | `src/components/nexus/nexus-graph.tsx:125`, `src/components/nexus/nexus-graph.tsx:197` | Tailwind hardcoded nodes plus inline accent | Graph node recipe vars | High | Specimen parity first, then visual vars only | Node selection/handles unchanged | Remove node visual adapter |
-| Prompt vault modal | `src/components/nexus/PromptVaultManager.tsx:126` | Fixed overlay, hardcoded blue/cyan/zinc classes | Modal recipe vars | Medium-High | Modal recipe adoption after panel/glass | Open/close/edit/save smoke | Revert modal visual class |
-| Agent branch modal | `src/components/nexus/AgentBranchModal.tsx:108` | Fixed overlay, hardcoded cyan/fuchsia/rose classes | Modal recipe vars and status vars | Medium-High | Modal recipe adoption after prompt vault specimen | Branch create/cancel smoke | Revert modal visual class |
+| Prompt vault modal | `src/components/nexus/PromptVaultManager.tsx:126` | Fixed overlay, hardcoded blue/neutral/zinc classes | Modal recipe vars | Medium-High | Modal recipe adoption after panel/glass | Open/close/edit/save smoke | Revert modal visual class |
+| Agent branch modal | `src/components/nexus/AgentBranchModal.tsx:108` | Fixed overlay, hardcoded neutral/neutral/neutral classes | Modal recipe vars and status vars | Medium-High | Modal recipe adoption after prompt vault specimen | Branch create/cancel smoke | Revert modal visual class |
 | Auth screen | `src/components/nexus/auth-screen.tsx:81` | Standalone shell, hardcoded auth card | Panel/input/button tokens | Medium | Treat as separate auth specimen; no Supabase/auth logic changes | Auth form smoke with no request mutation | Revert auth visual wrapper |
 | LEGO theme controls | `src/components/nexus/nexus-ops.tsx:160` | DOM custom property writer for existing themeConfig | Preserve-only vars | High | Do not bridge in V2; needs governance decision | Existing theme sliders unchanged | No-op |
 

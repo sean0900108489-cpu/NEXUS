@@ -23,7 +23,7 @@ No source files, package/config/deploy files, Supabase files, or exports were mo
 - Baseline computed rail styles were readable:
   - Background: `oklab(0.17359 -0.00837383 -0.0217823 / 0.9)`
   - Border: `oklab(0.797103 -0.114086 -0.0700009 / 0.25)`
-  - Shadow: existing cyberpunk shadow stack.
+  - Shadow: existing surface-shell shadow stack.
   - Backdrop blur: `blur(8px)`.
 - Right dock Providers toggle smoke: passed; the toggle opened and closed without mutating workspace data.
 - Browser console errors: 0.

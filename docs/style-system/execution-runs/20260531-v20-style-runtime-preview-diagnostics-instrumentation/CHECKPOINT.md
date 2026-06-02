@@ -54,7 +54,7 @@ Displayed fields:
 - residue check
 - last update timestamp
 
-The checksum is sourced from the Warm Glass budget summary:
+The checksum is sourced from the Surface Style budget summary:
 - `nexus-style-fnv1a32:85e89afc`
 
 ## Measurement Behavior
@@ -78,14 +78,14 @@ No document root mutation was added. No storage, backend, API, Supabase, workspa
 ## Changed Files
 
 - `src/components/style-engine/nexus-style-lab.tsx`
-- `src/components/style-engine/nexus-style-lab-warm-glass-coverage.test.ts`
+- `src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts`
 - `docs/style-system/execution-runs/20260531-v20-style-runtime-preview-diagnostics-instrumentation/CHECKPOINT.md`
 
 ## Verification
 
 Passed:
 - `git diff --check`
-- `npm run test -- src/components/style-engine/nexus-style-lab-warm-glass-coverage.test.ts`
+- `npm run test -- src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts`
 - `npm run test -- src/lib/style-engine/v2-style-runtime-budget.test.ts`
 - `npm run typecheck`
 - `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/lib/style-engine`
@@ -106,7 +106,7 @@ Confirmed:
 - Style Lab loaded.
 - Style Runtime Budget panel rendered.
 - Style Runtime Preview Diagnostics panel rendered.
-- Warm Glass Scene Preview rendered.
+- Surface Style Scene Preview rendered.
 - Production Chrome Smoke panel rendered.
 - Apply Smoke Vars updated diagnostics:
   - status: `applied`
@@ -122,7 +122,7 @@ Confirmed:
 - Console error count: `0`
 
 Token preview note:
-- Warm Glass fixture review was accepted in the browser session.
+- Surface Style fixture review was accepted in the browser session.
 - Token preview controls were disabled in the current Style Lab state, so no token preview mutation was forced.
 
 Production `/` was not visited.

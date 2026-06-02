@@ -161,6 +161,54 @@ describe("Workflow Runtime Spine Lite", () => {
     expect(state.get("output")?.outputSnapshot?.rawText).toBe("partial final");
   });
 
+  it("runs Input -> Image Model and preserves generated media metadata", async () => {
+    const input = node("input.text", "input", { text: "Y2K fashion board" });
+    const image = node("model.image", "image", {
+      aspectRatio: "16:9",
+      modelId: "img2",
+      quality: "standard",
+    });
+    const runtime = runtimeLite([input, image], [edge(input, image)]);
+    const state = patchableNodes(runtime.nodes);
+    const callImage = vi.fn(async ({ prompt }) => ({
+      media: {
+        artifactId: "artifact-image",
+        createdAt: new Date().toISOString(),
+        prompt,
+        type: "image" as const,
+        url: "data:image/png;base64,abc",
+      },
+      metadata: {
+        artifactId: "artifact-image",
+        modelId: "img2",
+      },
+      text: `Image URL: data:image/png;base64,abc`,
+    }));
+
+    const run = await runWorkflowRuntimeLite({
+      callImage,
+      callLlm: vi.fn(),
+      onNodePatch: state.patch,
+      runtimeLite: runtime,
+      workflowId: "workspace-test",
+    });
+
+    expect(run.status).toBe("success");
+    expect(callImage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prompt: "Y2K fashion board",
+      }),
+    );
+    expect(state.get("image")?.outputSnapshot?.metadata).toMatchObject({
+      artifactId: "artifact-image",
+      aspectRatio: "16:9",
+      mediaType: "image",
+      modelId: "img2",
+      quality: "standard",
+    });
+    expect(state.get("image")?.outputSnapshot?.rawText).toContain("Image URL:");
+  });
+
   it("rejects disconnected nodes before execution", () => {
     const input = node("input.text", "input");
     const llmA = node("model.llm", "llm-a");

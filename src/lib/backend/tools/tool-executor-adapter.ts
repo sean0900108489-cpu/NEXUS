@@ -156,7 +156,7 @@ function makeRuntimeAgent(input: ToolExecutorAdapterInput): NexusAgent {
   const now = new Date().toISOString();
 
   return {
-    accent: "#22d3ee",
+    accent: "#d4d4d4",
     avatar: "AI",
     callsign: input.agentId ?? "TOOL",
     capabilities: {

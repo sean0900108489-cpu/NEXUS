@@ -10,7 +10,7 @@ import {
 describe("NEXUS Style Engine intent manifest drafts", () => {
   it("creates a validated high-contrast manifest draft from normalized intent", () => {
     const intent = normalizeNexusStyleIntentV1(
-      "High contrast terminal dashboard with reduced motion and cyan graph visuals.",
+      "High contrast terminal dashboard with reduced motion and neutral graph visuals.",
       { source: "ai-draft" },
     );
     const draft = createNexusStyleManifestDraftFromIntentV1(intent, {
@@ -48,7 +48,7 @@ describe("NEXUS Style Engine intent manifest drafts", () => {
     }
 
     expect(draft.manifest.intent.contrast).toBe("standard");
-    expect(draft.manifest.tokens.surface.app).toBe("#030712");
+    expect(draft.manifest.tokens.surface.app).toBe("#101010");
     expect(draft.validation.warnings.map((warning) => warning.code)).toContain(
       "style.accessibility.highContrastNotRequested",
     );

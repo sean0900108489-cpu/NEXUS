@@ -63,7 +63,7 @@ Production Nexus anchors:
 - `src/components/nexus/PromptVaultManager.tsx:126` renders prompt vault overlay.
 - `src/components/nexus/AgentBranchModal.tsx:107` renders branch modal overlay.
 - `src/components/nexus/auth-screen.tsx:81` renders auth screen.
-- `src/app/globals.css:7` through `src/app/globals.css:42` define the cyberpunk legacy token layer.
+- `src/app/globals.css:7` through `src/app/globals.css:42` define the surface-shell legacy token layer.
 - `src/app/globals.css:170` bridges legacy variables into Tailwind color tokens.
 - `src/app/globals.css:245` styles `.nexus-shell`.
 - `src/app/globals.css:252` styles `.nexus-workspace`.
@@ -156,7 +156,7 @@ Surfaces still missing from Style Lab coverage:
 Low-risk means visual-only CSS variables or compiled visual styles can be consumed without touching layout geometry, persistence, behavior, or backend state.
 
 - Legacy global token bridge: `--bg-base`, `--bg-elevated`, `--bg-workspace`, `--panel-bg`, `--panel-muted`, `--border-subtle`, `--border-glow`, `--text-main`, `--text-soft`, `--text-muted`, `--theme-primary`, `--theme-secondary`, `--theme-success`, `--theme-warning`, `--theme-danger`, `--shadow-panel`, `--shadow-glow`, `--radius-base`, `--backdrop-blur`, `--agent-glow-intensity`, and `--chat-panel-opacity` at `src/app/globals.css:7`.
-- Tailwind color bridge for slate/cyan/fuchsia/emerald/amber/rose utility classes at `src/app/globals.css:170`.
+- Tailwind color bridge for neutral/neutral/neutral/neutral/neutral/neutral utility classes at `src/app/globals.css:170`.
 - `.nexus-panel`, `.nexus-glass`, `.nexus-agent-window`, `.nexus-datapad-window`, `.nexus-message-bubble`, `.react-flow__controls`, and `.react-flow__minimap` visual variable consumption at `src/app/globals.css:280`, `src/app/globals.css:288`, `src/app/globals.css:391`, `src/app/globals.css:407`, and `src/app/globals.css:585`.
 - Style Lab token-only preview variables should bridge to these same semantic groups through a future scoped runtime adapter, not by passing large skin objects through React state.
 - Safe candidate recipe slots: surface, surfaceMuted, border, text, accent, status, shadow, radius, blur, outline, focus ring, and passive glow intensity.
@@ -165,14 +165,14 @@ Low-risk means visual-only CSS variables or compiled visual styles can be consum
 
 Hardcoded visual mechanisms found:
 
-- Utility-heavy color families across `src/components/nexus/nexus-ops.tsx`: `bg-slate`, `bg-black`, `bg-white`, `border-cyan`, `border-fuchsia`, `border-emerald`, `border-amber`, `border-rose`, `text-slate`, `text-cyan`, `text-fuchsia`, hardcoded `shadow-[...]`, and `backdrop-blur`.
+- Utility-heavy color families across `src/components/nexus/nexus-ops.tsx`: `bg-neutral`, `bg-black`, `bg-white`, `border-neutral`, `border-neutral`, `border-neutral`, `border-neutral`, `border-neutral`, `text-neutral`, `text-neutral`, `text-neutral`, hardcoded `shadow-[...]`, and `backdrop-blur`.
 - Graph handles use fixed color literals for runtime handles at `src/components/nexus/nexus-graph.tsx:293`.
-- React Flow default edges use fixed stroke/marker color `#22d3ee` at `src/components/nexus/nexus-graph.tsx:858`.
+- React Flow default edges use fixed stroke/marker color `#d4d4d4` at `src/components/nexus/nexus-graph.tsx:858`.
 - React Flow background/minimap use fixed color values at `src/components/nexus/nexus-graph.tsx:923` and `src/components/nexus/nexus-graph.tsx:926`.
-- Datapad uses emerald-specific hardcoded window chrome at `src/components/nexus/DatapadWindow.tsx:97`.
-- Prompt vault uses blue/zinc/cyan/fuchsia/amber/rose/emerald hardcoded visual variants at `src/components/nexus/PromptVaultManager.tsx:126`.
-- Branch modal uses cyan/fuchsia/rose hardcoded visual variants at `src/components/nexus/AgentBranchModal.tsx:107`, `src/components/nexus/AgentBranchModal.tsx:149`, and `src/components/nexus/AgentBranchModal.tsx:217`.
-- Auth screen uses fixed slate/cyan visual language at `src/components/nexus/auth-screen.tsx:81`.
+- Datapad uses neutral-specific hardcoded window chrome at `src/components/nexus/DatapadWindow.tsx:97`.
+- Prompt vault uses blue/zinc/neutral/neutral/neutral/neutral/neutral hardcoded visual variants at `src/components/nexus/PromptVaultManager.tsx:126`.
+- Branch modal uses neutral/neutral/neutral hardcoded visual variants at `src/components/nexus/AgentBranchModal.tsx:107`, `src/components/nexus/AgentBranchModal.tsx:149`, and `src/components/nexus/AgentBranchModal.tsx:217`.
+- Auth screen uses fixed neutral/neutral visual language at `src/components/nexus/auth-screen.tsx:81`.
 - Media artifact preview uses runtime artifact URL as `backgroundImage` at `src/components/nexus/nexus-ops.tsx:5911`; this is not a skin-pack asset path and must remain outside style pack control until asset governance exists.
 
 ## Protected Behavior And Layout
@@ -225,7 +225,7 @@ The following should go through Render Plan IR and performance budget diagnostic
 | Top bar / workspace menu | `src/components/nexus/nexus-ops.tsx:2478` | hardcoded utility classes and dropdown overlay | `recipe.topbar`, `recipe.button`, `recipe.menuItem` | Medium | Add topbar/menu specimen before production | Menu open/close, rename, switch workspace |
 | Sync/status badge | `src/components/nexus/nexus-ops.tsx:2808` | status tone utility classes | `recipe.badge`, `status.success/warning/danger` | Low | Add status variant specimen | Online/offline/sync issue/retry smoke |
 | Right floating dock | `src/components/nexus/nexus-ops.tsx:2442` | fixed pointer-events shell, hardcoded active item classes | `recipe.dock` | High | Visual wrapper only; preserve fixed/pointer/z-index | Dock open/close, panel switching, command shortcut |
-| Right settings sidebar | `src/components/nexus/nexus-ops.tsx:3237` | fixed sidebar, panel sections, hardcoded cyan/fuchsia/emerald states | `recipe.sidebar`, `recipe.panel`, `recipe.input`, `recipe.button` | High | Isolated production shell token bridge, then section-by-section adoption | Every panel opens; no provider secret leak; close behavior intact |
+| Right settings sidebar | `src/components/nexus/nexus-ops.tsx:3237` | fixed sidebar, panel sections, hardcoded neutral/neutral/neutral states | `recipe.sidebar`, `recipe.panel`, `recipe.input`, `recipe.button` | High | Isolated production shell token bridge, then section-by-section adoption | Every panel opens; no provider secret leak; close behavior intact |
 | Provider vault | `src/components/nexus/nexus-ops.tsx:2976` | credential inputs, status chips, API verify controls | `recipe.providerVault`, `recipe.input`, `recipe.badge` | Critical | Specimen only first; visual adapter later | Secrets redacted, lock/unlock/verify/delete behavior unchanged |
 | LEGO theme controls | `src/components/nexus/nexus-ops.tsx:160`, `src/components/nexus/nexus-ops.tsx:4183` | DOM CSS var mutation and workspace commit path | Future governance, not skin recipe | Critical | Keep separate from V2 skin apply until persistence gate | Sliders preview/commit existing theme config only |
 | Left dock / agent bay | `src/components/nexus/nexus-ops.tsx:4591` | `.nexus-panel` plus hardcoded template/operator cards | `recipe.sidebar`, `recipe.agentCard`, `recipe.button` | Medium | Add agent bay specimen, then primitive adoption | Spawn/select/restore/model settings smoke |
@@ -240,7 +240,7 @@ The following should go through Render Plan IR and performance budget diagnostic
 | React Flow agent nodes | `src/components/nexus/nexus-graph.tsx:120` | hardcoded node classes plus agent accent inline vars | `recipe.graphNode` | Critical | Graph adapter specimen and pure adapter tests | Node select/open, handles, pan/zoom |
 | React Flow runtime nodes | `src/components/nexus/nexus-graph.tsx:187` | hardcoded node/status/input/output classes | `recipe.graphNode`, `recipe.input`, `recipe.badge` | Critical | Runtime node specimen first | Edit nodes, copy output, status/error states |
 | React Flow edges/minimap/controls | `src/components/nexus/nexus-graph.tsx:430`, `src/components/nexus/nexus-graph.tsx:850`, `src/app/globals.css:452` | React Flow props, SVG paths, global selectors, animations | `recipe.graphEdge`, `recipe.graphControls` | Critical | Adapter-only. Never expose selectors/classes to skin packs | Connect/delete edge, pan/zoom, minimap, controls |
-| Datapad window | `src/components/nexus/DatapadWindow.tsx:87` | `Rnd`, emerald chrome, save/delete controls | `recipe.window`, `recipe.input`, `recipe.button` | High | Window visual adapter with drag/save protected | Drag, edit, save, delete, close |
+| Datapad window | `src/components/nexus/DatapadWindow.tsx:87` | `Rnd`, neutral chrome, save/delete controls | `recipe.window`, `recipe.input`, `recipe.button` | High | Window visual adapter with drag/save protected | Drag, edit, save, delete, close |
 | Prompt vault manager | `src/components/nexus/PromptVaultManager.tsx:126` | fixed overlay, list/detail/edit states | `recipe.modal`, `recipe.list`, `recipe.input`, `recipe.button` | High | Add prompt vault specimen first | Open, select, edit, copy, delete, close |
 | Branch modal | `src/components/nexus/AgentBranchModal.tsx:107` | modal overlay, compression state cards, range/select/textarea | `recipe.modal`, `recipe.button`, `recipe.input`, `recipe.badge` | Critical | Add branch-state specimen before production | Cancel, retry, full/summary mode, busy state |
 | Auth screen | `src/components/nexus/auth-screen.tsx:81` | shell panel, inputs, auth submit controls | `recipe.authSurface`, `recipe.panel`, `recipe.input`, `recipe.button` | High | Visual tokens only after auth smoke gates | Login/signup, error display, no Supabase behavior change |

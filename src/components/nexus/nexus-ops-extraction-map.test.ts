@@ -68,9 +68,16 @@ describe("NexusOps extraction map markers", () => {
     expect(source).toContain("</NexusOpsRightFloatingDockFrame>");
     expect(source).toContain("<NexusOpsTopBarFrame>");
     expect(source).toContain("</NexusOpsTopBarFrame>");
+    expect(bodyFrameSource).toContain('className="flex min-h-0 flex-1 gap-2 p-2"');
     expect(bodyFrameSource).toContain(
-      'className="flex min-h-0 flex-1 gap-2 [background:var(--nexus-body-frame-bg,transparent)] p-2"',
+      "var(--nexus-body-frame-bg, rgb(18 18 18))",
     );
+    expect(source).toContain("const workspaceBodyMaterialStyle");
+    expect(source).toContain("...workspaceBodyMaterialStyle");
+    expect(source).toContain("style={workspaceBodyMaterialStyle}");
+    expect(
+      source.match(/style=\{workspaceBodyMaterialStyle\}/g)?.length ?? 0,
+    ).toBeGreaterThanOrEqual(2);
     expect(outerShellFrameSource).toContain('className="nexus-shell');
     expect(rightFloatingDockFrameSource).toContain(
       'aria-label="Right workspace tools"',
@@ -82,7 +89,10 @@ describe("NexusOps extraction map markers", () => {
       'className="nexus-right-floating-dock-rail pointer-events-auto grid gap-2 border border-white/10 bg-black/35 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl"',
     );
     expect(topBarFrameSource).toContain(
-      'className="nexus-top-bar-frame relative z-[110] flex h-11 shrink-0 items-center border-b border-white/10 bg-black/20 px-3"',
+      'className="nexus-top-bar-frame relative z-[110] flex h-11 shrink-0 items-center border-b border-white/10 px-3"',
+    );
+    expect(topBarFrameSource).toContain(
+      "var(--nexus-body-frame-bg, color-mix(in srgb, var(--theme-primary, #e5e5e5) 10%, rgb(16 16 16 / 0.84)))",
     );
     expect(source).toContain('className="nexus-workspace');
     expect(source).toContain('className="nexus-panel');

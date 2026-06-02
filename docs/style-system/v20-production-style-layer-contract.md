@@ -74,7 +74,6 @@ Important nuance:
 
 Layer 1 output categories:
 - Layer 2 variables:
-  - `--nexus-outer-shell-bg`
   - `--nexus-body-frame-bg`
   - `--nexus-workspace-bg`
   - `--nexus-workspace-wash`
@@ -113,11 +112,14 @@ Responsibilities:
 - Own the workspace stage material.
 - Keep graph and panels mode on the same workspace background chain.
 - Own workspace wash, grid, minimap mask, stage radius, and stage shadow.
+- Keep `--nexus-body-frame-bg` as an opaque stage surface color; Theme
+  controls may shift its tone/lightness, but must not reintroduce body-frame
+  alpha or glass transparency.
 
 Allowed:
 - Workspace background and wash.
 - Workspace grid color.
-- Shell/body frame background.
+- Shell/body frame background as an opaque stage surface.
 - Stage-level radius and shadow.
 - Scoped preview target selection.
 
@@ -232,7 +234,7 @@ Workspace export/import must not:
 - accept raw CSS, JS, remote URLs, or arbitrary selectors
 
 Current semantic debt:
-- `warm-glass-controls` remains an accepted `source` value for compatibility.
+- `surface-style-controls` remains an accepted `source` value for compatibility.
 - Future work may rename or alias this source, but the migration must preserve
   old workspace JSON imports.
 
@@ -256,7 +258,7 @@ Recommended next steps are not full cleanup. They are boundary-preserving featur
 preparation:
 
 1. Source semantics compatibility plan.
-   - Decide how to handle `warm-glass-controls` without breaking old exports.
+   - Decide how to handle `surface-style-controls` without breaking old exports.
 
 2. New feature design using the layer checklist.
    - New functionality should declare its layer before implementation.

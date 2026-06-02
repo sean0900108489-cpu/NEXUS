@@ -46,7 +46,7 @@ Current validation state:
 
 Known baseline issues:
 
-- `bg-cyberpunk.webp` points to a placeholder CDN asset and may fail loading.
+- `bg-surface-shell.webp` points to a placeholder CDN asset and may fail loading.
 - Chrome Translate can mutate visible text and cause hydration mismatch.
 - These are known baseline issues and must not be misclassified as token alias regressions unless they change or worsen.
 
@@ -196,7 +196,7 @@ Before the next token alias target:
    - browser-only variable apply/revert works
 
 2. Confirm baseline console status
-   - known `bg-cyberpunk.webp` issue unchanged
+   - known `bg-surface-shell.webp` issue unchanged
    - Chrome Translate disabled or explicitly identified
    - no new hydration/layout/interaction regression
 
@@ -240,11 +240,11 @@ Allowed first-round visual surfaces:
 Recommended alias chain:
 
 ```text
---nexus-top-bar-bg -> --nexus-panel-bg -> cyberpunk baseline
---nexus-top-bar-border -> --nexus-panel-border -> cyberpunk baseline
---nexus-top-bar-shadow -> --nexus-panel-shadow -> cyberpunk baseline
---nexus-top-bar-blur -> --nexus-panel-blur -> cyberpunk baseline
---nexus-top-bar-radius -> --nexus-panel-radius -> cyberpunk baseline
+--nexus-top-bar-bg -> --nexus-panel-bg -> surface-shell baseline
+--nexus-top-bar-border -> --nexus-panel-border -> surface-shell baseline
+--nexus-top-bar-shadow -> --nexus-panel-shadow -> surface-shell baseline
+--nexus-top-bar-blur -> --nexus-panel-blur -> surface-shell baseline
+--nexus-top-bar-radius -> --nexus-panel-radius -> surface-shell baseline
 ```
 
 Because the current frame has no dedicated selector class, the minimal safe implementation may add exactly one stable class to the existing header:
@@ -317,7 +317,7 @@ Forbidden files:
 Implementation limits:
 
 - Add only the stable `nexus-top-bar-frame` selector class if needed.
-- Add only dedicated TopBar CSS variable aliases with panel/cyberpunk fallbacks.
+- Add only dedicated TopBar CSS variable aliases with panel/surface-shell fallbacks.
 - Do not alter TopBar child controls.
 - Do not alter button classes.
 - Do not alter layout, height, positioning, pointer behavior, z-index, focus, or handlers.
@@ -346,7 +346,7 @@ Browser smoke should record:
 
 Known baseline allowances:
 
-- `bg-cyberpunk.webp` placeholder load failure may be recorded as known baseline.
+- `bg-surface-shell.webp` placeholder load failure may be recorded as known baseline.
 - Chrome Translate hydration mismatch may be ignored only if Translate is active.
 
 Not allowed:

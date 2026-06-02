@@ -48,7 +48,7 @@ Top-level optional payload:
 ```ts
 stylePack?: {
   version: "style-pack-v2";
-  source: "style-lab" | "warm-glass-controls" | "imported";
+  source: "style-lab" | "surface-style-controls" | "imported";
   skinPack?: NexusSkinPackV2;
   controls?: Record<string, unknown>;
   bridgeSummary?: {

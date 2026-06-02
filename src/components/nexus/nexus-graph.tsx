@@ -19,7 +19,7 @@ import {
   type NodeChange,
   type NodeProps,
 } from "@xyflow/react";
-import { BrainCircuit, Copy, FileText, Play, Type } from "lucide-react";
+import { BrainCircuit, Copy, FileText, Image as ImageIcon, Play, Type, X } from "lucide-react";
 import {
   type CSSProperties,
   type ReactNode,
@@ -34,7 +34,15 @@ import {
   getModelOption,
   getModelOptionsForCapability,
 } from "@/lib/nexus-registry";
+import {
+  WORKSPACE_COMPOSER_IMAGE_ASPECT_RATIO_OPTIONS,
+  WORKSPACE_COMPOSER_IMAGE_MODEL_OPTIONS,
+  WORKSPACE_COMPOSER_IMAGE_QUALITY_OPTIONS,
+  type WorkspaceComposerImageAspectRatio,
+  type WorkspaceComposerImageQuality,
+} from "@/lib/composer/image-generation-settings";
 import type {
+  ContextPacket,
   NexusAgent,
   WorkflowNodeInstance,
   WorkflowRuntimeEdge,
@@ -49,10 +57,12 @@ import { getWorkflowRuntimeNodeDefinition } from "@/lib/workflow-runtime-lite/re
 type AgentNodeData = {
   agent: NexusAgent;
   onOpenAgent: (agentId: string) => void;
+  onRemoveAgent: (agentId: string) => void;
 };
 type RuntimeNodeData = {
   node: WorkflowNodeInstance;
   onCopyOutput: (nodeId: string) => void;
+  onRemoveNode: (nodeId: string) => void;
   onUpdateNodeData: (
     nodeId: string,
     data: Partial<WorkflowRuntimeNodeData>,
@@ -96,8 +106,40 @@ function getModelLabel(modelId: string) {
   return getModelOption(modelId)?.label ?? modelId;
 }
 
+function getWorkflowPacketImageUrl(packet: ContextPacket | null | undefined) {
+  if (!packet) {
+    return "";
+  }
+
+  const rawUrl = /^Image URL:\s*(\S+)/m.exec(packet.rawText)?.[1];
+
+  if (rawUrl) {
+    return rawUrl;
+  }
+
+  const metadataUrl = packet.metadata.imageUrl;
+
+  return typeof metadataUrl === "string" ? metadataUrl : "";
+}
+
+function getRuntimeNodeIcon(type: WorkflowRuntimeNodeType) {
+  if (type === "input.text") {
+    return <Type className="h-4 w-4" />;
+  }
+
+  if (type === "model.llm") {
+    return <BrainCircuit className="h-4 w-4" />;
+  }
+
+  if (type === "model.image") {
+    return <ImageIcon className="h-4 w-4" />;
+  }
+
+  return <FileText className="h-4 w-4" />;
+}
+
 function AgentNode({ data, selected }: NodeProps<AgentFlowNode>) {
-  const { agent, onOpenAgent } = data;
+  const { agent, onOpenAgent, onRemoveAgent } = data;
   const active = agent.status === "thinking" || agent.status === "streaming";
   const errored = agent.status === "error";
   const capabilityType = agent.capabilities?.type ?? "chat";
@@ -122,7 +164,7 @@ function AgentNode({ data, selected }: NodeProps<AgentFlowNode>) {
     <section
       data-active={active}
       className={cx(
-        "nexus-agent-node w-64 border-2 p-3 text-slate-100 backdrop-blur-sm [background:var(--nexus-layout-panel-muted-bg,var(--nexus-panel-bg,rgba(0,0,0,0.35)))]",
+        "nexus-agent-node w-64 border-2 p-3 text-neutral-100 backdrop-blur-sm [background:var(--nexus-layout-panel-muted-bg,var(--nexus-panel-bg,rgba(0,0,0,0.35)))]",
         active && "nexus-agent-node-active",
         selected && "shadow-[0_0_28px_var(--agent-accent)]",
       )}
@@ -135,14 +177,14 @@ function AgentNode({ data, selected }: NodeProps<AgentFlowNode>) {
       } as CSSProperties}
     >
       <Handle
-        className="!h-3 !w-3 !border !border-slate-950"
+        className="!h-3 !w-3 !border !border-neutral-950"
         id="input"
         position={Position.Left}
         style={{ backgroundColor: agent.accent }}
         type="target"
       />
       <Handle
-        className="!h-3 !w-3 !border !border-slate-950"
+        className="!h-3 !w-3 !border !border-neutral-950"
         id="output"
         position={Position.Right}
         style={{ backgroundColor: agent.accent }}
@@ -150,52 +192,74 @@ function AgentNode({ data, selected }: NodeProps<AgentFlowNode>) {
       />
 
       <div className="min-h-28">
-        <div className="mb-3 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500">
+        <div className="mb-3 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-500">
           <span>{capabilityLabel}</span>
           <span
             className={cx(
-              active && "text-cyan-100",
-              errored && "text-rose-100",
-              !active && !errored && "text-emerald-100",
+              active && "text-neutral-100",
+              errored && "text-neutral-100",
+              !active && !errored && "text-neutral-100",
             )}
           >
             {agent.status}
           </span>
         </div>
-        <p className="line-clamp-4 text-xs leading-5 text-slate-300">
+        <p className="line-clamp-4 text-xs leading-5 text-neutral-300">
           {preview}
         </p>
-        <div className="mt-3 font-mono text-[9px] uppercase tracking-[0.18em] text-slate-600">
+        <div className="mt-3 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-600">
           {previewLabel}
         </div>
       </div>
 
-      <button
-        aria-label={`Open ${agent.callsign}`}
-        className="nodrag absolute right-2 top-2 grid h-6 w-6 place-items-center border border-white/10 text-slate-400 transition hover:border-cyan-300/45 hover:text-cyan-100 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.55))] hover:[background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.1))]"
-        onClick={() => onOpenAgent(agent.id)}
-        title={`${agent.callsign} // ${agent.title}`}
-        type="button"
-      >
-        <span className="sr-only">Open agent</span>
-        <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: agent.accent }} />
-      </button>
+      <div className="nodrag absolute right-2 top-2 flex items-center gap-1">
+        <button
+          aria-label={`Open ${agent.callsign}`}
+          className="grid h-6 w-6 place-items-center border border-white/10 text-neutral-400 transition hover:border-neutral-300/45 hover:text-neutral-100 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.55))] hover:[background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.1))]"
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpenAgent(agent.id);
+          }}
+          title={`${agent.callsign} // ${agent.title}`}
+          type="button"
+        >
+          <span className="sr-only">Open agent</span>
+          <span
+            aria-hidden="true"
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ backgroundColor: agent.accent }}
+          />
+        </button>
+        <button
+          aria-label={`Delete ${agent.callsign}`}
+          className="grid h-6 w-6 place-items-center border border-white/10 text-neutral-400 transition hover:border-neutral-300/45 hover:bg-neutral-400/10 hover:text-neutral-100 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.55))]"
+          onClick={(event) => {
+            event.stopPropagation();
+            onRemoveAgent(agent.id);
+          }}
+          title={`Delete ${agent.callsign}`}
+          type="button"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      </div>
     </section>
   );
 }
 
 function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
-  const { node, onCopyOutput, onUpdateNodeData } = data;
+  const { node, onCopyOutput, onRemoveNode, onUpdateNodeData } = data;
   const definition = getWorkflowRuntimeNodeDefinition(node.type);
   const packet = node.outputSnapshot ?? null;
   const outputText = packet?.rawText || packet?.displayText || "";
+  const imageUrl = getWorkflowPacketImageUrl(packet);
   const statusClass = getRuntimeStatusClass(node.status);
 
   return (
     <section
       className={cx(
-        "nexus-runtime-node w-72 border p-3 text-slate-100 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-md [background:var(--nexus-layout-panel-bg,var(--nexus-panel-bg,rgba(2,6,23,0.88)))]",
-        selected && "border-cyan-200/70 shadow-[0_0_28px_rgba(34,211,238,0.22)]",
+        "nexus-runtime-node w-72 border p-3 text-neutral-100 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-md [background:var(--nexus-layout-panel-bg,var(--nexus-panel-bg,rgba(2,6,23,0.88)))]",
+        selected && "border-neutral-200/70 shadow-[0_0_28px_rgba(34,211,238,0.22)]",
         !selected && "border-white/12",
       )}
     >
@@ -203,32 +267,40 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
 
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="grid h-7 w-7 shrink-0 place-items-center border border-cyan-300/30 text-cyan-100 [background:var(--nexus-layout-panel-muted-bg,rgba(34,211,238,0.1))]">
-            {node.type === "input.text" ? (
-              <Type className="h-4 w-4" />
-            ) : node.type === "model.llm" ? (
-              <BrainCircuit className="h-4 w-4" />
-            ) : (
-              <FileText className="h-4 w-4" />
-            )}
+          <span className="grid h-7 w-7 shrink-0 place-items-center border border-neutral-300/30 text-neutral-100 [background:var(--nexus-layout-panel-muted-bg,rgba(34,211,238,0.1))]">
+            {getRuntimeNodeIcon(node.type)}
           </span>
           <div className="min-w-0">
-            <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+            <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100">
               {definition.label}
             </div>
-            <div className="mt-0.5 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500">
+            <div className="mt-0.5 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
               {node.id}
             </div>
           </div>
         </div>
-        <span
-          className={cx(
-            "shrink-0 border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em]",
-            statusClass,
-          )}
-        >
-          {node.status}
-        </span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <span
+            className={cx(
+              "border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em]",
+              statusClass,
+            )}
+          >
+            {node.status}
+          </span>
+          <button
+            aria-label={`Delete ${definition.label}`}
+            className="nodrag nopan grid h-7 w-7 place-items-center border border-white/10 text-neutral-400 transition hover:border-neutral-300/45 hover:bg-neutral-400/10 hover:text-neutral-100"
+            onClick={(event) => {
+              event.stopPropagation();
+              onRemoveNode(node.id);
+            }}
+            title={`Delete ${definition.label}`}
+            type="button"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
       {node.type === "input.text" ? (
@@ -245,15 +317,23 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
         />
       ) : null}
 
+      {node.type === "model.image" ? (
+        <ModelImageRuntimeEditor
+          imageUrl={imageUrl}
+          node={node as WorkflowNodeInstance<"model.image">}
+          onUpdateNodeData={onUpdateNodeData}
+        />
+      ) : null}
+
       {node.type === "output.text" ? (
         <div className="grid gap-2">
           <div className="flex items-center justify-between gap-3">
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+            <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
               Output
             </span>
             <button
               aria-label="Copy output"
-              className="nodrag grid h-7 w-7 place-items-center border border-cyan-300/30 bg-cyan-300/10 text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-40"
+              className="nodrag grid h-7 w-7 place-items-center border border-neutral-300/30 bg-neutral-300/10 text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
               disabled={!outputText}
               onClick={() => onCopyOutput(node.id)}
               title="Copy output"
@@ -262,16 +342,27 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
               <Copy className="h-3.5 w-3.5" />
             </button>
           </div>
-          <div className="min-h-28 max-h-44 overflow-y-auto whitespace-pre-wrap border border-white/10 px-3 py-2 text-xs leading-5 text-slate-200 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]">
+          <div className="min-h-28 max-h-44 overflow-y-auto whitespace-pre-wrap border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-200 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]">
             {outputText || (
-              <span className="text-slate-600">Waiting for upstream context...</span>
+              <span className="text-neutral-600">Waiting for upstream context...</span>
             )}
           </div>
+          {imageUrl ? (
+            <div className="overflow-hidden border border-white/10 bg-black/30">
+              {/* eslint-disable-next-line @next/next/no-img-element -- workflow-generated data URLs and provider URLs render directly on the graph. */}
+              <img
+                alt="Workflow generated image"
+                className="block aspect-video w-full object-contain"
+                draggable={false}
+                src={imageUrl}
+              />
+            </div>
+          ) : null}
         </div>
       ) : null}
 
       {node.error ? (
-        <div className="mt-3 border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs leading-5 text-rose-100">
+        <div className="mt-3 border border-neutral-300/25 bg-neutral-300/10 px-3 py-2 text-xs leading-5 text-neutral-100">
           {node.error}
         </div>
       ) : null}
@@ -287,10 +378,10 @@ function RuntimeHandles({ node }: { node: WorkflowNodeInstance }) {
       {definition.handles.map((handle) => (
         <Handle
           key={`${node.id}-${handle.id}-${handle.kind}`}
-          className="!h-3 !w-3 !border !border-slate-950"
+          className="!h-3 !w-3 !border !border-neutral-950"
           id={handle.id}
           position={handle.kind === "target" ? Position.Left : Position.Right}
-          style={{ backgroundColor: handle.kind === "target" ? "#f0abfc" : "#22d3ee" }}
+          style={{ backgroundColor: handle.kind === "target" ? "#d4d4d4" : "#d4d4d4" }}
           type={handle.kind}
         />
       ))}
@@ -310,11 +401,11 @@ function InputTextRuntimeEditor({
 }) {
   return (
     <label className="grid gap-2">
-      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
         Seed Text
       </span>
       <textarea
-        className="nodrag min-h-28 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+        className="nodrag min-h-28 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
         onChange={(event) =>
           onUpdateNodeData(node.id, { text: event.currentTarget.value })
         }
@@ -346,11 +437,11 @@ function ModelRuntimeEditor({
   return (
     <div className="grid gap-2">
       <label className="grid gap-2">
-        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
           Prompt
         </span>
         <textarea
-          className="nodrag min-h-24 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-fuchsia-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          className="nodrag min-h-24 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
           onChange={(event) =>
             onUpdateNodeData(node.id, { prompt: event.currentTarget.value })
           }
@@ -360,11 +451,11 @@ function ModelRuntimeEditor({
         />
       </label>
       <label className="grid gap-2">
-        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
           Model
         </span>
         <select
-          className="nodrag border border-white/10 px-2.5 py-2 font-mono text-[11px] text-slate-100 outline-none transition focus:border-fuchsia-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          className="nodrag border border-white/10 px-2.5 py-2 font-mono text-[11px] text-neutral-100 outline-none transition focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
           onChange={(event) =>
             onUpdateNodeData(node.id, { model: event.currentTarget.value })
           }
@@ -380,25 +471,25 @@ function ModelRuntimeEditor({
       {showLiveOutput ? (
         <div className="grid gap-2">
           <div className="flex items-center justify-between gap-3">
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+            <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
               Live output
             </span>
             {node.outputSnapshot?.tokenEstimate ? (
-              <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-cyan-100/80">
+              <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100/80">
                 {node.outputSnapshot.tokenEstimate} tok
               </span>
             ) : null}
           </div>
           <div
             className={cx(
-              "nodrag min-h-20 max-h-40 overflow-y-auto whitespace-pre-wrap border px-3 py-2 text-xs leading-5 text-slate-200",
+              "nodrag min-h-20 max-h-40 overflow-y-auto whitespace-pre-wrap border px-3 py-2 text-xs leading-5 text-neutral-200",
               node.status === "running"
-                ? "border-cyan-300/30 [background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.05))]"
+                ? "border-neutral-300/30 [background:var(--nexus-layout-panel-bg,rgba(34,211,238,0.05))]"
                 : "border-white/10 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]",
             )}
           >
             {outputText || (
-              <span className="text-slate-600">Waiting for first token...</span>
+              <span className="text-neutral-600">Waiting for first token...</span>
             )}
           </div>
         </div>
@@ -407,20 +498,134 @@ function ModelRuntimeEditor({
   );
 }
 
+function ModelImageRuntimeEditor({
+  imageUrl,
+  node,
+  onUpdateNodeData,
+}: {
+  imageUrl: string;
+  node: WorkflowNodeInstance<"model.image">;
+  onUpdateNodeData: (
+    nodeId: string,
+    data: Partial<WorkflowRuntimeNodeData>,
+  ) => void;
+}) {
+  const outputText = node.outputSnapshot?.displayText || node.outputSnapshot?.rawText || "";
+  const showLiveOutput =
+    Boolean(outputText) ||
+    node.status === "running" ||
+    node.status === "success" ||
+    node.status === "failed_interrupted";
+
+  return (
+    <div className="grid gap-2">
+      <label className="grid gap-2">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+          Prompt add-on
+        </span>
+        <textarea
+          className="nodrag min-h-20 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          onChange={(event) =>
+            onUpdateNodeData(node.id, { prompt: event.currentTarget.value })
+          }
+          placeholder="Optional style or production notes..."
+          spellCheck={false}
+          value={node.data.prompt}
+        />
+      </label>
+      <div className="grid grid-cols-3 gap-2">
+        <label className="grid gap-2">
+          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+            Model
+          </span>
+          <select
+            className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+            onChange={(event) =>
+              onUpdateNodeData(node.id, { modelId: event.currentTarget.value })
+            }
+            value={node.data.modelId}
+          >
+            {WORKSPACE_COMPOSER_IMAGE_MODEL_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="grid gap-2">
+          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+            Quality
+          </span>
+          <select
+            className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+            onChange={(event) =>
+              onUpdateNodeData(node.id, {
+                quality: event.currentTarget.value as WorkspaceComposerImageQuality,
+              })
+            }
+            value={node.data.quality}
+          >
+            {WORKSPACE_COMPOSER_IMAGE_QUALITY_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="grid gap-2">
+          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+            Ratio
+          </span>
+          <select
+            className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+            onChange={(event) =>
+              onUpdateNodeData(node.id, {
+                aspectRatio: event.currentTarget.value as WorkspaceComposerImageAspectRatio,
+              })
+            }
+            value={node.data.aspectRatio}
+          >
+            {WORKSPACE_COMPOSER_IMAGE_ASPECT_RATIO_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      {imageUrl ? (
+        <div className="overflow-hidden border border-neutral-300/25 bg-black/35">
+          {/* eslint-disable-next-line @next/next/no-img-element -- workflow-generated data URLs and provider URLs render directly on the graph. */}
+          <img
+            alt="Workflow image model output"
+            className="block aspect-video w-full object-contain"
+            draggable={false}
+            src={imageUrl}
+          />
+        </div>
+      ) : showLiveOutput ? (
+        <div className="min-h-20 max-h-32 overflow-y-auto whitespace-pre-wrap border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-200 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]">
+          {outputText || <span className="text-neutral-600">Waiting for image...</span>}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function getRuntimeStatusClass(status: WorkflowNodeInstance["status"]) {
   if (status === "running" || status === "queued") {
-    return "border-cyan-300/40 bg-cyan-300/10 text-cyan-100";
+    return "border-neutral-300/40 bg-neutral-300/10 text-neutral-100";
   }
 
   if (status === "success") {
-    return "border-emerald-300/35 bg-emerald-300/10 text-emerald-100";
+    return "border-neutral-300/35 bg-neutral-300/10 text-neutral-100";
   }
 
   if (status === "failed" || status === "failed_interrupted") {
-    return "border-rose-300/35 bg-rose-300/10 text-rose-100";
+    return "border-neutral-300/35 bg-neutral-300/10 text-neutral-100";
   }
 
-  return "border-white/10 bg-white/[0.045] text-slate-400";
+  return "border-white/10 bg-white/[0.045] text-neutral-400";
 }
 
 function BlueprintEdge({
@@ -533,6 +738,7 @@ const nodeTypes = {
   agent: AgentNode,
   "input.text": RuntimeNode,
   "model.llm": RuntimeNode,
+  "model.image": RuntimeNode,
   "output.text": RuntimeNode,
 };
 const edgeTypes = {
@@ -551,6 +757,7 @@ export function NexusGraph({
   onRemoveAgent,
   onRemoveEdges,
   onRemoveWorkflowEdges,
+  onRemoveWorkflowNodes,
   onRunWorkflow,
   onUpdateWorkflowNodeData,
   onUpdateWorkflowNodePosition,
@@ -569,6 +776,7 @@ export function NexusGraph({
   onRemoveAgent: (agentId: string) => void;
   onRemoveEdges: (edgeIds: string[]) => void;
   onRemoveWorkflowEdges: (edgeIds: string[]) => void;
+  onRemoveWorkflowNodes: (nodeIds: string[]) => void;
   onRunWorkflow: () => void;
   onUpdateWorkflowNodeData: (
     nodeId: string,
@@ -613,6 +821,7 @@ export function NexusGraph({
           data: {
             agent,
             onOpenAgent,
+            onRemoveAgent,
           },
         };
       });
@@ -624,6 +833,7 @@ export function NexusGraph({
           data: {
             node,
             onCopyOutput: onCopyWorkflowOutput,
+            onRemoveNode: (nodeId: string) => onRemoveWorkflowNodes([nodeId]),
             onUpdateNodeData: onUpdateWorkflowNodeData,
           },
         }),
@@ -636,6 +846,8 @@ export function NexusGraph({
       graphNodeByAgentId,
       onCopyWorkflowOutput,
       onOpenAgent,
+      onRemoveAgent,
+      onRemoveWorkflowNodes,
       onUpdateWorkflowNodeData,
       runtimeLite?.nodes,
     ],
@@ -659,10 +871,10 @@ export function NexusGraph({
           selected: selectedEdgeIds.includes(edge.id),
           markerEnd: {
             type: MarkerType.ArrowClosed,
-            color: edge.style?.stroke ?? "#22d3ee",
+            color: edge.style?.stroke ?? "#d4d4d4",
           },
           style: {
-            stroke: edge.style?.stroke ?? "#22d3ee",
+            stroke: edge.style?.stroke ?? "#d4d4d4",
             strokeDasharray: edge.style?.strokeDasharray,
             strokeWidth: edge.style?.strokeWidth ?? 1.8,
             opacity: edge.style?.opacity,
@@ -691,10 +903,10 @@ export function NexusGraph({
           selected: selectedEdgeIds.includes(edge.id),
           markerEnd: {
             type: MarkerType.ArrowClosed,
-            color: "#f0abfc",
+            color: "#d4d4d4",
           },
           style: {
-            stroke: "#f0abfc",
+            stroke: "#d4d4d4",
             strokeWidth: 1.8,
           },
           interactionWidth: 32,
@@ -794,8 +1006,16 @@ export function NexusGraph({
       .filter((change) => change.type === "remove")
       .filter((change) => agentById.has(change.id))
       .map((change) => change.id);
+    const removedRuntimeIds = changes
+      .filter((change) => change.type === "remove")
+      .filter((change) => runtimeNodeById.has(change.id))
+      .map((change) => change.id);
 
     removedAgentIds.forEach(onRemoveAgent);
+
+    if (removedRuntimeIds.length) {
+      onRemoveWorkflowNodes(removedRuntimeIds);
+    }
 
     setNodeState((current) => ({
       ...current,
@@ -855,10 +1075,10 @@ export function NexusGraph({
           type: "blueprint",
           markerEnd: {
             type: MarkerType.ArrowClosed,
-            color: "#22d3ee",
+            color: "#d4d4d4",
           },
           style: {
-            stroke: "#22d3ee",
+            stroke: "#d4d4d4",
             strokeWidth: 1.8,
           },
         }}
@@ -908,6 +1128,11 @@ export function NexusGraph({
             onClick={() => onAddWorkflowNode("model.llm")}
           />
           <WorkflowGraphAction
+            icon={<ImageIcon className="h-3.5 w-3.5" />}
+            label="Add Image"
+            onClick={() => onAddWorkflowNode("model.image")}
+          />
+          <WorkflowGraphAction
             icon={<FileText className="h-3.5 w-3.5" />}
             label="Add Output"
             onClick={() => onAddWorkflowNode("output.text")}
@@ -928,7 +1153,7 @@ export function NexusGraph({
         />
         <MiniMap
           maskColor="var(--nexus-workspace-minimap-mask, rgba(2, 6, 23, 0.76))"
-          nodeColor={(node) => agentById.get(node.id)?.accent ?? "#22d3ee"}
+          nodeColor={(node) => agentById.get(node.id)?.accent ?? "#d4d4d4"}
           nodeStrokeWidth={3}
           pannable
           zoomable
@@ -952,7 +1177,7 @@ function WorkflowGraphAction({
 }) {
   return (
     <button
-      className="pointer-events-auto inline-flex h-8 items-center gap-2 border border-white/10 px-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md transition hover:border-cyan-300/40 hover:text-cyan-100 disabled:opacity-45 [background:var(--nexus-layout-panel-bg,rgba(2,6,23,0.82))] hover:[background:var(--nexus-layout-panel-muted-bg,rgba(34,211,238,0.1))]"
+      className="pointer-events-auto inline-flex h-8 items-center gap-2 border border-white/10 px-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-200 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md transition hover:border-neutral-300/40 hover:text-neutral-100 disabled:opacity-45 [background:var(--nexus-layout-panel-bg,rgba(2,6,23,0.82))] hover:[background:var(--nexus-layout-panel-muted-bg,rgba(34,211,238,0.1))]"
       disabled={disabled}
       onClick={onClick}
       type="button"
@@ -974,10 +1199,10 @@ function WorkflowGraphStatus({
 
   const tone =
     feedback.status === "success"
-      ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100"
+      ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
       : feedback.status === "running" || feedback.status === "queued"
-        ? "border-cyan-300/35 bg-cyan-300/10 text-cyan-100"
-        : "border-rose-300/35 bg-rose-300/10 text-rose-100";
+        ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
+        : "border-neutral-300/35 bg-neutral-300/10 text-neutral-100";
   const statusLabel =
     feedback.status === "failed_interrupted"
       ? "interrupted"
@@ -994,10 +1219,10 @@ function WorkflowGraphStatus({
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] uppercase">
         <span>{statusLabel}</span>
-        <span className="text-slate-100">{feedback.title}</span>
+        <span className="text-neutral-100">{feedback.title}</span>
       </div>
       {feedback.detail ? (
-        <p className="mt-1 max-w-full break-words text-xs leading-5 text-slate-100/90">
+        <p className="mt-1 max-w-full break-words text-xs leading-5 text-neutral-100/90">
           {feedback.detail}
         </p>
       ) : null}

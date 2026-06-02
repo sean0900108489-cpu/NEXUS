@@ -24,7 +24,7 @@ Confirmed:
 
 - branch: `codex/v19-production-shell-style-upgrade`
 - recent commits include:
-  - `fa68807 feat: add warm glass control chrome specimen`
+  - `fa68807 feat: add surface style control chrome specimen`
   - `ae69652 feat: add production control primitive selector`
   - `1bd3200 docs: consolidate v19 production skinning pre landing`
 - pre-existing untracked file preserved and not staged:
@@ -45,13 +45,13 @@ Verdict:
 Current estimates:
 
 - production skinning readiness: about `78-79%`
-- Warm Glass visual similarity in Style Lab: about `71-73%`
+- Surface Style visual similarity in Style Lab: about `71-73%`
 - soft landing stability: `84 / 100`
 
 Reason:
 
 - major production shell/content/chrome surfaces are mapped and reversible
-- Style Lab has Warm Glass coverage, scene preview, recipe specimens, and
+- Style Lab has Surface Style coverage, scene preview, recipe specimens, and
   Production Chrome Smoke apply/revert
 - production runtime apply and persistence remain absent
 - user testing guide exists
@@ -62,7 +62,7 @@ Reason:
 Met:
 
 - readiness is above the 60% gate and close to 80%
-- Style Lab can demonstrate the Warm Glass direction
+- Style Lab can demonstrate the Surface Style direction
 - production-adhered capabilities are separated from Style Lab-only specimens
 - rollback and recovery paths are clear
 - no forbidden runtime/source systems were touched in this closure

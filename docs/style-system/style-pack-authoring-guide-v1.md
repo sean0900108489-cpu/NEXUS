@@ -177,23 +177,23 @@ future gates.
           "warning": "#fef08a"
         },
         "accent": {
-          "primary": "#38bdf8",
-          "primaryStrong": "#0ea5e9",
-          "secondary": "#facc15"
+          "primary": "#d8d8d8",
+          "primaryStrong": "#c8c8c8",
+          "secondary": "#eeeeee"
         },
         "status": {
           "success": "#22c55e",
-          "warning": "#facc15",
-          "danger": "#fb7185",
-          "info": "#38bdf8"
+          "warning": "#eeeeee",
+          "danger": "#c7c7c7",
+          "info": "#d8d8d8"
         },
         "border": {
           "subtle": "rgb(255 255 255 / 0.24)",
-          "glow": "rgb(56 189 248 / 0.36)"
+          "glow": "rgb(216 216 216 / 0.36)"
         },
         "shadow": {
           "panel": "0 18px 52px rgb(0 0 0 / 0.46)",
-          "glow": "0 0 22px rgb(56 189 248 / 0.18)"
+          "glow": "0 0 22px rgb(216 216 216 / 0.18)"
         },
         "radius": {
           "base": "3px",
@@ -204,7 +204,7 @@ future gates.
           "backdrop": "10px"
         },
         "workspace": {
-          "gridPrimary": "rgb(56 189 248 / 0.16)",
+          "gridPrimary": "rgb(216 216 216 / 0.16)",
           "gridSecondary": "rgb(250 204 21 / 0.12)",
           "wash": "rgb(255 255 255 / 0.04)"
         },
@@ -353,9 +353,9 @@ future gates.
     "result": "compatible"
   },
   "fallback": {
-    "fallbackPackId": "legacy-cyberpunk-skin",
-    "fallbackManifestId": "legacy-cyberpunk",
-    "fallbackLegacyPreset": "cyberpunk",
+    "fallbackPackId": "baseline-surface-shell-skin",
+    "fallbackManifestId": "baseline-surface-shell",
+    "fallbackLegacyPreset": "surface-shell",
     "onAssetFailure": "omit-asset",
     "onLayoutFailure": "use-default-layout",
     "onBudgetFailure": "reject-pack"
@@ -436,14 +436,14 @@ Authoring goals:
         },
         "accent": {
           "primary": "#5eead4",
-          "primaryStrong": "#22d3ee",
+          "primaryStrong": "#d4d4d4",
           "secondary": "#84cc16"
         },
         "status": {
           "success": "#65a30d",
           "warning": "#eab308",
           "danger": "#dc2626",
-          "info": "#22d3ee"
+          "info": "#d4d4d4"
         },
         "border": {
           "subtle": "rgb(246 255 215 / 0.28)",
@@ -612,8 +612,8 @@ Authoring goals:
   },
   "fallback": {
     "fallbackPackId": "minimal-carbon-skin",
-    "fallbackManifestId": "legacy-cyberpunk",
-    "fallbackLegacyPreset": "cyberpunk",
+    "fallbackManifestId": "baseline-surface-shell",
+    "fallbackLegacyPreset": "surface-shell",
     "onAssetFailure": "omit-asset",
     "onLayoutFailure": "use-default-layout",
     "onBudgetFailure": "reject-pack"
@@ -662,7 +662,7 @@ Good output:
 ```text
 surface.app: near-black green
 surface.panel: dirt brown
-accent.primary: diamond cyan
+accent.primary: diamond neutral
 accent.secondary: grass green
 status.warning: torch gold
 ```

@@ -36,17 +36,17 @@ Fallback chain:
 
 - dedicated modal shell alias
 - existing `.nexus-panel` alias
-- current cyberpunk baseline value
+- current surface-shell baseline value
 
 Example source-level fallback:
 
 ```css
-background: var(--nexus-modal-shell-bg, var(--nexus-panel-bg, rgb(2 6 23 / 0.95)));
-border-color: var(--nexus-modal-shell-border, var(--nexus-panel-border, rgb(103 232 249 / 0.25)));
+background: var(--nexus-modal-shell-bg, var(--nexus-panel-bg, rgb(16 16 16 / 0.95)));
+border-color: var(--nexus-modal-shell-border, var(--nexus-panel-border, rgb(210 210 210 / 0.25)));
 border-radius: var(--nexus-modal-shell-radius, var(--nexus-panel-radius, var(--surface-radius)));
 box-shadow: var(
   --nexus-modal-shell-shadow,
-  var(--nexus-panel-shadow, 0 0 48px rgb(34 211 238 / 0.14), 0 24px 80px rgb(0 0 0 / 0.6))
+  var(--nexus-panel-shadow, 0 0 48px rgb(210 210 210 / 0.14), 0 24px 80px rgb(0 0 0 / 0.6))
 );
 ```
 
@@ -126,7 +126,7 @@ Forbidden boundaries held:
 
 Known baseline vs regressions:
 
-- `bg-cyberpunk.webp` placeholder load failure belongs to production `/` and was
+- `bg-surface-shell.webp` placeholder load failure belongs to production `/` and was
   not part of this `/style-lab` smoke.
 - Chrome Translate hydration mismatch was avoided with an untranslated local
   style-lab session.

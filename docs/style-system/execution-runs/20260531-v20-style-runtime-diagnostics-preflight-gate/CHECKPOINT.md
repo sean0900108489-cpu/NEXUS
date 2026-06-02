@@ -69,14 +69,14 @@ The gate is derived from existing local React state and the existing budget summ
 ## Changed Files
 
 - `src/components/style-engine/nexus-style-lab.tsx`
-- `src/components/style-engine/nexus-style-lab-warm-glass-coverage.test.ts`
+- `src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts`
 - `docs/style-system/execution-runs/20260531-v20-style-runtime-diagnostics-preflight-gate/CHECKPOINT.md`
 
 ## Verification
 
 Passed:
 - `git diff --check`
-- `npm run test -- src/components/style-engine/nexus-style-lab-warm-glass-coverage.test.ts`
+- `npm run test -- src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts`
 - `npm run test -- src/lib/style-engine/v2-style-runtime-budget.test.ts`
 - `npm run typecheck`
 - `npm run lint -- src/components/style-engine/nexus-style-lab.tsx src/lib/style-engine`

@@ -3,25 +3,25 @@ import { describe, expect, it } from "vitest";
 import {
   createHighContrastCarbonStyleManifestV1,
   compileNexusStyleManifestV1,
-  createLegacyCyberpunkStyleManifestV1,
+  createBaselineSurfaceShellStyleManifestV1,
   HIGH_CONTRAST_CARBON_STYLE_ID,
-  LEGACY_CYBERPUNK_STYLE_ID,
+  BASELINE_SURFACE_SHELL_STYLE_ID,
   validateNexusStyleManifestV1,
 } from "@/lib/style-engine";
 
 describe("NEXUS Style Engine built-in presets", () => {
-  it("creates a fresh legacy Cyberpunk manifest each time", () => {
-    const first = createLegacyCyberpunkStyleManifestV1();
-    const second = createLegacyCyberpunkStyleManifestV1();
+  it("creates a fresh baseline Surface Shell manifest each time", () => {
+    const first = createBaselineSurfaceShellStyleManifestV1();
+    const second = createBaselineSurfaceShellStyleManifestV1();
 
     first.tokens.surface.app = "#000000";
 
-    expect(first.id).toBe(LEGACY_CYBERPUNK_STYLE_ID);
-    expect(second.tokens.surface.app).toBe("#030712");
+    expect(first.id).toBe(BASELINE_SURFACE_SHELL_STYLE_ID);
+    expect(second.tokens.surface.app).toBe("#101010");
   });
 
-  it("validates the legacy Cyberpunk manifest", () => {
-    const report = validateNexusStyleManifestV1(createLegacyCyberpunkStyleManifestV1());
+  it("validates the baseline Surface Shell manifest", () => {
+    const report = validateNexusStyleManifestV1(createBaselineSurfaceShellStyleManifestV1());
 
     expect(report.accepted).toBe(true);
     expect(report.errors).toEqual([]);
@@ -34,8 +34,8 @@ describe("NEXUS Style Engine built-in presets", () => {
     ]);
   });
 
-  it("compiles the legacy Cyberpunk manifest through the pure compiler", () => {
-    const result = compileNexusStyleManifestV1(createLegacyCyberpunkStyleManifestV1());
+  it("compiles the baseline Surface Shell manifest through the pure compiler", () => {
+    const result = compileNexusStyleManifestV1(createBaselineSurfaceShellStyleManifestV1());
 
     expect(result.accepted).toBe(true);
 
@@ -44,10 +44,10 @@ describe("NEXUS Style Engine built-in presets", () => {
     }
 
     expect(result.style.cssVariables).toMatchObject({
-      "--nexus-surface-app": "#030712",
-      "--nexus-surface-panel": "rgb(8 16 22 / 0.78)",
-      "--nexus-text-primary": "#f8fafc",
-      "--nexus-workspace-grid-primary": "rgb(34 211 238 / 0.12)",
+      "--nexus-surface-app": "#101010",
+      "--nexus-surface-panel": "rgb(20 20 20 / 0.78)",
+      "--nexus-text-primary": "#f5f5f5",
+      "--nexus-workspace-grid-primary": "rgb(210 210 210 / 0.12)",
     });
     expect(result.style.legacyCssVariables).toMatchObject({
       "--bg-base": "var(--nexus-surface-app)",
@@ -57,18 +57,18 @@ describe("NEXUS Style Engine built-in presets", () => {
     });
     expect(result.style.adapters.nextThemes).toEqual({
       colorScheme: "dark",
-      dataTheme: "cyberpunk",
+      dataTheme: "surface-shell",
     });
   });
 
   it("creates a fresh high contrast manifest without mutating legacy output", () => {
     const highContrast = createHighContrastCarbonStyleManifestV1();
-    const legacy = createLegacyCyberpunkStyleManifestV1();
+    const legacy = createBaselineSurfaceShellStyleManifestV1();
 
     highContrast.tokens.surface.app = "#111111";
 
     expect(highContrast.id).toBe(HIGH_CONTRAST_CARBON_STYLE_ID);
-    expect(legacy.tokens.surface.app).toBe("#030712");
+    expect(legacy.tokens.surface.app).toBe("#101010");
     expect(createHighContrastCarbonStyleManifestV1().tokens.surface.app).toBe(
       "#050505",
     );
@@ -98,7 +98,7 @@ describe("NEXUS Style Engine built-in presets", () => {
     }
 
     expect(result.style.cssVariables).toMatchObject({
-      "--nexus-accent-primary": "#38bdf8",
+      "--nexus-accent-primary": "#d8d8d8",
       "--nexus-surface-app": "#050505",
       "--nexus-surface-panel": "rgb(16 16 16 / 0.94)",
       "--nexus-text-primary": "#ffffff",

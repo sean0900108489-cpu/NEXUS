@@ -135,7 +135,7 @@ Browser/style-lab smoke:
 
 Known baseline vs regressions:
 
-- `bg-cyberpunk.webp` placeholder failure is a known production `/` baseline
+- `bg-surface-shell.webp` placeholder failure is a known production `/` baseline
   and was not part of this `/style-lab` smoke.
 - Chrome Translate hydration mismatch was avoided by using an untranslated local
   style-lab session.

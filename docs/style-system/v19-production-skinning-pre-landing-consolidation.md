@@ -9,7 +9,7 @@ Branch: `codex/v19-production-shell-style-upgrade`
 V19 is ready to stop broad implementation and enter pre-landing.
 
 Current readiness is estimated at `78-79%`. The adopted production alias
-families are directly covered by the Warm Glass bridge, and Style Lab now has
+families are directly covered by the Surface Style bridge, and Style Lab now has
 usable visual specimens for the north-star composition. The remaining gap is no
 longer "add another shell alias"; it is confidence, channeling, and landing:
 authenticated production smoke, user testing guidance, recipe boundaries, and
@@ -23,11 +23,11 @@ human/designer feedback before more production primitives are widened.
 
 | Capability / artifact | Current location | Related real product surface | Adhesion level | Evidence | Still missing | Next possible bridge |
 | --- | --- | --- | --- | --- | --- | --- |
-| Warm Glass fixture | `src/lib/style-engine/v2-fixtures.ts` | Style Pack authoring, token preview, north-star skin input | Style-Lab-specimen | Warm Glass fixture validates, compiles, and can be loaded from Style Lab | No production apply or persistence | User testing guide and non-persistent preview track |
+| Surface Style fixture | `src/lib/style-engine/v2-fixtures.ts` | Style Pack authoring, token preview, north-star skin input | Style-Lab-specimen | Surface Style fixture validates, compiles, and can be loaded from Style Lab | No production apply or persistence | User testing guide and non-persistent preview track |
 | Render Plan / Bridge Plan | `src/lib/style-engine/v2-render-plan.ts`, `src/lib/style-engine/v2-production-token-bridge.ts` | Adopted production alias families | documentation-only / bridge-plan | Bridge emits direct production aliases while `canApplyProduction` remains `false` | No live workspace preview channel | Non-persistent alias-to-workspace preview gate |
 | Production alias coverage report | `src/lib/style-engine/v2-production-alias-coverage.ts`, Style Lab coverage panel | Current production alias surface inventory | documentation-only / Style-Lab-report | 10/10 current families and 58/58 adopted aliases are direct bridge covered | It measures adopted aliases, not visual similarity or production apply | User/designer coverage testing plus authenticated smoke |
 | Production Chrome Smoke harness | `src/components/style-engine/nexus-style-lab.tsx` | Right dock, TopBar, workspace, message, AgentWindow, CommandPalette, modal, Datapad chrome | Style-Lab-specimen | Local ref apply/revert covers the current selector set without auth | True production `/` still auth-gated for several live surfaces | Authenticated production smoke checklist |
-| Warm Glass Scene Preview | `src/components/style-engine/nexus-style-lab.tsx` | Overall workspace mood and command-center composition | Style-Lab-specimen | Warm scene/wash, workspace board, chrome specimens, supported/simulated/missing summary | No production background asset/layout channel | Asset/layout gate, not V19 runtime apply |
+| Surface Style Scene Preview | `src/components/style-engine/nexus-style-lab.tsx` | Overall workspace mood and command-center composition | Style-Lab-specimen | Warm scene/wash, workspace board, chrome specimens, supported/simulated/missing summary | No production background asset/layout channel | Asset/layout gate, not V19 runtime apply |
 | Right Metrics specimen | `src/components/style-engine/nexus-style-lab.tsx` | Future right-side inspector / metrics / run-control surface | Style-Lab-specimen | Static selected agent, collaboration map, context stack, goal metrics, run execution, memory/history | Real right-dock panels still own behavior and persistence | Recipe boundary, then selector-only panel scan |
 | Agent Card Bank specimen | `src/components/style-engine/nexus-style-lab.tsx` | Future agent roster/card bank surface | Style-Lab-specimen | Static agent roster, role chips, avatars, status dots, micro-metrics | No production roster/card boundary or data channel | Recipe boundary before production selector scan |
 | Segmented Top Navigation specimen | `src/components/style-engine/nexus-style-lab.tsx` | Future top mode navigation / compact counters | Style-Lab-specimen | Static segmented nav and counters based on reference visual hierarchy | TopBar child controls are behavior-bearing | Recipe boundary and TopBar child-control scan |
@@ -52,14 +52,14 @@ Criteria:
 - no auth needed
 - no production apply
 - local preview or local ref smoke only
-- enough visual surface to judge Warm Glass direction
+- enough visual surface to judge Surface Style direction
 
 Included:
 
-- Warm Glass fixture
-- Warm Glass Ops Coverage panel
+- Surface Style fixture
+- Surface Style Ops Coverage panel
 - Production Chrome Smoke harness
-- Warm Glass Scene Preview
+- Surface Style Scene Preview
 - Right Metrics specimen
 - Agent Card Bank specimen
 - Segmented Top Navigation specimen
@@ -185,7 +185,7 @@ Criteria:
 
 Included:
 
-- loading Warm Glass fixture
+- loading Surface Style fixture
 - reading direct alias coverage
 - using token preview/revert
 - using Production Chrome Smoke apply/revert
@@ -233,12 +233,12 @@ Confidence / rollback:
 
 Goal:
 
-- let a user/designer/LLM evaluate the current Warm Glass system without
+- let a user/designer/LLM evaluate the current Surface Style system without
   mistaking Style Lab preview for production apply.
 
 First safe task:
 
-- use `docs/style-system/v19-warm-glass-ops-user-testing-guide.md`.
+- use `docs/style-system/v19-surface-style-ops-user-testing-guide.md`.
 
 Allowed files:
 
@@ -458,7 +458,7 @@ Evidence still missing before V20:
 
 - authenticated production `/` smoke for live AgentWindow, CommandPalette,
   Modal, Datapad, ToolbarIconButton, and selected message/workspace surfaces
-- user/designer feedback from Style Lab Warm Glass testing
+- user/designer feedback from Style Lab Surface Style testing
 - recipe boundary decisions for right metrics, agent cards, segmented nav, and
   control primitives
 - explicit non-persistent preview-channel design
@@ -466,7 +466,7 @@ Evidence still missing before V20:
 
 Documentation needed:
 
-- a user testing guide for Style Lab Warm Glass validation
+- a user testing guide for Style Lab Surface Style validation
 - an authenticated production smoke checklist
 - recipe boundary docs before any more production selector expansion
 
@@ -477,5 +477,5 @@ Recommended first track:
 Reason:
 
 - the highest ROI now is not another selector. It is getting reliable feedback
-  on the existing Warm Glass system while preserving the clean rollback and
+  on the existing Surface Style system while preserving the clean rollback and
   behavior boundaries that V19 has maintained.

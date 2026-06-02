@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  createLegacyCyberpunkStyleManifestV1,
+  createBaselineSurfaceShellStyleManifestV1,
   createNexusStyleExportPackageV1,
   parseNexusStyleImportTextV1,
 } from "@/lib/style-engine";
 
 describe("NEXUS Style Engine import text parser", () => {
   it("parses a manifest JSON string and normalizes it for preview", () => {
-    const manifest = createLegacyCyberpunkStyleManifestV1();
+    const manifest = createBaselineSurfaceShellStyleManifestV1();
     const result = parseNexusStyleImportTextV1(JSON.stringify(manifest));
 
     expect(result.accepted).toBe(true);
@@ -18,13 +18,13 @@ describe("NEXUS Style Engine import text parser", () => {
     }
 
     expect(result.source).toBe("manifest");
-    expect(result.manifest.id).toBe("legacy-cyberpunk");
+    expect(result.manifest.id).toBe("baseline-surface-shell");
     expect(result.review.permissions.canPreview).toBe(true);
   });
 
   it("parses an export package JSON string and preserves the source type", () => {
     const exported = createNexusStyleExportPackageV1(
-      createLegacyCyberpunkStyleManifestV1(),
+      createBaselineSurfaceShellStyleManifestV1(),
     );
 
     if (!exported.accepted) {
@@ -42,12 +42,12 @@ describe("NEXUS Style Engine import text parser", () => {
     }
 
     expect(result.source).toBe("export-package");
-    expect(result.manifest.id).toBe("legacy-cyberpunk");
+    expect(result.manifest.id).toBe("baseline-surface-shell");
   });
 
   it("rejects invalid JSON without echoing the imported text", () => {
     const result = parseNexusStyleImportTextV1(
-      '{ "id": "legacy-cyberpunk", "secret": "do-not-echo" ',
+      '{ "id": "baseline-surface-shell", "secret": "do-not-echo" ',
     );
 
     expect(result.accepted).toBe(false);
@@ -87,7 +87,7 @@ describe("NEXUS Style Engine import text parser", () => {
   });
 
   it("rejects unsafe parsed JSON without returning the unsafe manifest", () => {
-    const manifest = createLegacyCyberpunkStyleManifestV1();
+    const manifest = createBaselineSurfaceShellStyleManifestV1();
 
     manifest.tokens.surface.app = "service_role=do-not-echo";
 

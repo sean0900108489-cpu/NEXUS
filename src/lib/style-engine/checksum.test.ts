@@ -15,7 +15,7 @@ describe("NEXUS Style Engine checksum helpers", () => {
         },
         surface: {
           panel: "#111827",
-          app: "#030712",
+          app: "#101010",
         },
       },
       intent: ["operational", "glass"],
@@ -24,7 +24,7 @@ describe("NEXUS Style Engine checksum helpers", () => {
       intent: ["operational", "glass"],
       tokens: {
         surface: {
-          app: "#030712",
+          app: "#101010",
           panel: "#111827",
         },
         text: {
@@ -44,20 +44,20 @@ describe("NEXUS Style Engine checksum helpers", () => {
 
   it("emits stable V1 checksums for equivalent values", () => {
     const first = {
-      name: "Legacy Cyberpunk",
+      name: "Baseline Surface Shell",
       tokens: {
         accent: {
-          primary: "#67e8f9",
+          primary: "#e5e5e5",
         },
       },
     };
     const second = {
       tokens: {
         accent: {
-          primary: "#67e8f9",
+          primary: "#e5e5e5",
         },
       },
-      name: "Legacy Cyberpunk",
+      name: "Baseline Surface Shell",
     };
 
     expect(createNexusStyleChecksumV1(first)).toBe(

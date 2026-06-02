@@ -30,7 +30,7 @@ describe("NexusOpsOuterShellFrame", () => {
     );
 
     expect(html).toContain(
-      'class="nexus-shell nexus-outer-shell-frame flex h-dvh min-h-0 flex-col overflow-hidden text-slate-100"',
+      'class="nexus-shell nexus-outer-shell-frame flex h-dvh min-h-0 flex-col overflow-x-hidden overflow-y-auto text-neutral-100"',
     );
   });
 
@@ -40,16 +40,18 @@ describe("NexusOpsOuterShellFrame", () => {
     expect(source).toContain("nexus-outer-shell-frame");
   });
 
-  it("has a dedicated outer shell background alias with shell and cyberpunk fallbacks", () => {
+  it("keeps the outer shell as a transparent structure boundary with a bottom backdrop", () => {
     const css = readGlobalsCssSource();
 
     expect(css).toContain(".nexus-shell.nexus-outer-shell-frame");
-    expect(css).toContain("--nexus-outer-shell-bg");
-    expect(css).toContain("--shell-surface");
-    expect(css).toContain("rgb(4 12 16 / 0.98)");
-    expect(css).toContain("rgb(19 11 27 / 0.97)");
-    expect(css).toContain("rgb(8 17 15 / 0.98)");
-    expect(css).toContain("var(--asset-background-image)");
+    expect(css).toContain("position: relative");
+    expect(css).toContain("isolation: isolate");
+    expect(css).toContain("background: transparent");
+    expect(css).toContain("background-image: none");
+    expect(css).toContain(".nexus-shell.nexus-outer-shell-frame::before");
+    expect(css).toContain("z-index: -1");
+    expect(css).toContain("pointer-events: none");
+    expect(css).toContain("var(--nexus-root-backdrop-bg, var(--shell-surface))");
   });
 
   it("does not expose behavior authority through props", () => {

@@ -12,7 +12,7 @@ This round intentionally did not add production apply, persistence, DOM mutation
 
 ## ROI Field Decision
 
-Primary fields shown above the fold because they answer whether the Warm Glass Render/Bridge output can proceed to preview diagnostics:
+Primary fields shown above the fold because they answer whether the Surface Style Render/Bridge output can proceed to preview diagnostics:
 
 - `verdict`
 - preview diagnostics eligibility
@@ -52,9 +52,9 @@ The panel is explicitly labeled:
 - no production apply
 - no persistence
 
-## Warm Glass Budget Result Displayed
+## Surface Style Budget Result Displayed
 
-Warm Glass fixture budget result:
+Surface Style fixture budget result:
 
 - verdict: `safe`
 - CSS variables: `83/120`
@@ -77,7 +77,7 @@ Preview diagnostics eligibility:
 ## Changed Files
 
 - `src/components/style-engine/nexus-style-lab.tsx`
-- `src/components/style-engine/nexus-style-lab-warm-glass-coverage.test.ts`
+- `src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts`
 - `docs/style-system/execution-runs/20260531-v20-style-runtime-budget-panel-roi-gated-read-only-report/CHECKPOINT.md`
 
 ## Verification
@@ -85,7 +85,7 @@ Preview diagnostics eligibility:
 Passed:
 
 - `git diff --check`
-- `npm run test -- src/components/style-engine/nexus-style-lab-warm-glass-coverage.test.ts`
+- `npm run test -- src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts`
   - 1 file passed
   - 8 tests passed
 - `npm run test -- src/lib/style-engine/v2-style-runtime-budget.test.ts`
@@ -117,7 +117,7 @@ Read-only `/style-lab` browser evidence:
 - high-cost effect pressure visible: `24/36`
 - critical gaps visible: `0`
 - checksum visible: `nexus-style-fnv1a32:85e89afc`
-- Warm Glass Scene Preview selector exists.
+- Surface Style Scene Preview selector exists.
 - Production Chrome Smoke section exists.
 - token preview/revert controls exist.
 - console errors: `0`

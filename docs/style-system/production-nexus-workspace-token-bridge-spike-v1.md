@@ -12,7 +12,7 @@ workspace background color, grid line colors, and visual wash only.
 
 The goal is not to skin the workspace canvas, React Flow, or shell behavior. It
 is only to make the existing `.nexus-workspace` visual primitive ready to
-consume bridge-compatible CSS variables while preserving the cyberpunk baseline
+consume bridge-compatible CSS variables while preserving the surface-shell baseline
 fallback.
 
 ## 2. Surface Boundary
@@ -79,7 +79,7 @@ future asset/texture pipeline. This spike is color-only.
 
 If no bridge variables are present:
 
-- `.nexus-workspace` resolves to the existing cyberpunk baseline through
+- `.nexus-workspace` resolves to the existing surface-shell baseline through
   `--bg-workspace`, `--workspace-grid-primary`,
   `--workspace-grid-secondary`, and `--workspace-wash`
 - existing theme presets remain compatible

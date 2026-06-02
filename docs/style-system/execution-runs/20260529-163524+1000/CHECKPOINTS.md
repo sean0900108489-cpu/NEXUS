@@ -445,9 +445,9 @@ Each checkpoint records:
 - Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
 - Rollback note: revert this metadata commit only if the checkpoint record must be corrected; do not touch unrelated history.
 
-## CP-029 - Legacy Cyberpunk Manifest Factory
+## CP-029 - Baseline Surface Shell Manifest Factory
 
-- Unit: implement pure built-in legacy Cyberpunk style manifest factory.
+- Unit: implement pure built-in baseline Surface Shell style manifest factory.
 - Allowed files:
   - `src/lib/style-engine/**`
   - `docs/style-system/execution-runs/20260529-163524+1000/**`
@@ -466,10 +466,10 @@ Each checkpoint records:
 
 ## CP-030 - Legacy Preset Local Commit Completed
 
-- Unit: commit legacy Cyberpunk manifest factory locally.
+- Unit: commit baseline Surface Shell manifest factory locally.
 - Allowed files: git metadata plus `docs/style-system/execution-runs/20260529-163524+1000/**` for this record.
 - Forbidden files: `exports/**`, CSS files, theme provider files, component files, graph files, store/sync files, backend routes/services/repositories, Supabase files, package files, deploy/config/remote/database mutation.
-- Commands run: `git add src/lib/style-engine docs/style-system/execution-runs/20260529-163524+1000`; `git diff --cached --check`; `git diff --cached --name-only`; `git commit -m "feat: add legacy cyberpunk style preset"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -11`.
+- Commands run: `git add src/lib/style-engine docs/style-system/execution-runs/20260529-163524+1000`; `git diff --cached --check`; `git diff --cached --name-only`; `git commit -m "feat: add baseline surface-shell style preset"`; `git rev-parse HEAD`; `git status --porcelain=v1 -b`; `git log --oneline -11`.
 - Commit created: `5279b6149bc1a29690e71afda98eceb13bc05953`.
 - Verification result: PASS. Post-commit status was clean on `codex/v17-large-iteration`.
 - Rollback note: revert the preset commit only if the pure preset unit must be removed; do not touch unrelated history.
@@ -859,7 +859,7 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
-- Verification result: PASS. Focused Vitest passed 2 files and 9 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only; side-effect scan returned no matches; Browser smoke confirmed Draft Input and Export Package render, Use Export and Load Draft load `legacy-cyberpunk`, Preview sets scoped runtime variables, Revert clears them, and severe browser log count is zero.
+- Verification result: PASS. Focused Vitest passed 2 files and 9 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only; side-effect scan returned no matches; Browser smoke confirmed Draft Input and Export Package render, Use Export and Load Draft load `baseline-surface-shell`, Preview sets scoped runtime variables, Revert clears them, and severe browser log count is zero.
 - Rollback note: revert only `src/components/style-engine/nexus-style-lab.tsx` and this run-doc checkpoint update if the panel unit must be removed.
 
 ## CP-058 - Post Import UI Phase Gate
@@ -1023,7 +1023,7 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
-- Verification result: PASS. Focused Vitest passed 2 files and 11 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only; side-effect scan returned no matches; Browser smoke confirmed High Contrast selection, scoped Preview/Revert behavior, return to Cyberpunk, and severe browser log count is zero.
+- Verification result: PASS. Focused Vitest passed 2 files and 11 tests; typecheck passed; targeted lint passed; `npm run build` passed with `/style-lab` static and the known edge-runtime warning only; side-effect scan returned no matches; Browser smoke confirmed High Contrast selection, scoped Preview/Revert behavior, return to Surface Shell, and severe browser log count is zero.
 - Rollback note: revert only `src/components/style-engine/nexus-style-lab.tsx` and this run-doc checkpoint update if the selector unit must be removed.
 
 ## CP-068 - Post Preset Selector Phase Gate
@@ -1543,7 +1543,7 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
-- Verification result: PASS. Final CDP smoke clicked Preview and verified `previewing`, active preview visibility, checksum visibility, and active preview excerpt `legacy-cyberpunk:nexus-style-fnv1a32:39201c40`. The first harness attempt hit an early destroyed execution context during page load, and the second confirmed Preview changed state but used `innerText` with CSS-uppercase text for a case-sensitive id assertion; both were harness issues and the final `textContent`-based smoke passed. `git diff --check` passed and no headless Chrome process remained.
+- Verification result: PASS. Final CDP smoke clicked Preview and verified `previewing`, active preview visibility, checksum visibility, and active preview excerpt `baseline-surface-shell:nexus-style-fnv1a32:39201c40`. The first harness attempt hit an early destroyed execution context during page load, and the second confirmed Preview changed state but used `innerText` with CSS-uppercase text for a case-sensitive id assertion; both were harness issues and the final `textContent`-based smoke passed. `git diff --check` passed and no headless Chrome process remained.
 - Rollback note: revert only this CP-099 run-doc update if the smoke checkpoint bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
 
 ## CP-100 - Style Lab Revert Interaction Smoke V1
@@ -1558,7 +1558,7 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
-- Verification result: PASS. CDP smoke clicked Preview, observed active preview `legacy-cyberpunk:nexus-style-fnv1a32:39201c40` and checksum `nexus-style-fnv1a32:39201c40`, clicked Revert, and verified the UI showed `reverted` while `Active Preview` and `Preview Checksum` returned to `none`. `git diff --check` passed and no headless Chrome process remained.
+- Verification result: PASS. CDP smoke clicked Preview, observed active preview `baseline-surface-shell:nexus-style-fnv1a32:39201c40` and checksum `nexus-style-fnv1a32:39201c40`, clicked Revert, and verified the UI showed `reverted` while `Active Preview` and `Preview Checksum` returned to `none`. `git diff --check` passed and no headless Chrome process remained.
 - Rollback note: revert only this CP-100 run-doc update if the smoke checkpoint bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
 
 ## CP-101 - Style Lab Refresh Non-Persistence Smoke V1
@@ -1573,7 +1573,7 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
-- Verification result: PASS. CDP smoke clicked Preview, observed active preview `legacy-cyberpunk:nexus-style-fnv1a32:39201c40` and checksum `nexus-style-fnv1a32:39201c40`, reloaded the page, and verified `Active Preview` and `Preview Checksum` returned to `none` while `idle` was visible. `git diff --check` passed and no headless Chrome process remained.
+- Verification result: PASS. CDP smoke clicked Preview, observed active preview `baseline-surface-shell:nexus-style-fnv1a32:39201c40` and checksum `nexus-style-fnv1a32:39201c40`, reloaded the page, and verified `Active Preview` and `Preview Checksum` returned to `none` while `idle` was visible. `git diff --check` passed and no headless Chrome process remained.
 - Rollback note: revert only this CP-101 run-doc update if the smoke checkpoint bookkeeping must be removed. If verification exposes a source regression, open a separate focused repair unit with its own allowed file range.
 
 ## CP-102 - Style Lab Runtime Target Row V1
@@ -2012,7 +2012,7 @@ Each checkpoint records:
   - `docs/style-system/execution-runs/20260529-163524+1000/CHECKPOINTS.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/PHASE_STATUS.md`
   - `docs/style-system/execution-runs/20260529-163524+1000/PROGRESS.md`
-- Verification result: PASS. The first smoke harness attempts exposed CDP script/hydration timing issues before a source-closed retry waited for hydration and passed. Final CDP smoke confirmed the isolated graph specimen default values were `background=rgb(34 211 238 / 0.12)`, `nodeSurface=rgb(8 16 22 / 0.78)`, and `targetFill=#f0abfc`, then after clicking `High Contrast`, values changed to `background=rgb(56 189 248 / 0.16)`, `nodeSurface=rgb(16 16 16 / 0.94)`, and `targetFill=#facc15`. A process scan found no lingering smoke process. `git diff --check` passed and git status remained dirty only in CP-128 run docs.
+- Verification result: PASS. The first smoke harness attempts exposed CDP script/hydration timing issues before a source-closed retry waited for hydration and passed. Final CDP smoke confirmed the isolated graph specimen default values were `background=rgb(210 210 210 / 0.12)`, `nodeSurface=rgb(20 20 20 / 0.78)`, and `targetFill=#d4d4d4`, then after clicking `High Contrast`, values changed to `background=rgb(216 216 216 / 0.16)`, `nodeSurface=rgb(16 16 16 / 0.94)`, and `targetFill=#eeeeee`. A process scan found no lingering smoke process. `git diff --check` passed and git status remained dirty only in CP-128 run docs.
 - Rollback note: revert only this CP-128 run-doc update if the smoke bookkeeping must be removed.
 
 ## CP-129 - Pure Compiler React Flow Adapter Output V1

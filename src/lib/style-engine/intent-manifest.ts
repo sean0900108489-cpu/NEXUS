@@ -6,10 +6,10 @@ import type {
   NexusStyleValidationReportV1,
 } from "./manifest";
 import {
+  BASELINE_SURFACE_SHELL_STYLE_ID,
+  createBaselineSurfaceShellStyleManifestV1,
   createHighContrastCarbonStyleManifestV1,
-  createLegacyCyberpunkStyleManifestV1,
   HIGH_CONTRAST_CARBON_STYLE_ID,
-  LEGACY_CYBERPUNK_STYLE_ID,
 } from "./presets";
 import {
   type NexusStyleNormalizedIntentV1,
@@ -24,7 +24,7 @@ export const NEXUS_STYLE_INTENT_MANIFEST_DRAFT_VERSION_V1 =
 export type NexusStyleIntentManifestBasePresetV1 =
   | "auto"
   | typeof HIGH_CONTRAST_CARBON_STYLE_ID
-  | typeof LEGACY_CYBERPUNK_STYLE_ID;
+  | typeof BASELINE_SURFACE_SHELL_STYLE_ID;
 
 export type NexusStyleIntentManifestDraftOptionsV1 = {
   basePreset?: NexusStyleIntentManifestBasePresetV1;
@@ -105,7 +105,7 @@ function selectBaseManifest(
     return createHighContrastCarbonStyleManifestV1();
   }
 
-  return createLegacyCyberpunkStyleManifestV1();
+  return createBaselineSurfaceShellStyleManifestV1();
 }
 
 function toManifestIntent(intent: NexusStyleNormalizedIntentV1): NexusStyleIntentV1 {

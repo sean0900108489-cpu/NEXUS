@@ -20,7 +20,7 @@ A futuristic multi-agent AI IDE built with Next.js, TypeScript, Tailwind, Zustan
 
 ## Graph Planner
 
-Use the top bar `View: Graph` toggle to switch from draggable agent panels to the visual workflow canvas. Each agent appears as a cyberpunk React Flow node with input and output handles, memory load, model, status, and a live mission/message preview. Drag nodes to reposition them, connect an output handle to another agent input to sketch data flow, and use `Focus / Open` to return to that agent's workstation.
+Use the top bar `View: Graph` toggle to switch from draggable agent panels to the visual workflow canvas. Each agent appears as a surface-shell React Flow node with input and output handles, memory load, model, status, and a live mission/message preview. Drag nodes to reposition them, connect an output handle to another agent input to sketch data flow, and use `Focus / Open` to return to that agent's workstation.
 
 Graph positions and edges are stored in the same local workspace snapshot as panels, messages, memory, and settings. Select edges or nodes and press `Delete` / `Backspace` to remove them; deleting a node removes that agent from the workspace. The graph is currently a manual blueprint layer only; autonomous handoffs and execution loops are intentionally deferred.
 

@@ -7,7 +7,7 @@ Status: partially implemented pure manifest schema/types and local validation/co
 ## Implementation Evidence
 
 - `src/lib/style-engine/manifest.ts` defines `NexusStyleManifestV1`, token groups, required tokens, recipe groups, validation report types, and manifest version constants.
-- `src/lib/style-engine/presets.ts` provides built-in V1 manifests for legacy Cyberpunk and High Contrast Carbon.
+- `src/lib/style-engine/presets.ts` provides built-in V1 manifests for baseline Surface Shell and High Contrast Carbon.
 - `src/lib/style-engine/validator.ts` validates candidate shape and safety before compilation, including command palette recipe group presence and unknown recipe semantic token references.
 - `src/lib/style-engine/compiler.ts` accepts only validator-approved manifests, emits deterministic CSS variables, recipes, React Flow adapter output, window/modal recipe adapter output, and report metadata, and fails closed if emitted CSS variables exceed `constraints.maxCssVariableCount`.
 - The manifest remains data-only. It is not consumed directly by components, workspace state, sync queues, backend routes, Supabase/database, deploy config, or `exports/**`.
@@ -201,7 +201,7 @@ type NexusStyleAdaptersV1 = {
     legacyVariableMode: "preserve";
   };
   nextThemes?: {
-    dataTheme?: "cyberpunk" | "apple" | "tesla" | "terminal";
+    dataTheme?: "surface-shell" | "apple" | "tesla" | "terminal";
     colorScheme: "dark" | "light";
   };
   reactFlow?: NexusReactFlowStyleAdapterV1;
@@ -250,15 +250,15 @@ Required values for V1:
 - `allowSyncMutation: false`
 - `allowBackendMutation: false`
 
-## 9. Valid Example: Legacy Cyberpunk Draft
+## 9. Valid Example: Baseline Surface Shell Draft
 
 This is intentionally partial and illustrative.
 
 ```json
 {
   "schemaVersion": 1,
-  "id": "legacy-cyberpunk",
-  "name": "Legacy Cyberpunk",
+  "id": "baseline-surface-shell",
+  "name": "Baseline Surface Shell",
   "source": { "kind": "legacy-preset" },
   "mode": "dark",
   "intent": {
@@ -270,27 +270,27 @@ This is intentionally partial and illustrative.
   },
   "tokens": {
     "surface": {
-      "app": "#030712",
-      "panel": "rgb(8 16 22 / 0.78)"
+      "app": "#101010",
+      "panel": "rgb(20 20 20 / 0.78)"
     },
     "text": {
-      "primary": "#f8fafc",
-      "secondary": "#cbd5e1",
-      "muted": "#64748b"
+      "primary": "#f5f5f5",
+      "secondary": "#d0d0d0",
+      "muted": "#8a8a8a"
     },
     "accent": {
-      "primary": "#67e8f9",
-      "primaryStrong": "#22d3ee",
-      "secondary": "#f0abfc"
+      "primary": "#e5e5e5",
+      "primaryStrong": "#d4d4d4",
+      "secondary": "#d4d4d4"
     },
     "status": {
-      "success": "#6ee7b7",
-      "warning": "#fcd34d",
-      "danger": "#fda4af"
+      "success": "#d6d6d6",
+      "warning": "#eeeeee",
+      "danger": "#cccccc"
     },
     "border": {
       "subtle": "rgb(226 232 240 / 0.12)",
-      "glow": "rgb(34 211 238 / 0.42)"
+      "glow": "rgb(210 210 210 / 0.42)"
     },
     "shadow": {
       "panel": "0 24px 80px rgb(0 0 0 / 0.38)"
@@ -303,8 +303,8 @@ This is intentionally partial and illustrative.
       "glass": "8px"
     },
     "workspace": {
-      "gridPrimary": "rgb(34 211 238 / 0.12)",
-      "gridSecondary": "rgb(244 114 182 / 0.11)"
+      "gridPrimary": "rgb(210 210 210 / 0.12)",
+      "gridSecondary": "rgb(196 196 196 / 0.11)"
     },
     "typography": {
       "interface": "Geist"
@@ -351,7 +351,7 @@ This is intentionally partial and illustrative.
       "legacyVariableMode": "preserve"
     },
     "nextThemes": {
-      "dataTheme": "cyberpunk",
+      "dataTheme": "surface-shell",
       "colorScheme": "dark"
     }
   },

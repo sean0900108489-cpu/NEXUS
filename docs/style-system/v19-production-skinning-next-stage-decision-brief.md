@@ -216,7 +216,7 @@ Risk:
 
 Goal:
 
-- decide whether Warm Glass background scene, asset pipeline, and layout/page
+- decide whether Surface Style background scene, asset pipeline, and layout/page
   arrangement become V20/V21 work
 
 Why now:

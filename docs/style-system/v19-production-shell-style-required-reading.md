@@ -185,7 +185,7 @@ Protected mapping:
 
 Do not misclassify these as V19 regressions unless they change or worsen:
 
-- `bg-cyberpunk.webp` references `https://cdn.example.com/nexus/bg-cyberpunk.webp`,
+- `bg-surface-shell.webp` references `https://cdn.example.com/nexus/bg-surface-shell.webp`,
   a known placeholder CDN asset.
 - Chrome Translate can mutate text from `NEXUS // AI OPS` to `NEXUS // AI 作戰`,
   causing hydration mismatch in translated tabs.
@@ -408,7 +408,7 @@ flex h-11 shrink-0 items-center border-b border-white/10 bg-black/20 px-3
 4. Use fallback chain:
 
 ```text
-top-bar alias -> panel alias -> cyberpunk baseline
+top-bar alias -> panel alias -> surface-shell baseline
 ```
 
 5. Update only the focused TopBar frame test and docs/checkpoint as needed.
@@ -490,7 +490,7 @@ Stop immediately if:
 Do not stop for:
 
 - unsafe optional candidate; skip and record
-- known `bg-cyberpunk.webp` placeholder issue
+- known `bg-surface-shell.webp` placeholder issue
 - Chrome Translate hydration mismatch when Translate is active
 - stale dev CSS that can be resolved by safely refreshing/restarting the
   repo-local dev server
@@ -548,7 +548,7 @@ V19 can be considered ready to close when:
   regressions.
 - Browser smoke evidence exists for each production-facing token alias spike.
 - Rollback path is simple: remove frame-level alias selector/CSS and keep legacy
-  cyberpunk fallbacks.
+  surface-shell fallbacks.
 
 After V19 closure, the next major track must be explicitly chosen before work
 continues:

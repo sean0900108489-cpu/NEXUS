@@ -37,7 +37,7 @@ React Flow, agent, store, sync, backend, or Supabase behavior was changed.
 ## Fallback Behavior
 
 If no bridge variables are present, `.nexus-glass` resolves to existing
-cyberpunk baseline variables in `:root, [data-theme="cyberpunk"]`.
+surface-shell baseline variables in `:root, [data-theme="surface-shell"]`.
 
 If bridge preview is active in Style Lab, the isolated target receives legacy
 bridge variables such as `--panel-bg`, `--border-subtle`, `--text-main`,

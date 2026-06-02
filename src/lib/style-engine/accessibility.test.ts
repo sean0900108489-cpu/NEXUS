@@ -72,8 +72,8 @@ function createContrastManifest(): NexusStyleManifestV1 {
     },
     tokens: {
       accent: {
-        primary: "#67e8f9",
-        primaryStrong: "#22d3ee",
+        primary: "#e5e5e5",
+        primaryStrong: "#d4d4d4",
       },
       blur: {
         glass: "0px",
@@ -90,9 +90,9 @@ function createContrastManifest(): NexusStyleManifestV1 {
         panel: "0 0 0 #000000",
       },
       status: {
-        danger: "#fda4af",
-        success: "#6ee7b7",
-        warning: "#fcd34d",
+        danger: "#cccccc",
+        success: "#d6d6d6",
+        warning: "#eeeeee",
       },
       surface: {
         app: "#000000",
@@ -102,7 +102,7 @@ function createContrastManifest(): NexusStyleManifestV1 {
       text: {
         muted: "#94a3b8",
         primary: "#ffffff",
-        secondary: "#cbd5e1",
+        secondary: "#d0d0d0",
       },
       typography: {},
       workspace: {},

@@ -50,6 +50,7 @@ import {
   createWorkflowRuntimeLlmCall,
   resolveWorkflowRuntimeExecutionAgent,
 } from "@/lib/workflow-runtime-lite/llm-client";
+import { createWorkflowRuntimeImageCall } from "@/lib/workflow-runtime-lite/image-client";
 import {
   createEmptyWorkflowRuntimeLiteState,
   createWorkflowRuntimeId,
@@ -434,6 +435,7 @@ type NexusStore = {
     position: { x: number; y: number },
   ) => void;
   connectWorkflowRuntimeNodes: (edge: WorkflowRuntimeEdge) => void;
+  removeWorkflowRuntimeNodes: (nodeIds: string[]) => void;
   removeWorkflowRuntimeEdges: (edgeIds: string[]) => void;
   runWorkflowRuntimeLiteFlow: () => Promise<WorkflowRun | undefined>;
   updateAgentTelemetry: (agentId: string, generatedCharacters: number) => void;
@@ -737,7 +739,7 @@ function createAgentFromMacroBlueprint({
     sandboxCode: blueprint.sandboxCode,
     sandboxUrl: blueprint.sandboxUrl ?? "",
     status: "idle",
-    accent: blueprint.accent || "#22d3ee",
+    accent: blueprint.accent || "#d4d4d4",
     avatar: blueprint.avatar || "MX",
     memory: blueprint.memory.map((block, memoryIndex) => ({
       ...block,
@@ -3547,6 +3549,27 @@ export const useNexusStore = create<NexusStore>()(
         }));
       },
 
+      removeWorkflowRuntimeNodes: (nodeIds) => {
+        const nodeIdSet = new Set(nodeIds);
+
+        if (!nodeIdSet.size) {
+          return;
+        }
+
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+              ...runtimeLite,
+              edges: runtimeLite.edges.filter(
+                (edge) => !nodeIdSet.has(edge.source) && !nodeIdSet.has(edge.target),
+              ),
+              lastError: null,
+              nodes: runtimeLite.nodes.filter((node) => !nodeIdSet.has(node.id)),
+            })),
+          ),
+        }));
+      },
+
       removeWorkflowRuntimeEdges: (edgeIds) => {
         set((state) => ({
           workspaces: withActiveWorkspace(state, (workspace) =>
@@ -3646,6 +3669,11 @@ export const useNexusStore = create<NexusStore>()(
           }));
         };
         const run = await runWorkflowRuntimeLite({
+          callImage: createWorkflowRuntimeImageCall({
+            authVault: get().authVault,
+            executionAgent,
+            workspace,
+          }),
           callLlm: createWorkflowRuntimeLlmCall({
             authVault: get().authVault,
             executionAgent,

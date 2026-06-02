@@ -177,7 +177,7 @@ Most recent no-mutation browser read:
 Do not classify these as new regressions unless they worsen:
 - edge runtime static-generation warning during build
 - route-load sync/API baseline such as `POST /api/v1/sync/operations`
-- prior `bg-cyberpunk.webp` placeholder issue
+- prior `bg-surface-shell.webp` placeholder issue
 - Chrome Translate hydration mismatch when Translate is active
 
 ## Remaining Risks
@@ -189,7 +189,7 @@ low-to-moderate
 ```
 
 Why not zero:
-- Some legacy naming remains, especially `warm-glass-controls` as a compatible
+- Some legacy naming remains, especially `surface-style-controls` as a compatible
   style payload source label.
 - Some old visual fallback classes remain in source, although current variable
   consumers and tests block the known earth-tone regression path.
@@ -254,5 +254,5 @@ Do not start broad styling immediately after landing.
 
 Recommended next smallest unit after final landing:
 - Manual QA pass using real exported workspace JSON bytes.
-- Then a compatibility naming plan for `warm-glass-controls` if the product
-  vocabulary should move away from Warm Glass-specific source wording.
+- Then a compatibility naming plan for `surface-style-controls` if the product
+  vocabulary should move away from Surface Style-specific source wording.

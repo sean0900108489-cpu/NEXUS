@@ -218,7 +218,7 @@ Record:
 
 Known baseline separation:
 
-- `bg-cyberpunk.webp` placeholder failure is a known baseline if observed
+- `bg-surface-shell.webp` placeholder failure is a known baseline if observed
 - Chrome Translate hydration mismatch is baseline only if Translate is active
 
 If console tooling is unavailable:
@@ -504,7 +504,7 @@ implementation.
 It should define:
 
 - target: `main.nexus-shell.nexus-outer-shell-frame`
-- variable source: existing Bridge Plan / Warm Glass direct aliases
+- variable source: existing Bridge Plan / Surface Style direct aliases
 - apply transaction
 - revert transaction
 - previous inline value snapshot

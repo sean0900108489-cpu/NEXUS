@@ -12,7 +12,7 @@ landing state.
 Current estimates:
 
 - production skinning readiness: about `78-79%`
-- Warm Glass visual similarity in Style Lab: about `71-73%`
+- Surface Style visual similarity in Style Lab: about `71-73%`
 - soft landing stability after this closure: `84 / 100`
 
 Completed production-adhered surfaces:
@@ -30,11 +30,11 @@ Completed production-adhered surfaces:
 
 Completed Style Lab capabilities:
 
-- Warm Glass Ops Coverage panel
-- Warm Glass fixture loading/review path
+- Surface Style Ops Coverage panel
+- Surface Style fixture loading/review path
 - direct production alias coverage report
 - Production Chrome Smoke harness
-- Warm Glass Scene Preview
+- Surface Style Scene Preview
 - Right Metrics Panel recipe specimen
 - Agent Card Bank recipe specimen
 - Segmented Top Navigation recipe specimen
@@ -43,7 +43,7 @@ Completed Style Lab capabilities:
 
 Completed bridge/readiness capabilities:
 
-- V2 Skin Pack fixture for Warm Glass Ops
+- V2 Skin Pack fixture for Surface Style Ops
 - V2 Render Plan compatibility
 - Production Token Bridge direct output for current adopted alias families
 - direct bridge coverage for `10/10` current families and `58/58` adopted
@@ -66,7 +66,7 @@ Why stable:
 - major production chrome/content/shell surfaces have selector or alias
   coverage
 - adopted production aliases are directly emitted by the pure bridge plan
-- Style Lab can demonstrate coverage, Warm Glass mood, recipe specimens, and
+- Style Lab can demonstrate coverage, Surface Style mood, recipe specimens, and
   local chrome smoke apply/revert without auth
 - pre-landing consolidation maps each capability to real product surfaces
 - user testing guide exists
@@ -118,7 +118,7 @@ After a pause, read in this order:
 1. `docs/style-system/v19-production-skinning-soft-landing-closure.md`
 2. `docs/style-system/v19-production-skinning-next-stage-decision-brief.md`
 3. `docs/style-system/v19-production-skinning-pre-landing-consolidation.md`
-4. `docs/style-system/v19-warm-glass-ops-user-testing-guide.md`
+4. `docs/style-system/v19-surface-style-ops-user-testing-guide.md`
 5. `docs/style-system/production-shell-extraction-map-v1.md`
 6. latest relevant checkpoint under:
    `docs/style-system/execution-runs/`
@@ -127,13 +127,13 @@ Important commits:
 
 - `1bd3200 docs: consolidate v19 production skinning pre landing`
 - `ae69652 feat: add production control primitive selector`
-- `fa68807 feat: add warm glass control chrome specimen`
-- `b7378b8 feat: add warm glass segmented nav specimen`
-- `f5d3fd5 feat: add warm glass agent card specimen`
-- `530c466 feat: add warm glass right metrics specimen`
-- `e4fc5e8 feat: add warm glass scene preview`
-- `725c58a feat: expand warm glass production alias bridge`
-- `da8589e feat: add warm glass ops skin coverage`
+- `fa68807 feat: add surface style control chrome specimen`
+- `b7378b8 feat: add surface style segmented nav specimen`
+- `f5d3fd5 feat: add surface style agent card specimen`
+- `530c466 feat: add surface style right metrics specimen`
+- `e4fc5e8 feat: add surface style scene preview`
+- `725c58a feat: expand surface style production alias bridge`
+- `da8589e feat: add surface style ops skin coverage`
 
 Known working-tree note:
 
@@ -144,7 +144,7 @@ Known working-tree note:
 
 Known baseline issues:
 
-- `bg-cyberpunk.webp` placeholder load failure is baseline if observed.
+- `bg-surface-shell.webp` placeholder load failure is baseline if observed.
 - Chrome Translate can cause hydration/text mismatch in translated sessions.
 - local production `/` can show auth gate; that is a product boundary, not a
   styling regression.
@@ -159,7 +159,7 @@ General strategy:
 
 By area:
 
-- Warm Glass docs/checkpoints:
+- Surface Style docs/checkpoints:
   revert the relevant docs commit
 - Style Lab specimens:
   revert the specimen commit; no production cleanup
@@ -182,7 +182,7 @@ Do not rollback with destructive git commands unless explicitly requested.
 High-success soft landing requires:
 
 1. readiness is above the 60% gate and close to 80%
-2. Style Lab can demonstrate the Warm Glass direction
+2. Style Lab can demonstrate the Surface Style direction
 3. major production shell/content/chrome surfaces are mapped and reversible
 4. production runtime apply and persistence are absent
 5. risky systems remain untouched

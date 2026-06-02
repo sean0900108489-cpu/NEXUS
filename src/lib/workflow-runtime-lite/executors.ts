@@ -1,4 +1,5 @@
 import type {
+  AgentMediaArtifact,
   ContextPacket,
   WorkflowNodeInstance,
   WorkflowRuntimeNodeType,
@@ -22,7 +23,25 @@ export type WorkflowRuntimeLlmCall = (
   text: string;
 }>;
 
+export type WorkflowRuntimeImageCallInput = {
+  node: WorkflowNodeInstance<"model.image">;
+  prompt: string;
+  runId: string;
+  upstream: ContextPacket;
+  workflowId: string;
+};
+
+export type WorkflowRuntimeImageCall = (
+  input: WorkflowRuntimeImageCallInput,
+) => Promise<{
+  media: AgentMediaArtifact;
+  metadata?: Record<string, unknown>;
+  revisedPrompt?: string;
+  text?: string;
+}>;
+
 export type WorkflowRuntimeExecutorInput<TType extends WorkflowRuntimeNodeType> = {
+  callImage?: WorkflowRuntimeImageCall;
   callLlm: WorkflowRuntimeLlmCall;
   inputPacket?: ContextPacket | null;
   node: WorkflowNodeInstance<TType>;
@@ -124,6 +143,77 @@ export async function executeLLM({
   });
 }
 
+export async function executeImageModel({
+  callImage,
+  inputPacket,
+  node,
+  runId,
+  workflowId,
+}: WorkflowRuntimeExecutorInput<"model.image">) {
+  if (!inputPacket) {
+    throw new Error("model.image requires an upstream ContextPacket.");
+  }
+
+  if (!callImage) {
+    throw new Error("model.image requires an image generation boundary.");
+  }
+
+  const prompt = buildImagePrompt({
+    node,
+    upstream: inputPacket,
+  });
+
+  if (!prompt) {
+    throw new Error("model.image requires an upstream prompt.");
+  }
+
+  const result = await callImage({
+    node,
+    prompt,
+    runId,
+    upstream: inputPacket,
+    workflowId,
+  });
+  const rawText = result.text?.trim() || buildImagePacketText({
+    artifactId: result.media.artifactId,
+    aspectRatio: node.data.aspectRatio,
+    imageUrl: result.media.url,
+    modelId: node.data.modelId,
+    prompt,
+    quality: node.data.quality,
+    revisedPrompt: result.revisedPrompt,
+  });
+
+  return createContextPacket({
+    displayText: [
+      "Image generated.",
+      `Prompt: ${prompt}`,
+      `Model: ${node.data.modelId}`,
+      `Quality: ${node.data.quality}`,
+      `Aspect ratio: ${node.data.aspectRatio}`,
+      result.media.artifactId ? `Artifact: ${result.media.artifactId}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
+    metadata: {
+      ...(result.metadata ?? {}),
+      artifactId: result.media.artifactId ?? null,
+      aspectRatio: node.data.aspectRatio,
+      imageUrl: result.media.url,
+      mediaType: result.media.type,
+      modelId: node.data.modelId,
+      nodeType: node.type,
+      prompt,
+      quality: node.data.quality,
+      revisedPrompt: result.revisedPrompt ?? null,
+      upstreamPacketId: inputPacket.id,
+    },
+    rawText,
+    runId,
+    sourceNodeId: node.id,
+  });
+}
+
 export async function executeOutputText({
   inputPacket,
 }: WorkflowRuntimeExecutorInput<"output.text">) {
@@ -137,7 +227,52 @@ export async function executeOutputText({
 export const workflowRuntimeExecutorMap = {
   "input.text": executeInputText,
   "model.llm": executeLLM,
+  "model.image": executeImageModel,
   "output.text": executeOutputText,
 } satisfies {
   [TType in WorkflowRuntimeNodeType]: WorkflowRuntimeExecutor<TType>;
 };
+
+function buildImagePrompt({
+  node,
+  upstream,
+}: {
+  node: WorkflowNodeInstance<"model.image">;
+  upstream: ContextPacket;
+}) {
+  return [node.data.prompt, upstream.rawText]
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+function buildImagePacketText({
+  artifactId,
+  aspectRatio,
+  imageUrl,
+  modelId,
+  prompt,
+  quality,
+  revisedPrompt,
+}: {
+  artifactId?: string;
+  aspectRatio: string;
+  imageUrl: string;
+  modelId: string;
+  prompt: string;
+  quality: string;
+  revisedPrompt?: string;
+}) {
+  return [
+    "Image generated.",
+    `Prompt: ${prompt}`,
+    revisedPrompt ? `Revised prompt: ${revisedPrompt}` : "",
+    `Model: ${modelId}`,
+    `Quality: ${quality}`,
+    `Aspect ratio: ${aspectRatio}`,
+    artifactId ? `Artifact: ${artifactId}` : "",
+    `Image URL: ${imageUrl}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}

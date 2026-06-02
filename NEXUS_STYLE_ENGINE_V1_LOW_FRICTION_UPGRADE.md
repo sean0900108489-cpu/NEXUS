@@ -145,8 +145,8 @@ This is a good place for global style foundation, but not yet for a new Style En
 `src/components/theme-provider.tsx` defines:
 
 ```txt
-themes = ["cyberpunk", "apple", "tesla", "terminal"]
-defaultTheme = "cyberpunk"
+themes = ["surface-shell", "apple", "tesla", "terminal"]
+defaultTheme = "surface-shell"
 attribute = "data-theme"
 enableSystem = false
 ```
@@ -199,7 +199,7 @@ V1 finding:
 --asset-background-image
 ```
 
-The Tailwind v4 `@theme inline` block bridges many legacy Tailwind color families to these variables. This is useful for low-friction migration because existing classes like `text-slate-100`, `border-cyan-300`, and `bg-slate-950` are partially redirected through CSS variables.
+The Tailwind v4 `@theme inline` block bridges many legacy Tailwind color families to these variables. This is useful for low-friction migration because existing classes like `text-neutral-100`, `border-neutral-300`, and `bg-neutral-950` are partially redirected through CSS variables.
 
 V1 finding:
 
@@ -345,15 +345,15 @@ Preview state must not be added to `NexusWorkspace`, `ActiveUiStateSnapshot`, or
 These can eventually move into style recipes or semantic utility classes:
 
 ```txt
-text-cyan-100
-text-slate-100
-text-slate-400
-text-emerald-100
-text-rose-100
-bg-cyan-300/10
+text-neutral-100
+text-neutral-100
+text-neutral-400
+text-neutral-100
+text-neutral-100
+bg-neutral-300/10
 bg-black/35
-bg-slate-950/88
-border-cyan-300/30
+bg-neutral-950/88
+border-neutral-300/30
 border-white/10
 shadow-[...]
 backdrop-blur-xl
@@ -816,7 +816,7 @@ Your proposed direction is correct in these ways:
 - Starting with scan/audit instead of class replacement.
 - Separating visual, layout, behavior, state-linked, and third-party adapter classes.
 - Treating React Flow as an adapter, not normal CSS.
-- Moving toward semantic tokens instead of `cyan/slate/fuchsia` class language.
+- Moving toward semantic tokens instead of `neutral/neutral/neutral` class language.
 - Running a style-lab or branch before destructive experimentation.
 - Keeping legacy UI parallel until migration units prove themselves.
 
@@ -853,7 +853,7 @@ But the first living loop should be:
 manifest draft
 -> CSS variable map
 -> isolated preview patch
--> legacy cyberpunk pack
+-> baseline surface-shell pack
 -> soft OS pack
 -> visual verification
 -> no sync pollution
@@ -872,7 +872,7 @@ V5  - First primitives: Panel, Button, Input, Badge.
 V6  - Legacy Bridge hardening: map old Tailwind families to semantic variables.
 V7  - React Flow Adapter V1.
 V8  - First migration unit behind a flag.
-V9  - Two style packs: legacy cyberpunk and soft OS.
+V9  - Two style packs: baseline surface-shell and soft OS.
 V10 - Apply style preference safely to workspace.
 V11 - Optional Supabase persistence for named style packs.
 V12 - AI style brief -> manifest draft.
@@ -938,7 +938,7 @@ V1 inspection only.
 4. Should `WorkspaceThemeConfig` remain only micro-controls while `StyleManifest` becomes a separate model?
 5. Should `glowIntensity` be restored through `sanitizeThemeConfig()` before any applied-theme guarantee?
 6. Should the first style-lab happen on a git branch after V16 commit, or in a copied directory?
-7. Which first contrast pack is more useful: `legacy-cyberpunk` vs `soft-os`, or `legacy-cyberpunk` vs `editorial-lab`?
+7. Which first contrast pack is more useful: `baseline-surface-shell` vs `soft-os`, or `baseline-surface-shell` vs `editorial-lab`?
 8. Should React Flow colors derive from global tokens or from graph-specific tokens?
 9. Should per-agent accent remain user/agent data, or can style packs transform accent interpretation?
 10. Should future style packs include external background asset URLs, or require local/imported assets?

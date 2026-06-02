@@ -31,7 +31,10 @@ describe("NexusOpsTopBarFrame", () => {
 
     expect(html).toContain("nexus-top-bar-frame");
     expect(html).toContain(
-      "relative z-[110] flex h-11 shrink-0 items-center border-b border-white/10 bg-black/20 px-3",
+      "relative z-[110] flex h-11 shrink-0 items-center border-b border-white/10 px-3",
+    );
+    expect(html).toContain(
+      "var(--nexus-body-frame-bg, color-mix(in srgb, var(--theme-primary, #e5e5e5) 10%, rgb(16 16 16 / 0.84)))",
     );
   });
 
@@ -86,7 +89,7 @@ describe("NexusOpsTopBarFrame", () => {
     expect(validProps.children).toBe("child");
   });
 
-  it("does not use hooks, effects, event handlers, prop spreading, or style mutation", () => {
+  it("does not use hooks, effects, event handlers, prop spreading, or runtime style mutation", () => {
     const source = readTopBarFrameSource();
     const forbiddenPatterns = [
       /\buse[A-Z][A-Za-z]+\s*\(/,
@@ -94,7 +97,6 @@ describe("NexusOpsTopBarFrame", () => {
       /\buseLayoutEffect\b/,
       /\bon[A-Z][A-Za-z]+\s*=/,
       /\{\.\.\./,
-      /\bstyle\s*=/,
       /\bdocument\./,
       /\bwindow\./,
       /\blocalStorage\b/,

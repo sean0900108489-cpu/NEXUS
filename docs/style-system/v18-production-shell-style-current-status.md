@@ -42,7 +42,7 @@ Confirmed aliases:
 Confirmed fallback chain:
 
 ```text
-right-dock alias -> panel alias -> cyberpunk baseline
+right-dock alias -> panel alias -> surface-shell baseline
 ```
 
 Fresh dev server result:
@@ -57,7 +57,7 @@ Fresh dev server result:
 
 | Issue | Classification | Blocks Token Alias Mechanics? | Blocks Strict Console-Clean? |
 | --- | --- | --- | --- |
-| `https://cdn.example.com/nexus/bg-cyberpunk.webp` load failure | Known placeholder asset reference from active theme CSS | No | Yes, unless accepted as known baseline |
+| `https://cdn.example.com/nexus/bg-surface-shell.webp` load failure | Known placeholder asset reference from active theme CSS | No | Yes, unless accepted as known baseline |
 | Chrome Translate hydration mismatch | External browser translation mutates text from `NEXUS // AI OPS` to `NEXUS // AI 作戰` | No | Yes, if smoke uses translated tab |
 | Workspace state endpoint 404s in dev output | Incidental local workspace state baseline; UI recovered to synced state in prior triage | Not observed as blocking | Unknown if surfaced in console |
 
@@ -120,6 +120,6 @@ Do not touch:
 
 Use an untranslated browser tab/session.
 
-Record `bg-cyberpunk.webp` as a known baseline if it appears. Do not classify it as a TopBar regression unless the TopBar task changes asset references or makes the shell visually unusable.
+Record `bg-surface-shell.webp` as a known baseline if it appears. Do not classify it as a TopBar regression unless the TopBar task changes asset references or makes the shell visually unusable.
 
 If Chrome Translate is active, record it and do not use that tab for hydration-sensitive pass/fail judgment.

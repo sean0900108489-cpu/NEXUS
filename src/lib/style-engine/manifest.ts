@@ -49,7 +49,7 @@ export type NexusStyleAdaptersV1 = {
     legacyVariableMode: "preserve";
   };
   nextThemes?: {
-    dataTheme?: "cyberpunk" | "apple" | "tesla" | "terminal";
+    dataTheme?: "surface-shell" | "apple" | "tesla" | "terminal";
     colorScheme: "dark" | "light";
   };
   reactFlow?: Record<string, unknown>;

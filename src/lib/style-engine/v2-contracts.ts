@@ -222,7 +222,7 @@ export type NexusSkinPackCompatibilityV2 = {
 export type NexusSkinPackFallbackV2 = {
   fallbackPackId: string;
   fallbackManifestId: string;
-  fallbackLegacyPreset: "cyberpunk" | "apple" | "tesla" | "terminal";
+  fallbackLegacyPreset: "surface-shell" | "apple" | "tesla" | "terminal";
   onAssetFailure: "use-fallback-asset" | "omit-asset" | "reject-pack";
   onLayoutFailure: "use-default-layout" | "reject-pack";
   onBudgetFailure: "preview-degraded" | "reject-pack";

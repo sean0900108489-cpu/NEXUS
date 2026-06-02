@@ -4,11 +4,11 @@ Date: 2026-05-31
 
 Branch: `codex/v19-production-shell-style-upgrade`
 
-Starting HEAD: `fa68807 feat: add warm glass control chrome specimen`
+Starting HEAD: `fa68807 feat: add surface style control chrome specimen`
 
 ## Goal
 
-Use the Style Lab Warm Glass control chrome recipe as a visual standard, then
+Use the Style Lab Surface Style control chrome recipe as a visual standard, then
 scan production button, input, badge, and icon-control primitives for a safe
 selector-first path.
 
@@ -20,8 +20,8 @@ or production behavior changes.
 
 Required reading:
 
-- `docs/style-system/warm-glass-ops-typography-icon-button-polish-audit-v1.md`
-- `docs/style-system/execution-runs/20260531-v19-warm-glass-ops-icon-button-chrome-recipe-specimen/CHECKPOINT.md`
+- `docs/style-system/surface-style-ops-typography-icon-button-polish-audit-v1.md`
+- `docs/style-system/execution-runs/20260531-v19-surface-style-ops-icon-button-chrome-recipe-specimen/CHECKPOINT.md`
 - `docs/style-system/production-shell-extraction-map-v1.md`
 - `src/components/style-engine/nexus-style-lab.tsx`
 - `src/app/globals.css` read-only
@@ -87,7 +87,7 @@ Selector added:
 Why this target:
 
 - high-frequency, high-visibility production icon-control chrome
-- directly maps to the Warm Glass control chrome recipe specimen
+- directly maps to the Surface Style control chrome recipe specimen
 - helper-level class string can receive a selector without touching behavior
 - covers many toolbar icon buttons from one surgical source change
 
@@ -166,7 +166,7 @@ Observed:
 
 Known baseline:
 
-- `https://cdn.example.com/nexus/bg-cyberpunk.webp` failed with
+- `https://cdn.example.com/nexus/bg-surface-shell.webp` failed with
   `ERR_NAME_NOT_RESOLVED`
 - this is the known placeholder issue and was not introduced or worsened by
   this loop

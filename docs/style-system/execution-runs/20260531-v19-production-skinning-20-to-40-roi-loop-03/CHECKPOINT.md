@@ -134,7 +134,7 @@ Fallback chain:
 - role background alias
 - generic message bubble alias
 - existing panel alias
-- cyberpunk/current role baseline
+- surface-shell/current role baseline
 
 Terminal-theme note:
 
@@ -206,7 +206,7 @@ Apply/revert:
 
 Known baseline/tooling notes:
 
-- `bg-cyberpunk.webp` placeholder load failure remains known baseline from
+- `bg-surface-shell.webp` placeholder load failure remains known baseline from
   earlier runs and was not changed by this round.
 - Chrome Translate can cause hydration/text mismatch; it was active initially
   and restored before final smoke.

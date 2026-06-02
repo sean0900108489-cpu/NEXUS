@@ -81,7 +81,7 @@ const defaultForbiddenAssumptions = [
 
 const moodTags: KeywordTag[] = [
   { tag: "operational", words: ["ops", "operator", "operational", "mission"] },
-  { tag: "neon", words: ["neon", "cyberpunk", "glow"] },
+  { tag: "neon", words: ["neon", "surface-shell", "glow"] },
   { tag: "minimal", words: ["minimal", "quiet", "clean", "simple"] },
   { tag: "editorial", words: ["editorial", "magazine", "story"] },
   { tag: "calm", words: ["calm", "soft", "gentle"] },
@@ -356,7 +356,7 @@ function createAccessibilityNotes(
 }
 
 function getAccentStrategy(text: string): string {
-  if (includesAny(text, ["amber", "gold", "orange", "warm"])) {
+  if (includesAny(text, ["neutral", "gold", "orange", "warm"])) {
     return "warm";
   }
 
@@ -364,7 +364,7 @@ function getAccentStrategy(text: string): string {
     return "monochrome";
   }
 
-  if (includesAny(text, ["cyan", "blue", "neon", "cyberpunk"])) {
+  if (includesAny(text, ["neutral", "blue", "neon", "surface-shell"])) {
     return "cool";
   }
 

@@ -2,8 +2,12 @@ import {
   DEFAULT_CHAT_MODEL_IDS,
   normalizeAgentModelSettings,
 } from "@/lib/nexus-registry";
+import {
+  DEFAULT_WORKSPACE_COMPOSER_IMAGE_SETTINGS,
+} from "@/lib/composer/image-generation-settings";
 import type {
   InputTextNodeData,
+  ModelImageNodeData,
   ModelLlmNodeData,
   OutputTextNodeData,
   WorkflowRuntimeNodeDataByType,
@@ -57,6 +61,23 @@ export const WORKFLOW_RUNTIME_NODE_DEFINITIONS = {
         modelSettings: normalizeAgentModelSettings(defaultModel),
         prompt: "Use the upstream context and respond clearly.",
       }) satisfies ModelLlmNodeData,
+  },
+  "model.image": {
+    type: "model.image",
+    label: "Image Model",
+    description: "Routes upstream context through the image generation boundary.",
+    handles: [
+      { id: "input", kind: "target", label: "Prompt in" },
+      { id: "output", kind: "source", label: "Image out" },
+    ],
+    defaultData: () =>
+      ({
+        label: "Image Model",
+        prompt: "",
+        modelId: DEFAULT_WORKSPACE_COMPOSER_IMAGE_SETTINGS.modelId,
+        quality: DEFAULT_WORKSPACE_COMPOSER_IMAGE_SETTINGS.quality,
+        aspectRatio: DEFAULT_WORKSPACE_COMPOSER_IMAGE_SETTINGS.aspectRatio,
+      }) satisfies ModelImageNodeData,
   },
   "output.text": {
     type: "output.text",

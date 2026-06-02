@@ -38,7 +38,7 @@ The Style Engine direction is correct, but the execution must remain contract-fi
 NEXUS already has a style-system embryo:
 
 - `src/app/globals.css` defines `data-theme` presets, CSS variables, a Tailwind v4 `@theme inline` bridge, app/global hooks, and React Flow overrides.
-- `src/components/theme-provider.tsx` uses `next-themes` with `attribute="data-theme"`, `defaultTheme="cyberpunk"`, and four current presets.
+- `src/components/theme-provider.tsx` uses `next-themes` with `attribute="data-theme"`, `defaultTheme="surface-shell"`, and four current presets.
 - `src/components/nexus/nexus-ops.tsx` contains `LEGO_THEME_DEFAULTS`, `LEGO_THEME_VARIABLES`, DOM variable patching, and committed workspace theme controls.
 - `src/lib/nexus-types.ts` defines `WorkspaceThemeConfig`.
 - `src/store/nexus-store.ts` persists `themeConfig` into active workspace state and queues cloud sync.
@@ -63,7 +63,7 @@ Style Brief
 -> later persistence
 ```
 
-The lowest-friction path is not to install a large design framework or rewrite `nexus-ops.tsx`. It is to preserve the current cyberpunk baseline while creating the contracts that let the frontend, backend, sync, and deployment layers talk to each other without leaking responsibilities.
+The lowest-friction path is not to install a large design framework or rewrite `nexus-ops.tsx`. It is to preserve the current surface-shell baseline while creating the contracts that let the frontend, backend, sync, and deployment layers talk to each other without leaking responsibilities.
 
 ## 2. Current Repo Reality
 
@@ -339,11 +339,11 @@ Codex/tooling guidance:
 | --- | --- | --- | --- | --- | --- | --- |
 | V0 Baseline Freeze | Lock current state and ownership | status checkpoint, style/sync/backend map | Markdown only | code, DB, deploy | dirty worktree map exists | any production behavior change |
 | V1 Style Surface Audit | Inventory all style surfaces | `style-surface-audit.md`, class taxonomy | read-only scan/docs | class edits, provider, compiler | high-risk files mapped | missing protected behavior ledger |
-| V2 Style Contract | Define semantic slots and token registry | `style-contract-v1.md` | docs, later pure type draft | runtime changes, backend | contract expresses cyberpunk and non-cyberpunk | component-specific color names dominate |
+| V2 Style Contract | Define semantic slots and token registry | `style-contract-v1.md` | docs, later pure type draft | runtime changes, backend | contract expresses surface-shell and non-surface-shell | component-specific color names dominate |
 | V3 Manifest Schema | Define data-only manifest and validator rules | manifest spec and examples | pure schema/validator in later pass | raw CSS/JS, workspace fields | invalid manifest fails safely | manifest controls behavior/layout |
 | V4 Pure Compiler | Deterministic manifest-to-output compile | CSS var map, recipe vars, adapter config | pure functions/tests later | DOM, store, backend | same input same output | compiler side effects |
 | V5 Local Preview | Runtime-only preview/revert | preview boundary doc/provider later | local state/DOM var injection | store/sync/backend | preview changes revert cleanly | preview sync pollution |
-| V6 Legacy Bridge | Bridge current variables/presets | legacy-cyberpunk mapping | additive bridge | delete legacy CSS | legacy visual baseline holds | preset/theme collapse |
+| V6 Legacy Bridge | Bridge current variables/presets | baseline-surface-shell mapping | additive bridge | delete legacy CSS | legacy visual baseline holds | preset/theme collapse |
 | V7 Primitive Specimens | First primitive gallery | Panel/Button/Input/Badge specimens | isolated specimens | app-wide migration | states/focus visible | primitive breaks keyboard or fallback |
 | V8 App Shell Mapping | Map shell slots | topbar/dock/workspace maps | mapping, one small unit later | `nexus-ops.tsx` rewrite | no layout jump | shell behavior regression |
 | V9 Window/Modal Recipes | Recipe protected overlays | window/modal/backdrop recipe | one recipe unit | z-index freedom | drag/resize/modal smoke pass | stacking/focus regression |

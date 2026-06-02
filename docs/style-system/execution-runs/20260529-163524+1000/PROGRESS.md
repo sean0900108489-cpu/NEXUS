@@ -86,10 +86,10 @@ Run id: `20260529-163524+1000`
 - Verified the pure compiler unit with `git diff --check`, focused Vitest, side-effect/import scan, `npm run typecheck`, and isolated ESLint.
 - Created local checkpoint commit `fe6a2b3a57949b368f9d9cc6696de05bfd7a4f40` for the pure compiler.
 - Created local record commit `455a693031643ae209ddb2554c11fc88f637e1a7` for the pure compiler checkpoint metadata.
-- Implemented pure legacy Cyberpunk manifest factory in `src/lib/style-engine/**`.
+- Implemented pure baseline Surface Shell manifest factory in `src/lib/style-engine/**`.
 - Added focused Vitest coverage proving the preset factory returns fresh manifests, validates, and compiles through the pure compiler.
 - Verified the preset unit with `git diff --check`, focused Vitest, `npm run typecheck`, isolated ESLint, and side-effect/import scans.
-- Created local checkpoint commit `5279b6149bc1a29690e71afda98eceb13bc05953` for the legacy Cyberpunk manifest factory.
+- Created local checkpoint commit `5279b6149bc1a29690e71afda98eceb13bc05953` for the baseline Surface Shell manifest factory.
 - Created local record commit `62a01218cd92f5061ebbf63d1b7820f1704b59c8` for the legacy preset checkpoint metadata.
 - Implemented pure local-only preview patch helper in `src/lib/style-engine/**`.
 - Added focused Vitest coverage proving deterministic patch creation, non-mutating apply/revert, and deletion of newly introduced preview variables on revert.
@@ -203,7 +203,7 @@ Run id: `20260529-163524+1000`
 - Verified CP-066 with diff check, focused preset/compiler/validator tests, side-effect scan, typecheck, and isolated style-engine lint.
 - Created local checkpoint commit `a54721e73c9d436a9f3acea93dab28e16e1ae04e` for the Built-In High Contrast Preset V1 unit.
 - Implemented `CP-067 - Style Lab Built-In Preset Selector V1`.
-- Added local built-in preset controls for Cyberpunk and High Contrast inside the isolated Style Lab header.
+- Added local built-in preset controls for Surface Shell and High Contrast inside the isolated Style Lab header.
 - Kept preset switching local and in-memory only; no persistence, store, sync, backend, Supabase, app shell, CSS, or React Flow behavior files were touched.
 - Verified CP-067 with diff check, focused preset/import tests, side-effect scan, typecheck, targeted lint, build, and Browser smoke.
 - Created local checkpoint commit `2b69b1f79069800ce77f207faea68f45dadc8b77` for the Style Lab Built-In Preset Selector V1 unit.
@@ -389,18 +389,18 @@ Run id: `20260529-163524+1000`
 - Created local checkpoint commit `6a32794bb8186e155190e8433f257b1e3d5b253d` for the Post Governance Version Phase Gate.
 - Started `CP-099 - Style Lab Active Preview Interaction Smoke V1` with source edits closed.
 - Ran `CP-099 - Style Lab Active Preview Interaction Smoke V1`.
-- Confirmed headless Chrome CDP can click Preview and see runtime status `previewing`, `Active Preview`, `Preview Checksum`, and active preview excerpt `legacy-cyberpunk:nexus-style-fnv1a32:39201c40`.
+- Confirmed headless Chrome CDP can click Preview and see runtime status `previewing`, `Active Preview`, `Preview Checksum`, and active preview excerpt `baseline-surface-shell:nexus-style-fnv1a32:39201c40`.
 - Repaired two smoke harness issues while keeping source edits closed: an early execution-context timing retry and an `innerText`/CSS-uppercase case-sensitive id assertion.
 - Confirmed `git diff --check` passed and no headless Chrome process remained after the smoke.
 - Created local checkpoint commit `f5050845c9a8d86e173a5b0eaf3ebce2ac75ad71` for the Style Lab Active Preview Interaction Smoke V1 unit.
 - Started `CP-100 - Style Lab Revert Interaction Smoke V1` with source edits closed.
 - Ran `CP-100 - Style Lab Revert Interaction Smoke V1`.
-- Confirmed headless Chrome CDP can click Preview, observe active preview `legacy-cyberpunk:nexus-style-fnv1a32:39201c40` and checksum `nexus-style-fnv1a32:39201c40`, click Revert, and see both active preview rows return to `none` while status becomes `reverted`.
+- Confirmed headless Chrome CDP can click Preview, observe active preview `baseline-surface-shell:nexus-style-fnv1a32:39201c40` and checksum `nexus-style-fnv1a32:39201c40`, click Revert, and see both active preview rows return to `none` while status becomes `reverted`.
 - Confirmed `git diff --check` passed and no headless Chrome process remained after the smoke.
 - Created local checkpoint commit `18e28e93dab10aaa9a7ec65ce3f5c698d673157d` for the Style Lab Revert Interaction Smoke V1 unit.
 - Started `CP-101 - Style Lab Refresh Non-Persistence Smoke V1` with source edits closed.
 - Ran `CP-101 - Style Lab Refresh Non-Persistence Smoke V1`.
-- Confirmed headless Chrome CDP can click Preview, observe active preview `legacy-cyberpunk:nexus-style-fnv1a32:39201c40` and checksum `nexus-style-fnv1a32:39201c40`, reload the page, and see both active preview rows return to `none` with `idle` visible.
+- Confirmed headless Chrome CDP can click Preview, observe active preview `baseline-surface-shell:nexus-style-fnv1a32:39201c40` and checksum `nexus-style-fnv1a32:39201c40`, reload the page, and see both active preview rows return to `none` with `idle` visible.
 - Confirmed `git diff --check` passed and no headless Chrome process remained after the smoke.
 - Created local checkpoint commit `248afce59802748103b01e7f03f9ad9f1c181450` for the Style Lab Refresh Non-Persistence Smoke V1 unit.
 - Started `CP-102 - Style Lab Runtime Target Row V1`.
@@ -525,7 +525,7 @@ Run id: `20260529-163524+1000`
 - Created local checkpoint commit `d60430903d574c2660cef2ef486b97b9cefd1940` for the Post Pure React Flow Adapter Shape Phase Gate.
 - Started `CP-122 - Pure React Flow Adapter Manifest Mapping V1`.
 - Implemented `CP-122 - Pure React Flow Adapter Manifest Mapping V1`.
-- Added a pure manifest-token-to-React-Flow-visual-adapter mapper and focused coverage for legacy Cyberpunk and High Contrast Carbon values.
+- Added a pure manifest-token-to-React-Flow-visual-adapter mapper and focused coverage for baseline Surface Shell and High Contrast Carbon values.
 - Kept the mapper disconnected from compiler/UI/runtime; no React Flow import, graph behavior wiring, production graph file, Style Lab UI, runtime provider, store, sync, backend, Supabase, CSS/global style, deploy config, or `exports/**` path was touched.
 - Verified CP-122 with focused adapter/preset/compiler tests, typecheck, isolated style-engine lint, side-effect scans, and diff checks.
 - Created local checkpoint commit `c971e1de2e46ddf3127a58a7eed1055596a57b6e` for the Pure React Flow Adapter Manifest Mapping V1 unit.
@@ -563,7 +563,7 @@ Run id: `20260529-163524+1000`
 - Started `CP-128 - Style Lab Graph Adapter Preset Switch Smoke V1` with source edits closed.
 - Ran `CP-128 - Style Lab Graph Adapter Preset Switch Smoke V1`.
 - Repaired CDP smoke harness timing without source edits; final retry waited for hydration before interaction.
-- Confirmed the isolated graph specimen switches `--nexus-graph-*` values from legacy Cyberpunk to High Contrast after clicking the built-in High Contrast preset.
+- Confirmed the isolated graph specimen switches `--nexus-graph-*` values from baseline Surface Shell to High Contrast after clicking the built-in High Contrast preset.
 - Confirmed no lingering headless Chrome smoke process remained after the smoke.
 - Created local checkpoint commit `cde611259bdb9592feaa9b28a9915e5f6562a344` for the Style Lab Graph Adapter Preset Switch Smoke V1 unit.
 - Started `CP-129 - Pure Compiler React Flow Adapter Output V1`.
@@ -790,14 +790,14 @@ Run id: `20260529-163524+1000`
 - Started `CP-166 - Pure Window Modal Recipe Manifest Mapping V1`.
 - Implemented `CP-166 - Pure Window Modal Recipe Manifest Mapping V1`.
 - Added pure manifest-token mapping for window, modal, and command palette recipe adapter slots using validated manifest recipes/tokens with safe fallbacks.
-- Added focused tests for legacy Cyberpunk and High Contrast Carbon mapping values.
+- Added focused tests for baseline Surface Shell and High Contrast Carbon mapping values.
 - Confirmed compiler, preview, governance, UI, production components, persistence, backend, Supabase, deploy, and `exports/**` remained untouched.
 - Verified CP-166 with focused adapter tests, targeted lint, typecheck, side-effect scans, diff checks, and status checks.
 - Created local checkpoint commit `896f0c9573a08dad183cff7bb1ab576d5a318f11` for the Pure Window Modal Recipe Manifest Mapping V1 unit.
 - Started `CP-167 - Pure Window Modal Recipe CSS Variables V1`.
 - Implemented `CP-167 - Pure Window Modal Recipe CSS Variables V1`.
 - Added pure deterministic CSS variable emission for window, modal, and command palette recipe adapter values using `--nexus-recipe-*` keys.
-- Added focused test coverage proving emitted keys are deterministic and include expected legacy Cyberpunk values.
+- Added focused test coverage proving emitted keys are deterministic and include expected baseline Surface Shell values.
 - Confirmed compiler, preview, governance, UI, production components, persistence, backend, Supabase, deploy, and `exports/**` remained untouched.
 - Verified CP-167 with focused adapter tests, targeted lint, typecheck, side-effect scans, diff checks, and status checks.
 - Created local checkpoint commit `8ec35ed442b5f52d226b8aa3ea1337d03983550d` for the Pure Window Modal Recipe CSS Variables V1 unit.

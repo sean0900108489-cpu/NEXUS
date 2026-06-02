@@ -89,7 +89,7 @@ Why not individual surfaces first:
 
 Variable source:
 
-- existing Warm Glass direct Bridge Plan aliases
+- existing Surface Style direct Bridge Plan aliases
 - existing production alias bridge output
 - existing budget summary
 - existing Style Lab budget/diagnostics/preflight evidence
@@ -112,7 +112,7 @@ Before variables can be applied in a future implementation:
 - unsupported critical gap count must be `0`
 
 The first cut should use the same direct alias family already covered by the
-Warm Glass bridge rather than inventing a smaller ad hoc map.
+Surface Style bridge rather than inventing a smaller ad hoc map.
 
 ## Apply Transaction Design
 

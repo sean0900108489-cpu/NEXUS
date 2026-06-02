@@ -115,7 +115,7 @@ Residual risk:
 Known remaining items:
 - physical browser-downloaded JSON bytes still deserve manual QA because
   in-app browser tooling did not expose the downloaded file reliably
-- `warm-glass-controls` remains a compatibility source label
+- `surface-style-controls` remains a compatibility source label
 - legacy fallback classes remain in some source areas but are now bounded by
   layer docs and focused tests
 

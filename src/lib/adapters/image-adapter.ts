@@ -1,5 +1,7 @@
 import { DEFAULT_BASE_URL } from "@/lib/nexus-defaults";
 import type { AgentMediaArtifact, IToolExecutor, NexusAgent } from "@/lib/nexus-types";
+import type { WorkspaceComposerImageSettings } from "@/lib/composer/image-generation-settings";
+import { buildOpenAiCompatibleImageGenerationPayload } from "@/lib/media/image-generation-adapter-map";
 
 export type ImageAdapterMode = "mock" | "dall-e";
 
@@ -11,6 +13,7 @@ export type ImageAdapterAgent = Pick<
 export type ImageAdapterRequest = {
   agent: ImageAdapterAgent;
   apiKey?: string;
+  imageSettings?: Partial<WorkspaceComposerImageSettings>;
   prompt: string;
   toolName: string;
 };
@@ -79,8 +82,8 @@ export function createMockImageUrl({
     <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
       <defs>
         <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0" stop-color="#020617"/>
-          <stop offset="0.5" stop-color="#0f172a"/>
+          <stop offset="0" stop-color="#111111"/>
+          <stop offset="0.5" stop-color="#171717"/>
           <stop offset="1" stop-color="${accent}"/>
         </linearGradient>
         <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
@@ -151,15 +154,19 @@ export class DalleImageAdapter implements IToolExecutor {
 
     const model = this.request.model.trim() || "dall-e-3";
     const requestBody: Record<string, unknown> = {
-      model,
-      n: 1,
-      prompt,
-      size: "1024x1024",
+      ...buildOpenAiCompatibleImageGenerationPayload({
+        model,
+        prompt,
+        settings: this.request.imageSettings,
+      }),
     };
 
     if (model.startsWith("dall-e")) {
-      requestBody.quality = "standard";
       requestBody.response_format = "url";
+    }
+
+    if (!model.startsWith("dall-e")) {
+      delete requestBody.response_format;
     }
 
     const response = await fetch(
@@ -216,22 +223,23 @@ export async function executeImageAdapterForAgent(
   request: ImageAdapterRequest,
 ): Promise<ImageAdapterResult> {
   const apiKey = request.apiKey?.trim();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
 
-  if (!apiKey) {
-    return new MockImageAdapter(request).execute();
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
   }
 
   const response = await fetch("/api/image-gen", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify({
       agent: {
         accent: request.agent.accent,
         callsign: request.agent.callsign,
       },
+      imageSettings: request.imageSettings,
       model: request.agent.model || "dall-e-3",
       prompt: request.prompt,
       toolName: request.toolName,

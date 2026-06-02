@@ -36,7 +36,7 @@ describe("Nexus production style layer contract", () => {
   );
 
   it("defines Layer 1 as a pure controls-to-variable mapper", () => {
-    expect(stylePreviewMapperSource).toContain("--nexus-outer-shell-bg");
+    expect(stylePreviewMapperSource).not.toContain("--nexus-outer-shell-bg");
     expect(stylePreviewMapperSource).toContain("--nexus-body-frame-bg");
     expect(stylePreviewMapperSource).toContain("--nexus-workspace-bg");
     expect(stylePreviewMapperSource).toContain("--nexus-layout-panel-bg");
@@ -81,17 +81,19 @@ describe("Nexus production style layer contract", () => {
     expect(controlsPanelSource).not.toContain("backgroundColor: `${activeAccent}1f`");
   });
 
-  it("keeps Layer 4 accent as control chrome instead of large-area panel fill", () => {
+  it("keeps Layer 4 accent as control chrome without exposing a color wheel", () => {
     expect(controlsPanelSource).toContain("style={{ accentColor: activeAccent }}");
     expect(controlsPanelSource).toContain("borderColor: `${activeAccent}66`");
     expect(controlsPanelSource).toContain("borderColor: `${activeAccent}59`");
     expect(controlsPanelSource).toContain("borderColor: `${activeAccent}40`");
-    expect(controlsPanelSource).toContain('type="color"');
-    expect(controlsPanelSource).not.toContain("text-amber-100");
-    expect(controlsPanelSource).not.toContain("text-cyan-100");
-    expect(controlsPanelSource).not.toContain("text-emerald-100");
-    expect(controlsPanelSource).not.toContain("text-rose-100");
-    expect(controlsPanelSource).not.toContain("text-violet-100");
+    expect(controlsPanelSource).not.toContain('type="color"');
+    expect(controlsPanelSource).not.toContain("Color wheel");
+    expect(controlsPanelSource).not.toContain("Workspace Body Surface");
+    expect(controlsPanelSource).not.toContain("text-neutral-100");
+    expect(controlsPanelSource).not.toContain("text-neutral-100");
+    expect(controlsPanelSource).not.toContain("text-neutral-100");
+    expect(controlsPanelSource).not.toContain("text-neutral-100");
+    expect(controlsPanelSource).not.toContain("text-neutral-100");
   });
 
   it("keeps workspace style presets as Layer 4 control shortcuts, not a second apply path", () => {

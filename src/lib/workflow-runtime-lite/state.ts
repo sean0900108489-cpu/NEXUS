@@ -10,6 +10,11 @@ import type {
   WorkflowRuntimeNodeType,
   WorkflowRuntimeRunStatus,
 } from "@/lib/nexus-types";
+import {
+  normalizeWorkspaceComposerImageSettings,
+  type WorkspaceComposerImageAspectRatio,
+  type WorkspaceComposerImageQuality,
+} from "@/lib/composer/image-generation-settings";
 
 import {
   WORKFLOW_RUNTIME_LITE_VERSION,
@@ -223,6 +228,26 @@ function normalizeNodeData(
         ? limitConfigText(value.prompt)
         : modelDefaults.prompt,
       provider: typeof value.provider === "string" ? value.provider : modelDefaults.provider,
+    };
+  }
+
+  if (type === "model.image") {
+    const imageDefaults = defaults as WorkflowNodeInstance<"model.image">["data"];
+    const imageSettings = normalizeWorkspaceComposerImageSettings({
+      aspectRatio: value.aspectRatio as WorkspaceComposerImageAspectRatio,
+      modelId: typeof value.modelId === "string" ? value.modelId : undefined,
+      quality: value.quality as WorkspaceComposerImageQuality,
+    });
+
+    return {
+      ...imageDefaults,
+      aspectRatio: imageSettings.aspectRatio,
+      label: typeof value.label === "string" ? value.label : imageDefaults.label,
+      modelId: imageSettings.modelId,
+      prompt: typeof value.prompt === "string"
+        ? limitConfigText(value.prompt)
+        : imageDefaults.prompt,
+      quality: imageSettings.quality,
     };
   }
 

@@ -36,8 +36,8 @@ describe("NexusOpsRightFloatingDockFrame", () => {
     expect(html).toContain(
       'class="nexus-right-floating-dock-rail pointer-events-auto grid gap-2 border border-white/10 bg-black/35 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl"',
     );
-    expect(html).not.toContain("border-cyan-300/25");
-    expect(html).not.toContain("bg-slate-950/90");
+    expect(html).not.toContain("border-neutral-300/25");
+    expect(html).not.toContain("bg-neutral-950/90");
     expect(html).not.toContain("rgba(34,211,238");
   });
 

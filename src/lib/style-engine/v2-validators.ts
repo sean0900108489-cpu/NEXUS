@@ -833,7 +833,7 @@ function validateSkinPackFallback(value: unknown, report: MutableReport) {
     }
   }
 
-  if (!["cyberpunk", "apple", "tesla", "terminal"].includes(String(value.fallbackLegacyPreset))) {
+  if (!["surface-shell", "apple", "tesla", "terminal"].includes(String(value.fallbackLegacyPreset))) {
     addError(
       report,
       "$.fallback.fallbackLegacyPreset",

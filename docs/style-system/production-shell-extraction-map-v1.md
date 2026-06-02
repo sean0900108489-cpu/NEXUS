@@ -52,7 +52,7 @@ and persistence authority in `NexusOps` or in an already-owned behavior module.
 
 | Candidate | Source anchor | Why it appears safe | What it must not own | Proposed future extraction unit | Required smoke |
 | --- | --- | --- | --- | --- | --- |
-| `NexusOps` outer visual shell frame | `src/components/nexus/nexus-ops-outer-shell-frame.tsx:7`; callsite `src/components/nexus/nexus-ops.tsx:2021` to `src/components/nexus/nexus-ops.tsx:2310` | It is the broadest visual frame around the existing shell after the auth gate. It already sits inside the inert route-edge wrapper and now accepts only `children`. | Auth gate, store selectors, effects, keyboard shortcuts, import/export, persistence, graph, windows, modals, layout geometry, feature placement. | Landed as `NexusOpsOuterShellFrame`; no further extraction is implied by this map. | Page renders, wrapper boundary still exists, `NexusOps` visible, no console/hydration errors, no pointer/focus regression. |
+| `NexusOps` outer shell frame | `src/components/nexus/nexus-ops-outer-shell-frame.tsx:7`; callsite `src/components/nexus/nexus-ops.tsx:2021` to `src/components/nexus/nexus-ops.tsx:2310` | It is the broadest structural frame around the existing shell after the auth gate. It already sits inside the inert route-edge wrapper and now accepts only `children`. | Auth gate, store selectors, effects, keyboard shortcuts, import/export, persistence, graph, windows, modals, layout geometry, feature placement, visible background/material ownership. | Landed as `NexusOpsOuterShellFrame`; no further extraction is implied by this map. | Page renders, wrapper boundary still exists, `NexusOps` visible, no console/hydration errors, no pointer/focus regression. |
 | Main chrome/body container | `src/components/nexus/nexus-ops-body-frame.tsx:7`; callsite `src/components/nexus/nexus-ops.tsx` around the left dock/workspace row | The flex row that contains left dock and workspace is visually identifiable and does not itself make decisions beyond existing child placement. It now accepts only `children`. | Left/right swapping, layout preset intent, scroll/overflow changes, React Flow behavior, workspace sizing, drag/drop, slot registry. | Landed as `NexusOpsBodyFrame`; no further body-row extraction is implied by this map. | Workspace visible, left rail still opens/closes, graph/panels view unchanged, no layout shift. |
 | Top shell chrome frame | `src/components/nexus/nexus-ops-top-bar-frame.tsx:7`; used inside `TopBar` in `src/components/nexus/nexus-ops.tsx` | The header has a clear visual boundary and stable placement above the workspace body. It now accepts only `children`. | Workspace menu state, rename form state, save/import/export actions, view-mode toggles, sync retry, recovery actions, keyboard behavior. | Landed as `NexusOpsTopBarFrame`; no behavior moved. | Workspace menu opens, rename cancel/commit still works, view toggle still works, import/export buttons still reachable. |
 | Left dock visual wrapper | `<LeftDock />` call at `src/components/nexus/nexus-ops.tsx:2099`; `LeftDock` starts at `src/components/nexus/nexus-ops.tsx:4591`; root `.nexus-panel` at line 4626 | The expanded left dock is already a `.nexus-panel` visual primitive and is separate from workspace canvas content. | Agent spawn/select/focus/restore logic, template profile editing, model selection, collapse animation state. | Extract a left dock frame wrapper around the existing `LeftDock` render tree, or first move only the `.nexus-panel` frame class to a named wrapper. | Expand/collapse left rail, spawn from template, select agent, restore minimized agent, no focus regression. |
@@ -113,8 +113,8 @@ aliases in future, focused implementation rounds.
 | `.nexus-panel` primitive | `src/app/globals.css:280`; direct `nexus-ops.tsx` usage at lines 2359, 4626, 6070, 6437 | CSS class with bridge aliases and legacy fallback | `--nexus-panel-bg`, `--nexus-panel-border`, `--nexus-panel-text`, `--nexus-panel-radius`, `--nexus-panel-shadow`, `--nexus-panel-blur` | Low | Already adopted as a primitive. Future shell extraction may reuse it but must not move behavior. |
 | `.nexus-glass` primitive | `src/app/globals.css:289` | CSS class with bridge aliases and legacy fallback | `--nexus-glass-bg`, `--nexus-glass-border`, `--nexus-glass-text`, `--nexus-glass-radius`, `--nexus-glass-blur` | Low-Medium | Not a direct `nexus-ops.tsx` class marker in this scan, but available for future outer frames or modal/sidebar specimen parity. |
 | `.nexus-workspace` primitive | `src/app/globals.css:252`; direct `nexus-ops.tsx` usage at line 2127 | CSS class with background/grid/wash bridge aliases plus hardcoded layout classes | `--nexus-workspace-bg`, `--nexus-workspace-grid-primary`, `--nexus-workspace-grid-secondary`, `--nexus-workspace-wash` | Medium | Color/background/grid/wash only. Do not touch overflow, sizing, positioning, React Flow, canvas behavior, or workspace state. |
-| `.nexus-shell` root | `src/app/globals.css:245`; wrapper in `src/components/nexus/nexus-ops-outer-shell-frame.tsx:11` | Root shell class and global descendant rules | `--bg-base`, `--text-main`, possible future shell aliases | Medium | First outer frame extraction landed. Do not use it for asset background, production token apply, or layout control. |
-| Hardcoded Tailwind chrome | `TopBar` line 2553, right dock line 2454, settings panel line 3420, macro modal line 2905 | Inline Tailwind classes with cyan/fuchsia/black colors, shadows, and borders | panel/glass/modal recipe variables after specimen parity | Medium-High | Requires component-specific smoke before adoption. Do not bulk replace. |
+| `.nexus-shell` root | `src/app/globals.css:245`; wrapper in `src/components/nexus/nexus-ops-outer-shell-frame.tsx:11` | Root shell class and global descendant rules | `--bg-base`, `--text-main`, possible future shell aliases | Medium | First outer frame extraction landed. The outer shell is now a transparent structure/preview-scope boundary with an inert bottom `::before` backdrop below direct UI content. Foreground workspace/frame material belongs to lower workspace/frame layers. Do not use it for production token apply or layout control. |
+| Hardcoded Tailwind chrome | `TopBar` line 2553, right dock line 2454, settings panel line 3420, macro modal line 2905 | Inline Tailwind classes with neutral/neutral/black colors, shadows, and borders | panel/glass/modal recipe variables after specimen parity | Medium-High | Requires component-specific smoke before adoption. Do not bulk replace. |
 
 ## 5. Interaction Smoke Requirements
 
@@ -340,7 +340,7 @@ Fallback chain:
 
 - dedicated right-dock alias
 - existing panel bridge alias
-- cyberpunk baseline value
+- surface-shell baseline value
 
 Intentionally not tokenized:
 
@@ -401,7 +401,7 @@ Fallback chain:
 
 - dedicated TopBar alias
 - existing panel bridge alias
-- cyberpunk baseline value
+- surface-shell baseline value
 
 Intentionally not tokenized:
 
@@ -448,21 +448,21 @@ Candidate decision:
 
 Token alias status:
 
-- completed for the outer shell background/surface only
+- outer shell background/surface ownership retired; the selector remains as a
+  structure and preview-scope boundary only
 - no production token runtime apply was introduced
 - no store/sync/backend/Supabase/API path was touched
 - no `nexus-ops.tsx` behavior or child rendering was changed
 
-Selector and alias added:
+Selector status:
 
 - `.nexus-outer-shell-frame`
-- `--nexus-outer-shell-bg`
 
 Fallback chain:
 
-- dedicated outer-shell alias
-- existing `--shell-surface`
-- cyberpunk baseline shell gradients
+- transparent outer-shell boundary
+- inert bottom backdrop below direct UI content
+- foreground material delegated to lower workspace/frame layers
 
 Intentionally not tokenized:
 
@@ -536,7 +536,7 @@ Fallback chain:
 
 - dedicated workspace alias
 - existing panel alias where applicable
-- cyberpunk/Tailwind baseline value
+- surface-shell/Tailwind baseline value
 
 Intentionally not tokenized:
 
@@ -616,7 +616,7 @@ Fallback chain:
 - role background alias
 - generic message bubble alias
 - existing panel alias
-- current cyberpunk role baseline
+- current surface-shell role baseline
 
 Intentionally not tokenized:
 
@@ -694,7 +694,7 @@ Fallback chain:
 - dedicated AgentWindow alias
 - existing panel alias where visually appropriate
 - existing dynamic AgentWindow default custom property
-- current cyberpunk/window baseline
+- current surface-shell/window baseline
 
 Implementation notes:
 
@@ -903,7 +903,7 @@ Fallback chain:
 
 - dedicated command palette alias
 - existing `.nexus-panel` alias
-- current cyberpunk baseline variable
+- current surface-shell baseline variable
 
 CSS scope:
 
@@ -973,7 +973,7 @@ Ownership scan result:
 Selector status:
 
 - Added `.nexus-agent-branch-modal-shell` to the existing inner visual shell:
-  `nexus-agent-branch-modal-shell w-full max-w-3xl border border-cyan-300/25 bg-slate-950/95 ...`.
+  `nexus-agent-branch-modal-shell w-full max-w-3xl border border-neutral-300/25 bg-neutral-950/95 ...`.
 - Added the same selector to the isolated `/style-lab` `Production Chrome Smoke`
   harness as a static display-only dialog specimen.
 
@@ -1036,7 +1036,7 @@ Fallback chain:
 
 - dedicated modal shell alias
 - existing `.nexus-panel` alias
-- current cyberpunk baseline variable
+- current surface-shell baseline variable
 
 CSS scope:
 
@@ -1171,7 +1171,7 @@ Fallback chain:
 
 - dedicated Datapad shell alias
 - existing `.nexus-panel` alias
-- current cyberpunk baseline variable
+- current surface-shell baseline variable
 
 CSS scope:
 
@@ -1254,7 +1254,7 @@ Rollback readiness:
   commit or remove the scoped selector alias block, focused guard assertions,
   harness smoke variables, and map/checkpoint entry.
 - Fallback chains continue to route from dedicated aliases to panel/glass or
-  current cyberpunk baseline values.
+  current surface-shell baseline values.
 
 Next 60-to-80 route:
 
@@ -1267,24 +1267,24 @@ Next 60-to-80 route:
   asset pack production apply, layout preset production apply, runtime
   persistence, and broad `nexus-ops.tsx` refactors.
 
-## 25. Warm Glass Ops Render Plan Coverage Loop 01
+## 25. Surface Style Ops Render Plan Coverage Loop 01
 
 Recorded during
-`20260531-v19-warm-glass-ops-render-plan-coverage-loop-01`.
+`20260531-v19-surface-style-ops-render-plan-coverage-loop-01`.
 
 North star:
 
-- `NEXUS Warm Glass Ops`
+- `NEXUS Surface Style Ops`
 - Apple / VisionOS-inspired warm frosted glass operations UI
-- sand, clay, pearl, smoke, muted bronze, soft cyan-green status accents
+- sand, clay, pearl, smoke, muted bronze, soft neutral-green status accents
 - professional command-center restraint instead of broad production restyling
 
 Deliverables:
 
-- `docs/style-system/warm-glass-ops-north-star-v1.md`
-- `createWarmGlassOpsSkinPackV2Fixture()`
+- `docs/style-system/surface-style-ops-north-star-v1.md`
+- `createSurfaceStyleOpsSkinPackV2Fixture()`
 - pure Render Plan / Production Bridge alias coverage helper
-- `/style-lab` `Warm Glass Ops Coverage` panel
+- `/style-lab` `Surface Style Ops Coverage` panel
 - focused tests for fixture validation, Render Plan compilation, bridge
   coverage, unsupported capabilities, and source-boundary safety
 
@@ -1331,17 +1331,17 @@ Boundaries held:
 
 Next seed:
 
-- `V19 Warm Glass Ops Production Alias Bridge Expansion Plan`
+- `V19 Surface Style Ops Production Alias Bridge Expansion Plan`
 - decide whether dedicated component aliases should be added to the production
   bridge output, remain fallback-driven, or wait for recipe-specific bridge
   stages
 - keep the next step pure and Style Lab scoped unless a separate production
   gate explicitly opens runtime apply
 
-## 26. Warm Glass Ops Production Alias Bridge Expansion
+## 26. Surface Style Ops Production Alias Bridge Expansion
 
 Recorded during
-`20260531-v19-warm-glass-ops-production-alias-bridge-expansion`.
+`20260531-v19-surface-style-ops-production-alias-bridge-expansion`.
 
 Selected target:
 
@@ -1356,7 +1356,7 @@ Ranking summary:
   aliases already fall back to them.
 - AgentWindow, CommandPalette, modal shell, and Datapad shell were the highest
   chrome ROI because they define the rounded glass window/control/modal feel of
-  Warm Glass Ops.
+  Surface Style Ops.
 - Message bubbles were the highest content ROI and already had role-safe
   aliases.
 - Right dock and TopBar were high-visibility shell chrome already represented
@@ -1389,7 +1389,7 @@ Coverage movement:
   emitted by the Bridge Plan
 - after: 10 of 10 families directly driven; 58 of 58 adopted aliases directly
   emitted by the Bridge Plan
-- Warm Glass Bridge Plan variable count increased from about 29 to 83
+- Surface Style Bridge Plan variable count increased from about 29 to 83
 
 Interpretation:
 
@@ -1411,15 +1411,15 @@ Remaining gaps toward 80:
 
 Next seed:
 
-- `V19 Warm Glass Ops Direct Alias Preview Audit`
+- `V19 Surface Style Ops Direct Alias Preview Audit`
 - verify whether the Style Lab token preview can demonstrate the direct alias
-  Bridge Plan outputs across the Warm Glass coverage panel and production
+  Bridge Plan outputs across the Surface Style coverage panel and production
   chrome smoke specimens without adding runtime apply or persistence
 
-## 27. Warm Glass Ops Direct Alias Preview Audit
+## 27. Surface Style Ops Direct Alias Preview Audit
 
 Recorded during
-`20260531-v19-warm-glass-ops-direct-alias-preview-audit`.
+`20260531-v19-surface-style-ops-direct-alias-preview-audit`.
 
 Reference:
 
@@ -1432,10 +1432,10 @@ Audit result:
   visual similarity.
 - `/style-lab` showed `Bridge Vars 83`, `Direct % 100`,
   `Direct Aliases 58/58`, and `DIRECT-BRIDGE` family modes.
-- Warm Glass token preview was accepted and reversible.
+- Surface Style token preview was accepted and reversible.
 - Production Chrome Smoke apply/revert still worked.
 - Console errors: none observed.
-- Warm Glass token preview did not visually recolor the Production Chrome Smoke
+- Surface Style token preview did not visually recolor the Production Chrome Smoke
   specimens. The command palette smoke specimen retained the same computed
   background, border, radius, blur, and shadow before and after token preview.
 
@@ -1455,7 +1455,7 @@ Top visual gaps:
 
 Selected next seed:
 
-- `V19 Warm Glass Ops Style Lab Scene Wash Preview`
+- `V19 Surface Style Ops Style Lab Scene Wash Preview`
 
 Reason:
 
@@ -1476,14 +1476,14 @@ Boundaries held:
 - no production runtime, store, sync, backend, Supabase, API, asset production
   apply, or layout production apply changes
 
-## 28. Warm Glass Ops Style Lab Scene Wash Preview
+## 28. Surface Style Ops Style Lab Scene Wash Preview
 
 Recorded during
-`20260531-v19-warm-glass-ops-style-lab-scene-wash-preview`.
+`20260531-v19-surface-style-ops-style-lab-scene-wash-preview`.
 
 Selected target:
 
-- Style Lab-only scene/wash preview for Warm Glass Ops
+- Style Lab-only scene/wash preview for Surface Style Ops
 - no production runtime apply
 - no persistence
 - no remote image URL
@@ -1493,7 +1493,7 @@ Selected target:
 Preview design:
 
 - local isolated preview container
-- direct Warm Glass production alias variables applied to that container
+- direct Surface Style production alias variables applied to that container
 - CSS gradients approximate desert/atelier warmth and soft backlit wash
 - static frosted workspace board
 - static agent bank/cards
@@ -1533,7 +1533,7 @@ Browser smoke result:
 - scene preview rendered
 - warm gradient/background wash detected
 - supported/simulated/missing summaries rendered
-- Warm Glass fixture review accepted
+- Surface Style fixture review accepted
 - token preview/revert worked
 - Production Chrome Smoke apply/revert still worked
 - console errors: none observed
@@ -1545,19 +1545,19 @@ Estimate after this loop:
 
 Next seed:
 
-- `V19 Warm Glass Ops Right Metrics Panel Specimen`
+- `V19 Surface Style Ops Right Metrics Panel Specimen`
 - create a Style Lab-only static right metrics panel specimen/recipe candidate
   using direct aliases, without touching right-dock artifact/vault persistence
   panels or production behavior
 
-## 29. Warm Glass Ops Right Metrics Panel Recipe Specimen
+## 29. Surface Style Ops Right Metrics Panel Recipe Specimen
 
 Recorded during
-`20260531-v19-warm-glass-ops-right-metrics-panel-recipe-specimen`.
+`20260531-v19-surface-style-ops-right-metrics-panel-recipe-specimen`.
 
 Selected target:
 
-- Style Lab-only right metrics panel recipe/specimen inside the Warm Glass
+- Style Lab-only right metrics panel recipe/specimen inside the Surface Style
   scene preview
 - no production right-dock panel behavior
 - no persistence, store, sync, backend, Supabase, or API calls
@@ -1575,8 +1575,8 @@ Specimen structure:
 
 Supported now:
 
-- static right-side hierarchy can reuse local Warm Glass panel/glass variables
-- direct alias preview can show warm glass surfaces around the metrics recipe
+- static right-side hierarchy can reuse local Surface Style panel/glass variables
+- direct alias preview can show surface style surfaces around the metrics recipe
 - Style Lab can visually compare scene, workspace, agent window, and metrics
   hierarchy together
 
@@ -1610,18 +1610,18 @@ Estimate after this loop:
 
 Next seed:
 
-- `V19 Warm Glass Ops Agent Card Bank Specimen`
+- `V19 Surface Style Ops Agent Card Bank Specimen`
 - create a Style Lab-only static agent card/bank recipe specimen using current
   direct aliases, without touching production AgentWindow behavior
 
-## 30. Warm Glass Ops Agent Card Bank Specimen
+## 30. Surface Style Ops Agent Card Bank Specimen
 
 Recorded during
-`20260531-v19-warm-glass-ops-agent-card-bank-specimen`.
+`20260531-v19-surface-style-ops-agent-card-bank-specimen`.
 
 Selected target:
 
-- Style Lab-only agent card bank recipe/specimen inside the Warm Glass scene
+- Style Lab-only agent card bank recipe/specimen inside the Surface Style scene
   preview
 - no production AgentWindow or shell behavior
 - no persistence, store, sync, backend, Supabase, or API calls
@@ -1640,9 +1640,9 @@ Specimen structure:
 
 Supported now:
 
-- static left-side agent roster hierarchy can reuse local Warm Glass
+- static left-side agent roster hierarchy can reuse local Surface Style
   panel/glass variables
-- direct alias preview can show warm glass cards next to workspace and right
+- direct alias preview can show surface style cards next to workspace and right
   metrics specimens
 - Style Lab can visually compare the north-star left bank, central workspace,
   and right metrics composition together
@@ -1679,15 +1679,15 @@ Estimate after this loop:
 
 Next seed:
 
-- `V19 Warm Glass Ops Segmented Top Navigation Specimen`
+- `V19 Surface Style Ops Segmented Top Navigation Specimen`
 - create a Style Lab-only static segmented top navigation recipe specimen using
   current direct aliases, without touching TopBar controls or keyboard/action
   behavior
 
-## 31. Warm Glass Ops Segmented Top Navigation Specimen
+## 31. Surface Style Ops Segmented Top Navigation Specimen
 
 Recorded during
-`20260531-v19-warm-glass-ops-segmented-top-navigation-specimen`.
+`20260531-v19-surface-style-ops-segmented-top-navigation-specimen`.
 
 Reference image usage:
 
@@ -1696,12 +1696,12 @@ Reference image usage:
 - the image was not copied, encoded, imported, or referenced as a repo/public
   asset
 - visual requirements extracted: central rounded segmented nav, brighter active
-  segment, soft separators, compact right-side counters, warm glass top chrome
+  segment, soft separators, compact right-side counters, surface style top chrome
   density
 
 Selected target:
 
-- Style Lab-only segmented top navigation recipe/specimen inside the Warm Glass
+- Style Lab-only segmented top navigation recipe/specimen inside the Surface Style
   scene preview
 - no production TopBar behavior
 - no keyboard/action/focus behavior
@@ -1711,8 +1711,8 @@ Selected target:
 
 Specimen structure:
 
-- rounded warm glass top nav shell
-- View: Panels / View: Graph / Cyberpunk / Apple / Tesla / Terminal segments
+- rounded surface style top nav shell
+- View: Panels / View: Graph / Surface Shell / Apple / Tesla / Terminal segments
 - one active segment
 - soft separators
 - compact Agents / Streams / Tokens / Tasks counters
@@ -1720,7 +1720,7 @@ Specimen structure:
 
 Supported now:
 
-- static top chrome hierarchy can reuse local Warm Glass glass variables
+- static top chrome hierarchy can reuse local Surface Style glass variables
 - direct alias preview can show scene, agent bank, workspace, right metrics,
   and top nav composition together
 - Style Lab can visually compare the reference-like command-center top strip
@@ -1758,15 +1758,15 @@ Estimate after this loop:
 
 Next seed:
 
-- `V19 Warm Glass Ops Typography Icon Button Polish Audit`
+- `V19 Surface Style Ops Typography Icon Button Polish Audit`
 - create a Style Lab-only polish audit/specimen for type density, restrained
   icon/action chrome, and button/control recipe gaps before any production
   control adoption
 
-## 32. Warm Glass Ops Typography Icon Button Polish Audit
+## 32. Surface Style Ops Typography Icon Button Polish Audit
 
 Recorded during
-`20260531-v19-warm-glass-ops-typography-icon-button-polish-audit`.
+`20260531-v19-surface-style-ops-typography-icon-button-polish-audit`.
 
 Reference image usage:
 
@@ -1806,7 +1806,7 @@ Top gaps:
 
 Decision:
 
-- next seed is `V19 Warm Glass Ops Icon Button Chrome Recipe Specimen`
+- next seed is `V19 Surface Style Ops Icon Button Chrome Recipe Specimen`
 - implement a Style Lab-only recipe specimen before attempting production
   button/input/badge selector-first work
 
@@ -1835,10 +1835,10 @@ Forbidden boundaries held:
 - no `exports/**`
 - no production runtime apply or persistence
 
-## 33. Warm Glass Ops Icon Button Chrome Recipe Specimen
+## 33. Surface Style Ops Icon Button Chrome Recipe Specimen
 
 Recorded during
-`20260531-v19-warm-glass-ops-icon-button-chrome-recipe-specimen`.
+`20260531-v19-surface-style-ops-icon-button-chrome-recipe-specimen`.
 
 Reference image usage:
 
@@ -1850,7 +1850,7 @@ Reference image usage:
 Selected target:
 
 - Style Lab-only icon/button/badge/input-like chrome recipe specimen inside the
-  Warm Glass Scene Preview
+  Surface Style Scene Preview
 - no production controls
 - no production selectors
 - no runtime apply or persistence
@@ -1867,10 +1867,10 @@ Specimen structure:
 
 Supported now:
 
-- Style Lab can visually compare warm glass control chrome language with the
+- Style Lab can visually compare surface style control chrome language with the
   existing scene, segmented nav, agent bank, workspace, and right metrics
   specimens
-- the specimen reuses local Warm Glass glass/panel variables and existing
+- the specimen reuses local Surface Style glass/panel variables and existing
   lucide icon primitives already present in Style Lab
 
 Simulated only:
@@ -1893,11 +1893,11 @@ Verification:
 - focused Style Lab source guard covers the control chrome specimen, labels,
   icon/action cluster, and forbidden runtime boundaries
 - typecheck, targeted lint, and build passed
-- browser smoke confirmed the specimen and existing Warm Glass sections render
+- browser smoke confirmed the specimen and existing Surface Style sections render
 - browser smoke confirmed token preview/revert and Production Chrome Smoke
   apply/revert still work
 - only observed browser network error was the known
-  `https://cdn.example.com/nexus/bg-cyberpunk.webp` placeholder baseline
+  `https://cdn.example.com/nexus/bg-surface-shell.webp` placeholder baseline
 
 Estimate after this loop:
 
@@ -1931,7 +1931,7 @@ Why selected:
 
 - highest ROI safe production control primitive found in the scan
 - drives many AgentWindow toolbar icon controls
-- close to the Warm Glass control chrome recipe specimen
+- close to the Surface Style control chrome recipe specimen
 - selector could be added to the existing class string without changing
   handlers, focus, keyboard, submit, validation, disabled logic, active logic,
   state, layout, or styling
@@ -1982,7 +1982,7 @@ Browser smoke:
 - `.nexus-control-icon-button-shell` was not runtime-visible because
   AgentWindow UI was not rendered without an authenticated session
 - observed network errors were only the known
-  `https://cdn.example.com/nexus/bg-cyberpunk.webp` placeholder baseline
+  `https://cdn.example.com/nexus/bg-surface-shell.webp` placeholder baseline
 
 Readiness:
 
@@ -2005,7 +2005,7 @@ Execution checkpoint:
 Created docs:
 
 - `docs/style-system/v19-production-skinning-pre-landing-consolidation.md`
-- `docs/style-system/v19-warm-glass-ops-user-testing-guide.md`
+- `docs/style-system/v19-surface-style-ops-user-testing-guide.md`
 
 Purpose:
 
@@ -2036,13 +2036,13 @@ Adhesion summary:
   - Datapad shell
   - ToolbarIconButton selector prep
 - bridge/report:
-  - Warm Glass fixture
+  - Surface Style fixture
   - V2 Render Plan
   - Production Token Bridge
   - production alias coverage report
 - Style Lab-only specimens:
   - Production Chrome Smoke harness
-  - Warm Glass Scene Preview
+  - Surface Style Scene Preview
   - Right Metrics Panel specimen
   - Agent Card Bank specimen
   - Segmented Top Navigation specimen

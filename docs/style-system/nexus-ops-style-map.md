@@ -108,10 +108,10 @@ Only after that should a low-risk production component consume a primitive.
 
 | Visual family | Current pattern | Future target |
 | --- | --- | --- |
-| Panel surfaces | `border border-white/10 bg-white/[...]`, `bg-slate-950/...` | `recipe.panel` |
-| Accent buttons | `border-cyan-300/... bg-cyan-300/... text-cyan-100` | `recipe.button.primary` |
-| Secondary buttons | `border-fuchsia-300/...` | `recipe.button.secondary` |
-| Danger buttons | `border-rose-300/...` | `recipe.button.danger` |
+| Panel surfaces | `border border-white/10 bg-white/[...]`, `bg-neutral-950/...` | `recipe.panel` |
+| Accent buttons | `border-neutral-300/... bg-neutral-300/... text-neutral-100` | `recipe.button.primary` |
+| Secondary buttons | `border-neutral-300/...` | `recipe.button.secondary` |
+| Danger buttons | `border-neutral-300/...` | `recipe.button.danger` |
 | Status badges | stream/status tone helpers | `recipe.badge.status` |
 | Metadata labels | `font-mono text-[9px] uppercase tracking-[...]` | `typography.label` + density |
 | Window chrome | `nexus-agent-window`, `nexus-drag-handle` | `recipe.window` visual only |

@@ -116,6 +116,50 @@ describe("prepareWorkspacesForLocalPersistence", () => {
     expect(persisted?.settings.viewMode).toBe(workspace.settings.viewMode);
   });
 
+  it("removes workflow runtime nodes with their connected edges", () => {
+    const previousState = useNexusStore.getState();
+    const workspace = createDefaultWorkspace({
+      id: "workspace-runtime-delete-test",
+      name: "Runtime Delete Test",
+      timestamp: "2026-06-02T00:00:00.000Z",
+    });
+
+    try {
+      useNexusStore.setState({
+        activeWorkspaceId: workspace.id,
+        selectedAgentId: workspace.selectedAgentId,
+        workspaces: [workspace],
+      });
+
+      const inputId = useNexusStore.getState().addWorkflowRuntimeNode("input.text");
+      const imageId = useNexusStore.getState().addWorkflowRuntimeNode("model.image");
+      useNexusStore.getState().connectWorkflowRuntimeNodes({
+        id: "wf-edge-delete-test",
+        source: inputId,
+        sourceHandle: "output",
+        target: imageId,
+        targetHandle: "input",
+      });
+
+      useNexusStore.getState().removeWorkflowRuntimeNodes([imageId]);
+
+      const runtimeLite = useNexusStore
+        .getState()
+        .workspaces.find((candidate) => candidate.id === workspace.id)
+        ?.graph.runtimeLite;
+
+      expect(runtimeLite?.nodes.some((node) => node.id === inputId)).toBe(true);
+      expect(runtimeLite?.nodes.some((node) => node.id === imageId)).toBe(false);
+      expect(
+        runtimeLite?.edges.some(
+          (edge) => edge.source === imageId || edge.target === imageId,
+        ),
+      ).toBe(false);
+    } finally {
+      useNexusStore.setState(previousState);
+    }
+  });
+
   it("strips raw provider secrets from locally persisted auth vaults", () => {
     const persisted = prepareAuthVaultForLocalPersistence({
       user: {

@@ -718,6 +718,12 @@ export const GRAPH_NODE_REGISTRY: Record<
     ownerLayer: "L3",
     description: "Workflow Runtime Lite LLM node backed by the existing provider boundary.",
   },
+  "model.image": {
+    type: "model.image",
+    state: "implemented",
+    ownerLayer: "L3",
+    description: "Workflow Runtime Lite image node backed by the generated media adapter boundary.",
+  },
   "output.text": {
     type: "output.text",
     state: "implemented",

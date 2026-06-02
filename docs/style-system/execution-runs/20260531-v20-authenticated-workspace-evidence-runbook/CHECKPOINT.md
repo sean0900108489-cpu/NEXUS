@@ -144,7 +144,7 @@ Required tracked items:
 - console errors/warnings
 - hydration mismatch
 - Chrome Translate state
-- `bg-cyberpunk.webp` known baseline
+- `bg-surface-shell.webp` known baseline
 
 Policy:
 

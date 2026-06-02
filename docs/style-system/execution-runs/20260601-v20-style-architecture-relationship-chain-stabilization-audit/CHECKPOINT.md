@@ -82,8 +82,8 @@ Fixed:
 
 Still confusing:
 - Theme panel card material still uses local accent alpha formulas instead of shared Layer 3 material variables.
-- Export source still says `warm-glass-controls`.
-- Several production surfaces retain cyan/emerald/slate fallback classes, even though global variable rules override most visual output.
+- Export source still says `surface-style-controls`.
+- Several production surfaces retain neutral/neutral/neutral fallback classes, even though global variable rules override most visual output.
 - First-cut query-gated controller remains separate from the primary Theme panel path.
 
 ## Risk Verdict
@@ -113,7 +113,7 @@ Goal:
 - Keep accent only for slider/focus/border/status, not panel fill.
 
 Follow-up candidates:
-- Source semantics compatibility plan for `warm-glass-controls`.
+- Source semantics compatibility plan for `surface-style-controls`.
 - Neutral material fallback class cleanup.
 - Relationship-chain guard tests.
 

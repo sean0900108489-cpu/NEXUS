@@ -91,7 +91,7 @@ type NexusCompiledStyleV1 = {
     reactFlow: NexusReactFlowStyleAdapterV1;
     windowModal: NexusWindowModalRecipeAdapterV1;
     nextThemes?: {
-      dataTheme?: "cyberpunk" | "apple" | "tesla" | "terminal";
+      dataTheme?: "surface-shell" | "apple" | "tesla" | "terminal";
       colorScheme: "dark" | "light";
     };
   };
@@ -276,7 +276,7 @@ Current fail-closed guardrails include:
 Current focused compiler coverage includes:
 
 - same manifest produces deterministic output
-- legacy cyberpunk compiles to expected variables
+- baseline surface-shell compiles to expected variables
 - High Contrast Carbon compiles through the pure compiler as a built-in preset fixture
 - validator-rejected manifests do not produce compiled output
 - emitted variable totals are reported in compiler metadata

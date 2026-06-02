@@ -8,6 +8,7 @@ import type {
 } from "@/lib/nexus-types";
 
 import {
+  type WorkflowRuntimeImageCall,
   type WorkflowRuntimeLlmCall,
   workflowRuntimeExecutorMap,
 } from "./executors";
@@ -26,6 +27,7 @@ export type WorkflowRuntimeNodePatch = Partial<
 >;
 
 export type WorkflowRuntimeRunnerOptions = {
+  callImage?: WorkflowRuntimeImageCall;
   callLlm: WorkflowRuntimeLlmCall;
   onNodePatch?: (nodeId: string, patch: WorkflowRuntimeNodePatch) => void;
   onRunUpdate?: (run: WorkflowRun) => void;
@@ -35,6 +37,7 @@ export type WorkflowRuntimeRunnerOptions = {
 };
 
 export async function runWorkflowRuntimeLite({
+  callImage,
   callLlm,
   onNodePatch,
   onRunUpdate,
@@ -164,6 +167,7 @@ export async function runWorkflowRuntimeLite({
     try {
       const executor = workflowRuntimeExecutorMap[node.type];
       const outputPacket: ContextPacket = await executor({
+        callImage,
         callLlm,
         inputPacket: packet,
         node: node as never,

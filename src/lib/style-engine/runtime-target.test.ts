@@ -10,32 +10,32 @@ import {
 describe("NEXUS Style Engine runtime variable target", () => {
   it("applies a preview patch to a provided style target and records previous values", () => {
     const target = createFakeVariableTarget({
-      "--nexus-surface-app": "#030712",
+      "--nexus-surface-app": "#101010",
     });
     const session = startNexusStyleVariablePreviewV1(target, createPatch());
 
     expect(target.read()).toEqual({
-      "--nexus-accent-primary": "#67e8f9",
-      "--nexus-surface-app": "#020617",
+      "--nexus-accent-primary": "#e5e5e5",
+      "--nexus-surface-app": "#111111",
     });
     expect(session).toEqual({
       appliedVariables: {
-        "--nexus-accent-primary": "#67e8f9",
-        "--nexus-surface-app": "#020617",
+        "--nexus-accent-primary": "#e5e5e5",
+        "--nexus-surface-app": "#111111",
       },
       manifestChecksum: "nexus-style-fnv1a32:00000001",
-      manifestId: "legacy-cyberpunk",
-      previewId: "legacy-cyberpunk:nexus-style-fnv1a32:00000001",
+      manifestId: "baseline-surface-shell",
+      previewId: "baseline-surface-shell:nexus-style-fnv1a32:00000001",
       previousVariables: {
         "--nexus-accent-primary": undefined,
-        "--nexus-surface-app": "#030712",
+        "--nexus-surface-app": "#101010",
       },
     });
   });
 
   it("reverts a preview session without touching unrelated variables", () => {
     const target = createFakeVariableTarget({
-      "--nexus-surface-app": "#030712",
+      "--nexus-surface-app": "#101010",
       "--unrelated": "keep-me",
     });
     const session = startNexusStyleVariablePreviewV1(target, createPatch());
@@ -43,7 +43,7 @@ describe("NEXUS Style Engine runtime variable target", () => {
     revertNexusStyleVariablePreviewV1(target, session);
 
     expect(target.read()).toEqual({
-      "--nexus-surface-app": "#030712",
+      "--nexus-surface-app": "#101010",
       "--unrelated": "keep-me",
     });
   });
@@ -52,11 +52,11 @@ describe("NEXUS Style Engine runtime variable target", () => {
 function createPatch(): NexusStylePreviewPatchV1 {
   return {
     manifestChecksum: "nexus-style-fnv1a32:00000001",
-    manifestId: "legacy-cyberpunk",
-    previewId: "legacy-cyberpunk:nexus-style-fnv1a32:00000001",
+    manifestId: "baseline-surface-shell",
+    previewId: "baseline-surface-shell:nexus-style-fnv1a32:00000001",
     variables: {
-      "--nexus-surface-app": "#020617",
-      "--nexus-accent-primary": "#67e8f9",
+      "--nexus-surface-app": "#111111",
+      "--nexus-accent-primary": "#e5e5e5",
     },
   };
 }

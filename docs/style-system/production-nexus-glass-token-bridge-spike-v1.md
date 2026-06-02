@@ -12,7 +12,7 @@ persistence, workspace state, backend, Supabase, React Flow, drag/resize,
 focus, z-index, or agent behavior.
 
 The goal is only to make the existing `.nexus-glass` visual primitive ready to
-consume bridge-compatible CSS variables while preserving the cyberpunk baseline
+consume bridge-compatible CSS variables while preserving the surface-shell baseline
 fallback.
 
 ## 2. Surface Boundary
@@ -81,7 +81,7 @@ primitive.
 
 If no bridge variables are present:
 
-- `.nexus-glass` resolves to the existing cyberpunk baseline through
+- `.nexus-glass` resolves to the existing surface-shell baseline through
   `--panel-bg`, `--border-subtle`, `--text-main`, `--surface-radius`, and
   `--glass-blur`
 - existing theme presets remain compatible

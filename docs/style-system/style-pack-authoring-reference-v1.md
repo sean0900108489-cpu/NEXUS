@@ -258,22 +258,22 @@ and keeps all previewable changes inside the embedded V1 manifest tokens.
           "warning": "#fef08a"
         },
         "accent": {
-          "primary": "#38bdf8",
-          "primaryStrong": "#0ea5e9",
-          "secondary": "#facc15"
+          "primary": "#d8d8d8",
+          "primaryStrong": "#c8c8c8",
+          "secondary": "#eeeeee"
         },
         "status": {
-          "danger": "#fb7185",
-          "info": "#38bdf8",
+          "danger": "#c7c7c7",
+          "info": "#d8d8d8",
           "success": "#22c55e",
-          "warning": "#facc15"
+          "warning": "#eeeeee"
         },
         "border": {
-          "glow": "rgb(56 189 248 / 0.36)",
+          "glow": "rgb(216 216 216 / 0.36)",
           "subtle": "rgb(255 255 255 / 0.24)"
         },
         "shadow": {
-          "glow": "0 0 22px rgb(56 189 248 / 0.18)",
+          "glow": "0 0 22px rgb(216 216 216 / 0.18)",
           "panel": "0 18px 52px rgb(0 0 0 / 0.46)"
         },
         "radius": {
@@ -285,7 +285,7 @@ and keeps all previewable changes inside the embedded V1 manifest tokens.
           "glass": "4px"
         },
         "workspace": {
-          "gridPrimary": "rgb(56 189 248 / 0.16)",
+          "gridPrimary": "rgb(216 216 216 / 0.16)",
           "gridSecondary": "rgb(250 204 21 / 0.12)",
           "wash": "rgb(255 255 255 / 0.04)"
         },
@@ -434,9 +434,9 @@ and keeps all previewable changes inside the embedded V1 manifest tokens.
     "validatorVersion": "nexus-style-validator-v1"
   },
   "fallback": {
-    "fallbackLegacyPreset": "cyberpunk",
-    "fallbackManifestId": "legacy-cyberpunk",
-    "fallbackPackId": "legacy-cyberpunk-skin",
+    "fallbackLegacyPreset": "surface-shell",
+    "fallbackManifestId": "baseline-surface-shell",
+    "fallbackPackId": "baseline-surface-shell-skin",
     "onAssetFailure": "omit-asset",
     "onBudgetFailure": "reject-pack",
     "onLayoutFailure": "use-default-layout"
@@ -682,9 +682,9 @@ CSS, scripts, URLs, remote images, behavior fields, assets, or layout authority.
     "validatorVersion": "nexus-style-validator-v1"
   },
   "fallback": {
-    "fallbackLegacyPreset": "cyberpunk",
-    "fallbackManifestId": "legacy-cyberpunk",
-    "fallbackPackId": "legacy-cyberpunk-skin",
+    "fallbackLegacyPreset": "surface-shell",
+    "fallbackManifestId": "baseline-surface-shell",
+    "fallbackPackId": "baseline-surface-shell-skin",
     "onAssetFailure": "omit-asset",
     "onBudgetFailure": "reject-pack",
     "onLayoutFailure": "use-default-layout"
@@ -710,7 +710,7 @@ Allowed replacements:
 - values inside manifest.payload.tokens
 - V1 recipe token references, but only references like "surface.panel" or
   "accent.primary"; do not invent behavior slots
-- adapters.nextThemes.dataTheme only as cyberpunk, apple, tesla, or terminal
+- adapters.nextThemes.dataTheme only as surface-shell, apple, tesla, or terminal
 - performanceBudget numbers only when lowering or keeping safe budgets
 
 Forbidden output:
@@ -771,7 +771,7 @@ Current safe adapter shape is intentionally small:
 }
 ```
 
-`nextThemes.dataTheme` must be one of `cyberpunk`, `apple`, `tesla`, or
+`nextThemes.dataTheme` must be one of `surface-shell`, `apple`, `tesla`, or
 `terminal`. `colorScheme` must be `dark` or `light`. Do not add runtime
 behavior adapters, React Flow behavior fields, event handlers, selectors, or
 raw class generation.

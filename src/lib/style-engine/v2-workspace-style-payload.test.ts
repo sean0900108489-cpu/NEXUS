@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createWarmGlassOpsSkinPackV2Fixture } from "./v2-fixtures";
+import { createSurfaceStyleOpsSkinPackV2Fixture } from "./v2-fixtures";
 import {
   clearImportedWorkspaceStyleReviewState,
   createDefaultWorkspaceThemeStyleControlsV1,
@@ -28,7 +28,7 @@ describe("workspace style payload adapter", () => {
     expect(result.payload).toBeNull();
   });
 
-  it("accepts a valid optional Warm Glass skin pack payload", () => {
+  it("accepts a valid optional Surface Style skin pack payload", () => {
     const result = extractWorkspaceStylePayloadFromSnapshot({
       schemaVersion: 1,
       stylePack: {
@@ -37,7 +37,7 @@ describe("workspace style payload adapter", () => {
           directAliases: 58,
           families: 10,
         },
-        skinPack: createWarmGlassOpsSkinPackV2Fixture(),
+        skinPack: createSurfaceStyleOpsSkinPackV2Fixture(),
         source: "style-lab",
         version: "style-pack-v2",
       },
@@ -45,7 +45,7 @@ describe("workspace style payload adapter", () => {
     });
 
     expect(result.status).toBe("accepted");
-    expect(result.payload?.skinPack?.id).toBe("warm-glass-ops-skin");
+    expect(result.payload?.skinPack?.id).toBe("surface-style-ops-skin");
     expect(result.payload?.bridgeSummary?.directAliases).toBe(58);
   });
 
@@ -77,16 +77,16 @@ describe("workspace style payload adapter", () => {
   it("accepts safe controls as review-only data", () => {
     const result = normalizeWorkspaceStylePayload({
       controls: {
-        palette: "warm-glass",
+        palette: "surface-style",
         radius: "soft",
         status: ["live", "idle"],
       },
-      source: "warm-glass-controls",
+      source: "surface-style-controls",
       version: "style-pack-v2",
     });
 
     expect(result.status).toBe("accepted");
-    expect(result.payload?.controls?.palette).toBe("warm-glass");
+    expect(result.payload?.controls?.palette).toBe("surface-style");
   });
 
   it("normalizes first-cut theme controls for workspace export/import", () => {
@@ -94,13 +94,13 @@ describe("workspace style payload adapter", () => {
     const payloadControls = createWorkspaceThemeStyleControlsPayloadV1({
       ...controls,
       accent: "custom",
-      accentColor: "#67e8f9",
+      accentColor: "#e5e5e5",
       radius: 20,
       warmth: 72,
     });
     const result = normalizeWorkspaceStylePayload({
       controls: payloadControls,
-      source: "warm-glass-controls",
+      source: "surface-style-controls",
       version: "style-pack-v2",
     });
 
@@ -109,13 +109,13 @@ describe("workspace style payload adapter", () => {
       extractWorkspaceThemeStyleControlsV1(result.payload?.controls).controls,
     ).toMatchObject({
       accent: "custom",
-      accentColor: "#67e8f9",
+      accentColor: "#e5e5e5",
       radius: 20,
       warmth: 72,
     });
   });
 
-  it("uses neutral default theme controls instead of the old amber preview preset", () => {
+  it("uses neutral default theme controls instead of the old neutral preview preset", () => {
     const controls = createDefaultWorkspaceThemeStyleControlsV1();
 
     expect(controls).toMatchObject({
@@ -124,20 +124,21 @@ describe("workspace style payload adapter", () => {
       warmth: 50,
       workspaceWash: 48,
     });
+    expect("bodySurfaceColor" in controls).toBe(false);
   });
 
   it("maps theme controls to deterministic allowlisted production preview variables", () => {
     const first = createWorkspaceThemeStylePreviewVariablesV1({
       ...createDefaultWorkspaceThemeStyleControlsV1(),
       accent: "custom",
-      accentColor: "#6ee7b7",
+      accentColor: "#d6d6d6",
       blur: 22,
       radius: 16,
     });
     const second = createWorkspaceThemeStylePreviewVariablesV1({
       ...createDefaultWorkspaceThemeStyleControlsV1(),
       accent: "custom",
-      accentColor: "#6ee7b7",
+      accentColor: "#d6d6d6",
       blur: 22,
       radius: 16,
     });
@@ -157,9 +158,13 @@ describe("workspace style payload adapter", () => {
     expect(first.variables["--nexus-datapad-shell-radius"]).toBe("16px");
     expect(first.variables["--nexus-agent-window-handle-radius"]).toBe("16px");
     expect(first.variables["--nexus-panel-blur"]).toBe("22px");
-    expect(first.variables["--nexus-accent-primary"]).toBe("#6ee7b7");
-    expect(first.variables["--nexus-outer-shell-bg"]).toContain("linear-gradient");
-    expect(first.variables["--nexus-body-frame-bg"]).toContain("linear-gradient");
+    expect(first.variables["--nexus-accent-primary"]).toBe("#d6d6d6");
+    expect(first.variables["--nexus-outer-shell-bg"]).toBeUndefined();
+    expect(first.variables["--nexus-body-frame-bg"]).toMatch(/^rgb\(/);
+    expect(first.variables["--nexus-body-frame-bg"]).not.toContain(
+      "linear-gradient",
+    );
+    expect(first.variables["--nexus-body-frame-bg"]).not.toContain("/");
     expect(first.variables["--nexus-layout-panel-bg"]).toContain("linear-gradient");
     expect(first.variables["--nexus-layout-panel-border"]).toBe(
       first.variables["--nexus-panel-border"],
@@ -172,7 +177,7 @@ describe("workspace style payload adapter", () => {
     );
   });
 
-  it("uses workspace wash as a shared layout brightness control", () => {
+  it("uses workspace wash as the shared layout brightness control without a color-wheel body fill", () => {
     const lowWash = createWorkspaceThemeStylePreviewVariablesV1({
       ...createDefaultWorkspaceThemeStyleControlsV1(),
       workspaceWash: 8,
@@ -221,6 +226,14 @@ describe("workspace style payload adapter", () => {
     const serializedVariables = JSON.stringify(result.variables);
 
     expect(result.variables["--theme-primary"]).toBe("#f6fa00");
+    expect(result.variables["--nexus-body-frame-bg"]).not.toContain("/");
+    expect(result.variables["--nexus-body-frame-bg"]).not.toContain(
+      "246 250 0",
+    );
+    expect(result.variables["--nexus-agent-window-bg"]).toContain("246 250 0");
+    expect(result.variables["--nexus-message-bubble-bg"]).not.toContain(
+      "246 250 0",
+    );
     expect(result.variables["--nexus-workspace-grid-primary"]).toContain(
       "246 250 0",
     );
@@ -245,7 +258,7 @@ describe("workspace style payload adapter", () => {
             accent: "remote-url",
           },
         },
-        source: "warm-glass-controls",
+        source: "surface-style-controls",
         version: "style-pack-v2",
       }).status,
     ).toBe("rejected-style-only");
@@ -256,12 +269,24 @@ describe("workspace style payload adapter", () => {
         accentColor: "javascript:alert(1)",
       }).accepted,
     ).toBe(false);
+    const legacyBodySurfaceColorResult = normalizeWorkspaceThemeStyleControlsV1({
+      ...createDefaultWorkspaceThemeStyleControlsV1(),
+      bodySurfaceColor: "javascript:alert(1)",
+    });
+
+    expect(legacyBodySurfaceColorResult.accepted).toBe(true);
+
+    if (!legacyBodySurfaceColorResult.accepted) {
+      throw new Error("Expected legacy bodySurfaceColor to be ignored.");
+    }
+
+    expect("bodySurfaceColor" in legacyBodySurfaceColorResult.controls).toBe(false);
     expect(
       normalizeWorkspaceStylePayload({
         controls: {
-          palette: "warm-glass",
+          palette: "surface-style",
         },
-        source: "warm-glass-controls",
+        source: "surface-style-controls",
         version: "style-pack-v2",
       }).status,
     ).toBe("accepted");
@@ -274,7 +299,7 @@ describe("workspace style payload adapter", () => {
         remoteUrl: "https://example.test/style.css",
         script: "javascript:alert(1)",
       },
-      source: "warm-glass-controls",
+      source: "surface-style-controls",
       version: "style-pack-v2",
     });
 
@@ -287,7 +312,7 @@ describe("workspace style payload adapter", () => {
       controls: {
         selector: ".nexus-shell",
       },
-      source: "warm-glass-controls",
+      source: "surface-style-controls",
       version: "style-pack-v2",
     });
 
@@ -351,14 +376,14 @@ describe("workspace style payload adapter", () => {
         directAliases: 58,
         families: 10,
       },
-      skinPack: createWarmGlassOpsSkinPackV2Fixture(),
+      skinPack: createSurfaceStyleOpsSkinPackV2Fixture(),
       source: "style-lab",
       version: "style-pack-v2",
     };
     const result = createWorkspaceStylePayloadExportSnapshot(snapshot, stylePack);
 
     expect(result.status).toBe("included");
-    expect(result.snapshot.stylePack?.skinPack?.id).toBe("warm-glass-ops-skin");
+    expect(result.snapshot.stylePack?.skinPack?.id).toBe("surface-style-ops-skin");
     expect(result.snapshot.workspace).toEqual(snapshot.workspace);
   });
 
@@ -380,7 +405,7 @@ describe("workspace style payload adapter", () => {
     };
     const payloadDecision = normalizeWorkspaceStylePayload({
       controls: createWorkspaceThemeStyleControlsPayloadV1(controls),
-      source: "warm-glass-controls",
+      source: "surface-style-controls",
       version: "style-pack-v2",
     });
 
@@ -420,6 +445,7 @@ describe("workspace style payload adapter", () => {
       warmth: 64,
       workspaceWash: 42,
     });
+    expect("bodySurfaceColor" in importedControls.controls).toBe(false);
   });
 
   it("omits invalid style payloads during export without mutating the input", () => {
@@ -445,7 +471,7 @@ describe("workspace style payload adapter", () => {
     clearImportedWorkspaceStyleReviewState();
     const decision = extractWorkspaceStylePayloadFromSnapshot({
       stylePack: {
-        controls: { palette: "warm-glass" },
+        controls: { palette: "surface-style" },
         source: "imported",
         version: "style-pack-v2",
       },
@@ -460,7 +486,7 @@ describe("workspace style payload adapter", () => {
 
     expect(written?.decision.status).toBe("accepted");
     expect(read?.decision.status).toBe("accepted");
-    expect(read?.decision.payload?.controls?.palette).toBe("warm-glass");
+    expect(read?.decision.payload?.controls?.palette).toBe("surface-style");
     expect(read?.updatedAt).toBe("2026-05-31T00:00:00.000Z");
   });
 

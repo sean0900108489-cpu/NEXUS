@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   compileNexusSkinPackTokenPreviewTextV2,
   compileNexusSkinPackTokenPreviewV2,
-  createCyberpunkCompatibleSkinPackV2,
+  createSurfaceShellCompatibleSkinPackV2,
   createOverBudgetSkinPackV2,
   createPixelWorkshopSkinPackV2,
   createValidMinimalSkinPackV2,
@@ -14,7 +14,7 @@ import {
 describe("NEXUS Style Engine V2 token-only preview compiler", () => {
   it("compiles a valid V2 fixture into a token-only preview patch", () => {
     const result = compileNexusSkinPackTokenPreviewV2(
-      createCyberpunkCompatibleSkinPackV2(),
+      createSurfaceShellCompatibleSkinPackV2(),
     );
 
     expect(result.accepted).toBe(true);
@@ -24,7 +24,7 @@ describe("NEXUS Style Engine V2 token-only preview compiler", () => {
     }
 
     expect(result.patch.previewId).toContain("token-only");
-    expect(result.patch.manifestId).toBe("legacy-cyberpunk");
+    expect(result.patch.manifestId).toBe("baseline-surface-shell");
     expect(result.report.variableCount).toBeGreaterThan(0);
     expect(result.report.omitted.assets).toBe(true);
     expect(result.report.omitted.recipes).toBe(true);
@@ -55,7 +55,7 @@ describe("NEXUS Style Engine V2 token-only preview compiler", () => {
 
   it("keeps asset, recipe, layout, adapter, and legacy data out of the preview patch", () => {
     const result = compileNexusSkinPackTokenPreviewV2(
-      createCyberpunkCompatibleSkinPackV2(),
+      createSurfaceShellCompatibleSkinPackV2(),
     );
 
     expect(result.accepted).toBe(true);
@@ -71,8 +71,8 @@ describe("NEXUS Style Engine V2 token-only preview compiler", () => {
     expect(variableNames.some((name) => name.startsWith("--nexus-recipe-"))).toBe(false);
     expect(variableNames.some((name) => name.startsWith("--nexus-graph-"))).toBe(false);
     expect(variableNames.some((name) => name.startsWith("--bg-"))).toBe(false);
-    expect(serializedVariables).not.toContain("cyberpunk-safe-assets");
-    expect(serializedVariables).not.toContain("cyberpunk-action-icon");
+    expect(serializedVariables).not.toContain("surface-shell-safe-assets");
+    expect(serializedVariables).not.toContain("surface-shell-action-icon");
     expect(serializedVariables).not.toContain("compact-glass-ops");
     expect(serializedVariables).not.toContain("surface.panel");
   });

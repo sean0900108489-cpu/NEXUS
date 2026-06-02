@@ -25,7 +25,7 @@ Known foundations:
 - Style Runtime Preview Diagnostics exists.
 - Style Runtime Preflight Gate exists.
 - Production Preview Preflight Contract exists.
-- Warm Glass budget verdict is `safe`.
+- Surface Style budget verdict is `safe`.
 - Style Lab local preflight flow reaches `PASS` after apply/revert and residue
   pass.
 - Production preview contract can return `eligible`, `hold`, or `blocked`.
@@ -156,7 +156,7 @@ Required confirmations:
    - Datapad shell only if it can be opened without save/delete/upload/download
 5. Console and hydration baseline are recorded.
 6. Known baseline issues are separated:
-   - `bg-cyberpunk.webp` placeholder failure
+   - `bg-surface-shell.webp` placeholder failure
    - Chrome Translate hydration mismatch if Translate is active
 7. No workspace mutation occurs.
 8. No store/backend/API/Supabase writes occur.

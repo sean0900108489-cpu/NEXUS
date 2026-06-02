@@ -122,7 +122,7 @@ High-risk areas still excluded:
 
 Known baseline issues:
 
-- `bg-cyberpunk.webp` placeholder failure belongs to the existing production
+- `bg-surface-shell.webp` placeholder failure belongs to the existing production
   baseline if observed.
 - Chrome Translate can cause hydration/text mismatch in translated sessions.
 - Local production `/` may show auth gate; this is a production boundary, not a
@@ -142,7 +142,7 @@ Rollback readiness:
 - Every adopted surface can be rolled back by reverting its loop commit or
   removing the scoped selector/CSS alias block, focused guard assertions,
   harness specimen/vars, and map/checkpoint section.
-- Dedicated aliases fall back to panel/glass or cyberpunk baseline values.
+- Dedicated aliases fall back to panel/glass or surface-shell baseline values.
 
 ## Evidence Summary
 

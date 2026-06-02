@@ -52,7 +52,7 @@ These optional/stateful surfaces are not failures for this run because no comman
 - Console warnings observed: `0`
 - Hydration mismatch: not observed
 - Chrome Translate: not observed
-- `bg-cyberpunk.webp` load failure: not observed in browser console logs
+- `bg-surface-shell.webp` load failure: not observed in browser console logs
 
 ## Network Baseline
 

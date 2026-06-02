@@ -192,7 +192,7 @@ phase gate.
 For runtime/UI preview units, run Browser smoke on local dev:
 
 - App loads without console errors.
-- Existing `cyberpunk/apple/tesla/terminal` preset buttons still work.
+- Existing `surface-shell/apple/tesla/terminal` preset buttons still work.
 - Preview can be enabled.
 - Preview changes visible surface/text/accent variables.
 - Revert restores previous visual state.

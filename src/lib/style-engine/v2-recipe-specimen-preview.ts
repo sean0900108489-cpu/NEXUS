@@ -119,12 +119,12 @@ const emptyValidationReport: NexusV2ValidationReport = {
 };
 
 const safeLiteralFallbacks = {
-  accent: "#67e8f9",
+  accent: "#e5e5e5",
   border: "rgb(226 232 240 / 0.12)",
   radius: "4px",
   shadow: "0 24px 80px rgb(0 0 0 / 0.38)",
-  surface: "rgb(8 16 22 / 0.78)",
-  text: "#f8fafc",
+  surface: "rgb(20 20 20 / 0.78)",
+  text: "#f5f5f5",
 } as const;
 
 export function compileNexusSkinPackSpecimenPreviewV2(

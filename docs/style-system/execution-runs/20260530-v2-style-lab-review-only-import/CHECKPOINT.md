@@ -141,7 +141,7 @@ Observed:
 - existing V1 Preview button enabled
 - V1 Preview changed runtime state to `previewing`
 - V1 Revert changed runtime state to `reverted`
-- V2 valid fixture review showed accepted status and `cyberpunk-compatible-skin`
+- V2 valid fixture review showed accepted status and `surface-shell-compatible-skin`
 - V2 invalid fixture review showed rejected status and `stylePack.staticBudgetExceeded`
 - console errors: 0
 

@@ -174,7 +174,7 @@ changes require a separate behavior architecture decision.
 
 ## 4. Scroll Containment Is Protected
 
-Current scroll classes such as `cyber-scroll`, `overflow-y-auto`,
+Current scroll classes such as `system-scroll`, `overflow-y-auto`,
 `overscroll-contain`, `min-h-0`, and fixed viewport sizing are layout behavior.
 
 Recipes may style scrollbars later, but must not:

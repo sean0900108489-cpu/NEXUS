@@ -9,7 +9,7 @@ Branch: `codex/v18-style-pack-contract-prep`
 This spike is the first production-facing token bridge cut. It does not connect
 Skin Pack apply, persistence, workspace state, backend, Supabase, React Flow, or
 agent behavior. It only makes the existing `.nexus-panel` visual primitive ready
-to consume bridge-compatible CSS variables while preserving the cyberpunk
+to consume bridge-compatible CSS variables while preserving the surface-shell
 baseline fallback.
 
 ## 2. Surface Boundary
@@ -79,8 +79,8 @@ need separate recipe/performance coverage.
 
 If no bridge variables are present:
 
-- `.nexus-panel` resolves to existing cyberpunk baseline variables in
-  `:root, [data-theme="cyberpunk"]`
+- `.nexus-panel` resolves to existing surface-shell baseline variables in
+  `:root, [data-theme="surface-shell"]`
 - existing theme presets continue to work through `--panel-bg`,
   `--border-subtle`, `--text-main`, `--surface-radius`, `--shadow-panel`, and
   `--glass-blur`

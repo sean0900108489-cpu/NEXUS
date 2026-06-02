@@ -1,4 +1,8 @@
 import type { User } from "@supabase/supabase-js";
+import type {
+  WorkspaceComposerImageAspectRatio,
+  WorkspaceComposerImageQuality,
+} from "@/lib/composer/image-generation-settings";
 
 export * from "@/lib/backend";
 
@@ -75,6 +79,7 @@ export type AgentMessage = {
 };
 
 export type AgentMediaArtifact = {
+  artifactId?: string;
   type: MediaAgentCapabilityType;
   url: string;
   prompt: string;
@@ -236,6 +241,7 @@ export type WorkflowGraphNodeType =
   | "agent-node"
   | "input.text"
   | "model.llm"
+  | "model.image"
   | "output.text"
   | "tool-node"
   | "memory-node"
@@ -314,6 +320,7 @@ export interface IWorkflowEdge {
 export type WorkflowRuntimeNodeType =
   | "input.text"
   | "model.llm"
+  | "model.image"
   | "output.text";
 
 export type WorkflowRuntimeNodeStatus =
@@ -361,6 +368,14 @@ export type ModelLlmNodeData = {
   provider?: string;
 };
 
+export type ModelImageNodeData = {
+  label?: string;
+  prompt: string;
+  modelId: string;
+  quality: WorkspaceComposerImageQuality;
+  aspectRatio: WorkspaceComposerImageAspectRatio;
+};
+
 export type OutputTextNodeData = {
   label?: string;
   renderMode?: "markdown" | "plain";
@@ -369,6 +384,7 @@ export type OutputTextNodeData = {
 export type WorkflowRuntimeNodeDataByType = {
   "input.text": InputTextNodeData;
   "model.llm": ModelLlmNodeData;
+  "model.image": ModelImageNodeData;
   "output.text": OutputTextNodeData;
 };
 

@@ -86,7 +86,7 @@ Task: Window And Control Chrome Scan-And-Act
 - dedicated AgentWindow alias
 - existing panel alias where appropriate
 - element-scoped dynamic AgentWindow default custom property
-- current cyberpunk/window baseline
+- current surface-shell/window baseline
 
 Dynamic defaults preserve the selected-agent accent border/glow and sandbox
 window fallback while still letting dedicated or panel-level aliases take over.
@@ -151,7 +151,7 @@ Additional browser observations:
   required` dev-server console output after loading/reloading the auth-gated
   local route.
 - no Chrome Translate hydration mismatch was observed.
-- `bg-cyberpunk.webp` placeholder issue was not newly observed during this
+- `bg-surface-shell.webp` placeholder issue was not newly observed during this
   smoke; it remains a known baseline issue from prior runs.
 
 Browser apply/revert classification:
@@ -164,7 +164,7 @@ Browser apply/revert classification:
 
 ## Known Baseline Issues Vs Regressions
 
-- Known baseline: `bg-cyberpunk.webp` placeholder load failure if it appears.
+- Known baseline: `bg-surface-shell.webp` placeholder load failure if it appears.
 - Known baseline/tooling: Chrome Translate hydration mismatch only if Translate
   is active; not observed here.
 - Environment/auth limitation: local authenticated NexusOps UI was unavailable

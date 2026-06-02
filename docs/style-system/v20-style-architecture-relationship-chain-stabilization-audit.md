@@ -33,7 +33,7 @@ Browser visual baseline:
 - Visual state is no longer using the old hardcoded brown surface values fixed in `f3b73c1`, but the active custom accent can still create a red/brown cast by design.
 
 Key target variables observed:
-- `--nexus-outer-shell-bg`: neutral shell gradient with accent wash.
+- `--nexus-outer-shell-bg`: surface shell gradient with accent wash.
 - `--nexus-body-frame-bg`: neutral body wash with accent tint.
 - `--nexus-layout-panel-bg`: shared layout panel gradient.
 - `--nexus-panel-bg`: shared panel surface.
@@ -75,8 +75,8 @@ Purpose:
 
 Current status:
 - Scoped preview mapping is active and fail-closed.
-- Defaults are now neutral instead of amber/earth-tone.
-- Some legacy source naming remains, especially `warm-glass-controls`.
+- Defaults are now neutral instead of neutral/earth-tone.
+- Some legacy source naming remains, especially `surface-style-controls`.
 
 Risk:
 - Medium semantic risk, low immediate visual risk.
@@ -141,7 +141,7 @@ Current status:
 Risk:
 - Medium.
 - Theme panel material is still partially local and can visually diverge from the shared Layer 3 material contract.
-- Several components retain hardcoded cyan/emerald/slate fallback classes even where global CSS currently overrides them.
+- Several components retain hardcoded neutral/neutral/neutral fallback classes even where global CSS currently overrides them.
 
 ### Layer 4: Control, Status, And Content Layer
 
@@ -176,7 +176,7 @@ Risk:
 ### Fixed In Current Baseline
 
 The old earth-tone surface bug has been addressed by `f3b73c1`:
-- Default controls are neutral instead of amber.
+- Default controls are neutral instead of neutral.
 - The preview variable mapper no longer uses the old brown RGB basis.
 - Shadow now uses neutral black plus accent glow instead of `rgb(48 32 20 / ...)`.
 - Tests block reintroduction of known brown values in high-saturation accent scenarios.
@@ -194,11 +194,11 @@ Impact:
 Next safe unit:
 - Move the Theme panel shell and its nested control cards to the shared Layer 3 variables while keeping accent only for borders, focus, sliders, and status.
 
-2. Export source still says `warm-glass-controls`.
+2. Export source still says `surface-style-controls`.
 
 Evidence:
-- `WorkspaceStylePayloadSource` includes `warm-glass-controls`.
-- `createWorkspaceThemeStylePayloadForExport` writes `source: "warm-glass-controls"`.
+- `WorkspaceStylePayloadSource` includes `surface-style-controls`.
+- `createWorkspaceThemeStylePayloadForExport` writes `source: "surface-style-controls"`.
 
 Impact:
 - This is not a current visual bug, but it carries old semantic intent into the new production Theme panel flow.
@@ -209,10 +209,10 @@ Next safe unit:
 3. Component fallback classes still contain old color semantics.
 
 Examples:
-- Right dock rail keeps `border-cyan-300/25 bg-slate-950/90`.
-- Agent branch modal keeps cyan shell fallback classes.
-- Datapad shell keeps emerald shell fallback classes.
-- Graph node controls keep cyan/fuchsia role chrome.
+- Right dock rail keeps `border-neutral-300/25 bg-neutral-950/90`.
+- Agent branch modal keeps surface shell fallback classes.
+- Datapad shell keeps surface shell fallback classes.
+- Graph node controls keep neutral/neutral role chrome.
 
 Impact:
 - Most are currently overridden by scoped CSS variables, but they make debugging harder and can leak if a selector, cascade order, or variable is missing.
@@ -250,7 +250,7 @@ Do not do the following during stabilization:
    - Keep accent for sliders, borders, focus, and status only.
 
 2. Source semantics cleanup plan.
-   - Decide whether `warm-glass-controls` remains a backward-compatible accepted source or is migrated to a new name.
+   - Decide whether `surface-style-controls` remains a backward-compatible accepted source or is migrated to a new name.
 
 3. Production fallback class cleanup.
    - Right dock, modal, datapad, and selected graph material fallback classes.

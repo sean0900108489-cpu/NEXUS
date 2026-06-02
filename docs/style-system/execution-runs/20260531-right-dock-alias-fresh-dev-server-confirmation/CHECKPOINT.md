@@ -47,9 +47,9 @@ Fresh runtime loaded CSS confirmed:
   - `--nexus-right-dock-border: rgb(0 255 255 / 0.95)`
   - `--nexus-right-dock-shadow: 0 0 24px rgb(255 0 128 / 0.8)`
   - `--nexus-right-dock-radius: 18px`
-- The right floating dock rail visibly changed to the magenta/cyan probe styling.
+- The right floating dock rail visibly changed to the magenta/neutral probe styling.
 - The temporary CSS variables were removed from `document.documentElement`.
-- The right dock rail returned to the cyberpunk baseline.
+- The right dock rail returned to the surface-shell baseline.
 - Final root inline style check showed no right-dock probe variables remaining.
 - No preview state was persisted and no workspace data was intentionally mutated.
 
@@ -57,7 +57,7 @@ Fresh runtime loaded CSS confirmed:
 
 - Console error count was not zero during this browser pass.
 - DevTools showed existing runtime errors/warnings unrelated to the right dock alias probe, including:
-  - repeated `https://cdn.example.com/nexus/bg-cyberpunk.webp` load failures,
+  - repeated `https://cdn.example.com/nexus/bg-surface-shell.webp` load failures,
   - a React client script-tag warning from `theme-provider.tsx`,
   - a hydration mismatch between `NEXUS // AI OPS` and `NEXUS // AI 作戰`.
 - Because the strict `console errors = 0` gate was not satisfied, this pass confirms alias CSS loading and visual apply/revert, but does not certify the page as console-clean.

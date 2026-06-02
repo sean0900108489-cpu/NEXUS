@@ -102,7 +102,7 @@ Observed:
   specimens were visible.
 - Target summary showed `9/9`.
 - Clicking `Apply Smoke Vars` changed the static chrome visibly:
-  - AgentWindow shifted to vivid purple/fuchsia chrome.
+  - AgentWindow shifted to vivid purple/neutral chrome.
   - TopBar and right dock changed color.
   - message bubbles changed role surfaces.
 - Clicking `Revert Smoke Vars` returned the panel to baseline.

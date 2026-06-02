@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createDefaultWindowModalRecipeAdapterV1,
   createHighContrastCarbonStyleManifestV1,
-  createLegacyCyberpunkStyleManifestV1,
+  createBaselineSurfaceShellStyleManifestV1,
   createWindowModalRecipeAdapterFromManifestV1,
   emitWindowModalRecipeCssVariablesV1,
   NEXUS_WINDOW_MODAL_RECIPE_ADAPTER_VERSION,
@@ -55,27 +55,27 @@ describe("NEXUS window/modal recipe adapter", () => {
     }
   });
 
-  it("maps the legacy Cyberpunk manifest to visual recipe values", () => {
+  it("maps the baseline Surface Shell manifest to visual recipe values", () => {
     const adapter = createWindowModalRecipeAdapterFromManifestV1(
-      createLegacyCyberpunkStyleManifestV1(),
+      createBaselineSurfaceShellStyleManifestV1(),
     );
 
     expect(adapter).toMatchObject({
       commandPalette: {
-        input: "rgb(15 23 42 / 0.72)",
-        itemActive: "#67e8f9",
-        overlay: "rgb(2 6 23 / 0.78)",
+        input: "rgb(18 18 18 / 0.72)",
+        itemActive: "#e5e5e5",
+        overlay: "rgb(16 16 16 / 0.78)",
       },
       modal: {
-        backdrop: "rgb(2 6 23 / 0.78)",
-        dangerCallout: "#fda4af",
-        surface: "rgb(8 16 22 / 0.78)",
+        backdrop: "rgb(16 16 16 / 0.78)",
+        dangerCallout: "#cccccc",
+        surface: "rgb(20 20 20 / 0.78)",
       },
       window: {
         border: "rgb(226 232 240 / 0.12)",
-        bodySurface: "#020617",
-        focusGlow: "rgb(34 211 238 / 0.42)",
-        surface: "rgb(8 16 22 / 0.78)",
+        bodySurface: "#111111",
+        focusGlow: "rgb(210 210 210 / 0.42)",
+        surface: "rgb(20 20 20 / 0.78)",
       },
     });
   });
@@ -87,13 +87,13 @@ describe("NEXUS window/modal recipe adapter", () => {
 
     expect(adapter.window.surface).toBe("rgb(16 16 16 / 0.94)");
     expect(adapter.window.bodySurface).toBe("#0a0a0a");
-    expect(adapter.modal.dangerCallout).toBe("#fb7185");
+    expect(adapter.modal.dangerCallout).toBe("#c7c7c7");
     expect(adapter.commandPalette.input).toBe("rgb(18 18 18 / 0.92)");
-    expect(adapter.commandPalette.itemActive).toBe("#38bdf8");
+    expect(adapter.commandPalette.itemActive).toBe("#d8d8d8");
   });
 
   it("maps command palette recipe slots independently from modal slots", () => {
-    const manifest = createLegacyCyberpunkStyleManifestV1();
+    const manifest = createBaselineSurfaceShellStyleManifestV1();
     manifest.recipes.modal.surface = "surface.app";
     manifest.recipes.commandPalette = {
       emptyState: "text.secondary",
@@ -108,32 +108,32 @@ describe("NEXUS window/modal recipe adapter", () => {
 
     const adapter = createWindowModalRecipeAdapterFromManifestV1(manifest);
 
-    expect(adapter.modal.surface).toBe("#030712");
-    expect(adapter.commandPalette.surface).toBe("rgb(15 23 42 / 0.62)");
-    expect(adapter.commandPalette.input).toBe("#0f172a");
-    expect(adapter.commandPalette.itemActive).toBe("#f0abfc");
-    expect(adapter.commandPalette.itemDefault).toBe("rgb(15 23 42 / 0.72)");
-    expect(adapter.commandPalette.itemHover).toBe("rgb(2 6 23 / 0.88)");
-    expect(adapter.commandPalette.emptyState).toBe("#cbd5e1");
+    expect(adapter.modal.surface).toBe("#101010");
+    expect(adapter.commandPalette.surface).toBe("rgb(18 18 18 / 0.62)");
+    expect(adapter.commandPalette.input).toBe("#171717");
+    expect(adapter.commandPalette.itemActive).toBe("#d4d4d4");
+    expect(adapter.commandPalette.itemDefault).toBe("rgb(18 18 18 / 0.72)");
+    expect(adapter.commandPalette.itemHover).toBe("rgb(16 16 16 / 0.88)");
+    expect(adapter.commandPalette.emptyState).toBe("#d0d0d0");
   });
 
   it("emits deterministic recipe-scoped CSS variables", () => {
     const variables = emitWindowModalRecipeCssVariablesV1(
       createWindowModalRecipeAdapterFromManifestV1(
-        createLegacyCyberpunkStyleManifestV1(),
+        createBaselineSurfaceShellStyleManifestV1(),
       ),
     );
 
     expect(Object.keys(variables)).toEqual([...Object.keys(variables)].sort());
     expect(variables).toMatchObject({
-      "--nexus-recipe-command-palette-input": "rgb(15 23 42 / 0.72)",
-      "--nexus-recipe-command-palette-item-active": "#67e8f9",
-      "--nexus-recipe-command-palette-surface": "rgb(8 16 22 / 0.78)",
-      "--nexus-recipe-modal-backdrop": "rgb(2 6 23 / 0.78)",
-      "--nexus-recipe-modal-danger-callout": "#fda4af",
-      "--nexus-recipe-window-body-surface": "#020617",
-      "--nexus-recipe-window-focus-glow": "rgb(34 211 238 / 0.42)",
-      "--nexus-recipe-window-surface": "rgb(8 16 22 / 0.78)",
+      "--nexus-recipe-command-palette-input": "rgb(18 18 18 / 0.72)",
+      "--nexus-recipe-command-palette-item-active": "#e5e5e5",
+      "--nexus-recipe-command-palette-surface": "rgb(20 20 20 / 0.78)",
+      "--nexus-recipe-modal-backdrop": "rgb(16 16 16 / 0.78)",
+      "--nexus-recipe-modal-danger-callout": "#cccccc",
+      "--nexus-recipe-window-body-surface": "#111111",
+      "--nexus-recipe-window-focus-glow": "rgb(210 210 210 / 0.42)",
+      "--nexus-recipe-window-surface": "rgb(20 20 20 / 0.78)",
     });
   });
 });

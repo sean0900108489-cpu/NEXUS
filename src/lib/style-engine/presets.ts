@@ -1,18 +1,18 @@
 import type { NexusStyleManifestV1 } from "./manifest";
 
-export const LEGACY_CYBERPUNK_STYLE_ID = "legacy-cyberpunk" as const;
+export const BASELINE_SURFACE_SHELL_STYLE_ID = "baseline-surface-shell" as const;
 export const HIGH_CONTRAST_CARBON_STYLE_ID =
   "high-contrast-carbon" as const;
 
-export function createLegacyCyberpunkStyleManifestV1(): NexusStyleManifestV1 {
+export function createBaselineSurfaceShellStyleManifestV1(): NexusStyleManifestV1 {
   return {
     schemaVersion: 1,
-    id: LEGACY_CYBERPUNK_STYLE_ID,
-    name: "Legacy Cyberpunk",
+    id: BASELINE_SURFACE_SHELL_STYLE_ID,
+    name: "Baseline Surface Shell",
     description: "Source-aligned V1 manifest for the existing default NEXUS theme.",
     source: {
       kind: "legacy-preset",
-      reference: "globals.css data-theme cyberpunk variables",
+      reference: "globals.css data-theme surface-shell variables",
     },
     mode: "dark",
     intent: {
@@ -24,16 +24,16 @@ export function createLegacyCyberpunkStyleManifestV1(): NexusStyleManifestV1 {
     },
     tokens: {
       accent: {
-        primary: "#67e8f9",
-        primaryStrong: "#22d3ee",
-        secondary: "#f0abfc",
+        primary: "#e5e5e5",
+        primaryStrong: "#d4d4d4",
+        secondary: "#d4d4d4",
       },
       blur: {
         backdrop: "16px",
         glass: "8px",
       },
       border: {
-        glow: "rgb(34 211 238 / 0.42)",
+        glow: "rgb(210 210 210 / 0.42)",
         subtle: "rgb(226 232 240 / 0.12)",
       },
       density: {
@@ -49,42 +49,42 @@ export function createLegacyCyberpunkStyleManifestV1(): NexusStyleManifestV1 {
         surface: "4px",
       },
       shadow: {
-        glow: "0 0 28px rgb(34 211 238 / 0.22)",
+        glow: "0 0 28px rgb(210 210 210 / 0.22)",
         panel: "0 24px 80px rgb(0 0 0 / 0.38)",
       },
       status: {
-        danger: "#fda4af",
-        info: "#67e8f9",
-        success: "#6ee7b7",
-        warning: "#fcd34d",
+        danger: "#cccccc",
+        info: "#e5e5e5",
+        success: "#d6d6d6",
+        warning: "#eeeeee",
       },
       surface: {
-        app: "#030712",
-        input: "rgb(15 23 42 / 0.72)",
-        overlay: "rgb(2 6 23 / 0.78)",
-        panel: "rgb(8 16 22 / 0.78)",
-        panelMuted: "rgb(15 23 42 / 0.62)",
-        raised: "#0f172a",
-        shell: "rgb(2 6 23 / 0.88)",
-        workspace: "#020617",
+        app: "#101010",
+        input: "rgb(18 18 18 / 0.72)",
+        overlay: "rgb(16 16 16 / 0.78)",
+        panel: "rgb(20 20 20 / 0.78)",
+        panelMuted: "rgb(18 18 18 / 0.62)",
+        raised: "#171717",
+        shell: "rgb(16 16 16 / 0.88)",
+        workspace: "#111111",
       },
       text: {
-        danger: "#fda4af",
-        inverse: "#020617",
-        muted: "#64748b",
-        primary: "#f8fafc",
-        secondary: "#cbd5e1",
-        success: "#6ee7b7",
-        warning: "#fcd34d",
+        danger: "#cccccc",
+        inverse: "#111111",
+        muted: "#8a8a8a",
+        primary: "#f5f5f5",
+        secondary: "#d0d0d0",
+        success: "#d6d6d6",
+        warning: "#eeeeee",
       },
       typography: {
         interface: "Geist",
         mono: "Geist Mono",
       },
       workspace: {
-        gridPrimary: "rgb(34 211 238 / 0.12)",
-        gridSecondary: "rgb(244 114 182 / 0.11)",
-        wash: "rgb(34 211 238 / 0.08)",
+        gridPrimary: "rgb(210 210 210 / 0.12)",
+        gridSecondary: "rgb(196 196 196 / 0.11)",
+        wash: "rgb(210 210 210 / 0.08)",
       },
     },
     recipes: {
@@ -157,7 +157,7 @@ export function createLegacyCyberpunkStyleManifestV1(): NexusStyleManifestV1 {
     adapters: {
       nextThemes: {
         colorScheme: "dark",
-        dataTheme: "cyberpunk",
+        dataTheme: "surface-shell",
       },
       tailwindBridge: {
         enabled: true,
@@ -178,7 +178,7 @@ export function createLegacyCyberpunkStyleManifestV1(): NexusStyleManifestV1 {
 }
 
 export function createHighContrastCarbonStyleManifestV1(): NexusStyleManifestV1 {
-  const manifest = createLegacyCyberpunkStyleManifestV1();
+  const manifest = createBaselineSurfaceShellStyleManifestV1();
 
   return {
     ...manifest,
@@ -207,16 +207,16 @@ export function createHighContrastCarbonStyleManifestV1(): NexusStyleManifestV1 
     tokens: {
       ...manifest.tokens,
       accent: {
-        primary: "#38bdf8",
-        primaryStrong: "#0ea5e9",
-        secondary: "#facc15",
+        primary: "#d8d8d8",
+        primaryStrong: "#c8c8c8",
+        secondary: "#eeeeee",
       },
       blur: {
         backdrop: "10px",
         glass: "4px",
       },
       border: {
-        glow: "rgb(56 189 248 / 0.36)",
+        glow: "rgb(216 216 216 / 0.36)",
         subtle: "rgb(255 255 255 / 0.24)",
       },
       density: {
@@ -232,14 +232,14 @@ export function createHighContrastCarbonStyleManifestV1(): NexusStyleManifestV1 
         surface: "3px",
       },
       shadow: {
-        glow: "0 0 22px rgb(56 189 248 / 0.18)",
+        glow: "0 0 22px rgb(216 216 216 / 0.18)",
         panel: "0 18px 52px rgb(0 0 0 / 0.46)",
       },
       status: {
-        danger: "#fb7185",
-        info: "#38bdf8",
-        success: "#22c55e",
-        warning: "#facc15",
+        danger: "#c7c7c7",
+        info: "#d8d8d8",
+        success: "#d6d6d6",
+        warning: "#eeeeee",
       },
       surface: {
         app: "#050505",
@@ -257,12 +257,12 @@ export function createHighContrastCarbonStyleManifestV1(): NexusStyleManifestV1 
         muted: "#a1a1aa",
         primary: "#ffffff",
         secondary: "#e4e4e7",
-        success: "#bbf7d0",
-        warning: "#fef08a",
+        success: "#d6d6d6",
+        warning: "#eeeeee",
       },
       workspace: {
-        gridPrimary: "rgb(56 189 248 / 0.16)",
-        gridSecondary: "rgb(250 204 21 / 0.12)",
+        gridPrimary: "rgb(216 216 216 / 0.16)",
+        gridSecondary: "rgb(205 205 205 / 0.12)",
         wash: "rgb(255 255 255 / 0.04)",
       },
     },

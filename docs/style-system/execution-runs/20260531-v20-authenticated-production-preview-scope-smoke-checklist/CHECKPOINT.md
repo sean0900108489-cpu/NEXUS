@@ -106,7 +106,7 @@ No risky surface was force-opened.
 - Browser console warnings: `0`
 - Hydration mismatch: none observed
 - Chrome Translate mismatch: not observed
-- `bg-cyberpunk.webp` baseline: not observed on auth gate
+- `bg-surface-shell.webp` baseline: not observed on auth gate
 - V20 preview-scope regression: none observed
 
 ## Route-Load Server Baseline

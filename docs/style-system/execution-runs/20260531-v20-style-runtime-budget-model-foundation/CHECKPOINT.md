@@ -27,7 +27,7 @@ Confirmed:
   - `284e806 docs: close v19 production skinning soft landing`
   - `1bd3200 docs: consolidate v19 production skinning pre landing`
   - `ae69652 feat: add production control primitive selector`
-  - `fa68807 feat: add warm glass control chrome specimen`
+  - `fa68807 feat: add surface style control chrome specimen`
 - pre-existing untracked file preserved and not staged:
   - `docs/style-system/v19-production-shell-style-required-reading.md`
 
@@ -93,9 +93,9 @@ Defaults:
 - warn high-cost effects: `> 36`
 - block high-cost effects: `> 72`
 
-Warm Glass review-only target capability gaps are carried as `info`
+Surface Style review-only target capability gaps are carried as `info`
 capabilities. They remain visible in the summary but do not make the current
-Warm Glass bridge unsafe by themselves.
+Surface Style bridge unsafe by themselves.
 
 ## Safe / Warn / Block Logic
 
@@ -143,9 +143,9 @@ Warn/block summaries return hints such as:
 
 Safe summaries return no degradation hints.
 
-## Warm Glass Fixture Result
+## Surface Style Fixture Result
 
-Warm Glass budget summary:
+Surface Style budget summary:
 
 - verdict: `safe`
 - CSS variables: `83`
@@ -164,7 +164,7 @@ Warm Glass budget summary:
 
 Interpretation:
 
-- the current Warm Glass bridge output is inside the first runtime budget
+- the current Surface Style bridge output is inside the first runtime budget
   model
 - existing unsupported target-image capabilities remain visible but review-only
 - this does not authorize production apply or persistence
@@ -173,7 +173,7 @@ Interpretation:
 
 Focused tests cover:
 
-1. Warm Glass fixture / bridge output produces `safe`
+1. Surface Style fixture / bridge output produces `safe`
 2. alias count and family count are computed
 3. unsupported capability produces `warn`
 4. critical unsupported capability produces `block`
@@ -209,7 +209,7 @@ path.
 Remaining future work:
 
 - expose budget summaries in Style Lab coverage/performance panel
-- show safe/warn/block status beside Warm Glass coverage
+- show safe/warn/block status beside Surface Style coverage
 - show variable count, estimated apply cost, high-cost effect count, and hints
 - keep display read-only and non-persistent
 
@@ -288,7 +288,7 @@ Task name:
 Goal:
 
 - surface the pure budget summary in Style Lab as a read-only performance panel
-  for Warm Glass / bridge previews.
+  for Surface Style / bridge previews.
 
 Allowed direction:
 

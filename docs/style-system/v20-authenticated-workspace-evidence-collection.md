@@ -57,7 +57,7 @@ Core target and core adopted surfaces are observable. Stateful or optional surfa
 | Browser console warnings | 0 observed |
 | Hydration mismatch | Not observed |
 | Chrome Translate state | Not observed; document language was `en` |
-| `bg-cyberpunk.webp` baseline | Not observed in browser console logs |
+| `bg-surface-shell.webp` baseline | Not observed in browser console logs |
 | Current V20 preview-scope regression | None observed |
 
 ## Route-Load Network Baseline

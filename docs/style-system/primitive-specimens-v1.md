@@ -44,7 +44,7 @@ Forbidden first target:
 | Primitive | Purpose | Current visual anchors | Risk |
 | --- | --- | --- | --- |
 | `NexusPanel` | Framed surface with shadow/blur/border | `.nexus-panel`, `.nexus-glass` | Low |
-| `NexusButton` | Interactive command button | repeated cyan/white/rose button classes | Medium |
+| `NexusButton` | Interactive command button | repeated neutral/white/neutral button classes | Medium |
 | `NexusInput` | Text input/select/textarea shell | auth, graph editors, side panels | Medium |
 | `NexusBadge` | Status/metadata pill | stream/status/model badges | Low |
 | `NexusWindow` | Window chrome specimen only | agent/datapad windows | High |

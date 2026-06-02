@@ -7,10 +7,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   return (
     <NextThemesProvider
       attribute="data-theme"
-      defaultTheme="cyberpunk"
+      defaultTheme="surface-shell"
       disableTransitionOnChange
       enableSystem={false}
-      themes={["cyberpunk", "apple", "tesla", "terminal"]}
+      themes={["surface-shell", "apple", "tesla", "terminal"]}
     >
       {children}
     </NextThemesProvider>

@@ -94,18 +94,18 @@ export function DatapadWindow({ notebookId }: { notebookId: string }) {
       onTouchStart={bringToFront}
       style={{ zIndex }}
     >
-      <section className="nexus-datapad-shell nexus-datapad-window flex h-full min-h-0 flex-col overflow-hidden border border-white/10 bg-black/70 text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.48)] backdrop-blur-xl">
-        <header className="datapad-drag-handle flex h-12 shrink-0 cursor-move items-center gap-2 border-b border-emerald-300/15 bg-emerald-300/[0.045] px-3">
+      <section className="nexus-datapad-shell nexus-datapad-window flex h-full min-h-0 flex-col overflow-hidden border border-white/10 bg-black/70 text-neutral-100 shadow-[0_22px_70px_rgba(0,0,0,0.48)] backdrop-blur-xl">
+        <header className="datapad-drag-handle flex h-12 shrink-0 cursor-move items-center gap-2 border-b border-neutral-300/15 bg-neutral-300/[0.045] px-3">
           <input
             aria-label="Datapad title"
-            className="min-w-0 flex-1 bg-transparent font-mono text-xs uppercase tracking-[0.16em] text-emerald-50 outline-none placeholder:text-slate-600"
+            className="min-w-0 flex-1 bg-transparent font-mono text-xs uppercase tracking-[0.16em] text-neutral-50 outline-none placeholder:text-neutral-600"
             onChange={(event) => handleTitleDraftChange(event.currentTarget.value)}
             placeholder="Untitled Datapad"
             value={titleDraft}
           />
           <button
             aria-label="Close datapad"
-            className="grid h-8 w-8 place-items-center border border-white/10 bg-white/[0.04] text-slate-300 transition hover:border-emerald-300/45 hover:bg-emerald-300/10 hover:text-emerald-100"
+            className="grid h-8 w-8 place-items-center border border-white/10 bg-white/[0.04] text-neutral-300 transition hover:border-neutral-300/45 hover:bg-neutral-300/10 hover:text-neutral-100"
             onClick={() => toggleNotebookOpen(notebook.id)}
             type="button"
           >
@@ -115,7 +115,7 @@ export function DatapadWindow({ notebookId }: { notebookId: string }) {
 
         <textarea
           aria-label="Datapad content"
-          className="cyber-scroll min-h-0 flex-1 resize-none border-0 bg-black/35 p-4 font-mono text-sm leading-6 text-slate-100 outline-none placeholder:text-slate-600 focus:bg-black/45"
+          className="system-scroll min-h-0 flex-1 resize-none border-0 bg-black/35 p-4 font-mono text-sm leading-6 text-neutral-100 outline-none placeholder:text-neutral-600 focus:bg-black/45"
           onChange={(event) => handleContentDraftChange(event.currentTarget.value)}
           placeholder="Capture global notes, reusable context, decisions, and operator memory..."
           spellCheck={false}
@@ -126,14 +126,14 @@ export function DatapadWindow({ notebookId }: { notebookId: string }) {
           <span
             className={cx(
               "font-mono text-[9px] uppercase tracking-[0.16em]",
-              saved ? "text-emerald-200" : "text-slate-600",
+              saved ? "text-neutral-200" : "text-neutral-600",
             )}
           >
             {saved ? "Saved to cloud queue" : "Global Datapad"}
           </span>
           <div className="flex items-center gap-2">
             <button
-              className="inline-flex h-8 items-center gap-2 border border-emerald-300/35 bg-emerald-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-emerald-100 transition hover:bg-emerald-300/20"
+              className="inline-flex h-8 items-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/20"
               onClick={saveNotebook}
               type="button"
             >
@@ -141,7 +141,7 @@ export function DatapadWindow({ notebookId }: { notebookId: string }) {
               Save
             </button>
             <button
-              className="grid h-8 w-8 place-items-center border border-rose-300/30 bg-rose-300/10 text-rose-100 transition hover:bg-rose-300/20"
+              className="grid h-8 w-8 place-items-center border border-neutral-300/30 bg-neutral-300/10 text-neutral-100 transition hover:bg-neutral-300/20"
               onClick={() => deleteNotebook(notebook.id)}
               title="Delete datapad"
               type="button"

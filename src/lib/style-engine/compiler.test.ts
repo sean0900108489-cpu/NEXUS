@@ -22,7 +22,7 @@ describe("NEXUS Style Engine pure compiler", () => {
 
     expect(first.style).toMatchObject({
       compilerVersion: "nexus-style-compiler-v1",
-      manifestId: "legacy-cyberpunk",
+      manifestId: "baseline-surface-shell",
       report: {
         accepted: true,
         adapterCoverage: {
@@ -45,10 +45,10 @@ describe("NEXUS Style Engine pure compiler", () => {
     }
 
     expect(result.style.cssVariables).toMatchObject({
-      "--nexus-accent-primary": "#67e8f9",
-      "--nexus-accent-primary-strong": "#22d3ee",
-      "--nexus-surface-panel": "rgb(8 16 22 / 0.78)",
-      "--nexus-workspace-grid-primary": "rgb(34 211 238 / 0.12)",
+      "--nexus-accent-primary": "#e5e5e5",
+      "--nexus-accent-primary-strong": "#d4d4d4",
+      "--nexus-surface-panel": "rgb(20 20 20 / 0.78)",
+      "--nexus-workspace-grid-primary": "rgb(210 210 210 / 0.12)",
     });
     expect(result.style.legacyCssVariables).toMatchObject({
       "--bg-base": "var(--nexus-surface-app)",
@@ -105,15 +105,15 @@ describe("NEXUS Style Engine pure compiler", () => {
 
     expect(result.style.adapters.reactFlow).toMatchObject({
       background: {
-        color: "rgb(34 211 238 / 0.12)",
+        color: "rgb(210 210 210 / 0.12)",
       },
       edge: {
-        selectedStroke: "#22d3ee",
+        selectedStroke: "#d4d4d4",
       },
       node: {
         agent: {
-          surface: "rgb(8 16 22 / 0.78)",
-          text: "#f8fafc",
+          surface: "rgb(20 20 20 / 0.78)",
+          text: "#f5f5f5",
         },
       },
     });
@@ -133,15 +133,15 @@ describe("NEXUS Style Engine pure compiler", () => {
 
     expect(result.style.adapters.windowModal).toMatchObject({
       commandPalette: {
-        itemActive: "#67e8f9",
-        emptyState: "#64748b",
+        itemActive: "#e5e5e5",
+        emptyState: "#8a8a8a",
       },
       modal: {
-        dangerCallout: "#fda4af",
+        dangerCallout: "#cccccc",
         surface: "var(--nexus-surface-panel)",
       },
       window: {
-        bodySurface: "#020617",
+        bodySurface: "#111111",
         surface: "var(--nexus-surface-panel)",
       },
     });
@@ -164,7 +164,7 @@ describe("NEXUS Style Engine pure compiler", () => {
 
     expect(result.style.adapters.nextThemes).toEqual({
       colorScheme: "dark",
-      dataTheme: "cyberpunk",
+      dataTheme: "surface-shell",
     });
   });
 
@@ -233,8 +233,8 @@ describe("NEXUS Style Engine pure compiler", () => {
 function createSafeManifest(): NexusStyleManifestV1 {
   return {
     schemaVersion: 1,
-    id: "legacy-cyberpunk",
-    name: "Legacy Cyberpunk",
+    id: "baseline-surface-shell",
+    name: "Baseline Surface Shell",
     source: {
       kind: "legacy-preset",
     },
@@ -248,8 +248,8 @@ function createSafeManifest(): NexusStyleManifestV1 {
     },
     tokens: {
       accent: {
-        primary: "#67e8f9",
-        primaryStrong: "#22d3ee",
+        primary: "#e5e5e5",
+        primaryStrong: "#d4d4d4",
       },
       blur: {
         glass: "8px",
@@ -270,25 +270,25 @@ function createSafeManifest(): NexusStyleManifestV1 {
         panel: "0 24px 80px rgb(0 0 0 / 0.38)",
       },
       status: {
-        danger: "#fda4af",
-        success: "#6ee7b7",
-        warning: "#fcd34d",
+        danger: "#cccccc",
+        success: "#d6d6d6",
+        warning: "#eeeeee",
       },
       surface: {
-        app: "#030712",
-        panel: "rgb(8 16 22 / 0.78)",
-        workspace: "#020617",
+        app: "#101010",
+        panel: "rgb(20 20 20 / 0.78)",
+        workspace: "#111111",
       },
       text: {
-        muted: "#64748b",
-        primary: "#f8fafc",
-        secondary: "#cbd5e1",
+        muted: "#8a8a8a",
+        primary: "#f5f5f5",
+        secondary: "#d0d0d0",
       },
       typography: {
         interface: "Geist",
       },
       workspace: {
-        gridPrimary: "rgb(34 211 238 / 0.12)",
+        gridPrimary: "rgb(210 210 210 / 0.12)",
       },
     },
     recipes: {
@@ -317,7 +317,7 @@ function createSafeManifest(): NexusStyleManifestV1 {
     adapters: {
       nextThemes: {
         colorScheme: "dark",
-        dataTheme: "cyberpunk",
+        dataTheme: "surface-shell",
       },
       tailwindBridge: {
         enabled: true,

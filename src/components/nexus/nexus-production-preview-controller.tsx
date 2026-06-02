@@ -8,7 +8,7 @@ import {
 } from "react";
 
 import {
-  createWarmGlassOpsProductionAliasCoverageReportV1,
+  createSurfaceStyleOpsProductionAliasCoverageReportV1,
 } from "@/lib/style-engine/v2-production-alias-coverage";
 import {
   createProductionPreviewPreflight,
@@ -25,7 +25,7 @@ import {
 import {
   createNexusProductionTokenBridgePlanV1,
 } from "@/lib/style-engine/v2-production-token-bridge";
-import { createWarmGlassOpsSkinPackV2Fixture } from "@/lib/style-engine/v2-fixtures";
+import { createSurfaceStyleOpsSkinPackV2Fixture } from "@/lib/style-engine/v2-fixtures";
 import { compileNexusSkinPackRenderPlanV2 } from "@/lib/style-engine/v2-render-plan";
 import {
   createStyleRuntimeBudgetSummaryFromRenderPlan,
@@ -121,7 +121,7 @@ export function NexusProductionPreviewController({
   const readiness = useMemo(
     () =>
       enabled
-        ? createWarmGlassProductionPreviewReadiness()
+        ? createSurfaceStyleProductionPreviewReadiness()
         : {
             accepted: false as const,
             reason: "Production preview first cut is disabled.",
@@ -324,15 +324,15 @@ export function NexusProductionPreviewController({
   );
 }
 
-function createWarmGlassProductionPreviewReadiness(): NexusProductionPreviewReadiness {
+function createSurfaceStyleProductionPreviewReadiness(): NexusProductionPreviewReadiness {
   const renderPlanResult = compileNexusSkinPackRenderPlanV2(
-    createWarmGlassOpsSkinPackV2Fixture(),
+    createSurfaceStyleOpsSkinPackV2Fixture(),
   );
 
   if (!renderPlanResult.accepted) {
     return {
       accepted: false,
-      reason: "Warm Glass Render Plan was rejected.",
+      reason: "Surface Style Render Plan was rejected.",
     };
   }
 
@@ -343,7 +343,7 @@ function createWarmGlassProductionPreviewReadiness(): NexusProductionPreviewRead
   if (!bridgeResult.accepted) {
     return {
       accepted: false,
-      reason: "Warm Glass production bridge was rejected.",
+      reason: "Surface Style production bridge was rejected.",
     };
   }
 
@@ -351,7 +351,7 @@ function createWarmGlassProductionPreviewReadiness(): NexusProductionPreviewRead
     renderPlanResult.renderPlan,
     {
       bridgePlan: bridgeResult.bridgePlan,
-      coverage: createWarmGlassOpsProductionAliasCoverageReportV1(),
+      coverage: createSurfaceStyleOpsProductionAliasCoverageReportV1(),
     },
   );
   const preflight = createProductionPreviewPreflight({

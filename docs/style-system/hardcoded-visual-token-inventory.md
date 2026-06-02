@@ -78,26 +78,26 @@ The existing variables are a Legacy Bridge V0. They should be bridged, not delet
 
 Common families:
 
-- `bg-slate-950/*`, `bg-black/*`, `bg-white/[...]`
-- `bg-cyan-300/*`, `bg-fuchsia-300/*`, `bg-emerald-300/*`, `bg-amber-300/*`, `bg-rose-300/*`
-- `text-slate-*`, `text-cyan-*`, `text-fuchsia-*`, `text-emerald-*`, `text-amber-*`, `text-rose-*`, `text-white`
-- `border-white/*`, `border-cyan-300/*`, `border-fuchsia-300/*`, `border-emerald-300/*`, `border-amber-300/*`, `border-rose-300/*`
+- `bg-neutral-950/*`, `bg-black/*`, `bg-white/[...]`
+- `bg-neutral-300/*`, `bg-neutral-300/*`, `bg-neutral-300/*`, `bg-neutral-300/*`, `bg-neutral-300/*`
+- `text-neutral-*`, `text-neutral-*`, `text-neutral-*`, `text-neutral-*`, `text-neutral-*`, `text-neutral-*`, `text-white`
+- `border-white/*`, `border-neutral-300/*`, `border-neutral-300/*`, `border-neutral-300/*`, `border-neutral-300/*`, `border-neutral-300/*`
 
 Future mapping:
 
-- `text-slate-*` should become text hierarchy slots.
-- Cyan/fuchsia/emerald/amber/rose should become accent/status/intent slots, not preset-specific names.
+- `text-neutral-*` should become text hierarchy slots.
+- Neutral/neutral/neutral/neutral/neutral should become accent/status/intent slots, not preset-specific names.
 - `bg-black/*` and `bg-white/*` need surface hierarchy mapping because opacity often encodes depth.
 
 ### Hardcoded Graph Colors
 
 Anchors:
 
-- Runtime handles use `#f0abfc` and `#22d3ee`: `src/components/nexus/nexus-graph.tsx:293`.
-- Edge defaults use `#22d3ee`: `src/components/nexus/nexus-graph.tsx:858`.
+- Runtime handles use `#d4d4d4` and `#d4d4d4`: `src/components/nexus/nexus-graph.tsx:293`.
+- Edge defaults use `#d4d4d4`: `src/components/nexus/nexus-graph.tsx:858`.
 - Graph background uses `rgba(34, 211, 238, 0.22)`: `src/components/nexus/nexus-graph.tsx:923`.
 - Minimap mask uses `rgba(2, 6, 23, 0.76)`: `src/components/nexus/nexus-graph.tsx:925`.
-- Minimap node fallback uses `#22d3ee`: `src/components/nexus/nexus-graph.tsx:926`.
+- Minimap node fallback uses `#d4d4d4`: `src/components/nexus/nexus-graph.tsx:926`.
 
 Future mapping:
 
@@ -114,7 +114,7 @@ Future mapping:
 Common patterns:
 
 - Deep black elevation shadows.
-- Cyan/fuchsia/emerald/rose glows.
+- Neutral/neutral/neutral/neutral glows.
 - `shadow-[...]` with explicit `rgba()`.
 
 Future mapping:

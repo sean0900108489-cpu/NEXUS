@@ -32,13 +32,21 @@ describe("Nexus production Theme panel live style controls", () => {
     source,
     "handleSaveWorkspaceThemeStyleControls",
   );
+  const bootControlsSource = extractFunctionSource(
+    source,
+    "resolveWorkspaceThemeControlsForBoot",
+    "applyWorkspaceThemeControlsToProductionTarget",
+  );
+  const bootApplySource = extractFunctionSource(
+    source,
+    "applyWorkspaceThemeControlsToProductionTarget",
+    "createWorkspaceThemeTargetFacts",
+  );
 
   it("renders Workspace Style Controls inside the production Theme panel", () => {
     expect(source).toContain("Workspace Style Controls");
     expect(source).toContain('data-testid="workspace-style-controls-panel"');
     expect(source).toContain("Base theme seed plus scoped workspace override");
-    expect(source).toContain("not backend persisted");
-    expect(source).toContain("not auto-applied to other workspaces");
     expect(source).toContain("Save to workspace style");
     expect(source).toContain("Revert preview");
     expect(source).toContain("Reset controls");
@@ -52,19 +60,26 @@ describe("Nexus production Theme panel live style controls", () => {
     expect(source).not.toContain("LegoThemeEngineControls");
   });
 
-  it("makes the workspace style layer relationship explicit", () => {
+  it("keeps noisy workspace style diagnostics out of the Theme panel chrome", () => {
     expect(source).toContain("createDefaultWorkspaceThemeStyleControlsV1");
-    expect(controlsPanelSource).toContain("workspace-style-system-relation");
-    expect(controlsPanelSource).toContain("synced to workspace seed");
-    expect(controlsPanelSource).toContain("workspace override saved");
-    expect(controlsPanelSource).toContain("live override unsaved");
-    expect(controlsPanelSource).toContain("workspace-style-current-preset-status");
-    expect(controlsPanelSource).toContain("workspace-style-baseline-status");
-    expect(controlsPanelSource).toContain("current preset");
-    expect(controlsPanelSource).toContain("saved baseline");
-    expect(controlsPanelSource).toContain("Unsaved changes");
-    expect(controlsPanelSource).toContain("In sync");
-    expect(controlsPanelSource).toContain("Custom saved");
+    expect(controlsPanelSource).not.toContain("workspace-style-target-status");
+    expect(controlsPanelSource).not.toContain("workspace-style-live-status");
+    expect(controlsPanelSource).not.toContain("workspace-style-save-status");
+    expect(controlsPanelSource).not.toContain("workspace-style-system-relation");
+    expect(controlsPanelSource).not.toContain("workspace-style-current-preset-status");
+    expect(controlsPanelSource).not.toContain("workspace-style-baseline-status");
+    expect(controlsPanelSource).not.toContain("workspace-style-preview-trace");
+    expect(controlsPanelSource).not.toContain("workspace-style-residue-status");
+    expect(controlsPanelSource).not.toContain("target {previewState.targetStatus}");
+    expect(controlsPanelSource).not.toContain("<span>live preview</span>");
+    expect(controlsPanelSource).not.toContain("<span>workspace export</span>");
+    expect(controlsPanelSource).not.toContain("<span>style system</span>");
+    expect(controlsPanelSource).not.toContain("<span>current preset</span>");
+    expect(controlsPanelSource).not.toContain("<span>saved baseline</span>");
+    expect(controlsPanelSource).not.toContain("<span>vars / checksum</span>");
+    expect(controlsPanelSource).not.toContain("<span>apply / revert</span>");
+    expect(controlsPanelSource).not.toContain("<span>residue</span>");
+    expect(controlsPanelSource).not.toContain("not auto-applied to other workspaces");
   });
 
   it("adds workspace style presets as Layer 4 shortcuts on the existing controls chain", () => {
@@ -116,6 +131,36 @@ describe("Nexus production Theme panel live style controls", () => {
     expect(controlsPanelSource).not.toContain("fetch(");
   });
 
+  it("applies the workspace theme seed to the production target after authenticated load", () => {
+    expect(source).toContain("workspaceStyleReviewLoaded");
+    expect(source).toContain("workspaceThemeBootAppliedRef");
+    expect(source).toContain("resolveWorkspaceThemeControlsForBoot");
+    expect(source).toContain("applyWorkspaceThemeControlsToProductionTarget");
+    expect(source).toContain("authChecked");
+    expect(source).toContain("authVault.user?.id");
+    expect(bootControlsSource).toContain("createDefaultWorkspaceThemeStyleControlsV1()");
+    expect(bootControlsSource).toContain("extractWorkspaceThemeStyleControlsV1");
+    expect(bootControlsSource).toContain(
+      "stylePayloadReview?.decision.status === \"accepted\"",
+    );
+    expect(bootApplySource).toContain(
+      "createWorkspaceThemeStylePreviewVariablesV1(controls)",
+    );
+    expect(bootApplySource).toContain("getWorkspaceThemePreviewTargets");
+    expect(bootApplySource).toContain("createWorkspaceThemeTargetFacts");
+    expect(bootApplySource).toContain("createProductionPreviewApplyPlan");
+    expect(bootApplySource).toContain("preflightVerdict: \"eligible\"");
+    expect(bootApplySource).toContain("target.style.setProperty");
+    expect(bootApplySource).toContain("writesToBackend: false");
+    expect(bootApplySource).toContain("writesToStore: false");
+    expect(bootApplySource).toContain("mutatesDocumentRoot: false");
+    expect(bootApplySource).not.toContain("document.documentElement.style");
+    expect(bootApplySource).not.toContain("document.body.style");
+    expect(bootApplySource).not.toContain("localStorage");
+    expect(bootApplySource).not.toContain("indexedDB");
+    expect(bootApplySource).not.toContain("fetch(");
+  });
+
   it("saves normalized controls into the existing workspace style payload export path", () => {
     expect(saveHandlerSource).toContain(
       "createWorkspaceThemeStylePayloadForExport",
@@ -157,14 +202,25 @@ describe("Nexus production Theme panel live style controls", () => {
     expect(source).not.toContain("remoteUrl");
   });
 
-  it("uses a safe native color picker for accent tuning", () => {
-    expect(controlsPanelSource).toContain('type="color"');
-    expect(controlsPanelSource).toContain('data-testid="workspace-style-accent-color"');
-    expect(controlsPanelSource).toContain('accent: "custom"');
-    expect(controlsPanelSource).toContain("accentColor: event.currentTarget.value.toLowerCase()");
+  it("does not expose native color-wheel controls in the production Theme panel", () => {
+    expect(controlsPanelSource).not.toContain('type="color"');
+    expect(controlsPanelSource).not.toContain(
+      'data-testid="workspace-style-accent-color"',
+    );
+    expect(controlsPanelSource).not.toContain(
+      'data-testid="workspace-style-body-surface-color"',
+    );
+    expect(controlsPanelSource).not.toContain("Workspace Body Surface");
+    expect(controlsPanelSource).not.toContain("Color wheel");
+    expect(controlsPanelSource).not.toContain(
+      "accentColor: event.currentTarget.value.toLowerCase()",
+    );
+    expect(controlsPanelSource).not.toContain(
+      "bodySurfaceColor: event.currentTarget.value.toLowerCase()",
+    );
     expect(controlsPanelSource).toContain("activeAccent");
     expect(controlsPanelSource).toContain("borderColor");
-    expect(controlsPanelSource).toContain("text-slate-100");
+    expect(controlsPanelSource).toContain("text-neutral-100");
     expect(controlsPanelSource).not.toContain("workspaceThemeAccentOptions.map");
     expect(controlsPanelSource).not.toContain("option.swatch");
   });
@@ -182,22 +238,17 @@ describe("Nexus production Theme panel live style controls", () => {
     expect(controlsPanelSource).not.toContain("backgroundColor: `${activeAccent}0d`");
     expect(controlsPanelSource).not.toContain("backgroundColor: `${activeAccent}0a`");
     expect(controlsPanelSource).not.toContain("backgroundColor: `${activeAccent}1f`");
-    expect(controlsPanelSource).not.toContain("text-amber-100");
-    expect(controlsPanelSource).not.toContain("text-cyan-100");
-    expect(controlsPanelSource).not.toContain("text-emerald-100");
-    expect(controlsPanelSource).not.toContain("text-rose-100");
-    expect(controlsPanelSource).not.toContain("text-violet-100");
   });
 
   it("lets left menu actions follow the workspace primary accent", () => {
-    expect(topBarSource).toContain("var(--theme-primary, #67e8f9)");
+    expect(topBarSource).toContain("var(--theme-primary, #e5e5e5)");
     expect(topBarSource).toContain("New Workspace");
-    expect(topMenuActionSource).toContain("var(--theme-primary, #67e8f9)");
+    expect(topMenuActionSource).toContain("var(--theme-primary, #e5e5e5)");
     expect(topBarSource).not.toContain(
-      "flex w-full items-center justify-center gap-2 border border-emerald-300/35 bg-emerald-300/10",
+      "flex w-full items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10",
     );
     expect(topMenuActionSource).not.toContain(
-      "hover:border-cyan-300/35 hover:text-cyan-100",
+      "hover:border-neutral-300/35 hover:text-neutral-100",
     );
   });
 
@@ -209,14 +260,14 @@ describe("Nexus production Theme panel live style controls", () => {
       "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
     );
     expect(topBarSource).not.toContain(
-      "border border-cyan-300/25 bg-cyan-300/[0.045]",
+      "border border-neutral-300/25 bg-neutral-300/[0.045]",
     );
   });
 
   it("layers Theme panel fills through shared material variables instead of local accent fills", () => {
-    expect(source).toContain("color-mix(in srgb, var(--theme-primary, #67e8f9) 13%");
-    expect(source).toContain("color-mix(in srgb, var(--theme-primary, #67e8f9) 12%");
-    expect(source).toContain("color-mix(in srgb, var(--theme-primary, #67e8f9) 4%");
+    expect(source).toContain("color-mix(in srgb, var(--theme-primary, #e5e5e5) 13%");
+    expect(source).toContain("color-mix(in srgb, var(--theme-primary, #e5e5e5) 12%");
+    expect(source).toContain("color-mix(in srgb, var(--theme-primary, #e5e5e5) 4%");
     expect(source).toContain("var(--nexus-layout-panel-bg");
     expect(source).toContain("var(--nexus-layout-panel-muted-bg");
     expect(source).toContain("var(--nexus-layout-panel-border");
@@ -229,9 +280,9 @@ describe("Nexus production Theme panel live style controls", () => {
 
   it("syncs central panels and graph backgrounds to shared layout material variables", () => {
     expect(source).toContain("nexus-workspace nexus-scanline");
-    expect(source).not.toContain("bg-slate-950/80 shadow-2xl");
+    expect(source).not.toContain("bg-neutral-950/80 shadow-2xl");
     expect(bodyFrameSource).toContain(
-      "[background:var(--nexus-body-frame-bg,transparent)]",
+      "var(--nexus-body-frame-bg, rgb(18 18 18))",
     );
     expect(graphSource).toContain("bg-transparent");
     expect(graphSource).toContain("[&_.react-flow]:!bg-transparent");

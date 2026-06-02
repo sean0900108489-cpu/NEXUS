@@ -151,7 +151,7 @@ export class MockMemoryCompressor {
           id: "mock-compressed-ui-intent",
           title: "UI/UX Intent",
           content:
-            "Maintain the cyberpunk engineering command-center aesthetic and avoid disruptive layout changes.",
+            "Maintain the surface-shell engineering command-center aesthetic and avoid disruptive layout changes.",
         }),
       ],
       architectureNotes: ["Registry-first slots are authoritative."],

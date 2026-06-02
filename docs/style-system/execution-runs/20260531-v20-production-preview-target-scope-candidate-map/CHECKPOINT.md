@@ -157,7 +157,7 @@ Future authenticated smoke must confirm:
    - Datapad shell only if safe without save/delete/upload/download
 5. Console and hydration baseline are recorded.
 6. Known baseline issues are separated:
-   - `bg-cyberpunk.webp` placeholder failure
+   - `bg-surface-shell.webp` placeholder failure
    - Chrome Translate hydration mismatch if Translate is active
 7. No persistence, workspace mutation, store/backend/API/Supabase write, or
    production behavior change occurs.

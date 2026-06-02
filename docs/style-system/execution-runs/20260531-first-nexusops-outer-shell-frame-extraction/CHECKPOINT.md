@@ -18,7 +18,7 @@ consumption, token adoption, or production behavior refactor.
 Extracted the original outer wrapper:
 
 ```tsx
-<main className="nexus-shell flex h-dvh min-h-0 flex-col overflow-hidden text-slate-100">
+<main className="nexus-shell flex h-dvh min-h-0 flex-col overflow-hidden text-neutral-100">
   {children}
 </main>
 ```

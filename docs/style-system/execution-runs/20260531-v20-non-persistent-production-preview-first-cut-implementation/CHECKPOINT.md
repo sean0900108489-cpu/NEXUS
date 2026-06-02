@@ -68,7 +68,7 @@ Added a minimal query-gated production preview controller:
 Controller properties:
 
 - Renders no controls unless `nexusPreviewFirstCut=1`.
-- Uses the Warm Glass fixture, V2 render plan, production bridge plan, budget summary, and production preview preflight contract.
+- Uses the Surface Style fixture, V2 render plan, production bridge plan, budget summary, and production preview preflight contract.
 - Targets only `main.nexus-shell.nexus-outer-shell-frame`.
 - Snapshots previous inline CSS variable values before apply.
 - Applies only bridge CSS variables to the target element.

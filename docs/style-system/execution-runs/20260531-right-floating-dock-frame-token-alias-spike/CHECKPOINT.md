@@ -37,13 +37,13 @@ Each alias follows this chain:
 
 - dedicated right-dock alias
 - existing panel bridge alias
-- cyberpunk baseline
+- surface-shell baseline
 
 Examples:
 
-- `--nexus-right-dock-bg` -> `--nexus-panel-bg` -> `rgb(2 6 23 / 0.9)`
-- `--nexus-right-dock-border` -> `--nexus-panel-border` -> `rgb(103 232 249 / 0.25)`
-- `--nexus-right-dock-shadow` -> `--nexus-panel-shadow` -> current dual cyberpunk shadow
+- `--nexus-right-dock-bg` -> `--nexus-panel-bg` -> `rgb(16 16 16 / 0.9)`
+- `--nexus-right-dock-border` -> `--nexus-panel-border` -> `rgb(210 210 210 / 0.25)`
+- `--nexus-right-dock-shadow` -> `--nexus-panel-shadow` -> current dual surface-shell shadow
 - `--nexus-right-dock-blur` -> `--nexus-panel-blur` -> `--glass-blur`
 - `--nexus-right-dock-radius` -> `--nexus-panel-radius` -> `0`
 

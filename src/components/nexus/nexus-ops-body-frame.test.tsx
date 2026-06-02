@@ -24,16 +24,18 @@ describe("NexusOpsBodyFrame", () => {
     );
   });
 
-  it("preserves the existing body visual class marker", () => {
+  it("preserves the body frame material variable wiring", () => {
     const html = renderToStaticMarkup(
       <NexusOpsBodyFrame>
         <span>child</span>
       </NexusOpsBodyFrame>,
     );
 
+    expect(html).toContain('class="flex min-h-0 flex-1 gap-2 p-2"');
     expect(html).toContain(
-      'class="flex min-h-0 flex-1 gap-2 [background:var(--nexus-body-frame-bg,transparent)] p-2"',
+      "background:var(--nexus-body-frame-bg, rgb(18 18 18))",
     );
+    expect(html).not.toContain("workspace-body-surface-diagnostic-overlay");
   });
 
   it("does not expose behavior authority through props", () => {
@@ -55,7 +57,7 @@ describe("NexusOpsBodyFrame", () => {
     expect(validProps.children).toBe("child");
   });
 
-  it("does not use hooks, effects, event handlers, prop spreading, or style mutation", () => {
+  it("does not use hooks, effects, event handlers, prop spreading, or runtime style mutation", () => {
     const source = readBodyFrameSource();
     const forbiddenPatterns = [
       /\buse[A-Z][A-Za-z]+\s*\(/,
@@ -63,7 +65,6 @@ describe("NexusOpsBodyFrame", () => {
       /\buseLayoutEffect\b/,
       /\bon[A-Z][A-Za-z]+\s*=/,
       /\{\.\.\./,
-      /\bstyle\s*=/,
       /\bdocument\./,
       /\bwindow\./,
       /\blocalStorage\b/,

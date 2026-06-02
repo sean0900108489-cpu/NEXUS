@@ -9,7 +9,7 @@ export const NEXUS_WORKSPACE_STYLE_PAYLOAD_MAX_BYTES = 96 * 1024;
 
 export type WorkspaceStylePayloadSource =
   | "style-lab"
-  | "warm-glass-controls"
+  | "surface-style-controls"
   | "imported";
 
 export type WorkspaceStylePayloadBridgeSummary = {
@@ -25,11 +25,11 @@ export const NEXUS_WORKSPACE_THEME_STYLE_CONTROLS_KEY_V1 =
   "themeControlsV1" as const;
 
 export type WorkspaceThemeStyleAccentV1 =
-  | "amber"
-  | "cyan"
-  | "emerald"
-  | "rose"
-  | "violet"
+  | "base"
+  | "line"
+  | "field"
+  | "signal"
+  | "focus"
   | "custom";
 
 export type WorkspaceThemeStyleControlsV1 = {
@@ -126,7 +126,7 @@ const allowedPayloadKeys = new Set([
 
 const allowedSources = new Set<WorkspaceStylePayloadSource>([
   "style-lab",
-  "warm-glass-controls",
+  "surface-style-controls",
   "imported",
 ]);
 
@@ -145,16 +145,19 @@ const themeControlRanges = {
   warmth: [0, 100],
   workspaceWash: [0, 100],
 } as const satisfies Record<
-  Exclude<keyof WorkspaceThemeStyleControlsV1, "accent" | "accentColor" | "version">,
+  Exclude<
+    keyof WorkspaceThemeStyleControlsV1,
+    "accent" | "accentColor" | "version"
+  >,
   readonly [number, number]
 >;
 
 const allowedThemeControlAccents = new Set<WorkspaceThemeStyleAccentV1>([
-  "amber",
-  "cyan",
-  "emerald",
-  "rose",
-  "violet",
+  "base",
+  "line",
+  "field",
+  "signal",
+  "focus",
   "custom",
 ]);
 
@@ -179,46 +182,45 @@ const workspaceThemeStyleAccentTokens: Record<
     rgb: [number, number, number];
   }
 > = {
-  amber: {
-    primary: "#f4c27a",
-    primaryStrong: "#f59e0b",
-    rgb: [244, 194, 122],
-    secondary: "#f7dbc0",
+  base: {
+    primary: "#e0e0e0",
+    primaryStrong: "#d0d0d0",
+    rgb: [224, 224, 224],
+    secondary: "#eeeeee",
   },
-  cyan: {
-    primary: "#67e8f9",
-    primaryStrong: "#22d3ee",
-    rgb: [103, 232, 249],
-    secondary: "#bae6fd",
+  line: {
+    primary: "#e5e5e5",
+    primaryStrong: "#d4d4d4",
+    rgb: [229, 229, 229],
+    secondary: "#e8e8e8",
   },
-  emerald: {
-    primary: "#6ee7b7",
-    primaryStrong: "#10b981",
-    rgb: [110, 231, 183],
-    secondary: "#d1fae5",
+  field: {
+    primary: "#d6d6d6",
+    primaryStrong: "#bdbdbd",
+    rgb: [214, 214, 214],
+    secondary: "#f0f0f0",
   },
-  rose: {
-    primary: "#fda4af",
-    primaryStrong: "#fb7185",
-    rgb: [253, 164, 175],
-    secondary: "#ffe4e6",
+  signal: {
+    primary: "#cccccc",
+    primaryStrong: "#c7c7c7",
+    rgb: [204, 204, 204],
+    secondary: "#eeeeee",
   },
-  violet: {
-    primary: "#c4b5fd",
-    primaryStrong: "#8b5cf6",
-    rgb: [196, 181, 253],
-    secondary: "#ede9fe",
+  focus: {
+    primary: "#dadada",
+    primaryStrong: "#bbbbbb",
+    rgb: [218, 218, 218],
+    secondary: "#eeeeee",
   },
   custom: {
     primary: "#e5e7eb",
-    primaryStrong: "#cbd5e1",
+    primaryStrong: "#d0d0d0",
     rgb: [229, 231, 235],
-    secondary: "#f8fafc",
+    secondary: "#f5f5f5",
   },
 };
 
 const workspaceThemeStylePreviewVariableNames = [
-  "--nexus-outer-shell-bg",
   "--nexus-body-frame-bg",
   "--nexus-layout-panel-bg",
   "--nexus-layout-panel-muted-bg",
@@ -789,6 +791,10 @@ function rgb([red, green, blue]: [number, number, number], opacity = 1) {
   return `rgb(${red} ${green} ${blue} / ${alpha(opacity)})`;
 }
 
+function rgbSolid([red, green, blue]: [number, number, number]) {
+  return `rgb(${red} ${green} ${blue})`;
+}
+
 function isSafeThemeHexColor(value: unknown): value is string {
   return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value);
 }
@@ -866,25 +872,23 @@ function createWorkspaceThemeStylePreviewVariables(
     clampColorChannel(level + surfaceWarmShift * 0.25),
     clampColorChannel(level - surfaceWarmShift * 0.25),
   ];
-  const surfaceDeep = neutralSurface(8 + wash * 10);
   const surfaceBase = neutralSurface(14 + wash * 18);
   const surfacePanel = neutralSurface(22 + wash * 20);
   const surfaceRaised = neutralSurface(32 + wash * 22);
   const panel = rgb(surfacePanel, panelOpacity);
   const glassPanel = rgb(surfaceRaised, glassOpacity);
+  const chatPanel = rgb(accent.rgb, 0.08 + glass * 0.12);
   const border = rgb(accent.rgb, borderOpacity);
   const layoutPanel = `linear-gradient(180deg, ${rgb(accent.rgb, layoutTintOpacity)}, ${rgb(surfaceBase, 0.16 + glass * 0.16)})`;
   const layoutPanelMuted = `linear-gradient(180deg, ${rgb(accent.rgb, 0.025 + wash * 0.045)}, ${rgb(surfaceBase, 0.08 + glass * 0.12)})`;
   const workspaceSurfaceRgb = neutralSurface(9 + wash * 30);
   const workspaceBg = rgb(workspaceSurfaceRgb, 0.98);
+  const bodyFrameSurface = neutralSurface(10 + wash * 38);
   const workspaceWash =
     `linear-gradient(135deg, ${rgb(accent.rgb, workspaceWashOpacity)}, ${rgb(surfaceBase, 0.012 + wash * 0.032)})`;
   const shadowValue =
     `0 24px ${Math.round(42 + shadow * 58)}px rgb(0 0 0 / ${alpha(shadowOpacity)}), 0 0 ${Math.round(14 + shadow * 34)}px ${rgb(accent.rgb, accentGlowOpacity)}`;
-  const outerShellBg =
-    `linear-gradient(135deg, ${rgb(surfaceDeep, 0.98)}, ${rgb(surfaceBase, 0.86)} 48%, ${rgb(accent.rgb, 0.04 + wash * 0.07)})`;
-  const bodyFrameBg =
-    `linear-gradient(180deg, ${rgb(accent.rgb, 0.02 + wash * 0.035)}, ${rgb(surfaceBase, 0.05 + wash * 0.07)})`;
+  const bodyFrameBg = rgbSolid(bodyFrameSurface);
 
   return ensureThemePreviewVariableOrder({
     "--nexus-body-frame-bg": bodyFrameBg,
@@ -892,11 +896,10 @@ function createWorkspaceThemeStylePreviewVariables(
     "--nexus-layout-panel-border": border,
     "--nexus-layout-panel-muted-bg": layoutPanelMuted,
     "--nexus-layout-panel-shadow": shadowValue,
-    "--nexus-outer-shell-bg": outerShellBg,
     "--nexus-accent-primary": accent.primary,
     "--nexus-accent-primary-strong": accent.primaryStrong,
     "--nexus-accent-secondary": accent.secondary,
-    "--nexus-agent-window-bg": glassPanel,
+    "--nexus-agent-window-bg": chatPanel,
     "--nexus-agent-window-blur": blur,
     "--nexus-agent-window-handle-radius": radius,
     "--nexus-agent-window-radius": radius,
@@ -909,7 +912,7 @@ function createWorkspaceThemeStylePreviewVariables(
     "--nexus-glass-blur": blur,
     "--nexus-glass-border": border,
     "--nexus-glass-radius": radius,
-    "--nexus-message-bubble-bg": rgb(accent.rgb, 0.08 + glass * 0.12),
+    "--nexus-message-bubble-bg": glassPanel,
     "--nexus-message-bubble-radius": radius,
     "--nexus-modal-shell-bg": glassPanel,
     "--nexus-modal-shell-radius": radius,

@@ -6,19 +6,19 @@ import {
   createNexusProductionTokenBridgePlanFromRenderPlanResultV1,
 } from "./v2-production-token-bridge";
 import {
-  createWarmGlassOpsProductionAliasCoverageReportV1,
+  createSurfaceStyleOpsProductionAliasCoverageReportV1,
 } from "./v2-production-alias-coverage";
 import { compileNexusSkinPackRenderPlanV2 } from "./v2-render-plan";
-import { createWarmGlassOpsSkinPackV2Fixture } from "./v2-fixtures";
+import { createSurfaceStyleOpsSkinPackV2Fixture } from "./v2-fixtures";
 import {
   createStyleRuntimeBudgetSummary,
   createStyleRuntimeBudgetSummaryFromRenderPlan,
 } from "./v2-style-runtime-budget";
 
 describe("NEXUS Style Runtime Budget model", () => {
-  it("reports the Warm Glass fixture and bridge output as safe", () => {
-    const { bridgePlan, renderPlan } = createWarmGlassRuntimeInputs();
-    const coverage = createWarmGlassOpsProductionAliasCoverageReportV1();
+  it("reports the Surface Style fixture and bridge output as safe", () => {
+    const { bridgePlan, renderPlan } = createSurfaceStyleRuntimeInputs();
+    const coverage = createSurfaceStyleOpsProductionAliasCoverageReportV1();
     const summary = createStyleRuntimeBudgetSummaryFromRenderPlan(renderPlan, {
       bridgePlan,
       coverage,
@@ -40,7 +40,7 @@ describe("NEXUS Style Runtime Budget model", () => {
   });
 
   it("computes alias and family counts from coverage input", () => {
-    const coverage = createWarmGlassOpsProductionAliasCoverageReportV1();
+    const coverage = createSurfaceStyleOpsProductionAliasCoverageReportV1();
     const summary = createStyleRuntimeBudgetSummary({ coverage });
 
     expect(summary.cssVariableCount).toBe(coverage.bridgeVariableCount);
@@ -202,13 +202,13 @@ describe("NEXUS Style Runtime Budget model", () => {
   });
 });
 
-function createWarmGlassRuntimeInputs() {
+function createSurfaceStyleRuntimeInputs() {
   const renderPlanResult = compileNexusSkinPackRenderPlanV2(
-    createWarmGlassOpsSkinPackV2Fixture(),
+    createSurfaceStyleOpsSkinPackV2Fixture(),
   );
 
   if (!renderPlanResult.accepted) {
-    throw new Error("Expected Warm Glass render plan to be accepted.");
+    throw new Error("Expected Surface Style render plan to be accepted.");
   }
 
   const bridgeResult =
@@ -217,7 +217,7 @@ function createWarmGlassRuntimeInputs() {
     );
 
   if (!bridgeResult.accepted) {
-    throw new Error("Expected Warm Glass bridge plan to be accepted.");
+    throw new Error("Expected Surface Style bridge plan to be accepted.");
   }
 
   return {

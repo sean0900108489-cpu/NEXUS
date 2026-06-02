@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
-  createCyberpunkCompatibleSkinPackV2,
+  createSurfaceShellCompatibleSkinPackV2,
   createInvalidBehaviorRecipeRegistryV1,
   createInvalidLayoutPresetV1,
   createInvalidUnsafeAssetPackV1,
@@ -23,9 +23,9 @@ import {
 } from "@/lib/style-engine";
 
 describe("NEXUS Style Engine V2 pure validators", () => {
-  it("accepts valid minimal, cyberpunk-compatible, and pixel workshop skin packs", () => {
+  it("accepts valid minimal, surface-shell-compatible, and pixel workshop skin packs", () => {
     const minimal = validateNexusSkinPackV2(createValidMinimalSkinPackV2());
-    const cyberpunk = validateNexusSkinPackV2(createCyberpunkCompatibleSkinPackV2());
+    const surfaceShell = validateNexusSkinPackV2(createSurfaceShellCompatibleSkinPackV2());
     const pixelWorkshop = validateNexusSkinPackV2(createPixelWorkshopSkinPackV2());
 
     expect(minimal.errors).toEqual([]);
@@ -33,9 +33,9 @@ describe("NEXUS Style Engine V2 pure validators", () => {
     expect(minimal.skinPack?.id).toBe("minimal-carbon-skin");
     expect(minimal.totals?.cssVariableCount).toBeGreaterThan(0);
 
-    expect(cyberpunk.accepted).toBe(true);
-    expect(cyberpunk.errors).toEqual([]);
-    expect(cyberpunk.skinPack?.id).toBe("cyberpunk-compatible-skin");
+    expect(surfaceShell.accepted).toBe(true);
+    expect(surfaceShell.errors).toEqual([]);
+    expect(surfaceShell.skinPack?.id).toBe("surface-shell-compatible-skin");
 
     expect(pixelWorkshop.accepted).toBe(true);
     expect(pixelWorkshop.errors).toEqual([]);

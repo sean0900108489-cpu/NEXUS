@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createDefaultReactFlowStyleAdapterV1,
   createHighContrastCarbonStyleManifestV1,
-  createLegacyCyberpunkStyleManifestV1,
+  createBaselineSurfaceShellStyleManifestV1,
   createReactFlowStyleAdapterFromManifestV1,
   emitReactFlowAdapterCssVariablesV1,
   NEXUS_REACT_FLOW_ADAPTER_FORBIDDEN_BEHAVIOR_KEYS,
@@ -67,41 +67,41 @@ describe("NEXUS React Flow visual adapter", () => {
     }
   });
 
-  it("maps the legacy Cyberpunk manifest to visual adapter values", () => {
+  it("maps the baseline Surface Shell manifest to visual adapter values", () => {
     const adapter = createReactFlowStyleAdapterFromManifestV1(
-      createLegacyCyberpunkStyleManifestV1(),
+      createBaselineSurfaceShellStyleManifestV1(),
     );
 
     expect(adapter).toMatchObject({
       background: {
-        color: "rgb(34 211 238 / 0.12)",
+        color: "rgb(210 210 210 / 0.12)",
       },
       controls: {
-        hoverSurface: "#0f172a",
-        icon: "#f8fafc",
+        hoverSurface: "#171717",
+        icon: "#f5f5f5",
       },
       edge: {
-        defaultStroke: "#64748b",
-        runtimeStroke: "#67e8f9",
-        selectedStroke: "#22d3ee",
+        defaultStroke: "#8a8a8a",
+        runtimeStroke: "#e5e5e5",
+        selectedStroke: "#d4d4d4",
       },
       handle: {
         source: {
-          border: "#030712",
-          fill: "#67e8f9",
+          border: "#101010",
+          fill: "#e5e5e5",
         },
         target: {
-          fill: "#f0abfc",
+          fill: "#d4d4d4",
         },
       },
       node: {
         agent: {
-          surface: "rgb(8 16 22 / 0.78)",
-          text: "#f8fafc",
+          surface: "rgb(20 20 20 / 0.78)",
+          text: "#f5f5f5",
         },
         runtime: {
-          selectedBorder: "#22d3ee",
-          surface: "#0f172a",
+          selectedBorder: "#d4d4d4",
+          surface: "#171717",
         },
       },
     });
@@ -112,30 +112,30 @@ describe("NEXUS React Flow visual adapter", () => {
       createHighContrastCarbonStyleManifestV1(),
     );
 
-    expect(adapter.background.color).toBe("rgb(56 189 248 / 0.16)");
+    expect(adapter.background.color).toBe("rgb(216 216 216 / 0.16)");
     expect(adapter.node.agent.surface).toBe("rgb(16 16 16 / 0.94)");
     expect(adapter.node.runtime.surface).toBe("#18181b");
-    expect(adapter.handle.target.fill).toBe("#facc15");
-    expect(adapter.edge.selectedStroke).toBe("#0ea5e9");
+    expect(adapter.handle.target.fill).toBe("#eeeeee");
+    expect(adapter.edge.selectedStroke).toBe("#c8c8c8");
     expect(adapter.controls.icon).toBe("#ffffff");
   });
 
   it("emits deterministic graph-scoped CSS variables", () => {
     const variables = emitReactFlowAdapterCssVariablesV1(
       createReactFlowStyleAdapterFromManifestV1(
-        createLegacyCyberpunkStyleManifestV1(),
+        createBaselineSurfaceShellStyleManifestV1(),
       ),
     );
 
     expect(Object.keys(variables)).toEqual([...Object.keys(variables)].sort());
     expect(variables).toMatchObject({
-      "--nexus-graph-background-color": "rgb(34 211 238 / 0.12)",
-      "--nexus-graph-edge-selected-stroke": "#22d3ee",
-      "--nexus-graph-handle-source-fill": "#67e8f9",
-      "--nexus-graph-handle-target-fill": "#f0abfc",
+      "--nexus-graph-background-color": "rgb(210 210 210 / 0.12)",
+      "--nexus-graph-edge-selected-stroke": "#d4d4d4",
+      "--nexus-graph-handle-source-fill": "#e5e5e5",
+      "--nexus-graph-handle-target-fill": "#d4d4d4",
       "--nexus-graph-minimap-node-stroke-width": "2",
-      "--nexus-graph-node-agent-surface": "rgb(8 16 22 / 0.78)",
-      "--nexus-graph-node-runtime-surface": "#0f172a",
+      "--nexus-graph-node-agent-surface": "rgb(20 20 20 / 0.78)",
+      "--nexus-graph-node-runtime-surface": "#171717",
     });
   });
 });

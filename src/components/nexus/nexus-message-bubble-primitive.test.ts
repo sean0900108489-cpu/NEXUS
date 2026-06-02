@@ -77,7 +77,7 @@ describe("Nexus message bubble production primitive", () => {
       "var(--nexus-message-user-bg, var(--nexus-message-bubble-bg, var(--nexus-panel-bg, rgb(217 70 239 / 0.1))))",
     );
     expect(css).toContain(
-      "var(--nexus-message-assistant-bg, var(--nexus-message-bubble-bg, var(--nexus-panel-bg, rgb(34 211 238 / 0.07))))",
+      "var(--nexus-message-assistant-bg, var(--nexus-message-bubble-bg, var(--nexus-panel-bg, rgb(210 210 210 / 0.07))))",
     );
     expect(css).toContain(
       "var(--nexus-message-tool-bg, var(--nexus-message-bubble-bg, var(--nexus-panel-bg, rgb(16 185 129 / 0.07))))",
@@ -88,7 +88,7 @@ describe("Nexus message bubble production primitive", () => {
 function readMessageBubbleSource() {
   const source = readFileSync(new URL("nexus-ops.tsx", import.meta.url), "utf8");
 
-  return source.match(/function MessageBubble\([\s\S]*?\n}\n\nfunction MinimizedRail/)?.[0] ?? "";
+  return source.match(/function MessageBubble\([\s\S]*?\n}\n\nfunction WorkspaceChatComposerShell/)?.[0] ?? "";
 }
 
 function readGlobalsCssSource() {

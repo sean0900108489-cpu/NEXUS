@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  createLegacyCyberpunkStyleManifestV1,
+  createBaselineSurfaceShellStyleManifestV1,
   createNexusStyleExportPackageV1,
   normalizeNexusStyleImportCandidateV1,
   redactNexusStyleReviewForExchangeV1,
@@ -11,7 +11,7 @@ import {
 describe("NEXUS Style Engine import/export normalization", () => {
   it("creates a previewable V1 export package from a safe manifest", () => {
     const result = createNexusStyleExportPackageV1(
-      createLegacyCyberpunkStyleManifestV1(),
+      createBaselineSurfaceShellStyleManifestV1(),
     );
 
     expect(result.accepted).toBe(true);
@@ -24,7 +24,7 @@ describe("NEXUS Style Engine import/export normalization", () => {
       formatVersion: 1,
       kind: "nexus-style-pack",
       manifest: {
-        id: "legacy-cyberpunk",
+        id: "baseline-surface-shell",
         schemaVersion: 1,
       },
       review: {
@@ -33,7 +33,7 @@ describe("NEXUS Style Engine import/export normalization", () => {
           windowModal: "complete",
         },
         compatibility: "compatible_with_warnings",
-        manifestId: "legacy-cyberpunk",
+        manifestId: "baseline-surface-shell",
         previewVariableCount: expect.any(Number),
         state: "warning",
         validatorVersion: "nexus-style-validator-v1",
@@ -50,7 +50,7 @@ describe("NEXUS Style Engine import/export normalization", () => {
 
   it("normalizes a V1 export package back to a manifest candidate", () => {
     const exported = createNexusStyleExportPackageV1(
-      createLegacyCyberpunkStyleManifestV1(),
+      createBaselineSurfaceShellStyleManifestV1(),
     );
 
     if (!exported.accepted) {
@@ -68,7 +68,7 @@ describe("NEXUS Style Engine import/export normalization", () => {
     }
 
     expect(imported.source).toBe("export-package");
-    expect(imported.manifest.id).toBe("legacy-cyberpunk");
+    expect(imported.manifest.id).toBe("baseline-surface-shell");
     expect(Object.keys(imported.manifest.tokens)).toEqual([
       "accent",
       "blur",
@@ -87,7 +87,7 @@ describe("NEXUS Style Engine import/export normalization", () => {
 
   it("returns a cloned manifest for export package imports", () => {
     const exported = createNexusStyleExportPackageV1(
-      createLegacyCyberpunkStyleManifestV1(),
+      createBaselineSurfaceShellStyleManifestV1(),
     );
 
     if (!exported.accepted) {
@@ -106,12 +106,12 @@ describe("NEXUS Style Engine import/export normalization", () => {
 
     imported.manifest.tokens.surface.app = "#000000";
 
-    expect(exported.exportPackage.manifest.tokens.surface.app).toBe("#030712");
+    expect(exported.exportPackage.manifest.tokens.surface.app).toBe("#101010");
   });
 
   it("normalizes a direct manifest candidate without an export package wrapper", () => {
     const imported = normalizeNexusStyleImportCandidateV1(
-      createLegacyCyberpunkStyleManifestV1(),
+      createBaselineSurfaceShellStyleManifestV1(),
     );
 
     expect(imported.accepted).toBe(true);
@@ -121,17 +121,17 @@ describe("NEXUS Style Engine import/export normalization", () => {
     }
 
     expect(imported.source).toBe("manifest");
-    expect(imported.manifest.id).toBe("legacy-cyberpunk");
+    expect(imported.manifest.id).toBe("baseline-surface-shell");
     expect(imported.review).toMatchObject({
       compatibility: "compatible_with_warnings",
-      manifestId: "legacy-cyberpunk",
+      manifestId: "baseline-surface-shell",
       state: "warning",
       validatorVersion: "nexus-style-validator-v1",
     });
   });
 
   it("returns a cloned manifest for direct manifest imports", () => {
-    const manifest = createLegacyCyberpunkStyleManifestV1();
+    const manifest = createBaselineSurfaceShellStyleManifestV1();
     const imported = normalizeNexusStyleImportCandidateV1(manifest);
 
     expect(imported.accepted).toBe(true);
@@ -142,11 +142,11 @@ describe("NEXUS Style Engine import/export normalization", () => {
 
     imported.manifest.tokens.surface.app = "#000000";
 
-    expect(manifest.tokens.surface.app).toBe("#030712");
+    expect(manifest.tokens.surface.app).toBe("#101010");
   });
 
   it("refuses to create export packages for unsafe manifests", () => {
-    const manifest = createLegacyCyberpunkStyleManifestV1();
+    const manifest = createBaselineSurfaceShellStyleManifestV1();
 
     manifest.tokens.surface.app = "service_role=super-secret-value";
 
@@ -164,7 +164,7 @@ describe("NEXUS Style Engine import/export normalization", () => {
   });
 
   it("rejects unsafe imports without returning the unsafe manifest", () => {
-    const manifest = createLegacyCyberpunkStyleManifestV1();
+    const manifest = createBaselineSurfaceShellStyleManifestV1();
 
     manifest.tokens.surface.app = "service_role=super-secret-value";
 
@@ -205,7 +205,7 @@ describe("NEXUS Style Engine import/export normalization", () => {
     const imported = normalizeNexusStyleImportCandidateV1({
       formatVersion: 999,
       kind: "nexus-style-pack",
-      manifest: createLegacyCyberpunkStyleManifestV1(),
+      manifest: createBaselineSurfaceShellStyleManifestV1(),
     });
 
     expect(imported.accepted).toBe(false);
@@ -219,7 +219,7 @@ describe("NEXUS Style Engine import/export normalization", () => {
   });
 
   it("redacts governance review fields for exchange output", () => {
-    const review = reviewNexusStylePackV1(createLegacyCyberpunkStyleManifestV1());
+    const review = reviewNexusStylePackV1(createBaselineSurfaceShellStyleManifestV1());
     const redacted = redactNexusStyleReviewForExchangeV1(review);
 
     expect(redacted).not.toHaveProperty("governanceVersion");
@@ -231,7 +231,7 @@ describe("NEXUS Style Engine import/export normalization", () => {
       },
       checksums: review.checksums,
       compatibility: review.compatibility,
-      manifestId: "legacy-cyberpunk",
+      manifestId: "baseline-surface-shell",
       previewVariableCount: expect.any(Number),
       state: "warning",
     });

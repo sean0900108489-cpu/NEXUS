@@ -7,7 +7,7 @@ Status: partially implemented pure contract types and compiler mapping. Provider
 ## Implementation Evidence
 
 - `src/lib/style-engine/manifest.ts` defines the V1 token group names, required semantic tokens, recipe group names, and manifest token shape.
-- `src/lib/style-engine/presets.ts` maps the legacy Cyberpunk baseline and High Contrast Carbon preset through the same semantic token groups.
+- `src/lib/style-engine/presets.ts` maps the baseline Surface Shell baseline and High Contrast Carbon preset through the same semantic token groups.
 - `src/lib/style-engine/compiler.ts` emits deterministic `--nexus-*` semantic variables, preserves the legacy variable bridge, resolves recipe token references into CSS variable references, and emits visual-only adapter outputs.
 - `src/lib/style-engine/compiler.test.ts` covers semantic variable output, legacy bridge output, recipe reference compilation, fail-closed invalid manifests, and adapter metadata.
 - The contract remains local-only and pure. Components do not import raw manifests or AI drafts, runtime Tailwind generation remains forbidden, and workspace/sync/backend/Supabase/deploy/`exports/**` boundaries remain closed.
@@ -85,7 +85,7 @@ Legacy CSS variables remain supported during the bridge period:
 Rule:
 
 New contract names must not be preset-specific. Avoid names like
-`cyberpunkCyan`, `appleGlass`, or `terminalGreen`.
+`surface-shellCyan`, `appleGlass`, or `terminalGreen`.
 
 ## 3. Foundation Token Groups
 
@@ -377,8 +377,8 @@ Validator work in V3 should define measurable thresholds.
 
 V2 passes when:
 
-- Current cyberpunk baseline can be mapped without component-specific color names.
-- At least one non-cyberpunk preset can be mapped through the same semantic groups.
+- Current surface-shell baseline can be mapped without component-specific color names.
+- At least one non-surface-shell preset can be mapped through the same semantic groups.
 - Components are forbidden from importing raw manifest or AI drafts.
 - Runtime Tailwind class generation is explicitly forbidden.
 - Preview/apply/save/persist boundaries remain intact.

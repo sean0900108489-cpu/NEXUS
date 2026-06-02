@@ -40,7 +40,7 @@ nexus-agent-node nexus-runtime-node nexus-agent-node-active
 | Behavior | Current anchor | Protected detail | Verification |
 | --- | --- | --- | --- |
 | Root viewport lock | `src/app/layout.tsx` | `body` uses `overflow-hidden`; app expects no body scroll | Drag windows without body scrolling. |
-| Theme preset switch | `theme-provider.tsx`, `nexus-ops.tsx` | `next-themes` sets `data-theme`; not the same as `workspace.themeConfig` | Switch cyberpunk/apple/tesla/terminal. |
+| Theme preset switch | `theme-provider.tsx`, `nexus-ops.tsx` | `next-themes` sets `data-theme`; not the same as `workspace.themeConfig` | Switch surface-shell/apple/tesla/terminal. |
 | LEGO transient patch | `LegoThemeEngineControls` | sliders patch DOM variables immediately | Slider visual preview works. |
 | LEGO commit | `updateThemeConfig` | commit enters workspace state and sync queue | Commit queues only intended applied config. |
 | Agent window drag | `AgentWindow`, `react-rnd` | `bounds="parent"`, `dragHandleClassName="nexus-drag-handle"` | Drag only from handle. |

@@ -1,6 +1,6 @@
 import {
   createHighContrastCarbonStyleManifestV1,
-  createLegacyCyberpunkStyleManifestV1,
+  createBaselineSurfaceShellStyleManifestV1,
 } from "./presets";
 import type {
   NexusAssetPackV1,
@@ -29,9 +29,9 @@ export function createValidMinimalSkinPackV2(): NexusSkinPackV2 {
       validatorVersion: "nexus-style-validator-v1",
     },
     fallback: {
-      fallbackLegacyPreset: "cyberpunk",
-      fallbackManifestId: "legacy-cyberpunk",
-      fallbackPackId: "legacy-cyberpunk-skin",
+      fallbackLegacyPreset: "surface-shell",
+      fallbackManifestId: "baseline-surface-shell",
+      fallbackPackId: "baseline-surface-shell-skin",
       onAssetFailure: "omit-asset",
       onBudgetFailure: "reject-pack",
       onLayoutFailure: "use-default-layout",
@@ -89,18 +89,18 @@ export function createValidMinimalSkinPackV2(): NexusSkinPackV2 {
   };
 }
 
-export function createCyberpunkCompatibleSkinPackV2(): NexusSkinPackV2 {
-  const manifest = createLegacyCyberpunkStyleManifestV1();
+export function createSurfaceShellCompatibleSkinPackV2(): NexusSkinPackV2 {
+  const manifest = createBaselineSurfaceShellStyleManifestV1();
 
   return {
     ...createValidMinimalSkinPackV2(),
     assets: {
       assetPackContract: "asset-pack-v1",
-      assetPackId: "cyberpunk-safe-assets",
+      assetPackId: "surface-shell-safe-assets",
       fallbackAssetPackId: "minimal-safe-assets",
-      lazyAssetIds: ["cyberpunk-panel-noise"],
+      lazyAssetIds: ["surface-shell-panel-noise"],
       optionalAssetIds: [],
-      requiredAssetIds: ["cyberpunk-action-icon"],
+      requiredAssetIds: ["surface-shell-action-icon"],
     },
     compatibility: {
       appStyleEngineVersion: "nexus-style-engine-v2",
@@ -114,14 +114,14 @@ export function createCyberpunkCompatibleSkinPackV2(): NexusSkinPackV2 {
       warnings: ["stylePack.compatibility.previewOnlyAssets"],
     },
     fallback: {
-      fallbackLegacyPreset: "cyberpunk",
-      fallbackManifestId: "legacy-cyberpunk",
+      fallbackLegacyPreset: "surface-shell",
+      fallbackManifestId: "baseline-surface-shell",
       fallbackPackId: "minimal-carbon-skin",
       onAssetFailure: "use-fallback-asset",
       onBudgetFailure: "preview-degraded",
       onLayoutFailure: "use-default-layout",
     },
-    id: "cyberpunk-compatible-skin",
+    id: "surface-shell-compatible-skin",
     layoutPreset: {
       contract: "layout-preset-boundary-v1",
       density: "compact",
@@ -139,12 +139,12 @@ export function createCyberpunkCompatibleSkinPackV2(): NexusSkinPackV2 {
       payload: manifest,
     },
     metadata: {
-      displayName: "Cyberpunk Compatible Skin",
+      displayName: "Surface Shell Compatible Skin",
       lifecycle: "warning",
       source: "legacy-bridge",
-      tags: ["cyberpunk", "legacy-bridge"],
+      tags: ["surface-shell", "legacy-bridge"],
     },
-    slug: "cyberpunk-compatible-skin",
+    slug: "surface-shell-compatible-skin",
   };
 }
 
@@ -176,8 +176,8 @@ export function createPixelWorkshopSkinPackV2(): NexusSkinPackV2 {
       ],
     },
     fallback: {
-      fallbackLegacyPreset: "cyberpunk",
-      fallbackManifestId: "legacy-cyberpunk",
+      fallbackLegacyPreset: "surface-shell",
+      fallbackManifestId: "baseline-surface-shell",
       fallbackPackId: "minimal-carbon-skin",
       onAssetFailure: "omit-asset",
       onBudgetFailure: "reject-pack",
@@ -344,7 +344,7 @@ export function createPixelWorkshopSkinPackV2(): NexusSkinPackV2 {
   };
 }
 
-export function createWarmGlassOpsSkinPackV2Fixture(): NexusSkinPackV2 {
+export function createSurfaceStyleOpsSkinPackV2Fixture(): NexusSkinPackV2 {
   const manifest = createHighContrastCarbonStyleManifestV1();
 
   return {
@@ -359,15 +359,15 @@ export function createWarmGlassOpsSkinPackV2Fixture(): NexusSkinPackV2 {
     },
     fallback: {
       fallbackLegacyPreset: "apple",
-      fallbackManifestId: "legacy-cyberpunk",
+      fallbackManifestId: "baseline-surface-shell",
       fallbackPackId: "minimal-carbon-skin",
       onAssetFailure: "omit-asset",
       onBudgetFailure: "reject-pack",
       onLayoutFailure: "use-default-layout",
     },
-    id: "warm-glass-ops-skin",
+    id: "surface-style-ops-skin",
     manifest: {
-      manifestId: "warm-glass-ops",
+      manifestId: "surface-style-ops",
       manifestVersion: 1,
       payload: {
         ...manifest,
@@ -383,7 +383,7 @@ export function createWarmGlassOpsSkinPackV2Fixture(): NexusSkinPackV2 {
         },
         description:
           "Warm neutral frosted-glass command center tokens for the V19 production alias coverage path.",
-        id: "warm-glass-ops",
+        id: "surface-style-ops",
         intent: {
           contrast: "standard",
           density: "comfortable",
@@ -391,7 +391,7 @@ export function createWarmGlassOpsSkinPackV2Fixture(): NexusSkinPackV2 {
           mood: ["calm", "professional", "atelier", "command-center"],
           motion: "minimal",
         },
-        name: "Warm Glass Ops",
+        name: "Surface Style Ops",
         recipes: {
           ...manifest.recipes,
           badge: {
@@ -462,7 +462,7 @@ export function createWarmGlassOpsSkinPackV2Fixture(): NexusSkinPackV2 {
         },
         source: {
           kind: "human-brief",
-          reference: "warm-glass-ops-north-star-v1",
+          reference: "surface-style-ops-north-star-v1",
         },
         tokens: {
           accent: {
@@ -533,12 +533,12 @@ export function createWarmGlassOpsSkinPackV2Fixture(): NexusSkinPackV2 {
     },
     metadata: {
       description:
-        "Apple/VisionOS-inspired warm glass operations skin with pearl text, sand/clay surfaces, muted bronze accents, and soft enterprise command-center chrome.",
-      displayName: "Warm Glass Ops",
+        "Apple/VisionOS-inspired surface style operations skin with pearl text, sand/clay surfaces, muted bronze accents, and soft enterprise command-center chrome.",
+      displayName: "Surface Style Ops",
       lifecycle: "validated",
       source: "human-authored",
       tags: [
-        "warm-glass",
+        "surface-style",
         "visionos",
         "desert-atelier",
         "command-center",
@@ -554,7 +554,7 @@ export function createWarmGlassOpsSkinPackV2Fixture(): NexusSkinPackV2 {
       registryVersion: "recipe-registry-v1",
       source: "manifest",
     },
-    slug: "warm-glass-ops-skin",
+    slug: "surface-style-ops-skin",
   };
 }
 
@@ -572,13 +572,13 @@ export function createValidAssetPackV1(): NexusAssetPackV1 {
           algorithm: "sha256",
           value: SHA_256_A,
         },
-        id: "cyberpunk-action-icon",
+        id: "surface-shell-action-icon",
         loading: "critical",
         mime: "image/png",
         role: "action",
         source: {
           kind: "builtin",
-          packagePath: "builtin/icons/cyberpunk-action.png",
+          packagePath: "builtin/icons/surface-shell-action.png",
         },
         type: "icon",
       },
@@ -588,18 +588,18 @@ export function createValidAssetPackV1(): NexusAssetPackV1 {
           height: 1024,
           width: 1024,
         },
-        fallbackAssetId: "cyberpunk-action-icon",
+        fallbackAssetId: "surface-shell-action-icon",
         hash: {
           algorithm: "sha256",
           value: SHA_256_B,
         },
-        id: "cyberpunk-panel-noise",
+        id: "surface-shell-panel-noise",
         loading: "lazy",
         mime: "image/webp",
         role: "panel-surface",
         source: {
           kind: "packaged",
-          contentAddressedPath: "sha256/cyberpunk-panel-noise.webp",
+          contentAddressedPath: "sha256/surface-shell-panel-noise.webp",
         },
         type: "texture",
       },
@@ -613,8 +613,8 @@ export function createValidAssetPackV1(): NexusAssetPackV1 {
     },
     fallback: {
       fallbackByType: {
-        icon: "cyberpunk-action-icon",
-        texture: "cyberpunk-panel-noise",
+        icon: "surface-shell-action-icon",
+        texture: "surface-shell-panel-noise",
       },
       onMissingCritical: "use-fallback-asset",
       onMissingLazy: "omit-and-warn",
@@ -622,10 +622,10 @@ export function createValidAssetPackV1(): NexusAssetPackV1 {
       onOversized: "use-fallback-asset",
       onUnsupportedMime: "reject-asset",
     },
-    id: "cyberpunk-safe-assets",
+    id: "surface-shell-safe-assets",
     kind: "nexus-asset-pack",
     metadata: {
-      displayName: "Cyberpunk Safe Assets",
+      displayName: "Surface Shell Safe Assets",
       lifecycle: "validated",
     },
     performanceBudget: {
@@ -639,7 +639,7 @@ export function createValidAssetPackV1(): NexusAssetPackV1 {
       maxTotalBytes: 262144,
     },
     schemaVersion: 1,
-    slug: "cyberpunk-safe-assets",
+    slug: "surface-shell-safe-assets",
     version: "1.0.0",
   };
 }
@@ -803,7 +803,7 @@ export function createValidLayoutPresetV1(): NexusLayoutPresetV1 {
     workspaceDecoration: {
       ambient: "subtle",
       grid: "standard",
-      textureAssetId: "cyberpunk-panel-noise",
+      textureAssetId: "surface-shell-panel-noise",
     },
   };
 }

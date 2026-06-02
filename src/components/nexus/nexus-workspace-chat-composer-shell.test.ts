@@ -140,6 +140,8 @@ describe("Nexus workspace chat composer shell", () => {
     expect(source).toContain("WORKSPACE_COMPOSER_IMAGE_QUALITY_OPTIONS");
     expect(source).toContain("WORKSPACE_COMPOSER_IMAGE_ASPECT_RATIO_OPTIONS");
     expect(source).toContain("Composer Image Mode generated an image");
+    expect(source).toContain("artifactRecordError");
+    expect(source).toContain("Artifact record: unavailable");
     expect(source).toContain("...result.media");
     expect(source).toContain('type: "generated-image"');
     expect(source).toContain("sourceMessageId: assistantMessageId");

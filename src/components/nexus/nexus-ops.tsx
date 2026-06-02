@@ -2413,38 +2413,47 @@ export function NexusOps() {
           toolName: "Composer Image Mode",
         });
         const assistantMessageId = makeId("message");
-        const artifactResponse = await nexusApiClient.post<
-          ArtifactCreateResponse,
-          CreateArtifactRequest
-        >(
-          "/api/v1/artifacts",
-          {
-            contentUrl: result.media.url,
-            metadata: {
-              aspectRatio: imageSettings.aspectRatio,
-              composerMode: "image",
-              imageGenerationMode: result.mode,
-              mediaUrlKind: getGeneratedImageUrlKind(result.media.url),
-              modelId: imageSettings.modelId,
-              prompt,
-              quality: imageSettings.quality,
-              revisedPrompt: result.revisedPrompt ?? null,
-              source: "workspace-composer",
+        let artifactId: string | undefined;
+        let artifactRecordError: string | null = null;
+
+        try {
+          const artifactResponse = await nexusApiClient.post<
+            ArtifactCreateResponse,
+            CreateArtifactRequest
+          >(
+            "/api/v1/artifacts",
+            {
+              contentUrl: result.media.url,
+              metadata: {
+                aspectRatio: imageSettings.aspectRatio,
+                composerMode: "image",
+                imageGenerationMode: result.mode,
+                mediaUrlKind: getGeneratedImageUrlKind(result.media.url),
+                modelId: imageSettings.modelId,
+                prompt,
+                quality: imageSettings.quality,
+                revisedPrompt: result.revisedPrompt ?? null,
+                source: "workspace-composer",
+              },
+              mimeType: getGeneratedImageMimeType(result.media.url),
+              sourceAgentId: agent.id,
+              sourceMessageId: assistantMessageId,
+              title: `Generated image - ${prompt.slice(0, 48)}`,
+              type: "generated-image",
+              workspaceId: workspace?.id ?? state.activeWorkspaceId,
             },
-            mimeType: getGeneratedImageMimeType(result.media.url),
-            sourceAgentId: agent.id,
-            sourceMessageId: assistantMessageId,
-            title: `Generated image - ${prompt.slice(0, 48)}`,
-            type: "generated-image",
-            workspaceId: workspace?.id ?? state.activeWorkspaceId,
-          },
-          {
-            idempotencyKey: `generated_image_${assistantMessageId}`,
-            userId: state.authVault.user?.id,
-            workspaceId: workspace?.id ?? state.activeWorkspaceId,
-          },
-        );
-        const artifactId = artifactResponse.artifact.id;
+            {
+              idempotencyKey: `generated_image_${assistantMessageId}`,
+              userId: state.authVault.user?.id,
+              workspaceId: workspace?.id ?? state.activeWorkspaceId,
+            },
+          );
+
+          artifactId = artifactResponse.artifact.id;
+        } catch (error) {
+          artifactRecordError =
+            error instanceof Error ? error.message : "Artifact record unavailable.";
+        }
 
         const assistantMessage: AgentMessage = {
           id: assistantMessageId,
@@ -2455,7 +2464,9 @@ export function NexusOps() {
             `Model: ${imageSettings.modelId}`,
             `Quality: ${imageSettings.quality}`,
             `Aspect ratio: ${imageSettings.aspectRatio}`,
-            `Artifact: ${artifactId}`,
+            artifactId
+              ? `Artifact: ${artifactId}`
+              : `Artifact record: unavailable${artifactRecordError ? ` (${artifactRecordError})` : ""}`,
             result.revisedPrompt ? `Revised prompt: ${result.revisedPrompt}` : "",
           ]
             .filter(Boolean)
@@ -2468,9 +2479,15 @@ export function NexusOps() {
         };
 
         useNexusStore.getState().addMessage(agentId, assistantMessage);
-        setArtifactRefreshToken((current) => current + 1);
+        if (artifactId) {
+          setArtifactRefreshToken((current) => current + 1);
+        }
         useNexusStore.getState().updateAgentTelemetry(agentId, prompt.length + 640);
-        setNotice(`${agent.callsign} composer image generated`);
+        setNotice(
+          artifactId
+            ? `${agent.callsign} composer image generated`
+            : `${agent.callsign} composer image generated; artifact record unavailable`,
+        );
       } catch (error) {
         const detail =
           error instanceof Error ? error.message : "Composer image generation failed.";

@@ -82,6 +82,7 @@ describe("executeImageAdapterForAgent", () => {
         model: "img2",
       },
       apiKey: "sk-browser-test",
+      baseUrl: "https://api.openai.com/v1",
       prompt: "Y2K wide-leg pants",
       toolName: "Composer Image Mode",
     });
@@ -90,6 +91,7 @@ describe("executeImageAdapterForAgent", () => {
     expect(init?.headers).toEqual({
       Authorization: "Bearer sk-browser-test",
       "Content-Type": "application/json",
+      "x-openai-base-url": "https://api.openai.com/v1",
     });
   });
 });

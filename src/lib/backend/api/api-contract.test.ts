@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST as memoryCompressPost } from "@/app/api/v1/agents/memory-compress/route";
-import { POST as imageGenPost } from "@/app/api/image-gen/route";
 import { POST as legacyMemoryCompressPost } from "@/app/api/memory-compress/route";
 import { POST as predictiveIntelPost } from "@/app/api/predictive-intel/route";
 import { POST as streamPost } from "@/app/api/v1/agents/[agentId]/stream/route";
@@ -422,9 +421,6 @@ describe("routing compatibility and health", () => {
     const legacyMemoryResponse = await legacyMemoryCompressPost(
       makeJsonRequest("http://localhost/api/memory-compress", {}),
     );
-    const imageResponse = await imageGenPost(
-      makeJsonRequest("http://localhost/api/image-gen", { prompt: "test" }),
-    );
     const predictiveResponse = await predictiveIntelPost(
       makeJsonRequest("http://localhost/api/predictive-intel", {}),
     );
@@ -437,7 +433,6 @@ describe("routing compatibility and health", () => {
       webResponse,
       legacyStreamResponse,
       legacyMemoryResponse,
-      imageResponse,
       predictiveResponse,
       providerVerifyResponse,
     ]) {

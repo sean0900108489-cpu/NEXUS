@@ -2395,13 +2395,19 @@ export function NexusOps() {
         await wait(180);
         useNexusStore.getState().setAgentStatus(agentId, "streaming");
 
+        const runtimeCredential = resolveRuntimeCredentialForModel(
+          state.authVault,
+          imageSettings.modelId,
+          "openai",
+        );
         const result = await executeImageAdapterForAgent({
           agent: {
             accent: agent.accent,
             callsign: agent.callsign,
             model: imageSettings.modelId,
           },
-          apiKey: state.authVault.globalApiKey?.trim(),
+          apiKey: runtimeCredential.apiKey,
+          baseUrl: runtimeCredential.baseUrl,
           imageSettings,
           prompt,
           toolName: "Composer Image Mode",

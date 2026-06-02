@@ -3,7 +3,6 @@ import {
   MockImageAdapter,
   normalizeImageBaseUrl,
 } from "@/lib/adapters/image-adapter";
-import { blockLegacyToolRouteInProduction } from "@/lib/backend/security/legacy-tool-route-boundary";
 import { normalizeWorkspaceComposerImageSettings } from "@/lib/composer/image-generation-settings";
 
 export const runtime = "nodejs";
@@ -46,12 +45,6 @@ function getServerImageBaseUrl() {
 }
 
 export async function POST(request: Request) {
-  const blocked = blockLegacyToolRouteInProduction();
-
-  if (blocked) {
-    return blocked;
-  }
-
   let payload: ImageGenerationPayload;
 
   try {

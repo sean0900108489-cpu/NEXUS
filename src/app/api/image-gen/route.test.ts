@@ -9,6 +9,7 @@ describe("/api/image-gen", () => {
   afterEach(() => {
     process.env.OPENAI_API_KEY = ORIGINAL_OPENAI_API_KEY;
     process.env.OPENAI_IMAGE_MODEL = ORIGINAL_OPENAI_IMAGE_MODEL;
+    vi.unstubAllEnvs();
     vi.unstubAllGlobals();
   });
 
@@ -73,6 +74,46 @@ describe("/api/image-gen", () => {
       prompt: "Y2K trendy wide-leg pants",
       quality: "low",
       size: "1024x1024",
+    });
+  });
+
+  it("stays available in production for composer image mode", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    process.env.OPENAI_API_KEY = "sk-env-test";
+
+    const fetchMock = vi.fn(async () =>
+      Response.json({
+        data: [
+          {
+            b64_json: "cHJvZHVjdGlvbi1pbWFnZQ==",
+          },
+        ],
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await POST(
+      new Request("http://localhost/api/image-gen", {
+        body: JSON.stringify({
+          imageSettings: {
+            aspectRatio: "16:9",
+            modelId: "img2",
+            quality: "standard",
+          },
+          model: "img2",
+          prompt: "production image route smoke",
+        }),
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      media: {
+        type: "image",
+        url: "data:image/png;base64,cHJvZHVjdGlvbi1pbWFnZQ==",
+      },
+      mode: "dall-e",
     });
   });
 });

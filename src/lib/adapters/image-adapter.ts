@@ -13,6 +13,7 @@ export type ImageAdapterAgent = Pick<
 export type ImageAdapterRequest = {
   agent: ImageAdapterAgent;
   apiKey?: string;
+  baseUrl?: string;
   imageSettings?: Partial<WorkspaceComposerImageSettings>;
   prompt: string;
   toolName: string;
@@ -229,6 +230,10 @@ export async function executeImageAdapterForAgent(
 
   if (apiKey) {
     headers.Authorization = `Bearer ${apiKey}`;
+  }
+
+  if (request.baseUrl?.trim()) {
+    headers["x-openai-base-url"] = request.baseUrl.trim();
   }
 
   const response = await fetch("/api/image-gen", {

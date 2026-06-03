@@ -79,6 +79,12 @@
       "path": "docs/workflow-pro/account-matrix-preview-verification.manifest.json",
       "kind": "machine-manifest",
       "reason": "Machine-readable account matrix, route groups, benchmark requirements, evidence rules, and preview-ready gate for Workflow Pro."
+    },
+    {
+      "id": "WPD-014",
+      "path": "docs/workflow-pro/supabase-auth-advisor-notes.md",
+      "kind": "backend-doc",
+      "reason": "Records live Supabase advisor interpretation, expected server-only RLS no-policy findings, v22 RLS performance hardening, and multi-account auth rules."
     }
   ]
 }

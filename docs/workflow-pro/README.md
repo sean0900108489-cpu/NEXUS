@@ -21,7 +21,8 @@ Workflow Pro is the professional workflow design layer for NEXUS. It should sit 
 10. `source-landing-map.md` - dirty-tree and commit-bucket landing map for source, docs, reports, tooling, and next verification.
 11. `account-matrix-preview-verification.md` - owner/editor/viewer/new-account preview verification blueprint.
 12. `account-matrix-preview-verification.manifest.json` - machine-readable account matrix and preview gate.
-13. `file-map.json` - numbered file ownership map for Codex/LLM continuation.
+13. `supabase-auth-advisor-notes.md` - live Supabase advisor interpretation, server-only table rules, and v22 RLS performance hardening note.
+14. `file-map.json` - numbered file ownership map for Codex/LLM continuation.
 
 ## Related Existing Docs
 
@@ -40,3 +41,4 @@ Workflow Pro is the professional workflow design layer for NEXUS. It should sit 
 - Do not introduce a new generated asset history store while artifact vault can represent the record.
 - Do not copy colorful UI concept palettes into production.
 - Do not mutate Supabase schema before a route/RLS/storage policy is explicit.
+- Do not convert server-only Supabase advisor findings into browser policies.

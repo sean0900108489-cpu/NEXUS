@@ -26,6 +26,14 @@ const v20ClientGrantHardeningMigration = readFileSync(
   "utf8",
 );
 
+const v22RlsPolicyPerformanceMigration = readFileSync(
+  new URL(
+    "../../../../supabase/migrations/20260603001000_v22_rls_policy_performance_hardening.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+
 const v20ProtectedClientTables = [
   "agent_runtime_events",
   "agent_runtime_sessions",
@@ -221,6 +229,48 @@ describe("V20 client grant hardening migration", () => {
     expect(v20ClientGrantHardeningMigration).not.toMatch(/\bDROP\s+COLUMN\b/i);
     expect(v20ClientGrantHardeningMigration).not.toMatch(/\bTRUNCATE\s+TABLE\b/i);
     expect(v20ClientGrantHardeningMigration).not.toMatch(/\bDELETE\s+FROM\b/i);
+  });
+});
+
+describe("V22 RLS policy performance hardening migration", () => {
+  it("wraps fixed auth.uid checks with SELECT initPlans", () => {
+    expect(v22RlsPolicyPerformanceMigration).toContain(
+      "user_id = (SELECT auth.uid())",
+    );
+    expect(v22RlsPolicyPerformanceMigration).toContain(
+      "created_by = (SELECT auth.uid())",
+    );
+    expect(v22RlsPolicyPerformanceMigration).not.toContain(
+      "user_id = auth.uid()",
+    );
+    expect(v22RlsPolicyPerformanceMigration).not.toContain(
+      "created_by = auth.uid()",
+    );
+  });
+
+  it("splits memory writes so SELECT has no overlapping FOR ALL policy", () => {
+    expect(v22RlsPolicyPerformanceMigration).toContain(
+      "DROP POLICY IF EXISTS agent_memory_records_write_editor",
+    );
+    expect(v22RlsPolicyPerformanceMigration).toContain(
+      "CREATE POLICY agent_memory_records_insert_editor",
+    );
+    expect(v22RlsPolicyPerformanceMigration).toContain(
+      "CREATE POLICY agent_memory_records_update_editor",
+    );
+    expect(v22RlsPolicyPerformanceMigration).toContain(
+      "CREATE POLICY agent_memory_records_delete_editor",
+    );
+    expect(v22RlsPolicyPerformanceMigration).not.toMatch(/\bFOR\s+ALL\b/i);
+  });
+
+  it("keeps the performance hardening migration repeatable and data-safe", () => {
+    expect(v22RlsPolicyPerformanceMigration).toContain("to_regclass");
+    expect(v22RlsPolicyPerformanceMigration).toContain("DROP POLICY IF EXISTS");
+    expect(v22RlsPolicyPerformanceMigration).not.toMatch(/\bDROP\s+TABLE\b/i);
+    expect(v22RlsPolicyPerformanceMigration).not.toMatch(/\bDROP\s+COLUMN\b/i);
+    expect(v22RlsPolicyPerformanceMigration).not.toMatch(/\bTRUNCATE\b/i);
+    expect(v22RlsPolicyPerformanceMigration).not.toMatch(/\bDELETE\s+FROM\b/i);
   });
 });
 

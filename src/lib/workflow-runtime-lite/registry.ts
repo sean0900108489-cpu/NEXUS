@@ -5,7 +5,9 @@ import {
 import {
   DEFAULT_WORKSPACE_COMPOSER_IMAGE_SETTINGS,
 } from "@/lib/composer/image-generation-settings";
+import { NEXUS_ATTACHMENT_NOOP_COMPILER } from "@/lib/attachments/attachment-compiler-registry";
 import type {
+  FileNodeData,
   InputTextNodeData,
   ModelImageNodeData,
   ModelLlmNodeData,
@@ -45,6 +47,23 @@ export const WORKFLOW_RUNTIME_NODE_DEFINITIONS = {
         label: "Input",
         text: "",
       }) satisfies InputTextNodeData,
+  },
+  "node.file": {
+    type: "node.file",
+    label: "File Node",
+    description: "Passes upstream context through a file attachment compiler boundary.",
+    handles: [
+      { id: "input", kind: "target", label: "Context in" },
+      { id: "output", kind: "source", label: "Context + files out" },
+    ],
+    defaultData: () =>
+      ({
+        attachments: [],
+        compilerId: NEXUS_ATTACHMENT_NOOP_COMPILER.id,
+        compilerVersion: NEXUS_ATTACHMENT_NOOP_COMPILER.version,
+        label: "File Node",
+        note: "",
+      }) satisfies FileNodeData,
   },
   "model.llm": {
     type: "model.llm",

@@ -209,6 +209,76 @@ describe("Workflow Runtime Spine Lite", () => {
     expect(state.get("image")?.outputSnapshot?.rawText).toContain("Image URL:");
   });
 
+  it("waits for long-running image nodes instead of imposing a workflow timeout", async () => {
+    vi.useFakeTimers();
+
+    try {
+      const input = node("input.text", "input", { text: "Y2K fashion board" });
+      const image = node("model.image", "image", {
+        aspectRatio: "16:9",
+        modelId: "img2",
+        quality: "standard",
+      });
+      const output = node("output.text", "output");
+      const runtime = runtimeLite(
+        [input, image, output],
+        [edge(input, image), edge(image, output)],
+      );
+      const state = patchableNodes(runtime.nodes);
+      const callImage = vi.fn(
+        ({ prompt, signal }) =>
+          new Promise<{
+            media: {
+              artifactId: string;
+              createdAt: string;
+              prompt: string;
+              type: "image";
+              url: string;
+            };
+            text: string;
+          }>((resolve, reject) => {
+            signal?.addEventListener("abort", () => {
+              reject(new DOMException("Aborted", "AbortError"));
+            });
+            setTimeout(() => {
+              resolve({
+                media: {
+                  artifactId: "artifact-long-image",
+                  createdAt: new Date().toISOString(),
+                  prompt,
+                  type: "image",
+                  url: "https://example.test/long-image.png",
+                },
+                text: "Image URL: https://example.test/long-image.png",
+              });
+            }, 180_000);
+          }),
+      );
+
+      const runPromise = runWorkflowRuntimeLite({
+        callImage,
+        callLlm: vi.fn(),
+        onNodePatch: state.patch,
+        runtimeLite: runtime,
+        workflowId: "workspace-test",
+      });
+
+      await vi.advanceTimersByTimeAsync(120_000);
+      expect(state.get("image")?.status).toBe("running");
+
+      await vi.advanceTimersByTimeAsync(60_000);
+
+      const run = await runPromise;
+
+      expect(run.status).toBe("success");
+      expect(state.get("image")?.status).toBe("success");
+      expect(state.get("output")?.status).toBe("success");
+      expect(state.get("output")?.outputSnapshot?.rawText).toContain("Image URL:");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("rejects disconnected nodes before execution", () => {
     const input = node("input.text", "input");
     const llmA = node("model.llm", "llm-a");
@@ -387,6 +457,57 @@ describe("Workflow Runtime Spine Lite", () => {
     });
 
     expect(result).toBe(packet);
+  });
+
+  it("node.file passes text through while carrying attachment compiler metadata", async () => {
+    const input = node("input.text", "input-file", { text: "Analyze this package." });
+    const file = node("node.file", "file-node", {
+      attachments: [
+        {
+          artifactId: "artifact-raw",
+          compilerId: "nexus-attachment-noop-compiler-v1",
+          compilerVersion: "v1",
+          contentKind: "binary",
+          mimeType: "application/zip",
+          name: "source.zip",
+          rawArtifactId: "artifact-raw",
+          sizeBytes: 1234,
+        },
+      ],
+    });
+    const output = node("output.text", "output-file");
+    const run = await runWorkflowRuntimeLite({
+      callLlm: async () => ({ text: "unused" }),
+      runtimeLite: runtimeLite(
+        [input, file, output],
+        [edge(input, file), edge(file, output)],
+      ),
+      workflowId: "workflow-file-node",
+    });
+
+    const fileExecution = run.nodeExecutions.find(
+      (execution) => execution.nodeId === file.id,
+    );
+    const outputExecution = run.nodeExecutions.find(
+      (execution) => execution.nodeId === output.id,
+    );
+
+    expect(fileExecution?.outputSnapshot?.rawText).toBe("Analyze this package.");
+    expect(fileExecution?.outputSnapshot?.metadata).toMatchObject({
+      attachmentCompiler: {
+        compilerId: "nexus-attachment-noop-compiler-v1",
+        compilerVersion: "v1",
+        mode: "noop",
+      },
+      attachments: [
+        expect.objectContaining({
+          mimeType: "application/zip",
+          name: "source.zip",
+        }),
+      ],
+      nodeType: "node.file",
+    });
+    expect(outputExecution?.outputSnapshot?.metadata.nodeType).toBe("node.file");
   });
 
   it("keeps complete raw packet text while compacting display text", () => {

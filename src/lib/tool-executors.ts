@@ -119,14 +119,33 @@ export const toolExecutors: Record<string, ToolExecutor> = {
     label: "Image Adapter",
     async run(agent, tool, input) {
       const prompt = input?.prompt?.trim() || "Futuristic AI operations command center.";
-      const result = await executeImageAdapterForAgent({
-        agent,
-        apiKey: input?.apiKey,
-        prompt,
-        toolName: tool.name,
-      });
+      const apiKey = input?.apiKey?.trim();
 
-      return result;
+      try {
+        const result = await executeImageAdapterForAgent({
+          agent,
+          apiKey,
+          prompt,
+          toolName: tool.name,
+        });
+
+        return result;
+      } catch (error) {
+        const routeUnavailableInNode =
+          !apiKey &&
+          error instanceof TypeError &&
+          error.message.includes("Failed to parse URL");
+
+        if (!routeUnavailableInNode) {
+          throw error;
+        }
+
+        return new MockImageAdapter({
+          agent,
+          prompt,
+          toolName: tool.name,
+        }).execute();
+      }
     },
   },
   "real-file-scanner": {

@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "nexus.workflowPro.fileMap.v1",
+  "generatedAt": "2026-06-03",
+  "groups": [
+    {
+      "id": "WPD-001",
+      "path": "docs/workflow-pro/README.md",
+      "kind": "doc-index",
+      "reason": "Entry point for Workflow Pro documentation."
+    },
+    {
+      "id": "WPD-002",
+      "path": "docs/workflow-pro/human-guide.md",
+      "kind": "human-doc",
+      "reason": "Explains Workflow Pro in product language for Sean and human developers."
+    },
+    {
+      "id": "WPD-003",
+      "path": "docs/workflow-pro/llm-guide.md",
+      "kind": "llm-doc",
+      "reason": "Gives Codex/LLM exact continuation rules and protected behavior."
+    },
+    {
+      "id": "WPD-004",
+      "path": "docs/workflow-pro/workflow-contract-v1.md",
+      "kind": "contract-doc",
+      "reason": "Defines the canonical brain-readable workflow design contract."
+    },
+    {
+      "id": "WPD-005",
+      "path": "docs/workflow-pro/workflow-contract-v1.schema.json",
+      "kind": "machine-schema",
+      "reason": "Draft JSON Schema for validating workflow contracts."
+    },
+    {
+      "id": "WPD-006",
+      "path": "docs/workflow-pro/brain-boot-prompt.md",
+      "kind": "prompt-doc",
+      "reason": "Stable Workflow Brain boot prompt usable across model sessions."
+    },
+    {
+      "id": "WPD-007",
+      "path": "docs/workflow-pro/ui-architecture.md",
+      "kind": "ui-doc",
+      "reason": "Defines Workflow Pro layout, concept 5/6 interpretation, and visual boundary."
+    },
+    {
+      "id": "WPD-008",
+      "path": "docs/workflow-pro/backend-persistence-plan.md",
+      "kind": "backend-doc",
+      "reason": "Defines artifact, file node, Supabase, and Vercel persistence gates."
+    },
+    {
+      "id": "WPD-009",
+      "path": "docs/workflow-pro/implementation-rounds.md",
+      "kind": "execution-doc",
+      "reason": "Defines staged rounds and the new 7-8 round report/audio cadence."
+    },
+    {
+      "id": "WPD-010",
+      "path": "docs/workflow-pro/foundation-benchmark-verification.md",
+      "kind": "verification-doc",
+      "reason": "Records the 30-point screen-verified Workflow Pro foundation benchmark, protected no-default-timeout rule, auth boundary expectations, and generated history/download evidence."
+    },
+    {
+      "id": "WPD-011",
+      "path": "docs/workflow-pro/source-landing-map.md",
+      "kind": "landing-doc",
+      "reason": "Separates dirty-tree changes into commit-ready source, docs, reports, generated assets, tooling, and next verification buckets."
+    },
+    {
+      "id": "WPD-012",
+      "path": "docs/workflow-pro/account-matrix-preview-verification.md",
+      "kind": "verification-doc",
+      "reason": "Defines owner, admin, editor, viewer, new-account, spoof-only, and unauthenticated preview verification expectations for Workflow Pro."
+    },
+    {
+      "id": "WPD-013",
+      "path": "docs/workflow-pro/account-matrix-preview-verification.manifest.json",
+      "kind": "machine-manifest",
+      "reason": "Machine-readable account matrix, route groups, benchmark requirements, evidence rules, and preview-ready gate for Workflow Pro."
+    }
+  ]
+}

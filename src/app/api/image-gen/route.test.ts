@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import {
+  clearGeneratedImageAssetCacheForTests,
+  getGeneratedImageAsset,
+} from "@/lib/backend/image-generation/generated-image-asset-cache";
+
+import { GET as GET_GENERATED_IMAGE_ASSET } from "./assets/[assetId]/route";
 import { POST } from "./route";
 
 const ORIGINAL_OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -9,6 +15,7 @@ describe("/api/image-gen", () => {
   afterEach(() => {
     process.env.OPENAI_API_KEY = ORIGINAL_OPENAI_API_KEY;
     process.env.OPENAI_IMAGE_MODEL = ORIGINAL_OPENAI_IMAGE_MODEL;
+    clearGeneratedImageAssetCacheForTests();
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
   });
@@ -53,15 +60,23 @@ describe("/api/image-gen", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({
+    const payload = await response.json();
+
+    expect(payload).toMatchObject({
       media: {
         prompt: "Y2K trendy wide-leg pants",
         type: "image",
-        url: "data:image/png;base64,aW1hZ2U=",
       },
       mode: "dall-e",
       revisedPrompt: "Y2K wide-leg pants",
     });
+    expect(payload.media.url).toMatch(/^\/api\/image-gen\/assets\/img_/u);
+    expect(payload.content).not.toContain("data:image/png;base64");
+    const assetId = String(payload.media.url).split("/").at(-1) ?? "";
+    const asset = getGeneratedImageAsset(assetId);
+
+    expect(asset?.mimeType).toBe("image/png");
+    expect(new TextDecoder().decode(asset?.bytes)).toBe("image");
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [, init] = fetchCalls[0] ?? [];
@@ -77,7 +92,7 @@ describe("/api/image-gen", () => {
     });
   });
 
-  it("stays available in production for composer image mode", async () => {
+  it("is blocked in production because image-gen is a legacy route", async () => {
     vi.stubEnv("NODE_ENV", "production");
     process.env.OPENAI_API_KEY = "sk-env-test";
 
@@ -107,13 +122,42 @@ describe("/api/image-gen", () => {
       }),
     );
 
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      media: {
-        type: "image",
-        url: "data:image/png;base64,cHJvZHVjdGlvbi1pbWFnZQ==",
-      },
-      mode: "dall-e",
-    });
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({ error: "Not found." });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("serves generated b64 images through the transient asset route", async () => {
+    process.env.OPENAI_API_KEY = "sk-env-test";
+    const fetchMock = vi.fn(async () =>
+      Response.json({
+        data: [
+          {
+            b64_json: "aW1hZ2U=",
+          },
+        ],
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await POST(
+      new Request("http://localhost/api/image-gen", {
+        body: JSON.stringify({
+          model: "img2",
+          prompt: "asset route image",
+        }),
+        method: "POST",
+      }),
+    );
+    const payload = await response.json();
+    const assetId = String(payload.media.url).split("/").at(-1) ?? "";
+    const assetResponse = await GET_GENERATED_IMAGE_ASSET(
+      new Request(`http://localhost/api/image-gen/assets/${assetId}`),
+      { params: Promise.resolve({ assetId }) },
+    );
+
+    expect(assetResponse.status).toBe(200);
+    expect(assetResponse.headers.get("Content-Type")).toBe("image/png");
+    await expect(assetResponse.text()).resolves.toBe("image");
   });
 });

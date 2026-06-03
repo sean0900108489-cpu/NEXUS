@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 describe("Nexus workspace production primitive", () => {
   it("keeps the workspace primitive anchored on the existing behavior-owned element", () => {
     const source = readNexusOpsSource();
+    const graphSource = readNexusGraphSource();
 
     expect(source).toContain('ref={workspaceRef}');
     expect(source).toContain(
@@ -12,7 +13,11 @@ describe("Nexus workspace production primitive", () => {
     );
     expect(source).not.toContain("bg-neutral-950/80 shadow-2xl");
     expect(source).toContain('viewMode === "panels"');
+    expect(source).toContain('viewMode === "graph"');
+    expect(source).toContain("<WorkflowProSurface");
     expect(source).toContain("<NexusGraph");
+    expect(graphSource).toContain('label="Add File"');
+    expect(graphSource).toContain('nodeType="node.file"');
   });
 
   it("has workspace aliases for surface, grid, border, shadow, and radius", () => {
@@ -58,6 +63,10 @@ describe("Nexus workspace production primitive", () => {
 
 function readNexusOpsSource() {
   return readFileSync(new URL("nexus-ops.tsx", import.meta.url), "utf8");
+}
+
+function readNexusGraphSource() {
+  return readFileSync(new URL("nexus-graph.tsx", import.meta.url), "utf8");
 }
 
 function readGlobalsCssSource() {

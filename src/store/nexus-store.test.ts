@@ -10,15 +10,21 @@ import { createDefaultWorkspace } from "@/lib/nexus-defaults";
 import type {
   AgentMessage,
   AgentMemoryBlock,
+  ArtifactVaultCache,
+  ArtifactVaultRecord,
   IAuthVault,
   NexusWorkspace,
   NotebookRecord,
   PromptRecord,
+  WorkflowRun,
+  WorkflowRuntimeLiteState,
   WorkspaceRecoveryStateResponse,
   WorkspaceNotebookRecoveryMetadata,
 } from "@/lib/nexus-types";
 
 import {
+  collectWorkflowGeneratedArtifactVaultRecords,
+  mergeArtifactVaultRecordsIntoCache,
   prepareAuthVaultForLocalPersistence,
   prepareWorkspacesForLocalPersistence,
   useNexusStore,
@@ -127,6 +133,100 @@ describe("prepareWorkspacesForLocalPersistence", () => {
     expect(persisted?.settings.viewMode).toBe(workspace.settings.viewMode);
   });
 
+  it("omits inline image data URLs from persisted workflow runtime snapshots", () => {
+    const workspace = createDefaultWorkspace({
+      id: "workspace-runtime-data-url-sanitize",
+      name: "Runtime Data URL Sanitize",
+      timestamp: "2026-06-03T00:00:00.000Z",
+    });
+    const dataUrl = `data:image/png;base64,${"aW1hZ2U=".repeat(1024)}`;
+    const runtimeLite: WorkflowRuntimeLiteState = {
+      edges: [],
+      lastError: null,
+      lastRunId: "run-data-url",
+      nodes: [
+        {
+          data: {
+            aspectRatio: "16:9",
+            modelId: "img2",
+            prompt: "",
+            quality: "standard",
+          },
+          error: null,
+          id: "image-node",
+          inputSnapshot: null,
+          outputSnapshot: {
+            createdAt: "2026-06-03T00:00:01.000Z",
+            displayText: `Image generated at ${dataUrl}`,
+            id: "packet-image",
+            metadata: {
+              artifactVaultRecord: {
+                contentUrl: dataUrl,
+                createdAt: "2026-06-03T00:00:01.000Z",
+                id: "artifact-data-url",
+                sourceMessageId: "message-data-url",
+                status: "saved",
+                type: "generated-image",
+                version: 1,
+                workspaceId: workspace.id,
+              },
+              imageUrl: dataUrl,
+            },
+            rawText: `Image URL: ${dataUrl}`,
+            runId: "run-data-url",
+            sourceNodeId: "image-node",
+          },
+          position: { x: 0, y: 0 },
+          status: "success",
+          type: "model.image",
+        },
+      ],
+      runs: [
+        {
+          completedAt: "2026-06-03T00:00:03.000Z",
+          error: null,
+          nodeExecutions: [
+            {
+              nodeId: "image-node",
+              outputSnapshot: {
+                createdAt: "2026-06-03T00:00:01.000Z",
+                displayText: `Image generated at ${dataUrl}`,
+                id: "packet-image-run",
+                metadata: {
+                  imageUrl: dataUrl,
+                },
+                rawText: `Image URL: ${dataUrl}`,
+                runId: "run-data-url",
+                sourceNodeId: "image-node",
+              },
+              runId: "run-data-url",
+              status: "success",
+            },
+          ],
+          runId: "run-data-url",
+          startedAt: "2026-06-03T00:00:00.000Z",
+          status: "success",
+          workflowId: workspace.id,
+        },
+      ],
+      version: 1,
+    };
+    const source: NexusWorkspace = {
+      ...workspace,
+      graph: {
+        ...workspace.graph,
+        runtimeLite,
+      },
+    };
+    const [persisted] = prepareWorkspacesForLocalPersistence([source]);
+    const serializedRuntime = JSON.stringify(persisted?.graph.runtimeLite);
+
+    expect(serializedRuntime).not.toContain(dataUrl);
+    expect(serializedRuntime).toContain(
+      "[inline image data URL omitted from local persistence]",
+    );
+  });
+
   it("removes workflow runtime nodes with their connected edges", () => {
     const previousState = useNexusStore.getState();
     const workspace = createDefaultWorkspace({
@@ -200,6 +300,115 @@ describe("prepareWorkspacesForLocalPersistence", () => {
     }
   });
 
+  it("replaces workflow runtime lite through the store normalization boundary", () => {
+    const previousState = useNexusStore.getState();
+    const workspace = createDefaultWorkspace({
+      id: "workspace-runtime-replace-test",
+      name: "Runtime Replace Test",
+      timestamp: "2026-06-03T00:00:00.000Z",
+    });
+    const nextRuntimeLite: WorkflowRuntimeLiteState = {
+      edges: [
+        {
+          id: "edge-valid",
+          source: "input-imported",
+          sourceHandle: "output",
+          target: "output-imported",
+          targetHandle: "input",
+        },
+        {
+          id: "edge-invalid",
+          source: "input-imported",
+          sourceHandle: "output",
+          target: "missing-node",
+          targetHandle: "input",
+        },
+      ],
+      lastError: "candidate error should clear",
+      lastRunId: null,
+      nodes: [
+        {
+          data: { label: "Imported Input", text: "Imported" },
+          error: null,
+          id: "input-imported",
+          inputSnapshot: null,
+          outputSnapshot: null,
+          position: { x: 10, y: 20 },
+          status: "idle",
+          type: "input.text",
+        },
+        {
+          data: { label: "Imported Output", renderMode: "markdown" },
+          error: null,
+          id: "output-imported",
+          inputSnapshot: null,
+          outputSnapshot: null,
+          position: { x: 320, y: 20 },
+          status: "idle",
+          type: "output.text",
+        },
+      ],
+      runs: [],
+      version: 1,
+    };
+
+    try {
+      useNexusStore.setState({
+        activeWorkspaceId: workspace.id,
+        selectedAgentId: workspace.selectedAgentId,
+        workspaces: [workspace],
+      });
+
+      const oldNodeId = useNexusStore.getState().addWorkflowRuntimeNode("model.llm");
+      useNexusStore.getState().replaceWorkflowRuntimeLite(nextRuntimeLite);
+
+      const runtimeLite = useNexusStore
+        .getState()
+        .workspaces.find((candidate) => candidate.id === workspace.id)
+        ?.graph.runtimeLite;
+
+      expect(runtimeLite?.lastError).toBeNull();
+      expect(runtimeLite?.nodes.map((node) => node.id)).toEqual([
+        "input-imported",
+        "output-imported",
+      ]);
+      expect(runtimeLite?.nodes.some((node) => node.id === oldNodeId)).toBe(false);
+      expect(runtimeLite?.edges.map((edge) => edge.id)).toEqual(["edge-valid"]);
+    } finally {
+      useNexusStore.setState(previousState);
+    }
+  });
+
+  it("persists Workflow Pro as the active workspace view mode", () => {
+    const previousState = useNexusStore.getState();
+    const workspace = createDefaultWorkspace({
+      id: "workspace-workflow-pro-view-test",
+      name: "Workflow Pro View Test",
+      timestamp: "2026-06-03T00:00:00.000Z",
+    });
+
+    try {
+      useNexusStore.setState({
+        activeWorkspaceId: workspace.id,
+        selectedAgentId: workspace.selectedAgentId,
+        viewMode: "panels",
+        workspaces: [workspace],
+      });
+
+      useNexusStore.getState().setViewMode("workflow-pro");
+
+      const state = useNexusStore.getState();
+      const activeWorkspace = state.workspaces.find(
+        (candidate) => candidate.id === workspace.id,
+      );
+
+      expect(state.viewMode).toBe("workflow-pro");
+      expect(activeWorkspace?.settings.viewMode).toBe("workflow-pro");
+    } finally {
+      useNexusStore.setState(previousState);
+    }
+  });
+
   it("can start a workflow runtime run from a specific input node", async () => {
     const previousState = useNexusStore.getState();
     const workspace = createDefaultWorkspace({
@@ -241,6 +450,83 @@ describe("prepareWorkspacesForLocalPersistence", () => {
     } finally {
       useNexusStore.setState(previousState);
     }
+  });
+
+  it("hydrates generated artifact history records from workflow image node outputs", () => {
+    const existingArtifact: ArtifactVaultRecord = {
+      contentUrl: "https://assets.example.test/existing.png",
+      createdAt: "2026-06-03T00:00:00.000Z",
+      id: "artifact-existing",
+      mimeType: "image/png",
+      previewText: null,
+      sourceAgentId: "agent-existing",
+      sourceMessageId: "message-existing",
+      status: "saved",
+      title: "Existing generated image",
+      type: "generated-image",
+      version: 1,
+      workspaceId: "workspace-runtime-artifact-test",
+    };
+    const generatedArtifact: ArtifactVaultRecord = {
+      contentUrl: "https://assets.example.test/workflow-image.png",
+      createdAt: "2026-06-03T00:01:00.000Z",
+      id: "artifact-generated",
+      mimeType: "image/png",
+      previewText: null,
+      sourceAgentId: "agent-runtime",
+      sourceMessageId: "run-runtime:image",
+      status: "saved",
+      title: "Workflow image - Y2K wide pants",
+      type: "generated-image",
+      version: 1,
+      workspaceId: "workspace-runtime-artifact-test",
+    };
+    const cache: ArtifactVaultCache = {
+      byId: {
+        [existingArtifact.id]: existingArtifact,
+      },
+      hasMore: false,
+      ids: [existingArtifact.id],
+      nextCursor: null,
+    };
+    const run: WorkflowRun = {
+      completedAt: "2026-06-03T00:01:30.000Z",
+      error: null,
+      nodeExecutions: [
+        {
+          completedAt: "2026-06-03T00:01:25.000Z",
+          nodeId: "image-model",
+          outputSnapshot: {
+            createdAt: "2026-06-03T00:01:25.000Z",
+            displayText: "Image generated.",
+            id: "packet-image",
+            metadata: {
+              artifactVaultRecord: generatedArtifact,
+            },
+            rawText: "Image URL: https://assets.example.test/workflow-image.png",
+            runId: "run-runtime",
+            sourceNodeId: "image-model",
+          },
+          runId: "run-runtime",
+          status: "success",
+        },
+      ],
+      runId: "run-runtime",
+      startedAt: "2026-06-03T00:01:00.000Z",
+      status: "success",
+      workflowId: "workspace-runtime-artifact-test",
+    };
+
+    const records = collectWorkflowGeneratedArtifactVaultRecords(run);
+    const merged = mergeArtifactVaultRecordsIntoCache(cache, records);
+
+    expect(records).toEqual([generatedArtifact]);
+    expect(merged.ids).toEqual([generatedArtifact.id, existingArtifact.id]);
+    expect(merged.byId[generatedArtifact.id]).toMatchObject({
+      contentUrl: generatedArtifact.contentUrl,
+      title: generatedArtifact.title,
+      type: "generated-image",
+    });
   });
 
   it("strips raw provider secrets from locally persisted auth vaults", () => {

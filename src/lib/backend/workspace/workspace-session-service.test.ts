@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   POST as workspaceSessionPost,
@@ -12,6 +12,7 @@ import type {
 import type { Workspace_Memberships, Workspaces } from "@/lib/supabase/database.types";
 
 import {
+  createWorkspaceSessionService,
   WorkspaceSessionService,
   type WorkspaceSessionRepository,
 } from "./workspace-session-service";
@@ -94,6 +95,7 @@ class MemoryWorkspaceSessionRepository implements WorkspaceSessionRepository {
 }
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   resetWorkspaceSessionRouteDependenciesForTests();
 });
 
@@ -228,6 +230,36 @@ describe("WorkspaceSessionService", () => {
       reason: "created_user_workspace",
       workspaceId: "workspace-route",
     });
+  });
+
+  it("uses a local session repository outside production when service-role config is absent", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "");
+
+    const service = createWorkspaceSessionService();
+    const result = await service.ensureWorkspaceForSession({
+      request: {
+        preferredWorkspaceName: "Local Session",
+      },
+      userId: "00000000-0000-4000-8000-000000000077",
+    });
+
+    expect(result).toMatchObject({
+      created: true,
+      reason: "created_user_workspace",
+      role: "owner",
+      workspaceName: "Local Session",
+    });
+    expect(result.workspaceId).toMatch(/^workspace_/);
+  });
+
+  it("fails closed in production when service-role config is absent", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "");
+
+    expect(() => createWorkspaceSessionService()).toThrow(
+      "Workspace session service requires Supabase service-role configuration.",
+    );
   });
 });
 

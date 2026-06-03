@@ -31,12 +31,15 @@ import type {
   WorkspaceSnapshot,
   WorkspaceBranchingSettings,
   WorkspaceThemeConfig,
+  WorkspaceViewMode,
 } from "@/lib/nexus-types";
 import { normalizeWorkflowRuntimeLiteState } from "@/lib/workflow-runtime-lite/state";
 
 type ValidationResult =
   | { ok: true; workspace: NexusWorkspace }
   | { ok: false; error: string };
+
+const workspaceViewModes = ["panels", "graph", "workflow-pro"] as const satisfies WorkspaceViewMode[];
 
 const toolStatuses: ToolStatus[] = [
   "available",
@@ -72,6 +75,12 @@ function isPlainString(value: unknown): value is string {
 
 function isNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function normalizeWorkspaceViewMode(value: unknown): WorkspaceViewMode {
+  return workspaceViewModes.includes(value as WorkspaceViewMode)
+    ? (value as WorkspaceViewMode)
+    : "panels";
 }
 
 function validateLayout(value: unknown): value is AgentLayout {
@@ -482,7 +491,7 @@ export function sanitizeWorkspace(workspace: NexusWorkspace): NexusWorkspace {
 
   sanitized.settings = {
     ...sanitized.settings,
-    viewMode: sanitized.settings.viewMode ?? "panels",
+    viewMode: normalizeWorkspaceViewMode(sanitized.settings.viewMode),
     branchingSettings: sanitizeBranchingSettings(
       sanitized.settings.branchingSettings,
     ),

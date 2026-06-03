@@ -214,8 +214,65 @@ export class SupabaseWorkspaceSessionRepository implements WorkspaceSessionRepos
   }
 }
 
+class LocalWorkspaceSessionRepository implements WorkspaceSessionRepository {
+  private readonly memberships = new Map<string, Workspace_Memberships>();
+  private readonly workspaces = new Map<string, WorkspaceSessionRecord>();
+
+  async findMembership(input: { userId: string; workspaceId: string }) {
+    return this.memberships.get(localKey(input.workspaceId, input.userId)) ?? null;
+  }
+
+  async listMembershipsForUser(userId: string) {
+    return [...this.memberships.values()]
+      .filter((membership) => membership.user_id === userId)
+      .sort((left, right) => right.updated_at.localeCompare(left.updated_at));
+  }
+
+  async findWorkspace(workspaceId: string) {
+    return this.workspaces.get(workspaceId) ?? null;
+  }
+
+  async createOwnedWorkspace(input: {
+    name: string;
+    userId: string;
+    workspaceId: string;
+  }) {
+    const now = new Date().toISOString();
+    const workspace: WorkspaceSessionRecord = {
+      id: input.workspaceId,
+      name: input.name,
+      owner_user_id: input.userId,
+      updated_at: now,
+    };
+    const membership: Workspace_Memberships = {
+      created_at: now,
+      id: `local-membership-${input.workspaceId}-${input.userId}`,
+      role: "owner",
+      updated_at: now,
+      user_id: input.userId,
+      workspace_id: input.workspaceId,
+    };
+
+    this.workspaces.set(workspace.id, workspace);
+    this.memberships.set(localKey(workspace.id, input.userId), membership);
+
+    return {
+      membership,
+      workspace,
+    };
+  }
+}
+
+let localWorkspaceSessionService: WorkspaceSessionService | undefined;
+
 export function createWorkspaceSessionService() {
-  if (!hasSupabaseServiceRoleConfig()) {
+  if (hasSupabaseServiceRoleConfig()) {
+    return new WorkspaceSessionService(
+      new SupabaseWorkspaceSessionRepository(getNexusSupabaseAdminClient()),
+    );
+  }
+
+  if (isProductionRuntime()) {
     throw new ApiError(
       "INTERNAL_DEPENDENCY_FAILED",
       "Workspace session service requires Supabase service-role configuration.",
@@ -223,9 +280,11 @@ export function createWorkspaceSessionService() {
     );
   }
 
-  return new WorkspaceSessionService(
-    new SupabaseWorkspaceSessionRepository(getNexusSupabaseAdminClient()),
+  localWorkspaceSessionService ??= new WorkspaceSessionService(
+    new LocalWorkspaceSessionRepository(),
   );
+
+  return localWorkspaceSessionService;
 }
 
 function isWritableRole(role: string): role is WritableWorkspaceRole {
@@ -251,4 +310,12 @@ function makeWorkspaceId() {
       : `${Date.now()}${Math.random().toString(16).slice(2, 10)}`;
 
   return `workspace_${random}`;
+}
+
+function isProductionRuntime() {
+  return process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+}
+
+function localKey(workspaceId: string, userId: string) {
+  return `${workspaceId}:${userId}`;
 }

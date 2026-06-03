@@ -239,6 +239,41 @@ describe("workspace kernel", () => {
     }
   });
 
+  it("preserves Workflow Pro as a valid workspace view mode", () => {
+    const workspace = createDefaultWorkspace();
+
+    workspace.settings.viewMode = "workflow-pro";
+
+    const result = validateWorkspaceSnapshot(createWorkspaceSnapshot(workspace));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.workspace.settings.viewMode).toBe("workflow-pro");
+    }
+  });
+
+  it("downgrades invalid imported workspace view modes to panels", () => {
+    const workspace = createDefaultWorkspace();
+    const importedWorkspace = {
+      ...workspace,
+      settings: {
+        ...workspace.settings,
+        viewMode: "ghost-mode",
+      },
+    };
+
+    const result = validateWorkspaceSnapshot({
+      schemaVersion: 1,
+      exportedAt: "2026-06-03T00:00:00.000Z",
+      workspace: importedWorkspace,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.workspace.settings.viewMode).toBe("panels");
+    }
+  });
+
   it("rejects graph edges that reference missing agents", () => {
     const workspace = createDefaultWorkspace();
 

@@ -1,0 +1,261 @@
+{
+  "schema": "nexus.workflowPro.accountMatrix.v1",
+  "generatedAt": "2026-06-03",
+  "scope": [
+    "workflow-pro",
+    "runtime-lite",
+    "generated-media",
+    "workspace-state",
+    "auth-boundary",
+    "permission-boundary"
+  ],
+  "previewUrl": "",
+  "strictLiveProbe": {
+    "command": "AUTH_BOUNDARY_LIVE_BASE_URL=<preview-url> npm run check:auth-boundary:live",
+    "legacyProduction404Enforced": true,
+    "expected": {
+      "blockingFindings": 0,
+      "warnings": 0
+    }
+  },
+  "localDevProbe": {
+    "command": "AUTH_BOUNDARY_LIVE_BASE_URL=http://127.0.0.1:3000 AUTH_BOUNDARY_LIVE_EXPECT_LEGACY_404=false npm run check:auth-boundary:live",
+    "legacyProduction404Enforced": false,
+    "expected": {
+      "blockingFindings": 0
+    }
+  },
+  "actors": [
+    {
+      "id": "owner",
+      "role": "owner",
+      "membership": "owner",
+      "expectedBaselineAccess": ["read", "write", "manage"],
+      "requiredScreenBenchmarks": ["A", "B", "C"],
+      "must": [
+        "importBenchmarkJson",
+        "applyPreview",
+        "runWorkflow",
+        "generateImage",
+        "openGeneratedHistory",
+        "downloadGeneratedAsset"
+      ],
+      "mustNot": []
+    },
+    {
+      "id": "admin",
+      "role": "admin",
+      "membership": "admin",
+      "expectedBaselineAccess": ["read", "write", "manageExceptOwnerTransferAndWorkspaceDelete"],
+      "requiredScreenBenchmarks": ["A", "B", "C"],
+      "must": [
+        "runWorkflow",
+        "generateImage",
+        "manageAssets"
+      ],
+      "mustNot": [
+        "transferOwner",
+        "deleteWorkspace"
+      ]
+    },
+    {
+      "id": "editor",
+      "role": "editor",
+      "membership": "editor",
+      "expectedBaselineAccess": ["read", "writeWorkspace", "writeAssets"],
+      "requiredScreenBenchmarks": ["A", "B", "C"],
+      "must": [
+        "runWorkflow",
+        "createGeneratedArtifact",
+        "saveWorkspaceState",
+        "downloadGeneratedAsset"
+      ],
+      "mustNot": [
+        "manageMemberships",
+        "manageProviderSettings",
+        "deleteWorkspace"
+      ]
+    },
+    {
+      "id": "viewer",
+      "role": "viewer",
+      "membership": "viewer",
+      "expectedBaselineAccess": ["readOnly"],
+      "requiredScreenBenchmarks": [],
+      "must": [
+        "viewWorkflowState",
+        "viewGeneratedHistory"
+      ],
+      "mustNot": [
+        "runWorkflow",
+        "mutateGraph",
+        "saveWorkspaceState",
+        "createGeneratedArtifact"
+      ]
+    },
+    {
+      "id": "new-authenticated-account",
+      "role": "owner-after-session",
+      "membership": "noneBeforeSession",
+      "expectedBaselineAccess": ["sessionCreatesOrResolvesWritableWorkspace"],
+      "requiredScreenBenchmarks": ["A"],
+      "must": [
+        "resolveWorkspaceSession",
+        "avoidPermissionDeniedLoop",
+        "runBenchmarkA"
+      ],
+      "mustNot": [
+        "bootstrapOwnershipOverAnotherUsersWorkspace"
+      ]
+    },
+    {
+      "id": "authenticated-non-member",
+      "role": "none-for-target-workspace",
+      "membership": "noneForTargetWorkspace",
+      "expectedBaselineAccess": ["denyOrRerouteToOwnWritableWorkspace"],
+      "requiredScreenBenchmarks": [],
+      "must": [
+        "denyTargetWorkspaceMutation"
+      ],
+      "mustNot": [
+        "bootstrapOwnershipOverAnotherUsersWorkspace"
+      ]
+    },
+    {
+      "id": "spoof-only",
+      "role": "none",
+      "membership": "spoofedHeadersOnly",
+      "expectedBaselineAccess": ["reject"],
+      "requiredScreenBenchmarks": [],
+      "must": [
+        "rejectProtectedRoutes"
+      ],
+      "mustNot": [
+        "acceptXUserIdWithoutSession"
+      ]
+    },
+    {
+      "id": "unauthenticated",
+      "role": "none",
+      "membership": "none",
+      "expectedBaselineAccess": ["401"],
+      "requiredScreenBenchmarks": [],
+      "must": [
+        "rejectProtectedRoutes"
+      ],
+      "mustNot": [
+        "exposeProtectedData",
+        "mutateProtectedState"
+      ]
+    }
+  ],
+  "benchmarks": [
+    {
+      "id": "A",
+      "name": "Linear Text Chain",
+      "flow": ["input.text", "model.llm", "model.llm", "output.text"],
+      "requiresImageApi": false,
+      "requiredFor": ["owner", "admin", "editor", "new-authenticated-account"]
+    },
+    {
+      "id": "B",
+      "name": "LLM To Image Chain",
+      "flow": ["input.text", "model.llm", "model.image", "output.text"],
+      "requiresImageApi": true,
+      "requiredFor": ["owner", "admin", "editor"]
+    },
+    {
+      "id": "C",
+      "name": "Reverse Fan-Out Image Chain",
+      "flow": [
+        "input.text",
+        "model.llm",
+        "model.image",
+        "model.llm",
+        "3x model.llm",
+        "3x model.image",
+        "3x output.text"
+      ],
+      "requiresImageApi": true,
+      "requiredFor": ["owner", "admin", "editor"]
+    }
+  ],
+  "routeGroups": [
+    {
+      "id": "workspace-session",
+      "paths": ["/api/v1/workspaces/session"],
+      "authenticatedExpected": "200OrStructuredWorkspaceResolution",
+      "unauthenticatedExpected": 401
+    },
+    {
+      "id": "workspace-state",
+      "paths": ["/api/v1/workspaces/:workspaceId/state"],
+      "viewerExpected": "readOnly",
+      "editorExpected": "readWrite",
+      "nonMemberExpected": "deny"
+    },
+    {
+      "id": "agent-stream",
+      "paths": ["/api/v1/agents/:agentId/stream"],
+      "ownerEditorExpected": "canRun",
+      "viewerExpected": "denyMutation"
+    },
+    {
+      "id": "artifacts",
+      "paths": [
+        "/api/v1/artifacts",
+        "/api/v1/artifacts/:artifactId",
+        "/api/v1/artifacts/:artifactId/versions",
+        "/api/v1/artifacts/:artifactId/references",
+        "/api/v1/artifacts/:artifactId/archive"
+      ],
+      "viewerExpected": "readOnly",
+      "editorExpected": "readWrite",
+      "nonMemberExpected": "deny"
+    },
+    {
+      "id": "legacy-tool-routes",
+      "paths": [
+        "/api/agent-stream",
+        "/api/image-gen",
+        "/api/memory-compress",
+        "/api/predictive-intel",
+        "/api/tools/fs-scanner",
+        "/api/tools/web-surfer",
+        "/api/v1/providers/verify"
+      ],
+      "previewProductionExpected": 404
+    }
+  ],
+  "requiredEvidence": [
+    "actorLabel",
+    "role",
+    "workspaceId",
+    "previewUrl",
+    "benchmarkId",
+    "passFail",
+    "routeStatusOnFailure",
+    "requestIdOrTraceIdWhenAvailable",
+    "screenshotOrManualNote",
+    "generatedAssetCountWhenRelevant",
+    "downloadResultWhenRelevant"
+  ],
+  "forbiddenEvidence": [
+    "accessTokens",
+    "apiKeys",
+    "refreshTokens",
+    "cookies",
+    "rawSecrets"
+  ],
+  "previewReadyGate": {
+    "localTests": "pass",
+    "typecheck": "pass",
+    "build": "pass",
+    "strictPreviewLiveProbe": "blockingFindings=0,warnings=0",
+    "ownerPath": "pass",
+    "editorPath": "pass",
+    "viewerDenialPath": "cleanAndTraceable",
+    "newAccountFirstRun": "noPermissionLoop",
+    "nonOwnerGeneratedDownload": "pass"
+  }
+}

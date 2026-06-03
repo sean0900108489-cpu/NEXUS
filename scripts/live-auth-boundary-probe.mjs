@@ -8,6 +8,8 @@ const projectRoot = fileURLToPath(new URL("..", import.meta.url));
 const apiRoot = join(projectRoot, "src/app/api");
 const baseUrl = readBaseUrl();
 const timeoutMs = Number(process.env.AUTH_BOUNDARY_LIVE_TIMEOUT_MS ?? 5000);
+const expectLegacyProduction404 =
+  process.env.AUTH_BOUNDARY_LIVE_EXPECT_LEGACY_404 !== "false";
 const publicGetRoutes = new Set([
   "GET /api/v1/health",
   "GET /api/v1/public-config",
@@ -67,11 +69,20 @@ for (const probe of probes) {
   }
 
   if (result.expectation === "legacyProduction404") {
-    if (result.status !== 404) {
+    if (expectLegacyProduction404 && result.status !== 404) {
       blockingFindings.push({
         apiPath: result.apiPath,
         code: "legacyRoute.productionBlockFailed",
         expected: 404,
+        file: result.file,
+        method: result.method,
+        status: result.status,
+      });
+    } else if (!expectLegacyProduction404 && result.status !== 404) {
+      warnings.push({
+        apiPath: result.apiPath,
+        code: "legacyRoute.devModeNotProductionBlocked",
+        expected: "non-production live probe allows legacy route to resolve",
         file: result.file,
         method: result.method,
         status: result.status,
@@ -115,6 +126,7 @@ const report = {
     bodyCaptured: false,
     credentialsSent: false,
     destructivePayloads: false,
+    legacyProduction404Enforced: expectLegacyProduction404,
     headers: [
       "X-User-Id",
       "X-Workspace-Id",

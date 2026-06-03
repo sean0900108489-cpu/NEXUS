@@ -76,6 +76,7 @@ import type {
   AgentTemplateProfileUpdate,
   ArtifactVaultCache,
   ArtifactVaultRecord,
+  ContextPacket,
   HistoricalDataPage,
   HistoricalMessageRecord,
   IAgentBranchMetadata,
@@ -142,6 +143,8 @@ const indexedDbStore =
 let initialStorageReadFinished = false;
 let themeConfigSyncTimeout: ReturnType<typeof setTimeout> | undefined;
 const HISTORY_FETCH_DEBOUNCE_MS = 350;
+const OMITTED_IMAGE_DATA_URL_FOR_LOCAL_PERSISTENCE =
+  "[inline image data URL omitted from local persistence]";
 const historicalDataFetcher = new HistoricalDataFetcher();
 const historyFetchDebounces = new Map<
   string,
@@ -315,6 +318,63 @@ function isArtifactVaultRecordMap(value: unknown): value is Record<string, Artif
   return Object.values(value).every(isArtifactVaultRecord);
 }
 
+export function collectWorkflowGeneratedArtifactVaultRecords(
+  run: WorkflowRun,
+): ArtifactVaultRecord[] {
+  const records: ArtifactVaultRecord[] = [];
+
+  for (const execution of run.nodeExecutions) {
+    const record = execution.outputSnapshot?.metadata.artifactVaultRecord;
+
+    if (isArtifactVaultRecord(record)) {
+      records.push(record);
+    }
+  }
+
+  return records;
+}
+
+export function mergeArtifactVaultRecordsIntoCache(
+  cache: ArtifactVaultCache,
+  records: ArtifactVaultRecord[],
+): ArtifactVaultCache {
+  if (!records.length) {
+    return cache;
+  }
+
+  const byId: Record<string, ArtifactVaultRecord> = {};
+  const ids: string[] = [];
+
+  for (const record of records) {
+    if (byId[record.id]) {
+      byId[record.id] = record;
+      continue;
+    }
+
+    byId[record.id] = record;
+    ids.push(record.id);
+  }
+
+  for (const id of cache.ids) {
+    const record = cache.byId[id];
+
+    if (!record || byId[id]) {
+      continue;
+    }
+
+    byId[id] = record;
+    ids.push(id);
+  }
+
+  return {
+    byId,
+    fetchedAt: new Date().toISOString(),
+    hasMore: cache.hasMore,
+    ids,
+    nextCursor: cache.nextCursor ?? null,
+  };
+}
+
 type NexusStore = {
   activeWorkspaceId: string;
   workspaces: NexusWorkspace[];
@@ -451,6 +511,7 @@ type NexusStore = {
     position: { x: number; y: number },
   ) => void;
   connectWorkflowRuntimeNodes: (edge: WorkflowRuntimeEdge) => void;
+  replaceWorkflowRuntimeLite: (runtimeLite: WorkflowRuntimeLiteState) => void;
   removeWorkflowRuntimeNodes: (nodeIds: string[]) => void;
   removeWorkflowRuntimeEdges: (edgeIds: string[]) => void;
   pauseWorkflowRuntimeLiteFlow: () => void;
@@ -478,7 +539,37 @@ function partializeTemporalState(state: NexusStore): NexusTemporalState {
     nextZIndex: state.nextZIndex,
     selectedAgentId: state.selectedAgentId,
     viewMode: state.viewMode,
-    workspaces: state.workspaces,
+    workspaces: prepareWorkspacesForTemporalState(state.workspaces),
+  };
+}
+
+function prepareWorkspacesForTemporalState(workspaces: NexusWorkspace[]) {
+  return workspaces.map((workspace) => ({
+    ...workspace,
+    graph: {
+      ...workspace.graph,
+      runtimeLite: workspace.graph.runtimeLite
+        ? prepareWorkflowRuntimeLiteForTemporalState(workspace.graph.runtimeLite)
+        : workspace.graph.runtimeLite,
+    },
+  }));
+}
+
+function prepareWorkflowRuntimeLiteForTemporalState(
+  runtimeLite: WorkflowRuntimeLiteState,
+): WorkflowRuntimeLiteState {
+  return {
+    ...runtimeLite,
+    lastError: null,
+    lastRunId: null,
+    nodes: runtimeLite.nodes.map((node) => ({
+      ...node,
+      error: null,
+      inputSnapshot: null,
+      outputSnapshot: null,
+      status: node.status === "failed_interrupted" ? "failed_interrupted" : "idle",
+    })),
+    runs: [],
   };
 }
 
@@ -1431,11 +1522,89 @@ function prepareWorkspaceForLocalPersistence(workspace: NexusWorkspace): NexusWo
   return {
     ...workspace,
     agents: workspace.agents.map(prepareAgentForLocalPersistence),
+    graph: {
+      ...workspace.graph,
+      runtimeLite: workspace.graph.runtimeLite
+        ? prepareWorkflowRuntimeLiteForLocalPersistence(workspace.graph.runtimeLite)
+        : workspace.graph.runtimeLite,
+    },
     settings: {
       ...workspace.settings,
       agentTemplateProfiles: workspace.settings.agentTemplateProfiles ?? {},
     },
   };
+}
+
+function prepareWorkflowRuntimeLiteForLocalPersistence(
+  runtimeLite: WorkflowRuntimeLiteState,
+): WorkflowRuntimeLiteState {
+  return {
+    ...runtimeLite,
+    nodes: runtimeLite.nodes.map((node) => ({
+      ...node,
+      inputSnapshot: prepareContextPacketForLocalPersistence(node.inputSnapshot),
+      outputSnapshot: prepareContextPacketForLocalPersistence(node.outputSnapshot),
+    })),
+    runs: runtimeLite.runs.map((run) => ({
+      ...run,
+      nodeExecutions: run.nodeExecutions.map((execution) => ({
+        ...execution,
+        inputSnapshot: prepareContextPacketForLocalPersistence(
+          execution.inputSnapshot,
+        ),
+        outputSnapshot: prepareContextPacketForLocalPersistence(
+          execution.outputSnapshot,
+        ),
+      })),
+    })),
+  };
+}
+
+function prepareContextPacketForLocalPersistence(
+  packet: ContextPacket | null | undefined,
+) {
+  if (!packet) {
+    return packet ?? null;
+  }
+
+  return {
+    ...packet,
+    displayText: omitInlineImageDataUrls(packet.displayText),
+    metadata: omitInlineImageDataUrlsFromJson(packet.metadata) as Record<string, unknown>,
+    rawText: omitInlineImageDataUrls(packet.rawText),
+  };
+}
+
+function omitInlineImageDataUrls(value: string) {
+  if (!value.includes("data:image/") || !value.includes(";base64,")) {
+    return value;
+  }
+
+  return value.replace(
+    /data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/gu,
+    OMITTED_IMAGE_DATA_URL_FOR_LOCAL_PERSISTENCE,
+  );
+}
+
+function omitInlineImageDataUrlsFromJson(value: unknown): unknown {
+  if (typeof value === "string") {
+    return omitInlineImageDataUrls(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(omitInlineImageDataUrlsFromJson);
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).map(([key, entry]) => [
+      key,
+      omitInlineImageDataUrlsFromJson(entry),
+    ]),
+  );
 }
 
 function prepareAgentForLocalPersistence(agent: NexusAgent): NexusAgent {
@@ -3695,6 +3864,22 @@ export const useNexusStore = create<NexusStore>()(
         }));
       },
 
+      replaceWorkflowRuntimeLite: (nextRuntimeLite) => {
+        const normalizedRuntimeLite = normalizeWorkflowRuntimeLiteState(
+          nextRuntimeLite,
+          { resetInterrupted: false },
+        );
+
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withWorkflowRuntimeLite(workspace, () => ({
+              ...normalizedRuntimeLite,
+              lastError: null,
+            })),
+          ),
+        }));
+      },
+
       removeWorkflowRuntimeNodes: (nodeIds) => {
         const nodeIdSet = new Set(nodeIds);
 
@@ -3741,8 +3926,10 @@ export const useNexusStore = create<NexusStore>()(
       runWorkflowRuntimeLiteFlow: async (options) => {
         const state = get();
         const workspace = getActiveWorkspace(state);
-        const normalizedRuntimeLite = normalizeWorkflowRuntimeLiteState(
-          workspace.graph.runtimeLite ?? createEmptyWorkflowRuntimeLiteState(),
+        const normalizedRuntimeLite = prepareWorkflowRuntimeLiteForLocalPersistence(
+          normalizeWorkflowRuntimeLiteState(
+            workspace.graph.runtimeLite ?? createEmptyWorkflowRuntimeLiteState(),
+          ),
         );
         const inferredRuntimeEdges = inferLinearWorkflowRuntimeLiteEdges({
           edges: normalizedRuntimeLite.edges,
@@ -3865,6 +4052,18 @@ export const useNexusStore = create<NexusStore>()(
             workflowRuntimeAbortControllers.delete(workspace.id);
           }
         });
+        const generatedArtifacts = collectWorkflowGeneratedArtifactVaultRecords(run).filter(
+          (artifact) => artifact.workspaceId === workspace.id,
+        );
+
+        if (generatedArtifacts.length) {
+          set((state) => ({
+            artifactVault: mergeArtifactVaultRecordsIntoCache(
+              state.artifactVault,
+              generatedArtifacts,
+            ),
+          }));
+        }
 
         queueWorkspaceCloudSync(getActiveWorkspace(get()));
 

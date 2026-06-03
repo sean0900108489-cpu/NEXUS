@@ -24,6 +24,7 @@
 .DS_Store
 *.pem
 /X/
+.codex/audio-reports/
 
 # debug
 npm-debug.log*

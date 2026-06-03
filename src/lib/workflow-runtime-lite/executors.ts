@@ -148,6 +148,43 @@ export async function executeLLM({
   });
 }
 
+export async function executeFileNode({
+  inputPacket,
+  node,
+  runId,
+}: WorkflowRuntimeExecutorInput<"node.file">) {
+  if (!inputPacket) {
+    throw new Error("node.file requires an upstream ContextPacket.");
+  }
+
+  const attachmentCount = node.data.attachments.length;
+
+  return createContextPacket({
+    displayText: [
+      inputPacket.displayText,
+      attachmentCount
+        ? `File node attached ${attachmentCount} artifact reference${attachmentCount === 1 ? "" : "s"}.`
+        : "File node passed through with no attachment references.",
+    ]
+      .filter(Boolean)
+      .join("\n\n"),
+    metadata: {
+      ...inputPacket.metadata,
+      attachmentCompiler: {
+        compilerId: node.data.compilerId,
+        compilerVersion: node.data.compilerVersion,
+        mode: "noop",
+      },
+      attachments: node.data.attachments,
+      nodeType: node.type,
+      upstreamPacketId: inputPacket.id,
+    },
+    rawText: inputPacket.rawText,
+    runId,
+    sourceNodeId: node.id,
+  });
+}
+
 export async function executeImageModel({
   callImage,
   inputPacket,
@@ -173,14 +210,25 @@ export async function executeImageModel({
     throw new Error("model.image requires an upstream prompt.");
   }
 
-  const result = await callImage({
-    node,
-    prompt,
-    runId,
-    signal,
-    upstream: inputPacket,
-    workflowId,
-  });
+  let result: Awaited<ReturnType<WorkflowRuntimeImageCall>>;
+
+  try {
+    result = await callImage({
+      node,
+      prompt,
+      runId,
+      signal,
+      upstream: inputPacket,
+      workflowId,
+    });
+  } catch (error) {
+    if (signal?.aborted || isAbortError(error)) {
+      throw new Error("model.image was aborted before image generation completed.");
+    }
+
+    throw error;
+  }
+
   const rawText = result.text?.trim() || buildImagePacketText({
     artifactId: result.media.artifactId,
     aspectRatio: node.data.aspectRatio,
@@ -221,6 +269,15 @@ export async function executeImageModel({
   });
 }
 
+function isAbortError(error: unknown) {
+  return (
+    error !== null &&
+    typeof error === "object" &&
+    "name" in error &&
+    (error as { name?: unknown }).name === "AbortError"
+  );
+}
+
 export async function executeOutputText({
   inputPacket,
 }: WorkflowRuntimeExecutorInput<"output.text">) {
@@ -233,6 +290,7 @@ export async function executeOutputText({
 
 export const workflowRuntimeExecutorMap = {
   "input.text": executeInputText,
+  "node.file": executeFileNode,
   "model.llm": executeLLM,
   "model.image": executeImageModel,
   "output.text": executeOutputText,

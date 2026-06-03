@@ -28,7 +28,7 @@ export type MediaAgentCapabilityType = Extract<AgentCapabilityType, "image" | "v
 
 export type StreamMode = "mock" | "live" | "mixed";
 
-export type WorkspaceViewMode = "panels" | "graph";
+export type WorkspaceViewMode = "panels" | "graph" | "workflow-pro";
 
 export type NexusReasoningEffort =
   | "none"
@@ -319,6 +319,7 @@ export interface IWorkflowEdge {
 
 export type WorkflowRuntimeNodeType =
   | "input.text"
+  | "node.file"
   | "model.llm"
   | "model.image"
   | "output.text";
@@ -368,6 +369,26 @@ export type ModelLlmNodeData = {
   provider?: string;
 };
 
+export type FileNodeAttachmentReference = {
+  artifactId?: string;
+  compiledArtifactId?: string;
+  compilerId: string;
+  compilerVersion: string;
+  contentKind: "text" | "binary" | "reference";
+  mimeType: string;
+  name: string;
+  rawArtifactId?: string;
+  sizeBytes: number;
+};
+
+export type FileNodeData = {
+  attachments: FileNodeAttachmentReference[];
+  compilerId: string;
+  compilerVersion: string;
+  label?: string;
+  note: string;
+};
+
 export type ModelImageNodeData = {
   label?: string;
   prompt: string;
@@ -383,6 +404,7 @@ export type OutputTextNodeData = {
 
 export type WorkflowRuntimeNodeDataByType = {
   "input.text": InputTextNodeData;
+  "node.file": FileNodeData;
   "model.llm": ModelLlmNodeData;
   "model.image": ModelImageNodeData;
   "output.text": OutputTextNodeData;

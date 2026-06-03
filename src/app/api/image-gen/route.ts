@@ -2,7 +2,10 @@ import {
   DalleImageAdapter,
   MockImageAdapter,
   normalizeImageBaseUrl,
+  type ImageAdapterResult,
 } from "@/lib/adapters/image-adapter";
+import { createGeneratedImageAssetUrlFromDataUrl } from "@/lib/backend/image-generation/generated-image-asset-cache";
+import { blockLegacyToolRouteInProduction } from "@/lib/backend/security/legacy-tool-route-boundary";
 import { normalizeWorkspaceComposerImageSettings } from "@/lib/composer/image-generation-settings";
 
 export const runtime = "nodejs";
@@ -45,6 +48,12 @@ function getServerImageBaseUrl() {
 }
 
 export async function POST(request: Request) {
+  const blocked = blockLegacyToolRouteInProduction();
+
+  if (blocked) {
+    return blocked;
+  }
+
   let payload: ImageGenerationPayload;
 
   try {
@@ -90,15 +99,38 @@ export async function POST(request: Request) {
           imageSettings,
           prompt,
           toolName,
-        });
+    });
     const result = await adapter.execute();
 
-    return Response.json(result);
+    return Response.json(materializeImageResultForBrowser(result));
   } catch (error) {
     const detail = error instanceof Error ? error.message : "Image generation failed.";
 
     return Response.json({ error: detail }, { status: 502 });
   }
+}
+
+function materializeImageResultForBrowser(result: ImageAdapterResult): ImageAdapterResult {
+  const mediaUrl = result.media.url;
+
+  if (!mediaUrl.startsWith("data:image/") || !mediaUrl.includes(";base64,")) {
+    return result;
+  }
+
+  const assetUrl = createGeneratedImageAssetUrlFromDataUrl(mediaUrl);
+
+  if (assetUrl === mediaUrl) {
+    return result;
+  }
+
+  return {
+    ...result,
+    content: result.content.replaceAll(mediaUrl, assetUrl),
+    media: {
+      ...result.media,
+      url: assetUrl,
+    },
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -179,6 +179,20 @@ import {
   type WorkspaceComposerImageSettings,
 } from "@/lib/composer/image-generation-settings";
 import {
+  createWorkflowProCapabilityInventory,
+  summarizeWorkflowProRuntime,
+} from "@/lib/workflow-pro/capability-inventory";
+import { createWorkflowBrainContextPack } from "@/lib/workflow-pro/brain-context";
+import { createWorkflowProFileNodeContract } from "@/lib/workflow-pro/file-node-contract";
+import { createWorkflowProApplyPlan } from "@/lib/workflow-pro/workflow-contract-apply-plan";
+import {
+  parseWorkflowProContractImportText,
+  type WorkflowProContractImportReview,
+} from "@/lib/workflow-pro/workflow-contract-import";
+import { createWorkflowProContractDraftFromRuntimeLite } from "@/lib/workflow-pro/workflow-contract";
+import { validateWorkflowProContractDraft } from "@/lib/workflow-pro/workflow-contract-validator";
+import { createWorkflowProProposalDiff } from "@/lib/workflow-pro/proposal-diff";
+import {
   PROVIDER_REGISTRY,
   getModelOption,
   getModelCapabilityProfile,
@@ -202,6 +216,7 @@ import { NexusOpsOuterShellFrame } from "@/components/nexus/nexus-ops-outer-shel
 import { NexusOpsRightFloatingDockFrame } from "@/components/nexus/nexus-ops-right-floating-dock-frame";
 import { NexusOpsTopBarFrame } from "@/components/nexus/nexus-ops-top-bar-frame";
 import { PromptVaultManager } from "@/components/nexus/PromptVaultManager";
+import { WorkflowProSurface } from "@/components/nexus/workflow-pro/workflow-pro-surface";
 
 const Rnd = dynamic(() => import("react-rnd").then((module) => module.Rnd), {
   ssr: false,
@@ -1129,6 +1144,8 @@ export function NexusOps() {
   const [activeRightPanel, setActiveRightPanel] = useState<RightDockPanelId | null>(null);
   const [leftDockOpen, setLeftDockOpen] = useState(false);
   const [notice, setNotice] = useState("Workspace persistence online");
+  const [workflowProImportReview, setWorkflowProImportReview] =
+    useState<WorkflowProContractImportReview | null>(null);
   const [workspaceStylePayloadReview, setWorkspaceStylePayloadReview] =
     useState<ImportedWorkspaceStyleReviewState | null>(null);
   const [workspaceStyleReviewLoaded, setWorkspaceStyleReviewLoaded] =
@@ -1273,6 +1290,9 @@ export function NexusOps() {
   const removeWorkflowRuntimeEdges = useNexusStore(
     (state) => state.removeWorkflowRuntimeEdges,
   );
+  const replaceWorkflowRuntimeLite = useNexusStore(
+    (state) => state.replaceWorkflowRuntimeLite,
+  );
   const pauseWorkflowRuntimeLiteFlow = useNexusStore(
     (state) => state.pauseWorkflowRuntimeLiteFlow,
   );
@@ -1318,6 +1338,128 @@ export function NexusOps() {
     workspace?.graph.runtimeLite?.runs.some((run) => run.status === "running"),
   );
   const workflowRuntimeLite = workspace?.graph.runtimeLite;
+  const workflowProCapabilityInventory = useMemo(
+    () => createWorkflowProCapabilityInventory(),
+    [],
+  );
+  const workflowProFileNodeContract = useMemo(
+    () => createWorkflowProFileNodeContract(),
+    [],
+  );
+  const workflowProRuntimeSummary = useMemo(
+    () => summarizeWorkflowProRuntime(workflowRuntimeLite),
+    [workflowRuntimeLite],
+  );
+  const workflowProContractDraft = useMemo(
+    () =>
+      createWorkflowProContractDraftFromRuntimeLite({
+        inventory: workflowProCapabilityInventory,
+        runtimeLite: workflowRuntimeLite,
+        workspaceId: activeWorkspaceId,
+        workspaceName: workspace?.name ?? "NEXUS // AI OPS",
+      }),
+    [activeWorkspaceId, workflowProCapabilityInventory, workflowRuntimeLite, workspace?.name],
+  );
+  const workflowProActiveContract =
+    workflowProImportReview?.status === "accepted"
+      ? workflowProImportReview.contract
+      : workflowProContractDraft;
+  const workflowBrainContext = useMemo(
+    () =>
+      createWorkflowBrainContextPack({
+        contract: workflowProActiveContract,
+        runtimeSummary: workflowProRuntimeSummary,
+      }),
+    [workflowProActiveContract, workflowProRuntimeSummary],
+  );
+  const workflowProApplyPlan = useMemo(
+    () =>
+      createWorkflowProApplyPlan({
+        contract: workflowProActiveContract,
+        currentRuntimeLite: workflowRuntimeLite,
+      }),
+    [workflowProActiveContract, workflowRuntimeLite],
+  );
+  const workflowProProposalDiff = useMemo(
+    () =>
+      createWorkflowProProposalDiff({
+        applyPlan: workflowProApplyPlan,
+        currentRuntimeLite: workflowRuntimeLite,
+      }),
+    [workflowProApplyPlan, workflowRuntimeLite],
+  );
+  const handleWorkflowProContractExport = useCallback(() => {
+    const validation = validateWorkflowProContractDraft(workflowProActiveContract);
+
+    if (!validation.ok) {
+      setNotice(
+        `Workflow Pro contract invalid: ${validation.errors[0]?.message ?? "unknown validation error"}`,
+      );
+      return;
+    }
+
+    downloadTextPayload(
+      JSON.stringify(workflowProActiveContract, null, 2),
+      `nexus-workflow-pro-${activeWorkspaceId}-${Date.now()}.json`,
+      "application/json;charset=utf-8",
+    );
+    setNotice(
+      validation.warnings.length
+        ? `Workflow Pro contract exported with ${validation.warnings.length} warnings`
+        : "Workflow Pro contract exported",
+    );
+  }, [activeWorkspaceId, workflowProActiveContract]);
+  const handleWorkflowProContractImportText = useCallback(
+    ({ sourceName, text }: { sourceName: string; text: string }) => {
+      const review = parseWorkflowProContractImportText({
+        sourceName,
+        text,
+      });
+
+      setWorkflowProImportReview(review);
+      setNotice(
+        review.status === "accepted"
+          ? `Workflow Pro contract accepted from ${review.sourceName}`
+          : `Workflow Pro contract rejected: ${review.error}`,
+      );
+    },
+    [],
+  );
+  const handleWorkflowProContractImportClear = useCallback(() => {
+    setWorkflowProImportReview(null);
+    setNotice("Workflow Pro imported contract cleared; using current Graph draft");
+  }, []);
+  const handleWorkflowProApplyPlan = useCallback(() => {
+    const validation = validateWorkflowProContractDraft(workflowProActiveContract);
+
+    if (!validation.ok) {
+      setNotice(
+        `Workflow Pro apply blocked: ${validation.errors[0]?.message ?? "contract invalid"}`,
+      );
+      return;
+    }
+
+    if (
+      workflowProApplyPlan.status !== "ready" ||
+      !workflowProApplyPlan.candidateRuntimeLite
+    ) {
+      setNotice(
+        workflowProApplyPlan.reasons[0] ??
+          "Workflow Pro apply blocked: apply plan is not ready",
+      );
+      return;
+    }
+
+    replaceWorkflowRuntimeLite(workflowProApplyPlan.candidateRuntimeLite);
+    setWorkflowProImportReview(null);
+    setViewMode("graph");
+    setNotice("Workflow Pro apply completed; Graph updated from validated contract");
+  }, [
+    replaceWorkflowRuntimeLite,
+    setViewMode,
+    workflowProActiveContract,
+    workflowProApplyPlan,
+  ]);
   const workflowRuns = workflowRuntimeLite?.runs ?? [];
   const latestWorkflowRun =
     (workflowRuntimeLite?.lastRunId
@@ -2927,7 +3069,7 @@ export function NexusOps() {
 
                 <MinimizedRail agents={minimizedAgents} onRestore={restoreAgent} />
               </>
-            ) : (
+            ) : viewMode === "graph" ? (
               <NexusGraph
                 agents={agents}
                 generatedArtifacts={artifactVault.filter(isGeneratedArtifactRecord)}
@@ -2962,6 +3104,30 @@ export function NexusOps() {
                 onUpdateNodePosition={updateGraphNodePosition}
                 workflowFeedback={workflowFeedback}
                 workflowRunning={workflowRunning}
+              />
+            ) : (
+              <WorkflowProSurface
+                agentCount={agents.length}
+                applyPlan={workflowProApplyPlan}
+                brainContext={workflowBrainContext}
+                contractDraft={workflowProActiveContract}
+                fileNodeContract={workflowProFileNodeContract}
+                generatedArtifactCount={
+                  artifactVault.filter(isGeneratedArtifactRecord).length
+                }
+                inventory={workflowProCapabilityInventory}
+                importReview={workflowProImportReview}
+                onClearImportedContract={handleWorkflowProContractImportClear}
+                onExportContract={handleWorkflowProContractExport}
+                onImportContractText={handleWorkflowProContractImportText}
+                onOpenGraph={() => setViewMode("graph")}
+                onOpenPanels={() => setViewMode("panels")}
+                onApplyPlan={handleWorkflowProApplyPlan}
+                proposalDiff={workflowProProposalDiff}
+                runtimeSummary={workflowProRuntimeSummary}
+                runtimeEdgeCount={workflowRuntimeLite?.edges.length ?? 0}
+                runtimeNodeCount={workflowRuntimeLite?.nodes.length ?? 0}
+                workspaceName={workspace?.name}
               />
             )}
 
@@ -3489,8 +3655,8 @@ function TopBar({
               </div>
 
               <div className="grid gap-2 border-b border-white/10 p-2">
-                <div className="grid grid-cols-2 gap-1">
-                  {(["panels", "graph"] as const).map((mode) => (
+                <div className="grid grid-cols-3 gap-1">
+                  {(["panels", "graph", "workflow-pro"] as const).map((mode) => (
                     <button
                       key={mode}
                       className={cx(
@@ -3517,7 +3683,7 @@ function TopBar({
                       }}
                       type="button"
                     >
-                      {mode}
+                      {mode === "workflow-pro" ? "workflow pro" : mode}
                     </button>
                   ))}
                 </div>

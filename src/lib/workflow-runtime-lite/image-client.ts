@@ -75,6 +75,11 @@ export function createWorkflowRuntimeImageCall({
       },
     );
     const artifactId = artifactResponse.artifact.id;
+    const {
+      contentText: _contentText,
+      metadata: _artifactMetadata,
+      ...artifactVaultRecord
+    } = artifactResponse.artifact;
 
     return {
       media: {
@@ -83,6 +88,7 @@ export function createWorkflowRuntimeImageCall({
       },
       metadata: {
         artifactId,
+        artifactVaultRecord,
         imageGenerationMode: result.mode,
         mediaUrlKind: getGeneratedImageUrlKind(result.media.url),
         modelId: imageSettings.modelId,

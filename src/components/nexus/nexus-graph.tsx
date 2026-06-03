@@ -27,6 +27,7 @@ import {
   Download,
   FileText,
   Image as ImageIcon,
+  Paperclip,
   Pause,
   Play,
   Type,
@@ -151,6 +152,10 @@ function getWorkflowPacketImageUrl(packet: ContextPacket | null | undefined) {
 function getRuntimeNodeIcon(type: WorkflowRuntimeNodeType) {
   if (type === "input.text") {
     return <Type className="h-4 w-4" />;
+  }
+
+  if (type === "node.file") {
+    return <Paperclip className="h-4 w-4" />;
   }
 
   if (type === "model.llm") {
@@ -352,6 +357,13 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
       {node.type === "model.llm" ? (
         <ModelRuntimeEditor
           node={node as WorkflowNodeInstance<"model.llm">}
+          onUpdateNodeData={onUpdateNodeData}
+        />
+      ) : null}
+
+      {node.type === "node.file" ? (
+        <FileRuntimeEditor
+          node={node as WorkflowNodeInstance<"node.file">}
           onUpdateNodeData={onUpdateNodeData}
         />
       ) : null}
@@ -649,6 +661,58 @@ function ModelRuntimeEditor({
   );
 }
 
+function FileRuntimeEditor({
+  node,
+  onUpdateNodeData,
+}: {
+  node: WorkflowNodeInstance<"node.file">;
+  onUpdateNodeData: (
+    nodeId: string,
+    data: Partial<WorkflowRuntimeNodeData>,
+  ) => void;
+}) {
+  return (
+    <div className="grid gap-2">
+      <label className="grid gap-2">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+          File note
+        </span>
+        <textarea
+          className="nodrag min-h-20 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          onChange={(event) =>
+            onUpdateNodeData(node.id, { note: event.currentTarget.value })
+          }
+          placeholder="Optional instructions for the file compiler lane..."
+          spellCheck={false}
+          value={node.data.note}
+        />
+      </label>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="border border-white/10 bg-white/[0.035] p-2">
+          <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+            Compiler
+          </div>
+          <div className="mt-1 truncate font-mono text-[10px] text-neutral-200">
+            {node.data.compilerId}@{node.data.compilerVersion}
+          </div>
+        </div>
+        <div className="border border-white/10 bg-white/[0.035] p-2">
+          <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+            Attachments
+          </div>
+          <div className="mt-1 font-mono text-[10px] text-neutral-200">
+            {node.data.attachments.length}
+          </div>
+        </div>
+      </div>
+      <div className="border border-white/10 bg-white/[0.025] px-3 py-2 text-xs leading-5 text-neutral-500">
+        Text ContextPackets pass through this node. File references are carried in
+        packet metadata until advanced compilers are connected.
+      </div>
+    </div>
+  );
+}
+
 function ModelImageRuntimeEditor({
   imageUrl,
   node,
@@ -888,6 +952,7 @@ function BlueprintEdge({
 const nodeTypes = {
   agent: AgentNode,
   "input.text": RuntimeNode,
+  "node.file": RuntimeNode,
   "model.llm": RuntimeNode,
   "model.image": RuntimeNode,
   "output.text": RuntimeNode,
@@ -1352,6 +1417,12 @@ export function NexusGraph({
             label="Add LLM"
             nodeType="model.llm"
             onClick={() => addWorkflowNodeAtCenter("model.llm")}
+          />
+          <WorkflowGraphAction
+            icon={<Paperclip className="h-3.5 w-3.5" />}
+            label="Add File"
+            nodeType="node.file"
+            onClick={() => addWorkflowNodeAtCenter("node.file")}
           />
           <WorkflowGraphAction
             icon={<ImageIcon className="h-3.5 w-3.5" />}

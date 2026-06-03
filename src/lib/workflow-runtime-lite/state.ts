@@ -231,6 +231,28 @@ function normalizeNodeData(
     };
   }
 
+  if (type === "node.file") {
+    const fileDefaults = defaults as WorkflowNodeInstance<"node.file">["data"];
+
+    return {
+      ...fileDefaults,
+      attachments: Array.isArray(value.attachments)
+        ? value.attachments
+            .map(normalizeFileNodeAttachment)
+            .filter((attachment): attachment is WorkflowNodeInstance<"node.file">["data"]["attachments"][number] => Boolean(attachment))
+        : fileDefaults.attachments,
+      compilerId: typeof value.compilerId === "string" && value.compilerId.trim()
+        ? value.compilerId.trim()
+        : fileDefaults.compilerId,
+      compilerVersion:
+        typeof value.compilerVersion === "string" && value.compilerVersion.trim()
+          ? value.compilerVersion.trim()
+          : fileDefaults.compilerVersion,
+      label: typeof value.label === "string" ? value.label : fileDefaults.label,
+      note: typeof value.note === "string" ? limitConfigText(value.note) : fileDefaults.note,
+    };
+  }
+
   if (type === "model.image") {
     const imageDefaults = defaults as WorkflowNodeInstance<"model.image">["data"];
     const imageSettings = normalizeWorkspaceComposerImageSettings({
@@ -257,6 +279,41 @@ function normalizeNodeData(
     ...outputDefaults,
     label: typeof value.label === "string" ? value.label : outputDefaults.label,
     renderMode: value.renderMode === "markdown" ? "markdown" : outputDefaults.renderMode,
+  };
+}
+
+function normalizeFileNodeAttachment(
+  value: unknown,
+): WorkflowNodeInstance<"node.file">["data"]["attachments"][number] | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  if (
+    typeof value.compilerId !== "string" ||
+    typeof value.compilerVersion !== "string" ||
+    typeof value.mimeType !== "string" ||
+    typeof value.name !== "string" ||
+    typeof value.sizeBytes !== "number" ||
+    !Number.isFinite(value.sizeBytes)
+  ) {
+    return undefined;
+  }
+
+  return {
+    artifactId: typeof value.artifactId === "string" ? value.artifactId : undefined,
+    compiledArtifactId:
+      typeof value.compiledArtifactId === "string" ? value.compiledArtifactId : undefined,
+    compilerId: value.compilerId,
+    compilerVersion: value.compilerVersion,
+    contentKind:
+      value.contentKind === "binary" || value.contentKind === "reference"
+        ? value.contentKind
+        : "text",
+    mimeType: value.mimeType,
+    name: value.name,
+    rawArtifactId: typeof value.rawArtifactId === "string" ? value.rawArtifactId : undefined,
+    sizeBytes: Math.max(0, value.sizeBytes),
   };
 }
 
@@ -471,21 +528,64 @@ function sanitizePacketMetadata(metadata: Record<string, unknown>) {
       continue;
     }
 
-    if (
-      value === null ||
-      typeof value === "boolean" ||
-      typeof value === "number"
-    ) {
-      sanitized[key] = value;
-      continue;
-    }
+    const nextValue = sanitizePacketMetadataValue(value, 0);
 
-    if (typeof value === "string") {
-      sanitized[key] = value.slice(0, WORKFLOW_RUNTIME_MAX_METADATA_STRING_CHARS);
+    if (nextValue !== undefined) {
+      sanitized[key] = nextValue;
     }
   }
 
   return sanitized;
+}
+
+function sanitizePacketMetadataValue(
+  value: unknown,
+  depth: number,
+): unknown | undefined {
+  if (
+    value === null ||
+    typeof value === "boolean" ||
+    typeof value === "number"
+  ) {
+    return Number.isFinite(value as number) || typeof value !== "number"
+      ? value
+      : undefined;
+  }
+
+  if (typeof value === "string") {
+    return value.slice(0, WORKFLOW_RUNTIME_MAX_METADATA_STRING_CHARS);
+  }
+
+  if (depth >= 3) {
+    return undefined;
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .slice(0, 20)
+      .map((entry) => sanitizePacketMetadataValue(entry, depth + 1))
+      .filter((entry) => entry !== undefined);
+  }
+
+  if (isRecord(value)) {
+    const sanitized: Record<string, unknown> = {};
+
+    for (const [key, entry] of Object.entries(value).slice(0, 20)) {
+      if (/authorization|api[-_]?key|token|secret/i.test(key)) {
+        continue;
+      }
+
+      const nextValue = sanitizePacketMetadataValue(entry, depth + 1);
+
+      if (nextValue !== undefined) {
+        sanitized[key] = nextValue;
+      }
+    }
+
+    return sanitized;
+  }
+
+  return undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

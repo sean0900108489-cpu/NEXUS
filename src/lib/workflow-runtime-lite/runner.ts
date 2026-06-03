@@ -33,6 +33,7 @@ export type WorkflowRuntimeRunnerOptions = {
   onRunUpdate?: (run: WorkflowRun) => void;
   runId?: string;
   runtimeLite: WorkflowRuntimeLiteState;
+  signal?: AbortSignal;
   workflowId: string;
 };
 
@@ -43,6 +44,7 @@ export async function runWorkflowRuntimeLite({
   onRunUpdate,
   runId = createWorkflowRuntimeId("run"),
   runtimeLite,
+  signal,
   workflowId,
 }: WorkflowRuntimeRunnerOptions): Promise<WorkflowRun> {
   const startedAt = new Date().toISOString();
@@ -82,6 +84,7 @@ export async function runWorkflowRuntimeLite({
     let packet: ContextPacket | null = null;
 
     try {
+      assertWorkflowRuntimeNotAborted(signal);
       packet = createNodeInputPacket({
         incomingEdges: incomingEdgesByTarget.get(node.id) ?? [],
         node,
@@ -165,6 +168,7 @@ export async function runWorkflowRuntimeLite({
     onRunUpdate?.(run);
 
     try {
+      assertWorkflowRuntimeNotAborted(signal);
       const executor = workflowRuntimeExecutorMap[node.type];
       const outputPacket: ContextPacket = await executor({
         callImage,
@@ -188,6 +192,7 @@ export async function runWorkflowRuntimeLite({
           onRunUpdate?.(run);
         },
         runId,
+        signal,
         workflowId,
       });
       const completedAt = new Date().toISOString();
@@ -255,6 +260,23 @@ export async function runWorkflowRuntimeLite({
   onRunUpdate?.(run);
 
   return run;
+}
+
+function createWorkflowRuntimeAbortError() {
+  if (typeof DOMException !== "undefined") {
+    return new DOMException("Workflow Runtime Lite paused.", "AbortError");
+  }
+
+  const error = new Error("Workflow Runtime Lite paused.");
+  error.name = "AbortError";
+
+  return error;
+}
+
+function assertWorkflowRuntimeNotAborted(signal: AbortSignal | undefined) {
+  if (signal?.aborted) {
+    throw createWorkflowRuntimeAbortError();
+  }
 }
 
 function groupIncomingEdges(edges: WorkflowRuntimeEdge[]) {

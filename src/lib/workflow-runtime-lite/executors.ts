@@ -12,6 +12,7 @@ export type WorkflowRuntimeLlmCallInput = {
   onToken?: (delta: string, text: string) => void;
   prompt: string;
   runId: string;
+  signal?: AbortSignal;
   upstream: ContextPacket;
   workflowId: string;
 };
@@ -27,6 +28,7 @@ export type WorkflowRuntimeImageCallInput = {
   node: WorkflowNodeInstance<"model.image">;
   prompt: string;
   runId: string;
+  signal?: AbortSignal;
   upstream: ContextPacket;
   workflowId: string;
 };
@@ -47,6 +49,7 @@ export type WorkflowRuntimeExecutorInput<TType extends WorkflowRuntimeNodeType> 
   node: WorkflowNodeInstance<TType>;
   onPartialOutput?: (packet: ContextPacket) => void;
   runId: string;
+  signal?: AbortSignal;
   workflowId: string;
 };
 
@@ -74,6 +77,7 @@ export async function executeLLM({
   node,
   onPartialOutput,
   runId,
+  signal,
   workflowId,
 }: WorkflowRuntimeExecutorInput<"model.llm">) {
   if (!inputPacket) {
@@ -120,6 +124,7 @@ export async function executeLLM({
     },
     prompt,
     runId,
+    signal,
     upstream: inputPacket,
     workflowId,
   });
@@ -148,6 +153,7 @@ export async function executeImageModel({
   inputPacket,
   node,
   runId,
+  signal,
   workflowId,
 }: WorkflowRuntimeExecutorInput<"model.image">) {
   if (!inputPacket) {
@@ -171,6 +177,7 @@ export async function executeImageModel({
     node,
     prompt,
     runId,
+    signal,
     upstream: inputPacket,
     workflowId,
   });

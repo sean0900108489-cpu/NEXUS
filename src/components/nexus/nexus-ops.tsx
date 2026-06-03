@@ -1273,6 +1273,9 @@ export function NexusOps() {
   const removeWorkflowRuntimeEdges = useNexusStore(
     (state) => state.removeWorkflowRuntimeEdges,
   );
+  const pauseWorkflowRuntimeLiteFlow = useNexusStore(
+    (state) => state.pauseWorkflowRuntimeLiteFlow,
+  );
   const runWorkflowRuntimeLiteFlow = useNexusStore(
     (state) => state.runWorkflowRuntimeLiteFlow,
   );
@@ -2234,11 +2237,17 @@ export function NexusOps() {
     }
   }, []);
 
-  const handleRunWorkflowRuntimeLite = useCallback(async () => {
-    setNotice("Workflow Runtime Lite started");
+  const handleRunWorkflowRuntimeLite = useCallback(async (
+    options?: { startNodeId?: string },
+  ) => {
+    setNotice(
+      options?.startNodeId
+        ? "Workflow Runtime Lite input started"
+        : "Workflow Runtime Lite started",
+    );
 
     try {
-      const run = await runWorkflowRuntimeLiteFlow();
+      const run = await runWorkflowRuntimeLiteFlow(options);
 
       if (!run) {
         setNotice("Workflow Runtime Lite could not start");
@@ -2259,6 +2268,38 @@ export function NexusOps() {
       );
     }
   }, [runWorkflowRuntimeLiteFlow]);
+
+  const handlePauseWorkflowRuntimeLite = useCallback(() => {
+    pauseWorkflowRuntimeLiteFlow();
+    setNotice("Workflow Runtime Lite pause requested");
+  }, [pauseWorkflowRuntimeLiteFlow]);
+
+  const handleCopyWorkflowInput = useCallback(async (nodeId: string) => {
+    const runtimeNode = useNexusStore
+      .getState()
+      .workspaces.find(
+        (candidate) =>
+          candidate.id === useNexusStore.getState().activeWorkspaceId,
+      )
+      ?.graph.runtimeLite?.nodes.find((node) => node.id === nodeId);
+    const textCandidate = (runtimeNode?.data as { text?: unknown } | undefined)?.text;
+    const text =
+      runtimeNode?.type === "input.text" && typeof textCandidate === "string"
+        ? textCandidate
+        : "";
+
+    if (!text.trim()) {
+      setNotice("Input node is empty");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setNotice("Input copied");
+    } catch {
+      setNotice("Clipboard unavailable for input");
+    }
+  }, []);
 
   const handleCopyWorkflowOutput = useCallback(async (nodeId: string) => {
     const runtimeNode = useNexusStore
@@ -2889,14 +2930,17 @@ export function NexusOps() {
             ) : (
               <NexusGraph
                 agents={agents}
+                generatedArtifacts={artifactVault.filter(isGeneratedArtifactRecord)}
                 graph={workspace?.graph ?? EMPTY_GRAPH}
-                onAddWorkflowNode={(type) => {
-                  addWorkflowRuntimeNode(type);
+                onAddWorkflowNode={(type, position) => {
+                  addWorkflowRuntimeNode(type, position ? { position } : undefined);
                   setNotice(`${type} node added`);
                 }}
                 onConnectAgents={connectGraphAgents}
                 onConnectWorkflowNodes={connectWorkflowRuntimeNodes}
+                onCopyWorkflowInput={handleCopyWorkflowInput}
                 onCopyWorkflowOutput={handleCopyWorkflowOutput}
+                onDownloadArtifact={handleDownloadArtifact}
                 onFocusAgent={selectAgent}
                 onOpenAgent={(agentId) => {
                   setViewMode("panels");
@@ -2906,6 +2950,10 @@ export function NexusOps() {
                 onRemoveEdges={removeGraphEdges}
                 onRemoveWorkflowEdges={removeWorkflowRuntimeEdges}
                 onRemoveWorkflowNodes={removeWorkflowRuntimeNodes}
+                onPauseWorkflow={handlePauseWorkflowRuntimeLite}
+                onRunWorkflowFromInput={(nodeId) => {
+                  void handleRunWorkflowRuntimeLite({ startNodeId: nodeId });
+                }}
                 onRunWorkflow={() => {
                   void handleRunWorkflowRuntimeLite();
                 }}

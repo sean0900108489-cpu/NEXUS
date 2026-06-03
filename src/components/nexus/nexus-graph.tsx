@@ -18,21 +18,37 @@ import {
   type Node,
   type NodeChange,
   type NodeProps,
+  type ReactFlowInstance,
 } from "@xyflow/react";
-import { BrainCircuit, Copy, FileText, Image as ImageIcon, Play, Type, X } from "lucide-react";
+import {
+  BrainCircuit,
+  ChevronDown,
+  Copy,
+  Download,
+  FileText,
+  Image as ImageIcon,
+  Pause,
+  Play,
+  Type,
+  X,
+} from "lucide-react";
 import {
   type CSSProperties,
+  type DragEvent as ReactDragEvent,
   type ReactNode,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
 import { getDefaultGraphPosition } from "@/lib/nexus-defaults";
 import {
+  getModelCapabilityProfile,
   getModelOption,
   getModelOptionsForCapability,
+  normalizeAgentModelSettings,
 } from "@/lib/nexus-registry";
 import {
   WORKSPACE_COMPOSER_IMAGE_ASPECT_RATIO_OPTIONS,
@@ -43,7 +59,10 @@ import {
 } from "@/lib/composer/image-generation-settings";
 import type {
   ContextPacket,
+  ArtifactVaultRecord,
   NexusAgent,
+  NexusReasoningDetail,
+  NexusReasoningEffort,
   WorkflowNodeInstance,
   WorkflowRuntimeEdge,
   WorkflowRuntimeNodeData,
@@ -52,7 +71,10 @@ import type {
   WorkspaceGraph,
   WorkspaceGraphEdge,
 } from "@/lib/nexus-types";
-import { getWorkflowRuntimeNodeDefinition } from "@/lib/workflow-runtime-lite/registry";
+import {
+  getWorkflowRuntimeNodeDefinition,
+  isWorkflowRuntimeNodeType,
+} from "@/lib/workflow-runtime-lite/registry";
 
 type AgentNodeData = {
   agent: NexusAgent;
@@ -61,12 +83,16 @@ type AgentNodeData = {
 };
 type RuntimeNodeData = {
   node: WorkflowNodeInstance;
+  onCopyInput: (nodeId: string) => void;
   onCopyOutput: (nodeId: string) => void;
+  onPauseWorkflow: () => void;
   onRemoveNode: (nodeId: string) => void;
+  onRunFromInput: (nodeId: string) => void;
   onUpdateNodeData: (
     nodeId: string,
     data: Partial<WorkflowRuntimeNodeData>,
   ) => void;
+  workflowRunning: boolean;
 };
 type AgentEdgeData = {
   label?: string;
@@ -248,7 +274,16 @@ function AgentNode({ data, selected }: NodeProps<AgentFlowNode>) {
 }
 
 function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
-  const { node, onCopyOutput, onRemoveNode, onUpdateNodeData } = data;
+  const {
+    node,
+    onCopyInput,
+    onCopyOutput,
+    onPauseWorkflow,
+    onRemoveNode,
+    onRunFromInput,
+    onUpdateNodeData,
+    workflowRunning,
+  } = data;
   const definition = getWorkflowRuntimeNodeDefinition(node.type);
   const packet = node.outputSnapshot ?? null;
   const outputText = packet?.rawText || packet?.displayText || "";
@@ -306,7 +341,11 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
       {node.type === "input.text" ? (
         <InputTextRuntimeEditor
           node={node as WorkflowNodeInstance<"input.text">}
+          onCopyInput={onCopyInput}
+          onPauseWorkflow={onPauseWorkflow}
+          onRunFromInput={onRunFromInput}
           onUpdateNodeData={onUpdateNodeData}
+          workflowRunning={workflowRunning}
         />
       ) : null}
 
@@ -391,29 +430,68 @@ function RuntimeHandles({ node }: { node: WorkflowNodeInstance }) {
 
 function InputTextRuntimeEditor({
   node,
+  onCopyInput,
+  onPauseWorkflow,
+  onRunFromInput,
   onUpdateNodeData,
+  workflowRunning,
 }: {
   node: WorkflowNodeInstance<"input.text">;
+  onCopyInput: (nodeId: string) => void;
+  onPauseWorkflow: () => void;
+  onRunFromInput: (nodeId: string) => void;
   onUpdateNodeData: (
     nodeId: string,
     data: Partial<WorkflowRuntimeNodeData>,
   ) => void;
+  workflowRunning: boolean;
 }) {
   return (
-    <label className="grid gap-2">
-      <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
-        Seed Text
-      </span>
-      <textarea
-        className="nodrag min-h-28 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
-        onChange={(event) =>
-          onUpdateNodeData(node.id, { text: event.currentTarget.value })
-        }
-        placeholder="Write the workflow input..."
-        spellCheck={false}
-        value={node.data.text}
-      />
-    </label>
+    <div className="grid gap-2">
+      <label className="grid gap-2">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+          Seed Text
+        </span>
+        <textarea
+          className="nodrag min-h-36 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          onChange={(event) =>
+            onUpdateNodeData(node.id, { text: event.currentTarget.value })
+          }
+          placeholder="Write the workflow input..."
+          spellCheck={false}
+          value={node.data.text}
+        />
+      </label>
+      <div className="grid grid-cols-3 gap-2">
+        <button
+          className="nodrag inline-flex h-8 items-center justify-center gap-1.5 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
+          disabled={workflowRunning}
+          onClick={() => onRunFromInput(node.id)}
+          type="button"
+        >
+          <Play className="h-3 w-3" />
+          Start
+        </button>
+        <button
+          className="nodrag inline-flex h-8 items-center justify-center gap-1.5 border border-white/12 bg-white/[0.045] px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-300 transition hover:border-neutral-300/35 hover:text-neutral-100 disabled:opacity-40"
+          disabled={!workflowRunning}
+          onClick={onPauseWorkflow}
+          type="button"
+        >
+          <Pause className="h-3 w-3" />
+          Pause
+        </button>
+        <button
+          className="nodrag inline-flex h-8 items-center justify-center gap-1.5 border border-white/12 bg-white/[0.045] px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-300 transition hover:border-neutral-300/35 hover:text-neutral-100 disabled:opacity-40"
+          disabled={!node.data.text.trim()}
+          onClick={() => onCopyInput(node.id)}
+          type="button"
+        >
+          <Copy className="h-3 w-3" />
+          Copy
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -433,6 +511,15 @@ function ModelRuntimeEditor({
     node.status === "running" ||
     node.status === "success" ||
     node.status === "failed_interrupted";
+  const capability = getModelCapabilityProfile(node.data.model);
+  const settings = normalizeAgentModelSettings(
+    node.data.model,
+    node.data.modelSettings,
+  );
+  const reasoningEffortOptions =
+    capability?.thinking.supportedReasoningEfforts ?? [];
+  const reasoningDetailOptions =
+    capability?.reasoningDetail.supportedDetails ?? [];
 
   return (
     <div className="grid gap-2">
@@ -456,9 +543,17 @@ function ModelRuntimeEditor({
         </span>
         <select
           className="nodrag border border-white/10 px-2.5 py-2 font-mono text-[11px] text-neutral-100 outline-none transition focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
-          onChange={(event) =>
-            onUpdateNodeData(node.id, { model: event.currentTarget.value })
-          }
+          onChange={(event) => {
+            const model = event.currentTarget.value;
+
+            onUpdateNodeData(node.id, {
+              model,
+              modelSettings: normalizeAgentModelSettings(
+                model,
+                node.data.modelSettings,
+              ),
+            });
+          }}
           value={node.data.model}
         >
           {getModelOptionsForCapability("chat").map((model) => (
@@ -468,6 +563,62 @@ function ModelRuntimeEditor({
           ))}
         </select>
       </label>
+      {reasoningEffortOptions.length || reasoningDetailOptions.length ? (
+        <div className="grid grid-cols-2 gap-2">
+          {reasoningEffortOptions.length ? (
+            <label className="grid gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+                Reasoning
+              </span>
+              <select
+                className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+                onChange={(event) =>
+                  onUpdateNodeData(node.id, {
+                    modelSettings: normalizeAgentModelSettings(node.data.model, {
+                      ...settings,
+                      reasoningEffort: event.currentTarget
+                        .value as NexusReasoningEffort,
+                    }),
+                  })
+                }
+                value={settings.reasoningEffort}
+              >
+                {reasoningEffortOptions.map((effort) => (
+                  <option key={effort} value={effort}>
+                    {effort}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+          {reasoningDetailOptions.length ? (
+            <label className="grid gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+                Detail
+              </span>
+              <select
+                className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+                onChange={(event) =>
+                  onUpdateNodeData(node.id, {
+                    modelSettings: normalizeAgentModelSettings(node.data.model, {
+                      ...settings,
+                      reasoningDetail: event.currentTarget
+                        .value as NexusReasoningDetail,
+                    }),
+                  })
+                }
+                value={settings.reasoningDetail}
+              >
+                {reasoningDetailOptions.map((detail) => (
+                  <option key={detail} value={detail}>
+                    {detail}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+        </div>
+      ) : null}
       {showLiveOutput ? (
         <div className="grid gap-2">
           <div className="flex items-center justify-between gap-3">
@@ -751,33 +902,46 @@ export function NexusGraph({
   onAddWorkflowNode,
   onConnectAgents,
   onConnectWorkflowNodes,
+  onCopyWorkflowInput,
   onCopyWorkflowOutput,
+  onDownloadArtifact,
   onFocusAgent,
   onOpenAgent,
+  onPauseWorkflow,
   onRemoveAgent,
   onRemoveEdges,
   onRemoveWorkflowEdges,
   onRemoveWorkflowNodes,
   onRunWorkflow,
+  onRunWorkflowFromInput,
   onUpdateWorkflowNodeData,
   onUpdateWorkflowNodePosition,
   onUpdateNodePosition,
   workflowFeedback,
   workflowRunning,
+  generatedArtifacts,
 }: {
   agents: NexusAgent[];
+  generatedArtifacts?: ArtifactVaultRecord[];
   graph: WorkspaceGraph;
-  onAddWorkflowNode: (type: WorkflowRuntimeNodeType) => void;
+  onAddWorkflowNode: (
+    type: WorkflowRuntimeNodeType,
+    position?: { x: number; y: number },
+  ) => void;
   onConnectAgents: (edge: WorkspaceGraphEdge) => void;
   onConnectWorkflowNodes: (edge: WorkflowRuntimeEdge) => void;
+  onCopyWorkflowInput: (nodeId: string) => void;
   onCopyWorkflowOutput: (nodeId: string) => void;
+  onDownloadArtifact: (artifact: ArtifactVaultRecord) => void;
   onFocusAgent: (agentId: string) => void;
   onOpenAgent: (agentId: string) => void;
+  onPauseWorkflow: () => void;
   onRemoveAgent: (agentId: string) => void;
   onRemoveEdges: (edgeIds: string[]) => void;
   onRemoveWorkflowEdges: (edgeIds: string[]) => void;
   onRemoveWorkflowNodes: (nodeIds: string[]) => void;
   onRunWorkflow: () => void;
+  onRunWorkflowFromInput: (nodeId: string) => void;
   onUpdateWorkflowNodeData: (
     nodeId: string,
     data: Partial<WorkflowRuntimeNodeData>,
@@ -804,6 +968,11 @@ export function NexusGraph({
     [runtimeLite?.nodes],
   );
   const [selectedEdgeIds, setSelectedEdgeIds] = useState<string[]>([]);
+  const graphContainerRef = useRef<HTMLDivElement | null>(null);
+  const [flowInstance, setFlowInstance] = useState<ReactFlowInstance<
+    AgentFlowNode | RuntimeFlowNode,
+    AgentFlowEdge
+  > | null>(null);
 
   const derivedNodes = useMemo<Array<AgentFlowNode | RuntimeFlowNode>>(
     () => {
@@ -832,9 +1001,13 @@ export function NexusGraph({
           position: node.position,
           data: {
             node,
+            onCopyInput: onCopyWorkflowInput,
             onCopyOutput: onCopyWorkflowOutput,
+            onPauseWorkflow,
             onRemoveNode: (nodeId: string) => onRemoveWorkflowNodes([nodeId]),
+            onRunFromInput: onRunWorkflowFromInput,
             onUpdateNodeData: onUpdateWorkflowNodeData,
+            workflowRunning: Boolean(workflowRunning),
           },
         }),
       );
@@ -844,12 +1017,16 @@ export function NexusGraph({
     [
       agents,
       graphNodeByAgentId,
+      onCopyWorkflowInput,
       onCopyWorkflowOutput,
       onOpenAgent,
+      onPauseWorkflow,
       onRemoveAgent,
       onRemoveWorkflowNodes,
+      onRunWorkflowFromInput,
       onUpdateWorkflowNodeData,
       runtimeLite?.nodes,
+      workflowRunning,
     ],
   );
 
@@ -1066,8 +1243,54 @@ export function NexusGraph({
     }
   };
 
+  const toWorkflowPosition = useCallback((point: { x: number; y: number }) => {
+    return flowInstance?.screenToFlowPosition(point);
+  }, [flowInstance]);
+
+  const addWorkflowNodeAtCenter = useCallback((type: WorkflowRuntimeNodeType) => {
+    const bounds = graphContainerRef.current?.getBoundingClientRect();
+    const position = bounds
+      ? toWorkflowPosition({
+          x: bounds.left + bounds.width / 2,
+          y: bounds.top + bounds.height / 2,
+        })
+      : undefined;
+
+    onAddWorkflowNode(type, position);
+  }, [onAddWorkflowNode, toWorkflowPosition]);
+
+  const handleWorkflowNodeDrop = useCallback((event: ReactDragEvent<HTMLDivElement>) => {
+    const type = event.dataTransfer.getData("application/x-nexus-workflow-node");
+
+    if (!isWorkflowRuntimeNodeType(type)) {
+      return;
+    }
+
+    event.preventDefault();
+    onAddWorkflowNode(
+      type,
+      toWorkflowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      }),
+    );
+  }, [onAddWorkflowNode, toWorkflowPosition]);
+
+  const handleWorkflowNodeDragOver = useCallback(
+    (event: ReactDragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+    },
+    [],
+  );
+
   return (
-    <div className="h-full min-h-0 w-full bg-transparent [&_.react-flow]:!bg-transparent [&_.react-flow__pane]:!bg-transparent">
+    <div
+      className="h-full min-h-0 w-full bg-transparent [&_.react-flow]:!bg-transparent [&_.react-flow__pane]:!bg-transparent"
+      onDragOver={handleWorkflowNodeDragOver}
+      onDrop={handleWorkflowNodeDrop}
+      ref={graphContainerRef}
+    >
       <ReactFlow
         colorMode="dark"
         defaultEdgeOptions={{
@@ -1114,34 +1337,43 @@ export function NexusGraph({
         }}
         onNodesChange={onNodesChange}
         onPaneClick={() => setSelectedEdgeIds([])}
+        onInit={setFlowInstance}
         proOptions={{ hideAttribution: true }}
       >
         <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-24px)] flex-wrap items-start gap-2">
           <WorkflowGraphAction
             icon={<Type className="h-3.5 w-3.5" />}
             label="Add Input"
-            onClick={() => onAddWorkflowNode("input.text")}
+            nodeType="input.text"
+            onClick={() => addWorkflowNodeAtCenter("input.text")}
           />
           <WorkflowGraphAction
             icon={<BrainCircuit className="h-3.5 w-3.5" />}
             label="Add LLM"
-            onClick={() => onAddWorkflowNode("model.llm")}
+            nodeType="model.llm"
+            onClick={() => addWorkflowNodeAtCenter("model.llm")}
           />
           <WorkflowGraphAction
             icon={<ImageIcon className="h-3.5 w-3.5" />}
             label="Add Image"
-            onClick={() => onAddWorkflowNode("model.image")}
+            nodeType="model.image"
+            onClick={() => addWorkflowNodeAtCenter("model.image")}
           />
           <WorkflowGraphAction
             icon={<FileText className="h-3.5 w-3.5" />}
             label="Add Output"
-            onClick={() => onAddWorkflowNode("output.text")}
+            nodeType="output.text"
+            onClick={() => addWorkflowNodeAtCenter("output.text")}
           />
           <WorkflowGraphAction
             disabled={workflowRunning}
             icon={<Play className="h-3.5 w-3.5" />}
-            label={workflowRunning ? "Running" : "Start Flow"}
+            label={workflowRunning ? "Running" : "Start All"}
             onClick={onRunWorkflow}
+          />
+          <WorkflowGeneratedAssetMenu
+            artifacts={generatedArtifacts ?? []}
+            onDownloadArtifact={onDownloadArtifact}
           />
           <WorkflowGraphStatus feedback={workflowFeedback} />
         </div>
@@ -1168,23 +1400,107 @@ function WorkflowGraphAction({
   disabled,
   icon,
   label,
+  nodeType,
   onClick,
 }: {
   disabled?: boolean;
   icon: ReactNode;
   label: string;
+  nodeType?: WorkflowRuntimeNodeType;
   onClick: () => void;
 }) {
   return (
     <button
       className="pointer-events-auto inline-flex h-8 items-center gap-2 border border-white/10 px-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-200 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md transition hover:border-neutral-300/40 hover:text-neutral-100 disabled:opacity-45 [background:var(--nexus-layout-panel-bg,rgba(2,6,23,0.82))] hover:[background:var(--nexus-layout-panel-muted-bg,rgba(34,211,238,0.1))]"
       disabled={disabled}
+      draggable={Boolean(nodeType) && !disabled}
       onClick={onClick}
+      onDragStart={(event) => {
+        if (!nodeType) {
+          return;
+        }
+
+        event.dataTransfer.effectAllowed = "copy";
+        event.dataTransfer.setData("application/x-nexus-workflow-node", nodeType);
+      }}
       type="button"
     >
       {icon}
       <span>{label}</span>
     </button>
+  );
+}
+
+function WorkflowGeneratedAssetMenu({
+  artifacts,
+  onDownloadArtifact,
+}: {
+  artifacts: ArtifactVaultRecord[];
+  onDownloadArtifact: (artifact: ArtifactVaultRecord) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const latestArtifacts = artifacts.slice(0, 8);
+
+  return (
+    <div className="pointer-events-auto relative">
+      <button
+        className="inline-flex h-8 items-center gap-2 border border-white/10 px-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-200 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md transition hover:border-neutral-300/40 hover:text-neutral-100 [background:var(--nexus-layout-panel-bg,rgba(2,6,23,0.82))] hover:[background:var(--nexus-layout-panel-muted-bg,rgba(34,211,238,0.1))]"
+        onClick={() => setOpen((current) => !current)}
+        type="button"
+      >
+        <Download className="h-3.5 w-3.5" />
+        <span>Generated</span>
+        <span className="text-neutral-500">{artifacts.length}</span>
+        <ChevronDown className={cx("h-3 w-3 transition", open && "rotate-180")} />
+      </button>
+      {open ? (
+        <div className="absolute left-0 top-[calc(100%+8px)] z-20 w-80 border border-white/10 p-2 shadow-[0_18px_60px_rgba(0,0,0,0.42)] backdrop-blur-xl [background:var(--nexus-layout-panel-bg,rgba(2,6,23,0.94))]">
+          <div className="mb-2 flex items-center justify-between gap-3 px-1 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+            <span>History</span>
+            <span>{artifacts.length} assets</span>
+          </div>
+          {latestArtifacts.length ? (
+            <div className="grid max-h-80 gap-1 overflow-y-auto pr-1">
+              {latestArtifacts.map((artifact) => (
+                <article
+                  className="grid gap-2 border border-white/10 bg-black/24 p-2"
+                  key={artifact.id}
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="border border-neutral-300/25 bg-neutral-300/10 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-200">
+                        {artifact.type}
+                      </span>
+                      <span className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-600">
+                        v{artifact.version}
+                      </span>
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-neutral-300">
+                      {artifact.title ??
+                        artifact.previewText ??
+                        artifact.contentUrl ??
+                        artifact.id}
+                    </p>
+                  </div>
+                  <button
+                    className="inline-flex h-7 items-center justify-center gap-1.5 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/20"
+                    onClick={() => onDownloadArtifact(artifact)}
+                    type="button"
+                  >
+                    <Download className="h-3 w-3" />
+                    Download
+                  </button>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="border border-dashed border-white/10 px-3 py-4 text-xs leading-5 text-neutral-500">
+              No generated assets yet.
+            </div>
+          )}
+        </div>
+      ) : null}
+    </div>
   );
 }
 

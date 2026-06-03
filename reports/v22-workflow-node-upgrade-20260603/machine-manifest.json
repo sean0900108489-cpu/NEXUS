@@ -1,0 +1,163 @@
+{
+  "schemaVersion": "v22.workflow-node-upgrade.manifest.1",
+  "generatedAt": "2026-06-03T00:00:00.000+10:00",
+  "project": {
+    "name": "NEXUS // AI OPS",
+    "branch": "v22",
+    "upgradeName": "Workflow Node Upgrade"
+  },
+  "implementedSurface": {
+    "graphToolbar": {
+      "startAll": true,
+      "clickCreatesNodeAtCanvasCenter": true,
+      "dragCreatesNodeAtDropPosition": true,
+      "generatedAssetHistoryDropdown": true
+    },
+    "inputNode": {
+      "independentStart": true,
+      "pauseControl": true,
+      "copySeedText": true,
+      "expandedComposerArea": true
+    },
+    "llmNode": {
+      "modelSelect": true,
+      "reasoningEffortSelect": true,
+      "reasoningDetailSelect": true,
+      "usesModelRegistryCapabilities": true
+    },
+    "imageNode": {
+      "modelSelect": true,
+      "qualitySelect": true,
+      "aspectRatioSelect": true,
+      "artifactPersistence": true
+    },
+    "artifactHistory": {
+      "source": "artifact-vault",
+      "download": true,
+      "parallelHistoryStoreCreated": false
+    }
+  },
+  "workflowJsonSchemaDraft": {
+    "workflow": {
+      "id": "string",
+      "name": "string",
+      "schemaVersion": "number|string",
+      "metadata": {
+        "author": "string",
+        "createdAt": "iso-date",
+        "description": "string",
+        "tags": ["string"]
+      },
+      "inputs": [
+        {
+          "id": "string",
+          "type": "text|file|image|video|structured",
+          "compiler": {
+            "id": "string",
+            "mode": "noop|transform|extract|embed|custom",
+            "config": "object"
+          },
+          "outputHandle": "string"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "string",
+          "type": "input.text|model.llm|model.image|model.video|output.text|tool|memory|condition|brain",
+          "label": "string",
+          "position": { "x": "number", "y": "number" },
+          "model": {
+            "provider": "string",
+            "modelId": "string",
+            "settings": {
+              "reasoningEffort": "none|minimal|low|medium|high|xhigh",
+              "reasoningDetail": "low|medium|high",
+              "quality": "standard|high|ultra",
+              "aspectRatio": "1:1|16:9|9:16",
+              "temperature": "number"
+            }
+          },
+          "compiler": {
+            "id": "string",
+            "mode": "noop|transform|extract|embed|custom",
+            "inputMimeTypes": ["string"],
+            "outputMimeType": "string"
+          },
+          "artifactPolicy": {
+            "persist": "boolean",
+            "type": "generated-image|generated-video|text|dataset|custom",
+            "downloadable": "boolean",
+            "historyScope": "workspace|agent|node|run"
+          },
+          "telemetry": {
+            "emitContextPacket": "boolean",
+            "sendToBrain": "boolean",
+            "redactionProfile": "default|strict|custom"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "string",
+          "source": "node-id",
+          "sourceHandle": "string",
+          "target": "node-id",
+          "targetHandle": "string",
+          "condition": {
+            "type": "always|if|else|guard|brain-decision",
+            "expression": "string"
+          },
+          "packetContract": {
+            "input": "ContextPacket",
+            "output": "ContextPacket",
+            "allowedMedia": ["text", "image", "video", "file", "json"]
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "string",
+          "type": "text|image|video|artifact|json",
+          "sourceNodeId": "string",
+          "artifactPolicy": "object"
+        }
+      ],
+      "brain": {
+        "enabled": "boolean",
+        "nodeId": "string",
+        "observes": ["nodes", "edges", "runs", "artifacts", "errors", "latency", "contextPackets"],
+        "canMutate": ["none", "routing", "prompts", "settings", "full-workflow"],
+        "decisionLog": "artifact|observability-event|none"
+      }
+    }
+  },
+  "futureTopTierFeatures": [
+    "workflow template import/export from JSON",
+    "node-level compiler plugin registry",
+    "condition / if-else control valves",
+    "workflow brain node with context packet telemetry",
+    "video generation model nodes",
+    "multi-output artifact fan-out",
+    "run replay and diff view",
+    "cost and latency estimator per node",
+    "node permission scopes and secret redaction profiles",
+    "workflow marketplace manifest validator"
+  ],
+  "handoff": {
+    "sourceFiles": [
+      "src/components/nexus/nexus-graph.tsx",
+      "src/components/nexus/nexus-ops.tsx",
+      "src/store/nexus-store.ts",
+      "src/lib/workflow-runtime-lite/runner.ts",
+      "src/lib/workflow-runtime-lite/executors.ts",
+      "src/lib/workflow-runtime-lite/llm-client.ts",
+      "src/lib/workflow-runtime-lite/image-client.ts",
+      "src/lib/adapters/image-adapter.ts"
+    ],
+    "verificationCommands": [
+      "npm run typecheck -- --pretty false",
+      "npm test -- src/lib/workflow-runtime-lite/llm-client.test.ts src/store/nexus-store.test.ts src/lib/workflow-runtime-lite/runner.test.ts src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+      "npm run build"
+    ]
+  }
+}

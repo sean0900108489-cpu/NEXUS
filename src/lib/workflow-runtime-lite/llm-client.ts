@@ -74,7 +74,7 @@ export function createWorkflowRuntimeLlmCall({
   executionAgent: NexusAgent;
   workspace: NexusWorkspace;
 }): WorkflowRuntimeLlmCall {
-  return async ({ node, onToken, prompt, runId, upstream }) =>
+  return async ({ node, onToken, prompt, runId, signal, upstream }) =>
     executeWorkflowRuntimeLlm({
       authVault,
       executionAgent,
@@ -82,6 +82,7 @@ export function createWorkflowRuntimeLlmCall({
       onToken,
       prompt,
       runId,
+      signal,
       upstream,
       workspace,
     });
@@ -94,6 +95,7 @@ export async function executeWorkflowRuntimeLlm({
   onToken,
   prompt,
   runId,
+  signal,
   upstream,
   workspace,
 }: {
@@ -103,6 +105,7 @@ export async function executeWorkflowRuntimeLlm({
   onToken?: (delta: string, text: string) => void;
   prompt: string;
   runId: string;
+  signal?: AbortSignal;
   upstream: ContextPacket;
   workspace: NexusWorkspace;
 }) {
@@ -157,9 +160,11 @@ export async function executeWorkflowRuntimeLlm({
     "Content-Type": "application/json",
     "X-Workspace-Id": workspace.id,
   });
-  const userId = authVault.user?.id?.trim() || "local-owner";
+  const userId = authVault.user?.id?.trim();
 
-  headers.set("X-User-Id", userId);
+  if (userId) {
+    headers.set("X-User-Id", userId);
+  }
   headers.set("X-Nexus-Workflow-Runtime", "lite");
 
   const accessToken = await resolveBrowserAccessToken();
@@ -181,6 +186,7 @@ export async function executeWorkflowRuntimeLlm({
       body: JSON.stringify(request),
       headers,
       method: "POST",
+      signal,
     },
   );
 

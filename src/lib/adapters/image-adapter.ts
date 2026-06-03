@@ -222,6 +222,7 @@ export class DalleImageAdapter implements IToolExecutor {
 
 export async function executeImageAdapterForAgent(
   request: ImageAdapterRequest,
+  options: { signal?: AbortSignal } = {},
 ): Promise<ImageAdapterResult> {
   const apiKey = request.apiKey?.trim();
   const headers: Record<string, string> = {
@@ -239,6 +240,7 @@ export async function executeImageAdapterForAgent(
   const response = await fetch("/api/image-gen", {
     method: "POST",
     headers,
+    signal: options.signal,
     body: JSON.stringify({
       agent: {
         accent: request.agent.accent,

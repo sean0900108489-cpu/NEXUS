@@ -24,7 +24,7 @@ export function createWorkflowRuntimeImageCall({
   executionAgent: NexusAgent;
   workspace: NexusWorkspace;
 }): WorkflowRuntimeImageCall {
-  return async ({ node, prompt, runId }) => {
+  return async ({ node, prompt, runId, signal }) => {
     const imageSettings = normalizeWorkspaceComposerImageSettings({
       aspectRatio: node.data.aspectRatio,
       modelId: node.data.modelId,
@@ -40,7 +40,7 @@ export function createWorkflowRuntimeImageCall({
       imageSettings,
       prompt,
       toolName: "Workflow Image Model",
-    });
+    }, { signal });
     const sourceMessageId = `${runId}:${node.id}:image`;
     const artifactResponse = await nexusApiClient.post<
       ArtifactCreateResponse,

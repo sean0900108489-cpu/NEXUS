@@ -96,7 +96,9 @@ import type {
   WorkflowNodeInstance,
   WorkflowRun,
   WorkflowRuntimeEdge,
+  WorkflowRuntimeLiteState,
   WorkflowRuntimeNodeData,
+  WorkflowRuntimePosition,
   WorkflowRuntimeNodeType,
   WorkflowTemplateAgentBlueprint,
   WorkflowTemplateBlueprintData,
@@ -118,6 +120,12 @@ type WorkspaceBounds = {
 
 type WorkspaceIdentity = Pick<NexusWorkspace, "id" | "name">;
 type WorkspaceThemeConfigUpdate = Partial<WorkspaceThemeConfig>;
+type AddWorkflowRuntimeNodeOptions = {
+  position?: WorkflowRuntimePosition;
+};
+type RunWorkflowRuntimeLiteFlowOptions = {
+  startNodeId?: string;
+};
 type WorkspaceBranchingSettingsUpdate = Partial<WorkspaceBranchingSettings>;
 type HistoricalMessageCacheEntry = HistoricalDataPage<HistoricalMessageRecord> & {
   error?: string;
@@ -142,6 +150,7 @@ const historyFetchDebounces = new Map<
     timeout: ReturnType<typeof setTimeout>;
   }
 >();
+const workflowRuntimeAbortControllers = new Map<string, AbortController>();
 
 const DEFAULT_AUTH_VAULT: IAuthVault = {
   user: null,
@@ -429,7 +438,10 @@ type NexusStore = {
   updateGraphNodePosition: (agentId: string, position: { x: number; y: number }) => void;
   connectGraphAgents: (edge: WorkspaceGraphEdge) => void;
   removeGraphEdges: (edgeIds: string[]) => void;
-  addWorkflowRuntimeNode: (type: WorkflowRuntimeNodeType) => string;
+  addWorkflowRuntimeNode: (
+    type: WorkflowRuntimeNodeType,
+    options?: AddWorkflowRuntimeNodeOptions,
+  ) => string;
   updateWorkflowRuntimeNodeData: (
     nodeId: string,
     data: Partial<WorkflowRuntimeNodeData>,
@@ -441,7 +453,10 @@ type NexusStore = {
   connectWorkflowRuntimeNodes: (edge: WorkflowRuntimeEdge) => void;
   removeWorkflowRuntimeNodes: (nodeIds: string[]) => void;
   removeWorkflowRuntimeEdges: (edgeIds: string[]) => void;
-  runWorkflowRuntimeLiteFlow: () => Promise<WorkflowRun | undefined>;
+  pauseWorkflowRuntimeLiteFlow: () => void;
+  runWorkflowRuntimeLiteFlow: (
+    options?: RunWorkflowRuntimeLiteFlowOptions,
+  ) => Promise<WorkflowRun | undefined>;
   updateAgentTelemetry: (agentId: string, generatedCharacters: number) => void;
   clearAgentMessages: (agentId: string) => void;
   runTool: (agentId: string, toolId: string, input?: ToolExecutorInput) => Promise<void>;
@@ -1058,6 +1073,60 @@ function withWorkflowRuntimeLite(
       ...workspace.graph,
       runtimeLite: updater(runtimeLite),
     },
+  };
+}
+
+function selectWorkflowRuntimeLiteFromStartNode(
+  runtimeLite: WorkflowRuntimeLiteState,
+  startNodeId: string | undefined,
+) {
+  if (!startNodeId) {
+    return runtimeLite;
+  }
+
+  const startNode = runtimeLite.nodes.find(
+    (node) => node.id === startNodeId && node.type === "input.text",
+  );
+
+  if (!startNode) {
+    return {
+      ...runtimeLite,
+      edges: [],
+      nodes: [],
+    };
+  }
+
+  const outgoing = new Map<string, WorkflowRuntimeEdge[]>();
+
+  for (const edge of runtimeLite.edges) {
+    const group = outgoing.get(edge.source) ?? [];
+    group.push(edge);
+    outgoing.set(edge.source, group);
+  }
+
+  const reachableNodeIds = new Set<string>();
+  const stack = [startNode.id];
+
+  while (stack.length) {
+    const nodeId = stack.pop();
+
+    if (!nodeId || reachableNodeIds.has(nodeId)) {
+      continue;
+    }
+
+    reachableNodeIds.add(nodeId);
+
+    for (const edge of outgoing.get(nodeId) ?? []) {
+      stack.push(edge.target);
+    }
+  }
+
+  return {
+    ...runtimeLite,
+    edges: runtimeLite.edges.filter(
+      (edge) => reachableNodeIds.has(edge.source) && reachableNodeIds.has(edge.target),
+    ),
+    nodes: runtimeLite.nodes.filter((node) => reachableNodeIds.has(node.id)),
   };
 }
 
@@ -3515,7 +3584,7 @@ export const useNexusStore = create<NexusStore>()(
         }));
       },
 
-      addWorkflowRuntimeNode: (type) => {
+      addWorkflowRuntimeNode: (type, options) => {
         const state = get();
         const workspace = getActiveWorkspace(state);
         const runtimeLite = normalizeWorkflowRuntimeLiteState(
@@ -3526,7 +3595,9 @@ export const useNexusStore = create<NexusStore>()(
         const previousNode = runtimeLite.nodes.at(-1);
         const node = createWorkflowRuntimeNode({
           id,
-          position: previousNode
+          position: options?.position
+            ? options.position
+            : previousNode
             ? {
                 x: previousNode.position.x + 360,
                 y: previousNode.position.y,
@@ -3656,7 +3727,18 @@ export const useNexusStore = create<NexusStore>()(
         }));
       },
 
-      runWorkflowRuntimeLiteFlow: async () => {
+      pauseWorkflowRuntimeLiteFlow: () => {
+        const workspace = getActiveWorkspace(get());
+        const controller = workflowRuntimeAbortControllers.get(workspace.id);
+
+        if (!controller) {
+          return;
+        }
+
+        controller.abort();
+      },
+
+      runWorkflowRuntimeLiteFlow: async (options) => {
         const state = get();
         const workspace = getActiveWorkspace(state);
         const normalizedRuntimeLite = normalizeWorkflowRuntimeLiteState(
@@ -3674,6 +3756,13 @@ export const useNexusStore = create<NexusStore>()(
                 edges: inferredRuntimeEdges,
                 lastError: null,
               };
+        const selectedRuntimeLite = selectWorkflowRuntimeLiteFromStartNode(
+          runtimeLite,
+          options?.startNodeId?.trim(),
+        );
+        const selectedNodeIds = new Set(
+          selectedRuntimeLite.nodes.map((node) => node.id),
+        );
         const executionAgent = resolveWorkflowRuntimeExecutionAgent(workspace);
         const runId = createWorkflowRuntimeId("run");
 
@@ -3706,7 +3795,13 @@ export const useNexusStore = create<NexusStore>()(
           ...runtimeLite,
           lastError: null,
           lastRunId: runId,
-          nodes: runtimeLite.nodes.map(resetWorkflowRuntimeNodeForRun),
+          nodes: runtimeLite.nodes.map((node) =>
+            selectedNodeIds.has(node.id) ? resetWorkflowRuntimeNodeForRun(node) : node,
+          ),
+        };
+        const preparedSelectedRuntimeLite = {
+          ...selectedRuntimeLite,
+          nodes: selectedRuntimeLite.nodes.map(resetWorkflowRuntimeNodeForRun),
         };
 
         set((state) => ({
@@ -3718,6 +3813,11 @@ export const useNexusStore = create<NexusStore>()(
             },
           })),
         }));
+
+        const controller = new AbortController();
+
+        workflowRuntimeAbortControllers.get(workspace.id)?.abort();
+        workflowRuntimeAbortControllers.set(workspace.id, controller);
 
         const patchNode = (nodeId: string, patch: WorkflowRuntimeNodePatch) => {
           set((state) => ({
@@ -3757,8 +3857,13 @@ export const useNexusStore = create<NexusStore>()(
           onNodePatch: patchNode,
           onRunUpdate: updateRun,
           runId,
-          runtimeLite: preparedRuntimeLite,
+          runtimeLite: preparedSelectedRuntimeLite,
+          signal: controller.signal,
           workflowId: workspace.id,
+        }).finally(() => {
+          if (workflowRuntimeAbortControllers.get(workspace.id) === controller) {
+            workflowRuntimeAbortControllers.delete(workspace.id);
+          }
         });
 
         queueWorkspaceCloudSync(getActiveWorkspace(get()));

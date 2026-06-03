@@ -63,7 +63,7 @@ describe("workflow runtime LLM client", () => {
     const init = fetcher.mock.calls[0]?.[1] as RequestInit | undefined;
     const headers = init?.headers as Headers;
 
-    expect(headers.get("X-User-Id")).toBe("local-owner");
+    expect(headers.get("X-User-Id")).toBeNull();
     expect(headers.get("X-Nexus-Workflow-Runtime")).toBe("lite");
     expect(headers.get(NEXUS_RUNTIME_AUTHORIZATION_HEADER)).toBe("Bearer sk-test");
     expect(headers.get("Authorization")).toBeNull();

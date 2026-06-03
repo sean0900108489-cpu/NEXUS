@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>V22 Workflow Node Upgrade</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0d10;
+        --panel: #14181d;
+        --panel-2: #1c2228;
+        --text: #f4f4f5;
+        --muted: #a1a1aa;
+        --line: #343a40;
+        --accent: #d4d4d8;
+        --good: #86efac;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        letter-spacing: 0;
+      }
+      main {
+        width: min(1120px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 56px 0 72px;
+      }
+      header {
+        display: grid;
+        gap: 18px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 32px;
+      }
+      .eyebrow,
+      .kicker {
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+      h1 {
+        max-width: 880px;
+        margin: 0;
+        font-size: clamp(42px, 7vw, 82px);
+        line-height: 0.95;
+        letter-spacing: 0;
+      }
+      p {
+        color: var(--muted);
+        line-height: 1.7;
+      }
+      .lead {
+        max-width: 760px;
+        font-size: 18px;
+      }
+      .grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        margin-top: 28px;
+      }
+      .card {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        padding: 18px;
+        border-radius: 8px;
+      }
+      .card h2 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+      .card ul {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+      .section {
+        margin-top: 42px;
+      }
+      .manifest {
+        overflow: auto;
+        border: 1px solid var(--line);
+        background: #07090b;
+        padding: 18px;
+        border-radius: 8px;
+        color: #d4d4d8;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        line-height: 1.6;
+      }
+      .asset {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel-2);
+        aspect-ratio: 16 / 9;
+        object-fit: contain;
+      }
+      .status {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        width: fit-content;
+        border: 1px solid color-mix(in srgb, var(--good) 45%, transparent);
+        color: var(--good);
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="eyebrow">NEXUS // AI OPS / V22</div>
+        <h1>Workflow Node Upgrade</h1>
+        <p class="lead">
+          A practical graph-runtime upgrade for independent input starts,
+          Start All orchestration, model reasoning controls, generated asset
+          history, and future LLM-readable workflow manifests.
+        </p>
+        <div class="status">Locally verified</div>
+      </header>
+
+      <section class="section">
+        <div class="grid">
+          <article class="card">
+            <h2>Graph Controls</h2>
+            <ul>
+              <li>Start All global workflow command</li>
+              <li>Click-to-center node creation</li>
+              <li>Drag-to-position node creation</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h2>Input Nodes</h2>
+            <ul>
+              <li>Independent Start</li>
+              <li>Abort-backed Pause</li>
+              <li>Seed text Copy</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h2>Model Nodes</h2>
+            <ul>
+              <li>LLM reasoning effort/detail</li>
+              <li>Image quality and aspect ratio</li>
+              <li>Artifact-backed output history</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="kicker">Generated Visual Asset</div>
+        <p>
+          GPT Image 2 generated this system map through the
+          OpenAI-compatible image endpoint. The image and metadata are stored in
+          <code>assets/</code> for local review and future handoff.
+        </p>
+        <img class="asset" src="assets/v22-workflow-system-map.png" alt="V22 workflow system map" />
+      </section>
+
+      <section class="section">
+        <div class="kicker">Machine Manifest</div>
+        <pre class="manifest">See machine-manifest.json for the LLM-readable workflow schema.</pre>
+      </section>
+    </main>
+  </body>
+</html>

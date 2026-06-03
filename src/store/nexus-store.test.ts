@@ -171,6 +171,78 @@ describe("prepareWorkspacesForLocalPersistence", () => {
     }
   });
 
+  it("adds workflow runtime nodes at explicit canvas positions", () => {
+    const previousState = useNexusStore.getState();
+    const workspace = createDefaultWorkspace({
+      id: "workspace-runtime-position-test",
+      name: "Runtime Position Test",
+      timestamp: "2026-06-03T00:00:00.000Z",
+    });
+
+    try {
+      useNexusStore.setState({
+        activeWorkspaceId: workspace.id,
+        selectedAgentId: workspace.selectedAgentId,
+        workspaces: [workspace],
+      });
+
+      const nodeId = useNexusStore.getState().addWorkflowRuntimeNode("model.image", {
+        position: { x: 640, y: 360 },
+      });
+      const runtimeNode = useNexusStore
+        .getState()
+        .workspaces.find((candidate) => candidate.id === workspace.id)
+        ?.graph.runtimeLite?.nodes.find((node) => node.id === nodeId);
+
+      expect(runtimeNode?.position).toEqual({ x: 640, y: 360 });
+    } finally {
+      useNexusStore.setState(previousState);
+    }
+  });
+
+  it("can start a workflow runtime run from a specific input node", async () => {
+    const previousState = useNexusStore.getState();
+    const workspace = createDefaultWorkspace({
+      id: "workspace-runtime-single-start-test",
+      name: "Runtime Single Start Test",
+      timestamp: "2026-06-03T00:00:00.000Z",
+    });
+
+    try {
+      useNexusStore.setState({
+        activeWorkspaceId: workspace.id,
+        selectedAgentId: workspace.selectedAgentId,
+        workspaces: [workspace],
+      });
+
+      const inputA = useNexusStore.getState().addWorkflowRuntimeNode("input.text");
+      const inputB = useNexusStore.getState().addWorkflowRuntimeNode("input.text");
+
+      useNexusStore.getState().updateWorkflowRuntimeNodeData(inputA, {
+        text: "Alpha",
+      });
+      useNexusStore.getState().updateWorkflowRuntimeNodeData(inputB, {
+        text: "Beta",
+      });
+
+      const run = await useNexusStore
+        .getState()
+        .runWorkflowRuntimeLiteFlow({ startNodeId: inputB });
+      const runtimeLite = useNexusStore
+        .getState()
+        .workspaces.find((candidate) => candidate.id === workspace.id)
+        ?.graph.runtimeLite;
+      const nodeA = runtimeLite?.nodes.find((node) => node.id === inputA);
+      const nodeB = runtimeLite?.nodes.find((node) => node.id === inputB);
+
+      expect(run?.status).toBe("success");
+      expect(nodeA?.outputSnapshot).toBeNull();
+      expect(nodeB?.outputSnapshot?.rawText).toBe("Beta");
+    } finally {
+      useNexusStore.setState(previousState);
+    }
+  });
+
   it("strips raw provider secrets from locally persisted auth vaults", () => {
     const persisted = prepareAuthVaultForLocalPersistence({
       user: {

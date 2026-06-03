@@ -21,6 +21,8 @@ folders such as `X/`.
 - `assets/v22-workflow-system-map.metadata.json`
 - `assets/v22-html-report-browser-smoke.png`
 - `assets/v22-local-graph-post-login.png`
+- `assets/v22-vercel-preview-smoke.png`
+- `assets/v22-vercel-preview-share-smoke.png`
 
 ## Source Touchpoints
 

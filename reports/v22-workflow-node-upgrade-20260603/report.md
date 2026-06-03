@@ -134,6 +134,9 @@ Primary verification:
   profile.
 - Supabase project status is reachable and healthy through a read-only project
   check.
+- Vercel preview deployment is READY on the `v22` branch. The preview is
+  protected by Vercel Authentication, so a temporary Vercel share link was used
+  for smoke verification without storing the token in the report.
 
 Detailed machine-readable verification data is available in
 `verification-summary.json`.

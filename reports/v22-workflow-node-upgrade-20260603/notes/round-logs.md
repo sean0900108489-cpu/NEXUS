@@ -56,3 +56,6 @@
 
 - Added the 3-round architecture self-review Q&A.
 - Prepared the report pack for commit, push, and Vercel deployment handoff.
+- Added Git/Vercel ignore rules for the existing local-only `X/` folder.
+- Deployed the clean `v22` branch to a READY Vercel preview and verified it with
+  a temporary share link.

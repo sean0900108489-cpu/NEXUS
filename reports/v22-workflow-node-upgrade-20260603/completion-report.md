@@ -17,6 +17,8 @@ Completed:
 - Added `notes/self-review-qna.md` with three future-architecture review rounds.
 - Confirmed the Supabase project is reachable and healthy with a read-only
   status check.
+- Deployed the `v22` branch to Vercel preview and verified the protected preview
+  with a temporary share link.
 
 External Gates:
 

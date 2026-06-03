@@ -42,6 +42,15 @@
       "status": "ACTIVE_HEALTHY",
       "region": "ap-southeast-2",
       "notes": "Read-only project status check only; no schema or data mutations were performed."
+    },
+    "vercelPreview": {
+      "result": "ready",
+      "deploymentId": "dpl_25T3q4s9iMFx4t979xQUBrXK7RdJ",
+      "url": "https://nexus-220zw0rov-sean-s-projects10.vercel.app",
+      "gitRef": "v22",
+      "commit": "1ac9be32c41ea63dc273cc88787de70bd2aca2dc",
+      "screenshot": "assets/v22-vercel-preview-share-smoke.png",
+      "notes": "Preview is protected by Vercel Authentication. A temporary Vercel share link was used for smoke verification, but the share token is not stored in this report."
     }
   }
 }

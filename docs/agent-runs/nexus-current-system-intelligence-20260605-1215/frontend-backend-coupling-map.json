@@ -1,0 +1,2689 @@
+[
+  {
+    "file": "src/app/api/image-gen/route.test.ts",
+    "layer": "route-handler",
+    "lineCount": 587,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/image-gen"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/image-gen/route.test.ts",
+        "line": 580,
+        "text": "const metadata = await sharp(Buffer.from(asset?.bytes ?? [])).metadata();"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/agents/[agentId]/memory/route.ts",
+    "layer": "route-handler",
+    "lineCount": 49,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/agents/[agentId]/memory"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/[agentId]/memory/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/agents/[agentId]/memory/route.ts",
+        "line": 18,
+        "text": "return apiHandler<undefined, AgentMemoryRecordsResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/agents/[agentId]/messages/archive/route.ts",
+    "layer": "route-handler",
+    "lineCount": 76,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/agents/[agentId]/messages/archive"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/[agentId]/messages/archive/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/agents/[agentId]/messages/archive/route.ts",
+        "line": 22,
+        "text": "return apiHandler<MessageArchiveRequest, MessageArchiveResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/agents/[agentId]/messages/route.ts",
+    "layer": "route-handler",
+    "lineCount": 44,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/agents/[agentId]/messages"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/[agentId]/messages/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/agents/[agentId]/messages/route.ts",
+        "line": 14,
+        "text": "return apiHandler<undefined, MessageHistoryPageResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/agents/[agentId]/stream/route.ts",
+    "layer": "route-handler",
+    "lineCount": 98,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/agents/[agentId]/stream"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": []
+  },
+  {
+    "file": "src/app/api/v1/agents/[agentId]/tasks/[taskId]/cancel/route.ts",
+    "layer": "route-handler",
+    "lineCount": 82,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/agents/[agentId]/tasks/[taskId]/cancel"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/[agentId]/tasks/[taskId]/cancel/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/agents/[agentId]/tasks/[taskId]/cancel/route.ts",
+        "line": 25,
+        "text": "return apiHandler<CancelTaskRequest, AgentTaskCancelResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/agents/[agentId]/tasks/[taskId]/route.ts",
+    "layer": "route-handler",
+    "lineCount": 38,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/agents/[agentId]/tasks/[taskId]"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/[agentId]/tasks/[taskId]/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/agents/[agentId]/tasks/[taskId]/route.ts",
+        "line": 17,
+        "text": "return apiHandler<undefined, AgentTaskStatusResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/agents/[agentId]/tasks/route.ts",
+    "layer": "route-handler",
+    "lineCount": 97,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/agents/[agentId]/tasks"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/[agentId]/tasks/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/agents/[agentId]/tasks/route.ts",
+        "line": 26,
+        "text": "return apiHandler<AgentTaskCreateRequest, AgentTaskCreateResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/agents/memory-compress/route.ts",
+    "layer": "route-handler",
+    "lineCount": 104,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/agents/memory-compress"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/memory-compress/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/agents/memory-compress/route.ts",
+        "line": 15,
+        "text": "export const POST = apiHandler({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/artifacts/[artifactId]/archive/route.ts",
+    "layer": "route-handler",
+    "lineCount": 57,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/artifacts/[artifactId]/archive"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/artifacts/[artifactId]/archive/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/artifacts/[artifactId]/archive/route.ts",
+        "line": 21,
+        "text": "return apiHandler<ArtifactArchiveRequest, ArtifactArchiveResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/artifacts/[artifactId]/references/route.ts",
+    "layer": "route-handler",
+    "lineCount": 51,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/artifacts/[artifactId]/references"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/artifacts/[artifactId]/references/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/artifacts/[artifactId]/references/route.ts",
+        "line": 21,
+        "text": "return apiHandler<ArtifactReferenceCreateRequest, ArtifactReferenceCreateResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/artifacts/[artifactId]/route.ts",
+    "layer": "route-handler",
+    "lineCount": 35,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/artifacts/[artifactId]"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/artifacts/[artifactId]/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/artifacts/[artifactId]/route.ts",
+        "line": 15,
+        "text": "return apiHandler<undefined, ArtifactGetResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/artifacts/[artifactId]/versions/route.ts",
+    "layer": "route-handler",
+    "lineCount": 51,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/artifacts/[artifactId]/versions"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/artifacts/[artifactId]/versions/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/artifacts/[artifactId]/versions/route.ts",
+        "line": 21,
+        "text": "return apiHandler<ArtifactVersionCreateRequest, ArtifactVersionCreateResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/artifacts/route.ts",
+    "layer": "route-handler",
+    "lineCount": 70,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/artifacts"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/artifacts/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/artifacts/route.ts",
+        "line": 15,
+        "text": "export const GET = apiHandler<undefined, ArtifactListResponse>({"
+      },
+      {
+        "file": "src/app/api/v1/artifacts/route.ts",
+        "line": 42,
+        "text": "export const POST = apiHandler<CreateArtifactRequest, ArtifactCreateResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/deployment/checks/latest/route.ts",
+    "layer": "route-handler",
+    "lineCount": 29,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/deployment/checks/latest"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/deployment/checks/latest/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/deployment/checks/latest/route.ts",
+        "line": 10,
+        "text": "export const GET = apiHandler<undefined, LatestDeploymentCheckResult>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/deployment/checks/run/route.ts",
+    "layer": "route-handler",
+    "lineCount": 102,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/deployment/checks/run"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/deployment/checks/run/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/deployment/checks/run/route.ts",
+        "line": 24,
+        "text": "export const POST = apiHandler<"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/feature-flags/[flagKey]/toggle/route.ts",
+    "layer": "route-handler",
+    "lineCount": 112,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/feature-flags/[flagKey]/toggle"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/feature-flags/[flagKey]/toggle/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/feature-flags/[flagKey]/toggle/route.ts",
+        "line": 25,
+        "text": "return apiHandler<FeatureFlagToggleRequest, FeatureFlagToggleResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/feature-flags/route.ts",
+    "layer": "route-handler",
+    "lineCount": 39,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/feature-flags"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/feature-flags/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/feature-flags/route.ts",
+        "line": 10,
+        "text": "export const GET = apiHandler<undefined, FeatureFlagsResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/health/route.ts",
+    "layer": "route-handler",
+    "lineCount": 14,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/health"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/health/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/health/route.ts",
+        "line": 9,
+        "text": "export const GET = apiHandler<undefined, RuntimeHealthResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/notebooks/route.ts",
+    "layer": "route-handler",
+    "lineCount": 74,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/notebooks"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/notebooks/route.ts",
+        "line": 2,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/notebooks/route.ts",
+        "line": 4,
+        "text": "createSupabaseBearerAuthSessionVerifier,"
+      },
+      {
+        "file": "src/app/api/v1/notebooks/route.ts",
+        "line": 15,
+        "text": "createSupabaseBearerAuthSessionVerifier();"
+      },
+      {
+        "file": "src/app/api/v1/notebooks/route.ts",
+        "line": 18,
+        "text": "return apiHandler<undefined, NotebookListResponse>({"
+      },
+      {
+        "file": "src/app/api/v1/notebooks/route.ts",
+        "line": 71,
+        "text": "authSessionVerifier = createSupabaseBearerAuthSessionVerifier();"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/observability/events/route.ts",
+    "layer": "route-handler",
+    "lineCount": 43,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/observability/events"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/observability/events/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/observability/events/route.ts",
+        "line": 16,
+        "text": "export const GET = apiHandler<undefined, SystemEventListResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/observability/metrics/route.ts",
+    "layer": "route-handler",
+    "lineCount": 38,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/observability/metrics"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/observability/metrics/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/observability/metrics/route.ts",
+        "line": 12,
+        "text": "export const GET = apiHandler<undefined, UsageMetricsResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/observability/traces/[traceId]/route.ts",
+    "layer": "route-handler",
+    "lineCount": 43,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/observability/traces/[traceId]"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/observability/traces/[traceId]/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/observability/traces/[traceId]/route.ts",
+        "line": 19,
+        "text": "return apiHandler<undefined, TraceEventsResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/prompts/route.ts",
+    "layer": "route-handler",
+    "lineCount": 75,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/prompts"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/prompts/route.ts",
+        "line": 2,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/prompts/route.ts",
+        "line": 8,
+        "text": "createSupabaseBearerAuthSessionVerifier,"
+      },
+      {
+        "file": "src/app/api/v1/prompts/route.ts",
+        "line": 15,
+        "text": "createSupabaseBearerAuthSessionVerifier();"
+      },
+      {
+        "file": "src/app/api/v1/prompts/route.ts",
+        "line": 18,
+        "text": "return apiHandler<undefined, PromptListResponse>({"
+      },
+      {
+        "file": "src/app/api/v1/prompts/route.ts",
+        "line": 72,
+        "text": "authSessionVerifier = createSupabaseBearerAuthSessionVerifier();"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/providers/status/route.test.ts",
+    "layer": "route-handler",
+    "lineCount": 70,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/providers/status"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": []
+  },
+  {
+    "file": "src/app/api/v1/public-config/route.ts",
+    "layer": "route-handler",
+    "lineCount": 28,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/public-config"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/public-config/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/public-config/route.ts",
+        "line": 6,
+        "text": "export const GET = apiHandler<undefined, NexusPublicConfig>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/sync/operations/[operationId]/cancel/route.ts",
+    "layer": "route-handler",
+    "lineCount": 74,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/sync/operations/[operationId]/cancel"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/sync/operations/[operationId]/cancel/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/sync/operations/[operationId]/cancel/route.ts",
+        "line": 26,
+        "text": "return apiHandler<CancelRequestBody, SyncOperationSummary>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/sync/operations/[operationId]/retry/route.ts",
+    "layer": "route-handler",
+    "lineCount": 83,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/sync/operations/[operationId]/retry"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/sync/operations/[operationId]/retry/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/sync/operations/[operationId]/retry/route.ts",
+        "line": 27,
+        "text": "return apiHandler<RetryRequestBody, SyncOperationSummary>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/sync/operations/route.ts",
+    "layer": "route-handler",
+    "lineCount": 88,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/sync/operations"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/sync/operations/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/sync/operations/route.ts",
+        "line": 15,
+        "text": "export const POST = apiHandler<SyncOperationRequest, SyncOperationResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/sync/status/route.ts",
+    "layer": "route-handler",
+    "lineCount": 33,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/sync/status"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/sync/status/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/sync/status/route.ts",
+        "line": 10,
+        "text": "export const GET = apiHandler<undefined, SyncStatusResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/tool-runs/[toolRunId]/cancel/route.ts",
+    "layer": "route-handler",
+    "lineCount": 76,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/tool-runs/[toolRunId]/cancel"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/tool-runs/[toolRunId]/cancel/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/tool-runs/[toolRunId]/cancel/route.ts",
+        "line": 23,
+        "text": "return apiHandler<ToolRunCancelRequest, ToolRunCancelResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/tool-runs/[toolRunId]/confirm/route.ts",
+    "layer": "route-handler",
+    "lineCount": 78,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/tool-runs/[toolRunId]/confirm"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/tool-runs/[toolRunId]/confirm/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/tool-runs/[toolRunId]/confirm/route.ts",
+        "line": 24,
+        "text": "return apiHandler<ToolRunConfirmRequest, ToolRunConfirmResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/tool-runs/[toolRunId]/route.ts",
+    "layer": "route-handler",
+    "lineCount": 40,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/tool-runs/[toolRunId]"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/tool-runs/[toolRunId]/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/tool-runs/[toolRunId]/route.ts",
+        "line": 16,
+        "text": "return apiHandler<undefined, { toolRun: ToolRunRecord }>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/tool-runs/route.ts",
+    "layer": "route-handler",
+    "lineCount": 36,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/tool-runs"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/tool-runs/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/tool-runs/route.ts",
+        "line": 9,
+        "text": "export const GET = apiHandler<undefined, ToolRunListResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/tools/[toolId]/run/route.ts",
+    "layer": "route-handler",
+    "lineCount": 78,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/tools/[toolId]/run"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/tools/[toolId]/run/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/tools/[toolId]/run/route.ts",
+        "line": 22,
+        "text": "return apiHandler<ToolRunRequest, ToolRunResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/workflows/groups/route.ts",
+    "layer": "route-handler",
+    "lineCount": 420,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/workflows/groups"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/workflows/groups/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/workflows/groups/route.ts",
+        "line": 66,
+        "text": "export const POST = apiHandler<"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/workflows/runtime-trace/route.ts",
+    "layer": "route-handler",
+    "lineCount": 512,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/workflows/runtime-trace"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/workflows/runtime-trace/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/workflows/runtime-trace/route.ts",
+        "line": 64,
+        "text": "export const POST = apiHandler<"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/workspaces/[workspaceId]/state/route.ts",
+    "layer": "route-handler",
+    "lineCount": 136,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/workspaces/[workspaceId]/state"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/workspaces/[workspaceId]/state/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/[workspaceId]/state/route.ts",
+        "line": 33,
+        "text": "return apiHandler<undefined, WorkspaceStateGetResponse>({"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/[workspaceId]/state/route.ts",
+        "line": 56,
+        "text": "return apiHandler<WorkspaceStatePutRequest, WorkspaceStatePutResponse>({"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/workspaces/recovery/[workspaceId]/route.ts",
+    "layer": "route-handler",
+    "lineCount": 66,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/workspaces/recovery/[workspaceId]"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/workspaces/recovery/[workspaceId]/route.ts",
+        "line": 2,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/recovery/[workspaceId]/route.ts",
+        "line": 4,
+        "text": "createSupabaseBearerAuthSessionVerifier,"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/recovery/[workspaceId]/route.ts",
+        "line": 18,
+        "text": "createSupabaseBearerAuthSessionVerifier();"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/recovery/[workspaceId]/route.ts",
+        "line": 23,
+        "text": "return apiHandler<undefined, WorkspaceRecoveryStateResponse>({"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/recovery/[workspaceId]/route.ts",
+        "line": 63,
+        "text": "authSessionVerifier = createSupabaseBearerAuthSessionVerifier();"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/workspaces/recovery/latest/route.ts",
+    "layer": "route-handler",
+    "lineCount": 45,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/workspaces/recovery/latest"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/workspaces/recovery/latest/route.ts",
+        "line": 2,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/recovery/latest/route.ts",
+        "line": 4,
+        "text": "createSupabaseBearerAuthSessionVerifier,"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/recovery/latest/route.ts",
+        "line": 11,
+        "text": "createSupabaseBearerAuthSessionVerifier();"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/recovery/latest/route.ts",
+        "line": 14,
+        "text": "return apiHandler<undefined, WorkspaceRecoveryStateResponse>({"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/recovery/latest/route.ts",
+        "line": 43,
+        "text": "authSessionVerifier = createSupabaseBearerAuthSessionVerifier();"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/workspaces/recovery/route.ts",
+    "layer": "route-handler",
+    "lineCount": 59,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/workspaces/recovery"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/workspaces/recovery/route.ts",
+        "line": 2,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/recovery/route.ts",
+        "line": 4,
+        "text": "createSupabaseBearerAuthSessionVerifier,"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/recovery/route.ts",
+        "line": 15,
+        "text": "createSupabaseBearerAuthSessionVerifier();"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/recovery/route.ts",
+        "line": 18,
+        "text": "return apiHandler<undefined, WorkspaceRecoveryListResponse>({"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/recovery/route.ts",
+        "line": 56,
+        "text": "authSessionVerifier = createSupabaseBearerAuthSessionVerifier();"
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/v1/workspaces/session/route.ts",
+    "layer": "route-handler",
+    "lineCount": 235,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/workspaces/session"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/workspaces/session/route.ts",
+        "line": 1,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/session/route.ts",
+        "line": 5,
+        "text": "createSupabaseBearerAuthSessionVerifier,"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/session/route.ts",
+        "line": 25,
+        "text": "createSupabaseBearerAuthSessionVerifier();"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/session/route.ts",
+        "line": 28,
+        "text": "return apiHandler<WorkspaceSessionEnsureRequest, WorkspaceSessionEnsureResponse>({"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/session/route.ts",
+        "line": 68,
+        "text": "authSessionVerifier = createSupabaseBearerAuthSessionVerifier();"
+      },
+      {
+        "file": "src/app/api/v1/workspaces/session/route.ts",
+        "line": 137,
+        "text": "const response = await fetch("
+      }
+    ]
+  },
+  {
+    "file": "src/app/api/workflow-pro/brain-draft/route.ts",
+    "layer": "route-handler",
+    "lineCount": 514,
+    "apiClientMethods": [],
+    "fetchApis": [
+      "https://api.openai.com/v1/responses"
+    ],
+    "routeRefs": [],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/app/api/workflow-pro/brain-draft/route.ts",
+        "line": 101,
+        "text": "const response = await fetch(\"https://api.openai.com/v1/responses\", {"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-graph.tsx",
+    "layer": "ui-component",
+    "lineCount": 2346,
+    "apiClientMethods": [],
+    "fetchApis": [
+      "/api/workflow-pro/brain-draft"
+    ],
+    "routeRefs": [
+      "/api/workflow-pro/brain-draft"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 1775,
+        "text": "const response = await fetch(\"/api/workflow-pro/brain-draft\", {"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+    "layer": "ui-component",
+    "lineCount": 135,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/agents/${agentId}/stream"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": []
+  },
+  {
+    "file": "src/components/nexus/nexus-ops.tsx",
+    "layer": "ui-component",
+    "lineCount": 9654,
+    "apiClientMethods": [
+      "get",
+      "post"
+    ],
+    "fetchApis": [
+      "/api/v1/providers/status",
+      "/api/v1/providers/verify"
+    ],
+    "routeRefs": [
+      "/api/v1/artifacts",
+      "/api/v1/providers/status",
+      "/api/v1/providers/verify"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 108,
+        "text": "nexusApiClient,"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 498,
+        "text": "return Array.from("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 600,
+        "text": "classList: target ? Array.from(target.classList) : [],"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 668,
+        "text": "return Array.from("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 1132,
+        "text": "const response = await fetch(url, {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 1317,
+        "text": "void fetch(\"/api/v1/providers/status\", { cache: \"no-store\" })"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 2387,
+        "text": "const response = await nexusApiClient.get<ArtifactGetResponse>("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 2446,
+        "text": "const response = await nexusApiClient.get<ArtifactGetResponse>("
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+    "layer": "ui-component",
+    "lineCount": 231,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/artifacts",
+      "/api/v1/artifacts/${encodeURIComponent(artifact.id)}/asset",
+      "/api/v1/workspaces/session"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": []
+  },
+  {
+    "file": "src/lib/adapters/image-adapter.test.ts",
+    "layer": "source",
+    "lineCount": 105,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/image-gen"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": []
+  },
+  {
+    "file": "src/lib/adapters/image-adapter.ts",
+    "layer": "source",
+    "lineCount": 305,
+    "apiClientMethods": [],
+    "fetchApis": [
+      "/api/image-gen"
+    ],
+    "routeRefs": [
+      "/api/image-gen"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/adapters/image-adapter.ts",
+        "line": 186,
+        "text": "const response = await fetch("
+      },
+      {
+        "file": "src/lib/adapters/image-adapter.ts",
+        "line": 266,
+        "text": "const response = await fetch(\"/api/image-gen\", {"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/adapters/memory-compression-adapter.ts",
+    "layer": "source",
+    "lineCount": 214,
+    "apiClientMethods": [
+      "post"
+    ],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/agents/memory-compress"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/adapters/memory-compression-adapter.ts",
+        "line": 8,
+        "text": "nexusApiClient,"
+      },
+      {
+        "file": "src/lib/adapters/memory-compression-adapter.ts",
+        "line": 189,
+        "text": "const result = await nexusApiClient.post<unknown, MemoryCompressionPayload>("
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/api/api-contract.test.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 849,
+    "apiClientMethods": [
+      "post"
+    ],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/test-client",
+      "/api/v1/test-idempotency",
+      "/api/v1/test-idempotency-conflict",
+      "/api/v1/test-protected",
+      "/api/v1/test-request-scoped-permission",
+      "/api/v1/test-spoofed",
+      "/api/v1/test-throw",
+      "/api/v1/test-validation",
+      "/api/v1/test-verified-actor"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": true,
+    "evidence": [
+      {
+        "file": "src/lib/backend/api/api-contract.test.ts",
+        "line": 14,
+        "text": "import { nexusApiClient, NexusApiError } from \"@/lib/api/nexus-api-client\";"
+      },
+      {
+        "file": "src/lib/backend/api/api-contract.test.ts",
+        "line": 15,
+        "text": "import { apiHandler } from \"@/lib/backend/api/api-handler\";"
+      },
+      {
+        "file": "src/lib/backend/api/api-contract.test.ts",
+        "line": 80,
+        "text": "describe(\"apiHandler envelope and validation\", () => {"
+      },
+      {
+        "file": "src/lib/backend/api/api-contract.test.ts",
+        "line": 135,
+        "text": "const handler = apiHandler({"
+      },
+      {
+        "file": "src/lib/backend/api/api-contract.test.ts",
+        "line": 183,
+        "text": "const handler = apiHandler({"
+      },
+      {
+        "file": "src/lib/backend/api/api-contract.test.ts",
+        "line": 210,
+        "text": "const handler = apiHandler({"
+      },
+      {
+        "file": "src/lib/backend/api/api-contract.test.ts",
+        "line": 251,
+        "text": "const handler = apiHandler({"
+      },
+      {
+        "file": "src/lib/backend/api/api-contract.test.ts",
+        "line": 294,
+        "text": "const handler = apiHandler({"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/api/idempotency-repository.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 308,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "api_idempotency_keys"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/api/idempotency-repository.ts",
+        "line": 114,
+        "text": ".from(\"api_idempotency_keys\")"
+      },
+      {
+        "file": "src/lib/backend/api/idempotency-repository.ts",
+        "line": 130,
+        "text": ".from(\"api_idempotency_keys\")"
+      },
+      {
+        "file": "src/lib/backend/api/idempotency-repository.ts",
+        "line": 175,
+        "text": ".from(\"api_idempotency_keys\")"
+      },
+      {
+        "file": "src/lib/backend/api/idempotency-repository.ts",
+        "line": 204,
+        "text": ".from(\"api_idempotency_keys\")"
+      },
+      {
+        "file": "src/lib/backend/api/idempotency-repository.ts",
+        "line": 224,
+        "text": ".from(\"api_idempotency_keys\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/artifacts/artifact-repository.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 454,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "artifact_references",
+      "artifacts"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/artifacts/artifact-repository.ts",
+        "line": 217,
+        "text": ".from(\"artifacts\")"
+      },
+      {
+        "file": "src/lib/backend/artifacts/artifact-repository.ts",
+        "line": 231,
+        "text": ".from(\"artifacts\")"
+      },
+      {
+        "file": "src/lib/backend/artifacts/artifact-repository.ts",
+        "line": 245,
+        "text": ".from(\"artifacts\")"
+      },
+      {
+        "file": "src/lib/backend/artifacts/artifact-repository.ts",
+        "line": 276,
+        "text": ".from(\"artifacts\")"
+      },
+      {
+        "file": "src/lib/backend/artifacts/artifact-repository.ts",
+        "line": 309,
+        "text": ".from(\"artifact_references\")"
+      },
+      {
+        "file": "src/lib/backend/artifacts/artifact-repository.ts",
+        "line": 326,
+        "text": ".from(\"artifact_references\")"
+      },
+      {
+        "file": "src/lib/backend/artifacts/artifact-repository.ts",
+        "line": 339,
+        "text": ".from(\"artifact_references\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/artifacts/artifact-service.test.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 469,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/image-gen/assets/img_route_matrix",
+      "/api/image-gen/assets/img_viewer_denied"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": []
+  },
+  {
+    "file": "src/lib/backend/deployment/deployment-check-service.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 332,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "deployment_checks"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/deployment/deployment-check-service.ts",
+        "line": 88,
+        "text": ".from(\"deployment_checks\")"
+      },
+      {
+        "file": "src/lib/backend/deployment/deployment-check-service.ts",
+        "line": 102,
+        "text": ".from(\"deployment_checks\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/deployment/feature-flag-service.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 312,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "feature_flags"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/deployment/feature-flag-service.ts",
+        "line": 94,
+        "text": ".from(\"feature_flags\")"
+      },
+      {
+        "file": "src/lib/backend/deployment/feature-flag-service.ts",
+        "line": 107,
+        "text": ".from(\"feature_flags\")"
+      },
+      {
+        "file": "src/lib/backend/deployment/feature-flag-service.ts",
+        "line": 128,
+        "text": ".from(\"feature_flags\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/history/agent-memory-record-repository.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 197,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "agent_memory_records"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/history/agent-memory-record-repository.ts",
+        "line": 92,
+        "text": ".from(\"agent_memory_records\")"
+      },
+      {
+        "file": "src/lib/backend/history/agent-memory-record-repository.ts",
+        "line": 106,
+        "text": ".from(\"agent_memory_records\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/history/historical-data-fetcher.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 66,
+    "apiClientMethods": [
+      "get"
+    ],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/history/historical-data-fetcher.ts",
+        "line": 1,
+        "text": "import { nexusApiClient } from \"@/lib/api/nexus-api-client\";"
+      },
+      {
+        "file": "src/lib/backend/history/historical-data-fetcher.ts",
+        "line": 31,
+        "text": "const response = await nexusApiClient.get<MessageHistoryPageResponse>("
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/history/message-repository.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 386,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "messages"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/history/message-repository.ts",
+        "line": 172,
+        "text": ".from(\"messages\")"
+      },
+      {
+        "file": "src/lib/backend/history/message-repository.ts",
+        "line": 186,
+        "text": ".from(\"messages\")"
+      },
+      {
+        "file": "src/lib/backend/history/message-repository.ts",
+        "line": 240,
+        "text": ".from(\"messages\")"
+      },
+      {
+        "file": "src/lib/backend/history/message-repository.ts",
+        "line": 254,
+        "text": ".from(\"messages\")"
+      },
+      {
+        "file": "src/lib/backend/history/message-repository.ts",
+        "line": 271,
+        "text": ".from(\"messages\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/notebooks/notebook-repository.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 426,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "notebooks",
+      "workspace_memberships"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/notebooks/notebook-repository.ts",
+        "line": 156,
+        "text": ".from(\"notebooks\")"
+      },
+      {
+        "file": "src/lib/backend/notebooks/notebook-repository.ts",
+        "line": 189,
+        "text": ".from(\"notebooks\")"
+      },
+      {
+        "file": "src/lib/backend/notebooks/notebook-repository.ts",
+        "line": 216,
+        "text": ".from(\"notebooks\")"
+      },
+      {
+        "file": "src/lib/backend/notebooks/notebook-repository.ts",
+        "line": 239,
+        "text": ".from(\"notebooks\")"
+      },
+      {
+        "file": "src/lib/backend/notebooks/notebook-repository.ts",
+        "line": 279,
+        "text": ".from(\"notebooks\")"
+      },
+      {
+        "file": "src/lib/backend/notebooks/notebook-repository.ts",
+        "line": 315,
+        "text": ".from(\"notebooks\")"
+      },
+      {
+        "file": "src/lib/backend/notebooks/notebook-repository.ts",
+        "line": 334,
+        "text": ".from(\"workspace_memberships\")"
+      },
+      {
+        "file": "src/lib/backend/notebooks/notebook-repository.ts",
+        "line": 349,
+        "text": ".from(\"workspace_memberships\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/observability/observability-service.test.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 371,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/agents/a/stream",
+      "/api/v1/test"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": []
+  },
+  {
+    "file": "src/lib/backend/observability/system-event-repository.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 267,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "system_events"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/observability/system-event-repository.ts",
+        "line": 125,
+        "text": ".from(\"system_events\")"
+      },
+      {
+        "file": "src/lib/backend/observability/system-event-repository.ts",
+        "line": 139,
+        "text": ".from(\"system_events\")"
+      },
+      {
+        "file": "src/lib/backend/observability/system-event-repository.ts",
+        "line": 177,
+        "text": ".from(\"system_events\")"
+      },
+      {
+        "file": "src/lib/backend/observability/system-event-repository.ts",
+        "line": 199,
+        "text": ".from(\"system_events\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/observability/usage-metrics-repository.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 241,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "usage_metrics"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/observability/usage-metrics-repository.ts",
+        "line": 135,
+        "text": ".from(\"usage_metrics\")"
+      },
+      {
+        "file": "src/lib/backend/observability/usage-metrics-repository.ts",
+        "line": 150,
+        "text": ".from(\"usage_metrics\")"
+      },
+      {
+        "file": "src/lib/backend/observability/usage-metrics-repository.ts",
+        "line": 188,
+        "text": ".from(\"usage_metrics\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/prompts/prompt-repository.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 323,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "prompt_revisions",
+      "prompts",
+      "workspace_memberships"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/prompts/prompt-repository.ts",
+        "line": 142,
+        "text": ".from(\"prompts\")"
+      },
+      {
+        "file": "src/lib/backend/prompts/prompt-repository.ts",
+        "line": 157,
+        "text": ".from(\"prompt_revisions\")"
+      },
+      {
+        "file": "src/lib/backend/prompts/prompt-repository.ts",
+        "line": 181,
+        "text": ".from(\"prompts\")"
+      },
+      {
+        "file": "src/lib/backend/prompts/prompt-repository.ts",
+        "line": 208,
+        "text": ".from(\"prompt_revisions\")"
+      },
+      {
+        "file": "src/lib/backend/prompts/prompt-repository.ts",
+        "line": 230,
+        "text": ".from(\"prompts\")"
+      },
+      {
+        "file": "src/lib/backend/prompts/prompt-repository.ts",
+        "line": 261,
+        "text": ".from(\"prompts\")"
+      },
+      {
+        "file": "src/lib/backend/prompts/prompt-repository.ts",
+        "line": 275,
+        "text": ".from(\"workspace_memberships\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/runtime/agent-runtime-repository.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 390,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "agent_runtime_events",
+      "agent_runtime_sessions",
+      "agent_tasks"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/runtime/agent-runtime-repository.ts",
+        "line": 180,
+        "text": ".from(\"agent_runtime_sessions\")"
+      },
+      {
+        "file": "src/lib/backend/runtime/agent-runtime-repository.ts",
+        "line": 205,
+        "text": ".from(\"agent_runtime_sessions\")"
+      },
+      {
+        "file": "src/lib/backend/runtime/agent-runtime-repository.ts",
+        "line": 229,
+        "text": ".from(\"agent_runtime_sessions\")"
+      },
+      {
+        "file": "src/lib/backend/runtime/agent-runtime-repository.ts",
+        "line": 243,
+        "text": ".from(\"agent_tasks\")"
+      },
+      {
+        "file": "src/lib/backend/runtime/agent-runtime-repository.ts",
+        "line": 268,
+        "text": ".from(\"agent_tasks\")"
+      },
+      {
+        "file": "src/lib/backend/runtime/agent-runtime-repository.ts",
+        "line": 289,
+        "text": ".from(\"agent_tasks\")"
+      },
+      {
+        "file": "src/lib/backend/runtime/agent-runtime-repository.ts",
+        "line": 309,
+        "text": ".from(\"agent_runtime_events\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/security/repositories.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 138,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "permission_audit_logs",
+      "workspace_memberships"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/security/repositories.ts",
+        "line": 61,
+        "text": ".from(\"workspace_memberships\")"
+      },
+      {
+        "file": "src/lib/backend/security/repositories.ts",
+        "line": 116,
+        "text": "const { error } = await this.client.from(\"permission_audit_logs\").insert(row);"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/sync/sync-operation-repository.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 510,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "sync_operations"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/sync/sync-operation-repository.ts",
+        "line": 259,
+        "text": ".from(\"sync_operations\")"
+      },
+      {
+        "file": "src/lib/backend/sync/sync-operation-repository.ts",
+        "line": 273,
+        "text": ".from(\"sync_operations\")"
+      },
+      {
+        "file": "src/lib/backend/sync/sync-operation-repository.ts",
+        "line": 287,
+        "text": ".from(\"sync_operations\")"
+      },
+      {
+        "file": "src/lib/backend/sync/sync-operation-repository.ts",
+        "line": 390,
+        "text": ".from(\"sync_operations\")"
+      },
+      {
+        "file": "src/lib/backend/sync/sync-operation-repository.ts",
+        "line": 410,
+        "text": ".from(\"sync_operations\")"
+      },
+      {
+        "file": "src/lib/backend/sync/sync-operation-repository.ts",
+        "line": 438,
+        "text": ".from(\"sync_operations\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/sync/sync-queue-service.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 535,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/artifacts/[artifactId]/references"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": []
+  },
+  {
+    "file": "src/lib/backend/sync/sync-queue.test.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 836,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/artifacts/[artifactId]/references"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": []
+  },
+  {
+    "file": "src/lib/backend/tools/tool-permission-repository.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 131,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "tool_permissions"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/tools/tool-permission-repository.ts",
+        "line": 63,
+        "text": ".from(\"tool_permissions\")"
+      },
+      {
+        "file": "src/lib/backend/tools/tool-permission-repository.ts",
+        "line": 86,
+        "text": ".from(\"tool_permissions\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/tools/tool-run-repository.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 297,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "tool_runs"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/tools/tool-run-repository.ts",
+        "line": 168,
+        "text": ".from(\"tool_runs\")"
+      },
+      {
+        "file": "src/lib/backend/tools/tool-run-repository.ts",
+        "line": 182,
+        "text": ".from(\"tool_runs\")"
+      },
+      {
+        "file": "src/lib/backend/tools/tool-run-repository.ts",
+        "line": 196,
+        "text": ".from(\"tool_runs\")"
+      },
+      {
+        "file": "src/lib/backend/tools/tool-run-repository.ts",
+        "line": 231,
+        "text": ".from(\"tool_runs\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/workspace/workspace-permission.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 293,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "workspace_memberships",
+      "workspaces"
+    ],
+    "supabaseRpcs": [
+      "record_permission_audit_log"
+    ],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/workspace/workspace-permission.ts",
+        "line": 74,
+        "text": ".from(\"workspace_memberships\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-permission.ts",
+        "line": 111,
+        "text": ".from(\"workspaces\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-permission.ts",
+        "line": 124,
+        "text": ".from(\"workspace_memberships\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-permission.ts",
+        "line": 138,
+        "text": ".from(\"workspaces\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-permission.ts",
+        "line": 152,
+        "text": ".from(\"workspace_memberships\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-permission.ts",
+        "line": 184,
+        "text": ").rpc("
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/workspace/workspace-session-service.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 347,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "workspace_memberships",
+      "workspaces"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/workspace/workspace-session-service.ts",
+        "line": 152,
+        "text": ".from(\"workspace_memberships\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-session-service.ts",
+        "line": 167,
+        "text": ".from(\"workspace_memberships\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-session-service.ts",
+        "line": 181,
+        "text": ".from(\"workspaces\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-session-service.ts",
+        "line": 207,
+        "text": ".from(\"workspaces\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-session-service.ts",
+        "line": 222,
+        "text": ".from(\"workspace_memberships\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/workspace/workspace-snapshot-repository.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 338,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "workspace_snapshots"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/workspace/workspace-snapshot-repository.ts",
+        "line": 173,
+        "text": ".from(\"workspace_snapshots\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-snapshot-repository.ts",
+        "line": 187,
+        "text": ".from(\"workspace_snapshots\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-snapshot-repository.ts",
+        "line": 204,
+        "text": ".from(\"workspace_snapshots\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-snapshot-repository.ts",
+        "line": 221,
+        "text": ".from(\"workspace_snapshots\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-snapshot-repository.ts",
+        "line": 239,
+        "text": ".from(\"workspace_snapshots\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-snapshot-repository.ts",
+        "line": 263,
+        "text": ".from(\"workspace_snapshots\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-snapshot-repository.ts",
+        "line": 280,
+        "text": ".from(\"workspace_snapshots\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-snapshot-repository.ts",
+        "line": 297,
+        "text": ".from(\"workspace_snapshots\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/backend/workspace/workspace-state-entity-repository.ts",
+    "layer": "backend-service-repository",
+    "lineCount": 199,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "workspace_state_entities"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/backend/workspace/workspace-state-entity-repository.ts",
+        "line": 79,
+        "text": ".from(\"workspace_state_entities\")"
+      },
+      {
+        "file": "src/lib/backend/workspace/workspace-state-entity-repository.ts",
+        "line": 92,
+        "text": ".from(\"workspace_state_entities\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/public-config.ts",
+    "layer": "source",
+    "lineCount": 10,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/public-config"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": []
+  },
+  {
+    "file": "src/lib/state-sync.ts",
+    "layer": "sync-bridge",
+    "lineCount": 1355,
+    "apiClientMethods": [
+      "get",
+      "post"
+    ],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/artifacts",
+      "/api/v1/notebooks",
+      "/api/v1/workspaces/session"
+    ],
+    "supabaseTables": [
+      "prompt_revisions",
+      "workflow_templates"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 30,
+        "text": "import { nexusApiClient, NexusApiError } from \"@/lib/api/nexus-api-client\";"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 191,
+        "text": "const response = await fetch("
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 624,
+        "text": ".from(\"workflow_templates\")"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 660,
+        "text": ".from(\"workflow_templates\")"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 704,
+        "text": "await nexusApiClient.post<ArtifactCreateResponse, CreateArtifactRequest>("
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 741,
+        "text": "const response = await nexusApiClient.get<ArtifactListResponse>("
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 771,
+        "text": "const response = await nexusApiClient.get<PromptListResponse>("
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 838,
+        "text": ".from(\"prompt_revisions\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/style-engine/validator.test.ts",
+    "layer": "source",
+    "lineCount": 1203,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/style-packs"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": []
+  },
+  {
+    "file": "src/lib/supabase/client.test.ts",
+    "layer": "supabase-client",
+    "lineCount": 55,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/public-config"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": []
+  },
+  {
+    "file": "src/lib/supabase/test-connection.ts",
+    "layer": "supabase-client",
+    "lineCount": 87,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [
+      "workspaces"
+    ],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/supabase/test-connection.ts",
+        "line": 54,
+        "text": ".from(\"workspaces\")"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/sync/local-sync-queue-adapter.ts",
+    "layer": "source",
+    "lineCount": 802,
+    "apiClientMethods": [
+      "post"
+    ],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/sync/operations"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/sync/local-sync-queue-adapter.ts",
+        "line": 3,
+        "text": "import { nexusApiClient, NexusApiError } from \"@/lib/api/nexus-api-client\";"
+      },
+      {
+        "file": "src/lib/sync/local-sync-queue-adapter.ts",
+        "line": 329,
+        "text": "const response = await nexusApiClient.post<"
+      },
+      {
+        "file": "src/lib/sync/local-sync-queue-adapter.ts",
+        "line": 528,
+        "text": "const hex = Array.from(new Uint8Array(digest))"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/tools/fs-scanner-executor.ts",
+    "layer": "source",
+    "lineCount": 85,
+    "apiClientMethods": [],
+    "fetchApis": [
+      "/api/tools/fs-scanner"
+    ],
+    "routeRefs": [
+      "/api/tools/fs-scanner"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/tools/fs-scanner-executor.ts",
+        "line": 64,
+        "text": "const response = await fetch(\"/api/tools/fs-scanner\", {"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/tools/web-surfer-executor.ts",
+    "layer": "source",
+    "lineCount": 72,
+    "apiClientMethods": [],
+    "fetchApis": [
+      "/api/tools/web-surfer"
+    ],
+    "routeRefs": [
+      "/api/tools/web-surfer"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/tools/web-surfer-executor.ts",
+        "line": 51,
+        "text": "const response = await fetch(\"/api/tools/web-surfer\", {"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/workflow-pro/group-record-client.ts",
+    "layer": "source",
+    "lineCount": 91,
+    "apiClientMethods": [
+      "post"
+    ],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/workflows/groups"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/workflow-pro/group-record-client.ts",
+        "line": 1,
+        "text": "import { nexusApiClient } from \"@/lib/api/nexus-api-client\";"
+      },
+      {
+        "file": "src/lib/workflow-pro/group-record-client.ts",
+        "line": 77,
+        "text": "return nexusApiClient.post<"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/workflow-runtime-lite/image-client.test.ts",
+    "layer": "source",
+    "lineCount": 171,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/image-gen",
+      "/api/image-gen/assets/img_runtime",
+      "/api/v1/artifacts"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": []
+  },
+  {
+    "file": "src/lib/workflow-runtime-lite/image-client.ts",
+    "layer": "source",
+    "lineCount": 241,
+    "apiClientMethods": [
+      "post"
+    ],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/artifacts"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/workflow-runtime-lite/image-client.ts",
+        "line": 5,
+        "text": "import { nexusApiClient } from \"@/lib/api/nexus-api-client\";"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/image-client.ts",
+        "line": 135,
+        "text": "const artifactResponse = await nexusApiClient.post<"
+      }
+    ]
+  },
+  {
+    "file": "src/lib/workflow-runtime-lite/trace-client.ts",
+    "layer": "source",
+    "lineCount": 125,
+    "apiClientMethods": [
+      "post"
+    ],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/v1/workflows/runtime-trace"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/lib/workflow-runtime-lite/trace-client.ts",
+        "line": 3,
+        "text": "nexusApiClient,"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/trace-client.ts",
+        "line": 29,
+        "text": "return nexusApiClient.post<"
+      }
+    ]
+  },
+  {
+    "file": "src/store/nexus-store.test.ts",
+    "layer": "client-store",
+    "lineCount": 1798,
+    "apiClientMethods": [],
+    "fetchApis": [],
+    "routeRefs": [
+      "/api/image-gen/assets/img_transient"
+    ],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/store/nexus-store.test.ts",
+        "line": 1701,
+        "text": "return Array.from({ length: count }, (_, index) => ({"
+      },
+      {
+        "file": "src/store/nexus-store.test.ts",
+        "line": 1710,
+        "text": "return Array.from({ length: count }, (_, index) => ({"
+      },
+      {
+        "file": "src/store/nexus-store.test.ts",
+        "line": 1790,
+        "text": "return Array.from({ length: count }, (_, index) => ({"
+      }
+    ]
+  },
+  {
+    "file": "src/store/nexus-store.ts",
+    "layer": "client-store",
+    "lineCount": 4815,
+    "apiClientMethods": [
+      "post"
+    ],
+    "fetchApis": [],
+    "routeRefs": [],
+    "supabaseTables": [],
+    "supabaseRpcs": [],
+    "supabaseStorageBuckets": [],
+    "usesBackendHandlerOrSupabaseClient": false,
+    "evidence": [
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 26,
+        "text": "nexusApiClient,"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 724,
+        "text": "return Array.from(new Set([name, ...LEGACY_LOCAL_STORAGE_KEYS]));"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 1435,
+        "text": "const supportedModels = Array.from("
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 2759,
+        "text": "supportedModels: Array.from("
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 3408,
+        "text": "openNotebookIds: Array.from("
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 4444,
+        "text": "const response = await nexusApiClient.post<ToolRunResponse, ToolRunRequest>("
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 4715,
+        "text": "const cancelled = await nexusApiClient.post<"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 4737,
+        "text": "return nexusApiClient.post<ToolRunConfirmResponse, { workspaceId: string }>("
+      }
+    ]
+  }
+]

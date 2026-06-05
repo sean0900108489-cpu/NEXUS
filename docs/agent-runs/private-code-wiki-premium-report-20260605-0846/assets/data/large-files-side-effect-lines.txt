@@ -1,0 +1,377 @@
+src/components/nexus/nexus-graph.tsx:1134:        const graphNode = graphNodeByAgentId.get(agent.id);
+src/components/nexus/nexus-graph.tsx:1283:          graphNode: graphNodeByAgentId.get(agent.id),
+src/components/nexus/nexus-graph.tsx:1623:          nodeColor={(node) => agentById.get(node.id)?.accent ?? "#d4d4d4"}
+src/components/nexus/nexus-graph.tsx:1775:      const response = await fetch("/api/workflow-pro/brain-draft", {
+src/store/nexus-store.ts:34:import { supabaseStateSyncManager } from "@/lib/state-sync";
+src/store/nexus-store.ts:35:import { getNexusSupabaseClient } from "@/lib/supabase/client";
+src/store/nexus-store.ts:154:const LEGACY_LOCAL_STORAGE_KEYS = ["nexus-workspace-storage", PERSIST_STORAGE_NAME] as const;
+src/store/nexus-store.ts:274:    const existing = historyFetchDebounces.get(key);
+src/store/nexus-store.ts:286:    historyFetchDebounces.set(key, { resolve, timeout });
+src/store/nexus-store.ts:724:  return Array.from(new Set([name, ...LEGACY_LOCAL_STORAGE_KEYS]));
+src/store/nexus-store.ts:734:      const value = window.localStorage.getItem(key);
+src/store/nexus-store.ts:753:    window.localStorage.setItem(name, value);
+src/store/nexus-store.ts:755:    // IndexedDB is the primary store; localStorage is only a best-effort fallback.
+src/store/nexus-store.ts:766:      window.localStorage.removeItem(key);
+src/store/nexus-store.ts:1027:      : useNexusStore.getState().workspaces.find((candidate) => candidate.id === workspace.id);
+src/store/nexus-store.ts:1030:    void supabaseStateSyncManager
+src/store/nexus-store.ts:1036:  void supabaseStateSyncManager.upsertWorkspace(workspace.id, workspace.name).catch(() => undefined);
+src/store/nexus-store.ts:1073:  void supabaseStateSyncManager
+src/store/nexus-store.ts:1083:  void supabaseStateSyncManager
+src/store/nexus-store.ts:1086:      const state = useNexusStore.getState();
+src/store/nexus-store.ts:1120:      const remotePrompt = mergedById.get(localPrompt.id);
+src/store/nexus-store.ts:1126:        mergedById.set(localPrompt.id, localPrompt);
+src/store/nexus-store.ts:1172:    const remoteNotebook = mergedById.get(localNotebook.id);
+src/store/nexus-store.ts:1182:      mergedById.set(localNotebook.id, localNotebook);
+src/store/nexus-store.ts:1198:  void supabaseStateSyncManager
+src/store/nexus-store.ts:1201:      useNexusStore.getState().setNotebooksCache(notebooks);
+src/store/nexus-store.ts:1311:    const group = outgoing.get(edge.source) ?? [];
+src/store/nexus-store.ts:1313:    outgoing.set(edge.source, group);
+src/store/nexus-store.ts:1328:    for (const edge of outgoing.get(nodeId) ?? []) {
+src/store/nexus-store.ts:1349:      groups.set(node.group.id, node.group);
+src/store/nexus-store.ts:1435:  const supportedModels = Array.from(
+src/store/nexus-store.ts:1480:        const existing = existingGraphNodes.get(agent.id);
+src/store/nexus-store.ts:1570:    idMap.set(blueprint.id, id);
+src/store/nexus-store.ts:1584:      const agentId = idMap.get(node.agentId);
+src/store/nexus-store.ts:1598:      const sourceAgentId = idMap.get(edge.sourceAgentId);
+src/store/nexus-store.ts:1599:      const targetAgentId = idMap.get(edge.targetAgentId);
+src/store/nexus-store.ts:1826:    storage: indexedDbStore ? "indexedDB:idb-keyval" : "localStorage:fallback",
+src/store/nexus-store.ts:1832:export const useNexusStore = create<NexusStore>()(
+src/store/nexus-store.ts:1857:        const workspace = getActiveWorkspace(get());
+src/store/nexus-store.ts:1859:        set((state) => ({
+src/store/nexus-store.ts:1876:        const workspace = getActiveWorkspace(get());
+src/store/nexus-store.ts:1878:        set((state) => ({
+src/store/nexus-store.ts:1886:        get().notebooksCache.forEach((notebook) => {
+src/store/nexus-store.ts:1887:          void supabaseStateSyncManager
+src/store/nexus-store.ts:1896:        const state = get();
+src/store/nexus-store.ts:1903:        set({
+src/store/nexus-store.ts:1922:        const state = get();
+src/store/nexus-store.ts:1929:        set({
+src/store/nexus-store.ts:1939:        const state = get();
+src/store/nexus-store.ts:1953:            set({
+src/store/nexus-store.ts:1975:        set((current) => ({
+src/store/nexus-store.ts:2005:        const state = get();
+src/store/nexus-store.ts:2013:        set({
+src/store/nexus-store.ts:2023:        const state = get();
+src/store/nexus-store.ts:2037:          set({ lastImportError: result.error });
+src/store/nexus-store.ts:2044:        set({
+src/store/nexus-store.ts:2048:            snapshot.deletedNotebooks ?? get().deletedNotebooksCache,
+src/store/nexus-store.ts:2051:            snapshot.notebookDrafts ?? Object.values(get().notebookDrafts),
+src/store/nexus-store.ts:2053:          notebooksCache: sortNotebooks(snapshot.notebooks ?? get().notebooksCache),
+src/store/nexus-store.ts:2056:          streamMode: resolveStreamMode(workspace, get().authVault),
+src/store/nexus-store.ts:2064:          void supabaseStateSyncManager
+src/store/nexus-store.ts:2101:        const state = get();
+src/store/nexus-store.ts:2118:        set((current) => {
+src/store/nexus-store.ts:2148:        const state = get();
+src/store/nexus-store.ts:2178:        set({
+src/store/nexus-store.ts:2197:        const state = get();
+src/store/nexus-store.ts:2202:          set({ branchingStatus: "error" });
+src/store/nexus-store.ts:2219:        set({
+src/store/nexus-store.ts:2312:            set({ branchingStatus: "creating" });
+src/store/nexus-store.ts:2342:          const latestState = get();
+src/store/nexus-store.ts:2383:          set((current) => ({
+src/store/nexus-store.ts:2407:          set({ branchingStatus: "error" });
+src/store/nexus-store.ts:2413:        const workspace = getActiveWorkspace(get());
+src/store/nexus-store.ts:2420:        void supabaseStateSyncManager
+src/store/nexus-store.ts:2436:        get().createCheckpoint("Before Macro Spawn");
+src/store/nexus-store.ts:2438:        const state = get();
+src/store/nexus-store.ts:2450:        set({
+src/store/nexus-store.ts:2469:        get().instantiateMacro({
+src/store/nexus-store.ts:2478:        const state = get();
+src/store/nexus-store.ts:2487:        set({
+src/store/nexus-store.ts:2498:        const state = get();
+src/store/nexus-store.ts:2518:        set({
+src/store/nexus-store.ts:2537:        set((state) => ({
+src/store/nexus-store.ts:2543:        const state = get();
+src/store/nexus-store.ts:2577:        set({
+src/store/nexus-store.ts:2605:        const state = get();
+src/store/nexus-store.ts:2610:        set({
+src/store/nexus-store.ts:2632:        const state = get();
+src/store/nexus-store.ts:2635:        set({
+src/store/nexus-store.ts:2656:        const state = get();
+src/store/nexus-store.ts:2657:        set({
+src/store/nexus-store.ts:2667:        set((state) => ({
+src/store/nexus-store.ts:2686:        set((state) => ({
+src/store/nexus-store.ts:2729:        get().updateAgentProfile(agentId, { callsign: nextCallsign });
+src/store/nexus-store.ts:2733:        get().updateAgentProfile(agentId, { profileLocked: locked });
+src/store/nexus-store.ts:2737:        get().updateAgentProfile(agentId, { mission });
+src/store/nexus-store.ts:2749:        set((state) => ({
+src/store/nexus-store.ts:2759:                supportedModels: Array.from(
+src/store/nexus-store.ts:2769:        set((state) => ({
+src/store/nexus-store.ts:2790:        set((state) => ({
+src/store/nexus-store.ts:2839:        set((state) => ({
+src/store/nexus-store.ts:2849:          void getNexusSupabaseClient().auth.signOut();
+src/store/nexus-store.ts:2854:        set((state) => ({
+src/store/nexus-store.ts:2868:        set((state) => {
+src/store/nexus-store.ts:2890:        set((state) => ({
+src/store/nexus-store.ts:2902:        set((state) => {
+src/store/nexus-store.ts:2931:        set((state) => {
+src/store/nexus-store.ts:2954:        set((state) => {
+src/store/nexus-store.ts:2978:        set((state) => {
+src/store/nexus-store.ts:3002:        set((state) => {
+src/store/nexus-store.ts:3026:        set((state) => {
+src/store/nexus-store.ts:3044:        set((state) => ({
+src/store/nexus-store.ts:3053:        set((state) => ({
+src/store/nexus-store.ts:3062:        set((state) => ({
+src/store/nexus-store.ts:3077:        set((state) => ({
+src/store/nexus-store.ts:3089:        set((state) => ({
+src/store/nexus-store.ts:3101:        const state = get();
+src/store/nexus-store.ts:3113:        void supabaseStateSyncManager
+src/store/nexus-store.ts:3124:            return supabaseStateSyncManager.fetchArtifacts(workspace.id, userId);
+src/store/nexus-store.ts:3131:            set({
+src/store/nexus-store.ts:3142:        const state = get();
+src/store/nexus-store.ts:3151:        const response = await supabaseStateSyncManager.fetchArtifacts(workspaceId, userId);
+src/store/nexus-store.ts:3154:        set({
+src/store/nexus-store.ts:3165:        const state = get();
+src/store/nexus-store.ts:3180:        const beforeFetch = get();
+src/store/nexus-store.ts:3187:        set({
+src/store/nexus-store.ts:3200:          const latest = get();
+src/store/nexus-store.ts:3218:              byId.set(item.message.id, item);
+src/store/nexus-store.ts:3226:          set((currentState) => ({
+src/store/nexus-store.ts:3244:          set((currentState) => ({
+src/store/nexus-store.ts:3261:        set((state) => ({
+src/store/nexus-store.ts:3270:        set((state) => ({
+src/store/nexus-store.ts:3279:        const state = get();
+src/store/nexus-store.ts:3306:        set((current) => ({
+src/store/nexus-store.ts:3312:        void supabaseStateSyncManager.upsertPrompt(nextPrompt).catch((error) => {
+src/store/nexus-store.ts:3318:        const prompt = get().promptsCache.find((candidate) => candidate.id === id);
+src/store/nexus-store.ts:3319:        set((state) => ({
+src/store/nexus-store.ts:3322:        void supabaseStateSyncManager.deletePrompt(id, prompt?.workspace_id).catch((error) => {
+src/store/nexus-store.ts:3328:        set((state) => {
+src/store/nexus-store.ts:3351:        set((state) => {
+src/store/nexus-store.ts:3379:        set((state) => {
+src/store/nexus-store.ts:3403:        set((state) => {
+src/store/nexus-store.ts:3408:            openNotebookIds: Array.from(
+src/store/nexus-store.ts:3418:        void supabaseStateSyncManager.upsertNotebook(notebook, undefined).catch((error) => {
+src/store/nexus-store.ts:3426:        const state = get();
+src/store/nexus-store.ts:3443:        set((state) => ({
+src/store/nexus-store.ts:3452:        set((state) => {
+src/store/nexus-store.ts:3464:        const state = get();
+src/store/nexus-store.ts:3479:        set((current) => ({
+src/store/nexus-store.ts:3486:        void supabaseStateSyncManager
+src/store/nexus-store.ts:3494:        const state = get();
+src/store/nexus-store.ts:3513:        set((state) => ({
+src/store/nexus-store.ts:3535:        void supabaseStateSyncManager.deleteNotebook(
+src/store/nexus-store.ts:3545:        const state = get();
+src/store/nexus-store.ts:3548:        set({
+src/store/nexus-store.ts:3561:        set((state) => ({
+src/store/nexus-store.ts:3576:        set((state) => ({
+src/store/nexus-store.ts:3591:        set((state) => ({
+src/store/nexus-store.ts:3602:        get().focusAgent(agentId);
+src/store/nexus-store.ts:3606:        const state = get();
+src/store/nexus-store.ts:3609:        set({
+src/store/nexus-store.ts:3650:        set((state) => ({
+src/store/nexus-store.ts:3662:        set((state) => ({
+src/store/nexus-store.ts:3674:        set((state) => ({
+src/store/nexus-store.ts:3698:        const state = get();
+src/store/nexus-store.ts:3701:        set((state) => ({
+src/store/nexus-store.ts:3717:        set((state) => ({
+src/store/nexus-store.ts:3735:        set((state) => ({
+src/store/nexus-store.ts:3753:        const state = get();
+src/store/nexus-store.ts:3771:        set((state) => ({
+src/store/nexus-store.ts:3793:        set((state) => ({
+src/store/nexus-store.ts:3809:        set((state) => {
+src/store/nexus-store.ts:3829:        set((state) => ({
+src/store/nexus-store.ts:3842:        set({ isVaultManagerOpen: true });
+src/store/nexus-store.ts:3846:        set({ isVaultManagerOpen: false });
+src/store/nexus-store.ts:3850:        set((state) => ({
+src/store/nexus-store.ts:3868:        set((state) => ({
+src/store/nexus-store.ts:3892:        set((state) => ({
+src/store/nexus-store.ts:3904:        const state = get();
+src/store/nexus-store.ts:3925:        set((state) => ({
+src/store/nexus-store.ts:3940:        set((state) => ({
+src/store/nexus-store.ts:3961:        set((state) => ({
+src/store/nexus-store.ts:3983:        set((state) => ({
+src/store/nexus-store.ts:4015:        const state = get();
+src/store/nexus-store.ts:4023:        set((state) => ({
+src/store/nexus-store.ts:4033:            userId: get().authVault.user?.id ?? "local-owner",
+src/store/nexus-store.ts:4053:        set((state) => ({
+src/store/nexus-store.ts:4070:        set((state) => ({
+src/store/nexus-store.ts:4085:        set((state) => ({
+src/store/nexus-store.ts:4096:        const workspace = getActiveWorkspace(get());
+src/store/nexus-store.ts:4097:        const controller = workflowRuntimeAbortControllers.get(workspace.id);
+src/store/nexus-store.ts:4107:        const state = get();
+src/store/nexus-store.ts:4149:          set((state) => ({
+src/store/nexus-store.ts:4176:        set((state) => ({
+src/store/nexus-store.ts:4188:        workflowRuntimeAbortControllers.get(workspace.id)?.abort();
+src/store/nexus-store.ts:4189:        workflowRuntimeAbortControllers.set(workspace.id, controller);
+src/store/nexus-store.ts:4192:          set((state) => ({
+src/store/nexus-store.ts:4204:          set((state) => ({
+src/store/nexus-store.ts:4217:            authVault: get().authVault,
+src/store/nexus-store.ts:4222:            authVault: get().authVault,
+src/store/nexus-store.ts:4234:          if (workflowRuntimeAbortControllers.get(workspace.id) === controller) {
+src/store/nexus-store.ts:4243:          set((state) => ({
+src/store/nexus-store.ts:4252:          set((state) => ({
+src/store/nexus-store.ts:4270:          userId: get().authVault.user?.id ?? "local-owner",
+src/store/nexus-store.ts:4296:        queueWorkspaceCloudSync(getActiveWorkspace(get()));
+src/store/nexus-store.ts:4302:        const state = get();
+src/store/nexus-store.ts:4320:          set((state) => ({
+src/store/nexus-store.ts:4335:            userId: get().authVault.user?.id ?? "local-owner",
+src/store/nexus-store.ts:4348:          queueWorkspaceCloudSync(getActiveWorkspace(get()));
+src/store/nexus-store.ts:4366:          queueWorkspaceCloudSync(getActiveWorkspace(get()));
+src/store/nexus-store.ts:4376:        set((state) => ({
+src/store/nexus-store.ts:4395:        set((state) => ({
+src/store/nexus-store.ts:4413:        const state = get();
+src/store/nexus-store.ts:4422:        set((current) => ({
+src/store/nexus-store.ts:4480:          set((current) => ({
+src/store/nexus-store.ts:4524:          set((current) => ({
+src/store/nexus-store.ts:4546:        set({
+src/store/nexus-store.ts:4573:      storage: createJSONStorage(() => indexedDbStateStorage),
+src/store/nexus-store.ts:4812:supabaseStateSyncManager.setTransactionLogger((entry) => {
+src/store/nexus-store.ts:4813:  useNexusStore.getState().recordTransaction(entry);
+src/components/nexus/nexus-ops.tsx:144:import { supabaseStateSyncManager } from "@/lib/state-sync";
+src/components/nexus/nexus-ops.tsx:149:} from "@/lib/supabase/client";
+src/components/nexus/nexus-ops.tsx:224:import { useNexusStore } from "@/store/nexus-store";
+src/components/nexus/nexus-ops.tsx:498:  return Array.from(
+src/components/nexus/nexus-ops.tsx:521:function applyWorkspaceThemeControlsToProductionTarget(
+src/components/nexus/nexus-ops.tsx:600:    classList: target ? Array.from(target.classList) : [],
+src/components/nexus/nexus-ops.tsx:668:  return Array.from(
+src/components/nexus/nexus-ops.tsx:907:  const currentUser = useNexusStore.getState().authVault.user;
+src/components/nexus/nexus-ops.tsx:913:  useNexusStore.setState((state) => ({
+src/components/nexus/nexus-ops.tsx:929:    const { data } = await getNexusSupabaseClient().auth.getSession();
+src/components/nexus/nexus-ops.tsx:1119:    headers.set("X-Workspace-Id", options.workspaceId);
+src/components/nexus/nexus-ops.tsx:1123:    headers.set("X-User-Id", options.userId);
+src/components/nexus/nexus-ops.tsx:1129:    headers.set("Authorization", `Bearer ${accessToken}`);
+src/components/nexus/nexus-ops.tsx:1132:  const response = await fetch(url, {
+src/components/nexus/nexus-ops.tsx:1153:    const { getNexusSupabaseClient } = await import("@/lib/supabase/client");
+src/components/nexus/nexus-ops.tsx:1154:    const { data } = await getNexusSupabaseClient().auth.getSession();
+src/components/nexus/nexus-ops.tsx:1317:    void fetch("/api/v1/providers/status", { cache: "no-store" })
+src/components/nexus/nexus-ops.tsx:1341:  const activeWorkspaceId = useNexusStore((state) => state.activeWorkspaceId);
+src/components/nexus/nexus-ops.tsx:1342:  const workspaces = useNexusStore((state) => state.workspaces);
+src/components/nexus/nexus-ops.tsx:1343:  const selectedAgentId = useNexusStore((state) => state.selectedAgentId);
+src/components/nexus/nexus-ops.tsx:1344:  const viewMode = useNexusStore((state) => state.viewMode);
+src/components/nexus/nexus-ops.tsx:1345:  const isVaultManagerOpen = useNexusStore((state) => state.isVaultManagerOpen);
+src/components/nexus/nexus-ops.tsx:1346:  const authVault = useNexusStore((state) => state.authVault);
+src/components/nexus/nexus-ops.tsx:1347:  const artifactVaultCache = useNexusStore((state) => state.artifactVault);
+src/components/nexus/nexus-ops.tsx:1348:  const notebooksCache = useNexusStore((state) => state.notebooksCache);
+src/components/nexus/nexus-ops.tsx:1349:  const openNotebookIds = useNexusStore((state) => state.openNotebookIds);
+src/components/nexus/nexus-ops.tsx:1350:  const materializeDefaultWorkspace = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1353:  const saveWorkspaceSnapshot = useNexusStore((state) => state.saveWorkspaceSnapshot);
+src/components/nexus/nexus-ops.tsx:1354:  const createWorkspace = useNexusStore((state) => state.createWorkspace);
+src/components/nexus/nexus-ops.tsx:1355:  const switchWorkspace = useNexusStore((state) => state.switchWorkspace);
+src/components/nexus/nexus-ops.tsx:1356:  const renameWorkspace = useNexusStore((state) => state.renameWorkspace);
+src/components/nexus/nexus-ops.tsx:1357:  const exportActiveWorkspace = useNexusStore((state) => state.exportActiveWorkspace);
+src/components/nexus/nexus-ops.tsx:1358:  const spawnAgent = useNexusStore((state) => state.spawnAgent);
+src/components/nexus/nexus-ops.tsx:1359:  const saveCurrentCanvasAsMacro = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1362:  const instantiateMacro = useNexusStore((state) => state.instantiateMacro);
+src/components/nexus/nexus-ops.tsx:1363:  const duplicateAgent = useNexusStore((state) => state.duplicateAgent);
+src/components/nexus/nexus-ops.tsx:1364:  const removeAgent = useNexusStore((state) => state.removeAgent);
+src/components/nexus/nexus-ops.tsx:1365:  const focusAgent = useNexusStore((state) => state.focusAgent);
+src/components/nexus/nexus-ops.tsx:1366:  const selectAgent = useNexusStore((state) => state.selectAgent);
+src/components/nexus/nexus-ops.tsx:1367:  const updateLayout = useNexusStore((state) => state.updateLayout);
+src/components/nexus/nexus-ops.tsx:1368:  const updateAgentProfile = useNexusStore((state) => state.updateAgentProfile);
+src/components/nexus/nexus-ops.tsx:1369:  const updateAgentCallsign = useNexusStore((state) => state.updateAgentCallsign);
+src/components/nexus/nexus-ops.tsx:1370:  const setAgentProfileLocked = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1373:  const updateAgentMission = useNexusStore((state) => state.updateAgentMission);
+src/components/nexus/nexus-ops.tsx:1374:  const updateAgentModel = useNexusStore((state) => state.updateAgentModel);
+src/components/nexus/nexus-ops.tsx:1375:  const updateAgentModelSettings = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1378:  const updateAgentTemplateProfile = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1381:  const updateMemoryBlock = useNexusStore((state) => state.updateMemoryBlock);
+src/components/nexus/nexus-ops.tsx:1382:  const minimizeAgent = useNexusStore((state) => state.minimizeAgent);
+src/components/nexus/nexus-ops.tsx:1383:  const restoreAgent = useNexusStore((state) => state.restoreAgent);
+src/components/nexus/nexus-ops.tsx:1384:  const toggleMaximizeAgent = useNexusStore((state) => state.toggleMaximizeAgent);
+src/components/nexus/nexus-ops.tsx:1385:  const minimizeAll = useNexusStore((state) => state.minimizeAll);
+src/components/nexus/nexus-ops.tsx:1386:  const restoreAll = useNexusStore((state) => state.restoreAll);
+src/components/nexus/nexus-ops.tsx:1387:  const arrangeAgents = useNexusStore((state) => state.arrangeAgents);
+src/components/nexus/nexus-ops.tsx:1388:  const clearAgentMessages = useNexusStore((state) => state.clearAgentMessages);
+src/components/nexus/nexus-ops.tsx:1389:  const resetWorkspace = useNexusStore((state) => state.resetWorkspace);
+src/components/nexus/nexus-ops.tsx:1390:  const importWorkspace = useNexusStore((state) => state.importWorkspace);
+src/components/nexus/nexus-ops.tsx:1391:  const applyWorkspaceRecoveryState = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1394:  const setStreamMode = useNexusStore((state) => state.setStreamMode);
+src/components/nexus/nexus-ops.tsx:1395:  const setViewMode = useNexusStore((state) => state.setViewMode);
+src/components/nexus/nexus-ops.tsx:1396:  const openVaultManager = useNexusStore((state) => state.openVaultManager);
+src/components/nexus/nexus-ops.tsx:1397:  const setNotebooksCache = useNexusStore((state) => state.setNotebooksCache);
+src/components/nexus/nexus-ops.tsx:1398:  const toggleNotebookOpen = useNexusStore((state) => state.toggleNotebookOpen);
+src/components/nexus/nexus-ops.tsx:1399:  const createNotebook = useNexusStore((state) => state.createNotebook);
+src/components/nexus/nexus-ops.tsx:1400:  const logout = useNexusStore((state) => state.logout);
+src/components/nexus/nexus-ops.tsx:1401:  const setGlobalApiKey = useNexusStore((state) => state.setGlobalApiKey);
+src/components/nexus/nexus-ops.tsx:1402:  const setGlobalBaseUrl = useNexusStore((state) => state.setGlobalBaseUrl);
+src/components/nexus/nexus-ops.tsx:1403:  const setProviderApiKey = useNexusStore((state) => state.setProviderApiKey);
+src/components/nexus/nexus-ops.tsx:1404:  const setProviderBaseUrl = useNexusStore((state) => state.setProviderBaseUrl);
+src/components/nexus/nexus-ops.tsx:1405:  const setProviderVerificationStatus = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1408:  const lockProviderCredential = useNexusStore((state) => state.lockProviderCredential);
+src/components/nexus/nexus-ops.tsx:1409:  const unlockProviderCredential = useNexusStore((state) => state.unlockProviderCredential);
+src/components/nexus/nexus-ops.tsx:1410:  const deleteProviderCredential = useNexusStore((state) => state.deleteProviderCredential);
+src/components/nexus/nexus-ops.tsx:1411:  const lockVault = useNexusStore((state) => state.lockVault);
+src/components/nexus/nexus-ops.tsx:1412:  const unlockVault = useNexusStore((state) => state.unlockVault);
+src/components/nexus/nexus-ops.tsx:1413:  const deleteApiKey = useNexusStore((state) => state.deleteApiKey);
+src/components/nexus/nexus-ops.tsx:1414:  const updateBranchingSettings = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1417:  const updateSandboxCode = useNexusStore((state) => state.updateSandboxCode);
+src/components/nexus/nexus-ops.tsx:1418:  const updateSandboxUrl = useNexusStore((state) => state.updateSandboxUrl);
+src/components/nexus/nexus-ops.tsx:1419:  const saveArtifactToCloud = useNexusStore((state) => state.saveArtifactToCloud);
+src/components/nexus/nexus-ops.tsx:1420:  const fetchArtifactsFromCloud = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1423:  const updateGraphNodePosition = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1426:  const connectGraphAgents = useNexusStore((state) => state.connectGraphAgents);
+src/components/nexus/nexus-ops.tsx:1427:  const removeGraphEdges = useNexusStore((state) => state.removeGraphEdges);
+src/components/nexus/nexus-ops.tsx:1428:  const addWorkflowRuntimeNode = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1431:  const updateWorkflowRuntimeNodeData = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1434:  const updateWorkflowRuntimeNodePosition = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1437:  const connectWorkflowRuntimeNodes = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1440:  const appendWorkflowRuntimeGroup = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1443:  const removeWorkflowRuntimeNodes = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1446:  const removeWorkflowRuntimeEdges = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1449:  const replaceWorkflowRuntimeLite = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1452:  const pauseWorkflowRuntimeLiteFlow = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1455:  const runWorkflowRuntimeLiteFlow = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1458:  const retryWorkflowRuntimeTraceSync = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1461:  const runTool = useNexusStore((state) => state.runTool);
+src/components/nexus/nexus-ops.tsx:1462:  const historicalMessages = useNexusStore((state) => state.historicalMessages);
+src/components/nexus/nexus-ops.tsx:1731:    const state = useNexusStore.getState();
+src/components/nexus/nexus-ops.tsx:1740:        const sessionWorkspace = await supabaseStateSyncManager.ensureWorkspaceSession({
+src/components/nexus/nexus-ops.tsx:1754:          useNexusStore.getState().bindActiveWorkspaceToCloudSession({
+src/components/nexus/nexus-ops.tsx:1759:          const reboundWorkspace = useNexusStore
+src/components/nexus/nexus-ops.tsx:1773:          supabaseStateSyncManager.fetchLatestWorkspaceRecoveryState({
+src/components/nexus/nexus-ops.tsx:1777:          supabaseStateSyncManager.fetchWorkspaceRecoveryList({
+src/components/nexus/nexus-ops.tsx:1805:    const userId = useNexusStore.getState().authVault.user?.id;
+src/components/nexus/nexus-ops.tsx:1806:    const state = useNexusStore.getState();
+src/components/nexus/nexus-ops.tsx:1818:        supabaseStateSyncManager.fetchWorkspaceRecoveryState({
+src/components/nexus/nexus-ops.tsx:1880:    void supabaseStateSyncManager
+src/components/nexus/nexus-ops.tsx:1931:    void supabaseStateSyncManager
+src/components/nexus/nexus-ops.tsx:1972:      const result = applyWorkspaceThemeControlsToProductionTarget(controls);
+src/components/nexus/nexus-ops.tsx:1998:        const supabase = getNexusSupabaseClient();
+src/components/nexus/nexus-ops.tsx:1999:        const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+src/components/nexus/nexus-ops.tsx:2008:        return supabase.auth
+src/components/nexus/nexus-ops.tsx:2080:          useNexusStore.temporal.getState().redo();
+src/components/nexus/nexus-ops.tsx:2085:        useNexusStore.temporal.getState().undo();
+src/components/nexus/nexus-ops.tsx:2144:      const nextMacros = await supabaseStateSyncManager.fetchMacros();
+src/components/nexus/nexus-ops.tsx:2492:    const state = useNexusStore.getState();
+src/components/nexus/nexus-ops.tsx:2561:      useNexusStore.getState().setAgentStatus(agentId, "error");
+src/components/nexus/nexus-ops.tsx:2611:    abortControllersRef.current.set(agentId, {
+src/components/nexus/nexus-ops.tsx:2624:        headers.set("X-User-Id", userId);
+src/components/nexus/nexus-ops.tsx:2630:        headers.set("Authorization", `Bearer ${accessToken}`);
+src/components/nexus/nexus-ops.tsx:2634:        headers.set(NEXUS_RUNTIME_AUTHORIZATION_HEADER, `Bearer ${safeKey}`);
+src/components/nexus/nexus-ops.tsx:2637:        headers.set("x-nexus-base-url", safeBaseUrl);
+src/components/nexus/nexus-ops.tsx:2639:      headers.set("x-nexus-provider-id", runtimeCredential.providerId);
+src/components/nexus/nexus-ops.tsx:2652:            useNexusStore.getState().setAgentStatus(agentId, "thinking");
+src/components/nexus/nexus-ops.tsx:2674:            useNexusStore.getState().setAgentStatus(agentId, "streaming");
+src/components/nexus/nexus-ops.tsx:2678:          useNexusStore
+src/components/nexus/nexus-ops.tsx:2690:          useNexusStore
+src/components/nexus/nexus-ops.tsx:2698:            useNexusStore.getState().setStreamMode(event.mode === "openai" ? "live" : "mock");
+src/components/nexus/nexus-ops.tsx:2709:        useNexusStore
+src/components/nexus/nexus-ops.tsx:2715:        useNexusStore
+src/components/nexus/nexus-ops.tsx:2718:        useNexusStore.getState().setAgentStatus(agentId, "error");
+src/components/nexus/nexus-ops.tsx:2723:      useNexusStore
+src/components/nexus/nexus-ops.tsx:2732:        useNexusStore.getState().setAgentStatus(agentId, "idle");
+src/components/nexus/nexus-ops.tsx:2734:      useNexusStore.getState().updateAgentTelemetry(agentId, received.length);
+src/components/nexus/nexus-ops.tsx:2850:    const runtimeNode = useNexusStore
+src/components/nexus/nexus-ops.tsx:2854:          candidate.id === useNexusStore.getState().activeWorkspaceId,
+src/components/nexus/nexus-ops.tsx:2877:    const runtimeNode = useNexusStore
+src/components/nexus/nexus-ops.tsx:2881:          candidate.id === useNexusStore.getState().activeWorkspaceId,
+src/components/nexus/nexus-ops.tsx:2901:    const active = abortControllersRef.current.get(agentId);
+src/components/nexus/nexus-ops.tsx:2912:          userId: useNexusStore.getState().authVault.user?.id,
+src/components/nexus/nexus-ops.tsx:2927:    const state = useNexusStore.getState();
+src/components/nexus/nexus-ops.tsx:2982:      useNexusStore.getState().setAgentStatus(agentId, "streaming");
+src/components/nexus/nexus-ops.tsx:2983:      await useNexusStore.getState().runTool(agentId, tool.id, { prompt });
+src/components/nexus/nexus-ops.tsx:2984:      useNexusStore.getState().updateAgentTelemetry(agentId, prompt.length + 640);
+src/components/nexus/nexus-ops.tsx:2992:      useNexusStore.getState().addMessage(agentId, {
+src/components/nexus/nexus-ops.tsx:2998:      useNexusStore.getState().setAgentStatus(agentId, "error");
+src/components/nexus/nexus-ops.tsx:3000:      useNexusStore.getState().setAgentStatus(agentId, "idle");
+src/components/nexus/nexus-ops.tsx:3016:      const state = useNexusStore.getState();
+src/components/nexus/nexus-ops.tsx:3042:        useNexusStore.getState().setAgentStatus(agentId, "streaming");
+src/components/nexus/nexus-ops.tsx:3134:        useNexusStore.getState().addMessage(agentId, assistantMessage);
+src/components/nexus/nexus-ops.tsx:3138:        useNexusStore.getState().updateAgentTelemetry(agentId, prompt.length + 640);
+src/components/nexus/nexus-ops.tsx:3148:        useNexusStore.getState().addMessage(agentId, {
+src/components/nexus/nexus-ops.tsx:3154:        useNexusStore.getState().setAgentStatus(agentId, "error");
+src/components/nexus/nexus-ops.tsx:3156:        useNexusStore.getState().setAgentStatus(agentId, "idle");
+src/components/nexus/nexus-ops.tsx:4716:      const response = await fetch("/api/v1/providers/verify", {
+src/components/nexus/nexus-ops.tsx:5177:        params.set("cursor", traceEventsCursor);
+src/components/nexus/nexus-ops.tsx:7022:                onClick={() => applyWorkspaceStylePreset(preset)}

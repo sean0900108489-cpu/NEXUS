@@ -1,0 +1,82 @@
+{
+  "schema": "nexus.workflowPro.brainProposalIntakeEvidence.v1",
+  "generatedAt": "2026-06-04T11:35:00.000+10:00",
+  "purpose": "Trace the Workflow Brain proposal intake path from JSON paste, validation, optimizedWorkflow import preview, stale protection, and malformed proposal rejection.",
+  "score": {
+    "earned": 20,
+    "max": 20,
+    "passed": true
+  },
+  "sourceCode": {
+    "ui": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+    "uiTest": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+    "proposalValidator": "src/lib/workflow-pro/brain-review-proposal.ts",
+    "proposalValidatorTest": "src/lib/workflow-pro/brain-review-proposal.test.ts",
+    "llmGuide": "docs/workflow-pro/llm-guide.md"
+  },
+  "gates": [
+    {
+      "id": "valid-brain-proposal-import-preview",
+      "points": 10,
+      "result": "pass",
+      "screenOperated": true,
+      "assertions": [
+        "Proposal Diff exposes Brain proposal intake in the browser UI.",
+        "A valid nexus.workflowPro.brainReviewProposal.v1 object validates as accepted.",
+        "The optimizedWorkflow is shown as ready.",
+        "Import optimized workflow sends only optimizedWorkflow into the existing Workflow Pro import path.",
+        "Import Review becomes accepted.",
+        "Apply Plan becomes ready.",
+        "Candidate nodes remain 13 and candidate edges remain 12.",
+        "Graph does not mutate immediately; explicit apply remains required."
+      ],
+      "evidence": {
+        "manualNote": "R118 pasted a valid Brain proposal in Chrome on localhost, validated it, imported the optimized workflow, and observed the existing import/apply preview gate.",
+        "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r118-brain-proposal-import-preview.png"
+      }
+    },
+    {
+      "id": "stale-guard-after-edit",
+      "points": 5,
+      "result": "pass",
+      "screenOperated": true,
+      "assertions": [
+        "After an accepted validation, editing the textarea changes the proposal state to stale.",
+        "Stale state shows optimized workflow as none.",
+        "Stale state disables Import optimized workflow.",
+        "The UI tells the operator to revalidate before importing."
+      ],
+      "evidence": {
+        "manualNote": "R119 accepted a valid proposal, changed the textarea to a malformed JSON object, and observed stale state before revalidation.",
+        "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r119-brain-proposal-rejected-stale-guard.png"
+      }
+    },
+    {
+      "id": "malformed-proposal-rejection",
+      "points": 5,
+      "result": "pass",
+      "screenOperated": true,
+      "assertions": [
+        "A malformed proposal can be revalidated from the UI.",
+        "Invalid schema is rejected.",
+        "Required fields are reported through validator errors.",
+        "Rejected state keeps optimized workflow as none.",
+        "Rejected state keeps Import optimized workflow disabled."
+      ],
+      "evidence": {
+        "manualNote": "R119 revalidated the malformed JSON object and observed rejected state with five issues and disabled import.",
+        "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r119-brain-proposal-rejected-stale-guard.png"
+      }
+    }
+  ],
+  "mutationPolicy": {
+    "graphMutation": "operator-explicit-apply-only",
+    "brainProposalMayMutateGraphDirectly": false,
+    "staleProposalMayImport": false,
+    "rejectedProposalMayImport": false
+  },
+  "remainingGaps": [
+    "Proposal diff scoring can become richer than structural counts.",
+    "Future browser automation can turn this manifest into a fully automated screen run."
+  ]
+}

@@ -1,0 +1,1907 @@
+[
+  {
+    "file": "src/components/nexus/nexus-ops.tsx",
+    "lineCount": 9654,
+    "role": "primary-production-command-surface",
+    "exportedOrNamedComponents": [
+      "AgentActionToolbar",
+      "AgentModelTuningPanel",
+      "AgentSettingsSidebar",
+      "AgentTemplateProfilePanel",
+      "AgentWindow",
+      "CollapsedSidebarRail",
+      "CommandPalette",
+      "EMPTY_AGENTS",
+      "EMPTY_GRAPH",
+      "GraphNode",
+      "Icon",
+      "IconButton",
+      "LEGO_THEME_DEFAULTS",
+      "LEGO_THEME_VARIABLES",
+      "LeftDock",
+      "MacroComposerModal",
+      "MediaArtifactPreview",
+      "MediaCanvas",
+      "MessageBubble",
+      "MinimizedRail",
+      "ModelTuningSelect",
+      "NexusOps",
+      "ProviderVaultPanel",
+      "RightFloatingDock",
+      "RightIntel",
+      "Rnd",
+      "SANDBOX_MAX_SPLIT",
+      "SANDBOX_MIN_SPLIT",
+      "SandboxCanvas",
+      "SidebarToggleButton",
+      "SyncBadge",
+      "ToolbarIconButton",
+      "TopBar",
+      "TopMenuAction",
+      "WORKSPACE_ATTACHMENT_BINARY_INLINE_MAX_BYTES",
+      "WORKSPACE_ATTACHMENT_CONTEXT_MAX_CHARS",
+      "WORKSPACE_ATTACHMENT_TEXT_EXTENSIONS",
+      "WorkspaceChatComposerShell",
+      "WorkspaceStyleControlsPanel"
+    ],
+    "eventHandlerCount": 290,
+    "buttonElementCount": 67,
+    "dialogPanelSignalCount": 82,
+    "storeHooks": [
+      "useNexusStore"
+    ],
+    "apiSignals": [
+      "/api/v1/providers/status",
+      "/api/v1/providers/verify",
+      "nexusApiClient.get",
+      "nexusApiClient.post"
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 108,
+        "text": "nexusApiClient,"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 144,
+        "text": "import { supabaseStateSyncManager } from \"@/lib/state-sync\";"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 147,
+        "text": "ensureNexusSupabaseClientConfigured,"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 148,
+        "text": "getNexusSupabaseClient,"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 149,
+        "text": "} from \"@/lib/supabase/client\";"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 236,
+        "text": "const Rnd = dynamic(() => import(\"react-rnd\").then((module) => module.Rnd), {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 240,
+        "text": "const EMPTY_AGENTS: NexusAgent[] = [];"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 241,
+        "text": "const EMPTY_GRAPH = { nodes: [], edges: [] };"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-graph.tsx",
+    "lineCount": 2346,
+    "role": "graph-orchestration-surface",
+    "exportedOrNamedComponents": [
+      "AgentNode",
+      "BlueprintEdge",
+      "FileRuntimeEditor",
+      "InputTextRuntimeEditor",
+      "ModelImageRuntimeEditor",
+      "ModelRuntimeEditor",
+      "NexusGraph",
+      "RuntimeHandles",
+      "RuntimeNode",
+      "WorkflowGeneratedAssetMenu",
+      "WorkflowGraphAction",
+      "WorkflowGraphBrainPanel",
+      "WorkflowGraphStatus"
+    ],
+    "eventHandlerCount": 63,
+    "buttonElementCount": 15,
+    "dialogPanelSignalCount": 2,
+    "storeHooks": [],
+    "apiSignals": [
+      "/api/workflow-pro/brain-draft"
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 139,
+        "text": "function cx(...classes: Array<string | false | null | undefined>) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 143,
+        "text": "function truncateText(value: string, maxLength: number) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 151,
+        "text": "function getModelLabel(modelId: string) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 155,
+        "text": "function getWorkflowPacketImageUrl(packet: ContextPacket | null | undefined) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 160,
+        "text": "const rawUrl = /^Image URL:\\s*(\\S+)/m.exec(packet.rawText)?.[1];"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 166,
+        "text": "const metadataUrl = packet.metadata.imageUrl;"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 171,
+        "text": "function getRuntimeNodeIcon(type: WorkflowRuntimeNodeType) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 191,
+        "text": "function AgentNode({ data, selected }: NodeProps<AgentFlowNode>) {"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+    "lineCount": 1722,
+    "role": "workflow-pro-operator-surface",
+    "exportedOrNamedComponents": [
+      "WorkflowProActiveModeBay",
+      "WorkflowProActiveModeDetails",
+      "WorkflowProBrainProposalIntake",
+      "WorkflowProCapabilityRegistry",
+      "WorkflowProDesignGate",
+      "WorkflowProDetailGrid",
+      "WorkflowProEvidenceGateSummary",
+      "WorkflowProFilePipelinePath",
+      "WorkflowProLane",
+      "WorkflowProProposalReviewQueue",
+      "WorkflowProRuntimeDatum",
+      "WorkflowProSurface"
+    ],
+    "eventHandlerCount": 23,
+    "buttonElementCount": 12,
+    "dialogPanelSignalCount": 10,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 75,
+        "text": "const workflowProModes = ["
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 85,
+        "text": "const workflowProModeDescriptions: Record<WorkflowProMode, string> = {"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 94,
+        "text": "export function WorkflowProSurface({"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 116,
+        "text": "const importInputRef = useRef<HTMLInputElement | null>(null);"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 117,
+        "text": "const importReviewPanelRef = useRef<HTMLDivElement | null>(null);"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 118,
+        "text": "const benchmarkFixtures = useMemo("
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 127,
+        "text": "const contractValidation = validateWorkflowProContractDraft(contractDraft);"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 128,
+        "text": "const applyReady ="
+      }
+    ]
+  },
+  {
+    "file": "src/components/style-engine/nexus-style-lab.tsx",
+    "lineCount": 5966,
+    "role": "style-system-lab-surface",
+    "exportedOrNamedComponents": [
+      "Icon",
+      "NexusStyleLab"
+    ],
+    "eventHandlerCount": 33,
+    "buttonElementCount": 30,
+    "dialogPanelSignalCount": 30,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 128,
+        "text": "const maxVisibleImportIssues = 3;"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 129,
+        "text": "const maxVisibleSkinPackIssues = 5;"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 130,
+        "text": "const maxVisibleLayoutBoundaryIssues = 5;"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 131,
+        "text": "const maxVisibleSpecimenFallbacks = 4;"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 132,
+        "text": "const maxVisibleBridgeVariables = 10;"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 133,
+        "text": "const maxVisibleBridgePreserveVariables = 8;"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 134,
+        "text": "const maxVisibleBridgeUnsupportedVariables = 6;"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 135,
+        "text": "const maxVisibleSurfaceStyleCoverageFamilies = 10;"
+      }
+    ]
+  },
+  {
+    "file": "src/store/nexus-store.ts",
+    "lineCount": 4815,
+    "role": "global-client-state-store",
+    "exportedOrNamedComponents": [
+      "DEFAULT_AUTH_VAULT",
+      "EMPTY_ARTIFACT_VAULT_CACHE",
+      "HISTORY_FETCH_DEBOUNCE_MS",
+      "LEGACY_LOCAL_STORAGE_KEYS",
+      "OMITTED_IMAGE_DATA_URL_FOR_LOCAL_PERSISTENCE",
+      "PERSIST_STORAGE_NAME"
+    ],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 6,
+    "storeHooks": [
+      "useNexusStore"
+    ],
+    "apiSignals": [
+      "nexusApiClient.post"
+    ],
+    "evidence": [
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 26,
+        "text": "nexusApiClient,"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 34,
+        "text": "import { supabaseStateSyncManager } from \"@/lib/state-sync\";"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 35,
+        "text": "import { getNexusSupabaseClient } from \"@/lib/supabase/client\";"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 153,
+        "text": "const PERSIST_STORAGE_NAME = \"nexus-ai-ops-workspace\";"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 154,
+        "text": "const LEGACY_LOCAL_STORAGE_KEYS = [\"nexus-workspace-storage\", PERSIST_STORAGE_NAME] as const;"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 155,
+        "text": "const indexedDbStore ="
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 161,
+        "text": "const HISTORY_FETCH_DEBOUNCE_MS = 350;"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 162,
+        "text": "const OMITTED_IMAGE_DATA_URL_FOR_LOCAL_PERSISTENCE ="
+      }
+    ]
+  },
+  {
+    "file": "src/lib/state-sync.ts",
+    "lineCount": 1355,
+    "role": "state-to-cloud-sync-bridge",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [
+      "nexusApiClient.get",
+      "nexusApiClient.post"
+    ],
+    "evidence": [
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 30,
+        "text": "import { nexusApiClient, NexusApiError } from \"@/lib/api/nexus-api-client\";"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 40,
+        "text": "import { getNexusSupabaseClient } from \"@/lib/supabase/client\";"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 45,
+        "text": "} from \"@/lib/supabase/database.types\";"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 53,
+        "text": "function emptyPage<T>(): HistoricalDataPage<T> {"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 60,
+        "text": "function synced(): StateSyncResult {"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 67,
+        "text": "function failed(error: unknown): StateSyncResult {"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 75,
+        "text": "function emptyArtifactList(workspaceId: string): ArtifactListResponse {"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 84,
+        "text": "function mapWorkflowTemplate(row: Workflow_Templates): WorkflowTemplateRecord {"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/AgentBranchModal.tsx",
+    "lineCount": 490,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [
+      "AgentBranchModal",
+      "DEFAULT_PROFILE"
+    ],
+    "eventHandlerCount": 19,
+    "buttonElementCount": 8,
+    "dialogPanelSignalCount": 3,
+    "storeHooks": [
+      "useNexusStore"
+    ],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 26,
+        "text": "const DEFAULT_PROFILE = MEMORY_COMPRESSION_PROFILE_REGISTRY[\"default-context-compressor\"];"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 28,
+        "text": "function clampRetentionRatio(value: unknown) {"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 34,
+        "text": "function clampAdvancedWeight(value: unknown) {"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 40,
+        "text": "export function AgentBranchModal({"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 51,
+        "text": "const branchAgent = useNexusStore((state) => state.branchAgent);"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 52,
+        "text": "const branchingStatus = useNexusStore((state) => state.branchingStatus);"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 62,
+        "text": "const compressorModels = useMemo("
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 69,
+        "text": "const busy = branchingStatus === \"compressing\" || branchingStatus === \"creating\";"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/DatapadWindow.tsx",
+    "lineCount": 157,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [
+      "DatapadWindow"
+    ],
+    "eventHandlerCount": 8,
+    "buttonElementCount": 3,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [
+      "useNexusStore"
+    ],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 9,
+        "text": "function cx(...classes: Array<string | false | null | undefined>) {"
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 13,
+        "text": "export function DatapadWindow({ notebookId }: { notebookId: string }) {"
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 14,
+        "text": "const notebook = useNexusStore((state) =>"
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 17,
+        "text": "const notebookDraft = useNexusStore((state) => state.notebookDrafts[notebookId]);"
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 18,
+        "text": "const openNotebookIds = useNexusStore((state) => state.openNotebookIds);"
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 19,
+        "text": "const zIndex = useNexusStore("
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 22,
+        "text": "const toggleNotebookOpen = useNexusStore((state) => state.toggleNotebookOpen);"
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 23,
+        "text": "const focusNotebookWindow = useNexusStore((state) => state.focusNotebookWindow);"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/PromptVaultManager.tsx",
+    "lineCount": 323,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [
+      "PromptVaultManager"
+    ],
+    "eventHandlerCount": 9,
+    "buttonElementCount": 7,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [
+      "useNexusStore"
+    ],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 10,
+        "text": "function cx(...classes: Array<string | false | null | undefined>) {"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 14,
+        "text": "function formatPromptDate(value: string) {"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 15,
+        "text": "const date = new Date(value);"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 27,
+        "text": "function getPromptPreview(prompt: PromptRecord) {"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 31,
+        "text": "export function PromptVaultManager() {"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 32,
+        "text": "const activeWorkspaceId = useNexusStore((state) => state.activeWorkspaceId);"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 33,
+        "text": "const promptsCache = useNexusStore((state) => state.promptsCache);"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 34,
+        "text": "const closeVaultManager = useNexusStore((state) => state.closeVaultManager);"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/auth-screen.tsx",
+    "lineCount": 171,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [
+      "AUTH_PROMPT_MESSAGE",
+      "AuthScreen",
+      "CHECKING_SESSION_MESSAGE"
+    ],
+    "eventHandlerCount": 4,
+    "buttonElementCount": 2,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [
+      "useNexusStore"
+    ],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 7,
+        "text": "ensureNexusSupabaseClientConfigured,"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 8,
+        "text": "getNexusSupabaseClient,"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 9,
+        "text": "} from \"@/lib/supabase/client\";"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 21,
+        "text": "const AUTH_PROMPT_MESSAGE = \"Authenticate to unlock NEXUS // AI OPS.\";"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 22,
+        "text": "const CHECKING_SESSION_MESSAGE = \"Checking session...\";"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 24,
+        "text": "export function AuthScreen({ checked, onAuthenticated }: AuthScreenProps) {"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 25,
+        "text": "const login = useNexusStore((state) => state.login);"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 33,
+        "text": "const displayMessage ="
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/dynamic-icon.tsx",
+    "lineCount": 42,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [
+      "DynamicIcon",
+      "Icon"
+    ],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/dynamic-icon.tsx",
+        "line": 10,
+        "text": "function toPascalIconName(name: string) {"
+      },
+      {
+        "file": "src/components/nexus/dynamic-icon.tsx",
+        "line": 19,
+        "text": "function isRenderableIcon(candidate: unknown): candidate is ComponentType<LucideProps> {"
+      },
+      {
+        "file": "src/components/nexus/dynamic-icon.tsx",
+        "line": 26,
+        "text": "export function DynamicIcon({"
+      },
+      {
+        "file": "src/components/nexus/dynamic-icon.tsx",
+        "line": 31,
+        "text": "const icons = LucideIcons as unknown as Record<string, unknown>;"
+      },
+      {
+        "file": "src/components/nexus/dynamic-icon.tsx",
+        "line": 32,
+        "text": "const candidate = icons[toPascalIconName(name)] ?? icons[name];"
+      },
+      {
+        "file": "src/components/nexus/dynamic-icon.tsx",
+        "line": 33,
+        "text": "const fallback = icons[toPascalIconName(fallbackName)] ?? icons[fallbackName];"
+      },
+      {
+        "file": "src/components/nexus/dynamic-icon.tsx",
+        "line": 34,
+        "text": "const Icon = isRenderableIcon(candidate)"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+    "lineCount": 95,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [
+      "AgentBranchModal"
+    ],
+    "eventHandlerCount": 4,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 11,
+    "storeHooks": [
+      "useNexusStore"
+    ],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 7,
+        "text": "const source = readAgentBranchModalSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 9,
+        "text": "expect(source).toContain(\"export function AgentBranchModal({\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 24,
+        "text": "const source = readAgentBranchModalSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 28,
+        "text": "expect(source).toContain(\"const branchAgent = useNexusStore((state) => state.branchAgent);\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 29,
+        "text": "expect(source).toContain(\"const executeBranchConfiguration = async\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 35,
+        "text": "expect(source).toContain(\"onClick={onClose}\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 43,
+        "text": "const source = readAgentBranchModalSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 44,
+        "text": "const css = readGlobalsCssSource();"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+    "lineCount": 119,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [
+      "AgentWindow",
+      "SandboxCanvas"
+    ],
+    "eventHandlerCount": 2,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 7,
+        "text": "const source = readAgentWindowSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 22,
+        "text": "const source = readAgentWindowSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 24,
+        "text": "expect(source).toContain(\"const agentWindowBackground = isSandboxAgent\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 25,
+        "text": "expect(source).toContain(\"const agentWindowBorderColor = isSandboxAgent\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 26,
+        "text": "expect(source).toContain(\"const agentWindowShadow = isSandboxAgent\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 52,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 79,
+        "text": "const css = readAgentWindowCssBlock();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 80,
+        "text": "const forbiddenPatterns = ["
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+    "lineCount": 125,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [
+      "CommandPalette"
+    ],
+    "eventHandlerCount": 4,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 7,
+        "text": "const source = readCommandPaletteSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 9,
+        "text": "expect(source).toContain(\"function CommandPalette({\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 23,
+        "text": "const source = readCommandPaletteSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 26,
+        "text": "expect(source).toContain(\"const inputRef = useRef<HTMLInputElement | null>(null);\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 30,
+        "text": "expect(source).toContain(\"const close = () => {\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 36,
+        "text": "expect(source).toContain(\"onClick={command.run}\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 41,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 42,
+        "text": "const block = readCommandPaletteCssBlock();"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+    "lineCount": 57,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 1,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 7,
+        "text": "const source = readNexusOpsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 8,
+        "text": "const toolbarIconButton = extractFunctionSource(source, \"ToolbarIconButton\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 13,
+        "text": "expect(toolbarIconButton).toContain(\"onClick={onClick}\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 19,
+        "text": "const source = readNexusOpsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 20,
+        "text": "const toolbarIconButton = extractFunctionSource(source, \"ToolbarIconButton\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 30,
+        "text": "const globals = readGlobalsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 40,
+        "text": "function extractFunctionSource(source: string, functionName: string) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 41,
+        "text": "const start = source.indexOf(`function ${functionName}`);"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+    "lineCount": 94,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [
+      "DatapadWindow"
+    ],
+    "eventHandlerCount": 8,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [
+      "useNexusStore"
+    ],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 7,
+        "text": "const source = readDatapadWindowSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 9,
+        "text": "expect(source).toContain(\"export function DatapadWindow({ notebookId }\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 21,
+        "text": "const source = readDatapadWindowSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 25,
+        "text": "expect(source).toContain(\"const zIndex = useNexusStore(\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 26,
+        "text": "expect(source).toContain(\"const focusNotebookWindow = useNexusStore\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 27,
+        "text": "expect(source).toContain(\"const saveNotebookDraft = useNexusStore\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 28,
+        "text": "expect(source).toContain(\"const updateNotebook = useNexusStore\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 29,
+        "text": "expect(source).toContain(\"const deleteNotebook = useNexusStore\");"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-generated-history-hydration.test.ts",
+    "lineCount": 15,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 2,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-generated-history-hydration.test.ts",
+        "line": 5,
+        "text": "const opsSource = readFileSync(new URL(\"./nexus-ops.tsx\", import.meta.url), \"utf8\");"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+    "lineCount": 97,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [
+      "MessageBubble",
+      "WorkspaceChatComposerShell"
+    ],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 7,
+        "text": "const source = readMessageBubbleSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 20,
+        "text": "const source = readMessageBubbleSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 33,
+        "text": "const source = readMessageBubbleSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 34,
+        "text": "const forbiddenPatterns = ["
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 59,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 88,
+        "text": "function readMessageBubbleSource() {"
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 89,
+        "text": "const source = readFileSync(new URL(\"nexus-ops.tsx\", import.meta.url), \"utf8\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 91,
+        "text": "return source.match(/function MessageBubble\\([\\s\\S]*?\\n}\\n\\nfunction WorkspaceChatComposerShell/)?.[0] ?? \"\";"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+    "lineCount": 110,
+    "role": "primary-production-command-surface",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 13,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 28,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 42,
+        "text": "const source = readBodyFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 43,
+        "text": "const propsBlock = source.match("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 53,
+        "text": "const validProps: NexusOpsBodyFrameProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 61,
+        "text": "const source = readBodyFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 62,
+        "text": "const forbiddenPatterns = ["
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 82,
+        "text": "const source = readBodyFrameSource();"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-ops-body-frame.tsx",
+    "lineCount": 19,
+    "role": "primary-production-command-surface",
+    "exportedOrNamedComponents": [
+      "NexusOpsBodyFrame"
+    ],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.tsx",
+        "line": 7,
+        "text": "export function NexusOpsBodyFrame({ children }: NexusOpsBodyFrameProps) {"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+    "lineCount": 135,
+    "role": "primary-production-command-surface",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 2,
+    "storeHooks": [
+      "useNexusStore"
+    ],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 7,
+        "text": "const source = readNexusOpsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 17,
+        "text": "it(\"keeps store, sync, Supabase, streaming, and tool execution markers visible\", () => {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 18,
+        "text": "const source = readNexusOpsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 21,
+        "text": "expect(source).toContain(\"supabaseStateSyncManager\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 30,
+        "text": "const source = readNexusOpsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 45,
+        "text": "const source = readNexusOpsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 46,
+        "text": "const bodyFrameSource = readBodyFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 47,
+        "text": "const outerShellFrameSource = readOuterShellFrameSource();"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+    "lineCount": 131,
+    "role": "primary-production-command-surface",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 13,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 26,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 38,
+        "text": "const source = readOuterShellFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 44,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 58,
+        "text": "const source = readOuterShellFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 59,
+        "text": "const propsBlock = source.match("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 69,
+        "text": "const validProps: NexusOpsOuterShellFrameProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 77,
+        "text": "const source = readOuterShellFrameSource();"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-ops-outer-shell-frame.tsx",
+    "lineCount": 16,
+    "role": "primary-production-command-surface",
+    "exportedOrNamedComponents": [
+      "NexusOpsOuterShellFrame"
+    ],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.tsx",
+        "line": 7,
+        "text": "export function NexusOpsOuterShellFrame({"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+    "lineCount": 147,
+    "role": "primary-production-command-surface",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 4,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 13,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 27,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 45,
+        "text": "const source = readRightFloatingDockFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 51,
+        "text": "const source = readRightFloatingDockFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 52,
+        "text": "const propsBlock = source.match("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 62,
+        "text": "const validProps: NexusOpsRightFloatingDockFrameProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 70,
+        "text": "const source = readRightFloatingDockFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 71,
+        "text": "const forbiddenPatterns = ["
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.tsx",
+    "lineCount": 21,
+    "role": "primary-production-command-surface",
+    "exportedOrNamedComponents": [
+      "NexusOpsRightFloatingDockFrame"
+    ],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.tsx",
+        "line": 7,
+        "text": "export function NexusOpsRightFloatingDockFrame({"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+    "lineCount": 146,
+    "role": "primary-production-command-surface",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 3,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 13,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 26,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 42,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 52,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 74,
+        "text": "const source = readTopBarFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 75,
+        "text": "const propsBlock = source.match("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 85,
+        "text": "const validProps: NexusOpsTopBarFrameProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 93,
+        "text": "const source = readTopBarFrameSource();"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-ops-top-bar-frame.tsx",
+    "lineCount": 26,
+    "role": "primary-production-command-surface",
+    "exportedOrNamedComponents": [
+      "NexusOpsTopBarFrame"
+    ],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.tsx",
+        "line": 7,
+        "text": "export function NexusOpsTopBarFrame({ children }: NexusOpsTopBarFrameProps) {"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+    "lineCount": 105,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 14,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 26,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 41,
+        "text": "const validProps: NexusProductionPageShellBoundaryProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 48,
+        "text": "const invalidProps: NexusProductionPageShellBoundaryProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 58,
+        "text": "const source = readBoundarySource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 59,
+        "text": "const propsBlock = source.match("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 72,
+        "text": "const source = readBoundarySource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 74,
+        "text": "const forbiddenPatterns = ["
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-production-page-shell-boundary.tsx",
+    "lineCount": 32,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [
+      "NEXUS_PRODUCTION_PAGE_SHELL_BOUNDARY_VERSION_V1",
+      "NEXUS_PRODUCTION_PAGE_SHELL_IDS_V1",
+      "NexusProductionPageShellBoundary"
+    ],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.tsx",
+        "line": 3,
+        "text": "export const NEXUS_PRODUCTION_PAGE_SHELL_BOUNDARY_VERSION_V1 = \"v1\" as const;"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.tsx",
+        "line": 5,
+        "text": "export const NEXUS_PRODUCTION_PAGE_SHELL_IDS_V1 = [\"workspace\"] as const;"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.tsx",
+        "line": 15,
+        "text": "export function NexusProductionPageShellBoundary({"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-production-preview-controller.test.ts",
+    "lineCount": 76,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.test.ts",
+        "line": 6,
+        "text": "const source = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.test.ts",
+        "line": 10,
+        "text": "const pageSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.test.ts",
+        "line": 37,
+        "text": "const forbiddenPatterns = ["
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.test.ts",
+        "line": 41,
+        "text": "/from\\s+[\"']@\\/lib\\/supabase\\//,"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+    "lineCount": 460,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [
+      "NexusProductionPreviewController"
+    ],
+    "eventHandlerCount": 2,
+    "buttonElementCount": 2,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 74,
+        "text": "const productionPreviewNetworkBaselineWindowId ="
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 77,
+        "text": "const productionPreviewControllerStyle: CSSProperties = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 94,
+        "text": "const productionPreviewButtonStyle: CSSProperties = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 101,
+        "text": "const initialControllerState: NexusProductionPreviewControllerState = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 118,
+        "text": "export function NexusProductionPreviewController({"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 121,
+        "text": "const readiness = useMemo("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 131,
+        "text": "const activeTransactionRef = useRef<ProductionPreviewApplyTransaction | null>("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 137,
+        "text": "function handleApplyPreview() {"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+    "lineCount": 149,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [
+      "NEXUS_PRODUCTION_PREVIEW_FIRST_CUT_TARGET_SELECTOR"
+    ],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 35,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 6,
+        "text": "const nexusOpsSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 10,
+        "text": "const workspaceStylePayloadSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 14,
+        "text": "const previewTransactionSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 18,
+        "text": "const controlsPanelSource = extractFunctionSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 23,
+        "text": "const stylePreviewMapperSource = extractFunctionSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 28,
+        "text": "const getPreviewTargetsSource = extractFunctionSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 33,
+        "text": "const saveHandlerSource = extractCallbackSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 57,
+        "text": "'export const NEXUS_PRODUCTION_PREVIEW_FIRST_CUT_TARGET_SELECTOR =\\n  \"main.nexus-shell.nexus-outer-shell-frame\" as const;',"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+    "lineCount": 333,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [
+      "WorkspaceStyleControlsPanel"
+    ],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 81,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 6,
+        "text": "const source = readFileSync(new URL(\"nexus-ops.tsx\", import.meta.url), \"utf8\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 7,
+        "text": "const bodyFrameSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 11,
+        "text": "const graphSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 15,
+        "text": "const controlsPanelSource = extractFunctionSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 20,
+        "text": "const presetDefinitionsSource = extractConstSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 23,
+        "text": "\"function WorkspaceStyleControlsPanel\","
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 25,
+        "text": "const topBarSource = extractFunctionSource(source, \"TopBar\", \"SyncBadge\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 26,
+        "text": "const topMenuActionSource = extractFunctionSource("
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+    "lineCount": 231,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 4,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 1,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 6,
+        "text": "const source = readFileSync(new URL(\"nexus-ops.tsx\", import.meta.url), \"utf8\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 7,
+        "text": "const composerSource = extractFunctionSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 12,
+        "text": "const agentWindowSource = extractFunctionSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 17,
+        "text": "const attachmentActionsSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 21,
+        "text": "const attachmentCompilerSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 25,
+        "text": "const composerActionsSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 29,
+        "text": "const stateSyncSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 61,
+        "text": "const threadCardIndex = composerSource.indexOf("
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+    "lineCount": 75,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 7,
+        "text": "const source = readNexusOpsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 8,
+        "text": "const graphSource = readNexusGraphSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 24,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 38,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 52,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 53,
+        "text": "const workspaceChromeRule = css.match("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 64,
+        "text": "function readNexusOpsSource() {"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 68,
+        "text": "function readNexusGraphSource() {"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-workspace-readonly-gate.test.ts",
+    "lineCount": 33,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-workspace-readonly-gate.test.ts",
+        "line": 5,
+        "text": "const opsSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-readonly-gate.test.ts",
+        "line": 9,
+        "text": "const graphSource = readFileSync("
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+    "lineCount": 88,
+    "role": "supporting-ui",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 0,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 0,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 6,
+        "text": "const source = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 31,
+        "text": "const handleImportSource = extractCallbackSource(source, \"handleImport\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 49,
+        "text": "const handleSaveSource = extractCallbackSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 53,
+        "text": "const handleExportSource = extractCallbackSource(source, \"handleExport\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 79,
+        "text": "function extractCallbackSource(source: string, callbackName: string) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 80,
+        "text": "const start = source.indexOf(`const ${callbackName} = useCallback`);"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 84,
+        "text": "const nextCallback = source.indexOf(\"\\n  const \", start + 1);"
+      }
+    ]
+  },
+  {
+    "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+    "lineCount": 237,
+    "role": "workflow-pro-operator-surface",
+    "exportedOrNamedComponents": [],
+    "eventHandlerCount": 6,
+    "buttonElementCount": 0,
+    "dialogPanelSignalCount": 3,
+    "storeHooks": [],
+    "apiSignals": [],
+    "evidence": [
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 20,
+        "text": "const inventory = createWorkflowProCapabilityInventory();"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 21,
+        "text": "const runtimeSummary = summarizeWorkflowProRuntime(undefined);"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 22,
+        "text": "const contractDraft = createWorkflowProContractDraftFromRuntimeLite({"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 29,
+        "text": "const brainContext = createWorkflowBrainContextPack({"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 33,
+        "text": "const applyPlan = createWorkflowProApplyPlan({"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 37,
+        "text": "const proposalDiff = createWorkflowProProposalDiff({"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 41,
+        "text": "const fileNodeContract = createWorkflowProFileNodeContract();"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 42,
+        "text": "const importReview = parseWorkflowProContractImportText({"
+      }
+    ]
+  }
+]

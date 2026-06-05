@@ -1,0 +1,143 @@
+{
+  "schema": "nexus.workflowPro.imageGenerationProductionBoundary.v1",
+  "generatedAt": "2026-06-04T10:09:00+10:00",
+  "scope": [
+    "workflow-pro",
+    "generated-media",
+    "auth-boundary",
+    "provider-credential-boundary",
+    "production-route-hardening"
+  ],
+  "status": "durable-storage-and-viewer-download-verified",
+  "route": "/api/image-gen",
+  "decision": "Image generation is a formal production capability, not a legacy 404 route. Production access requires a valid Supabase session and writable workspace permission before server or browser provider credentials can be used.",
+  "credentialBoundary": {
+    "supabaseSession": "Authorization",
+    "providerRuntimeKey": "X-Nexus-Runtime-Authorization",
+    "rule": "Provider credentials must not be read from the Supabase Authorization header."
+  },
+  "productionAccess": {
+    "requiresWorkspaceId": true,
+    "requiresAuthenticatedSession": true,
+    "requiredPermission": {
+      "action": "workspace.update",
+      "resourceType": "workspace",
+      "rolesExpectedToPass": [
+        "owner",
+        "admin",
+        "editor"
+      ],
+      "rolesExpectedToFail": [
+        "viewer",
+        "non-member",
+        "spoof-only",
+        "unauthenticated"
+      ]
+    }
+  },
+  "sourceChanges": [
+    {
+      "path": "src/app/api/image-gen/route.ts",
+      "summary": "Replaced legacy production 404 with assertImageGenerationRouteAccess; production route now verifies session, X-User-Id match, workspaceId, and writable workspace permission before calling the image provider."
+    },
+    {
+      "path": "src/lib/adapters/image-adapter.ts",
+      "summary": "Browser provider keys now use X-Nexus-Runtime-Authorization; Supabase session remains in Authorization; workspaceId and userId are forwarded."
+    },
+    {
+      "path": "src/components/nexus/nexus-ops.tsx",
+      "summary": "Composer image mode passes active workspaceId and userId to the image adapter."
+    },
+    {
+      "path": "src/lib/workflow-runtime-lite/image-client.ts",
+      "summary": "Workflow Runtime Lite image nodes pass workspaceId and userId to the image adapter."
+    },
+    {
+      "path": "scripts/auth-boundary-scan.mjs",
+      "summary": "Static auth scan now treats /api/image-gen as a formal protected route and verifies runtime credential separation."
+    },
+    {
+      "path": "scripts/live-auth-boundary-probe.mjs",
+      "summary": "Live auth probe now classifies /api/image-gen as protected spoof-only instead of legacy production 404."
+    },
+    {
+      "path": "src/lib/backend/image-generation/generated-image-asset-storage.ts",
+      "summary": "Adds request-scoped Supabase Storage upload/download support for generated images."
+    },
+    {
+      "path": "src/app/api/v1/artifacts/[artifactId]/asset/route.ts",
+      "summary": "Adds authenticated artifact binary download through workspace read permission."
+    },
+    {
+      "path": "supabase/migrations/20260604093000_v22_generated_image_storage.sql",
+      "summary": "Creates the private nexus-generated-assets bucket and workspace-scoped object policies."
+    }
+  ],
+  "verification": {
+    "focusedTests": {
+      "command": "npm test -- src/app/api/image-gen/route.test.ts src/lib/adapters/image-adapter.test.ts src/lib/backend/security/auth-boundary-gate.test.ts src/lib/backend/api/api-contract.test.ts",
+      "result": "4 files / 31 tests passed"
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "result": "passed"
+    },
+    "localLiveProbe": {
+      "command": "AUTH_BOUNDARY_LIVE_BASE_URL=http://127.0.0.1:3000 AUTH_BOUNDARY_LIVE_EXPECT_LEGACY_404=false npm run check:auth-boundary:live",
+      "result": "blockingFindings=0; /api/image-gen classified as protectedRejectsSpoofOnly; protectedRoutes=38; warnings=8 expected local legacy warnings"
+    },
+    "durableStorageFocusedTests": {
+      "command": "npm test -- src/app/api/image-gen/route.test.ts src/lib/backend/artifacts/artifact-service.test.ts src/components/nexus/nexus-generated-history-hydration.test.ts src/components/nexus/nexus-workspace-readonly-gate.test.ts src/lib/sync/local-sync-queue-adapter.test.ts",
+      "result": "5 files / 39 tests passed"
+    },
+    "finalBuild": {
+      "command": "npm run build",
+      "result": "passed"
+    },
+    "finalPreviewScreenRun": {
+      "result": "Chrome Computer Use verified editor generation, viewer generated-history hydration, and viewer asset download."
+    }
+  },
+  "remoteStatus": {
+    "latestV22Preview": "blocked-by-vercel-deployment-protection-until-bypass-secret-configured",
+    "publicProductionDomain": "older-deployment-drift-recorded-in-strict-preview-live-probe.manifest.json",
+    "requiredNextVerification": "deploy this source or access latest v22 preview with VERCEL_AUTOMATION_BYPASS_SECRET, then rerun strict live probe."
+  },
+  "forbiddenEvidence": [
+    "accessTokens",
+    "apiKeys",
+    "refreshTokens",
+    "cookies",
+    "rawSecrets",
+    "rawActorUserIds",
+    "vercelAutomationBypassSecret"
+  ],
+  "durableStorage": {
+    "bucket": "nexus-generated-assets",
+    "private": true,
+    "migration": "supabase/migrations/20260604093000_v22_generated_image_storage.sql",
+    "pathPattern": "{workspaceId}/image-gen/{assetId}",
+    "readPolicy": "authenticated workspace members can read generated assets",
+    "writePolicy": "owner/admin/editor can write generated assets",
+    "browserDownloadRoute": "/api/v1/artifacts/:artifactId/asset",
+    "latestVerification": {
+      "previewUrl": "https://nexus-j78jwuczs-sean-s-projects10.vercel.app",
+      "deploymentId": "dpl_2frW4TmEgZkr3rSy4nXUunwvETqR",
+      "result": "editor-foundation-a-b-c-durable-storage-pass",
+      "screenGate": "Workflow Pro A/B/C operated from Chrome UI, 30/30 foundation pass",
+      "generatedImageCount": 8,
+      "durableGeneratedAssetCount": 6,
+      "durableGeneratedAssetBytes": 18818400,
+      "storageObjectCount": 6,
+      "storageMetadataBytes": 18818400,
+      "notes": [
+        "R109 editor screen run produced five new durable generated assets after R108 introduced storage persistence.",
+        "The front-end generated counter reached 8 and Supabase artifact/storage counts matched at 6 durable objects."
+      ]
+    },
+    "legacyDebt": [
+      "Pre-R108 generated records can still reference transient memory-cache asset URLs and may not be downloadable after cache loss.",
+      "The R108 route supports new durable metadata and memory fallback, but it cannot reconstruct bytes that were never persisted."
+    ]
+  }
+}

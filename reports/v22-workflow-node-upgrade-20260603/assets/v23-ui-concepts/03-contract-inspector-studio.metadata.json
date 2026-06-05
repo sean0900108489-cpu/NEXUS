@@ -1,0 +1,14 @@
+{
+  "index": 3,
+  "title": "Contract Inspector Studio",
+  "score": "9.3 / 10",
+  "slug": "contract-inspector-studio",
+  "file": "assets/v23-ui-concepts/03-contract-inspector-studio.png",
+  "generatedAt": "2026-06-03T03:54:41.160Z",
+  "model": "gpt-image-2",
+  "size": "1536x1024",
+  "quality": "medium",
+  "output_format": "png",
+  "prompt": "Create a UI mockup for \"NEXUS Contract Inspector Studio\". 16:9, dark-mode technical product interface.\nShow a workflow graph on the left, a selected node inspector in the middle with fields purpose, rationale, config, inputs, outputs, limits, compiler, artifact policy, and a right panel with canonical workflow JSON and a validator ladder.\nValidator ladder rows: Syntax, Schema, Topology, Capability, Security. Use passed/warning/error badges.\nMake it look like a serious engineering workflow editor, small radii, precise spacing, no flashy gradients, readable code panel.\n\nRendering requirements: Generate a crisp browser-app UI concept mockup, landscape composition, no fake browser chrome, no illegible tiny lorem ipsum, make labels readable, align panels carefully, professional product design artifact for a technical architecture report.",
+  "revised_prompt": null
+}

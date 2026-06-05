@@ -39,6 +39,17 @@ Workflow Pro internal modes:
 
 Evidence and Proposal Diff should share one analysis bay with a switcher. They should not be shown side-by-side by default because the layout becomes too crowded.
 
+Current source status:
+
+- `WorkflowProSurface` owns a left-side mode rail with real active state.
+- The center column starts with an `Active Cockpit Bay` that changes metrics and next-operator guidance for each internal mode.
+- The active bay also exposes mode-specific detail cards: Brain shows the system brief and required output contract, Evidence shows the run ledger and node status counts, Files shows the raw artifact to compiler to ContextPacket path, and Settings shows capability flags.
+- Design mode includes a three-step foundation gate: load contract, import review, and apply preview.
+- Proposal Diff mode includes a review queue so structural differences can be audited before operator apply.
+- The existing contract/import/apply panels remain visible underneath the active bay so the foundation benchmark path stays testable while the cockpit matures.
+- Mode switching is UI-local. It does not mutate Graph, Runtime Lite, Supabase, or persisted workspace state.
+- `workflow-pro-surface.test.tsx` renders every cockpit mode through an `initialMode` test seam so the active bay, foundation gate, proposal queue, file pipeline, and capability registry cannot disappear silently during later refactors.
+
 ## Layout
 
 Recommended desktop structure:
@@ -78,4 +89,3 @@ evidence drawer
 - Long model names and node ids must truncate rather than overflow.
 - Keyboard deletion and existing graph interactions must remain in Graph.
 - Workflow Pro should not mutate graph behavior until an explicit apply action.
-

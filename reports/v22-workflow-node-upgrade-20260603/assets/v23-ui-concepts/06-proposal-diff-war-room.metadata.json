@@ -1,0 +1,14 @@
+{
+  "index": 6,
+  "title": "Proposal Diff War Room",
+  "score": "8.7 / 10",
+  "slug": "proposal-diff-war-room",
+  "file": "assets/v23-ui-concepts/06-proposal-diff-war-room.png",
+  "generatedAt": "2026-06-03T03:58:47.289Z",
+  "model": "gpt-image-2",
+  "size": "1536x1024",
+  "quality": "medium",
+  "output_format": "png",
+  "prompt": "Design \"NEXUS Proposal Diff War Room\". 16:9 dark interface.\nShow two workflow graphs side by side: Current Workflow and Brain Optimized Workflow. Highlight added nodes, removed edges, changed model settings, and new compiler layer. Center overlay: structured diff list. Right panel: risk assessment, missing capabilities, suggested Codex tasks, Apply / Reject / Ask Why buttons.\nVisual style: serious review room, not flashy, clear change colors, dense professional UI.\n\nRendering requirements: Generate a crisp browser-app UI concept mockup, landscape composition, no fake browser chrome, no illegible tiny lorem ipsum, make labels readable, align panels carefully, professional product design artifact for a technical architecture report.",
+  "revised_prompt": null
+}

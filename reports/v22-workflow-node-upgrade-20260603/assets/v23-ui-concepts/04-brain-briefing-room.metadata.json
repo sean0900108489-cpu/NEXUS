@@ -1,0 +1,14 @@
+{
+  "index": 4,
+  "title": "Brain Briefing Room",
+  "score": "9.1 / 10",
+  "slug": "brain-briefing-room",
+  "file": "assets/v23-ui-concepts/04-brain-briefing-room.png",
+  "generatedAt": "2026-06-03T03:56:01.946Z",
+  "model": "gpt-image-2",
+  "size": "1536x1024",
+  "quality": "medium",
+  "output_format": "png",
+  "prompt": "Design \"NEXUS Brain Briefing Room\", an AI workflow startup screen. 16:9 dark desktop app.\nMain panel: Brain Situational Brief with sections \"What I understand\", \"Workflow topology\", \"Current risks\", \"Missing context\", \"Questions for Sean\". Left rail: loaded context sources with checkmarks: Contract, Runtime Evidence, Artifact History, Capability Inventory. Right rail: confidence meters and action buttons: Ask Brain, Generate Logic Graph, Propose Optimization.\nVisual tone: calm command room, high trust, engineering dashboard, dense text blocks but readable, no fantasy imagery.\n\nRendering requirements: Generate a crisp browser-app UI concept mockup, landscape composition, no fake browser chrome, no illegible tiny lorem ipsum, make labels readable, align panels carefully, professional product design artifact for a technical architecture report.",
+  "revised_prompt": null
+}

@@ -1,0 +1,983 @@
+{
+  "schema": "nexus.workflowPro.accountMatrixScreenRun.v1",
+  "generatedAt": "2026-06-04T10:50:00.000+10:00",
+  "previewUrl": "https://nexus-ik5hscmen-sean-s-projects10.vercel.app",
+  "sourceManifest": "docs/workflow-pro/account-matrix-preview-verification.manifest.json",
+  "scoring": {
+    "max": 100,
+    "passingRequires": [
+      "owner can complete A/B/C, generated history, and asset download",
+      "editor can complete A/B/C, generated history, and asset download",
+      "viewer can inspect but cannot mutate or create artifacts",
+      "new authenticated account resolves a writable workspace and completes benchmark A"
+    ]
+  },
+  "actors": [
+    {
+      "id": "owner",
+      "role": "owner",
+      "status": "screen-pass-full-foundation-history-download",
+      "workspaceId": "workspace_2edec90c3f494a7b96e91c96ea74b4b6",
+      "evidence": {
+        "manualNote": "R111 owner screen run completed the full Workflow Pro foundation gate. A, B, and C were loaded/imported/applied/run from the Chrome UI. A/B/C all reached Runtime Lite SUCCESS, C reached 13/13 node SUCCESS, generated history listed five records, and the latest image downloaded as a verified 1536x864 PNG.",
+        "requestIdOrTraceId": "screen-operated-r111; generated-image artifacts=5 storageObjects=5 generatedBytes=17002150 permissionAudit allowed=26 denied=0",
+        "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r111-owner-c-success-foundation.png"
+      },
+      "tasks": [
+        {
+          "id": "session-resolve",
+          "expectation": "Workspace session resolves without permission loop.",
+          "points": 4,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 0,
+          "downloadResult": "",
+          "evidence": {
+            "manualNote": "Clean owner actor resolved a writable workspace through the UI without a permission loop.",
+            "requestIdOrTraceId": "owner role confirmed from workspace menu and later Supabase aggregation",
+            "screenshotPath": "manual-computer-use-owner-workspace-menu"
+          }
+        },
+        {
+          "id": "benchmark-a",
+          "expectation": "Load/import/apply/run benchmark A from the screen and confirm success.",
+          "points": 5,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 0,
+          "downloadResult": "not-applicable-text-workflow",
+          "evidence": {
+            "manualNote": "Workflow Pro Load A -> Import Pasted JSON -> Apply Preview -> Graph -> Start All completed from the Chrome screen. Input, both LLM nodes, Output, and Runtime Lite reached SUCCESS.",
+            "requestIdOrTraceId": "manual-computer-use-r111-a-success",
+            "screenshotPath": "manual-computer-use-r111-a-success"
+          }
+        },
+        {
+          "id": "benchmark-b",
+          "expectation": "Load/import/apply/run benchmark B from the screen and confirm generated image output.",
+          "points": 5,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 1,
+          "downloadResult": "generated-image-rendered",
+          "evidence": {
+            "manualNote": "Workflow Pro Load B -> Import Pasted JSON -> Apply Preview -> Graph -> Start All completed from the Chrome screen. Input, LLM prompt enhancer, img2 Image Model, Output, and Runtime Lite all reached SUCCESS. A real 16:9 Standard image rendered.",
+            "requestIdOrTraceId": "manual-computer-use-r111-b-success; generated counter reached 1",
+            "screenshotPath": "manual-computer-use-r111-b-success"
+          }
+        },
+        {
+          "id": "benchmark-c",
+          "expectation": "Load/import/apply/run benchmark C from the screen and wait for all 13 nodes without hidden timeout.",
+          "points": 6,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 5,
+          "downloadResult": "seed-plus-three-branch-images-rendered",
+          "evidence": {
+            "manualNote": "Workflow Pro Load C -> Import Pasted JSON -> Apply Preview -> Graph -> Start All completed from the Chrome screen. All 13 nodes reached SUCCESS with seed image, reverse LLM, three style LLMs, three branch images, and three output images.",
+            "requestIdOrTraceId": "manual-computer-use-r111-c-success; generated counter 1->5",
+            "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r111-owner-c-success-foundation.png"
+          }
+        },
+        {
+          "id": "generated-history",
+          "expectation": "Open generated history and confirm the new artifact is recorded.",
+          "points": 3,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 5,
+          "downloadResult": "generated-history-listed-five-records",
+          "evidence": {
+            "manualNote": "Right-side generated history listed five generated-image records for the owner workspace, including the seed and three branch images from benchmark C.",
+            "requestIdOrTraceId": "supabase: artifact_count=5 generated-image=5 storageObjects=5 generatedBytes=17002150",
+            "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r111-owner-generated-history-download.png"
+          }
+        },
+        {
+          "id": "download-generated-asset",
+          "expectation": "Download at least one generated asset and verify the saved file exists.",
+          "points": 2,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 1,
+          "downloadResult": "/Users/sean/Downloads/Workflow-image---Branch-3-White-Studio---Sculptural-Wide-Pants.png",
+          "evidence": {
+            "manualNote": "Chrome/macOS download completed from generated history. Local file check verified PNG 1536x864 strict 16:9, and a copy was stored in the report assets folder.",
+            "requestIdOrTraceId": "GET /api/image-gen/assets/* status=200 via browser download; local PNG verified with file",
+            "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r111-owner-generated-history-download.png"
+          }
+        }
+      ]
+    },
+    {
+      "id": "editor",
+      "role": "editor",
+      "status": "screen-pass-full-foundation",
+      "workspaceId": "workspace_48552da0d4364da797280ef407a1a2d8",
+      "evidence": {
+        "manualNote": "R109 editor screen run completed the remaining Workflow Pro foundation gate: C, A, and B were loaded/imported/applied/run from the Chrome UI. A/B/C all reached Runtime Lite SUCCESS, and B/C generated real img2 images.",
+        "requestIdOrTraceId": "screen-operated-r109; generated-image artifacts=8 durable=6 durableBytes=18818400 storageObjects=6",
+        "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r109-editor-b-success-foundation-30of30.png"
+      },
+      "tasks": [
+        {
+          "id": "session-resolve",
+          "expectation": "Workspace session resolves without permission loop.",
+          "points": 4,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 0,
+          "downloadResult": "",
+          "evidence": {
+            "manualNote": "Clean editor actor resolved the shared workspace through the UI without a permission loop.",
+            "requestIdOrTraceId": "workspace_memberships distribution owner=1 editor=1 viewer=1",
+            "screenshotPath": "manual-computer-use-screen-observation"
+          }
+        },
+        {
+          "id": "benchmark-a",
+          "expectation": "Load/import/apply/run benchmark A from the screen and confirm success.",
+          "points": 5,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 0,
+          "downloadResult": "not-applicable-text-workflow",
+          "evidence": {
+            "manualNote": "Workflow Pro Load A -> Import Pasted JSON -> Apply Preview -> Graph -> Start All completed from the Chrome screen. Input, both LLM nodes, Output, and Runtime Lite all reached SUCCESS.",
+            "requestIdOrTraceId": "manual-computer-use-r109-a-success",
+            "screenshotPath": "manual-computer-use-screen-observation"
+          }
+        },
+        {
+          "id": "benchmark-b",
+          "expectation": "Load/import/apply/run benchmark B from the screen and confirm generated image output.",
+          "points": 5,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 8,
+          "downloadResult": "generated-image-rendered-and-durable-count-increased",
+          "evidence": {
+            "manualNote": "R109 reran B from the Chrome screen after A/C. Input, LLM prompt enhancer, img2 Image Model, Output, and Runtime Lite all reached SUCCESS. Generated counter moved from 7 to 8.",
+            "requestIdOrTraceId": "supabase: generated-image artifacts=8 durable=6 storageObjects=6",
+            "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r109-editor-b-success-foundation-30of30.png"
+          }
+        },
+        {
+          "id": "benchmark-c",
+          "expectation": "Load/import/apply/run benchmark C from the screen and wait for all 13 nodes without hidden timeout.",
+          "points": 6,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 7,
+          "downloadResult": "seed-plus-three-branch-images-rendered",
+          "evidence": {
+            "manualNote": "Workflow Pro Load C -> Import Pasted JSON -> Apply Preview -> Graph -> Start All completed from the Chrome screen. All 13 nodes reached SUCCESS with seed image, three style LLMs, three branch images, and three output images.",
+            "requestIdOrTraceId": "manual-computer-use-r109-c-success; generated counter 3->7",
+            "screenshotPath": "manual-computer-use-screen-observation"
+          }
+        },
+        {
+          "id": "generated-history",
+          "expectation": "Open generated history and confirm the new artifact is recorded.",
+          "points": 3,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 8,
+          "downloadResult": "generated-history-count-visible-after-r109",
+          "evidence": {
+            "manualNote": "Graph header showed GENERATED 8 after the R109 editor A/B/C screen-operated run.",
+            "requestIdOrTraceId": "supabase: generated-image artifacts=8 durable=6 durableBytes=18818400",
+            "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r109-editor-b-success-foundation-30of30.png"
+          }
+        },
+        {
+          "id": "download-generated-asset",
+          "expectation": "Download at least one generated asset and verify the saved file exists.",
+          "points": 2,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 1,
+          "downloadResult": "/Users/sean/Downloads/img_6466c160-4373-49b4-94ee-f2206f86359b.png",
+          "evidence": {
+            "manualNote": "Chrome/macOS download completed from generated history. Local file check verified PNG 1536x864 strict 16:9.",
+            "requestIdOrTraceId": "GET /api/image-gen/assets/img_6466c160-4373-49b4-94ee-f2206f86359b status=200",
+            "screenshotPath": "manual-computer-use-download-and-sips"
+          }
+        }
+      ]
+    },
+    {
+      "id": "viewer",
+      "role": "viewer",
+      "status": "screen-pass-readonly-history-download-mutation-route-stress",
+      "workspaceId": "workspace_48552da0d4364da797280ef407a1a2d8",
+      "evidence": {
+        "manualNote": "R106 proved viewer read-only UI and local sync suppression. R107/R108 hydrated generated history from cloud artifacts and verified viewer download. R110 added backend route stress: direct viewer mutation calls are denied and request-scoped permission audit rows are persisted.",
+        "requestIdOrTraceId": "R110 viewer stress: GET artifacts=200; five mutation routes=403; permission_audit_logs denied=5 allowed=1 total=6; artifact/storage counts unchanged.",
+        "screenshotPath": "manual-computer-use-r108-viewer-generated-history-download"
+      },
+      "tasks": [
+        {
+          "id": "session-resolve",
+          "expectation": "Viewer session resolves on an existing workspace.",
+          "points": 5,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 0,
+          "downloadResult": "",
+          "evidence": {
+            "manualNote": "Chrome screen showed Workspace cloud session linked, ROLE: VIEWER, shared workspace id, and top-right SYNCED on the fresh preview.",
+            "requestIdOrTraceId": "POST /api/v1/workspaces/session status=200",
+            "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r106-viewer-readonly-synced-graph.png"
+          }
+        },
+        {
+          "id": "inspect-workflow",
+          "expectation": "Viewer can inspect Workflow Pro state and generated history.",
+          "points": 6,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 3,
+          "downloadResult": "viewer-generated-history-listed-three-records-and-downloaded-new-durable-image",
+          "evidence": {
+            "manualNote": "Viewer inspected the shared workspace, generated history panel, and the newest durable generated-image record from the Chrome screen.",
+            "requestIdOrTraceId": "GET /api/v1/artifacts status=200; generated-image count for shared workspace=3",
+            "screenshotPath": "manual-computer-use-r108-generated-history-panel"
+          }
+        },
+        {
+          "id": "mutation-denied",
+          "expectation": "Run/start/save/create attempt is blocked by UI or returns clean permission denied.",
+          "points": 9,
+          "result": "pass",
+          "routeStatusOnFailure": "ui-blocked-and-api-denied-with-audit",
+          "generatedAssetCount": 0,
+          "downloadResult": "",
+          "evidence": {
+            "manualNote": "Graph showed VIEWER READ ONLY and disabled mutation controls. R110 then directly stressed the backend routes: POST artifacts, POST sync operations, PUT workspace state, POST agent stream, and POST image-gen all returned 403 for the viewer.",
+            "requestIdOrTraceId": "R110 preview nexus-ik5hscmen: GET artifacts=200; POST artifacts=403; POST sync=403; PUT workspace state=403; POST agent stream=403; POST image-gen=403; permission_audit_logs denied=5 allowed=1.",
+            "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r106-viewer-readonly-synced-graph.png"
+          }
+        },
+        {
+          "id": "no-artifact-created",
+          "expectation": "Denied mutation does not create a generated artifact.",
+          "points": 5,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 8,
+          "downloadResult": "",
+          "evidence": {
+            "manualNote": "Viewer route stress did not create a new artifact. After direct mutation attempts, the shared workspace remained at 8 artifacts, 8 generated-image artifacts, and 6 durable storage objects.",
+            "requestIdOrTraceId": "R110 Supabase: artifact_count=8 generated_image_count=8 storage_object_count=6.",
+            "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r106-viewer-readonly-synced-graph.png"
+          }
+        }
+      ]
+    },
+    {
+      "id": "new-authenticated-account",
+      "role": "owner-after-session",
+      "status": "screen-pass",
+      "workspaceId": "workspace_db2fce733968481db4891a3e97ddcb08",
+      "evidence": {
+        "manualNote": "R95 preview screen run passed for a freshly created authenticated account. No Permission denied loop, no provider credential fault, and Benchmark A reached SUCCESS through the UI.",
+        "requestIdOrTraceId": "supabase: runtime_session_count=1 task_count=2 message_count=2",
+        "screenshotPath": "manual-computer-use-screen-observation"
+      },
+      "tasks": [
+        {
+          "id": "session-resolve",
+          "expectation": "New account session creates or resolves a writable workspace.",
+          "points": 8,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 0,
+          "downloadResult": "",
+          "evidence": {
+            "manualNote": "Workspace session resolved to an owned cloud workspace for the fresh account.",
+            "requestIdOrTraceId": "workspace_memberships role=owner count=1",
+            "screenshotPath": "manual-computer-use-screen-observation"
+          }
+        },
+        {
+          "id": "no-permission-loop",
+          "expectation": "New account does not remain stuck on Permission denied.",
+          "points": 8,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 0,
+          "downloadResult": "",
+          "evidence": {
+            "manualNote": "Workflow execution reached runtime model calls without 403 Permission denied.",
+            "requestIdOrTraceId": "agent_runtime_sessions count=1",
+            "screenshotPath": "manual-computer-use-screen-observation"
+          }
+        },
+        {
+          "id": "benchmark-a",
+          "expectation": "New account runs benchmark A successfully from the screen.",
+          "points": 9,
+          "result": "pass",
+          "routeStatusOnFailure": "",
+          "generatedAssetCount": 0,
+          "downloadResult": "not-applicable-text-workflow",
+          "evidence": {
+            "manualNote": "UI path Load A -> Import Pasted JSON -> Apply Preview -> Graph -> Start All completed with all A nodes SUCCESS.",
+            "requestIdOrTraceId": "agent_tasks count=2 messages count=2",
+            "screenshotPath": "manual-computer-use-screen-observation"
+          }
+        }
+      ]
+    }
+  ],
+  "forbiddenEvidence": [
+    "accessTokens",
+    "apiKeys",
+    "refreshTokens",
+    "cookies",
+    "rawSecrets",
+    "privateEmails"
+  ],
+  "operatorRunbook": [
+    "Open the preview URL through the browser profile used for the actor.",
+    "Use Workflow Pro Evidence bay as the current status dashboard.",
+    "Execute only the tasks listed for the current actor.",
+    "Record pass/fail, route status on failure, screenshot path or manual note, generated asset count, and download result.",
+    "Do not paste tokens, cookies, API keys, raw emails, or provider credentials into this file.",
+    "Run this script with --evidence <file> --strict after filling evidence to compute the score."
+  ],
+  "score": {
+    "max": 100,
+    "total": 100,
+    "percent": 100
+  },
+  "previousRound": {
+    "id": "R95-new-account-preview-benchmark-a",
+    "status": "pass",
+    "actor": "new-authenticated-account",
+    "previewUrl": "https://nexus-3hsrmfl45-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_HWCL4HskmT72xLGvBNsqSXD9twLH",
+    "workspaceId": "workspace_db2fce733968481db4891a3e97ddcb08",
+    "screenEvidence": [
+      "Chrome UI signed up a fresh authenticated account on the latest preview deployment.",
+      "Workspace menu showed Workspace cloud session linked for the new owned workspace.",
+      "Workflow Pro loaded A / Input -> LLM -> LLM -> Output benchmark JSON from the screen.",
+      "Import Pasted JSON accepted the A contract with 4 nodes, 3 edges, and 1 output.",
+      "Apply Preview opened Graph with the A runtime graph.",
+      "Start All completed from the screen: input, both LLM nodes, output, and Workflow Runtime Lite all reached SUCCESS."
+    ],
+    "backendTrace": {
+      "userCount": 1,
+      "membershipCount": 1,
+      "membershipRole": "owner",
+      "runtimeSessionCount": 1,
+      "taskCount": 2,
+      "messageCount": 2,
+      "syncOperationFailuresForWorkspace": 0,
+      "notes": [
+        "Runtime events are best-effort under authenticated request-client fallback when service-role is absent.",
+        "Chrome still displayed one sync issue after the successful run; no failed sync_operations rows were found for the tested workspace/user pair."
+      ]
+    }
+  },
+  "latestRound": {
+    "id": "R111-owner-preview-foundation-a-b-c-history-download",
+    "status": "pass",
+    "actor": "owner",
+    "previewUrl": "https://nexus-ik5hscmen-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_CnpjVg7nkNxbLK78JTNx9wXU3tg4",
+    "workspaceId": "workspace_2edec90c3f494a7b96e91c96ea74b4b6",
+    "screenEvidence": [
+      "Owner actor was created and signed in from the Chrome screen on the R110 preview.",
+      "Workspace menu showed the owner role and the app resolved a writable workspace without permission loops.",
+      "Benchmark A was loaded from Workflow Pro, imported as pasted JSON, applied to Graph, and run from Start All; all A nodes and Runtime Lite reached SUCCESS.",
+      "Benchmark B was loaded from Workflow Pro, imported as pasted JSON, applied to Graph, and run from Start All; img2 produced a real 16:9 Standard image and Runtime Lite reached SUCCESS.",
+      "Benchmark C was loaded from Workflow Pro, imported as pasted JSON, applied to Graph, and run from Start All; all 13 nodes reached SUCCESS without imposing a hidden timeout.",
+      "C produced one seed image and three branch images; all three output nodes rendered generated images and the Graph header showed GENERATED 5.",
+      "Generated history listed the five generated-image records for the owner workspace.",
+      "Chrome/macOS downloaded the latest generated image from generated history, and the saved PNG was verified as 1536 x 864."
+    ],
+    "backendTrace": {
+      "workspaceRole": "owner",
+      "artifactCount": 5,
+      "generatedImageArtifacts": 5,
+      "storageObjects": 5,
+      "generatedImageBytes": 17002150,
+      "storageMetadataBytes": 17002150,
+      "permissionAuditAllowedRows": 26,
+      "permissionAuditDeniedRows": 0,
+      "latestAuditAt": "2026-06-04T00:47:23.078956Z",
+      "downloadedFile": {
+        "path": "/Users/sean/Downloads/Workflow-image---Branch-3-White-Studio---Sculptural-Wide-Pants.png",
+        "reportCopyPath": "reports/workflow-pro-source-phase-20260603/assets/r111-owner-downloaded-branch-3.png",
+        "pixelWidth": 1536,
+        "pixelHeight": 864,
+        "strictProductRatioVerified": true
+      },
+      "notes": [
+        "Counts were verified with Supabase connector queries after the screen-operated owner run.",
+        "Generated image artifacts are exposed through /api/image-gen/assets while the asset bytes are backed by the nexus-generated-assets storage bucket.",
+        "The artifact rows do not yet expose an explicit storage metadata object, so future durability work should make the storage pointer first-class in artifact metadata.",
+        "No permission-denied loop, provider boundary denial, schema mismatch, sync payload overflow, or hidden runtime timeout was observed."
+      ]
+    },
+    "verification": [
+      "Computer Use Chrome screen run for owner actor on the R110 preview",
+      "Benchmark A screen path: Load A -> Import Pasted JSON -> Apply Preview -> Graph -> Start All -> SUCCESS",
+      "Benchmark B screen path: Load B -> Import Pasted JSON -> Apply Preview -> Graph -> Start All -> real img2 image -> SUCCESS",
+      "Benchmark C screen path: Load C -> Import Pasted JSON -> Apply Preview -> Graph -> Start All -> 13/13 nodes SUCCESS",
+      "Generated history screen panel listed five generated-image records",
+      "Chrome/macOS generated-history download produced a 1536x864 PNG",
+      "Supabase connector verified artifacts=5, generated-image=5, storage objects=5, allowed audit=26, denied audit=0"
+    ],
+    "scoreImpact": {
+      "previousMatrixScore": 75,
+      "newMatrixScore": 100,
+      "delta": 25
+    }
+  },
+  "latestAuthorizationRound": {
+    "id": "R99-active-workspace-sync-queue-cleanup",
+    "status": "pass-with-followup",
+    "actor": "new-authenticated-account",
+    "previewUrl": "https://nexus-o52h1uqy8-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_8XxEsxCAvWwL9sUiSUqmaDdkGQq7",
+    "screenEvidence": [
+      "Signed in with a disposable authenticated test actor on the R99 preview.",
+      "Workspace session opened the app without toolbar sync issue.",
+      "Chrome UI showed SYNCED in the top-right toolbar after login.",
+      "No manual retry was needed on the R99 preview after active-workspace queue filtering."
+    ],
+    "backendTrace": {
+      "sessionStatus": 200,
+      "workspaceRecoveryStatus": 200,
+      "workspaceRecoveryLatestStatus": 200,
+      "promptsStatus": 200,
+      "workspaceStateStatus": 404,
+      "workspaceStateStatusReason": "Fresh workspace had no snapshot yet; this is not a permission failure.",
+      "syncOperationStatus": 200,
+      "postLoginAppLayer403": 0,
+      "notes": [
+        "Pre-login 401s for the default local workspace are expected before authentication.",
+        "R99 prevents stale failed operations from another workspace from being counted against the active workspace toolbar status.",
+        "Generated media database traceability remains a separate follow-up."
+      ]
+    },
+    "sourceChanges": [
+      "src/lib/sync/local-sync-queue-adapter.ts",
+      "src/components/nexus/nexus-ops.tsx",
+      "src/lib/sync/local-sync-queue-adapter.test.ts",
+      "src/app/api/v1/workspaces/[workspaceId]/state/route.ts",
+      "src/app/api/v1/sync/operations/route.ts",
+      "src/app/api/v1/sync/status/route.ts",
+      "scripts/auth-boundary-scan.mjs",
+      "src/lib/backend/security/auth-boundary-gate.test.ts"
+    ],
+    "verification": [
+      "npm test -- src/lib/backend/workspace/workspace-state.test.ts src/lib/backend/sync/sync-queue.test.ts src/lib/backend/security/auth-boundary-gate.test.ts",
+      "npm test -- src/lib/sync/local-sync-queue-adapter.test.ts src/lib/backend/sync/sync-queue.test.ts src/lib/backend/security/auth-boundary-gate.test.ts",
+      "npm run typecheck",
+      "npm run build"
+    ]
+  },
+  "latestTraceabilityRound": {
+    "id": "R101-preview-new-account-c-request-scoped-artifacts",
+    "status": "pass",
+    "actor": "new-authenticated-account",
+    "previewUrl": "https://nexus-l6qngklm4-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_94S7au6L9ZwRe6scVGi9QNotCmKt",
+    "workspaceId": "workspace_427edd5d7a4c452582eed3fcd99e0d29",
+    "screenEvidence": [
+      "Fresh authenticated account signed up from the Chrome screen.",
+      "Workspace opened without permission loop and toolbar reached SYNCED.",
+      "Workflow Pro loaded C / Image Reference Reverse Fan-Out benchmark JSON from the screen.",
+      "Import Pasted JSON accepted 13 nodes, 12 edges, and 6 outputs.",
+      "Apply Preview opened Graph with the C runtime graph.",
+      "Start All completed from the screen with all 13 nodes SUCCESS.",
+      "The generated counter reached 4 and Runtime Lite reached SUCCESS."
+    ],
+    "backendTrace": {
+      "workspaceRole": "owner",
+      "agentStream200Count": 5,
+      "imageGeneration200Count": 4,
+      "artifactCreate200Count": 4,
+      "generatedImageRowsInSupabase": 4,
+      "artifactSource": "workflow-runtime-lite",
+      "nodeIds": [
+        "bench-c-seed-image",
+        "bench-c-image-1",
+        "bench-c-image-2",
+        "bench-c-image-3"
+      ],
+      "settings": {
+        "modelId": "img2",
+        "quality": "standard",
+        "aspectRatio": "16:9"
+      },
+      "notes": [
+        "This closes the R98 follow-up where HTTP artifact creation passed but connector lookup did not yet show durable generated-image rows.",
+        "The full account matrix still requires owner, editor, and viewer lanes to be screen-operated before the 100-point matrix is complete."
+      ]
+    },
+    "sourceChanges": [
+      "src/lib/backend/artifacts/artifact-repository.ts",
+      "src/lib/backend/artifacts/artifact-route-service.ts",
+      "src/lib/backend/security/auth-session.ts",
+      "src/lib/backend/workspace/workspace-permission.ts",
+      "src/app/api/v1/artifacts/route.ts",
+      "src/app/api/v1/artifacts/[artifactId]/route.ts",
+      "src/app/api/v1/artifacts/[artifactId]/versions/route.ts",
+      "src/app/api/v1/artifacts/[artifactId]/references/route.ts",
+      "src/app/api/v1/artifacts/[artifactId]/archive/route.ts"
+    ],
+    "verification": [
+      "npm test -- src/lib/backend/artifacts/artifact-service.test.ts src/lib/backend/security/auth-boundary-gate.test.ts src/lib/backend/workspace/workspace-permission-request.test.ts",
+      "npm run typecheck",
+      "npm run build",
+      "npx vercel deploy --yes",
+      "Computer Use screen run on Chrome",
+      "Supabase connector query for public.artifacts generated-image rows"
+    ]
+  },
+  "latestStrictAspectRound": {
+    "id": "R102-preview-new-account-b-strict-16x9-generated-history-download",
+    "status": "pass",
+    "actor": "new-authenticated-account",
+    "previewUrl": "https://nexus-7o1t190yz-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_vVuVN5m9HS7bypFdkH9mDyxNzEBc",
+    "workspaceId": "workspace_48552da0d4364da797280ef407a1a2d8",
+    "screenEvidence": [
+      "Fresh authenticated account signed in from the Chrome screen.",
+      "Workflow Pro loaded B / Input -> LLM -> Image Model -> Output benchmark JSON from the screen.",
+      "Import Pasted JSON accepted 4 nodes, 3 edges, and 2 outputs.",
+      "Apply Preview opened Graph with the B runtime graph.",
+      "Start All completed from the screen with Input, LLM, Image Model, and Output all SUCCESS.",
+      "Runtime Lite reached SUCCESS and the generated counter reached 1.",
+      "Right-side generated history listed the generated-image record.",
+      "Chrome/macOS download completed from the generated-history Download button.",
+      "Downloaded PNG dimensions were verified as 1536 x 864."
+    ],
+    "backendTrace": {
+      "workspaceRole": "owner",
+      "workspaceSessionStatus": 200,
+      "agentStreamStatus": 200,
+      "imageGenerationStatus": 200,
+      "artifactCreateStatus": 200,
+      "assetReadStatus": 200,
+      "generatedImageRowsInSupabase": 1,
+      "artifactId": "73a78e47-711a-4e66-a56d-f4897e8aa38b",
+      "artifactContentUrl": "/api/image-gen/assets/img_dd2be30b-7b7c-433a-9130-168e50c422b5",
+      "artifactSource": "workflow-runtime-lite",
+      "nodeId": "bench-b-image",
+      "runId": "run_6d4e80d1-2144-4b4b-aa0d-752f0105ac68",
+      "settings": {
+        "modelId": "img2",
+        "quality": "standard",
+        "aspectRatio": "16:9"
+      },
+      "downloadedFile": {
+        "path": "/Users/sean/Downloads/img_dd2be30b-7b7c-433a-9130-168e50c422b5.png",
+        "pixelWidth": 1536,
+        "pixelHeight": 864,
+        "strictProductRatioVerified": true
+      },
+      "notes": [
+        "This closes the gap where the UI requested 16:9 but a raw provider PNG could still download as 1536 x 1024.",
+        "The full account matrix still requires owner, editor, and viewer lanes to be screen-operated before the 100-point matrix is complete."
+      ]
+    },
+    "sourceChanges": [
+      "package.json",
+      "package-lock.json",
+      "src/app/api/image-gen/route.ts",
+      "src/app/api/image-gen/route.test.ts",
+      "src/lib/backend/image-generation/generated-image-asset-cache.ts",
+      "src/lib/backend/image-generation/generated-image-postprocess.ts"
+    ],
+    "verification": [
+      "npm test -- src/app/api/image-gen/route.test.ts src/lib/media/image-generation-adapter-map.test.ts src/lib/adapters/image-adapter.test.ts",
+      "npm run typecheck",
+      "npm run build",
+      "npx vercel deploy --yes",
+      "Computer Use screen run on Chrome",
+      "Vercel log query for post-login route statuses",
+      "Supabase connector query for public.artifacts generated-image row",
+      "Downloaded PNG checked with file and sips"
+    ]
+  },
+  "latestRouteRoleGuardRound": {
+    "id": "R103-route-level-generated-history-role-guard",
+    "status": "pass",
+    "actor": "source-route-guard",
+    "screenEvidence": [
+      "No browser actor was used in this round; this is a route-level source guard for the next screen matrix.",
+      "Editor create generated-image artifact is allowed at /api/v1/artifacts.",
+      "Viewer list generated-image history is allowed at /api/v1/artifacts.",
+      "Viewer create generated-image artifact is denied with 403 Permission denied."
+    ],
+    "backendTrace": {
+      "sourceFile": "src/lib/backend/artifacts/artifact-service.test.ts",
+      "routeRead": "GET /api/v1/artifacts",
+      "routeWrite": "POST /api/v1/artifacts",
+      "viewerReadExpected": 200,
+      "viewerWriteExpected": 403,
+      "notes": [
+        "This prepares the owner/editor/viewer screen matrix by pinning the API boundary first.",
+        "It does not replace real screen evidence for editor and viewer accounts."
+      ]
+    },
+    "verification": [
+      "npm test -- src/lib/backend/artifacts/artifact-service.test.ts src/lib/backend/security/security-services.test.ts src/app/api/image-gen/route.test.ts",
+      "npm run typecheck",
+      "npm run build"
+    ]
+  },
+  "latestViewerReadableSessionRound": {
+    "id": "R104-viewer-readable-workspace-session",
+    "status": "pass",
+    "actor": "viewer-preflight",
+    "previewUrl": "https://nexus-d0dt6pf3m-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_DdNpfkRUJMiBwBn8Efp8tinTYeYt",
+    "screenEvidence": [
+      "No viewer browser login was performed in this round; this is the runtime and database preflight that makes the viewer browser lane meaningful.",
+      "Preferred workspace session now accepts viewer memberships.",
+      "A viewer-only account with no writable workspace now resolves an existing readable workspace instead of creating a new owner workspace."
+    ],
+    "backendTrace": {
+      "sourceFiles": [
+        "src/lib/nexus-types.ts",
+        "src/lib/backend/workspace/workspace-session-service.ts",
+        "src/lib/backend/workspace/workspace-session-service.test.ts"
+      ],
+      "migrationFile": "supabase/migrations/20260604081500_v22_workspace_session_viewer_readable.sql",
+      "appliedSupabaseMigration": "v22_workspace_session_viewer_readable",
+      "liveFunctionVerified": true,
+      "previewReady": true,
+      "notes": [
+        "This prevents viewer tests from accidentally landing in a newly created owner workspace.",
+        "The next screen run should create clean editor/viewer actors, attach them to the shared workspace, and validate behavior through Chrome."
+      ]
+    },
+    "verification": [
+      "npm test -- src/lib/backend/workspace/workspace-session-service.test.ts src/lib/backend/workspace/workspace-permission-request.test.ts src/lib/backend/security/security-services.test.ts src/lib/backend/artifacts/artifact-service.test.ts",
+      "npm run typecheck",
+      "npm run build",
+      "Supabase apply migration v22_workspace_session_viewer_readable",
+      "Supabase live function source check",
+      "npx vercel deploy --yes"
+    ]
+  },
+  "latestEditorScreenRound": {
+    "id": "R105-editor-preview-benchmark-b-generated-history-download",
+    "status": "partial-pass",
+    "actor": "editor",
+    "previewUrl": "https://nexus-d0dt6pf3m-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_DdNpfkRUJMiBwBn8Efp8tinTYeYt",
+    "workspaceId": "workspace_48552da0d4364da797280ef407a1a2d8",
+    "screenEvidence": [
+      "Clean editor actor signed in from the Chrome screen.",
+      "Workspace session resolved to the shared workspace without a permission loop.",
+      "Workflow Pro loaded B / Input -> LLM -> Image Model -> Output benchmark JSON from the screen.",
+      "Import Pasted JSON accepted the B contract with 4 nodes, 3 edges, and 2 outputs.",
+      "Apply Preview opened Graph with the B runtime graph.",
+      "Start All completed from the screen with Input, LLM, Image Model, Output, and Workflow Runtime Lite all SUCCESS.",
+      "The generated counter reached 1.",
+      "Generated history listed the generated-image record.",
+      "Chrome/macOS download completed from the generated-history Download button.",
+      "Downloaded PNG dimensions were verified as 1536 x 864."
+    ],
+    "backendTrace": {
+      "workspaceMembershipDistribution": {
+        "owner": 1,
+        "editor": 1,
+        "viewer": 1
+      },
+      "agentStreamStatus": 200,
+      "imageGenerationStatus": 200,
+      "artifactCreateStatus": 200,
+      "assetReadStatus": 200,
+      "generatedImageRowsInSupabase": 2,
+      "newArtifactId": "ff86e1ce-89f7-4464-856f-d350f702489e",
+      "artifactContentUrl": "/api/image-gen/assets/img_6466c160-4373-49b4-94ee-f2206f86359b",
+      "artifactSource": "workflow-runtime-lite",
+      "nodeId": "bench-b-image",
+      "runId": "run_9b85ec93-f863-48a0-a0d3-379b89f8c851",
+      "settings": {
+        "modelId": "img2",
+        "quality": "standard",
+        "aspectRatio": "16:9"
+      },
+      "downloadedFile": {
+        "path": "/Users/sean/Downloads/img_6466c160-4373-49b4-94ee-f2206f86359b.png",
+        "pixelWidth": 1536,
+        "pixelHeight": 864,
+        "strictProductRatioVerified": true
+      },
+      "notes": [
+        "This is the first non-owner writable actor screen pass for generated media history and download.",
+        "Editor A and C remain pending, so the editor actor is partial-pass rather than full-pass."
+      ]
+    },
+    "verification": [
+      "Computer Use screen run on Chrome",
+      "Vercel log query for post-login route statuses",
+      "Supabase connector query for public.artifacts generated-image row",
+      "Supabase connector query for workspace membership role distribution",
+      "Downloaded PNG checked with file and sips"
+    ]
+  },
+  "latestViewerReadonlyRound": {
+    "id": "R106-viewer-readonly-ui-and-local-sync-suppression",
+    "status": "partial-pass",
+    "actor": "viewer",
+    "previewUrl": "https://nexus-15g0gc1rz-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_Hxd1Civ1Tr3yKbRjsF9yuSwNGRcV",
+    "workspaceId": "workspace_48552da0d4364da797280ef407a1a2d8",
+    "screenEvidence": [
+      "Clean viewer actor signed in from the Chrome screen on a fresh preview hostname.",
+      "Workspace menu showed ROLE: VIEWER for the shared workspace.",
+      "Top-right sync badge stayed SYNCED after role resolution; no post-login sync issue was created.",
+      "Graph showed VIEWER READ ONLY.",
+      "Add workflow nodes, Start All, delete agent, Rename, Spawn, Save, and Import were disabled in the visible UI."
+    ],
+    "backendTrace": {
+      "postLoginSessionStatus": 200,
+      "postLoginRecoveryStatus": 200,
+      "postLoginSyncOperation403Count": 0,
+      "postLoginAgentStream403Count": 0,
+      "generatedImageRowsInSupabaseAfterViewerAttempt": 2,
+      "notes": [
+        "Pre-login 401s are expected before app authentication and are not counted as viewer permission failures.",
+        "Generated history inspection remains pending because the fresh preview displayed GENERATED 0 even though Supabase has generated-image rows."
+      ]
+    },
+    "sourceChanges": [
+      "src/components/nexus/nexus-ops.tsx",
+      "src/components/nexus/nexus-graph.tsx",
+      "src/components/nexus/nexus-workspace-readonly-gate.test.ts",
+      "src/lib/sync/local-sync-queue-adapter.ts",
+      "src/lib/sync/local-sync-queue-adapter.test.ts"
+    ],
+    "verification": [
+      "npm test -- src/components/nexus/nexus-workspace-readonly-gate.test.ts",
+      "npm test -- src/lib/backend/workspace/workspace-session-service.test.ts src/lib/backend/workspace/workspace-permission-request.test.ts",
+      "npm test -- src/lib/sync/local-sync-queue-adapter.test.ts src/components/nexus/nexus-workspace-readonly-gate.test.ts",
+      "npm run typecheck",
+      "npm run build",
+      "npx vercel deploy --yes",
+      "Computer Use Chrome screen run on viewer actor",
+      "npx vercel logs nexus-15g0gc1rz-sean-s-projects10.vercel.app --limit 80",
+      "Supabase query for generated-image count"
+    ]
+  },
+  "latestGeneratedAssetStorageRound": {
+    "id": "R108-durable-generated-asset-storage-viewer-download",
+    "status": "pass-with-legacy-debt",
+    "actor": "editor-and-viewer",
+    "previewUrl": "https://nexus-j78jwuczs-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_2frW4TmEgZkr3rSy4nXUunwvETqR",
+    "workspaceId": "workspace_48552da0d4364da797280ef407a1a2d8",
+    "screenEvidence": [
+      "Editor generated a real img2 image on the final preview using standard quality and 16:9 ratio.",
+      "Viewer signed in on the same preview and shared workspace; workspace menu showed ROLE: VIEWER.",
+      "Viewer generated-history panel listed three generated-image records, including the new R108 durable storage verification image.",
+      "Viewer downloaded the newest generated-image record from the generated-history panel.",
+      "macOS saved the downloaded file as Generated-image---R108-durable-storage-verification-Y2K-streetwea.png with size 1,990,514 bytes."
+    ],
+    "backendTrace": {
+      "artifactAssetRouteStatus": 200,
+      "generatedImageCountForSharedWorkspace": 3,
+      "durableGeneratedAssetCount": 1,
+      "durableGeneratedAssetBytes": 1990514,
+      "storageBucket": "nexus-generated-assets",
+      "notes": [
+        "The new durable path uses Supabase Storage and /api/v1/artifacts/:artifactId/asset with workspace read permission checks.",
+        "Older generated-image records made before durable storage can still fail download in Chrome and are tracked as legacy debt.",
+        "No viewer mutation route was needed for the download; viewer only needs workspace read permission."
+      ]
+    },
+    "sourceChanges": [
+      "supabase/migrations/20260604093000_v22_generated_image_storage.sql",
+      "src/lib/backend/image-generation/generated-image-asset-storage.ts",
+      "src/lib/backend/image-generation/generated-image-asset-cache.ts",
+      "src/app/api/image-gen/route.ts",
+      "src/app/api/image-gen/assets/[assetId]/route.ts",
+      "src/app/api/v1/artifacts/[artifactId]/asset/route.ts",
+      "src/components/nexus/nexus-ops.tsx",
+      "src/lib/workflow-runtime-lite/image-client.ts",
+      "src/lib/backend/artifacts/artifact-materializer.ts"
+    ],
+    "verification": [
+      "npm test -- src/app/api/image-gen/route.test.ts src/lib/backend/artifacts/artifact-service.test.ts src/components/nexus/nexus-generated-history-hydration.test.ts src/components/nexus/nexus-workspace-readonly-gate.test.ts src/lib/sync/local-sync-queue-adapter.test.ts",
+      "npm run typecheck",
+      "npm run build",
+      "Supabase migration v22_generated_image_storage applied",
+      "Chrome Computer Use editor generation and viewer generated-history download",
+      "Vercel log GET /api/v1/artifacts/:artifactId/asset status=200",
+      "Supabase generated-image count=3 durable count=1 durable bytes=1990514"
+    ]
+  },
+  "latestEditorFoundationRound": {
+    "id": "R109-editor-preview-foundation-a-b-c-30of30",
+    "status": "pass",
+    "actor": "editor",
+    "previewUrl": "https://nexus-j78jwuczs-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_2frW4TmEgZkr3rSy4nXUunwvETqR",
+    "screenEvidence": [
+      "Editor actor opened the shared workspace on the final preview and the workspace menu showed ROLE: EDITOR.",
+      "Benchmark C was loaded from Workflow Pro, imported, applied to Graph, and run from Start All; all 13 nodes reached SUCCESS and generated counter moved from 3 to 7.",
+      "Benchmark A was loaded from Workflow Pro, imported, applied to Graph, and run from Start All; Input, two LLM nodes, Output, and Runtime Lite reached SUCCESS.",
+      "Benchmark B was loaded from Workflow Pro, imported, applied to Graph, and run from Start All; Input, LLM, img2 Image Model, Output, and Runtime Lite reached SUCCESS.",
+      "B generated a real 16:9 Standard img2 fashion-board image and the generated counter moved from 7 to 8."
+    ],
+    "backendTrace": {
+      "generatedImageArtifacts": 8,
+      "durableGeneratedImageArtifacts": 6,
+      "durableGeneratedImageBytes": 18818400,
+      "generatedStorageObjects": 6,
+      "storageMetadataBytes": 18818400,
+      "notes": [
+        "Counts were verified with Supabase connector queries after the screen-operated run.",
+        "No permission-denied loop, provider denial, schema mismatch, sync payload overflow, or hidden runtime timeout was observed."
+      ]
+    },
+    "scoreImpact": {
+      "previousMatrixScore": 64,
+      "newMatrixScore": 75,
+      "delta": 11
+    }
+  },
+  "latestViewerMutationRouteStress": {
+    "id": "R110-viewer-mutation-route-stress-audit-trace",
+    "status": "pass",
+    "actor": "viewer",
+    "previewUrl": "https://nexus-ik5hscmen-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_CnpjVg7nkNxbLK78JTNx9wXU3tg4",
+    "workspaceId": "workspace_48552da0d4364da797280ef407a1a2d8",
+    "routeStress": [
+      {
+        "route": "GET /api/v1/artifacts?type=generated-image&limit=1",
+        "status": 200,
+        "expectation": "viewer read allowed"
+      },
+      {
+        "route": "POST /api/v1/artifacts",
+        "status": 403,
+        "expectation": "viewer artifact creation denied"
+      },
+      {
+        "route": "POST /api/v1/sync/operations",
+        "status": 403,
+        "expectation": "viewer sync mutation denied"
+      },
+      {
+        "route": "PUT /api/v1/workspaces/:workspaceId/state",
+        "status": 403,
+        "expectation": "viewer workspace state save denied"
+      },
+      {
+        "route": "POST /api/v1/agents/agent-nexus-1/stream",
+        "status": 403,
+        "expectation": "viewer workflow execution denied"
+      },
+      {
+        "route": "POST /api/image-gen",
+        "status": 403,
+        "expectation": "viewer image generation denied before provider boundary"
+      }
+    ],
+    "auditTrace": {
+      "permissionAuditDeniedRows": 5,
+      "permissionAuditAllowedRows": 1,
+      "permissionAuditTotalRows": 6,
+      "notes": [
+        "Rows were verified in Supabase after the R110 preview deploy.",
+        "The RPC records audit entries with the authenticated user context and requires workspace membership when a workspace id is present."
+      ]
+    },
+    "assetBoundary": {
+      "artifactCountAfterStress": 8,
+      "generatedImageCountAfterStress": 8,
+      "storageObjectCountAfterStress": 6,
+      "result": "unchanged"
+    },
+    "sourceChanges": [
+      "supabase/migrations/20260604102000_v22_request_scoped_permission_audit_rpc.sql",
+      "src/lib/backend/workspace/workspace-permission.ts",
+      "src/lib/backend/workspace/workspace-permission-request.test.ts"
+    ],
+    "verification": [
+      "Supabase migration v22_request_scoped_permission_audit_rpc applied",
+      "npm test -- src/lib/backend/workspace/workspace-permission-request.test.ts src/lib/backend/security/security-services.test.ts",
+      "npm run typecheck",
+      "npx vercel deploy --yes",
+      "Viewer route stress against the R110 preview",
+      "Supabase permission_audit_logs denied=5 allowed=1 total=6",
+      "Supabase artifact/storage counts unchanged"
+    ],
+    "scoreImpact": {
+      "previousMatrixScore": 75,
+      "newMatrixScore": 75,
+      "delta": 0,
+      "confidenceImpact": "viewer lane now has UI, API, provider-boundary, and audit-record proof"
+    }
+  },
+  "latestOwnerFoundationRound": {
+    "id": "R111-owner-preview-foundation-a-b-c-history-download",
+    "status": "pass",
+    "actor": "owner",
+    "previewUrl": "https://nexus-ik5hscmen-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_CnpjVg7nkNxbLK78JTNx9wXU3tg4",
+    "workspaceId": "workspace_2edec90c3f494a7b96e91c96ea74b4b6",
+    "screenEvidence": [
+      "Owner actor was created and signed in from the Chrome screen on the R110 preview.",
+      "Workspace menu showed the owner role and the app resolved a writable workspace without permission loops.",
+      "Benchmark A was loaded from Workflow Pro, imported as pasted JSON, applied to Graph, and run from Start All; all A nodes and Runtime Lite reached SUCCESS.",
+      "Benchmark B was loaded from Workflow Pro, imported as pasted JSON, applied to Graph, and run from Start All; img2 produced a real 16:9 Standard image and Runtime Lite reached SUCCESS.",
+      "Benchmark C was loaded from Workflow Pro, imported as pasted JSON, applied to Graph, and run from Start All; all 13 nodes reached SUCCESS without imposing a hidden timeout.",
+      "C produced one seed image and three branch images; all three output nodes rendered generated images and the Graph header showed GENERATED 5.",
+      "Generated history listed the five generated-image records for the owner workspace.",
+      "Chrome/macOS downloaded the latest generated image from generated history, and the saved PNG was verified as 1536 x 864."
+    ],
+    "backendTrace": {
+      "workspaceRole": "owner",
+      "artifactCount": 5,
+      "generatedImageArtifacts": 5,
+      "storageObjects": 5,
+      "generatedImageBytes": 17002150,
+      "storageMetadataBytes": 17002150,
+      "permissionAuditAllowedRows": 26,
+      "permissionAuditDeniedRows": 0,
+      "latestAuditAt": "2026-06-04T00:47:23.078956Z",
+      "downloadedFile": {
+        "path": "/Users/sean/Downloads/Workflow-image---Branch-3-White-Studio---Sculptural-Wide-Pants.png",
+        "reportCopyPath": "reports/workflow-pro-source-phase-20260603/assets/r111-owner-downloaded-branch-3.png",
+        "pixelWidth": 1536,
+        "pixelHeight": 864,
+        "strictProductRatioVerified": true
+      },
+      "notes": [
+        "Counts were verified with Supabase connector queries after the screen-operated owner run.",
+        "Generated image artifacts are exposed through /api/image-gen/assets while the asset bytes are backed by the nexus-generated-assets storage bucket.",
+        "The artifact rows do not yet expose an explicit storage metadata object, so future durability work should make the storage pointer first-class in artifact metadata.",
+        "No permission-denied loop, provider boundary denial, schema mismatch, sync payload overflow, or hidden runtime timeout was observed."
+      ]
+    },
+    "verification": [
+      "Computer Use Chrome screen run for owner actor on the R110 preview",
+      "Benchmark A screen path: Load A -> Import Pasted JSON -> Apply Preview -> Graph -> Start All -> SUCCESS",
+      "Benchmark B screen path: Load B -> Import Pasted JSON -> Apply Preview -> Graph -> Start All -> real img2 image -> SUCCESS",
+      "Benchmark C screen path: Load C -> Import Pasted JSON -> Apply Preview -> Graph -> Start All -> 13/13 nodes SUCCESS",
+      "Generated history screen panel listed five generated-image records",
+      "Chrome/macOS generated-history download produced a 1536x864 PNG",
+      "Supabase connector verified artifacts=5, generated-image=5, storage objects=5, allowed audit=26, denied audit=0"
+    ],
+    "scoreImpact": {
+      "previousMatrixScore": 75,
+      "newMatrixScore": 100,
+      "delta": 25
+    }
+  }
+}

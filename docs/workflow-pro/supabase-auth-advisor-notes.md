@@ -1,8 +1,8 @@
 # Supabase Auth Advisor Notes
 
-Status: v22 live hardening note.  
+Status: v22 live hardening note with R89 account-matrix audit.  
 Scope: Workflow Pro auth, RLS, artifact, runtime, and generated-output durability boundaries.  
-Last verified: 2026-06-03 against Supabase project `xjuglddxwnikvcwxfbzg`.
+Last verified: 2026-06-04 against Supabase project `xjuglddxwnikvcwxfbzg`.
 
 ## Why This File Exists
 
@@ -33,6 +33,34 @@ The following advisor finding is expected for these tables:
 - Correct access path: trusted server repositories and routes that use server-side auth/permission gates.
 
 These tables are intentionally fail-closed. If a browser client cannot read or write them, that is the desired behavior.
+
+## R89 Live Account-Matrix Audit Snapshot
+
+Machine-readable evidence lives in:
+
+- `docs/workflow-pro/account-matrix-live-audit.manifest.json`
+
+R89 read-only Supabase checks confirmed:
+
+- project `xjuglddxwnikvcwxfbzg` is active healthy;
+- core tables for workspace membership, workspace state, snapshots, sync,
+  artifacts, tool runs, and permission audit logs exist live with RLS enabled;
+- live policies match the source permission model at the table-policy level;
+- security advisor has zero blocking findings, with only the expected
+  server-only no-policy INFO findings listed above;
+- recent permission audit rows are traceable and include both allowed and denied
+  decisions.
+
+R89 local live auth-boundary probe:
+
+- command:
+  `AUTH_BOUNDARY_LIVE_BASE_URL=http://127.0.0.1:3000 AUTH_BOUNDARY_LIVE_EXPECT_LEGACY_404=false npm run check:auth-boundary:live`;
+- result: 49 probes, 0 blocking findings, 38 protected spoof-only probes;
+- 9 local legacy-route warnings are expected because localhost does not enforce
+  production legacy 404 behavior in that probe mode.
+
+This still does not replace the strict preview URL probe or the
+owner/editor/viewer/new-account screen matrix.
 
 ## Fixed V22 RLS Performance Findings
 

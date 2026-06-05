@@ -1,0 +1,737 @@
+{
+  "schema": "nexus.workflowPro.screenRunEvidence.v1",
+  "createdAt": "2026-06-04T15:45:00+10:00",
+  "target": "Graph Brain 30-point planning and append foundation",
+  "browser": {
+    "app": "Google Chrome",
+    "url": "http://localhost:3000/"
+  },
+  "verification": {
+    "tests": [
+      {
+        "command": "npm test -- src/lib/workflow-pro/graph-brain-planner.test.ts src/lib/workflow-pro/brain-draft-templates.test.ts src/lib/workflow-runtime-lite/group-append.test.ts src/store/nexus-store.test.ts",
+        "result": "passed",
+        "files": 4,
+        "tests": 34
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed"
+      },
+      {
+        "command": "npm run lint",
+        "result": "passed",
+        "warnings": 11,
+        "errors": 0,
+        "warningScope": "existing repository warnings"
+      },
+      {
+        "command": "npm test -- src/lib/workflow-pro/runtime-evidence.test.ts src/lib/workflow-pro/graph-brain-planner.test.ts src/lib/workflow-pro/capability-inventory.test.ts",
+        "result": "passed",
+        "files": 3,
+        "tests": 10
+      },
+      {
+        "command": "npm test -- src/lib/workflow-pro/runtime-evidence.test.ts src/lib/workflow-pro/graph-brain-planner.test.ts",
+        "result": "passed",
+        "files": 2,
+        "tests": 7
+      },
+      {
+        "command": "npm test -- src/lib/workflow-pro/runtime-evidence.test.ts",
+        "result": "passed",
+        "files": 1,
+        "tests": 3
+      },
+      {
+        "command": "npm test -- src/lib/workflow-pro/run-history-groups.test.ts src/lib/workflow-pro/runtime-evidence.test.ts",
+        "result": "passed",
+        "files": 2,
+        "tests": 5
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed",
+        "scope": "after run-history-groups integration"
+      },
+      {
+        "command": "npm test -- src/lib/workflow-runtime-lite/group-append.test.ts src/lib/workflow-runtime-lite/runner.test.ts src/lib/workflow-pro/run-history-groups.test.ts src/store/nexus-store.test.ts",
+        "result": "passed",
+        "files": 4,
+        "tests": 48
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed",
+        "scope": "after workflow-group metadata integration"
+      },
+      {
+        "command": "npm test -- src/lib/backend/observability/workflow-runtime-events.test.ts src/lib/backend/observability/observability-service.test.ts src/lib/workflow-runtime-lite/runner.test.ts",
+        "result": "passed",
+        "files": 3,
+        "tests": 28
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed",
+        "scope": "after workflow-runtime trace boundary integration"
+      },
+      {
+        "command": "npm test -- src/app/api/v1/observability/observability-route-helpers.test.ts src/lib/backend/observability/observability-service.test.ts src/lib/backend/workspace/workspace-permission-request.test.ts src/lib/backend/workspace/workspace-session-service.test.ts",
+        "result": "passed",
+        "files": 4,
+        "tests": 23,
+        "scope": "after workspace permission matrix integration"
+      },
+      {
+        "command": "npm test -- src/app/api/v1/workflows/runtime-trace/route.test.ts src/app/api/v1/observability/observability-route-helpers.test.ts src/lib/backend/observability/workflow-runtime-events.test.ts src/lib/backend/observability/observability-service.test.ts",
+        "result": "passed",
+        "files": 4,
+        "tests": 18,
+        "scope": "after runtime trace write route integration"
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed",
+        "scope": "after runtime trace write route integration"
+      },
+      {
+        "command": "npm test -- src/lib/workflow-runtime-lite/trace-client.test.ts src/lib/workflow-pro/runtime-evidence.test.ts src/store/nexus-store.test.ts src/app/api/v1/workflows/runtime-trace/route.test.ts",
+        "result": "passed",
+        "files": 4,
+        "tests": 35,
+        "scope": "after runtime trace sync bridge integration"
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed",
+        "scope": "after runtime trace sync bridge integration"
+      },
+      {
+        "command": "npm test -- src/lib/workflow-pro/runtime-trace-correlation.test.ts src/lib/workflow-runtime-lite/trace-client.test.ts src/lib/workflow-pro/runtime-evidence.test.ts src/store/nexus-store.test.ts src/app/api/v1/workflows/runtime-trace/route.test.ts",
+        "result": "passed",
+        "files": 5,
+        "tests": 39,
+        "scope": "after durable trace correlation integration"
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed",
+        "scope": "after durable trace correlation integration"
+      },
+      {
+        "command": "npm test -- src/lib/workflow-pro/run-group-inspector.test.ts src/lib/workflow-pro/run-history-groups.test.ts src/lib/workflow-pro/runtime-trace-correlation.test.ts",
+        "result": "passed",
+        "files": 3,
+        "tests": 9,
+        "scope": "after run group inspector integration"
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed",
+        "scope": "after run group inspector integration"
+      },
+      {
+        "command": "npm test -- src/store/nexus-store.test.ts src/lib/workflow-pro/run-group-inspector.test.ts",
+        "result": "passed",
+        "files": 2,
+        "tests": 32,
+        "scope": "after trace sync retry control integration"
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed",
+        "scope": "after trace sync retry control integration"
+      },
+      {
+        "command": "npm run lint",
+        "result": "passed",
+        "warnings": 11,
+        "errors": 0,
+        "warningScope": "existing repository warnings",
+        "scope": "after trace sync retry control integration"
+      },
+      {
+        "command": "npm test -- src/lib/attachments/attachment-compiler-registry.test.ts src/lib/workflow-pro/file-node-contract.test.ts src/lib/workflow-runtime-lite/runner.test.ts src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "result": "passed",
+        "files": 4,
+        "tests": 32,
+        "scope": "after attachment compiler lane manifest integration"
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed",
+        "scope": "after attachment compiler lane manifest integration"
+      },
+      {
+        "command": "npm run lint",
+        "result": "passed",
+        "warnings": 11,
+        "errors": 0,
+        "warningScope": "existing repository warnings",
+        "scope": "after attachment compiler lane manifest integration"
+      },
+      {
+        "command": "npm test -- src/lib/attachments/attachment-compiler-execution.test.ts src/lib/attachments/attachment-compiler-registry.test.ts src/lib/workflow-runtime-lite/runner.test.ts",
+        "result": "passed",
+        "files": 3,
+        "tests": 24,
+        "scope": "after attachment compiler execution pipeline integration"
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed",
+        "scope": "after attachment compiler execution pipeline integration"
+      },
+      {
+        "command": "npm run lint",
+        "result": "passed",
+        "warnings": 11,
+        "errors": 0,
+        "warningScope": "existing repository warnings",
+        "scope": "after attachment compiler execution pipeline integration"
+      },
+      {
+        "command": "npm test -- src/lib/backend/observability/workflow-group-records.test.ts src/app/api/v1/workflows/groups/route.test.ts src/lib/workflow-pro/group-record-client.test.ts src/store/nexus-store.test.ts",
+        "result": "passed",
+        "files": 4,
+        "tests": 35,
+        "scope": "after durable workflow group records integration"
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed",
+        "scope": "after durable workflow group records integration"
+      },
+      {
+        "command": "npm run lint",
+        "result": "passed",
+        "warnings": 11,
+        "errors": 0,
+        "warningScope": "existing repository warnings",
+        "scope": "after durable workflow group records integration"
+      },
+      {
+        "command": "npm test -- src/lib/workflow-pro/durable-group-records.test.ts src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "result": "passed",
+        "files": 2,
+        "tests": 13,
+        "scope": "after durable group record reader integration"
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed",
+        "scope": "after durable group record reader integration"
+      },
+      {
+        "command": "npm run lint",
+        "result": "passed",
+        "warnings": 11,
+        "errors": 0,
+        "warningScope": "existing repository warnings",
+        "scope": "after durable group record reader integration"
+      },
+      {
+        "command": "npm test -- src/lib/workflow-runtime-lite/runner.test.ts src/lib/workflow-pro/capability-inventory.test.ts src/lib/workflow-pro/graph-brain-planner.test.ts src/lib/workflow-pro/foundation-benchmark-fixtures.test.ts",
+        "result": "passed",
+        "files": 4,
+        "tests": 31,
+        "scope": "after ready-parallel RuntimeLite integration"
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed",
+        "scope": "after ready-parallel RuntimeLite integration"
+      },
+      {
+        "command": "npm run lint",
+        "result": "passed",
+        "warnings": 11,
+        "errors": 0,
+        "warningScope": "existing repository warnings",
+        "scope": "after ready-parallel RuntimeLite integration"
+      }
+    ],
+    "screenRuns": [
+      {
+        "id": "image-file-two-llm-answer",
+        "operatorRequest": "我把圖填在 input 傳上之後，連接兩個不同且已經設定好提示詞的 LLM，最後給我答案。",
+        "selectedTemplate": "image-file-two-llm-answer",
+        "nodes": 5,
+        "edges": 4,
+        "appendedThroughScreen": true
+      },
+      {
+        "id": "audio-prompt-image-reverse-fanout",
+        "operatorRequest": "我想傳一個語音提示詞之後生成圖像，在那個圖像反推出 LLM 自己生成的提示詞，再讓另外三個 LLM 更改提示詞風格或內容後經過圖片模型生成最終答案。",
+        "selectedTemplate": "audio-prompt-image-reverse-fanout",
+        "nodes": 14,
+        "edges": 13,
+        "appendedThroughScreen": true,
+        "missingCapabilities": [
+          "artifact.file.raw-compiled-link",
+          "compiler.audio.transcribe",
+          "compiler.media.transcode",
+          "model.vision.prompt-reverse",
+          "node.parallel.join",
+          "workflow.brain.review.apply"
+        ]
+      },
+      {
+        "id": "brain-thread-memory",
+        "verifiedThroughScreen": true,
+        "visibleEntries": [
+          "Operator Request",
+          "Intent Architect",
+          "JSON Contract Compiler",
+          "Screen Apply Gate"
+        ]
+      },
+      {
+        "id": "runtime-evidence-panel",
+        "verifiedThroughScreen": true,
+        "visibleEntries": [
+          "Runtime Evidence",
+          "Runs",
+          "Latest",
+          "Artifacts",
+          "local snapshot"
+        ],
+        "emptyStateVerified": "No workflow runtime runs have been recorded in the local snapshot yet."
+      },
+      {
+        "id": "trace-panel-local-workflow-evidence",
+        "verifiedThroughScreen": true,
+        "visibleEntries": [
+          "Trace Viewer",
+          "Local Workflow Evidence",
+          "local-workspace-runtime-snapshot",
+          "Runs",
+          "Latest",
+          "Artifacts"
+        ],
+        "emptyStateVerified": "No workflow runtime runs have been recorded in the local snapshot yet."
+      },
+      {
+        "id": "trace-panel-export-evidence",
+        "verifiedThroughScreen": true,
+        "downloadVerified": true,
+        "downloadedSchema": "nexus.workflowPro.runtimeEvidenceManifest.v1",
+        "sourceOfTruth": "runtimeLite.runs",
+        "embeddedEvidenceSchema": "nexus.workflowPro.runtimeEvidence.v1"
+      },
+      {
+        "id": "trace-panel-run-groups",
+        "verifiedThroughScreen": true,
+        "visibleEntries": [
+          "Run Groups",
+          "5 groups / 0 runs"
+        ],
+        "schema": "nexus.workflowPro.runHistoryGroups.v1",
+        "sourceOfTruth": "runtimeLite.nodes + runtimeLite.runs",
+        "currentCanvasGroups": 5,
+        "currentRuntimeRuns": 0
+      },
+      {
+        "id": "graph-brain-explicit-group-metadata-append",
+        "verifiedThroughScreen": true,
+        "visibleEntries": [
+          "Appended Brain Draft / Image Or File Input To Two LLMs",
+          "Run Groups",
+          "6 groups / 0 runs"
+        ],
+        "metadataContract": "WorkflowRuntimeGroupRef",
+        "source": "brain",
+        "label": "Brain Draft / Image Or File Input To Two LLMs"
+      },
+      {
+        "id": "workflow-runtime-trace-boundary",
+        "verifiedThroughTests": true,
+        "schema": "nexus.workflowRuntime.traceEvent.v1",
+        "targetBackend": "system_events via ObservabilityService",
+        "redactionBoundary": [
+          "no raw packet text",
+          "no raw prompt text",
+          "no provider keys",
+          "no binary payloads"
+        ],
+        "groupAware": true
+      },
+      {
+        "id": "workspace-permission-matrix",
+        "verifiedThroughTests": true,
+        "policy": {
+          "observabilityEventsRead": "viewer",
+          "observabilityTraceRead": "viewer",
+          "usageMetricsRead": "editor",
+          "workflowRuntimeTraceWrite": "editor"
+        },
+        "tests": [
+          "viewer workspace reads are allowed by default",
+          "viewer write-like observability actions are denied",
+          "editor write-like observability actions are allowed",
+          "viewer can read workspace events and trace projections",
+          "viewer cannot read provider usage metrics"
+        ]
+      },
+      {
+        "id": "workflow-runtime-trace-write-route",
+        "verifiedThroughTests": true,
+        "endpoint": "POST /api/v1/workflows/runtime-trace",
+        "schema": "nexus.workflowRuntime.traceEvent.v1",
+        "policy": {
+          "writeRole": "editor",
+          "idempotency": "disabled for append-only observability log",
+          "viewerDeniedWithSecurityAudit": true
+        },
+        "payloadBoundary": {
+          "accepted": [
+            "workspaceId",
+            "runId",
+            "workflowId",
+            "group",
+            "status",
+            "timestamps",
+            "node ids",
+            "node statuses",
+            "artifact reference ids"
+          ],
+          "rejectedKeys": [
+            "apiKey",
+            "binary",
+            "dataUrl",
+            "displayText",
+            "inputSnapshot",
+            "outputSnapshot",
+            "prompt",
+            "providerKey",
+            "rawText"
+          ]
+        }
+      },
+      {
+        "id": "workflow-runtime-trace-sync-bridge",
+        "verifiedThroughTests": true,
+        "verifiedThroughScreen": true,
+        "sourceFlow": [
+          "RuntimeLite run completion",
+          "trace-client narrow payload",
+          "POST /api/v1/workflows/runtime-trace",
+          "WorkflowRun.traceSync",
+          "Trace panel Local Workflow Evidence"
+        ],
+        "traceSyncStates": [
+          "syncing",
+          "synced",
+          "failed",
+          "skipped"
+        ],
+        "screenVisibleEntries": [
+          "Local Workflow Evidence",
+          "Trace",
+          "local"
+        ]
+      },
+      {
+        "id": "workflow-runtime-trace-correlation",
+        "verifiedThroughTests": true,
+        "verifiedThroughScreen": true,
+        "schema": "nexus.workflowPro.runtimeTraceCorrelation.v1",
+        "sourceFlow": [
+          "latestRun.traceSync.traceId",
+          "GET /api/v1/observability/events?traceId=<traceId>",
+          "matching workflow.runtime_lite.* backend event",
+          "Trace panel Durable Trace Match"
+        ],
+        "statuses": [
+          "no-local-run",
+          "local-only",
+          "syncing",
+          "failed",
+          "synced-unloaded",
+          "matched",
+          "missing"
+        ],
+        "screenVisibleEntries": [
+          "Trace Viewer",
+          "Durable Trace Match",
+          "Local Workflow Evidence"
+        ]
+      },
+      {
+        "id": "workflow-run-group-inspector",
+        "verifiedThroughTests": true,
+        "verifiedThroughScreen": true,
+        "schema": "nexus.workflowPro.runGroupInspector.v1",
+        "sourceOfTruth": "runtimeLite.nodes + runtimeLite.runs + selected workflow group",
+        "screenVisibleEntries": [
+          "Run Groups",
+          "Group Inspector",
+          "RunGroupInspector.v1",
+          "Group B86B44AE",
+          "14 nodes",
+          "no-local-run"
+        ],
+        "selectedGroupProof": {
+          "clickedGroup": "GROUP B86B44AE",
+          "inspectorNodes": 14,
+          "inspectorRuns": 0,
+          "inspectorTraceStatus": "no-local-run"
+        }
+      },
+      {
+        "id": "workflow-runtime-trace-resync-control",
+        "verifiedThroughTests": true,
+        "verifiedThroughScreen": true,
+        "storeAction": "retryWorkflowRuntimeTraceSync(runId)",
+        "sourceFlow": [
+          "Trace panel selected group",
+          "RunGroupInspector.latestRun.runId",
+          "retryWorkflowRuntimeTraceSync(runId)",
+          "publishWorkflowRuntimeTrace",
+          "WorkflowRun.traceSync"
+        ],
+        "policy": {
+          "frontendReadOnlyGate": true,
+          "backendWriteRole": "editor",
+          "missingOrRunningRunRetry": "refused",
+          "rawPayloadStorage": "rejected by runtime trace route"
+        },
+        "screenVisibleEntries": [
+          "Group Inspector",
+          "Resync Trace"
+        ],
+        "disabledStateProof": {
+          "selectedGroupHasLatestRun": false,
+          "buttonLabel": "RESYNC TRACE",
+          "buttonState": "disabled"
+        },
+        "tests": [
+          "retries failed workflow runtime trace sync by run id",
+          "keeps retry failure evidence on the workflow run"
+        ]
+      },
+      {
+        "id": "attachment-compiler-lane-manifest",
+        "verifiedThroughTests": true,
+        "verifiedThroughScreen": true,
+        "schema": "nexus.attachmentCompilerManifest.v1",
+        "lanes": [
+          "text",
+          "image",
+          "audio",
+          "video",
+          "archive",
+          "document",
+          "binary-reference"
+        ],
+        "currentCompiler": {
+          "id": "nexus-attachment-noop-compiler-v1",
+          "version": "v1",
+          "advancedAdaptersStatus": "reserved"
+        },
+        "sourceFlow": [
+          "Workspace composer local file",
+          "resolveAttachmentCompilerLane(mimeType)",
+          "artifact metadata attachmentCompilerLane",
+          "Workflow Pro file node contract compilerManifest",
+          "RuntimeLite node.file compact lane summary"
+        ],
+        "futureAdapters": [
+          "speech-to-text",
+          "zip-expand",
+          "video-transcode",
+          "pdf-text-extractor",
+          "image-to-prompt"
+        ],
+        "screenVisibleEntries": [
+          "File Node",
+          "Compiler nexus-attachment-noop-compiler-v1 @ v1",
+          "Add File"
+        ],
+        "limits": [
+          "This round establishes the lane manifest and packet metadata boundary.",
+          "It does not implement actual audio transcription, zip expansion, PDF extraction, or video transcoding."
+        ]
+      },
+      {
+        "id": "attachment-compiler-execution-pipeline",
+        "verifiedThroughTests": true,
+        "verifiedThroughScreen": false,
+        "schema": "nexus.attachmentCompilerExecution.v1",
+        "sourceFlow": [
+          "RuntimeLite node.file",
+          "runAttachmentCompilerPipeline",
+          "per-attachment lane resolution",
+          "compiler execution report",
+          "ContextPacket.metadata.attachmentCompiler.execution compact summary"
+        ],
+        "resultStatuses": [
+          "passthrough",
+          "reference-only",
+          "skipped"
+        ],
+        "packetBoundary": {
+          "fullCompilerResultsStoredInRuntimePacket": false,
+          "compactRuntimeSummary": true,
+          "reason": "ContextPacket metadata sanitizer limits nesting and protects against large or raw payloads"
+        },
+        "currentAdapters": [
+          {
+            "lane": "text",
+            "status": "passthrough",
+            "claim": "text-safe attachment references can pass the compiler boundary without expanding raw artifact storage"
+          },
+          {
+            "lane": "archive",
+            "status": "reference-only",
+            "claim": "zip files are carried through a compiler result with zip-expand reserved as a future adapter"
+          },
+          {
+            "lane": "audio",
+            "status": "reference-only",
+            "claim": "audio files are carried through a compiler result with speech-to-text reserved as a future adapter"
+          }
+        ],
+        "limits": [
+          "This pipeline executes default safe adapters only.",
+          "It does not yet fetch raw artifact content from storage.",
+          "It does not yet transcribe audio, expand zip archives, extract PDF text, or transcode media."
+        ]
+      },
+      {
+        "id": "runtime-lite-ready-parallel-execution",
+        "verifiedThroughTests": true,
+        "verifiedThroughScreen": false,
+        "schema": "nexus.workflowPro.runtimeCapabilityReport.v1",
+        "executionPolicy": {
+          "mode": "ready-parallel",
+          "nativeParallelExecution": true,
+          "workflowTimeout": "none",
+          "pauseControl": "abort-signal"
+        },
+        "sourceFlow": [
+          "validateWorkflowRuntimeLiteTopology",
+          "pending node set",
+          "ready nodes with all upstream packets available",
+          "Promise.all ready-node batch",
+          "automatic ContextPacket merge at fan-in"
+        ],
+        "proof": {
+          "test": "starts independent fan-out nodes before waiting for the slow sibling to complete",
+          "observed": "b-start occurs before a-end",
+          "explicitJoinNodeAvailable": false
+        },
+        "limits": [
+          "Ready-node parallel execution is available.",
+          "Explicit user-configurable join nodes are not implemented yet.",
+          "Workflow timeout remains none by design for long-running workflows."
+        ]
+      },
+      {
+        "id": "durable-workflow-group-records",
+        "verifiedThroughTests": true,
+        "verifiedThroughScreen": true,
+        "schema": "nexus.workflowPro.groupRecord.v1",
+        "endpoint": "POST /api/v1/workflows/groups",
+        "eventType": "workflow.group_record.upserted",
+        "storageBoundary": "system_events via ObservabilityService",
+        "sourceFlow": [
+          "appendWorkflowRuntimeGroup",
+          "publishWorkflowGroupRecord",
+          "POST /api/v1/workflows/groups",
+          "workflow.group_record.upserted system event"
+        ],
+        "policy": {
+          "writeRole": "editor",
+          "viewerDeniedWithSecurityAudit": true,
+          "idempotency": "disabled for append-only observability record",
+          "appendBlockedByRecordFailure": false
+        },
+        "payloadBoundary": {
+          "accepted": [
+            "workflowGroupId",
+            "workflowGroupLabel",
+            "node count",
+            "edge count",
+            "node type counts",
+            "contract schema",
+            "compiler manifest schema",
+            "capability gaps"
+          ],
+          "rejectedKeys": [
+            "apiKey",
+            "binary",
+            "dataUrl",
+            "displayText",
+            "inputSnapshot",
+            "outputSnapshot",
+            "prompt",
+            "providerKey",
+            "rawText",
+            "secret",
+            "token"
+          ]
+        },
+        "screenVisibleEntries": [
+          "Workflow groups remain visible on canvas",
+          "Trace panel remains available"
+        ]
+      },
+      {
+        "id": "durable-group-record-reader",
+        "verifiedThroughTests": true,
+        "verifiedThroughScreen": true,
+        "schema": "nexus.workflowPro.durableGroupRecordReport.v1",
+        "sourceFlow": [
+          "Trace panel workspace events",
+          "selected workflow group id",
+          "workflow.group_record.upserted metadata.workflowGroupId match",
+          "Trace panel Group Inspector durable group record card"
+        ],
+        "statuses": [
+          "no-group",
+          "not-loaded",
+          "matched",
+          "missing"
+        ],
+        "screenVisibleEntries": [
+          "Durable Group Record",
+          "not-loaded",
+          "Events",
+          "Nodes",
+          "Edges"
+        ],
+        "policy": {
+          "newBackendRouteAdded": false,
+          "sourceOfTruth": "loaded workspace observability events",
+          "refreshRequiredBeforeLoadedResult": true,
+          "missingDoesNotMeanDenied": true
+        },
+        "screenProof": {
+          "selectedGroup": "Brain Draft / Image Or File Input To Two LLMs",
+          "loaded": false,
+          "status": "not-loaded",
+          "eventCount": 0,
+          "nodeCount": null,
+          "edgeCount": null
+        },
+        "limits": [
+          "The reader displays loaded Trace panel events only.",
+          "A future dedicated workflowGroupId query can replace manual Refresh once event volume grows."
+        ]
+      }
+    ]
+  },
+  "score": {
+    "brainUnderstanding": 10,
+    "appendableWorkflowJson": 10,
+    "screenTestReadiness": 10,
+    "total": 30
+  },
+  "limits": [
+    "This score covers Graph Brain planning, contract generation, and append-to-canvas proof.",
+    "Native long-running workflow execution is intentionally not time-limited.",
+    "Audio transcription, vision prompt reverse, explicit join nodes, and persisted Brain review/apply remain future implementation gates."
+  ]
+}

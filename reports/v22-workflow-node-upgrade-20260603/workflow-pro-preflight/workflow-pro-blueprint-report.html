@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Workflow Pro Preflight Blueprint｜NEXUS</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #090b0d;
+        --panel: #111417;
+        --panel-2: #171c21;
+        --ink: #f4f4f5;
+        --soft: #d4d4d8;
+        --muted: #a1a1aa;
+        --line: rgba(212, 212, 216, 0.18);
+        --line-strong: rgba(212, 212, 216, 0.36);
+        --green: #86efac;
+        --cyan: #93c5fd;
+        --amber: #facc15;
+        --rose: #fda4af;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+          var(--bg);
+        background-size: 36px 36px;
+        color: var(--ink);
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        letter-spacing: 0;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .shell {
+        width: min(1240px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 28px 0 80px;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin: 0 -16px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(9, 11, 13, 0.9);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand,
+      .eyebrow,
+      .label,
+      .tag,
+      pre,
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--soft);
+        font-size: 12px;
+      }
+
+      .mark {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        color: var(--green);
+      }
+
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .button,
+      .nav a {
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+        color: var(--soft);
+        padding: 0 12px;
+        font-size: 12px;
+        text-decoration: none;
+      }
+
+      .button:hover,
+      .nav a:hover {
+        border-color: var(--line-strong);
+        background: rgba(255, 255, 255, 0.08);
+        color: white;
+      }
+
+      .hero {
+        display: grid;
+        gap: 28px;
+        grid-template-columns: minmax(0, 1fr) 390px;
+        align-items: end;
+        min-height: 600px;
+        padding: 62px 0 38px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .eyebrow {
+        color: var(--green);
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        max-width: 1000px;
+        margin: 18px 0 0;
+        font-size: 76px;
+        line-height: 0.94;
+        letter-spacing: 0;
+      }
+
+      .lead {
+        max-width: 860px;
+        margin: 22px 0 0;
+        color: var(--soft);
+        font-size: 19px;
+        line-height: 1.78;
+      }
+
+      .hero-card,
+      .card,
+      .wide,
+      .callout {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(17, 20, 23, 0.9);
+        padding: 18px;
+      }
+
+      .metric-grid {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel-2);
+        padding: 14px;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 24px;
+      }
+
+      .section {
+        padding: 44px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 22px;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 42px;
+        line-height: 1.08;
+      }
+
+      .section-head p,
+      p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .section-head p {
+        max-width: 560px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .split {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: 1.1fr 0.9fr;
+      }
+
+      .wide-split {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: 1.35fr 0.65fr;
+      }
+
+      .card h3,
+      .wide h3,
+      .callout h3 {
+        margin: 0 0 10px;
+        font-size: 18px;
+      }
+
+      .list {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .list li {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.035);
+        color: var(--soft);
+        line-height: 1.58;
+        padding: 12px 14px;
+      }
+
+      .list strong {
+        color: var(--ink);
+      }
+
+      pre {
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #050607;
+        color: #d4d4d8;
+        padding: 16px;
+        font-size: 12px;
+        line-height: 1.68;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        color: var(--soft);
+        line-height: 1.55;
+        padding: 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--ink);
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .tag {
+        border: 1px solid var(--line-strong);
+        border-radius: 999px;
+        color: var(--soft);
+        font-size: 11px;
+        padding: 7px 10px;
+        white-space: nowrap;
+      }
+
+      .mock-tabs {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 16px;
+      }
+
+      .mock-tabs div {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--soft);
+        padding: 12px;
+        text-align: center;
+      }
+
+      .mock-tabs div:last-child {
+        border-color: rgba(134, 239, 172, 0.55);
+        background: rgba(134, 239, 172, 0.08);
+        color: var(--green);
+      }
+
+      .image-row {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .analysis-bay {
+        margin-top: 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(5, 6, 7, 0.72);
+        overflow: hidden;
+      }
+
+      .bay-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        border-bottom: 1px solid var(--line);
+        padding: 12px;
+      }
+
+      .bay-tab {
+        min-height: 36px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+        color: var(--soft);
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        padding: 0 12px;
+      }
+
+      .bay-tab[aria-selected="true"] {
+        border-color: rgba(134, 239, 172, 0.62);
+        background: rgba(134, 239, 172, 0.1);
+        color: var(--green);
+      }
+
+      .bay-panel {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+        padding: 14px;
+      }
+
+      .bay-panel[hidden] {
+        display: none;
+      }
+
+      .bay-panel figure {
+        min-width: 0;
+      }
+
+      figure {
+        margin: 0;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #050607;
+      }
+
+      figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      figcaption {
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+        padding: 10px 12px;
+      }
+
+      .footer {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 12px;
+        padding-top: 32px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      @media (max-width: 980px) {
+        .hero,
+        .grid,
+        .split,
+        .wide-split,
+        .image-row,
+        .bay-panel,
+        .section-head {
+          grid-template-columns: 1fr;
+        }
+
+        .section-head {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        h1 {
+          font-size: 48px;
+        }
+
+        h2 {
+          font-size: 30px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <nav class="topbar">
+        <div class="brand"><span class="mark">PRO</span><span>NEXUS Workflow Pro Preflight</span></div>
+        <div class="nav">
+          <a href="#tabs">Tabs</a>
+          <a href="#surface">Surface</a>
+          <a href="#file-node">File Node</a>
+          <a href="#files">File Map</a>
+          <a href="#rounds">Rounds</a>
+        </div>
+      </nav>
+
+      <header class="hero">
+        <section>
+          <div class="eyebrow">Planning-only // before engineering launch</div>
+          <h1>Workflow Pro 要成為專業工作流設計艙，不是 Graph 的複製品。</h1>
+          <p class="lead">
+            這份藍圖規劃第三個 workspace mode：`PANELS | GRAPH | WORKFLOW PRO`。它把 workflow 設計、大腦分析、證據時間線、proposal diff、檔案節點與轉檔槽整合成一個深度開發任務的前置規格。
+          </p>
+        </section>
+        <aside class="hero-card">
+          <div class="metric-grid">
+            <div class="metric"><span class="label">Mode</span><strong>3rd tab</strong></div>
+            <div class="metric"><span class="label">Source</span><strong>Plan only</strong></div>
+            <div class="metric"><span class="label">Files</span><strong>17 ids</strong></div>
+            <div class="metric"><span class="label">Build</span><strong>8-12</strong></div>
+          </div>
+          <div class="mock-tabs">
+            <div>PANELS</div>
+            <div>GRAPH</div>
+            <div>WORKFLOW PRO</div>
+          </div>
+        </aside>
+      </header>
+
+      <section class="section" id="tabs">
+        <div class="section-head">
+          <h2>左上角新增 Workflow Pro。</h2>
+          <p>現有 `WorkspaceViewMode` 只有 panels/graph，因此第一輪工程要從型別與持久化開始，而不是只改按鈕文字。</p>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <h3>Type layer</h3>
+            <p>`WorkspaceViewMode` 擴成 `"panels" | "graph" | "workflow-pro"`，並確認 import/sanitize 舊快照時不壞。</p>
+          </article>
+          <article class="card">
+            <h3>Store layer</h3>
+            <p>`setViewMode("workflow-pro")` 同步 global store 與 active workspace settings，和 panels/graph 同等級。</p>
+          </article>
+          <article class="card">
+            <h3>UI layer</h3>
+            <p>左上 workspace card 變成三段式頁籤。Workflow Pro label 必須穩定放入現有寬度，必要時縮成 `PRO` + tooltip。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="surface">
+        <div class="section-head">
+          <h2>Workflow Pro surface 的內部結構。</h2>
+          <p>參考 Graph 的基礎互動，但不照抄。Workflow Pro 的主職責是 design intelligence cockpit。</p>
+        </div>
+        <div class="wide-split">
+          <div class="wide">
+            <h3>內部分頁</h3>
+            <ul class="list">
+              <li><strong>Design：</strong>contract-aware workflow builder，顯示 workflow 目的、節點語義、packet flow。</li>
+              <li><strong>Brain：</strong>Workflow Brain 摘要、理解狀態、問題、風險、缺少能力。</li>
+              <li><strong>Evidence：</strong>工程圖 5 的 Evidence Timeline Cockpit，專看 run evidence。</li>
+              <li><strong>Proposal Diff：</strong>工程圖 6 的 Proposal Diff War Room，專看大腦改版建議。</li>
+              <li><strong>Files：</strong>檔案節點、raw artifact、compiler output、packet attachment。</li>
+              <li><strong>Settings：</strong>Brain boot prompt、context pack source、developer handoff toggles。</li>
+            </ul>
+          </div>
+          <div class="callout">
+            <h3>關鍵取捨</h3>
+            <p>Evidence 和 Proposal Diff 都很強，但放在同一屏會擠。Workflow Pro 應讓它們共用同一個 analysis bay，用 segmented control 切換。</p>
+            <div class="tag-row">
+              <span class="tag">Evidence</span>
+              <span class="tag">Proposal Diff</span>
+              <span class="tag">One bay</span>
+              <span class="tag">No crowding</span>
+            </div>
+          </div>
+        </div>
+        <div class="analysis-bay" aria-label="Workflow Pro analysis bay concept switcher">
+          <div class="bay-controls" role="tablist" aria-label="Workflow Pro analysis views">
+            <button class="bay-tab" type="button" role="tab" aria-selected="true" aria-controls="bay-evidence" data-bay-target="bay-evidence">Evidence Timeline</button>
+            <button class="bay-tab" type="button" role="tab" aria-selected="false" aria-controls="bay-proposal" data-bay-target="bay-proposal">Proposal Diff</button>
+          </div>
+          <div class="bay-panel" id="bay-evidence" role="tabpanel">
+            <figure>
+              <img src="../assets/v23-ui-concepts/05-evidence-timeline-cockpit.png" alt="Evidence Timeline Cockpit concept" />
+              <figcaption>Concept 5: Evidence Timeline Cockpit. Use it as Workflow Pro's Evidence view.</figcaption>
+            </figure>
+            <article class="card">
+              <h3>Evidence Timeline View</h3>
+              <p>專門回答「這次 workflow 實際怎麼跑」。顯示節點狀態、時間線、artifact、錯誤、耗時與大腦診斷；適合 run 完後檢查瓶頸與 packet mismatch。</p>
+              <div class="tag-row">
+                <span class="tag">Run evidence</span>
+                <span class="tag">Artifact trail</span>
+                <span class="tag">Diagnosis</span>
+              </div>
+            </article>
+          </div>
+          <div class="bay-panel" id="bay-proposal" role="tabpanel" hidden>
+            <figure>
+              <img src="../assets/v23-ui-concepts/06-proposal-diff-war-room.png" alt="Proposal Diff War Room concept" />
+              <figcaption>Concept 6: Proposal Diff War Room. Use it as Workflow Pro's Proposal Diff view.</figcaption>
+            </figure>
+            <article class="card">
+              <h3>Proposal Diff View</h3>
+              <p>專門回答「大腦建議怎麼改」。比較 current workflow 與 optimized workflow，列出變更理由、風險、缺少能力與 suggested Codex tasks；第一版只產生可審核 proposal，不自動套用。</p>
+              <div class="tag-row">
+                <span class="tag">Current vs optimized</span>
+                <span class="tag">Risk review</span>
+                <span class="tag">Codex tasks</span>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="file-node">
+        <div class="section-head">
+          <h2>新增 file-carrying node。</h2>
+          <p>這個節點讓文字通過時把檔案一起夾帶，並預留轉檔/解壓/提取/編譯能力。</p>
+        </div>
+        <div class="split">
+          <pre>input.file
+  raw file artifact
+  noop compiler now
+  compiler slot later
+  packet attachments
+  downstream LLM/image/video
+
+future compilers
+  compiler.zip.extract
+  compiler.pdf.ocr
+  compiler.image.vision
+  compiler.video.frames
+  compiler.audio.transcript</pre>
+          <div class="card">
+            <h3>為什麼這很重要</h3>
+            <p>語言模型原本不能直接處理的檔案，例如 zip，可以先保存 raw artifact，經 compiler 轉成 LLM 可讀的文字、索引、檔案樹或引用，再夾在 ContextPacket 上往下游傳。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="communication">
+        <div class="section-head">
+          <h2>前端、後端、runtime 的溝通線。</h2>
+          <p>Workflow Pro 必須深度接合功能層，但第一版仍要保持邊界清楚。</p>
+        </div>
+        <pre>WorkflowProSurface
+  -> WorkflowProUiState
+  -> nexus.workflow.v1 draft
+  -> runtimeLite adapter
+  -> runtimeLite state patch
+
+FileNode
+  -> POST /api/v1/artifacts
+  -> ArtifactService.createArtifact
+  -> compiler metadata
+  -> ContextPacket.attachments[]
+
+WorkflowBrainPanel
+  -> WorkflowBrainContextPack
+  -> boot prompt
+  -> proposal schema
+  -> suggested Codex tasks</pre>
+      </section>
+
+      <section class="section" id="files">
+        <div class="section-head">
+          <h2>工程檔案編號。</h2>
+          <p>每個檔案都要有存在理由；人類版看目的，LLM 版看路徑和 contract。</p>
+        </div>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>File</th><th>Reason</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>FP-001</td><td>src/lib/nexus-types.ts</td><td>新增 workflow-pro view mode 與後續 Workflow Pro state types。</td></tr>
+            <tr><td>FP-002</td><td>src/store/nexus-store.ts</td><td>切換與持久化第三 workspace mode。</td></tr>
+            <tr><td>FP-003</td><td>src/lib/workspace-kernel.ts</td><td>匯入/匯出 snapshot sanitize 相容。</td></tr>
+            <tr><td>FP-004</td><td>src/components/nexus/nexus-ops.tsx</td><td>左上三分頁與 body render branch。</td></tr>
+            <tr><td>FP-005</td><td>src/components/nexus/workflow-pro/workflow-pro-surface.tsx</td><td>Workflow Pro 主殼，不複製 Graph。</td></tr>
+            <tr><td>FP-006</td><td>workflow-pro-view-toggle.tsx</td><td>內部 Design / Brain / Evidence / Proposal / Files / Settings 切換。</td></tr>
+            <tr><td>FP-007</td><td>workflow-pro-evidence-view.tsx</td><td>工程圖 5 Evidence Timeline。</td></tr>
+            <tr><td>FP-008</td><td>workflow-pro-proposal-diff-view.tsx</td><td>工程圖 6 Proposal Diff。</td></tr>
+            <tr><td>FP-009</td><td>workflow-pro-file-node-card.tsx</td><td>檔案節點視覺與 compiler 槽。</td></tr>
+            <tr><td>FP-010</td><td>src/lib/workflow-pro/file-node/types.ts</td><td>File packet 與 file node data contract。</td></tr>
+            <tr><td>FP-011</td><td>compiler-registry.ts</td><td>Noop compiler 與未來轉檔器註冊。</td></tr>
+            <tr><td>FP-012</td><td>brain/context-pack.ts</td><td>LLM 可讀的完整狀況包。</td></tr>
+            <tr><td>FP-013</td><td>brain/boot-prompt.ts</td><td>不同 LLM session 仍能理解在線。</td></tr>
+            <tr><td>FP-014</td><td>runtime-lite-adapter.ts</td><td>Workflow Pro 到 runtimeLite 的安全橋。</td></tr>
+            <tr><td>FP-015</td><td>api/v1/workflow-pro/files/route.ts</td><td>未來 file/compiler artifact API。</td></tr>
+            <tr><td>FP-016</td><td>docs/workflow-pro/human-guide.md</td><td>開發者/人類可讀說明書。</td></tr>
+            <tr><td>FP-017</td><td>docs/workflow-pro/llm-guide.md</td><td>Codex/LLM 可讀接手說明書。</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section" id="rounds">
+        <div class="section-head">
+          <h2>啟動後工程輪次。</h2>
+          <p>前置規劃完成後，真正工程建議拆成 8-12 輪，降低改壞 panels/graph 的風險。</p>
+        </div>
+        <div class="grid">
+          <article class="card"><h3>R1-R3</h3><p>View mode foundation、三分頁 UI、Workflow Pro shell。</p></article>
+          <article class="card"><h3>R4-R6</h3><p>Design surface、Evidence/Proposal toggle、file node contract。</p></article>
+          <article class="card"><h3>R7-R9</h3><p>RuntimeLite bridge、Artifact/API connection、Brain Context Pack。</p></article>
+          <article class="card"><h3>R10-R12</h3><p>雙版本說明書、verification、deploy、screenshots。</p></article>
+          <article class="card"><h3>Stop rule</h3><p>如果 mode foundation 影響既有 panels/graph，停止後續 UI，先修 persistence/snapshot。</p></article>
+          <article class="card"><h3>Success rule</h3><p>使用者可切到 Workflow Pro，看設計面、切 Evidence/Proposal、看到 file node placeholder。</p></article>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Workflow Pro preflight blueprint. Planning-only, source runtime untouched.</span>
+        <span><a class="button" href="../v23-planning/v23-planning-report.html?uiConcepts=images2#ui-concepts">Back to V23 UI concepts</a></span>
+      </footer>
+    </main>
+    <script>
+      const bayTabs = Array.from(document.querySelectorAll("[data-bay-target]"));
+      const bayPanels = Array.from(document.querySelectorAll(".bay-panel"));
+      bayTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          const target = tab.getAttribute("data-bay-target");
+          bayTabs.forEach((item) => item.setAttribute("aria-selected", String(item === tab)));
+          bayPanels.forEach((panel) => {
+            panel.hidden = panel.id !== target;
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

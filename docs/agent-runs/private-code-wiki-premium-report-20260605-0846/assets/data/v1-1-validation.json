@@ -1,0 +1,57 @@
+[
+  {
+    "name": "json machine-manifest.json",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "json context-packs/agent-usage-map.json",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "json assets/data/section-quality-scores.json",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "json assets/data/image-metadata.json",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/11-narrative-intelligence-pass.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/12-meaning-quality-gate.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists index.html",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "html has meaning pass",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "html has quality gate",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "html relative refs",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "no external http assets",
+    "pass": true,
+    "detail": ""
+  }
+]

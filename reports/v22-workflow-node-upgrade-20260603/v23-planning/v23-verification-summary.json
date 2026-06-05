@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "nexus.v23.planning.verification.1",
+  "verifiedAt": "2026-06-03",
+  "mode": "planning-only",
+  "checks": [
+    {
+      "name": "V23 planning report contains 30 page sections",
+      "status": "passed",
+      "observedPageCount": 30
+    },
+    {
+      "name": "planning manifest JSON parses",
+      "status": "passed"
+    },
+    {
+      "name": "machine manifest JSON still parses",
+      "status": "passed"
+    },
+    {
+      "name": "Sean report links to V23 planning section",
+      "status": "passed",
+      "url": "http://localhost:4173/sean-execution-report.html#v23-planning"
+    },
+    {
+      "name": "V23 planning report renders through localhost",
+      "status": "passed",
+      "url": "http://localhost:4173/v23-planning/v23-planning-report.html"
+    },
+    {
+      "name": "V23 planning report includes research sources",
+      "status": "passed"
+    },
+    {
+      "name": "V23 planning report includes smooth convergence page",
+      "status": "passed",
+      "pageId": "p30"
+    },
+    {
+      "name": "V23 planning report includes ranked smart UI concepts",
+      "status": "passed",
+      "observedConceptCount": 10
+    },
+    {
+      "name": "V23 planning report embeds generated UI concept images",
+      "status": "passed",
+      "observedImageCount": 10,
+      "assetDirectory": "assets/v23-ui-concepts"
+    },
+    {
+      "name": "V23 planning report includes NEXUS Brain Boot Prompt v1",
+      "status": "passed"
+    },
+    {
+      "name": "completion report expanded beyond short status",
+      "status": "passed"
+    },
+    {
+      "name": "product source untouched by this planning loop",
+      "status": "passed",
+      "note": "Changed files remain under reports/v22-workflow-node-upgrade-20260603/."
+    }
+  ],
+  "knownLimits": [
+    "Chrome automation is unavailable because the detected Chrome profile lacks the Codex Chrome Extension.",
+    "This package is a planning artifact; it does not implement the V23 source code yet."
+  ],
+  "nextEngineeringEstimate": {
+    "ifUserApprovesImplementation": "6-9 high-ROI rounds",
+    "firstRecommendedEngineeringRound": "create src/lib/workflow-contract with types, schema, validator, capability inventory, and runtimeLite bridges"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "schema": "nexus.workflowPro.checkpoint.v1",
+  "generatedAt": "2026-06-04",
+  "phase": "workflow-pro-source-phase",
+  "rounds": ["R74", "R75", "R76", "R77", "R78", "R79", "R80"],
+  "scores": {
+    "engineeringFoundation": 100,
+    "verificationConfidence": 95,
+    "productDepth": 56,
+    "nextPhaseReadiness": 92
+  },
+  "sourceFilesTouched": [
+    {
+      "path": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+      "reason": "Owns the Workflow Pro surface and Active Cockpit Bay."
+    },
+    {
+      "path": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+      "reason": "Protects cockpit mode landmarks and navigation/import safety behavior."
+    },
+    {
+      "path": "docs/workflow-pro/ui-architecture.md",
+      "reason": "Human and LLM-readable UI architecture status."
+    },
+    {
+      "path": "docs/workflow-pro/llm-guide.md",
+      "reason": "Handoff guide for future Codex or LLM agents."
+    }
+  ],
+  "verification": [
+    {
+      "command": "npm test -- src/lib/workflow-pro src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx src/components/nexus/nexus-workspace-primitive.test.ts src/store/nexus-store.test.ts",
+      "status": "passed",
+      "result": "12 files / 51 tests"
+    },
+    {
+      "command": "npm test -- src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+      "status": "passed",
+      "result": "1 file / 4 tests"
+    },
+    {
+      "command": "npm test -- src/lib/workflow-pro src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+      "status": "passed",
+      "result": "10 files / 23 tests"
+    },
+    {
+      "command": "npm run typecheck",
+      "status": "passed",
+      "result": "TypeScript passed"
+    },
+    {
+      "command": "npm run check:auth-boundary",
+      "status": "passed",
+      "result": "blockingFindings empty; 2 files / 22 tests"
+    },
+    {
+      "command": "npm run build",
+      "status": "passed",
+      "result": "Next production build passed"
+    }
+  ],
+  "knownRisks": [
+    "Workflow Pro apply bridge is still operator-gated and not a full Graph mutation UX.",
+    "Workflow Brain context exists, but proposal generation and safe apply are not end-to-end yet.",
+    "Advanced file compilers are planned capability flags, not executable compiler implementations.",
+    "Local Chrome smoke showed a sync issue badge that should be investigated in the next phase.",
+    "Next build emits an edge runtime static-generation warning."
+  ],
+  "nextHighRoiActions": [
+    "Inspect screen-level sync issue and map it to backend trace or sync operation state.",
+    "Add screen-level benchmark JSON load/import/apply/open-graph validation.",
+    "Deepen Workflow Brain prompt pack and proposal output schema.",
+    "Build proposal import/apply diff UX with explicit operator approval.",
+    "Plan persistence for workflow contracts, proposals, apply plans, and benchmark evidence."
+  ]
+}
+

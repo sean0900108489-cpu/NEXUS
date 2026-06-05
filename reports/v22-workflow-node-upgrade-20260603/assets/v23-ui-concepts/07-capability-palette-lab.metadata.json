@@ -1,0 +1,14 @@
+{
+  "index": 7,
+  "title": "Capability Palette Lab",
+  "score": "8.5 / 10",
+  "slug": "capability-palette-lab",
+  "file": "assets/v23-ui-concepts/07-capability-palette-lab.png",
+  "generatedAt": "2026-06-03T03:59:59.610Z",
+  "model": "gpt-image-2",
+  "size": "1536x1024",
+  "quality": "medium",
+  "output_format": "png",
+  "prompt": "Create \"NEXUS Capability Palette Lab\", a workflow builder add-node interface. 16:9.\nLeft: categorized palette for Input, LLM, Image, Video, Compiler, Controller, Artifact. Center: drag preview onto graph canvas. Right: capability details, available status, missing dependency, suggested Codex task.\nShow disabled future cards: Video Model, If/Else Controller, Auto Brain Apply. Make disabled states elegant and informative.\nStyle: dark technical UI, compact cards, clear icons, swatches, no marketing copy.\n\nRendering requirements: Generate a crisp browser-app UI concept mockup, landscape composition, no fake browser chrome, no illegible tiny lorem ipsum, make labels readable, align panels carefully, professional product design artifact for a technical architecture report.",
+  "revised_prompt": null
+}

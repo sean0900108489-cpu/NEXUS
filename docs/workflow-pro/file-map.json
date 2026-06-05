@@ -1,6 +1,6 @@
 {
   "schemaVersion": "nexus.workflowPro.fileMap.v1",
-  "generatedAt": "2026-06-03",
+  "generatedAt": "2026-06-04",
   "groups": [
     {
       "id": "WPD-001",
@@ -82,6 +82,36 @@
     },
     {
       "id": "WPD-014",
+      "path": "docs/workflow-pro/account-matrix-live-audit.manifest.json",
+      "kind": "machine-manifest",
+      "reason": "R89 read-only live Supabase schema, policy, advisor, permission-audit aggregate, and local live auth probe evidence; it complements but does not replace the preview screen matrix."
+    },
+    {
+      "id": "WPD-015",
+      "path": "docs/workflow-pro/strict-preview-live-probe.manifest.json",
+      "kind": "machine-manifest",
+      "reason": "R90 Vercel strict preview live probe readiness evidence, including deployment-protection bypass support and public production domain image-gen drift."
+    },
+    {
+      "id": "WPD-016",
+      "path": "docs/workflow-pro/image-generation-production-boundary.manifest.json",
+      "kind": "machine-manifest",
+      "reason": "R91 formal protected image generation route evidence, including Supabase session vs provider runtime credential separation and production access rules."
+    },
+    {
+      "id": "WPD-017",
+      "path": "docs/workflow-pro/account-matrix-screen-run.manifest.json",
+      "kind": "machine-manifest",
+      "reason": "R93 pending 100-point owner/editor/viewer/new-authenticated-account screen-run evidence record; filled only by real browser operation."
+    },
+    {
+      "id": "WPT-001",
+      "path": "scripts/workflow-pro-account-matrix-runner.mjs",
+      "kind": "tooling-script",
+      "reason": "Generates and validates the Workflow Pro account matrix screen-run evidence manifest without storing secrets or marking unperformed screen work as passed."
+    },
+    {
+      "id": "WPD-018",
       "path": "docs/workflow-pro/supabase-auth-advisor-notes.md",
       "kind": "backend-doc",
       "reason": "Records live Supabase advisor interpretation, expected server-only RLS no-policy findings, v22 RLS performance hardening, and multi-account auth rules."

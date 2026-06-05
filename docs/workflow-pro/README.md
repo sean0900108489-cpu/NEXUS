@@ -18,11 +18,16 @@ Workflow Pro is the professional workflow design layer for NEXUS. It should sit 
 7. `backend-persistence-plan.md` - artifact, workspace state, Supabase, and Vercel boundaries.
 8. `implementation-rounds.md` - staged execution plan and acceptance gates.
 9. `foundation-benchmark-verification.md` - screen-verified 30-point foundation benchmark result and protected runtime rules.
-10. `source-landing-map.md` - dirty-tree and commit-bucket landing map for source, docs, reports, tooling, and next verification.
-11. `account-matrix-preview-verification.md` - owner/editor/viewer/new-account preview verification blueprint.
-12. `account-matrix-preview-verification.manifest.json` - machine-readable account matrix and preview gate.
-13. `supabase-auth-advisor-notes.md` - live Supabase advisor interpretation, server-only table rules, and v22 RLS performance hardening note.
-14. `file-map.json` - numbered file ownership map for Codex/LLM continuation.
+10. `foundation-benchmark-verification.manifest.json` - machine-readable R83 30-point gate evidence.
+11. `source-landing-map.md` - dirty-tree and commit-bucket landing map for source, docs, reports, tooling, and next verification.
+12. `account-matrix-preview-verification.md` - owner/editor/viewer/new-account preview verification blueprint.
+13. `account-matrix-preview-verification.manifest.json` - machine-readable account matrix and preview gate.
+14. `account-matrix-live-audit.manifest.json` - R89 live Supabase schema/advisor/audit aggregate and local live auth probe evidence.
+15. `strict-preview-live-probe.manifest.json` - R90/R92 Vercel preview protection split, clean preview deployment, and cookie-aware strict probe evidence.
+16. `image-generation-production-boundary.manifest.json` - R91 formal protected image generation route and credential-boundary evidence.
+17. `account-matrix-screen-run.manifest.json` - R93 pending 100-point owner/editor/viewer/new-account screen-run evidence record.
+18. `supabase-auth-advisor-notes.md` - live Supabase advisor interpretation, server-only table rules, and v22 RLS performance hardening note.
+19. `file-map.json` - numbered file ownership map for Codex/LLM continuation.
 
 ## Related Existing Docs
 

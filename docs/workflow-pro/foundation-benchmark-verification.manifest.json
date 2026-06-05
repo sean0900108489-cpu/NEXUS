@@ -1,0 +1,358 @@
+{
+  "schema": "nexus.workflowPro.foundationBenchmarkVerification.v1",
+  "generatedAt": "2026-06-04T10:08:00+10:00",
+  "status": "preview-editor-screen-verified",
+  "score": {
+    "earned": 30,
+    "max": 30,
+    "passed": true
+  },
+  "environment": {
+    "branch": "v22",
+    "url": "https://nexus-j78jwuczs-sean-s-projects10.vercel.app",
+    "runner": "Computer Use + Chrome",
+    "syncStatusAfterRun": "SYNCED"
+  },
+  "latestPreviewRevalidation": {
+    "id": "R101-preview-new-account-c-request-scoped-artifacts",
+    "status": "passed",
+    "previewUrl": "https://nexus-l6qngklm4-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_94S7au6L9ZwRe6scVGi9QNotCmKt",
+    "workspaceId": "workspace_427edd5d7a4c452582eed3fcd99e0d29",
+    "actorClass": "fresh-authenticated-account",
+    "operatorPath": [
+      "Sign up from Chrome screen",
+      "Open Workflow Pro",
+      "Load C / Image Reference Reverse Fan-Out benchmark JSON",
+      "Import Pasted JSON",
+      "Apply Preview",
+      "Graph",
+      "Start All"
+    ],
+    "screenEvidence": {
+      "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r101-benchmark-c-success-request-scoped-artifacts.png",
+      "allNodesSuccess": true,
+      "runtimeBadge": "SUCCESS WORKFLOW RUNTIME LITE",
+      "generatedCounter": 4,
+      "imageModel": "img2",
+      "quality": "standard",
+      "aspectRatio": "16:9",
+      "syncStatusAfterLogin": "SYNCED"
+    },
+    "vercelLogEvidence": {
+      "agentStream200Count": 5,
+      "imageGen200Count": 4,
+      "artifactPost200Count": 4,
+      "finalAssetRead200Count": 4,
+      "notes": [
+        "Pre-login 401s against the default workspace are expected before authentication.",
+        "A transient pre-creation asset read returned 404 before the asset was available; final asset reads passed."
+      ]
+    },
+    "supabaseEvidence": {
+      "workspaceHasOwner": true,
+      "workspaceRole": "owner",
+      "generatedImageRows": 4,
+      "artifactSource": "workflow-runtime-lite",
+      "nodeIds": [
+        "bench-c-seed-image",
+        "bench-c-image-1",
+        "bench-c-image-2",
+        "bench-c-image-3"
+      ],
+      "modelId": "img2",
+      "quality": "standard",
+      "aspectRatio": "16:9"
+    }
+  },
+  "latestStrictAspectDownloadGate": {
+    "id": "R102-preview-new-account-b-strict-16x9-generated-history-download",
+    "status": "passed",
+    "previewUrl": "https://nexus-7o1t190yz-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_vVuVN5m9HS7bypFdkH9mDyxNzEBc",
+    "workspaceId": "workspace_48552da0d4364da797280ef407a1a2d8",
+    "actorClass": "fresh-authenticated-account",
+    "benchmark": "B",
+    "operatorPath": [
+      "Sign in from Chrome screen",
+      "Open Workflow Pro",
+      "Load B / Input -> LLM -> Image Model -> Output benchmark JSON",
+      "Import Pasted JSON",
+      "Apply Preview",
+      "Graph",
+      "Start All",
+      "Open generated history",
+      "Download generated-image asset"
+    ],
+    "screenEvidence": {
+      "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r102-benchmark-b-strict-16x9-generated-history.png",
+      "allNodesSuccess": true,
+      "runtimeBadge": "SUCCESS WORKFLOW RUNTIME LITE",
+      "generatedCounter": 1,
+      "imageModel": "img2",
+      "quality": "standard",
+      "aspectRatio": "16:9",
+      "syncStatusAfterRun": "SYNCED"
+    },
+    "downloadEvidence": {
+      "savedFile": "/Users/sean/Downloads/img_dd2be30b-7b7c-433a-9130-168e50c422b5.png",
+      "recheckFile": "/Users/sean/Downloads/img_dd2be30b-7b7c-433a-9130-168e50c422b5 (1).png",
+      "mimeEvidence": "PNG image data",
+      "pixelWidth": 1536,
+      "pixelHeight": 864,
+      "ratio": "16:9",
+      "strictProductRatioVerified": true
+    },
+    "vercelLogEvidence": {
+      "workspaceSessionStatus": 200,
+      "agentStreamStatus": 200,
+      "imageGenerationStatus": 200,
+      "artifactPostStatus": 200,
+      "assetReadStatus": 200,
+      "notes": [
+        "Pre-login 401s against the default workspace are expected before authentication.",
+        "Post-login image generation, artifact persistence, sync, and asset reads all returned 200."
+      ]
+    },
+    "supabaseEvidence": {
+      "workspaceHasOwner": true,
+      "workspaceRole": "owner",
+      "generatedImageRows": 1,
+      "artifactId": "73a78e47-711a-4e66-a56d-f4897e8aa38b",
+      "contentUrl": "/api/image-gen/assets/img_dd2be30b-7b7c-433a-9130-168e50c422b5",
+      "artifactSource": "workflow-runtime-lite",
+      "nodeId": "bench-b-image",
+      "runId": "run_6d4e80d1-2144-4b4b-aa0d-752f0105ac68",
+      "modelId": "img2",
+      "quality": "standard",
+      "aspectRatio": "16:9"
+    }
+  },
+  "operatorPath": [
+    "Workflow Pro fixture button",
+    "Import Pasted JSON",
+    "Apply Preview",
+    "Graph",
+    "Start All"
+  ],
+  "benchmarks": [
+    {
+      "id": "baseline-linear",
+      "label": "A",
+      "score": 10,
+      "passed": true,
+      "flow": [
+        "input.text",
+        "model.llm",
+        "model.llm",
+        "output.text"
+      ],
+      "screenEvidence": {
+        "allNodesSuccess": true,
+        "realImageGenerated": false,
+        "runtimeBadge": "SUCCESS WORKFLOW RUNTIME LITE"
+      },
+      "latestR109EditorScreenPass": true
+    },
+    {
+      "id": "llm-to-image",
+      "label": "B",
+      "score": 10,
+      "passed": true,
+      "flow": [
+        "input.text",
+        "model.llm",
+        "model.image",
+        "output.text"
+      ],
+      "imageSettings": {
+        "model": "img2",
+        "quality": "standard",
+        "aspectRatio": "16:9"
+      },
+      "screenEvidence": {
+        "allNodesSuccess": true,
+        "realImageGenerated": true,
+        "runtimeBadge": "SUCCESS WORKFLOW RUNTIME LITE",
+        "generatedCounterBefore": 7,
+        "generatedCounterAfter": 8
+      },
+      "latestR109EditorScreenPass": true
+    },
+    {
+      "id": "image-reverse-fanout",
+      "label": "C",
+      "score": 10,
+      "passed": true,
+      "flow": [
+        "input.text",
+        "model.llm",
+        "model.image",
+        "model.llm",
+        "3x model.llm",
+        "3x model.image",
+        "3x output.text"
+      ],
+      "imageSettings": {
+        "model": "img2",
+        "quality": "standard",
+        "aspectRatio": "16:9"
+      },
+      "screenEvidence": {
+        "runtimeNodes": 13,
+        "runtimeEdges": 12,
+        "outputs": 6,
+        "allNodesSuccess": true,
+        "seedImageGenerated": true,
+        "branchImagesGenerated": 3,
+        "outputImagesRendered": 3,
+        "generatedCounterBefore": 3,
+        "generatedCounterAfter": 7,
+        "runtimeBadge": "SUCCESS WORKFLOW RUNTIME LITE"
+      },
+      "currentRuntimeLimits": [
+        "Runtime Lite executes fan-out groups sequentially today.",
+        "Reverse planning consumes text-based image URL and artifact metadata when native vision input is unavailable."
+      ],
+      "latestR109EditorScreenPass": true
+    }
+  ],
+  "negativeEvidence": {
+    "permissionDenied": false,
+    "providerApiDenied": false,
+    "syncPayloadTooLarge": false,
+    "schemaMismatch": false,
+    "runtimeTimeout": false
+  },
+  "generatedAssetRouteEvidence": {
+    "route": "/api/image-gen/assets/:assetId",
+    "status": "screen-verified",
+    "headers": [
+      "Content-Type",
+      "Content-Disposition",
+      "X-Content-Type-Options",
+      "X-Nexus-Generated-Asset-Id",
+      "X-Nexus-Generated-Asset-Byte-Length"
+    ],
+    "browserDownloadClickRetested": true,
+    "screenPath": [
+      "Workflow Pro",
+      "Evidence bay",
+      "Right dock generated records",
+      "First generated-image Download",
+      "macOS save dialog",
+      "Save"
+    ],
+    "savedFile": {
+      "path": "~/Downloads/img_5b4969f6-5c8c-47cc-9ea7-9aea2f95d577.png",
+      "mimeEvidence": "PNG image data",
+      "dimensions": "1536 x 1024",
+      "chromeDownloadStatus": "1,937 KB complete"
+    }
+  },
+  "commands": [
+    {
+      "command": "npm test -- src/lib/workflow-pro/foundation-benchmark-fixtures.test.ts src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx src/store/nexus-store.test.ts",
+      "result": "passed",
+      "summary": "3 files / 33 tests"
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "npm run build",
+      "result": "passed",
+      "summary": "Existing edge-runtime static-generation warning only."
+    },
+    {
+      "command": "npm test -- src/app/api/image-gen/route.test.ts",
+      "result": "passed",
+      "summary": "1 file / 3 tests; generated asset route headers guarded."
+    },
+    {
+      "command": "npm test -- src/components/nexus/nexus-workspace-chat-composer-shell.test.ts src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx src/app/api/image-gen/route.test.ts",
+      "result": "passed",
+      "summary": "3 files / 17 tests; generated-record download fallback and Evidence bay copy guarded."
+    }
+  ],
+  "remainingPreviewReadyGaps": [
+    "Preview URL strict live auth probe",
+    "Owner/editor/viewer/new-account matrix"
+  ],
+  "nextRequiredGate": "account-matrix authorization and generated-download verification",
+  "latestEditorFullFoundationGate": {
+    "id": "R109-editor-preview-foundation-a-b-c-30of30",
+    "status": "passed",
+    "previewUrl": "https://nexus-j78jwuczs-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_2frW4TmEgZkr3rSy4nXUunwvETqR",
+    "actorClass": "shared-workspace-editor",
+    "operatorPath": [
+      "Sign in as editor actor from Chrome screen",
+      "Open Workflow Pro",
+      "Load C / Image Reference Reverse Fan-Out benchmark JSON",
+      "Import Pasted JSON",
+      "Apply Preview",
+      "Graph",
+      "Start All and wait without hidden timeout",
+      "Return to Workflow Pro",
+      "Load A / Input -> LLM -> LLM -> Output benchmark JSON",
+      "Import Pasted JSON",
+      "Apply Preview",
+      "Graph",
+      "Start All",
+      "Return to Workflow Pro",
+      "Load B / Input -> LLM -> Image Model -> Output benchmark JSON",
+      "Import Pasted JSON",
+      "Apply Preview",
+      "Graph",
+      "Start All"
+    ],
+    "screenEvidence": {
+      "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r109-editor-b-success-foundation-30of30.png",
+      "benchmarkA": {
+        "nodes": 4,
+        "edges": 3,
+        "outputs": 1,
+        "allNodesSuccess": true,
+        "runtimeBadge": "SUCCESS WORKFLOW RUNTIME LITE"
+      },
+      "benchmarkB": {
+        "nodes": 4,
+        "edges": 3,
+        "outputs": 2,
+        "allNodesSuccess": true,
+        "generatedCounterBefore": 7,
+        "generatedCounterAfter": 8,
+        "imageModel": "img2",
+        "quality": "standard",
+        "aspectRatio": "16:9",
+        "runtimeBadge": "SUCCESS WORKFLOW RUNTIME LITE"
+      },
+      "benchmarkC": {
+        "nodes": 13,
+        "edges": 12,
+        "outputs": 6,
+        "allNodesSuccess": true,
+        "generatedCounterBefore": 3,
+        "generatedCounterAfter": 7,
+        "imageModel": "img2",
+        "quality": "standard",
+        "aspectRatio": "16:9",
+        "runtimeBadge": "SUCCESS WORKFLOW RUNTIME LITE"
+      },
+      "generatedCounterAfterAllRuns": 8
+    },
+    "backendEvidence": {
+      "generatedImageArtifacts": 8,
+      "durableGeneratedImageArtifacts": 6,
+      "durableGeneratedImageBytes": 18818400,
+      "storageObjects": 6,
+      "storageMetadataBytes": 18818400,
+      "notes": [
+        "Supabase artifact and storage counts match after the editor screen-operated A/B/C run.",
+        "No Permission denied, provider API denial, schema mismatch, sync payload too large, or hidden runtime timeout was observed during R109."
+      ]
+    }
+  }
+}

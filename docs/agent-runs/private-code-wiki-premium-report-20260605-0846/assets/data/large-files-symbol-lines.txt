@@ -1,0 +1,1309 @@
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:20:  type ChangeEvent,
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:21:  type ReactNode,
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:31:  type WorkflowProBrainReviewProposalValidationResult,
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:38:  type WorkflowProContractValidationResult,
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:44:  type WorkflowProFoundationBenchmarkId,
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:47:type WorkflowProMetric = {
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:52:export type WorkflowProSurfaceProps = {
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:75:const workflowProModes = [
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:83:export type WorkflowProMode = (typeof workflowProModes)[number];
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:85:const workflowProModeDescriptions: Record<WorkflowProMode, string> = {
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:94:export function WorkflowProSurface({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:116:  const importInputRef = useRef<HTMLInputElement | null>(null);
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:117:  const importReviewPanelRef = useRef<HTMLDivElement | null>(null);
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:118:  const benchmarkFixtures = useMemo(
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:127:  const contractValidation = validateWorkflowProContractDraft(contractDraft);
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:128:  const applyReady =
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:132:  const metrics: WorkflowProMetric[] = [
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:144:    const scrollTimer = window.setTimeout(() => {
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:703:  async function handleImportFileChange(event: ChangeEvent<HTMLInputElement>) {
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:704:    const file = event.currentTarget.files?.[0] ?? null;
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:723:  function handleLoadBenchmarkFixture(id: WorkflowProFoundationBenchmarkId) {
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:728:  function handleImportPastedContract() {
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:729:    const sourceName =
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:739:function WorkflowProActiveModeBay({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:766:  const bayItems = getWorkflowProModeBayItems({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:839:function WorkflowProActiveModeDetails({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:871:  const brainProposalIsStale =
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:875:  function handleValidateBrainProposal() {
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:876:    const validation = parseWorkflowProBrainReviewProposalText({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:884:  function handleImportOptimizedBrainWorkflow() {
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:885:    const optimizedWorkflow =
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1061:function WorkflowProDetailGrid({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1086:function WorkflowProEvidenceGateSummary({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1093:  const gates = [
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1170:function WorkflowProDesignGate({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1177:  const steps = [
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1228:function WorkflowProProposalReviewQueue({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1233:  const reviewItems = proposalDiff.changes.length
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1278:function WorkflowProBrainProposalIntake({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1297:  const hasOptimizedWorkflow =
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1300:  const validationStatus = brainProposalIsStale
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1307:  const analysisExcerpt =
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1312:  const issues = brainProposalValidation
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1443:function WorkflowProFilePipelinePath({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1448:  const steps = [
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1498:function WorkflowProCapabilityRegistry({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1503:  const groups = [
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1578:function getWorkflowProModeBayItems({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1643:function getWorkflowProModeNextMove({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1686:function WorkflowProLane({
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1706:function WorkflowProRuntimeDatum({
+src/components/nexus/nexus-ops.tsx:49:  type CSSProperties,
+src/components/nexus/nexus-ops.tsx:50:  type FormEvent,
+src/components/nexus/nexus-ops.tsx:51:  type ReactNode,
+src/components/nexus/nexus-ops.tsx:126:  type ImportedWorkspaceStyleReviewState,
+src/components/nexus/nexus-ops.tsx:127:  type WorkspaceStylePayloadV1,
+src/components/nexus/nexus-ops.tsx:128:  type WorkspaceStylePayloadExportStatus,
+src/components/nexus/nexus-ops.tsx:129:  type WorkspaceStylePayloadImportStatus,
+src/components/nexus/nexus-ops.tsx:130:  type WorkspaceThemeStyleControlsV1,
+src/components/nexus/nexus-ops.tsx:137:  type ProductionPreviewApplyTransaction,
+src/components/nexus/nexus-ops.tsx:138:  type ProductionPreviewInlineValueSnapshot,
+src/components/nexus/nexus-ops.tsx:139:  type ProductionPreviewTargetFacts,
+src/components/nexus/nexus-ops.tsx:167:  type WorkspaceComposerActionId,
+src/components/nexus/nexus-ops.tsx:172:  type WorkspaceComposerMode,
+src/components/nexus/nexus-ops.tsx:173:  type WorkspaceComposerModeByAgentId,
+src/components/nexus/nexus-ops.tsx:180:  type WorkspaceComposerImageSettings,
+src/components/nexus/nexus-ops.tsx:189:  type WorkflowProRuntimeEvidenceReport,
+src/components/nexus/nexus-ops.tsx:193:  type WorkflowProRunHistoryGroupsReport,
+src/components/nexus/nexus-ops.tsx:205:  type WorkflowProContractImportReview,
+src/components/nexus/nexus-ops.tsx:221:  type WorkflowDispatchDecision,
+src/components/nexus/nexus-ops.tsx:222:  type WorkflowAgentSnapshot,
+src/components/nexus/nexus-ops.tsx:236:const Rnd = dynamic(() => import("react-rnd").then((module) => module.Rnd), {
+src/components/nexus/nexus-ops.tsx:240:const EMPTY_AGENTS: NexusAgent[] = [];
+src/components/nexus/nexus-ops.tsx:241:const EMPTY_GRAPH = { nodes: [], edges: [] };
+src/components/nexus/nexus-ops.tsx:242:const SANDBOX_MIN_SPLIT = 20;
+src/components/nexus/nexus-ops.tsx:243:const SANDBOX_MAX_SPLIT = 80;
+src/components/nexus/nexus-ops.tsx:245:type LegoThemeKey = keyof WorkspaceThemeConfig;
+src/components/nexus/nexus-ops.tsx:246:type WorkspaceSessionRole = WorkspaceSessionEnsureResponse["role"];
+src/components/nexus/nexus-ops.tsx:248:function isWorkspaceReadOnlyRole(role: WorkspaceSessionRole | null | undefined) {
+src/components/nexus/nexus-ops.tsx:251:type AgentHistoricalPage = {
+src/components/nexus/nexus-ops.tsx:259:const LEGO_THEME_DEFAULTS: Required<WorkspaceThemeConfig> = {
+src/components/nexus/nexus-ops.tsx:269:const LEGO_THEME_VARIABLES: Record<LegoThemeKey, string> = {
+src/components/nexus/nexus-ops.tsx:279:type WorkspaceThemeLivePreviewStatus =
+src/components/nexus/nexus-ops.tsx:286:type WorkspaceThemeLivePreviewTargetStatus = "ready" | "missing" | "blocked";
+src/components/nexus/nexus-ops.tsx:288:type WorkspaceThemeLivePreviewState = {
+src/components/nexus/nexus-ops.tsx:302:type WorkspaceThemeSeedApplyResult =
+src/components/nexus/nexus-ops.tsx:317:const workspaceThemeLivePreviewInitialState: WorkspaceThemeLivePreviewState = {
+src/components/nexus/nexus-ops.tsx:331:const workspaceThemeLivePreviewNetworkBaselineWindowId =
+src/components/nexus/nexus-ops.tsx:333:const WORKSPACE_ATTACHMENT_BINARY_INLINE_MAX_BYTES = 4 * 1024 * 1024;
+src/components/nexus/nexus-ops.tsx:334:const WORKSPACE_ATTACHMENT_CONTEXT_MAX_CHARS = 12_000;
+src/components/nexus/nexus-ops.tsx:335:const WORKSPACE_ATTACHMENT_TEXT_EXTENSIONS = new Set([
+src/components/nexus/nexus-ops.tsx:353:type RightDockPanelId =
+src/components/nexus/nexus-ops.tsx:365:type WorkspaceSize = {
+src/components/nexus/nexus-ops.tsx:370:type ClientStreamEvent =
+src/components/nexus/nexus-ops.tsx:383:type PaletteCommand = {
+src/components/nexus/nexus-ops.tsx:391:const capabilityOptions: Array<{
+src/components/nexus/nexus-ops.tsx:402:function cx(...classes: Array<string | false | null | undefined>) {
+src/components/nexus/nexus-ops.tsx:406:function clampNumber(value: number, min: number, max: number) {
+src/components/nexus/nexus-ops.tsx:410:function createWorkspaceStylePayloadImportNotice(
+src/components/nexus/nexus-ops.tsx:428:function createWorkspaceStylePayloadExportNotice(
+src/components/nexus/nexus-ops.tsx:442:function applyLegoThemeConfigToDom(config?: WorkspaceThemeConfig) {
+src/components/nexus/nexus-ops.tsx:447:  const rootStyle = document.documentElement.style;
+src/components/nexus/nexus-ops.tsx:458:      const value = config[key];
+src/components/nexus/nexus-ops.tsx:459:      const nextValue =
+src/components/nexus/nexus-ops.tsx:471:function createWorkspaceThemeStylePayloadForExport(
+src/components/nexus/nexus-ops.tsx:475:  const controlsPayload = {
+src/components/nexus/nexus-ops.tsx:479:  const candidate: WorkspaceStylePayloadV1 = {
+src/components/nexus/nexus-ops.tsx:488:  const decision = normalizeWorkspaceStylePayload(candidate);
+src/components/nexus/nexus-ops.tsx:493:function getWorkspaceThemePreviewTargets() {
+src/components/nexus/nexus-ops.tsx:505:function resolveWorkspaceThemeControlsForBoot(
+src/components/nexus/nexus-ops.tsx:509:    const importedControls = extractWorkspaceThemeStyleControlsV1(
+src/components/nexus/nexus-ops.tsx:521:function applyWorkspaceThemeControlsToProductionTarget(
+src/components/nexus/nexus-ops.tsx:524:  const variableResult = createWorkspaceThemeStylePreviewVariablesV1(controls);
+src/components/nexus/nexus-ops.tsx:536:  const targets = getWorkspaceThemePreviewTargets();
+src/components/nexus/nexus-ops.tsx:537:  const target = targets[0] ?? null;
+src/components/nexus/nexus-ops.tsx:538:  const targetFacts = createWorkspaceThemeTargetFacts(targets, target);
+src/components/nexus/nexus-ops.tsx:539:  const plan = createProductionPreviewApplyPlan({
+src/components/nexus/nexus-ops.tsx:592:function createWorkspaceThemeTargetFacts(
+src/components/nexus/nexus-ops.tsx:596:  const tagName = target?.tagName.toLowerCase() ?? "";
+src/components/nexus/nexus-ops.tsx:597:  const rect = target?.getBoundingClientRect();
+src/components/nexus/nexus-ops.tsx:612:function snapshotWorkspaceThemeInlineValues(
+src/components/nexus/nexus-ops.tsx:618:      const value = target.style.getPropertyValue(name);
+src/components/nexus/nexus-ops.tsx:625:function createWorkspaceThemePreviewId(kind: "session" | "transaction") {
+src/components/nexus/nexus-ops.tsx:629:function getWorkspaceThemePreviewNow() {
+src/components/nexus/nexus-ops.tsx:633:function roundWorkspaceThemePreviewDuration(value: number) {
+src/components/nexus/nexus-ops.tsx:637:function compareWorkspaceThemeControls(
+src/components/nexus/nexus-ops.tsx:644:function formatTime(value: string) {
+src/components/nexus/nexus-ops.tsx:651:function wait(ms: number) {
+src/components/nexus/nexus-ops.tsx:655:function getCapabilityType(agent: NexusAgent): AgentCapabilityType {
+src/components/nexus/nexus-ops.tsx:659:function getModelLabel(modelId: string) {
+src/components/nexus/nexus-ops.tsx:663:function getProviderLabel(providerId: string | undefined) {
+src/components/nexus/nexus-ops.tsx:667:function uniqueModelIds(models: Array<string | undefined>) {
+src/components/nexus/nexus-ops.tsx:677:function getAgentModelGroups(agent: NexusAgent) {
+src/components/nexus/nexus-ops.tsx:678:  const capabilityType = getCapabilityType(agent);
+src/components/nexus/nexus-ops.tsx:679:  const currentModel = agent.model?.trim();
+src/components/nexus/nexus-ops.tsx:680:  const supportedModels = agent.capabilities?.supportedModels ?? [];
+src/components/nexus/nexus-ops.tsx:681:  const catalogModels = getModelOptionsForCapability(capabilityType).map(
+src/components/nexus/nexus-ops.tsx:685:  const models = uniqueModelIds([currentModel, ...supportedModels, ...catalogModels]);
+src/components/nexus/nexus-ops.tsx:686:  const grouped = models.reduce<Array<{ label: string; models: string[] }>>(
+src/components/nexus/nexus-ops.tsx:688:      const option = getModelOption(modelId);
+src/components/nexus/nexus-ops.tsx:689:      const providerId = option?.provider ?? agent.provider;
+src/components/nexus/nexus-ops.tsx:690:      const label = getProviderLabel(providerId);
+src/components/nexus/nexus-ops.tsx:691:      const group = groups.find((candidate) => candidate.label === label);
+src/components/nexus/nexus-ops.tsx:709:type ServerProviderStatus = {
+src/components/nexus/nexus-ops.tsx:722:function hasServerProviderCredential(
+src/components/nexus/nexus-ops.tsx:730:  const normalizedProvider = providerId?.trim().toLowerCase();
+src/components/nexus/nexus-ops.tsx:740:function resolveRuntimeCredentialForModel(
+src/components/nexus/nexus-ops.tsx:746:  const providerId = getProviderIdForModel(model, fallbackProvider);
+src/components/nexus/nexus-ops.tsx:747:  const provider = getProviderOption(providerId);
+src/components/nexus/nexus-ops.tsx:748:  const providerCredential = authVault.providerCredentials?.[providerId];
+src/components/nexus/nexus-ops.tsx:749:  const apiKey =
+src/components/nexus/nexus-ops.tsx:753:  const baseUrl =
+src/components/nexus/nexus-ops.tsx:758:  const serverCredentialConfigured =
+src/components/nexus/nexus-ops.tsx:773:function isMediaCapability(
+src/components/nexus/nexus-ops.tsx:779:function isSandboxCapability(capabilityType: AgentCapabilityType) {
+src/components/nexus/nexus-ops.tsx:783:function shouldPreserveNativeUndo(target: EventTarget | null) {
+src/components/nexus/nexus-ops.tsx:799:function getLatestMediaArtifact(agent: NexusAgent): AgentMediaArtifact | undefined {
+src/components/nexus/nexus-ops.tsx:803:function normalizeSandboxUrl(value: string) {
+src/components/nexus/nexus-ops.tsx:804:  const trimmed = value.trim();
+src/components/nexus/nexus-ops.tsx:810:  const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+src/components/nexus/nexus-ops.tsx:813:    const url = new URL(candidate);
+src/components/nexus/nexus-ops.tsx:823:async function readStreamEvents(
+src/components/nexus/nexus-ops.tsx:831:  const reader = response.body.getReader();
+src/components/nexus/nexus-ops.tsx:832:  const decoder = new TextDecoder();
+src/components/nexus/nexus-ops.tsx:843:    const packets = buffer.split("\n\n");
+src/components/nexus/nexus-ops.tsx:847:      const line = packet
+src/components/nexus/nexus-ops.tsx:864:function IconButton({
+src/components/nexus/nexus-ops.tsx:895:function resolveAgentsStreamMode(
+src/components/nexus/nexus-ops.tsx:906:function syncSupabaseSessionUser(user: IAuthVault["user"]) {
+src/components/nexus/nexus-ops.tsx:907:  const currentUser = useNexusStore.getState().authVault.user;
+src/components/nexus/nexus-ops.tsx:923:async function resolveSupabaseAccessToken() {
+src/components/nexus/nexus-ops.tsx:937:function streamModeTone(streamMode: StreamMode) {
+src/components/nexus/nexus-ops.tsx:949:function artifactPreview(value: string) {
+src/components/nexus/nexus-ops.tsx:950:  const compact = value.replace(/\s+/g, " ").trim();
+src/components/nexus/nexus-ops.tsx:959:function formatFileSize(bytes: number) {
+src/components/nexus/nexus-ops.tsx:971:function getFileExtension(fileName: string) {
+src/components/nexus/nexus-ops.tsx:972:  const dotIndex = fileName.lastIndexOf(".");
+src/components/nexus/nexus-ops.tsx:977:function isTextLikeAttachmentFile(file: File) {
+src/components/nexus/nexus-ops.tsx:986:function readFileAsDataUrl(file: File) {
+src/components/nexus/nexus-ops.tsx:988:    const reader = new FileReader();
+src/components/nexus/nexus-ops.tsx:1003:function getMimeTypeFromDataUrl(url: string) {
+src/components/nexus/nexus-ops.tsx:1007:function inferDownloadExtension(input: {
+src/components/nexus/nexus-ops.tsx:1012:  const mimeType = input.mimeType || (input.url ? getMimeTypeFromDataUrl(input.url) : "");
+src/components/nexus/nexus-ops.tsx:1045:function sanitizeDownloadFileName(value: string) {
+src/components/nexus/nexus-ops.tsx:1055:function appendDownloadExtension(fileName: string, extension: string) {
+src/components/nexus/nexus-ops.tsx:1061:function createMediaDownloadFilename(artifact: AgentMediaArtifact) {
+src/components/nexus/nexus-ops.tsx:1062:  const extension = inferDownloadExtension({
+src/components/nexus/nexus-ops.tsx:1066:  const baseName = sanitizeDownloadFileName(
+src/components/nexus/nexus-ops.tsx:1073:function createArtifactDownloadFilename(artifact: ArtifactVaultRecord) {
+src/components/nexus/nexus-ops.tsx:1074:  const extension = inferDownloadExtension({
+src/components/nexus/nexus-ops.tsx:1079:  const baseName = sanitizeDownloadFileName(
+src/components/nexus/nexus-ops.tsx:1086:function downloadUrlPayload(url: string, fileName: string) {
+src/components/nexus/nexus-ops.tsx:1087:  const link = document.createElement("a");
+src/components/nexus/nexus-ops.tsx:1097:function downloadTextPayload(text: string, fileName: string, mimeType?: string | null) {
+src/components/nexus/nexus-ops.tsx:1098:  const blob = new Blob([text], { type: mimeType ?? "text/plain;charset=utf-8" });
+src/components/nexus/nexus-ops.tsx:1099:  const url = URL.createObjectURL(blob);
+src/components/nexus/nexus-ops.tsx:1108:async function downloadAuthenticatedUrlPayload(
+src/components/nexus/nexus-ops.tsx:1116:  const headers = new Headers();
+src/components/nexus/nexus-ops.tsx:1126:  const accessToken = await resolveBrowserSupabaseAccessToken();
+src/components/nexus/nexus-ops.tsx:1132:  const response = await fetch(url, {
+src/components/nexus/nexus-ops.tsx:1141:  const blob = await response.blob();
+src/components/nexus/nexus-ops.tsx:1142:  const objectUrl = URL.createObjectURL(blob);
+src/components/nexus/nexus-ops.tsx:1151:async function resolveBrowserSupabaseAccessToken() {
+src/components/nexus/nexus-ops.tsx:1162:function downloadMediaArtifact(artifact: AgentMediaArtifact) {
+src/components/nexus/nexus-ops.tsx:1166:function isMockGeneratedMediaUrl(url: string | null | undefined) {
+src/components/nexus/nexus-ops.tsx:1174:function isGeneratedArtifactRecord(artifact: ArtifactVaultRecord) {
+src/components/nexus/nexus-ops.tsx:1181:function isTransientArtifactRecord(artifact: ArtifactVaultRecord) {
+src/components/nexus/nexus-ops.tsx:1185:function createWorkspaceAttachmentMessagePayload(
+src/components/nexus/nexus-ops.tsx:1189:  const trimmed = content.trim();
+src/components/nexus/nexus-ops.tsx:1190:  const readyAttachments = attachments.filter(
+src/components/nexus/nexus-ops.tsx:1198:  const attachmentBlock = readyAttachments
+src/components/nexus/nexus-ops.tsx:1200:      const source = attachment.textContent ?? attachment.previewText;
+src/components/nexus/nexus-ops.tsx:1201:      const body =
+src/components/nexus/nexus-ops.tsx:1208:      const truncated = source.length > WORKSPACE_ATTACHMENT_CONTEXT_MAX_CHARS;
+src/components/nexus/nexus-ops.tsx:1231:function traceSeverityClass(severity: SystemEventRecord["severity"]) {
+src/components/nexus/nexus-ops.tsx:1247:export function NexusOps() {
+src/components/nexus/nexus-ops.tsx:1248:  const workspaceRef = useRef<HTMLDivElement | null>(null);
+src/components/nexus/nexus-ops.tsx:1249:  const fileInputRef = useRef<HTMLInputElement | null>(null);
+src/components/nexus/nexus-ops.tsx:1250:  const abortControllersRef = useRef<
+src/components/nexus/nexus-ops.tsx:1253:  const workflowAgentSnapshotsRef = useRef<Map<string, WorkflowAgentSnapshot>>(
+src/components/nexus/nexus-ops.tsx:1256:  const processedWorkflowHandoffsRef = useRef<Set<string>>(new Set());
+src/components/nexus/nexus-ops.tsx:1257:  const workflowDispatchQueueRef = useRef<Promise<void>>(Promise.resolve());
+src/components/nexus/nexus-ops.tsx:1258:  const workflowQueueEpochRef = useRef(0);
+src/components/nexus/nexus-ops.tsx:1259:  const recoveredLoginUserRef = useRef<string | null>(null);
+src/components/nexus/nexus-ops.tsx:1274:  const workspaceThemeBootAppliedRef = useRef<string | null>(null);
+src/components/nexus/nexus-ops.tsx:1299:  const artifactAutoHydrationKeyRef = useRef<string | null>(null);
+src/components/nexus/nexus-ops.tsx:1302:    const syncImportedWorkspaceStyleReview = () => {
+src/components/nexus/nexus-ops.tsx:1341:  const activeWorkspaceId = useNexusStore((state) => state.activeWorkspaceId);
+src/components/nexus/nexus-ops.tsx:1342:  const workspaces = useNexusStore((state) => state.workspaces);
+src/components/nexus/nexus-ops.tsx:1343:  const selectedAgentId = useNexusStore((state) => state.selectedAgentId);
+src/components/nexus/nexus-ops.tsx:1344:  const viewMode = useNexusStore((state) => state.viewMode);
+src/components/nexus/nexus-ops.tsx:1345:  const isVaultManagerOpen = useNexusStore((state) => state.isVaultManagerOpen);
+src/components/nexus/nexus-ops.tsx:1346:  const authVault = useNexusStore((state) => state.authVault);
+src/components/nexus/nexus-ops.tsx:1347:  const artifactVaultCache = useNexusStore((state) => state.artifactVault);
+src/components/nexus/nexus-ops.tsx:1348:  const notebooksCache = useNexusStore((state) => state.notebooksCache);
+src/components/nexus/nexus-ops.tsx:1349:  const openNotebookIds = useNexusStore((state) => state.openNotebookIds);
+src/components/nexus/nexus-ops.tsx:1350:  const materializeDefaultWorkspace = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1353:  const saveWorkspaceSnapshot = useNexusStore((state) => state.saveWorkspaceSnapshot);
+src/components/nexus/nexus-ops.tsx:1354:  const createWorkspace = useNexusStore((state) => state.createWorkspace);
+src/components/nexus/nexus-ops.tsx:1355:  const switchWorkspace = useNexusStore((state) => state.switchWorkspace);
+src/components/nexus/nexus-ops.tsx:1356:  const renameWorkspace = useNexusStore((state) => state.renameWorkspace);
+src/components/nexus/nexus-ops.tsx:1357:  const exportActiveWorkspace = useNexusStore((state) => state.exportActiveWorkspace);
+src/components/nexus/nexus-ops.tsx:1358:  const spawnAgent = useNexusStore((state) => state.spawnAgent);
+src/components/nexus/nexus-ops.tsx:1359:  const saveCurrentCanvasAsMacro = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1362:  const instantiateMacro = useNexusStore((state) => state.instantiateMacro);
+src/components/nexus/nexus-ops.tsx:1363:  const duplicateAgent = useNexusStore((state) => state.duplicateAgent);
+src/components/nexus/nexus-ops.tsx:1364:  const removeAgent = useNexusStore((state) => state.removeAgent);
+src/components/nexus/nexus-ops.tsx:1365:  const focusAgent = useNexusStore((state) => state.focusAgent);
+src/components/nexus/nexus-ops.tsx:1366:  const selectAgent = useNexusStore((state) => state.selectAgent);
+src/components/nexus/nexus-ops.tsx:1367:  const updateLayout = useNexusStore((state) => state.updateLayout);
+src/components/nexus/nexus-ops.tsx:1368:  const updateAgentProfile = useNexusStore((state) => state.updateAgentProfile);
+src/components/nexus/nexus-ops.tsx:1369:  const updateAgentCallsign = useNexusStore((state) => state.updateAgentCallsign);
+src/components/nexus/nexus-ops.tsx:1370:  const setAgentProfileLocked = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1373:  const updateAgentMission = useNexusStore((state) => state.updateAgentMission);
+src/components/nexus/nexus-ops.tsx:1374:  const updateAgentModel = useNexusStore((state) => state.updateAgentModel);
+src/components/nexus/nexus-ops.tsx:1375:  const updateAgentModelSettings = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1378:  const updateAgentTemplateProfile = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1381:  const updateMemoryBlock = useNexusStore((state) => state.updateMemoryBlock);
+src/components/nexus/nexus-ops.tsx:1382:  const minimizeAgent = useNexusStore((state) => state.minimizeAgent);
+src/components/nexus/nexus-ops.tsx:1383:  const restoreAgent = useNexusStore((state) => state.restoreAgent);
+src/components/nexus/nexus-ops.tsx:1384:  const toggleMaximizeAgent = useNexusStore((state) => state.toggleMaximizeAgent);
+src/components/nexus/nexus-ops.tsx:1385:  const minimizeAll = useNexusStore((state) => state.minimizeAll);
+src/components/nexus/nexus-ops.tsx:1386:  const restoreAll = useNexusStore((state) => state.restoreAll);
+src/components/nexus/nexus-ops.tsx:1387:  const arrangeAgents = useNexusStore((state) => state.arrangeAgents);
+src/components/nexus/nexus-ops.tsx:1388:  const clearAgentMessages = useNexusStore((state) => state.clearAgentMessages);
+src/components/nexus/nexus-ops.tsx:1389:  const resetWorkspace = useNexusStore((state) => state.resetWorkspace);
+src/components/nexus/nexus-ops.tsx:1390:  const importWorkspace = useNexusStore((state) => state.importWorkspace);
+src/components/nexus/nexus-ops.tsx:1391:  const applyWorkspaceRecoveryState = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1394:  const setStreamMode = useNexusStore((state) => state.setStreamMode);
+src/components/nexus/nexus-ops.tsx:1395:  const setViewMode = useNexusStore((state) => state.setViewMode);
+src/components/nexus/nexus-ops.tsx:1396:  const openVaultManager = useNexusStore((state) => state.openVaultManager);
+src/components/nexus/nexus-ops.tsx:1397:  const setNotebooksCache = useNexusStore((state) => state.setNotebooksCache);
+src/components/nexus/nexus-ops.tsx:1398:  const toggleNotebookOpen = useNexusStore((state) => state.toggleNotebookOpen);
+src/components/nexus/nexus-ops.tsx:1399:  const createNotebook = useNexusStore((state) => state.createNotebook);
+src/components/nexus/nexus-ops.tsx:1400:  const logout = useNexusStore((state) => state.logout);
+src/components/nexus/nexus-ops.tsx:1401:  const setGlobalApiKey = useNexusStore((state) => state.setGlobalApiKey);
+src/components/nexus/nexus-ops.tsx:1402:  const setGlobalBaseUrl = useNexusStore((state) => state.setGlobalBaseUrl);
+src/components/nexus/nexus-ops.tsx:1403:  const setProviderApiKey = useNexusStore((state) => state.setProviderApiKey);
+src/components/nexus/nexus-ops.tsx:1404:  const setProviderBaseUrl = useNexusStore((state) => state.setProviderBaseUrl);
+src/components/nexus/nexus-ops.tsx:1405:  const setProviderVerificationStatus = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1408:  const lockProviderCredential = useNexusStore((state) => state.lockProviderCredential);
+src/components/nexus/nexus-ops.tsx:1409:  const unlockProviderCredential = useNexusStore((state) => state.unlockProviderCredential);
+src/components/nexus/nexus-ops.tsx:1410:  const deleteProviderCredential = useNexusStore((state) => state.deleteProviderCredential);
+src/components/nexus/nexus-ops.tsx:1411:  const lockVault = useNexusStore((state) => state.lockVault);
+src/components/nexus/nexus-ops.tsx:1412:  const unlockVault = useNexusStore((state) => state.unlockVault);
+src/components/nexus/nexus-ops.tsx:1413:  const deleteApiKey = useNexusStore((state) => state.deleteApiKey);
+src/components/nexus/nexus-ops.tsx:1414:  const updateBranchingSettings = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1417:  const updateSandboxCode = useNexusStore((state) => state.updateSandboxCode);
+src/components/nexus/nexus-ops.tsx:1418:  const updateSandboxUrl = useNexusStore((state) => state.updateSandboxUrl);
+src/components/nexus/nexus-ops.tsx:1419:  const saveArtifactToCloud = useNexusStore((state) => state.saveArtifactToCloud);
+src/components/nexus/nexus-ops.tsx:1420:  const fetchArtifactsFromCloud = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1423:  const updateGraphNodePosition = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1426:  const connectGraphAgents = useNexusStore((state) => state.connectGraphAgents);
+src/components/nexus/nexus-ops.tsx:1427:  const removeGraphEdges = useNexusStore((state) => state.removeGraphEdges);
+src/components/nexus/nexus-ops.tsx:1428:  const addWorkflowRuntimeNode = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1431:  const updateWorkflowRuntimeNodeData = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1434:  const updateWorkflowRuntimeNodePosition = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1437:  const connectWorkflowRuntimeNodes = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1440:  const appendWorkflowRuntimeGroup = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1443:  const removeWorkflowRuntimeNodes = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1446:  const removeWorkflowRuntimeEdges = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1449:  const replaceWorkflowRuntimeLite = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1452:  const pauseWorkflowRuntimeLiteFlow = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1455:  const runWorkflowRuntimeLiteFlow = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1458:  const retryWorkflowRuntimeTraceSync = useNexusStore(
+src/components/nexus/nexus-ops.tsx:1461:  const runTool = useNexusStore((state) => state.runTool);
+src/components/nexus/nexus-ops.tsx:1462:  const historicalMessages = useNexusStore((state) => state.historicalMessages);
+src/components/nexus/nexus-ops.tsx:1464:  const workspace =
+src/components/nexus/nexus-ops.tsx:1466:  const workspaceName = workspace?.name ?? "NEXUS // AI OPS";
+src/components/nexus/nexus-ops.tsx:1467:  const themeConfig = workspace?.themeConfig;
+src/components/nexus/nexus-ops.tsx:1468:  const branchingSettings = workspace?.settings.branchingSettings;
+src/components/nexus/nexus-ops.tsx:1469:  const activeAgentId = workspace?.activeAgentId;
+src/components/nexus/nexus-ops.tsx:1470:  const agents = workspace?.agents ?? EMPTY_AGENTS;
+src/components/nexus/nexus-ops.tsx:1471:  const activeWorkspaceSession = workspace
+src/components/nexus/nexus-ops.tsx:1474:  const activeWorkspaceRole = activeWorkspaceSession?.role ?? null;
+src/components/nexus/nexus-ops.tsx:1475:  const activeWorkspaceReadOnly = isWorkspaceReadOnlyRole(activeWorkspaceRole);
+src/components/nexus/nexus-ops.tsx:1476:  const activeWorkspaceReadOnlyMessage =
+src/components/nexus/nexus-ops.tsx:1478:  const artifactVault = useMemo(
+src/components/nexus/nexus-ops.tsx:1485:  const effectiveStreamMode = useMemo(
+src/components/nexus/nexus-ops.tsx:1489:  const serverOpenAiConfigured = Boolean(
+src/components/nexus/nexus-ops.tsx:1492:  const serverOpenAiImageModel =
+src/components/nexus/nexus-ops.tsx:1495:  const visibleAgents = agents.filter((agent) => !agent.minimized);
+src/components/nexus/nexus-ops.tsx:1496:  const minimizedAgents = agents.filter((agent) => agent.minimized);
+src/components/nexus/nexus-ops.tsx:1497:  const selectedAgent =
+src/components/nexus/nexus-ops.tsx:1499:  const selectedComposerMode = getWorkspaceComposerMode(
+src/components/nexus/nexus-ops.tsx:1503:  const selectedComposerImageSettings = normalizeWorkspaceComposerImageSettings(
+src/components/nexus/nexus-ops.tsx:1506:  const activeAgent =
+src/components/nexus/nexus-ops.tsx:1508:  const workflowRunning = Boolean(
+src/components/nexus/nexus-ops.tsx:1511:  const workflowRuntimeLite = workspace?.graph.runtimeLite;
+src/components/nexus/nexus-ops.tsx:1512:  const workflowProCapabilityInventory = useMemo(
+src/components/nexus/nexus-ops.tsx:1516:  const workflowProFileNodeContract = useMemo(
+src/components/nexus/nexus-ops.tsx:1520:  const workflowProRuntimeSummary = useMemo(
+src/components/nexus/nexus-ops.tsx:1524:  const workflowProRuntimeEvidence = useMemo(
+src/components/nexus/nexus-ops.tsx:1528:  const workflowProRunHistoryGroups = useMemo(
+src/components/nexus/nexus-ops.tsx:1532:  const workflowProContractDraft = useMemo(
+src/components/nexus/nexus-ops.tsx:1542:  const workflowProActiveContract =
+src/components/nexus/nexus-ops.tsx:1546:  const workflowBrainContext = useMemo(
+src/components/nexus/nexus-ops.tsx:1554:  const workflowProApplyPlan = useMemo(
+src/components/nexus/nexus-ops.tsx:1562:  const workflowProProposalDiff = useMemo(
+src/components/nexus/nexus-ops.tsx:1570:  const handleWorkflowProContractExport = useCallback(() => {
+src/components/nexus/nexus-ops.tsx:1571:    const validation = validateWorkflowProContractDraft(workflowProActiveContract);
+src/components/nexus/nexus-ops.tsx:1580:    const handoffPackage = createWorkflowProHandoffPackage({
+src/components/nexus/nexus-ops.tsx:1608:  const handleWorkflowProContractImportText = useCallback(
+src/components/nexus/nexus-ops.tsx:1610:      const review = parseWorkflowProContractImportText({
+src/components/nexus/nexus-ops.tsx:1624:  const handleWorkflowProContractImportClear = useCallback(() => {
+src/components/nexus/nexus-ops.tsx:1628:  const handleWorkflowProApplyPlan = useCallback(() => {
+src/components/nexus/nexus-ops.tsx:1629:    const validation = validateWorkflowProContractDraft(workflowProActiveContract);
+src/components/nexus/nexus-ops.tsx:1659:  const workflowRuns = workflowRuntimeLite?.runs ?? [];
+src/components/nexus/nexus-ops.tsx:1660:  const latestWorkflowRun =
+src/components/nexus/nexus-ops.tsx:1666:  const workflowLastError = workflowRuntimeLite?.lastError?.trim();
+src/components/nexus/nexus-ops.tsx:1667:  const workflowFeedback = workflowLastError
+src/components/nexus/nexus-ops.tsx:1696:  const branchAgent = agents.find((agent) => agent.id === branchAgentId);
+src/components/nexus/nexus-ops.tsx:1704:  const rememberWorkspaceSession = useCallback(
+src/components/nexus/nexus-ops.tsx:1706:      const readOnly = isWorkspaceReadOnlyRole(sessionWorkspace.role);
+src/components/nexus/nexus-ops.tsx:1730:  const recoverWorkspaceAfterLogin = useCallback((userId: string, accessToken?: string | null) => {
+src/components/nexus/nexus-ops.tsx:1731:    const state = useNexusStore.getState();
+src/components/nexus/nexus-ops.tsx:1732:    const localWorkspace =
+src/components/nexus/nexus-ops.tsx:1740:        const sessionWorkspace = await supabaseStateSyncManager.ensureWorkspaceSession({
+src/components/nexus/nexus-ops.tsx:1759:          const reboundWorkspace = useNexusStore
+src/components/nexus/nexus-ops.tsx:1788:        const result = applyWorkspaceRecoveryState(recovery);
+src/components/nexus/nexus-ops.tsx:1804:  const recoverSelectedWorkspace = useCallback((workspaceId: string) => {
+src/components/nexus/nexus-ops.tsx:1805:    const userId = useNexusStore.getState().authVault.user?.id;
+src/components/nexus/nexus-ops.tsx:1806:    const state = useNexusStore.getState();
+src/components/nexus/nexus-ops.tsx:1807:    const localWorkspace = state.workspaces.find(
+src/components/nexus/nexus-ops.tsx:1825:        const result = applyWorkspaceRecoveryState(recovery);
+src/components/nexus/nexus-ops.tsx:1843:  const handleSessionUser = useCallback((user: IAuthVault["user"], accessToken?: string | null) => {
+src/components/nexus/nexus-ops.tsx:1852:    const hasAccessToken = Boolean(accessToken?.trim());
+src/components/nexus/nexus-ops.tsx:1853:    const tokenBackedRecoveryKey = `${user.id}:token`;
+src/components/nexus/nexus-ops.tsx:1867:    const userId = authVault.user?.id;
+src/components/nexus/nexus-ops.tsx:1912:    const refresh = () => {
+src/components/nexus/nexus-ops.tsx:1919:    const intervalId = window.setInterval(refresh, 2000);
+src/components/nexus/nexus-ops.tsx:1950:    const userId = authVault.user?.id;
+src/components/nexus/nexus-ops.tsx:1956:    const controls = resolveWorkspaceThemeControlsForBoot(
+src/components/nexus/nexus-ops.tsx:1959:    const variableResult = createWorkspaceThemeStylePreviewVariablesV1(controls);
+src/components/nexus/nexus-ops.tsx:1960:    const applyKey = [
+src/components/nexus/nexus-ops.tsx:1971:    const timeoutId = window.setTimeout(() => {
+src/components/nexus/nexus-ops.tsx:1972:      const result = applyWorkspaceThemeControlsToProductionTarget(controls);
+src/components/nexus/nexus-ops.tsx:1998:        const supabase = getNexusSupabaseClient();
+src/components/nexus/nexus-ops.tsx:2041:    const node = workspaceRef.current;
+src/components/nexus/nexus-ops.tsx:2047:    const updateSize = () => {
+src/components/nexus/nexus-ops.tsx:2048:      const rect = node.getBoundingClientRect();
+src/components/nexus/nexus-ops.tsx:2053:    const observer = new ResizeObserver(updateSize);
+src/components/nexus/nexus-ops.tsx:2060:    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+src/components/nexus/nexus-ops.tsx:2061:      const key = typeof event.key === "string" ? event.key.toLowerCase() : "";
+src/components/nexus/nexus-ops.tsx:2099:  const notifyWorkflow = useCallback((message: string) => {
+src/components/nexus/nexus-ops.tsx:2103:  const handleSaveWorkspaceThemeStyleControls = useCallback(
+src/components/nexus/nexus-ops.tsx:2105:      const existingPayload =
+src/components/nexus/nexus-ops.tsx:2109:      const payload = createWorkspaceThemeStylePayloadForExport(
+src/components/nexus/nexus-ops.tsx:2119:      const written = writeImportedWorkspaceStyleReviewState(
+src/components/nexus/nexus-ops.tsx:2139:  const refreshMacros = useCallback(async () => {
+src/components/nexus/nexus-ops.tsx:2144:      const nextMacros = await supabaseStateSyncManager.fetchMacros();
+src/components/nexus/nexus-ops.tsx:2153:  const refreshArtifacts = useCallback(async () => {
+src/components/nexus/nexus-ops.tsx:2166:  const retryFailedSyncOperation = useCallback(() => {
+src/components/nexus/nexus-ops.tsx:2221:    const userId = authVault.user?.id;
+src/components/nexus/nexus-ops.tsx:2222:    const workspaceId = workspace?.id;
+src/components/nexus/nexus-ops.tsx:2233:    const hydrationKey = `${userId}:${workspaceId}:${activeWorkspaceSession.role}`;
+src/components/nexus/nexus-ops.tsx:2255:  const handleExport = useCallback(() => {
+src/components/nexus/nexus-ops.tsx:2256:    const downloadSnapshot = (snapshot: WorkspaceSnapshot) => {
+src/components/nexus/nexus-ops.tsx:2257:      const exportDecision = createWorkspaceStylePayloadExportSnapshot(
+src/components/nexus/nexus-ops.tsx:2263:      const url = URL.createObjectURL(
+src/components/nexus/nexus-ops.tsx:2268:      const link = document.createElement("a");
+src/components/nexus/nexus-ops.tsx:2279:        const exportStatus = downloadSnapshot(
+src/components/nexus/nexus-ops.tsx:2288:        const exportStatus = downloadSnapshot(exportActiveWorkspace());
+src/components/nexus/nexus-ops.tsx:2293:  const handleImport = useCallback(async (file?: File) => {
+src/components/nexus/nexus-ops.tsx:2299:      const text = await file.text();
+src/components/nexus/nexus-ops.tsx:2300:      const result = parseWorkspaceSnapshot(text);
+src/components/nexus/nexus-ops.tsx:2306:      const snapshot = JSON.parse(text) as Partial<WorkspaceSnapshot> & {
+src/components/nexus/nexus-ops.tsx:2309:      const styleDecision = extractWorkspaceStylePayloadFromSnapshot(snapshot);
+src/components/nexus/nexus-ops.tsx:2323:      const nextStylePayloadReview = createImportedWorkspaceStyleReviewState(
+src/components/nexus/nexus-ops.tsx:2327:      const writtenStylePayloadReview =
+src/components/nexus/nexus-ops.tsx:2337:  const openMacroComposer = useCallback(() => {
+src/components/nexus/nexus-ops.tsx:2347:  const handleSaveMacro = useCallback(() => {
+src/components/nexus/nexus-ops.tsx:2348:    const name = macroName.trim();
+src/components/nexus/nexus-ops.tsx:2363:  const handleSpawnMacro = useCallback((macro: WorkflowTemplateRecord) => {
+src/components/nexus/nexus-ops.tsx:2364:    const spawnedAgentIds = instantiateMacro(macro);
+src/components/nexus/nexus-ops.tsx:2375:  const handleSaveSandboxArtifact = useCallback((agentId: string, content: string) => {
+src/components/nexus/nexus-ops.tsx:2383:  const artifactRequestUserId = authVault.user?.id;
+src/components/nexus/nexus-ops.tsx:2384:  const handleCopyArtifact = useCallback((artifact: ArtifactVaultRecord) => {
+src/components/nexus/nexus-ops.tsx:2387:        const response = await nexusApiClient.get<ArtifactGetResponse>(
+src/components/nexus/nexus-ops.tsx:2394:        const payload =
+src/components/nexus/nexus-ops.tsx:2410:  const handleDownloadArtifact = useCallback((artifact: ArtifactVaultRecord) => {
+src/components/nexus/nexus-ops.tsx:2412:      const localFileName = createArtifactDownloadFilename(artifact);
+src/components/nexus/nexus-ops.tsx:2446:        const response = await nexusApiClient.get<ArtifactGetResponse>(
+src/components/nexus/nexus-ops.tsx:2453:        const detail = response.artifact;
+src/components/nexus/nexus-ops.tsx:2454:        const fileName = createArtifactDownloadFilename({
+src/components/nexus/nexus-ops.tsx:2485:  const handleSend = useCallback(async (agentId: string, content: string) => {
+src/components/nexus/nexus-ops.tsx:2486:    const trimmed = content.trim();
+src/components/nexus/nexus-ops.tsx:2492:    const state = useNexusStore.getState();
+src/components/nexus/nexus-ops.tsx:2493:    const workspace =
+src/components/nexus/nexus-ops.tsx:2496:    const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
+src/components/nexus/nexus-ops.tsx:2497:    const model =
+src/components/nexus/nexus-ops.tsx:2501:    const runtimeCredential = resolveRuntimeCredentialForModel(
+src/components/nexus/nexus-ops.tsx:2507:    const safeKey = runtimeCredential.apiKey;
+src/components/nexus/nexus-ops.tsx:2508:    const safeBaseUrl = runtimeCredential.baseUrl;
+src/components/nexus/nexus-ops.tsx:2509:    const liveProviderAvailable = Boolean(
+src/components/nexus/nexus-ops.tsx:2512:    const userId = state.authVault.user?.id;
+src/components/nexus/nexus-ops.tsx:2518:    const userMessage: AgentMessage = {
+src/components/nexus/nexus-ops.tsx:2524:    const assistantMessage: AgentMessage = {
+src/components/nexus/nexus-ops.tsx:2558:      const detail = error instanceof Error ? error.message : "Unable to create agent task.";
+src/components/nexus/nexus-ops.tsx:2565:    const request: AgentStreamRequest = {
+src/components/nexus/nexus-ops.tsx:2610:    const controller = new AbortController();
+src/components/nexus/nexus-ops.tsx:2618:      const headers = new Headers({
+src/components/nexus/nexus-ops.tsx:2627:      const accessToken = await resolveSupabaseAccessToken();
+src/components/nexus/nexus-ops.tsx:2641:      const response = await fetchWithBackoff(
+src/components/nexus/nexus-ops.tsx:2651:            const retryTarget = status ? `HTTP ${status}` : "network congestion";
+src/components/nexus/nexus-ops.tsx:2666:          const delta = event.delta ?? event.token ?? "";
+src/components/nexus/nexus-ops.tsx:2684:          const delta = event.delta ?? "";
+src/components/nexus/nexus-ops.tsx:2703:      const detail = error instanceof Error ? error.message : "Unknown stream fault.";
+src/components/nexus/nexus-ops.tsx:2704:      const interrupted =
+src/components/nexus/nexus-ops.tsx:2741:  const blockReadOnlyWorkspaceMutation = useCallback((action: string) => {
+src/components/nexus/nexus-ops.tsx:2750:  const handleGraphBrainAppendWorkflowContractText = useCallback(
+src/components/nexus/nexus-ops.tsx:2759:      const review = parseWorkflowProContractImportText({
+src/components/nexus/nexus-ops.tsx:2765:        const detail =
+src/components/nexus/nexus-ops.tsx:2778:      const bridge = createWorkflowProRuntimeBridge(review.contract);
+src/components/nexus/nexus-ops.tsx:2779:      const appended = appendWorkflowRuntimeGroup(bridge.runtimeLite, {
+src/components/nexus/nexus-ops.tsx:2804:  const handleRunWorkflowRuntimeLite = useCallback(async (
+src/components/nexus/nexus-ops.tsx:2818:      const run = await runWorkflowRuntimeLiteFlow(options);
+src/components/nexus/nexus-ops.tsx:2840:  const handlePauseWorkflowRuntimeLite = useCallback(() => {
+src/components/nexus/nexus-ops.tsx:2849:  const handleCopyWorkflowInput = useCallback(async (nodeId: string) => {
+src/components/nexus/nexus-ops.tsx:2850:    const runtimeNode = useNexusStore
+src/components/nexus/nexus-ops.tsx:2857:    const textCandidate = (runtimeNode?.data as { text?: unknown } | undefined)?.text;
+src/components/nexus/nexus-ops.tsx:2858:    const text =
+src/components/nexus/nexus-ops.tsx:2876:  const handleCopyWorkflowOutput = useCallback(async (nodeId: string) => {
+src/components/nexus/nexus-ops.tsx:2877:    const runtimeNode = useNexusStore
+src/components/nexus/nexus-ops.tsx:2884:    const packet = runtimeNode?.outputSnapshot;
+src/components/nexus/nexus-ops.tsx:2885:    const text = packet?.rawText || packet?.displayText || "";
+src/components/nexus/nexus-ops.tsx:2900:  const handleStop = useCallback((agentId: string) => {
+src/components/nexus/nexus-ops.tsx:2901:    const active = abortControllersRef.current.get(agentId);
+src/components/nexus/nexus-ops.tsx:2920:  const handleMediaGenerate = useCallback(async (agentId: string, content: string) => {
+src/components/nexus/nexus-ops.tsx:2921:    const prompt = content.trim();
+src/components/nexus/nexus-ops.tsx:2927:    const state = useNexusStore.getState();
+src/components/nexus/nexus-ops.tsx:2928:    const workspace =
+src/components/nexus/nexus-ops.tsx:2931:    const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
+src/components/nexus/nexus-ops.tsx:2932:    const capabilityType = agent ? getCapabilityType(agent) : "chat";
+src/components/nexus/nexus-ops.tsx:2933:    const globalApiKey = state.authVault.globalApiKey?.trim() ?? "";
+src/components/nexus/nexus-ops.tsx:2934:    const imageProviderAvailable = Boolean(
+src/components/nexus/nexus-ops.tsx:2948:    const executorId = capabilityType === "image" ? "real-image-gen" : "mock-video-gen";
+src/components/nexus/nexus-ops.tsx:2949:    const tool = agent.tools.find((candidate) => candidate.executorId === executorId);
+src/components/nexus/nexus-ops.tsx:2950:    const userMessage: AgentMessage = {
+src/components/nexus/nexus-ops.tsx:2991:      const detail = error instanceof Error ? error.message : "Media generator failed.";
+src/components/nexus/nexus-ops.tsx:3004:  const handleComposerImageGenerate = useCallback(
+src/components/nexus/nexus-ops.tsx:3010:      const prompt = content.trim();
+src/components/nexus/nexus-ops.tsx:3016:      const state = useNexusStore.getState();
+src/components/nexus/nexus-ops.tsx:3017:      const workspace =
+src/components/nexus/nexus-ops.tsx:3020:      const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
+src/components/nexus/nexus-ops.tsx:3026:      const imageSettings =
+src/components/nexus/nexus-ops.tsx:3028:      const userMessage: AgentMessage = {
+src/components/nexus/nexus-ops.tsx:3044:        const runtimeCredential = resolveRuntimeCredentialForModel(
+src/components/nexus/nexus-ops.tsx:3050:        const result = await executeImageAdapterForAgent({
+src/components/nexus/nexus-ops.tsx:3067:        const assistantMessageId = makeId("message");
+src/components/nexus/nexus-ops.tsx:3072:          const artifactResponse = await nexusApiClient.post<
+src/components/nexus/nexus-ops.tsx:3111:        const assistantMessage: AgentMessage = {
+src/components/nexus/nexus-ops.tsx:3145:        const detail =
+src/components/nexus/nexus-ops.tsx:3187:    const dispatchDecisions: WorkflowDispatchDecision[] = [];
+src/components/nexus/nexus-ops.tsx:3193:        const cycleLabel = decision.cyclePath
+src/components/nexus/nexus-ops.tsx:3225:    const queueEpoch = workflowQueueEpochRef.current;
+src/components/nexus/nexus-ops.tsx:3261:  const commands = useMemo<PaletteCommand[]>(
+src/components/nexus/nexus-ops.tsx:3428:            const nextWorkspace = createWorkspace();
+src/components/nexus/nexus-ops.tsx:3450:            const target = workspaces.find((candidate) => candidate.id === workspaceId);
+src/components/nexus/nexus-ops.tsx:3477:            const id = spawnAgent();
+src/components/nexus/nexus-ops.tsx:3528:                    const id = spawnAgent(template.id);
+src/components/nexus/nexus-ops.tsx:3811:            const id = spawnAgent(undefined, type);
+src/components/nexus/nexus-ops.tsx:3818:            const id = createNotebook();
+src/components/nexus/nexus-ops.tsx:3831:            const run = await retryWorkflowRuntimeTraceSync(runId);
+src/components/nexus/nexus-ops.tsx:3878:function SidebarToggleButton({
+src/components/nexus/nexus-ops.tsx:3889:  const Icon =
+src/components/nexus/nexus-ops.tsx:3923:const workspaceBodyMaterialStyle = {
+src/components/nexus/nexus-ops.tsx:3931:function CollapsedSidebarRail({
+src/components/nexus/nexus-ops.tsx:3959:const rightDockPanels: Array<{
+src/components/nexus/nexus-ops.tsx:4027:function getRightDockPanelMeta(panel: RightDockPanelId) {
+src/components/nexus/nexus-ops.tsx:4031:function RightFloatingDock({
+src/components/nexus/nexus-ops.tsx:4062:function TopBar({
+src/components/nexus/nexus-ops.tsx:4121:  function cancelRename() {
+src/components/nexus/nexus-ops.tsx:4126:  function openRename() {
+src/components/nexus/nexus-ops.tsx:4131:  function commitRename(event?: FormEvent) {
+src/components/nexus/nexus-ops.tsx:4133:    const nextName = draftName.trim();
+src/components/nexus/nexus-ops.tsx:4309:                    const active = workspace.id === activeWorkspaceId;
+src/components/nexus/nexus-ops.tsx:4473:function SyncBadge({
+src/components/nexus/nexus-ops.tsx:4480:  const hasIssue = status.failed > 0 || status.conflicted > 0;
+src/components/nexus/nexus-ops.tsx:4481:  const active = status.pending > 0 || status.syncing > 0;
+src/components/nexus/nexus-ops.tsx:4482:  const label = hasIssue
+src/components/nexus/nexus-ops.tsx:4508:function TopMenuAction({
+src/components/nexus/nexus-ops.tsx:4547:function MacroComposerModal({
+src/components/nexus/nexus-ops.tsx:4564:  const submit = (event: FormEvent) => {
+src/components/nexus/nexus-ops.tsx:4652:function ProviderVaultPanel({
+src/components/nexus/nexus-ops.tsx:4673:  const providerId = "deepseek";
+src/components/nexus/nexus-ops.tsx:4674:  const provider = PROVIDER_REGISTRY[providerId];
+src/components/nexus/nexus-ops.tsx:4675:  const credential = authVault.providerCredentials?.[providerId];
+src/components/nexus/nexus-ops.tsx:4681:  const deepseekModels = getModelOptionsForCapability("chat").filter(
+src/components/nexus/nexus-ops.tsx:4686:    const timeoutId = window.setTimeout(() => {
+src/components/nexus/nexus-ops.tsx:4694:    const timeoutId = window.setTimeout(() => {
+src/components/nexus/nexus-ops.tsx:4706:  const verifyProvider = async () => {
+src/components/nexus/nexus-ops.tsx:4707:    const apiKey = credential?.apiKey?.replace(/[^\x20-\x7E]/g, "").trim() ?? "";
+src/components/nexus/nexus-ops.tsx:4716:      const response = await fetch("/api/v1/providers/verify", {
+src/components/nexus/nexus-ops.tsx:4729:      const data = (await response.json()) as {
+src/components/nexus/nexus-ops.tsx:4864:          const capability = getModelCapabilityProfile(model.id);
+src/components/nexus/nexus-ops.tsx:4865:          const thinking = capability?.thinking;
+src/components/nexus/nexus-ops.tsx:4866:          const effortMap = thinking?.providerReasoningEffortMap;
+src/components/nexus/nexus-ops.tsx:4913:function AgentSettingsSidebar({
+src/components/nexus/nexus-ops.tsx:5038:  const generatedArtifacts = useMemo(
+src/components/nexus/nexus-ops.tsx:5055:  const traceViewerUserId = authVault.user?.id ?? "local-owner";
+src/components/nexus/nexus-ops.tsx:5056:  const latestRuntimeTraceId = workflowRuntimeEvidence.latestRun?.traceSync?.traceId ?? null;
+src/components/nexus/nexus-ops.tsx:5057:  const serverOpenAiConfigured = Boolean(
+src/components/nexus/nexus-ops.tsx:5060:  const serverOpenAiImageModel =
+src/components/nexus/nexus-ops.tsx:5062:  const runtimeTraceCorrelation = useMemo(
+src/components/nexus/nexus-ops.tsx:5080:  const selectedRunGroupIsAvailable = workflowRunHistoryGroups.groups.some(
+src/components/nexus/nexus-ops.tsx:5083:  const effectiveRunGroupId =
+src/components/nexus/nexus-ops.tsx:5087:  const workflowRunGroupInspector = useMemo(
+src/components/nexus/nexus-ops.tsx:5104:  const durableGroupRecordReport = useMemo(
+src/components/nexus/nexus-ops.tsx:5113:  const runtimeTraceTargetTraceId =
+src/components/nexus/nexus-ops.tsx:5115:  const panelMeta = getRightDockPanelMeta(activePanel);
+src/components/nexus/nexus-ops.tsx:5116:  const handleRetrySelectedRunTraceSync = useCallback(async () => {
+src/components/nexus/nexus-ops.tsx:5117:    const runId = workflowRunGroupInspector.latestRun?.runId;
+src/components/nexus/nexus-ops.tsx:5131:  const handleExportWorkflowRuntimeEvidence = useCallback(() => {
+src/components/nexus/nexus-ops.tsx:5132:    const manifest = createWorkflowProRuntimeEvidenceManifest({
+src/components/nexus/nexus-ops.tsx:5146:    const timeoutId = window.setTimeout(() => {
+src/components/nexus/nexus-ops.tsx:5159:    const timeoutId = window.setTimeout(() => {
+src/components/nexus/nexus-ops.tsx:5166:  const loadTraceEvents = useCallback(async (mode: "next" | "reset" = "reset") => {
+src/components/nexus/nexus-ops.tsx:5171:      const params = new URLSearchParams({
+src/components/nexus/nexus-ops.tsx:5180:      const response = await nexusApiClient.get<SystemEventListResponse>(
+src/components/nexus/nexus-ops.tsx:5203:  const loadRuntimeTraceEvents = useCallback(async (traceId: string) => {
+src/components/nexus/nexus-ops.tsx:5209:      const params = new URLSearchParams({
+src/components/nexus/nexus-ops.tsx:5214:      const response = await nexusApiClient.get<SystemEventListResponse>(
+src/components/nexus/nexus-ops.tsx:5241:    const traceId = runtimeTraceTargetTraceId;
+src/components/nexus/nexus-ops.tsx:5244:      const timeoutId = window.setTimeout(() => {
+src/components/nexus/nexus-ops.tsx:5254:    const timeoutId = window.setTimeout(() => {
+src/components/nexus/nexus-ops.tsx:5612:	                  const modelGroups = getAgentModelGroups(agent);
+src/components/nexus/nexus-ops.tsx:5613:	                  const modelOption = getModelOption(agent.model);
+src/components/nexus/nexus-ops.tsx:5614:	                  const capability = getModelCapabilityProfile(agent.model);
+src/components/nexus/nexus-ops.tsx:5615:	                  const providerCredential =
+src/components/nexus/nexus-ops.tsx:5619:	                  const providerVerified =
+src/components/nexus/nexus-ops.tsx:5772:                    const active = openNotebookIds.includes(notebook.id);
+src/components/nexus/nexus-ops.tsx:6514:type WorkspaceStylePresetDefinition = {
+src/components/nexus/nexus-ops.tsx:6521:const workspaceStylePresetDefinitions = [
+src/components/nexus/nexus-ops.tsx:6584:function createWorkspaceStylePresetControls(
+src/components/nexus/nexus-ops.tsx:6595:function WorkspaceStyleControlsPanel({
+src/components/nexus/nexus-ops.tsx:6604:  const importedControls = useMemo(() => {
+src/components/nexus/nexus-ops.tsx:6609:    const result = extractWorkspaceThemeStyleControlsV1(
+src/components/nexus/nexus-ops.tsx:6615:  const baseThemeControls = useMemo(
+src/components/nexus/nexus-ops.tsx:6628:  const activeTransactionRef = useRef<ProductionPreviewApplyTransaction | null>(
+src/components/nexus/nexus-ops.tsx:6631:  const sessionIdRef = useRef(createWorkspaceThemePreviewId("session"));
+src/components/nexus/nexus-ops.tsx:6634:    const timeoutId = window.setTimeout(() => {
+src/components/nexus/nexus-ops.tsx:6653:    const timeoutId = window.setTimeout(() => {
+src/components/nexus/nexus-ops.tsx:6672:    const timeoutId = window.setTimeout(() => {
+src/components/nexus/nexus-ops.tsx:6673:      const targets = getWorkspaceThemePreviewTargets();
+src/components/nexus/nexus-ops.tsx:6674:      const target = targets[0] ?? null;
+src/components/nexus/nexus-ops.tsx:6675:      const facts = createWorkspaceThemeTargetFacts(targets, target);
+src/components/nexus/nexus-ops.tsx:6676:      const nextTargetStatus =
+src/components/nexus/nexus-ops.tsx:6696:  const activeAccent = controls.accentColor;
+src/components/nexus/nexus-ops.tsx:6697:  const controlRadius = `${controls.radius}px`;
+src/components/nexus/nexus-ops.tsx:6698:  const panelMaterialStyle = {
+src/components/nexus/nexus-ops.tsx:6707:  const panelMutedMaterialStyle = {
+src/components/nexus/nexus-ops.tsx:6715:  const applyPreview = useCallback(
+src/components/nexus/nexus-ops.tsx:6717:      const variableResult =
+src/components/nexus/nexus-ops.tsx:6730:      const targets = getWorkspaceThemePreviewTargets();
+src/components/nexus/nexus-ops.tsx:6731:      const target = targets[0] ?? null;
+src/components/nexus/nexus-ops.tsx:6732:      const targetFacts = createWorkspaceThemeTargetFacts(targets, target);
+src/components/nexus/nexus-ops.tsx:6733:      const previousInlineValues =
+src/components/nexus/nexus-ops.tsx:6741:      const transactionId = createWorkspaceThemePreviewId("transaction");
+src/components/nexus/nexus-ops.tsx:6742:      const startedAt = getWorkspaceThemePreviewNow();
+src/components/nexus/nexus-ops.tsx:6743:      const plan = createProductionPreviewApplyPlan({
+src/components/nexus/nexus-ops.tsx:6810:  const updateControls = useCallback(
+src/components/nexus/nexus-ops.tsx:6818:  const revertPreview = useCallback(() => {
+src/components/nexus/nexus-ops.tsx:6819:    const transaction = activeTransactionRef.current;
+src/components/nexus/nexus-ops.tsx:6820:    const targets = getWorkspaceThemePreviewTargets();
+src/components/nexus/nexus-ops.tsx:6821:    const target = targets[0] ?? null;
+src/components/nexus/nexus-ops.tsx:6822:    const targetFacts = createWorkspaceThemeTargetFacts(targets, target);
+src/components/nexus/nexus-ops.tsx:6823:    const startedAt = getWorkspaceThemePreviewNow();
+src/components/nexus/nexus-ops.tsx:6824:    const revertPlan = createProductionPreviewRevertPlan({
+src/components/nexus/nexus-ops.tsx:6852:    const residue = createProductionPreviewResidueCheck({
+src/components/nexus/nexus-ops.tsx:6859:    const revertDurationMs = roundWorkspaceThemePreviewDuration(
+src/components/nexus/nexus-ops.tsx:6885:  const saveControls = useCallback(() => {
+src/components/nexus/nexus-ops.tsx:6886:    const written = onSaveWorkspaceThemeStyleControls(controls);
+src/components/nexus/nexus-ops.tsx:6905:  const resetControls = useCallback(() => {
+src/components/nexus/nexus-ops.tsx:6906:    const nextControls =
+src/components/nexus/nexus-ops.tsx:6912:  const applyWorkspaceStylePreset = useCallback(
+src/components/nexus/nexus-ops.tsx:6921:  const rangeControl = ({
+src/components/nexus/nexus-ops.tsx:7007:            const presetControls = createWorkspaceStylePresetControls(
+src/components/nexus/nexus-ops.tsx:7011:            const isActivePreset = compareWorkspaceThemeControls(
+src/components/nexus/nexus-ops.tsx:7128:function ModelTuningSelect<TValue extends string>({
+src/components/nexus/nexus-ops.tsx:7163:function AgentModelTuningPanel({
+src/components/nexus/nexus-ops.tsx:7175:  const modelGroups = getAgentModelGroups(agent);
+src/components/nexus/nexus-ops.tsx:7176:  const capability = getModelCapabilityProfile(agent.model);
+src/components/nexus/nexus-ops.tsx:7177:  const settings = agent.modelSettings ?? {};
+src/components/nexus/nexus-ops.tsx:7243:function AgentTemplateProfilePanel({
+src/components/nexus/nexus-ops.tsx:7254:  const locked = profile.profileLocked;
+src/components/nexus/nexus-ops.tsx:7348:function LeftDock({
+src/components/nexus/nexus-ops.tsx:7396:            const profile = resolveAgentTemplateProfile(
+src/components/nexus/nexus-ops.tsx:7400:            const open = expandedTemplateId === template.id;
+src/components/nexus/nexus-ops.tsx:7557:function AgentWindow({
+src/components/nexus/nexus-ops.tsx:7602:  const bodyRef = useRef<HTMLDivElement | null>(null);
+src/components/nexus/nexus-ops.tsx:7603:  const capabilityType = getCapabilityType(agent);
+src/components/nexus/nexus-ops.tsx:7604:  const isMediaAgent = isMediaCapability(capabilityType);
+src/components/nexus/nexus-ops.tsx:7605:  const isSandboxAgent = isSandboxCapability(capabilityType);
+src/components/nexus/nexus-ops.tsx:7606:  const windowInteractionLocked = isSandboxAgent && sandboxInteractionLocked;
+src/components/nexus/nexus-ops.tsx:7607:  const renderedMessages = useMemo(() => {
+src/components/nexus/nexus-ops.tsx:7608:    const activeIds = new Set(agent.messages.map((message) => message.id));
+src/components/nexus/nexus-ops.tsx:7609:    const historical = (historicalPage?.items ?? [])
+src/components/nexus/nexus-ops.tsx:7626:  const onDragStop: RndDragCallback = (_event, data) => {
+src/components/nexus/nexus-ops.tsx:7630:  const onResizeStop: RndResizeCallback = (_event, _direction, ref, _delta, position) => {
+src/components/nexus/nexus-ops.tsx:7639:  const agentGlowColor = `color-mix(in srgb, ${agent.accent} var(--agent-glow-intensity), transparent)`;
+src/components/nexus/nexus-ops.tsx:7640:  const agentWindowBackground = isSandboxAgent
+src/components/nexus/nexus-ops.tsx:7643:  const agentWindowBorderColor = isSandboxAgent
+src/components/nexus/nexus-ops.tsx:7648:  const agentWindowShadow = isSandboxAgent
+src/components/nexus/nexus-ops.tsx:7800:function SandboxCanvas({
+src/components/nexus/nexus-ops.tsx:7813:  const code = agent.sandboxCode ?? DEFAULT_SANDBOX_CODE;
+src/components/nexus/nexus-ops.tsx:7814:  const containerRef = useRef<HTMLDivElement | null>(null);
+src/components/nexus/nexus-ops.tsx:7815:  const sandboxUrlInputRef = useRef<HTMLInputElement | null>(null);
+src/components/nexus/nexus-ops.tsx:7820:  const externalPreviewUrl = normalizeSandboxUrl(agent.sandboxUrl ?? "");
+src/components/nexus/nexus-ops.tsx:7821:  const embeddablePreviewUrl = externalPreviewUrl
+src/components/nexus/nexus-ops.tsx:7824:  const iframeBlockReason = externalPreviewUrl
+src/components/nexus/nexus-ops.tsx:7827:  const openExternalPreview = useCallback(() => {
+src/components/nexus/nexus-ops.tsx:7835:  const commitSandboxUrl = useCallback((event?: FormEvent) => {
+src/components/nexus/nexus-ops.tsx:7837:    const draftValue = sandboxUrlInputRef.current?.value ?? sandboxUrlDraft;
+src/components/nexus/nexus-ops.tsx:7838:    const normalized = normalizeSandboxUrl(draftValue);
+src/components/nexus/nexus-ops.tsx:7857:  const updateSplitFromClientX = useCallback((clientX: number) => {
+src/components/nexus/nexus-ops.tsx:7858:    const bounds = containerRef.current?.getBoundingClientRect();
+src/components/nexus/nexus-ops.tsx:7864:    const nextPercent = ((clientX - bounds.left) / bounds.width) * 100;
+src/components/nexus/nexus-ops.tsx:7875:    const onPointerMove = (event: PointerEvent) => {
+src/components/nexus/nexus-ops.tsx:7878:    const onPointerUp = () => {
+src/components/nexus/nexus-ops.tsx:7891:  const codePaneStyle = { flex: `0 0 ${splitPercent}%` };
+src/components/nexus/nexus-ops.tsx:7892:  const previewPaneStyle = { flex: "1 1 0" };
+src/components/nexus/nexus-ops.tsx:7928:                  const nextValue = event.target.value;
+src/components/nexus/nexus-ops.tsx:8063:function AgentActionToolbar({
+src/components/nexus/nexus-ops.tsx:8099:  const busy = agent.status === "thinking" || agent.status === "streaming";
+src/components/nexus/nexus-ops.tsx:8100:  const latestResponse = useMemo(
+src/components/nexus/nexus-ops.tsx:8108:  const copyLastResponse = () => {
+src/components/nexus/nexus-ops.tsx:8115:  const railUnlockActive =
+src/components/nexus/nexus-ops.tsx:8252:function ToolbarIconButton({
+src/components/nexus/nexus-ops.tsx:8290:function MediaCanvas({ agent }: { agent: NexusAgent }) {
+src/components/nexus/nexus-ops.tsx:8291:  const capabilityType = getCapabilityType(agent);
+src/components/nexus/nexus-ops.tsx:8292:  const artifact = getLatestMediaArtifact(agent);
+src/components/nexus/nexus-ops.tsx:8293:  const generating = agent.status === "thinking" || agent.status === "streaming";
+src/components/nexus/nexus-ops.tsx:8294:  const recent = agent.messages
+src/components/nexus/nexus-ops.tsx:8377:function MediaArtifactPreview({
+src/components/nexus/nexus-ops.tsx:8384:  const messagePresentation = presentation === "message";
+src/components/nexus/nexus-ops.tsx:8443:function getReasoningPreview(content: string, detail: NexusReasoningDetail | undefined) {
+src/components/nexus/nexus-ops.tsx:8455:function MessageBubble({
+src/components/nexus/nexus-ops.tsx:8462:  const isUser = message.role === "user";
+src/components/nexus/nexus-ops.tsx:8463:  const isAssistant = message.role === "assistant";
+src/components/nexus/nexus-ops.tsx:8464:  const isTool = message.role === "tool";
+src/components/nexus/nexus-ops.tsx:8465:  const reasoningPreview = message.reasoningContent
+src/components/nexus/nexus-ops.tsx:8468:  const showMediaPreview =
+src/components/nexus/nexus-ops.tsx:8523:function WorkspaceChatComposerShell({
+src/components/nexus/nexus-ops.tsx:8570:  const fileInputRef = useRef<HTMLInputElement | null>(null);
+src/components/nexus/nexus-ops.tsx:8571:  const capabilityType = agent ? getCapabilityType(agent) : "chat";
+src/components/nexus/nexus-ops.tsx:8572:  const modelCapability = getModelCapabilityProfile(agent?.model);
+src/components/nexus/nexus-ops.tsx:8573:  const reasoningOptions = modelCapability?.thinking.supportedReasoningEfforts ?? [];
+src/components/nexus/nexus-ops.tsx:8574:  const composerActions = getWorkspaceComposerActions(composerMode);
+src/components/nexus/nexus-ops.tsx:8575:  const selectedReasoningEffort =
+src/components/nexus/nexus-ops.tsx:8580:  const imageModeActive = composerMode === "image";
+src/components/nexus/nexus-ops.tsx:8581:  const isMediaAgent = isMediaCapability(capabilityType);
+src/components/nexus/nexus-ops.tsx:8582:  const isSandboxAgent = isSandboxCapability(capabilityType);
+src/components/nexus/nexus-ops.tsx:8583:  const agentBusy = agent?.status === "streaming" || agent?.status === "thinking";
+src/components/nexus/nexus-ops.tsx:8584:  const hasReadyAttachments = attachments.some(
+src/components/nexus/nexus-ops.tsx:8587:  const hasPendingAttachments = attachments.some(
+src/components/nexus/nexus-ops.tsx:8590:  const submitDisabled =
+src/components/nexus/nexus-ops.tsx:8597:  const latestMessage = agent?.messages.at(-1);
+src/components/nexus/nexus-ops.tsx:8598:  const targetLabel = agent
+src/components/nexus/nexus-ops.tsx:8601:  const latestMessagePreview = latestMessage?.content.trim()
+src/components/nexus/nexus-ops.tsx:8608:  const reasoningDisabled = !agent || reasoningOptions.length === 0;
+src/components/nexus/nexus-ops.tsx:8610:  const handleComposerAction = (actionId: WorkspaceComposerActionId) => {
+src/components/nexus/nexus-ops.tsx:8619:      const nextMode = toggleWorkspaceComposerMode(composerMode);
+src/components/nexus/nexus-ops.tsx:8630:  const handleAttachmentAction = (actionId: WorkspaceAttachmentInputActionId) => {
+src/components/nexus/nexus-ops.tsx:8648:    const action = WORKSPACE_ATTACHMENT_INPUT_ACTIONS.find(
+src/components/nexus/nexus-ops.tsx:8659:  const attachLocalFile = async (file?: File) => {
+src/components/nexus/nexus-ops.tsx:8669:    const attachmentId = makeId("attachment");
+src/components/nexus/nexus-ops.tsx:8670:    const mimeType = file.type || "text/plain";
+src/components/nexus/nexus-ops.tsx:8671:    const contentKind = isTextLikeAttachmentFile(file) ? "text" : "binary";
+src/components/nexus/nexus-ops.tsx:8672:    const compilerLane = resolveAttachmentCompilerLane({ contentKind, mimeType });
+src/components/nexus/nexus-ops.tsx:8673:    const optimisticAttachment: WorkspaceComposerAttachment = {
+src/components/nexus/nexus-ops.tsx:8689:      const contentText = contentKind === "text" ? await file.text() : undefined;
+src/components/nexus/nexus-ops.tsx:8690:      const contentUrl =
+src/components/nexus/nexus-ops.tsx:8696:      const artifactResponse = await nexusApiClient.post<
+src/components/nexus/nexus-ops.tsx:8724:      const artifact = artifactResponse.artifact;
+src/components/nexus/nexus-ops.tsx:8725:      const previewText =
+src/components/nexus/nexus-ops.tsx:8751:      const detail = error instanceof Error ? error.message : "Attachment failed.";
+src/components/nexus/nexus-ops.tsx:8769:  const submit = async (event: FormEvent<HTMLFormElement>) => {
+src/components/nexus/nexus-ops.tsx:8787:    const readyAttachments = attachments.filter(
+src/components/nexus/nexus-ops.tsx:8790:    const value = imageModeActive
+src/components/nexus/nexus-ops.tsx:9072:                        const reasoningEffort = event.currentTarget
+src/components/nexus/nexus-ops.tsx:9164:function MinimizedRail({
+src/components/nexus/nexus-ops.tsx:9202:function RightIntel({
+src/components/nexus/nexus-ops.tsx:9251:            const selected = selectedAgentId === candidate.id;
+src/components/nexus/nexus-ops.tsx:9252:            const open = profilePanelAgentId === candidate.id;
+src/components/nexus/nexus-ops.tsx:9253:            const locked = Boolean(candidate.profileLocked);
+src/components/nexus/nexus-ops.tsx:9523:function GraphNode({
+src/components/nexus/nexus-ops.tsx:9549:function CommandPalette({
+src/components/nexus/nexus-ops.tsx:9559:  const inputRef = useRef<HTMLInputElement | null>(null);
+src/components/nexus/nexus-ops.tsx:9563:      const frame = requestAnimationFrame(() => inputRef.current?.focus());
+src/components/nexus/nexus-ops.tsx:9568:  const close = () => {
+src/components/nexus/nexus-ops.tsx:9573:  const filtered = useMemo(() => {
+src/components/nexus/nexus-ops.tsx:9574:    const normalized = query.trim().toLowerCase();
+src/store/nexus-store.ts:63:  type AppendWorkflowRuntimeGroupOptions,
+src/store/nexus-store.ts:64:  type AppendWorkflowRuntimeGroupResult,
+src/store/nexus-store.ts:68:  type WorkflowRuntimeNodePatch,
+src/store/nexus-store.ts:129:type WorkspaceBounds = {
+src/store/nexus-store.ts:134:type WorkspaceIdentity = Pick<NexusWorkspace, "id" | "name">;
+src/store/nexus-store.ts:135:type WorkspaceThemeConfigUpdate = Partial<WorkspaceThemeConfig>;
+src/store/nexus-store.ts:136:type AddWorkflowRuntimeNodeOptions = {
+src/store/nexus-store.ts:139:type AppendWorkflowRuntimeGroupStoreResult = Omit<
+src/store/nexus-store.ts:143:type RunWorkflowRuntimeLiteFlowOptions = {
+src/store/nexus-store.ts:146:type WorkspaceBranchingSettingsUpdate = Partial<WorkspaceBranchingSettings>;
+src/store/nexus-store.ts:147:type HistoricalMessageCacheEntry = HistoricalDataPage<HistoricalMessageRecord> & {
+src/store/nexus-store.ts:153:const PERSIST_STORAGE_NAME = "nexus-ai-ops-workspace";
+src/store/nexus-store.ts:154:const LEGACY_LOCAL_STORAGE_KEYS = ["nexus-workspace-storage", PERSIST_STORAGE_NAME] as const;
+src/store/nexus-store.ts:155:const indexedDbStore =
+src/store/nexus-store.ts:161:const HISTORY_FETCH_DEBOUNCE_MS = 350;
+src/store/nexus-store.ts:162:const OMITTED_IMAGE_DATA_URL_FOR_LOCAL_PERSISTENCE =
+src/store/nexus-store.ts:164:const historicalDataFetcher = new HistoricalDataFetcher();
+src/store/nexus-store.ts:165:const historyFetchDebounces = new Map<
+src/store/nexus-store.ts:172:const workflowRuntimeAbortControllers = new Map<string, AbortController>();
+src/store/nexus-store.ts:174:const DEFAULT_AUTH_VAULT: IAuthVault = {
+src/store/nexus-store.ts:182:function normalizeAuthVault(value: unknown): IAuthVault {
+src/store/nexus-store.ts:187:  const vault = value as Partial<IAuthVault>;
+src/store/nexus-store.ts:201:function normalizeProviderCredentials(value: unknown): IAuthVault["providerCredentials"] {
+src/store/nexus-store.ts:213:    const record = entry as NonNullable<IAuthVault["providerCredentials"]>[string];
+src/store/nexus-store.ts:214:    const provider = getProviderOption(providerId);
+src/store/nexus-store.ts:215:    const baseUrl =
+src/store/nexus-store.ts:233:export function prepareAuthVaultForLocalPersistence(authVault: IAuthVault): IAuthVault {
+src/store/nexus-store.ts:237:const EMPTY_ARTIFACT_VAULT_CACHE: ArtifactVaultCache = {
+src/store/nexus-store.ts:244:function createArtifactVaultCache(
+src/store/nexus-store.ts:251:  const byId: Record<string, ArtifactVaultRecord> = {};
+src/store/nexus-store.ts:252:  const ids: string[] = [];
+src/store/nexus-store.ts:268:function getHistoricalMessageCacheKey(workspaceId: string, agentId: string) {
+src/store/nexus-store.ts:272:function waitForHistoryFetchDebounce(key: string) {
+src/store/nexus-store.ts:274:    const existing = historyFetchDebounces.get(key);
+src/store/nexus-store.ts:281:    const timeout = setTimeout(() => {
+src/store/nexus-store.ts:290:function normalizeArtifactVaultCache(value: unknown): ArtifactVaultCache {
+src/store/nexus-store.ts:299:  const candidate = value as Partial<ArtifactVaultCache>;
+src/store/nexus-store.ts:300:  const byId = isArtifactVaultRecordMap(candidate.byId) ? candidate.byId : {};
+src/store/nexus-store.ts:301:  const ids = Array.isArray(candidate.ids)
+src/store/nexus-store.ts:314:function isArtifactVaultRecord(value: unknown): value is ArtifactVaultRecord {
+src/store/nexus-store.ts:319:  const candidate = value as Partial<ArtifactVaultRecord>;
+src/store/nexus-store.ts:329:function isArtifactVaultRecordMap(value: unknown): value is Record<string, ArtifactVaultRecord> {
+src/store/nexus-store.ts:337:export function collectWorkflowGeneratedArtifactVaultRecords(
+src/store/nexus-store.ts:340:  const records: ArtifactVaultRecord[] = [];
+src/store/nexus-store.ts:343:    const output = execution.outputSnapshot;
+src/store/nexus-store.ts:344:    const record = output?.metadata.artifactVaultRecord;
+src/store/nexus-store.ts:351:    const transientRecord = createTransientWorkflowGeneratedArtifactRecord({
+src/store/nexus-store.ts:364:function createTransientWorkflowGeneratedArtifactRecord({
+src/store/nexus-store.ts:371:  const output = execution.outputSnapshot;
+src/store/nexus-store.ts:372:  const metadata = output?.metadata;
+src/store/nexus-store.ts:373:  const generatedAsset = getRecordValue(metadata?.generatedAsset);
+src/store/nexus-store.ts:374:  const imageUrl = getStringValue(metadata?.imageUrl);
+src/store/nexus-store.ts:380:  const assetId = getStringValue(generatedAsset.assetId);
+src/store/nexus-store.ts:381:  const sourceNodeId = output.sourceNodeId || execution.nodeId;
+src/store/nexus-store.ts:387:  const prompt = getStringValue(metadata?.prompt) || output.rawText;
+src/store/nexus-store.ts:388:  const mimeType =
+src/store/nexus-store.ts:392:  const sizeBytes = getNumberValue(generatedAsset.sizeBytes);
+src/store/nexus-store.ts:393:  const createdAt = output.createdAt || run.completedAt || run.startedAt;
+src/store/nexus-store.ts:412:function getRecordValue(value: unknown): Record<string, unknown> | null {
+src/store/nexus-store.ts:418:function getStringValue(value: unknown) {
+src/store/nexus-store.ts:422:function getNumberValue(value: unknown) {
+src/store/nexus-store.ts:426:export function mergeArtifactVaultRecordsIntoCache(
+src/store/nexus-store.ts:434:  const byId: Record<string, ArtifactVaultRecord> = {};
+src/store/nexus-store.ts:435:  const ids: string[] = [];
+src/store/nexus-store.ts:448:    const record = cache.byId[id];
+src/store/nexus-store.ts:467:type NexusStore = {
+src/store/nexus-store.ts:621:type NexusTemporalState = Pick<
+src/store/nexus-store.ts:630:function partializeTemporalState(state: NexusStore): NexusTemporalState {
+src/store/nexus-store.ts:640:function prepareWorkspacesForTemporalState(workspaces: NexusWorkspace[]) {
+src/store/nexus-store.ts:652:function prepareWorkflowRuntimeLiteForTemporalState(
+src/store/nexus-store.ts:670:function temporalWorkspaceSignature(workspace: NexusWorkspace) {
+src/store/nexus-store.ts:706:function temporalSignature(state: NexusTemporalState) {
+src/store/nexus-store.ts:716:function temporalStatesAreEqual(
+src/store/nexus-store.ts:723:function getLegacyPersistKeys(name: string) {
+src/store/nexus-store.ts:727:function getLegacyPersistValue(name: string) {
+src/store/nexus-store.ts:734:      const value = window.localStorage.getItem(key);
+src/store/nexus-store.ts:747:function setLegacyPersistValue(name: string, value: string) {
+src/store/nexus-store.ts:759:function clearLegacyPersistValues(name: string) {
+src/store/nexus-store.ts:773:const indexedDbStateStorage: StateStorage<Promise<void>> = {
+src/store/nexus-store.ts:780:      const indexedDbValue = await idbGet<string>(name, indexedDbStore);
+src/store/nexus-store.ts:786:      const legacyValue = getLegacyPersistValue(name);
+src/store/nexus-store.ts:830:const initialWorkspace = () => createDefaultWorkspace();
+src/store/nexus-store.ts:832:function createWorkspaceId() {
+src/store/nexus-store.ts:838:function getNextWorkspaceName(workspaces: NexusWorkspace[]) {
+src/store/nexus-store.ts:842:function clone<T>(value: T): T {
+src/store/nexus-store.ts:846:function clampBranchingRetentionRatio(value: unknown) {
+src/store/nexus-store.ts:852:function normalizeBranchingSettings(
+src/store/nexus-store.ts:864:function createBranchAgentId() {
+src/store/nexus-store.ts:870:function createForkCallsign(callsign: string) {
+src/store/nexus-store.ts:874:function createBranchMetadata({
+src/store/nexus-store.ts:892:function createCheckpointFromWorkspace(
+src/store/nexus-store.ts:896:  const timestamp = new Date().toISOString();
+src/store/nexus-store.ts:897:  const snapshot = clone(workspace);
+src/store/nexus-store.ts:910:function createAgentFromMacroBlueprint({
+src/store/nexus-store.ts:923:  const callsign = blueprint.callsign || `MACRO-${index + 1}`;
+src/store/nexus-store.ts:994:function getActiveWorkspace(state: Pick<NexusStore, "activeWorkspaceId" | "workspaces">) {
+src/store/nexus-store.ts:1001:function createActiveUiStateSnapshot(
+src/store/nexus-store.ts:1019:function queueWorkspaceCloudSync(workspace?: Pick<NexusWorkspace, "id" | "name">) {
+src/store/nexus-store.ts:1024:  const fullWorkspace =
+src/store/nexus-store.ts:1039:function isFullWorkspace(
+src/store/nexus-store.ts:1045:function queueThemeConfigCloudSync(workspace?: Pick<NexusWorkspace, "id" | "name">) {
+src/store/nexus-store.ts:1060:function queueMessageCloudSync({
+src/store/nexus-store.ts:1078:function queuePromptsCacheRefresh(workspaceId?: string) {
+src/store/nexus-store.ts:1086:      const state = useNexusStore.getState();
+src/store/nexus-store.ts:1095:function sortNotebooks(notebooks: NotebookRecord[]) {
+src/store/nexus-store.ts:1097:    const leftDate = left.updated_at ?? left.created_at ?? "";
+src/store/nexus-store.ts:1098:    const rightDate = right.updated_at ?? right.created_at ?? "";
+src/store/nexus-store.ts:1104:function sortPrompts(prompts: PromptRecord[]) {
+src/store/nexus-store.ts:1110:function mergeRemotePromptsWithLocalCache(
+src/store/nexus-store.ts:1114:  const visibleRemote = remotePrompts.filter((prompt) => !prompt.deleted_at);
+src/store/nexus-store.ts:1115:  const mergedById = new Map(visibleRemote.map((prompt) => [prompt.id, prompt]));
+src/store/nexus-store.ts:1120:      const remotePrompt = mergedById.get(localPrompt.id);
+src/store/nexus-store.ts:1133:function normalizeNotebookDrafts(drafts: NotebookDraftRecord[]) {
+src/store/nexus-store.ts:1151:function omitNotebookDraft(
+src/store/nexus-store.ts:1155:  const remaining = { ...drafts };
+src/store/nexus-store.ts:1161:function mergeRemoteNotebooksWithLocalCache(
+src/store/nexus-store.ts:1169:  const mergedById = new Map(remoteNotebooks.map((notebook) => [notebook.id, notebook]));
+src/store/nexus-store.ts:1172:    const remoteNotebook = mergedById.get(localNotebook.id);
+src/store/nexus-store.ts:1189:function isNewerTimestamp(left?: string | null, right?: string | null) {
+src/store/nexus-store.ts:1197:function queueNotebooksCacheRefresh() {
+src/store/nexus-store.ts:1206:function withActiveWorkspace(
+src/store/nexus-store.ts:1210:  const now = new Date().toISOString();
+src/store/nexus-store.ts:1215:          const updated = syncPanels({ ...updater(workspace), updatedAt: now });
+src/store/nexus-store.ts:1229:function withWorkspaceById(
+src/store/nexus-store.ts:1234:  const now = new Date().toISOString();
+src/store/nexus-store.ts:1239:          const updated = syncPanels({ ...updater(workspace), updatedAt: now });
+src/store/nexus-store.ts:1253:function withAgent(
+src/store/nexus-store.ts:1258:  const updatedAt = new Date().toISOString();
+src/store/nexus-store.ts:1268:function withWorkflowRuntimeLite(
+src/store/nexus-store.ts:1274:  const runtimeLite = normalizeWorkflowRuntimeLiteState(
+src/store/nexus-store.ts:1288:function selectWorkflowRuntimeLiteFromStartNode(
+src/store/nexus-store.ts:1296:  const startNode = runtimeLite.nodes.find(
+src/store/nexus-store.ts:1308:  const outgoing = new Map<string, WorkflowRuntimeEdge[]>();
+src/store/nexus-store.ts:1311:    const group = outgoing.get(edge.source) ?? [];
+src/store/nexus-store.ts:1316:  const reachableNodeIds = new Set<string>();
+src/store/nexus-store.ts:1317:  const stack = [startNode.id];
+src/store/nexus-store.ts:1320:    const nodeId = stack.pop();
+src/store/nexus-store.ts:1342:function resolveWorkflowRuntimeGroupForRun(
+src/store/nexus-store.ts:1345:  const groups = new Map<string, WorkflowRuntimeGroupRef>();
+src/store/nexus-store.ts:1356:function patchWorkflowRuntimeNode(
+src/store/nexus-store.ts:1366:function resetWorkflowRuntimeNodeForRun(
+src/store/nexus-store.ts:1378:function upsertWorkflowRun(runs: WorkflowRun[], run: WorkflowRun) {
+src/store/nexus-store.ts:1379:  const nextRuns = runs.some((candidate) => candidate.runId === run.runId)
+src/store/nexus-store.ts:1386:function markWorkflowRunTraceSync(
+src/store/nexus-store.ts:1401:function resolveStreamMode(_workspace: NexusWorkspace | undefined, authVault?: IAuthVault): StreamMode {
+src/store/nexus-store.ts:1408:function getDefaultChatModelForAgent() {
+src/store/nexus-store.ts:1414:function normalizeAgentModelCatalog(agent: NexusAgent): NexusAgent {
+src/store/nexus-store.ts:1415:  const candidate = agent as NexusAgent & {
+src/store/nexus-store.ts:1419:  const profileFields = {
+src/store/nexus-store.ts:1434:  const model = agent.model?.trim() || getDefaultChatModelForAgent();
+src/store/nexus-store.ts:1435:  const supportedModels = Array.from(
+src/store/nexus-store.ts:1456:function syncPanels(
+src/store/nexus-store.ts:1460:  const resetInterrupted = options.resetInterrupted ?? false;
+src/store/nexus-store.ts:1461:  const knownAgentIds = new Set(workspace.agents.map((agent) => agent.id));
+src/store/nexus-store.ts:1462:  const existingGraphNodes = new Map(
+src/store/nexus-store.ts:1468:  const nextWorkspace = {
+src/store/nexus-store.ts:1480:        const existing = existingGraphNodes.get(agent.id);
+src/store/nexus-store.ts:1502:function createWorkflowTemplateBlueprint(
+src/store/nexus-store.ts:1505:  const knownAgentIds = new Set(workspace.agents.map((agent) => agent.id));
+src/store/nexus-store.ts:1558:function createMacroInstantiation({
+src/store/nexus-store.ts:1565:  const timestamp = new Date().toISOString();
+src/store/nexus-store.ts:1566:  const idMap = new Map<string, string>();
+src/store/nexus-store.ts:1567:  const agents = blueprintData.agents.map((blueprint, index) => {
+src/store/nexus-store.ts:1568:    const id = makeId("agent");
+src/store/nexus-store.ts:1582:  const graphNodes = blueprintData.graph.nodes
+src/store/nexus-store.ts:1584:      const agentId = idMap.get(node.agentId);
+src/store/nexus-store.ts:1596:  const graphEdges = blueprintData.graph.edges
+src/store/nexus-store.ts:1598:      const sourceAgentId = idMap.get(edge.sourceAgentId);
+src/store/nexus-store.ts:1599:      const targetAgentId = idMap.get(edge.targetAgentId);
+src/store/nexus-store.ts:1620:function isUsableMacroBlueprint(
+src/store/nexus-store.ts:1632:function clampLayout(layout: AgentLayout, bounds: WorkspaceBounds) {
+src/store/nexus-store.ts:1633:  const width = Math.min(layout.width, Math.max(380, bounds.width - 32));
+src/store/nexus-store.ts:1634:  const height = Math.min(layout.height, Math.max(340, bounds.height - 32));
+src/store/nexus-store.ts:1645:function normalizeWorkspaces(workspaces: NexusWorkspace[] | undefined) {
+src/store/nexus-store.ts:1646:  const fallback = initialWorkspace();
+src/store/nexus-store.ts:1647:  const sanitized = (workspaces?.length ? workspaces : [fallback]).map(sanitizeWorkspace);
+src/store/nexus-store.ts:1664:export function prepareWorkspacesForLocalPersistence(workspaces: NexusWorkspace[]) {
+src/store/nexus-store.ts:1668:function prepareWorkspaceForLocalPersistence(workspace: NexusWorkspace): NexusWorkspace {
+src/store/nexus-store.ts:1685:function prepareWorkflowRuntimeLiteForLocalPersistence(
+src/store/nexus-store.ts:1710:function prepareContextPacketForLocalPersistence(
+src/store/nexus-store.ts:1725:function omitInlineImageDataUrls(value: string) {
+src/store/nexus-store.ts:1736:function omitInlineImageDataUrlsFromJson(value: unknown): unknown {
+src/store/nexus-store.ts:1757:function prepareAgentForLocalPersistence(agent: NexusAgent): NexusAgent {
+src/store/nexus-store.ts:1758:  const messages = prepareMessagesForLocalPersistence(agent.messages);
+src/store/nexus-store.ts:1759:  const memory = prepareMemoryForLocalPersistence(agent.memory);
+src/store/nexus-store.ts:1769:function prepareMessagesForLocalPersistence(
+src/store/nexus-store.ts:1775:function prepareMemoryForLocalPersistence(
+src/store/nexus-store.ts:1781:function createAgentLocalPersistenceMetadata(
+src/store/nexus-store.ts:1792:function createMessageRetentionMetadata(
+src/store/nexus-store.ts:1805:function createMemoryRetentionMetadata(
+src/store/nexus-store.ts:1817:function logHydratedMemoryState(state: NexusStore | undefined) {
+src/store/nexus-store.ts:1832:export const useNexusStore = create<NexusStore>()(
+src/store/nexus-store.ts:1856:        const now = new Date().toISOString();
+src/store/nexus-store.ts:1857:        const workspace = getActiveWorkspace(get());
+src/store/nexus-store.ts:1875:        const now = new Date().toISOString();
+src/store/nexus-store.ts:1876:        const workspace = getActiveWorkspace(get());
+src/store/nexus-store.ts:1896:        const state = get();
+src/store/nexus-store.ts:1897:        const workspace = createDefaultWorkspace({
+src/store/nexus-store.ts:1922:        const state = get();
+src/store/nexus-store.ts:1923:        const workspace = state.workspaces.find((candidate) => candidate.id === workspaceId);
+src/store/nexus-store.ts:1939:        const state = get();
+src/store/nexus-store.ts:1940:        const nextWorkspaceId = workspaceId.trim();
+src/store/nexus-store.ts:1941:        const activeWorkspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:1947:        const existingWorkspace = state.workspaces.find(
+src/store/nexus-store.ts:1966:        const previousWorkspaceId = activeWorkspace.id;
+src/store/nexus-store.ts:1967:        const now = new Date().toISOString();
+src/store/nexus-store.ts:1968:        const reboundWorkspace: NexusWorkspace = {
+src/store/nexus-store.ts:2005:        const state = get();
+src/store/nexus-store.ts:2006:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:2007:        const nextName = name.trim();
+src/store/nexus-store.ts:2023:        const state = get();
+src/store/nexus-store.ts:2024:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:2034:        const result = validateWorkspaceSnapshot(snapshot);
+src/store/nexus-store.ts:2041:        const workspace = sanitizeWorkspace(result.workspace);
+src/store/nexus-store.ts:2042:        const highestZ = Math.max(10, ...workspace.agents.map((agent) => agent.layout.zIndex));
+src/store/nexus-store.ts:2098:        const recoveredWorkspace = materializeWorkspaceFromCloudSnapshot(
+src/store/nexus-store.ts:2101:        const state = get();
+src/store/nexus-store.ts:2102:        const existingWorkspace = state.workspaces.find(
+src/store/nexus-store.ts:2119:          const exists = current.workspaces.some(
+src/store/nexus-store.ts:2122:          const workspaces = exists
+src/store/nexus-store.ts:2148:        const state = get();
+src/store/nexus-store.ts:2149:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:2150:        const baseTemplate =
+src/store/nexus-store.ts:2153:        const template = applyAgentTemplateProfile(
+src/store/nexus-store.ts:2157:        const id = makeId("agent");
+src/store/nexus-store.ts:2158:        const nextZIndex = state.nextZIndex + 1;
+src/store/nexus-store.ts:2159:        const offset = workspace.agents.length * 34;
+src/store/nexus-store.ts:2160:        const layout: AgentLayout = {
+src/store/nexus-store.ts:2167:        const agent =
+src/store/nexus-store.ts:2173:        const graphNode = {
+src/store/nexus-store.ts:2197:        const state = get();
+src/store/nexus-store.ts:2198:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:2199:        const sourceAgent = workspace.agents.find((agent) => agent.id === sourceAgentId);
+src/store/nexus-store.ts:2206:        const sourceWorkspaceId = workspace.id;
+src/store/nexus-store.ts:2207:        const sourceSnapshot = clone(sourceAgent);
+src/store/nexus-store.ts:2208:        const sourceGraphNode = workspace.graph.nodes.find(
+src/store/nexus-store.ts:2211:        const normalizedConfig: IMemoryCompressionConfig = {
+src/store/nexus-store.ts:2216:        const id = createBranchAgentId();
+src/store/nexus-store.ts:2217:        const timestamp = new Date().toISOString();
+src/store/nexus-store.ts:2225:          const buildBranchedAgent = ({
+src/store/nexus-store.ts:2294:            const compressionResult = await LlmMemoryCompressor.compress(
+src/store/nexus-store.ts:2342:          const latestState = get();
+src/store/nexus-store.ts:2343:          const targetWorkspace =
+src/store/nexus-store.ts:2347:          const nextZIndex = latestState.nextZIndex + 1;
+src/store/nexus-store.ts:2348:          const branchedAgent = buildBranchedAgent({
+src/store/nexus-store.ts:2355:          const latestSourceGraphNode =
+src/store/nexus-store.ts:2358:          const fallbackPosition = getDefaultGraphPosition(targetWorkspace.agents.length);
+src/store/nexus-store.ts:2359:          const branchGraphNode = {
+src/store/nexus-store.ts:2365:          const branchGraphEdge: WorkspaceGraphEdge = {
+src/store/nexus-store.ts:2413:        const workspace = getActiveWorkspace(get());
+src/store/nexus-store.ts:2414:        const macroName = name.trim();
+src/store/nexus-store.ts:2430:        const blueprintData = template.blueprintData;
+src/store/nexus-store.ts:2438:        const state = get();
+src/store/nexus-store.ts:2478:        const state = get();
+src/store/nexus-store.ts:2479:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:2485:        const checkpoint = createCheckpointFromWorkspace(workspace, reason);
+src/store/nexus-store.ts:2498:        const state = get();
+src/store/nexus-store.ts:2499:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:2500:        const checkpoint = workspace?.checkpoints?.find(
+src/store/nexus-store.ts:2508:        const restoredWorkspace: NexusWorkspace = {
+src/store/nexus-store.ts:2513:        const highestZ = Math.max(
+src/store/nexus-store.ts:2543:        const state = get();
+src/store/nexus-store.ts:2544:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:2545:        const source = workspace.agents.find((agent) => agent.id === agentId);
+src/store/nexus-store.ts:2551:        const id = makeId("agent");
+src/store/nexus-store.ts:2552:        const nextZIndex = state.nextZIndex + 1;
+src/store/nexus-store.ts:2553:        const duplicate: NexusAgent = {
+src/store/nexus-store.ts:2605:        const state = get();
+src/store/nexus-store.ts:2606:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:2607:        const agents = workspace.agents.filter((agent) => agent.id !== agentId);
+src/store/nexus-store.ts:2608:        const nextSelected = agents.at(-1)?.id;
+src/store/nexus-store.ts:2632:        const state = get();
+src/store/nexus-store.ts:2633:        const nextZIndex = state.nextZIndex + 1;
+src/store/nexus-store.ts:2656:        const state = get();
+src/store/nexus-store.ts:2683:        const callsign = profile.callsign?.trim();
+src/store/nexus-store.ts:2684:        const title = profile.title?.trim();
+src/store/nexus-store.ts:2689:              const profileLocked =
+src/store/nexus-store.ts:2723:        const nextCallsign = callsign.trim();
+src/store/nexus-store.ts:2741:        const nextModel = model.trim();
+src/store/nexus-store.ts:2747:        const nextProvider = getModelOption(nextModel)?.provider;
+src/store/nexus-store.ts:2784:        const template = agentTemplates.find((candidate) => candidate.id === templateId);
+src/store/nexus-store.ts:2792:            const currentProfiles = workspace.settings.agentTemplateProfiles ?? {};
+src/store/nexus-store.ts:2793:            const currentProfile = resolveAgentTemplateProfile(
+src/store/nexus-store.ts:2797:            const nextLocked =
+src/store/nexus-store.ts:2865:        const sanitizedKey = key.replace(/[^\x20-\x7E]/g, "").trim();
+src/store/nexus-store.ts:2866:        const globalApiKey = sanitizedKey || null;
+src/store/nexus-store.ts:2887:        const sanitizedBaseUrl = baseUrl.replace(/[^\x20-\x7E]/g, "").trim();
+src/store/nexus-store.ts:2888:        const globalBaseUrl = sanitizedBaseUrl || DEFAULT_BASE_URL;
+src/store/nexus-store.ts:2899:        const sanitizedKey = key.replace(/[^\x20-\x7E]/g, "").trim();
+src/store/nexus-store.ts:2900:        const provider = getProviderOption(providerId);
+src/store/nexus-store.ts:2903:          const current = state.authVault.providerCredentials?.[providerId];
+src/store/nexus-store.ts:2928:        const sanitizedBaseUrl = baseUrl.replace(/[^\x20-\x7E]/g, "").trim();
+src/store/nexus-store.ts:2929:        const provider = getProviderOption(providerId);
+src/store/nexus-store.ts:2932:          const current = state.authVault.providerCredentials?.[providerId];
+src/store/nexus-store.ts:2955:          const provider = getProviderOption(providerId);
+src/store/nexus-store.ts:2956:          const current = state.authVault.providerCredentials?.[providerId];
+src/store/nexus-store.ts:2979:          const provider = getProviderOption(providerId);
+src/store/nexus-store.ts:2980:          const current = state.authVault.providerCredentials?.[providerId];
+src/store/nexus-store.ts:3003:          const provider = getProviderOption(providerId);
+src/store/nexus-store.ts:3004:          const current = state.authVault.providerCredentials?.[providerId];
+src/store/nexus-store.ts:3027:          const nextCredentials = { ...(state.authVault.providerCredentials ?? {}) };
+src/store/nexus-store.ts:3101:        const state = get();
+src/store/nexus-store.ts:3102:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:3103:        const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
+src/store/nexus-store.ts:3104:        const contentText = content.trim();
+src/store/nexus-store.ts:3110:        const sourceMessageId = agent?.messages.at(-1)?.id ?? makeId("artifact-source");
+src/store/nexus-store.ts:3111:        const userId = state.authVault.user.id;
+src/store/nexus-store.ts:3142:        const state = get();
+src/store/nexus-store.ts:3143:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:3144:        const workspaceId = workspace?.id ?? ACTIVE_WORKSPACE_ID;
+src/store/nexus-store.ts:3145:        const userId = state.authVault.user?.id;
+src/store/nexus-store.ts:3151:        const response = await supabaseStateSyncManager.fetchArtifacts(workspaceId, userId);
+src/store/nexus-store.ts:3152:        const artifacts = response.artifacts;
+src/store/nexus-store.ts:3165:        const state = get();
+src/store/nexus-store.ts:3166:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:3167:        const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
+src/store/nexus-store.ts:3173:        const cacheKey = getHistoricalMessageCacheKey(workspace.id, agentId);
+src/store/nexus-store.ts:3174:        const shouldRun = await waitForHistoryFetchDebounce(cacheKey);
+src/store/nexus-store.ts:3180:        const beforeFetch = get();
+src/store/nexus-store.ts:3181:        const existing = beforeFetch.historicalMessages[cacheKey];
+src/store/nexus-store.ts:3200:          const latest = get();
+src/store/nexus-store.ts:3201:          const latestWorkspace = getActiveWorkspace(latest);
+src/store/nexus-store.ts:3202:          const latestAgent = latestWorkspace?.agents.find((candidate) => candidate.id === agentId);
+src/store/nexus-store.ts:3203:          const current = latest.historicalMessages[cacheKey];
+src/store/nexus-store.ts:3204:          const page = await historicalDataFetcher.fetchHistoricalMessages({
+src/store/nexus-store.ts:3211:          const activeIds = new Set(
+src/store/nexus-store.ts:3214:          const byId = new Map<string, HistoricalMessageRecord>();
+src/store/nexus-store.ts:3222:          const items = [...byId.values()].sort((left, right) =>
+src/store/nexus-store.ts:3239:          const message =
+src/store/nexus-store.ts:3279:        const state = get();
+src/store/nexus-store.ts:3280:        const prompt = state.promptsCache.find((candidate) => candidate.id === id);
+src/store/nexus-store.ts:3286:        const title = newTitle.trim() || prompt.title;
+src/store/nexus-store.ts:3287:        const content = newContent;
+src/store/nexus-store.ts:3288:        const updatedAt = new Date().toISOString();
+src/store/nexus-store.ts:3289:        const revision = {
+src/store/nexus-store.ts:3298:        const nextPrompt: PromptRecord = {
+src/store/nexus-store.ts:3318:        const prompt = get().promptsCache.find((candidate) => candidate.id === id);
+src/store/nexus-store.ts:3329:          const nextNotebooks = mergeRemoteNotebooksWithLocalCache(
+src/store/nexus-store.ts:3333:          const notebookIds = new Set(nextNotebooks.map((notebook) => notebook.id));
+src/store/nexus-store.ts:3334:          const notebookWindowLayers = Object.fromEntries(
+src/store/nexus-store.ts:3365:          const nextZIndex = state.nextZIndex + 1;
+src/store/nexus-store.ts:3380:          const nextZIndex = state.nextZIndex + 1;
+src/store/nexus-store.ts:3393:        const now = new Date().toISOString();
+src/store/nexus-store.ts:3394:        const notebook: NotebookRecord = {
+src/store/nexus-store.ts:3404:          const nextZIndex = state.nextZIndex + 1;
+src/store/nexus-store.ts:3426:        const state = get();
+src/store/nexus-store.ts:3427:        const notebook = state.notebooksCache.find((candidate) => candidate.id === id);
+src/store/nexus-store.ts:3433:        const updatedAt = new Date().toISOString();
+src/store/nexus-store.ts:3434:        const draft: NotebookDraftRecord = {
+src/store/nexus-store.ts:3464:        const state = get();
+src/store/nexus-store.ts:3465:        const notebook = state.notebooksCache.find((candidate) => candidate.id === id);
+src/store/nexus-store.ts:3471:        const updatedNotebook: NotebookRecord = {
+src/store/nexus-store.ts:3494:        const state = get();
+src/store/nexus-store.ts:3495:        const notebook = state.notebooksCache.find((candidate) => candidate.id === id);
+src/store/nexus-store.ts:3496:        const workspaceId = notebook
+src/store/nexus-store.ts:3499:        const draft = state.notebookDrafts[id];
+src/store/nexus-store.ts:3500:        const deletedAt = new Date().toISOString();
+src/store/nexus-store.ts:3501:        const tombstone = notebook
+src/store/nexus-store.ts:3545:        const state = get();
+src/store/nexus-store.ts:3546:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:3606:        const state = get();
+src/store/nexus-store.ts:3607:        const nextZIndex = state.nextZIndex + 1;
+src/store/nexus-store.ts:3698:        const state = get();
+src/store/nexus-store.ts:3699:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:3753:        const state = get();
+src/store/nexus-store.ts:3754:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:3755:        const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
+src/store/nexus-store.ts:3756:        const sourceMessage = agent?.messages.find(
+src/store/nexus-store.ts:3759:        const finalMessage = sourceMessage
+src/store/nexus-store.ts:3810:          const activeWorkspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:3811:          const nextStreamMode = activeWorkspace
+src/store/nexus-store.ts:3870:            const duplicate = workspace.graph.edges.some(
+src/store/nexus-store.ts:3904:        const state = get();
+src/store/nexus-store.ts:3905:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:3906:        const runtimeLite = normalizeWorkflowRuntimeLiteState(
+src/store/nexus-store.ts:3910:        const id = createWorkflowRuntimeId("wf_node");
+src/store/nexus-store.ts:3911:        const previousNode = runtimeLite.nodes.at(-1);
+src/store/nexus-store.ts:3912:        const node = createWorkflowRuntimeNode({
+src/store/nexus-store.ts:3986:              const duplicate = runtimeLite.edges.some(
+src/store/nexus-store.ts:4015:        const state = get();
+src/store/nexus-store.ts:4016:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:4017:        const result = appendWorkflowRuntimeGroupToRuntime({
+src/store/nexus-store.ts:4048:        const normalizedRuntimeLite = normalizeWorkflowRuntimeLiteState(
+src/store/nexus-store.ts:4064:        const nodeIdSet = new Set(nodeIds);
+src/store/nexus-store.ts:4096:        const workspace = getActiveWorkspace(get());
+src/store/nexus-store.ts:4097:        const controller = workflowRuntimeAbortControllers.get(workspace.id);
+src/store/nexus-store.ts:4107:        const state = get();
+src/store/nexus-store.ts:4108:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:4109:        const normalizedRuntimeLite = prepareWorkflowRuntimeLiteForLocalPersistence(
+src/store/nexus-store.ts:4114:        const inferredRuntimeEdges = inferLinearWorkflowRuntimeLiteEdges({
+src/store/nexus-store.ts:4118:        const runtimeLite =
+src/store/nexus-store.ts:4126:        const selectedRuntimeLite = selectWorkflowRuntimeLiteFromStartNode(
+src/store/nexus-store.ts:4130:        const selectedWorkflowGroup = resolveWorkflowRuntimeGroupForRun(selectedRuntimeLite);
+src/store/nexus-store.ts:4131:        const selectedNodeIds = new Set(
+src/store/nexus-store.ts:4134:        const executionAgent = resolveWorkflowRuntimeExecutionAgent(workspace);
+src/store/nexus-store.ts:4135:        const runId = createWorkflowRuntimeId("run");
+src/store/nexus-store.ts:4138:          const failedRun: WorkflowRun = {
+src/store/nexus-store.ts:4163:        const preparedRuntimeLite = {
+src/store/nexus-store.ts:4171:        const preparedSelectedRuntimeLite = {
+src/store/nexus-store.ts:4186:        const controller = new AbortController();
+src/store/nexus-store.ts:4191:        const patchNode = (nodeId: string, patch: WorkflowRuntimeNodePatch) => {
+src/store/nexus-store.ts:4203:        const updateRun = (run: WorkflowRun) => {
+src/store/nexus-store.ts:4215:        const run = await runWorkflowRuntimeLite({
+src/store/nexus-store.ts:4238:        const generatedArtifacts = collectWorkflowGeneratedArtifactVaultRecords(run).filter(
+src/store/nexus-store.ts:4251:        const updateTraceSync = (traceSync: WorkflowRuntimeTraceSyncState) => {
+src/store/nexus-store.ts:4261:        const traceAttemptedAt = new Date().toISOString();
+src/store/nexus-store.ts:4284:            const syncError = createWorkflowRuntimeTraceSyncError(error);
+src/store/nexus-store.ts:4302:        const state = get();
+src/store/nexus-store.ts:4303:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:4304:        const runtimeLite = normalizeWorkflowRuntimeLiteState(
+src/store/nexus-store.ts:4307:        const run = runtimeLite.runs.find((candidate) => candidate.runId === runId);
+src/store/nexus-store.ts:4313:        const traceAttemptedAt = new Date().toISOString();
+src/store/nexus-store.ts:4314:        const syncStarted: WorkflowRuntimeTraceSyncState = {
+src/store/nexus-store.ts:4319:        const updateTraceSync = (traceSync: WorkflowRuntimeTraceSyncState) => {
+src/store/nexus-store.ts:4333:          const response = await publishWorkflowRuntimeTrace({
+src/store/nexus-store.ts:4338:          const traceSync: WorkflowRuntimeTraceSyncState = {
+src/store/nexus-store.ts:4355:          const syncError = createWorkflowRuntimeTraceSyncError(error);
+src/store/nexus-store.ts:4356:          const traceSync: WorkflowRuntimeTraceSyncState = {
+src/store/nexus-store.ts:4413:        const state = get();
+src/store/nexus-store.ts:4414:        const workspace = getActiveWorkspace(state);
+src/store/nexus-store.ts:4415:        const agent = workspace.agents.find((candidate) => candidate.id === agentId);
+src/store/nexus-store.ts:4416:        const tool = agent?.tools.find((candidate) => candidate.id === toolId);
+src/store/nexus-store.ts:4436:          const safeApiKey =
+src/store/nexus-store.ts:4439:          const request: ToolRunRequest = {
+src/store/nexus-store.ts:4444:          const response = await nexusApiClient.post<ToolRunResponse, ToolRunRequest>(
+src/store/nexus-store.ts:4458:          const finalResponse =
+src/store/nexus-store.ts:4468:          const resultContent = getToolRunContent(finalResponse);
+src/store/nexus-store.ts:4469:          const projectedStatus = mapToolRunStatus(finalResponse.toolRun.status);
+src/store/nexus-store.ts:4470:          const toolMessage: AgentMessage | undefined =
+src/store/nexus-store.ts:4520:          const detail =
+src/store/nexus-store.ts:4544:        const workspace = initialWorkspace();
+src/store/nexus-store.ts:4581:          const workspaces = prepareWorkspacesForLocalPersistence([initialWorkspace()]);
+src/store/nexus-store.ts:4605:        const value = persisted as Partial<NexusStore> & { agents?: NexusAgent[] };
+src/store/nexus-store.ts:4608:          const workspaces = prepareWorkspacesForLocalPersistence(value.workspaces);
+src/store/nexus-store.ts:4609:          const authVault = normalizeAuthVault(value.authVault);
+src/store/nexus-store.ts:4610:          const activeWorkspaceId = value.activeWorkspaceId ?? workspaces[0]?.id;
+src/store/nexus-store.ts:4611:          const activeWorkspace =
+src/store/nexus-store.ts:4648:        const workspaces = prepareWorkspacesForLocalPersistence([initialWorkspace()]);
+src/store/nexus-store.ts:4692:async function resolveToolConfirmation({
+src/store/nexus-store.ts:4705:  const shouldConfirm =
+src/store/nexus-store.ts:4708:  const headers = apiKey
+src/store/nexus-store.ts:4715:    const cancelled = await nexusApiClient.post<
+src/store/nexus-store.ts:4751:function sanitizeToolInput(input: ToolExecutorInput): Record<string, unknown> {
+src/store/nexus-store.ts:4752:  const sanitized: Record<string, unknown> = {};
+src/store/nexus-store.ts:4769:function getToolRunContent(response: ToolRunResponse) {
+src/store/nexus-store.ts:4770:  const output = response.toolRun.outputRedacted;
+src/store/nexus-store.ts:4771:  const content = output && typeof output.content === "string" ? output.content : "";
+src/store/nexus-store.ts:4772:  const materializationNote =
+src/store/nexus-store.ts:4792:function mapToolRunStatus(status: ToolRunResponse["toolRun"]["status"]): ToolStatus {
+src/components/nexus/nexus-graph.tsx:14:  type Connection,
+src/components/nexus/nexus-graph.tsx:15:  type Edge,
+src/components/nexus/nexus-graph.tsx:16:  type EdgeChange,
+src/components/nexus/nexus-graph.tsx:17:  type EdgeProps,
+src/components/nexus/nexus-graph.tsx:18:  type Node,
+src/components/nexus/nexus-graph.tsx:19:  type NodeChange,
+src/components/nexus/nexus-graph.tsx:20:  type NodeProps,
+src/components/nexus/nexus-graph.tsx:21:  type ReactFlowInstance,
+src/components/nexus/nexus-graph.tsx:37:  type CSSProperties,
+src/components/nexus/nexus-graph.tsx:38:  type DragEvent as ReactDragEvent,
+src/components/nexus/nexus-graph.tsx:39:  type ReactNode,
+src/components/nexus/nexus-graph.tsx:52:  type WorkflowBrainDraftTemplateId,
+src/components/nexus/nexus-graph.tsx:66:  type WorkspaceComposerImageAspectRatio,
+src/components/nexus/nexus-graph.tsx:67:  type WorkspaceComposerImageQuality,
+src/components/nexus/nexus-graph.tsx:88:type AgentNodeData = {
+src/components/nexus/nexus-graph.tsx:95:type RuntimeNodeData = {
+src/components/nexus/nexus-graph.tsx:110:type AgentEdgeData = {
+src/components/nexus/nexus-graph.tsx:120:type AgentFlowNode = Node<AgentNodeData, "agent">;
+src/components/nexus/nexus-graph.tsx:121:type RuntimeFlowNode = Node<RuntimeNodeData, WorkflowRuntimeNodeType>;
+src/components/nexus/nexus-graph.tsx:122:type AgentFlowEdge = Edge<AgentEdgeData, "blueprint">;
+src/components/nexus/nexus-graph.tsx:123:type GraphNodeState = {
+src/components/nexus/nexus-graph.tsx:127:type WorkflowGraphFeedback = {
+src/components/nexus/nexus-graph.tsx:132:type WorkflowBrainAppendResult = {
+src/components/nexus/nexus-graph.tsx:139:function cx(...classes: Array<string | false | null | undefined>) {
+src/components/nexus/nexus-graph.tsx:143:function truncateText(value: string, maxLength: number) {
+src/components/nexus/nexus-graph.tsx:151:function getModelLabel(modelId: string) {
+src/components/nexus/nexus-graph.tsx:155:function getWorkflowPacketImageUrl(packet: ContextPacket | null | undefined) {
+src/components/nexus/nexus-graph.tsx:160:  const rawUrl = /^Image URL:\s*(\S+)/m.exec(packet.rawText)?.[1];
+src/components/nexus/nexus-graph.tsx:166:  const metadataUrl = packet.metadata.imageUrl;
+src/components/nexus/nexus-graph.tsx:171:function getRuntimeNodeIcon(type: WorkflowRuntimeNodeType) {
+src/components/nexus/nexus-graph.tsx:191:function AgentNode({ data, selected }: NodeProps<AgentFlowNode>) {
+src/components/nexus/nexus-graph.tsx:193:  const active = agent.status === "thinking" || agent.status === "streaming";
+src/components/nexus/nexus-graph.tsx:194:  const errored = agent.status === "error";
+src/components/nexus/nexus-graph.tsx:195:  const capabilityType = agent.capabilities?.type ?? "chat";
+src/components/nexus/nexus-graph.tsx:196:  const capabilityLabel =
+src/components/nexus/nexus-graph.tsx:198:  const latestMessage = agent.messages.at(-1);
+src/components/nexus/nexus-graph.tsx:199:  const latestMedia = [...agent.messages].reverse().find((message) => message.media)?.media;
+src/components/nexus/nexus-graph.tsx:200:  const sandboxPreview = capabilityType === "sandbox" ? agent.sandboxCode : undefined;
+src/components/nexus/nexus-graph.tsx:201:  const preview = truncateText(
+src/components/nexus/nexus-graph.tsx:205:  const previewLabel =
+src/components/nexus/nexus-graph.tsx:304:function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
+src/components/nexus/nexus-graph.tsx:317:  const definition = getWorkflowRuntimeNodeDefinition(node.type);
+src/components/nexus/nexus-graph.tsx:318:  const packet = node.outputSnapshot ?? null;
+src/components/nexus/nexus-graph.tsx:319:  const outputText = packet?.displayText || packet?.rawText || "";
+src/components/nexus/nexus-graph.tsx:320:  const imageUrl = getWorkflowPacketImageUrl(packet);
+src/components/nexus/nexus-graph.tsx:321:  const statusClass = getRuntimeStatusClass(node.status);
+src/components/nexus/nexus-graph.tsx:461:function RuntimeHandles({ node }: { node: WorkflowNodeInstance }) {
+src/components/nexus/nexus-graph.tsx:462:  const definition = getWorkflowRuntimeNodeDefinition(node.type);
+src/components/nexus/nexus-graph.tsx:480:function InputTextRuntimeEditor({
+src/components/nexus/nexus-graph.tsx:555:function ModelRuntimeEditor({
+src/components/nexus/nexus-graph.tsx:569:  const outputText = node.outputSnapshot?.displayText || node.outputSnapshot?.rawText || "";
+src/components/nexus/nexus-graph.tsx:570:  const showLiveOutput =
+src/components/nexus/nexus-graph.tsx:575:  const capability = getModelCapabilityProfile(node.data.model);
+src/components/nexus/nexus-graph.tsx:576:  const settings = normalizeAgentModelSettings(
+src/components/nexus/nexus-graph.tsx:580:  const reasoningEffortOptions =
+src/components/nexus/nexus-graph.tsx:582:  const reasoningDetailOptions =
+src/components/nexus/nexus-graph.tsx:611:            const model = event.currentTarget.value;
+src/components/nexus/nexus-graph.tsx:721:function FileRuntimeEditor({
+src/components/nexus/nexus-graph.tsx:779:function ModelImageRuntimeEditor({
+src/components/nexus/nexus-graph.tsx:795:  const outputText = node.outputSnapshot?.displayText || node.outputSnapshot?.rawText || "";
+src/components/nexus/nexus-graph.tsx:796:  const showLiveOutput =
+src/components/nexus/nexus-graph.tsx:905:function getRuntimeStatusClass(status: WorkflowNodeInstance["status"]) {
+src/components/nexus/nexus-graph.tsx:921:function BlueprintEdge({
+src/components/nexus/nexus-graph.tsx:943:  const selectEdge = (event: { stopPropagation: () => void }) => {
+src/components/nexus/nexus-graph.tsx:1029:const nodeTypes = {
+src/components/nexus/nexus-graph.tsx:1037:const edgeTypes = {
+src/components/nexus/nexus-graph.tsx:1041:export function NexusGraph({
+src/components/nexus/nexus-graph.tsx:1110:  const agentById = useMemo(
+src/components/nexus/nexus-graph.tsx:1114:  const graphNodeByAgentId = useMemo(
+src/components/nexus/nexus-graph.tsx:1118:  const runtimeLite = graph.runtimeLite;
+src/components/nexus/nexus-graph.tsx:1119:  const runtimeNodeById = useMemo(
+src/components/nexus/nexus-graph.tsx:1125:  const graphContainerRef = useRef<HTMLDivElement | null>(null);
+src/components/nexus/nexus-graph.tsx:1131:  const derivedNodes = useMemo<Array<AgentFlowNode | RuntimeFlowNode>>(
+src/components/nexus/nexus-graph.tsx:1133:      const agentNodes: AgentFlowNode[] = agents.map((agent, index) => {
+src/components/nexus/nexus-graph.tsx:1134:        const graphNode = graphNodeByAgentId.get(agent.id);
+src/components/nexus/nexus-graph.tsx:1135:        const position = graphNode ?? getDefaultGraphPosition(index);
+src/components/nexus/nexus-graph.tsx:1153:      const runtimeNodes: RuntimeFlowNode[] = (runtimeLite?.nodes ?? []).map(
+src/components/nexus/nexus-graph.tsx:1193:  const derivedEdges = useMemo<AgentFlowEdge[]>(
+src/components/nexus/nexus-graph.tsx:1195:      const agentEdges = graph.edges
+src/components/nexus/nexus-graph.tsx:1230:      const runtimeEdges = (runtimeLite?.edges ?? [])
+src/components/nexus/nexus-graph.tsx:1276:  const nodeSignature = useMemo(
+src/components/nexus/nexus-graph.tsx:1302:  const nodes = nodeState.signature === nodeSignature ? nodeState.nodes : derivedNodes;
+src/components/nexus/nexus-graph.tsx:1303:  const edges = derivedEdges;
+src/components/nexus/nexus-graph.tsx:1304:  const runtimeEdgeIds = useMemo(
+src/components/nexus/nexus-graph.tsx:1308:  const removeEdgesByIds = useCallback((edgeIds: string[]) => {
+src/components/nexus/nexus-graph.tsx:1309:    const runtimeIds = edgeIds.filter((edgeId) => runtimeEdgeIds.has(edgeId));
+src/components/nexus/nexus-graph.tsx:1310:    const agentIds = edgeIds.filter((edgeId) => !runtimeEdgeIds.has(edgeId));
+src/components/nexus/nexus-graph.tsx:1322:    function deleteSelectedEdges(event: KeyboardEvent) {
+src/components/nexus/nexus-graph.tsx:1323:      const key = typeof event.key === "string" ? event.key : "";
+src/components/nexus/nexus-graph.tsx:1349:  const onNodesChange = (changes: NodeChange<AgentFlowNode | RuntimeFlowNode>[]) => {
+src/components/nexus/nexus-graph.tsx:1354:    const removedAgentIds = changes
+src/components/nexus/nexus-graph.tsx:1358:    const removedRuntimeIds = changes
+src/components/nexus/nexus-graph.tsx:1375:  const onEdgesChange = (changes: EdgeChange<AgentFlowEdge>[]) => {
+src/components/nexus/nexus-graph.tsx:1380:    const removedIds = changes
+src/components/nexus/nexus-graph.tsx:1392:  const onConnect = (connection: Connection) => {
+src/components/nexus/nexus-graph.tsx:1401:    const sourceIsAgent = agentById.has(connection.source);
+src/components/nexus/nexus-graph.tsx:1402:    const targetIsAgent = agentById.has(connection.target);
+src/components/nexus/nexus-graph.tsx:1403:    const sourceIsRuntime = runtimeNodeById.has(connection.source);
+src/components/nexus/nexus-graph.tsx:1404:    const targetIsRuntime = runtimeNodeById.has(connection.target);
+src/components/nexus/nexus-graph.tsx:1426:  const toWorkflowPosition = useCallback((point: { x: number; y: number }) => {
+src/components/nexus/nexus-graph.tsx:1430:  const addWorkflowNodeAtCenter = useCallback((type: WorkflowRuntimeNodeType) => {
+src/components/nexus/nexus-graph.tsx:1435:    const bounds = graphContainerRef.current?.getBoundingClientRect();
+src/components/nexus/nexus-graph.tsx:1436:    const position = bounds
+src/components/nexus/nexus-graph.tsx:1446:  const handleWorkflowNodeDrop = useCallback((event: ReactDragEvent<HTMLDivElement>) => {
+src/components/nexus/nexus-graph.tsx:1451:    const type = event.dataTransfer.getData("application/x-nexus-workflow-node");
+src/components/nexus/nexus-graph.tsx:1467:  const handleWorkflowNodeDragOver = useCallback(
+src/components/nexus/nexus-graph.tsx:1634:function WorkflowGraphAction({
+src/components/nexus/nexus-graph.tsx:1678:type WorkflowGraphBrainThreadEntry = {
+src/components/nexus/nexus-graph.tsx:1686:function createGraphBrainThreadEntry({
+src/components/nexus/nexus-graph.tsx:1701:function WorkflowGraphBrainPanel({
+src/components/nexus/nexus-graph.tsx:1738:  const selectedTemplate =
+src/components/nexus/nexus-graph.tsx:1741:  const runtimeEvidenceReport = useMemo(
+src/components/nexus/nexus-graph.tsx:1746:  const writeDraft = useCallback(
+src/components/nexus/nexus-graph.tsx:1765:  const inferDraft = useCallback(() => {
+src/components/nexus/nexus-graph.tsx:1769:  const requestBrainDraft = useCallback(async () => {
+src/components/nexus/nexus-graph.tsx:1775:      const response = await fetch("/api/workflow-pro/brain-draft", {
+src/components/nexus/nexus-graph.tsx:1797:      const payload = (await response.json()) as
+src/components/nexus/nexus-graph.tsx:1802:        const detail = isWorkflowBrainErrorPayload(payload)
+src/components/nexus/nexus-graph.tsx:1842:      const detail =
+src/components/nexus/nexus-graph.tsx:1872:  const appendDraft = useCallback(() => {
+src/components/nexus/nexus-graph.tsx:1881:    const result = onAppendWorkflowContractText({
+src/components/nexus/nexus-graph.tsx:2226:function isWorkflowBrainErrorPayload(
+src/components/nexus/nexus-graph.tsx:2232:function WorkflowGeneratedAssetMenu({
+src/components/nexus/nexus-graph.tsx:2240:  const latestArtifacts = artifacts.slice(0, 8);
+src/components/nexus/nexus-graph.tsx:2305:function WorkflowGraphStatus({
+src/components/nexus/nexus-graph.tsx:2314:  const tone =
+src/components/nexus/nexus-graph.tsx:2320:  const statusLabel =

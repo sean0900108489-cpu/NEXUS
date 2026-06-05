@@ -1,0 +1,605 @@
+{
+  "project": {
+    "name": "nexus-ai-ops",
+    "framework": "Next.js if detected",
+    "backend": "Supabase",
+    "run_created_at": "2026-06-04T23:03:06.322Z"
+  },
+  "paths": {
+    "run_root": "docs/agent-runs/private-code-wiki-premium-report-20260605-0846",
+    "html_report": "index.html",
+    "markdown_report": "report.md",
+    "assets": "assets/"
+  },
+  "critical_files": [
+    "package.json",
+    "AGENTS.md",
+    ".codewikiignore",
+    ".agentignore",
+    "src/lib/supabase/client.ts",
+    "src/lib/supabase/admin.ts",
+    "src/lib/supabase/request.ts",
+    "src/lib/supabase/database.types.ts",
+    "supabase/migrations/",
+    "src/components/nexus/nexus-ops.tsx",
+    "src/components/nexus/nexus-graph.tsx",
+    "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+    "src/store/nexus-store.ts",
+    "src/lib/backend/image-generation/generated-image-asset-storage.ts",
+    "src/lib/backend/security/frontend-bundle-safety.test.ts"
+  ],
+  "large_files": [
+    {
+      "file": "src/components/nexus/nexus-ops.tsx",
+      "lines": 9653,
+      "risk": "P0",
+      "role": "NEXUS 主操作台、workspace shell、chat/composer、graph/panel glue、匯入/匯出與 image/storage 入口。",
+      "shouldExtract": [
+        "workspace/session shell",
+        "graph/composer bridge",
+        "generated asset/history panels",
+        "style-engine controls",
+        "workflow-pro launcher"
+      ],
+      "doNotFirst": [
+        "provider-backed runtime path",
+        "auth/workspace permission decisions",
+        "artifact download/import/export authority"
+      ]
+    },
+    {
+      "file": "src/components/nexus/nexus-graph.tsx",
+      "lines": 2345,
+      "risk": "P1",
+      "role": "React Flow graph surface、agent/runtime node rendering、edge interactions、copy/run/pause controls。",
+      "shouldExtract": [
+        "node renderers",
+        "edge renderers",
+        "runtime node action adapter",
+        "graph DnD adapter"
+      ],
+      "doNotFirst": [
+        "node data contract",
+        "runtime evidence display semantics"
+      ]
+    },
+    {
+      "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+      "lines": 1721,
+      "risk": "P1",
+      "role": "Workflow Pro 的 design/brain/evidence/files/settings tabs、contract import/export、benchmark fixture UI。",
+      "shouldExtract": [
+        "tab panels",
+        "contract import review panel",
+        "evidence summary widgets",
+        "benchmark fixture drawer"
+      ],
+      "doNotFirst": [
+        "apply-plan callback contract",
+        "runtimeSummary interpretation"
+      ]
+    },
+    {
+      "file": "src/store/nexus-store.ts",
+      "lines": 4814,
+      "risk": "P0",
+      "role": "Zustand + persist/zundo 中央狀態，workspace、agents、messages、sync、Supabase、workflow runtime、provider calls 的最大收斂點。",
+      "shouldExtract": [
+        "workflow runtime slice",
+        "workspace cloud sync slice",
+        "generated history slice",
+        "auth/session slice",
+        "artifact vault slice"
+      ],
+      "doNotFirst": [
+        "persistence migration layer",
+        "undo/redo temporal integration",
+        "provider-backed runtime execution"
+      ]
+    }
+  ],
+  "supabase_touchpoints": {
+    "clientInitialization": [
+      {
+        "file": "src/lib/supabase/client.ts",
+        "mode": "browser/runtime public anon client",
+        "env": [
+          "NEXT_PUBLIC_SUPABASE_URL",
+          "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+        ],
+        "risk": "public anon key acceptable; must keep RLS correct"
+      },
+      {
+        "file": "src/lib/supabase/admin.ts",
+        "mode": "server admin client",
+        "env": [
+          "NEXT_PUBLIC_SUPABASE_URL",
+          "SUPABASE_SERVICE_ROLE_KEY"
+        ],
+        "risk": "P0 if imported by client component or bundled to browser"
+      },
+      {
+        "file": "src/lib/supabase/request.ts",
+        "mode": "server request-scoped anon client with bearer token",
+        "env": [
+          "NEXT_PUBLIC_SUPABASE_URL",
+          "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+        ],
+        "risk": "authorization header must stay request scoped"
+      }
+    ],
+    "tables": [
+      "agent_memory_records",
+      "agent_runtime_events",
+      "agent_runtime_sessions",
+      "agent_tasks",
+      "api_idempotency_keys",
+      "artifact_references",
+      "artifacts",
+      "deployment_checks",
+      "feature_flags",
+      "messages",
+      "notebooks",
+      "permission_audit_logs",
+      "prompt_revisions",
+      "prompts",
+      "sync_operations",
+      "system_events",
+      "tool_permissions",
+      "tool_runs",
+      "usage_metrics",
+      "workflow_templates",
+      "workspace_memberships",
+      "workspace_snapshots",
+      "workspace_state_entities",
+      "workspaces"
+    ],
+    "rpcs": [
+      "record_permission_audit_log"
+    ],
+    "dynamicStorageBuckets": [
+      {
+        "bucket": "nexus-generated-assets",
+        "files": [
+          "src/lib/backend/image-generation/generated-image-asset-storage.ts",
+          "supabase/migrations/20260604093000_v22_generated_image_storage.sql"
+        ],
+        "usage": "generated image upload/download via request-scoped Supabase client"
+      }
+    ],
+    "touchpointCount": 137,
+    "migrationCount": 25,
+    "rlsMigrationCount": 22
+  },
+  "risk_register": [
+    {
+      "id": "P0-BEARER-SHAPE-TEST-FIXTURE",
+      "severity": "P0",
+      "title": "source test 中存在 bearer-shaped token assignment",
+      "evidence": [
+        "src/lib/backend/observability/observability-service.test.ts\t121\tgeneric_bearer_assignment"
+      ],
+      "inference": "嚴格掃描後，tracked source 沒有 OpenAI sk-proj 形狀命中；剩餘 source 命中位於 test，可能是 dummy fixture 或 redaction 測試，但未人工確認前仍列 P0。",
+      "next": "確認 src/lib/backend/observability/observability-service.test.ts:121 的 token 是否為 dummy；若是，改成明確不可能被誤判的 fixture 名稱。"
+    },
+    {
+      "id": "P0-SUPABASE-SERVICE-ROLE-BOUNDARY",
+      "severity": "P0",
+      "title": "Supabase service role client 必須維持 server-only",
+      "evidence": [
+        "src/lib/supabase/admin.ts",
+        "src/lib/backend/notebooks/notebook-repository.ts:7:} from \"@/lib/supabase/admin\";",
+        "src/lib/backend/runtime/agent-runtime-repository.ts:14:} from \"@/lib/supabase/admin\";",
+        "src/lib/backend/workspace/workspace-state-entity-repository.ts:6:} from \"@/lib/supabase/admin\";",
+        "src/lib/backend/sync/sync-operation-repository.ts:6:} from \"@/lib/supabase/admin\";",
+        "src/lib/backend/artifacts/artifact-repository.ts:12:} from \"@/lib/supabase/admin\";",
+        "src/lib/backend/workspace/workspace-permission.ts:6:} from \"@/lib/supabase/admin\";",
+        "src/lib/backend/api/idempotency-repository.ts:6:} from \"@/lib/supabase/admin\";",
+        "src/lib/backend/workspace/workspace-snapshot-repository.ts:6:} from \"@/lib/supabase/admin\";"
+      ],
+      "inference": "目前引用多在 src/lib/backend/** 與 API route，方向看起來合理；但任何前端 bundle 匯入都會是嚴重事故。",
+      "next": "保留/強化 frontend-bundle-safety test，下一輪做 bundle/static import gate。"
+    },
+    {
+      "id": "P0-NEXUS-STORE-GOD-OBJECT",
+      "severity": "P0",
+      "title": "nexus-store.ts 同時承擔狀態、persistence、Supabase sync、runtime/provider 邊界",
+      "evidence": [
+        "src/store/nexus-store.ts",
+        "19 internal deps",
+        "4814 src/store/nexus-store.ts"
+      ],
+      "inference": "模組化前若未建立 slice contract，容易破壞 runtime/history/cloud sync。",
+      "next": "先產 contract map 與 characterization tests，再拆 slice。"
+    },
+    {
+      "id": "P0-NEXUS-OPS-BLAST-RADIUS",
+      "severity": "P0",
+      "title": "nexus-ops.tsx 9653 行且 fan-out 最高",
+      "evidence": [
+        "src/components/nexus/nexus-ops.tsx",
+        "50 internal deps",
+        "81 src/components/nexus/nexus-ops.tsx"
+      ],
+      "inference": "它是 UI shell 與 domain glue 的混合體；直接重構會牽動 UI、provider、storage、auth、workflow。",
+      "next": "先拆純 presentational panels，不先碰 auth/provider/storage authority。"
+    },
+    {
+      "id": "P1-IMPORT-CYCLES",
+      "severity": "P1",
+      "title": "自製 import graph 發現 9 組疑似循環",
+      "evidence": [
+        "src/lib/backend/observability/events.ts -> src/lib/backend/observability/observability-service.ts -> src/lib/backend/observability/events.ts -> src/lib/backend/observability/events.ts",
+        "src/lib/nexus-types.ts -> src/lib/backend/index.ts -> src/lib/backend/observability/index.ts -> src/lib/backend/observability/events.ts -> src/lib/backend/observability/observability-service.ts -> src/lib/backend/observability/observability-types.ts -> src/lib/nexus-types.ts -> src/lib/nexus-types.ts",
+        "src/lib/nexus-types.ts -> src/lib/backend/index.ts -> src/lib/backend/observability/index.ts -> src/lib/backend/observability/events.ts -> src/lib/backend/observability/observability-service.ts -> src/lib/backend/observability/system-event-repository.ts -> src/lib/nexus-types.ts -> src/lib/nexus-types.ts"
+      ],
+      "inference": "多數落在 backend observability/index barrel 與 nexus-types 互相依賴，可能影響測試隔離與 bundle 邊界。",
+      "next": "下一輪用 TypeScript AST/Serena 精查，避免只靠 regex 誤判。"
+    },
+    {
+      "id": "P1-KNIP-UNUSED-CANDIDATES",
+      "severity": "P1",
+      "title": "Knip report-only 回報 113 個疑似未使用檔案",
+      "evidence": [
+        "src candidates: 111",
+        "docs/agent-runs/private-code-wiki-premium-report-20260605-0846/reports/knip/knip.json"
+      ],
+      "inference": "Knip 在 Next.js dynamic route/test/generated report 下可能有 false positive；不可自動刪。",
+      "next": "下一輪分成 confirmed unused / route-convention / test-only / report artifact。"
+    },
+    {
+      "id": "P1-SUPABASE-LOCAL-CONFIG-MISSING",
+      "severity": "P1",
+      "title": "Supabase migrations 存在，但 local config/CLI 不完整",
+      "evidence": [
+        "supabase/migrations/*.sql",
+        "supabase_config_missing",
+        "supabase_cli_not_found"
+      ],
+      "inference": "目前可做靜態 map，但不能 local schema diff 或 types regeneration。",
+      "next": "若要下一輪 schema parity，先建立 local-only Supabase config，不 link production。"
+    },
+    {
+      "id": "P2-DEPCRUISER-CONFIG-GAP",
+      "severity": "P2",
+      "title": "dependency-cruiser 無 config 時解析 alias 不完整",
+      "evidence": [
+        "reports/dependency-cruiser/dependency-cruiser-internal-summary.json: dependencies=1",
+        "assets/data/import-graph.json: internalEdgeCount=1317"
+      ],
+      "inference": "需要 tsconfig-aware depcruise config 才能當正式 gate。",
+      "next": "新增 report-only config 或採 custom import graph 作 interim gate。"
+    }
+  ],
+  "module_candidates": [
+    {
+      "file": "src/components/nexus/nexus-ops.tsx",
+      "candidate": "workspace/session shell"
+    },
+    {
+      "file": "src/components/nexus/nexus-ops.tsx",
+      "candidate": "graph/composer bridge"
+    },
+    {
+      "file": "src/components/nexus/nexus-ops.tsx",
+      "candidate": "generated asset/history panels"
+    },
+    {
+      "file": "src/components/nexus/nexus-ops.tsx",
+      "candidate": "style-engine controls"
+    },
+    {
+      "file": "src/components/nexus/nexus-ops.tsx",
+      "candidate": "workflow-pro launcher"
+    },
+    {
+      "file": "src/components/nexus/nexus-graph.tsx",
+      "candidate": "node renderers"
+    },
+    {
+      "file": "src/components/nexus/nexus-graph.tsx",
+      "candidate": "edge renderers"
+    },
+    {
+      "file": "src/components/nexus/nexus-graph.tsx",
+      "candidate": "runtime node action adapter"
+    },
+    {
+      "file": "src/components/nexus/nexus-graph.tsx",
+      "candidate": "graph DnD adapter"
+    },
+    {
+      "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+      "candidate": "tab panels"
+    },
+    {
+      "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+      "candidate": "contract import review panel"
+    },
+    {
+      "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+      "candidate": "evidence summary widgets"
+    },
+    {
+      "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+      "candidate": "benchmark fixture drawer"
+    },
+    {
+      "file": "src/store/nexus-store.ts",
+      "candidate": "workflow runtime slice"
+    },
+    {
+      "file": "src/store/nexus-store.ts",
+      "candidate": "workspace cloud sync slice"
+    },
+    {
+      "file": "src/store/nexus-store.ts",
+      "candidate": "generated history slice"
+    },
+    {
+      "file": "src/store/nexus-store.ts",
+      "candidate": "auth/session slice"
+    },
+    {
+      "file": "src/store/nexus-store.ts",
+      "candidate": "artifact vault slice"
+    }
+  ],
+  "do_not_touch_yet": [
+    {
+      "file": "src/components/nexus/nexus-ops.tsx",
+      "boundary": "provider-backed runtime path"
+    },
+    {
+      "file": "src/components/nexus/nexus-ops.tsx",
+      "boundary": "auth/workspace permission decisions"
+    },
+    {
+      "file": "src/components/nexus/nexus-ops.tsx",
+      "boundary": "artifact download/import/export authority"
+    },
+    {
+      "file": "src/components/nexus/nexus-graph.tsx",
+      "boundary": "node data contract"
+    },
+    {
+      "file": "src/components/nexus/nexus-graph.tsx",
+      "boundary": "runtime evidence display semantics"
+    },
+    {
+      "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+      "boundary": "apply-plan callback contract"
+    },
+    {
+      "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+      "boundary": "runtimeSummary interpretation"
+    },
+    {
+      "file": "src/store/nexus-store.ts",
+      "boundary": "persistence migration layer"
+    },
+    {
+      "file": "src/store/nexus-store.ts",
+      "boundary": "undo/redo temporal integration"
+    },
+    {
+      "file": "src/store/nexus-store.ts",
+      "boundary": "provider-backed runtime execution"
+    }
+  ],
+  "next_round_recommendations": [
+    "Confirm or replace bearer-shaped test fixture with unmistakable dummy token",
+    "Create store action/selector contract map before refactor",
+    "Start with Workflow Pro typed tab panels if doing UI split",
+    "Add local-only Supabase config only after explicit authorization",
+    "Use Serena read-only symbol lookup after wiki is accepted"
+  ],
+  "image_assets": [
+    {
+      "id": "cover",
+      "filename": "assets/images/cover.png",
+      "purpose": "cover",
+      "model": "gpt-image-2",
+      "created_at": "2026-06-04T23:06:24.130Z",
+      "relative_url": "./assets/images/cover.png",
+      "status": "generated",
+      "generation_method": "openai_api_b64",
+      "api_status": 200
+    },
+    {
+      "id": "system-architecture",
+      "filename": "assets/diagrams/system-architecture.png",
+      "purpose": "architecture",
+      "model": "gpt-image-2",
+      "created_at": "2026-06-04T23:07:38.001Z",
+      "relative_url": "./assets/diagrams/system-architecture.png",
+      "status": "generated",
+      "generation_method": "openai_api_b64",
+      "api_status": 200
+    },
+    {
+      "id": "supabase-connection-map",
+      "filename": "assets/diagrams/supabase-connection-map.png",
+      "purpose": "supabase-map",
+      "model": "gpt-image-2",
+      "created_at": "2026-06-04T23:08:42.786Z",
+      "relative_url": "./assets/diagrams/supabase-connection-map.png",
+      "status": "generated",
+      "generation_method": "openai_api_b64",
+      "api_status": 200
+    },
+    {
+      "id": "module-migration-map",
+      "filename": "assets/diagrams/module-migration-map.png",
+      "purpose": "module-boundary",
+      "model": "gpt-image-2",
+      "created_at": "2026-06-04T23:10:03.559Z",
+      "relative_url": "./assets/diagrams/module-migration-map.png",
+      "status": "generated",
+      "generation_method": "openai_api_b64",
+      "api_status": 200
+    },
+    {
+      "id": "risk-heatmap",
+      "filename": "assets/diagrams/risk-heatmap.png",
+      "purpose": "system-map",
+      "model": "gpt-image-2",
+      "created_at": "2026-06-04T23:11:08.696Z",
+      "relative_url": "./assets/diagrams/risk-heatmap.png",
+      "status": "generated",
+      "generation_method": "openai_api_b64",
+      "api_status": 200
+    }
+  ],
+  "source_citations": [
+    "package.json",
+    "AGENTS.md",
+    ".codewikiignore",
+    ".agentignore",
+    "src/lib/supabase/client.ts",
+    "src/lib/supabase/admin.ts",
+    "src/lib/supabase/request.ts",
+    "src/lib/supabase/database.types.ts",
+    "supabase/migrations/",
+    "src/components/nexus/nexus-ops.tsx",
+    "src/components/nexus/nexus-graph.tsx",
+    "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+    "src/store/nexus-store.ts",
+    "src/lib/backend/image-generation/generated-image-asset-storage.ts",
+    "src/lib/backend/security/frontend-bundle-safety.test.ts"
+  ],
+  "tooling": {
+    "dependencyCruiser": {
+      "status": "ran report-only; alias resolution limited; custom import graph used"
+    },
+    "knip": {
+      "status": "ran report-only; no deletion",
+      "totalIssues": 113
+    },
+    "supabaseCli": {
+      "status": "not found; no production connection attempted"
+    },
+    "codewiki": {
+      "status": "not run due safety gate"
+    }
+  },
+  "agent_usage": {
+    "read_first": [
+      "machine-manifest.json",
+      "reports/11-narrative-intelligence-pass.md",
+      "reports/02-supabase-map.md",
+      "reports/06-risk-register.md",
+      "context-packs/repo-map-compact.md"
+    ],
+    "do_not_read_whole": [
+      "src/components/nexus/nexus-ops.tsx",
+      "src/store/nexus-store.ts",
+      "src/components/nexus/nexus-graph.tsx",
+      "src/components/nexus/workflow-pro/workflow-pro-surface.tsx"
+    ],
+    "safe_to_touch_first": [
+      "reports only",
+      "Workflow Pro typed tab panel extraction plan only after characterization",
+      "presentational read-only panels only after screen baseline"
+    ],
+    "requires_symbol_level_read": [
+      "nexus-ops panel/action boundaries",
+      "nexus-store action groups and persistence slices",
+      "Supabase admin imports and server-only guarantees",
+      "generated image storage path/bucket policy"
+    ],
+    "requires_human_confirmation": [
+      "whether to clean bearer-shaped test fixture",
+      "whether to create local-only Supabase config",
+      "whether CodeWiki may run in a verified local-only mode"
+    ],
+    "known_uncertainties": [
+      "Knip false positives under Next.js conventions",
+      "custom import graph is regex-based and needs AST/symbol confirmation",
+      "production Supabase parity was not checked",
+      "CodeWiki was intentionally skipped by safety gate"
+    ],
+    "next_agent_questions": [
+      "Is this UI section presentation-only or does it carry authority?",
+      "Does this code trigger provider/Supabase/artifact side effects?",
+      "Which store slice or API route owns the decision?",
+      "Which evidence is source-grounded and which is inference?"
+    ]
+  },
+  "section_quality_scores": [
+    {
+      "section": "Executive Summary",
+      "human_clarity": 82,
+      "llm_usefulness": 80,
+      "agent_actionability": 76,
+      "evidence_grounding": 78,
+      "pre_architecture_value": 80,
+      "status": "pass"
+    },
+    {
+      "section": "Supabase Connection Map",
+      "human_clarity": 80,
+      "llm_usefulness": 86,
+      "agent_actionability": 84,
+      "evidence_grounding": 88,
+      "pre_architecture_value": 82,
+      "status": "pass"
+    },
+    {
+      "section": "Large File Risk Zone",
+      "human_clarity": 74,
+      "llm_usefulness": 82,
+      "agent_actionability": 80,
+      "evidence_grounding": 82,
+      "pre_architecture_value": 84,
+      "status": "needs narrative lift"
+    },
+    {
+      "section": "State Store Contract Map",
+      "human_clarity": 72,
+      "llm_usefulness": 84,
+      "agent_actionability": 83,
+      "evidence_grounding": 80,
+      "pre_architecture_value": 86,
+      "status": "needs narrative lift"
+    },
+    {
+      "section": "Risk Register",
+      "human_clarity": 78,
+      "llm_usefulness": 83,
+      "agent_actionability": 84,
+      "evidence_grounding": 86,
+      "pre_architecture_value": 79,
+      "status": "pass"
+    },
+    {
+      "section": "Refactor Playbook",
+      "human_clarity": 76,
+      "llm_usefulness": 82,
+      "agent_actionability": 86,
+      "evidence_grounding": 78,
+      "pre_architecture_value": 88,
+      "status": "pass"
+    },
+    {
+      "section": "Agent Context Packs",
+      "human_clarity": 70,
+      "llm_usefulness": 88,
+      "agent_actionability": 90,
+      "evidence_grounding": 82,
+      "pre_architecture_value": 86,
+      "status": "agent-pass human-thin"
+    }
+  ],
+  "narrative_intelligence_pass": {
+    "version": "v1.1",
+    "purpose": "Turn scan output into human-readable, LLM-useful, agent-actionable pre-architecture material.",
+    "rules": [
+      "Do not add words unless they increase judgment quality.",
+      "Every section must separate evidence from inference.",
+      "Every refactor suggestion must identify what could break if touched now.",
+      "Each large file needs a role inventory and symbol-level reading strategy."
+    ],
+    "added_at": "2026-06-05T00:44:08.502Z"
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "nexus.workflowPro.engineeringLaunch.v1",
+  "generatedAt": "2026-06-03T00:00:00.000+10:00",
+  "mode": "planning-and-launch-readiness",
+  "sourceMutationAllowed": false,
+  "visualPolicy": {
+    "referenceConcepts": [
+      "v23-ui-concepts/05-evidence-timeline-cockpit.png",
+      "v23-ui-concepts/06-proposal-diff-war-room.png"
+    ],
+    "useFromConcepts": [
+      "information architecture",
+      "view switching between evidence and proposal analysis",
+      "workflow/brain/evidence relationship"
+    ],
+    "doNotUseFromConcepts": [
+      "colorful palette",
+      "decorative gradients",
+      "crowded side-by-side layout"
+    ],
+    "targetTone": "existing NEXUS dark, low-saturation, fine-line, glassy, compact tool UI"
+  },
+  "currentCapabilities": {
+    "graph": {
+      "library": "@xyflow/react",
+      "hasCustomNodes": true,
+      "hasCustomEdges": true,
+      "hasClickToCenterAdd": true,
+      "hasDragToDropAdd": true,
+      "hasStartAll": true,
+      "hasGeneratedAssetMenu": true,
+      "hasNodeDelete": true,
+      "hasEdgeDelete": true
+    },
+    "runtimeLite": {
+      "nodeTypes": [
+        "input.text",
+        "model.llm",
+        "model.image",
+        "output.text"
+      ],
+      "hasContextPacket": true,
+      "hasRuns": true,
+      "hasImageArtifactPersistence": true,
+      "missing": [
+        "canonical workflow design contract",
+        "file node runtime type",
+        "conditional routing",
+        "parallel fanout/fanin",
+        "brain proposal apply loop"
+      ]
+    },
+    "backend": {
+      "artifactService": true,
+      "workspaceCloudState": true,
+      "supabaseMigrationsPresent": true,
+      "serviceRoleMustRemainServerOnly": true
+    }
+  },
+  "roundBudget": {
+    "primaryRounds": 23,
+    "contingencyRounds": 5,
+    "ceilingRounds": 28,
+    "stages": [
+      {
+        "id": "S1",
+        "name": "Opening Scan And Baseline",
+        "rounds": 2,
+        "status": "completed-for-planning"
+      },
+      {
+        "id": "S2",
+        "name": "Architecture Joining",
+        "rounds": 3,
+        "status": "next-after-user-start"
+      },
+      {
+        "id": "S3",
+        "name": "Future Contract Design",
+        "rounds": 3,
+        "status": "planned"
+      },
+      {
+        "id": "S4",
+        "name": "Implementation",
+        "rounds": 8,
+        "status": "planned"
+      },
+      {
+        "id": "S5",
+        "name": "Backend Persistence Alignment",
+        "rounds": 3,
+        "status": "planned"
+      },
+      {
+        "id": "S6",
+        "name": "Professional Documentation",
+        "rounds": 2,
+        "status": "planned"
+      },
+      {
+        "id": "S7",
+        "name": "Convergence And Cleanup",
+        "rounds": 2,
+        "status": "planned"
+      },
+      {
+        "id": "S8",
+        "name": "Testing And Landing",
+        "rounds": 3,
+        "status": "planned"
+      },
+      {
+        "id": "S9",
+        "name": "Pass-Gate Landing",
+        "rounds": 2,
+        "status": "conditional-after-tests-pass"
+      }
+    ],
+    "ifTestsFail": {
+      "action": "pause landing, diagnose first failed gate, add 3-6 rounds, re-estimate once",
+      "maxRecommendedRetryBeforeReplan": 2
+    }
+  },
+  "nextEngineeringStartCommand": {
+    "stage": "S2",
+    "rounds": [
+      "R3",
+      "R4",
+      "R5"
+    ],
+    "summary": "Add workflow-pro view mode, route to a skeleton Workflow Pro surface, preserve existing Graph behavior, and add tests for view mode persistence and snapshot sanitization."
+  },
+  "files": {
+    "reportHtml": "workflow-pro-engineering-launch-report.html",
+    "reportMarkdown": "workflow-pro-engineering-launch-report.md",
+    "machineManifest": "workflow-pro-engineering-launch-manifest.json",
+    "roundLog": "notes/round-log.md"
+  }
+}
+

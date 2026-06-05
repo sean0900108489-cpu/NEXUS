@@ -1,6 +1,6 @@
 {
   "schema": "nexus.workflowPro.accountMatrix.v1",
-  "generatedAt": "2026-06-03",
+  "generatedAt": "2026-06-04T09:48:00.000+10:00",
   "scope": [
     "workflow-pro",
     "runtime-lite",
@@ -9,13 +9,28 @@
     "auth-boundary",
     "permission-boundary"
   ],
-  "previewUrl": "",
+  "previewUrl": "https://nexus-j78jwuczs-sean-s-projects10.vercel.app",
   "strictLiveProbe": {
     "command": "AUTH_BOUNDARY_LIVE_BASE_URL=<preview-url> npm run check:auth-boundary:live",
     "legacyProduction404Enforced": true,
     "expected": {
       "blockingFindings": 0,
       "warnings": 0
+    },
+    "lastPreviewResult": {
+      "status": "passed",
+      "deploymentId": "dpl_F96z1ZAg1yCRGtsZPKn6d9rgigd4",
+      "url": "https://nexus-18zerfafc-sean-s-projects10.vercel.app",
+      "cookieAccess": "header-present",
+      "platformProtectionLikely": false,
+      "counts": {
+        "blockingFindings": 0,
+        "warnings": 0,
+        "totalProbes": 49,
+        "publicReachable": 2,
+        "legacyProduction404": 8,
+        "protectedSpoofOnly": 39
+      }
     }
   },
   "localDevProbe": {
@@ -25,13 +40,64 @@
       "blockingFindings": 0
     }
   },
+  "liveAuditManifest": {
+    "path": "docs/workflow-pro/account-matrix-live-audit.manifest.json",
+    "status": "live-audited-screen-matrix-pending",
+    "notes": [
+      "R89 added read-only Supabase schema/policy/advisor/audit aggregate evidence.",
+      "R89 local live auth-boundary probe passed with zero blocking findings.",
+      "This does not replace strict preview URL probing or owner/editor/viewer/new-account screen matrix."
+    ]
+  },
+  "strictPreviewProbeManifest": {
+    "path": "docs/workflow-pro/strict-preview-live-probe.manifest.json",
+    "status": "strict-preview-green-screen-matrix-pending",
+    "notes": [
+      "R90 updated live-auth-boundary-probe.mjs to support Vercel protection bypass with x-vercel-protection-bypass when VERCEL_AUTOMATION_BYPASS_SECRET exists.",
+      "R92 deployed the current v22 working tree to a final Vercel preview and verified the deployment package remained clean after .vercelignore excluded local reports and .codex artifacts.",
+      "R92 added temporary share-cookie probe support and passed strict preview live probing with 49 probes, 0 blocking findings, 0 warnings, public routes 200, legacy routes 404, and protected spoof-only routes rejected.",
+      "The remaining gate is account-level screen matrix for owner/editor/viewer/new-authenticated-account behavior."
+    ]
+  },
+  "imageGenerationProductionBoundaryManifest": {
+    "path": "docs/workflow-pro/image-generation-production-boundary.manifest.json",
+    "status": "durable-storage-and-viewer-download-verified",
+    "notes": [
+      "R91 makes /api/image-gen a formal production image capability instead of a legacy production 404 route.",
+      "R91 separates Supabase Authorization from provider runtime credentials by using X-Nexus-Runtime-Authorization for image provider keys.",
+      "R91 production access requires authenticated writable workspace permission before any image provider call.",
+      "R92 strict preview live probe confirms /api/image-gen rejects unauthenticated spoof-only access with 401 on the fresh preview deployment.",
+      "R108 adds private Supabase Storage persistence for new generated images and verifies viewer download through an authenticated artifact asset route."
+    ]
+  },
+  "sourceGuard": {
+    "command": "npm test -- src/lib/backend/security/security-services.test.ts",
+    "status": "implemented",
+    "coverage": [
+      "actor-list-alignment",
+      "owner-admin-editor-runtime-write",
+      "viewer-read-only",
+      "editor-no-membership-settings-or-tool-execution",
+      "admin-no-owner-transfer-or-workspace-delete",
+      "non-member-deny",
+      "unauthenticated-deny"
+    ]
+  },
   "actors": [
     {
       "id": "owner",
       "role": "owner",
       "membership": "owner",
-      "expectedBaselineAccess": ["read", "write", "manage"],
-      "requiredScreenBenchmarks": ["A", "B", "C"],
+      "expectedBaselineAccess": [
+        "read",
+        "write",
+        "manage"
+      ],
+      "requiredScreenBenchmarks": [
+        "A",
+        "B",
+        "C"
+      ],
       "must": [
         "importBenchmarkJson",
         "applyPreview",
@@ -46,8 +112,16 @@
       "id": "admin",
       "role": "admin",
       "membership": "admin",
-      "expectedBaselineAccess": ["read", "write", "manageExceptOwnerTransferAndWorkspaceDelete"],
-      "requiredScreenBenchmarks": ["A", "B", "C"],
+      "expectedBaselineAccess": [
+        "read",
+        "write",
+        "manageExceptOwnerTransferAndWorkspaceDelete"
+      ],
+      "requiredScreenBenchmarks": [
+        "A",
+        "B",
+        "C"
+      ],
       "must": [
         "runWorkflow",
         "generateImage",
@@ -62,8 +136,16 @@
       "id": "editor",
       "role": "editor",
       "membership": "editor",
-      "expectedBaselineAccess": ["read", "writeWorkspace", "writeAssets"],
-      "requiredScreenBenchmarks": ["A", "B", "C"],
+      "expectedBaselineAccess": [
+        "read",
+        "writeWorkspace",
+        "writeAssets"
+      ],
+      "requiredScreenBenchmarks": [
+        "A",
+        "B",
+        "C"
+      ],
       "must": [
         "runWorkflow",
         "createGeneratedArtifact",
@@ -80,7 +162,9 @@
       "id": "viewer",
       "role": "viewer",
       "membership": "viewer",
-      "expectedBaselineAccess": ["readOnly"],
+      "expectedBaselineAccess": [
+        "readOnly"
+      ],
       "requiredScreenBenchmarks": [],
       "must": [
         "viewWorkflowState",
@@ -97,8 +181,12 @@
       "id": "new-authenticated-account",
       "role": "owner-after-session",
       "membership": "noneBeforeSession",
-      "expectedBaselineAccess": ["sessionCreatesOrResolvesWritableWorkspace"],
-      "requiredScreenBenchmarks": ["A"],
+      "expectedBaselineAccess": [
+        "sessionCreatesOrResolvesWritableWorkspace"
+      ],
+      "requiredScreenBenchmarks": [
+        "A"
+      ],
       "must": [
         "resolveWorkspaceSession",
         "avoidPermissionDeniedLoop",
@@ -112,7 +200,9 @@
       "id": "authenticated-non-member",
       "role": "none-for-target-workspace",
       "membership": "noneForTargetWorkspace",
-      "expectedBaselineAccess": ["denyOrRerouteToOwnWritableWorkspace"],
+      "expectedBaselineAccess": [
+        "denyOrRerouteToOwnWritableWorkspace"
+      ],
       "requiredScreenBenchmarks": [],
       "must": [
         "denyTargetWorkspaceMutation"
@@ -125,7 +215,9 @@
       "id": "spoof-only",
       "role": "none",
       "membership": "spoofedHeadersOnly",
-      "expectedBaselineAccess": ["reject"],
+      "expectedBaselineAccess": [
+        "reject"
+      ],
       "requiredScreenBenchmarks": [],
       "must": [
         "rejectProtectedRoutes"
@@ -138,7 +230,9 @@
       "id": "unauthenticated",
       "role": "none",
       "membership": "none",
-      "expectedBaselineAccess": ["401"],
+      "expectedBaselineAccess": [
+        "401"
+      ],
       "requiredScreenBenchmarks": [],
       "must": [
         "rejectProtectedRoutes"
@@ -153,16 +247,35 @@
     {
       "id": "A",
       "name": "Linear Text Chain",
-      "flow": ["input.text", "model.llm", "model.llm", "output.text"],
+      "flow": [
+        "input.text",
+        "model.llm",
+        "model.llm",
+        "output.text"
+      ],
       "requiresImageApi": false,
-      "requiredFor": ["owner", "admin", "editor", "new-authenticated-account"]
+      "requiredFor": [
+        "owner",
+        "admin",
+        "editor",
+        "new-authenticated-account"
+      ]
     },
     {
       "id": "B",
       "name": "LLM To Image Chain",
-      "flow": ["input.text", "model.llm", "model.image", "output.text"],
+      "flow": [
+        "input.text",
+        "model.llm",
+        "model.image",
+        "output.text"
+      ],
       "requiresImageApi": true,
-      "requiredFor": ["owner", "admin", "editor"]
+      "requiredFor": [
+        "owner",
+        "admin",
+        "editor"
+      ]
     },
     {
       "id": "C",
@@ -177,26 +290,36 @@
         "3x output.text"
       ],
       "requiresImageApi": true,
-      "requiredFor": ["owner", "admin", "editor"]
+      "requiredFor": [
+        "owner",
+        "admin",
+        "editor"
+      ]
     }
   ],
   "routeGroups": [
     {
       "id": "workspace-session",
-      "paths": ["/api/v1/workspaces/session"],
+      "paths": [
+        "/api/v1/workspaces/session"
+      ],
       "authenticatedExpected": "200OrStructuredWorkspaceResolution",
       "unauthenticatedExpected": 401
     },
     {
       "id": "workspace-state",
-      "paths": ["/api/v1/workspaces/:workspaceId/state"],
+      "paths": [
+        "/api/v1/workspaces/:workspaceId/state"
+      ],
       "viewerExpected": "readOnly",
       "editorExpected": "readWrite",
       "nonMemberExpected": "deny"
     },
     {
       "id": "agent-stream",
-      "paths": ["/api/v1/agents/:agentId/stream"],
+      "paths": [
+        "/api/v1/agents/:agentId/stream"
+      ],
       "ownerEditorExpected": "canRun",
       "viewerExpected": "denyMutation"
     },
@@ -217,7 +340,6 @@
       "id": "legacy-tool-routes",
       "paths": [
         "/api/agent-stream",
-        "/api/image-gen",
         "/api/memory-compress",
         "/api/predictive-intel",
         "/api/tools/fs-scanner",
@@ -225,6 +347,17 @@
         "/api/v1/providers/verify"
       ],
       "previewProductionExpected": 404
+    },
+    {
+      "id": "image-generation",
+      "paths": [
+        "/api/image-gen"
+      ],
+      "previewProductionExpected": "authenticatedWritableWorkspaceRequired",
+      "providerCredentialHeader": "X-Nexus-Runtime-Authorization",
+      "supabaseSessionHeader": "Authorization",
+      "viewerExpected": "denyMutation",
+      "editorExpected": "canGenerate"
     }
   ],
   "requiredEvidence": [
@@ -240,6 +373,213 @@
     "generatedAssetCountWhenRelevant",
     "downloadResultWhenRelevant"
   ],
+  "latestStrictAspectDownloadGate": {
+    "id": "R102-preview-new-account-b-strict-16x9-generated-history-download",
+    "status": "pass",
+    "actor": "new-authenticated-account",
+    "previewUrl": "https://nexus-7o1t190yz-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_vVuVN5m9HS7bypFdkH9mDyxNzEBc",
+    "workspaceId": "workspace_48552da0d4364da797280ef407a1a2d8",
+    "benchmark": "B",
+    "screenOperation": [
+      "Workflow Pro",
+      "Load B fixture",
+      "Import pasted JSON",
+      "Apply preview",
+      "Graph",
+      "Start All",
+      "Open generated history",
+      "Download"
+    ],
+    "result": {
+      "runtimeBadge": "SUCCESS WORKFLOW RUNTIME LITE",
+      "generatedCount": 1,
+      "artifactRowFound": true,
+      "downloadedPng": true,
+      "pixelWidth": 1536,
+      "pixelHeight": 864,
+      "strictProductRatioVerified": true
+    },
+    "supabase": {
+      "workspaceRole": "owner",
+      "artifactId": "73a78e47-711a-4e66-a56d-f4897e8aa38b",
+      "nodeId": "bench-b-image",
+      "runId": "run_6d4e80d1-2144-4b4b-aa0d-752f0105ac68",
+      "source": "workflow-runtime-lite",
+      "modelId": "img2",
+      "quality": "standard",
+      "aspectRatio": "16:9"
+    },
+    "notes": [
+      "This is still a new-account owner lane, not the full owner/editor/viewer matrix.",
+      "The strict 16:9 guarantee is enforced by server-side PNG postprocessing before generated asset materialization."
+    ]
+  },
+  "latestRouteRoleGuard": {
+    "id": "R103-route-level-generated-history-role-guard",
+    "status": "pass",
+    "scope": "source-route-guard",
+    "routes": [
+      "GET /api/v1/artifacts",
+      "POST /api/v1/artifacts"
+    ],
+    "assertions": [
+      "editor can create generated-image artifacts",
+      "viewer can list generated-image history",
+      "viewer cannot create generated-image artifacts"
+    ],
+    "tests": [
+      {
+        "command": "npm test -- src/lib/backend/artifacts/artifact-service.test.ts src/lib/backend/security/security-services.test.ts src/app/api/image-gen/route.test.ts",
+        "result": "passed",
+        "summary": "3 files / 33 tests"
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed"
+      },
+      {
+        "command": "npm run build",
+        "result": "passed",
+        "summary": "Existing edge-runtime static-generation warning only."
+      }
+    ],
+    "screenMatrixImpact": {
+      "owner": "pending-screen-operation",
+      "editor": "route guard ready; screen operation still pending",
+      "viewer": "route guard ready; screen operation still pending"
+    }
+  },
+  "latestViewerReadableSessionRepair": {
+    "id": "R104-viewer-readable-workspace-session",
+    "status": "pass",
+    "scope": "runtime-and-database",
+    "previewUrl": "https://nexus-d0dt6pf3m-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_DdNpfkRUJMiBwBn8Efp8tinTYeYt",
+    "databaseMigration": {
+      "file": "supabase/migrations/20260604081500_v22_workspace_session_viewer_readable.sql",
+      "appliedName": "v22_workspace_session_viewer_readable",
+      "liveFunctionVerified": true,
+      "verifiedCapabilities": [
+        "preferred workspace accepts viewer membership",
+        "no writable workspace falls back to existing readable viewer workspace",
+        "reason existing_readable_workspace is present"
+      ]
+    },
+    "sourceChanges": [
+      "src/lib/nexus-types.ts",
+      "src/lib/backend/workspace/workspace-session-service.ts",
+      "src/lib/backend/workspace/workspace-session-service.test.ts",
+      "supabase/migrations/20260603002000_v22_workspace_session_rpc.sql",
+      "supabase/migrations/20260604081500_v22_workspace_session_viewer_readable.sql"
+    ],
+    "tests": [
+      {
+        "command": "npm test -- src/lib/backend/workspace/workspace-session-service.test.ts src/lib/backend/workspace/workspace-permission-request.test.ts src/lib/backend/security/security-services.test.ts src/lib/backend/artifacts/artifact-service.test.ts",
+        "result": "passed",
+        "summary": "4 files / 36 tests"
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "passed"
+      },
+      {
+        "command": "npm run build",
+        "result": "passed",
+        "summary": "Existing edge-runtime static-generation warning only."
+      },
+      {
+        "command": "npx vercel deploy --yes",
+        "result": "passed",
+        "summary": "Preview deployment READY"
+      }
+    ],
+    "screenMatrixImpact": {
+      "viewer": "can now resolve the shared workspace as a read-only session",
+      "editor": "unchanged writable session behavior",
+      "nextGate": "create clean editor/viewer test actors and run the screen matrix"
+    }
+  },
+  "latestEditorScreenBenchmarkRound": {
+    "id": "R105-editor-preview-benchmark-b-generated-history-download",
+    "status": "partial-pass",
+    "actor": "editor",
+    "scope": "real-screen-operation",
+    "previewUrl": "https://nexus-d0dt6pf3m-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_DdNpfkRUJMiBwBn8Efp8tinTYeYt",
+    "workspaceId": "workspace_48552da0d4364da797280ef407a1a2d8",
+    "benchmark": "B",
+    "screenOperation": [
+      "Sign in as clean editor actor",
+      "Confirm shared workspace session",
+      "Workflow Pro",
+      "Load B fixture",
+      "Import pasted JSON",
+      "Apply preview",
+      "Graph",
+      "Start All",
+      "Open generated history",
+      "Download"
+    ],
+    "result": {
+      "runtimeBadge": "SUCCESS WORKFLOW RUNTIME LITE",
+      "nodesSucceeded": [
+        "bench-b-input",
+        "bench-b-llm-prompt",
+        "bench-b-image",
+        "bench-b-output"
+      ],
+      "generatedCount": 1,
+      "artifactRowFound": true,
+      "downloadedPng": true,
+      "pixelWidth": 1536,
+      "pixelHeight": 864,
+      "strictProductRatioVerified": true,
+      "screenshotPath": "reports/workflow-pro-source-phase-20260603/assets/r105-editor-b-success-generated-history.png"
+    },
+    "supabase": {
+      "workspaceMembershipDistribution": {
+        "owner": 1,
+        "editor": 1,
+        "viewer": 1
+      },
+      "artifactId": "ff86e1ce-89f7-4464-856f-d350f702489e",
+      "artifactTypeColumn": "type",
+      "artifactType": "generated-image",
+      "contentUrl": "/api/image-gen/assets/img_6466c160-4373-49b4-94ee-f2206f86359b",
+      "nodeId": "bench-b-image",
+      "runId": "run_9b85ec93-f863-48a0-a0d3-379b89f8c851",
+      "source": "workflow-runtime-lite",
+      "modelId": "img2",
+      "quality": "standard",
+      "aspectRatio": "16:9"
+    },
+    "vercelLogs": {
+      "agentStreamStatus": 200,
+      "imageGenerationStatus": 200,
+      "artifactCreateStatus": 200,
+      "assetReadStatus": 200
+    },
+    "downloadedFile": {
+      "path": "/Users/sean/Downloads/img_6466c160-4373-49b4-94ee-f2206f86359b.png",
+      "mime": "image/png",
+      "pixelWidth": 1536,
+      "pixelHeight": 864
+    },
+    "screenMatrixImpact": {
+      "editor": "session, benchmark B, generated history, and download passed from the real browser screen",
+      "owner": "pending-screen-operation",
+      "viewer": "pending-screen-operation",
+      "editorRemaining": [
+        "benchmark A",
+        "benchmark C"
+      ]
+    },
+    "notes": [
+      "No temporary test emails, tokens, cookies, or provider credentials are stored in this manifest.",
+      "Terminal probes may hit Vercel deployment protection; browser-screen operation is the trusted evidence lane for this actor."
+    ]
+  },
   "forbiddenEvidence": [
     "accessTokens",
     "apiKeys",
@@ -251,11 +591,95 @@
     "localTests": "pass",
     "typecheck": "pass",
     "build": "pass",
-    "strictPreviewLiveProbe": "blockingFindings=0,warnings=0",
-    "ownerPath": "pass",
-    "editorPath": "pass",
-    "viewerDenialPath": "cleanAndTraceable",
-    "newAccountFirstRun": "noPermissionLoop",
-    "nonOwnerGeneratedDownload": "pass"
+    "strictPreviewLiveProbe": "pass:49probes,0blocking,0warnings",
+    "imageGenerationProductionBoundary": "previewProtectedRouteVerified",
+    "ownerPath": "pending-screen-matrix",
+    "editorPath": "partial-pass:B-generated-history-download",
+    "viewerDenialPath": "partial-pass:viewer-session-ui-readonly-local-sync-clean-no-artifact-created; generated-history-hydration-pending",
+    "newAccountFirstRun": "pass:A,B,C accumulated screen evidence; B strict download verified",
+    "nonOwnerGeneratedDownload": "pass:editor-B",
+    "accountScreenHarness": "partial:editor-B-plus-new-account-plus-viewer-readonly"
+  },
+  "screenRunManifest": {
+    "path": "docs/workflow-pro/account-matrix-screen-run.manifest.json",
+    "status": "partial-screen-operation",
+    "runner": "scripts/workflow-pro-account-matrix-runner.mjs",
+    "previewUrl": "https://nexus-15g0gc1rz-sean-s-projects10.vercel.app",
+    "score": {
+      "current": 58,
+      "max": 100,
+      "reason": "New authenticated account lane has accumulated screen evidence; editor B/history/download passed; viewer session/read-only UI/no-artifact path passed; owner and remaining editor A/C plus viewer generated-history hydration remain pending."
+    },
+    "requiredActors": [
+      "owner",
+      "editor",
+      "viewer",
+      "new-authenticated-account"
+    ]
+  },
+  "latestViewerReadonlyRound": {
+    "id": "R106-viewer-readonly-ui-and-local-sync-suppression",
+    "status": "partial-pass",
+    "actor": "viewer",
+    "previewUrl": "https://nexus-15g0gc1rz-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_Hxd1Civ1Tr3yKbRjsF9yuSwNGRcV",
+    "workspaceId": "workspace_48552da0d4364da797280ef407a1a2d8",
+    "screenEvidence": [
+      "Clean viewer actor signed in from the Chrome screen on a fresh preview hostname.",
+      "Workspace menu showed ROLE: VIEWER for the shared workspace.",
+      "Top-right sync badge stayed SYNCED after role resolution; no post-login sync issue was created.",
+      "Graph showed VIEWER READ ONLY.",
+      "Add workflow nodes, Start All, delete agent, Rename, Spawn, Save, and Import were disabled in the visible UI."
+    ],
+    "backendTrace": {
+      "postLoginSessionStatus": 200,
+      "postLoginRecoveryStatus": 200,
+      "postLoginSyncOperation403Count": 0,
+      "postLoginAgentStream403Count": 0,
+      "generatedImageRowsInSupabaseAfterViewerAttempt": 2,
+      "notes": [
+        "Pre-login 401s are expected before app authentication and are not counted as viewer permission failures.",
+        "Generated history inspection remains pending because the fresh preview displayed GENERATED 0 even though Supabase has generated-image rows."
+      ]
+    },
+    "sourceChanges": [
+      "src/components/nexus/nexus-ops.tsx",
+      "src/components/nexus/nexus-graph.tsx",
+      "src/components/nexus/nexus-workspace-readonly-gate.test.ts",
+      "src/lib/sync/local-sync-queue-adapter.ts",
+      "src/lib/sync/local-sync-queue-adapter.test.ts"
+    ],
+    "verification": [
+      "npm test -- src/components/nexus/nexus-workspace-readonly-gate.test.ts",
+      "npm test -- src/lib/backend/workspace/workspace-session-service.test.ts src/lib/backend/workspace/workspace-permission-request.test.ts",
+      "npm test -- src/lib/sync/local-sync-queue-adapter.test.ts src/components/nexus/nexus-workspace-readonly-gate.test.ts",
+      "npm run typecheck",
+      "npm run build",
+      "npx vercel deploy --yes",
+      "Computer Use Chrome screen run on viewer actor",
+      "npx vercel logs nexus-15g0gc1rz-sean-s-projects10.vercel.app --limit 80",
+      "Supabase query for generated-image count"
+    ]
+  },
+  "latestGeneratedAssetStorageRound": {
+    "id": "R108-durable-generated-asset-storage-viewer-download",
+    "status": "pass-with-legacy-debt",
+    "previewUrl": "https://nexus-j78jwuczs-sean-s-projects10.vercel.app",
+    "deploymentId": "dpl_2frW4TmEgZkr3rSy4nXUunwvETqR",
+    "storageBucket": "nexus-generated-assets",
+    "migration": "supabase/migrations/20260604093000_v22_generated_image_storage.sql",
+    "route": "/api/v1/artifacts/:artifactId/asset",
+    "evidence": [
+      "Editor generated a real img2 image on the final preview.",
+      "New generated image metadata is durable and stored in Supabase Storage.",
+      "Viewer opened generated history and downloaded the newest durable generated image from the Chrome screen.",
+      "Downloaded file size matched durable asset bytes: 1,990,514.",
+      "Vercel log showed GET /api/v1/artifacts/:artifactId/asset status=200.",
+      "Supabase reported generated-image count=3, durable generated asset count=1, durable bytes=1,990,514."
+    ],
+    "legacyDebt": [
+      "Two generated-image records produced before durable storage still fail browser download because their bytes existed only in memory cache.",
+      "Future remediation can either label legacy transient artifacts in the UI or backfill/retry only when source bytes are recoverable."
+    ]
   }
 }

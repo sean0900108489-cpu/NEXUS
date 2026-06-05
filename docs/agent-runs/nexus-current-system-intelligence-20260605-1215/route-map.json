@@ -1,0 +1,1397 @@
+[
+  {
+    "route": "/api/agent-stream",
+    "type": "route-handler",
+    "file": "src/app/api/agent-stream/route.ts",
+    "lineCount": 26,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/agent-stream-service",
+      "@/lib/backend/security/legacy-tool-route-boundary"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/api/agent-stream/route.ts",
+        "line": 10,
+        "text": "export async function POST(request: Request) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/image-gen/assets/[assetId]",
+    "type": "route-handler",
+    "file": "src/app/api/image-gen/assets/[assetId]/route.ts",
+    "lineCount": 91,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/image-generation/generated-image-asset-cache",
+      "@/lib/backend/image-generation/generated-image-asset-storage",
+      "@/lib/backend/security/auth-session"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/api/image-gen/assets/[assetId]/route.ts",
+        "line": 7,
+        "text": "export async function GET("
+      }
+    ]
+  },
+  {
+    "route": "/api/image-gen",
+    "type": "route-handler",
+    "file": "src/app/api/image-gen/route.ts",
+    "lineCount": 341,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "ImageAdapterResult",
+      "PermissionService"
+    ],
+    "imports": [
+      "@/lib/adapters/image-adapter",
+      "@/lib/backend/api/memory-compress-service",
+      "@/lib/backend/image-generation/generated-image-asset-cache",
+      "@/lib/backend/image-generation/generated-image-asset-storage",
+      "@/lib/backend/image-generation/generated-image-postprocess",
+      "@/lib/backend/security/auth-session",
+      "@/lib/backend/security/permission-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/composer/image-generation-settings",
+      "@/lib/media/image-api-credential"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/api/image-gen/route.ts",
+        "line": 70,
+        "text": "export async function POST(request: Request) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/memory-compress",
+    "type": "route-handler",
+    "file": "src/app/api/memory-compress/route.ts",
+    "lineCount": 37,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/memory-compress-service",
+      "@/lib/backend/security/legacy-tool-route-boundary"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/api/memory-compress/route.ts",
+        "line": 12,
+        "text": "export async function POST(request: Request) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/predictive-intel",
+    "type": "route-handler",
+    "file": "src/app/api/predictive-intel/route.ts",
+    "lineCount": 185,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/security/legacy-tool-route-boundary",
+      "@/lib/nexus-registry",
+      "@/lib/predictive-intel"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/api/predictive-intel/route.ts",
+        "line": 120,
+        "text": "export async function POST(request: Request) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/system-status",
+    "type": "route-handler",
+    "file": "src/app/api/system-status/route.ts",
+    "lineCount": 14,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/api/system-status/route.ts",
+        "line": 5,
+        "text": "export async function GET() {"
+      }
+    ]
+  },
+  {
+    "route": "/api/tools/fs-scanner",
+    "type": "route-handler",
+    "file": "src/app/api/tools/fs-scanner/route.ts",
+    "lineCount": 238,
+    "httpMethods": [
+      "GET",
+      "POST"
+    ],
+    "components": [
+      "FileSystemScanResult",
+      "FileSystemTreeNode"
+    ],
+    "imports": [
+      "@/lib/backend/security/legacy-tool-route-boundary",
+      "@/lib/nexus-types",
+      "@/lib/tools/fs-scanner-executor",
+      "node:fs/promises",
+      "node:path"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/api/tools/fs-scanner/route.ts",
+        "line": 190,
+        "text": "export async function GET(request: Request) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/tools/web-surfer",
+    "type": "route-handler",
+    "file": "src/app/api/tools/web-surfer/route.ts",
+    "lineCount": 148,
+    "httpMethods": [
+      "GET",
+      "POST"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/security/legacy-tool-route-boundary",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/api/tools/web-surfer/route.ts",
+        "line": 110,
+        "text": "export async function GET(request: Request) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/agents/[agentId]/memory",
+    "type": "route-handler",
+    "file": "src/app/api/v1/agents/[agentId]/memory/route.ts",
+    "lineCount": 49,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/history/history-constants",
+      "@/lib/backend/history/message-history-service",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/[agentId]/memory/route.ts",
+        "line": 15,
+        "text": "export async function GET(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/agents/[agentId]/messages/archive",
+    "type": "route-handler",
+    "file": "src/app/api/v1/agents/[agentId]/messages/archive/route.ts",
+    "lineCount": 76,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "MessageArchiveRequest"
+    ],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/history/message-history-service",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/[agentId]/messages/archive/route.ts",
+        "line": 19,
+        "text": "export async function POST(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/agents/[agentId]/messages",
+    "type": "route-handler",
+    "file": "src/app/api/v1/agents/[agentId]/messages/route.ts",
+    "lineCount": 44,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/history/message-history-service",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/[agentId]/messages/route.ts",
+        "line": 11,
+        "text": "export async function GET(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/agents/[agentId]/stream",
+    "type": "route-handler",
+    "file": "src/app/api/v1/agents/[agentId]/stream/route.ts",
+    "lineCount": 98,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/agent-stream-service",
+      "@/lib/backend/api/api-errors",
+      "@/lib/backend/observability/events"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/[agentId]/stream/route.ts",
+        "line": 14,
+        "text": "export async function POST("
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/agents/[agentId]/tasks/[taskId]/cancel",
+    "type": "route-handler",
+    "file": "src/app/api/v1/agents/[agentId]/tasks/[taskId]/cancel/route.ts",
+    "lineCount": 82,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "CancelTaskRequest"
+    ],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/runtime/agent-runtime-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/[agentId]/tasks/[taskId]/cancel/route.ts",
+        "line": 22,
+        "text": "export async function POST(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/agents/[agentId]/tasks/[taskId]",
+    "type": "route-handler",
+    "file": "src/app/api/v1/agents/[agentId]/tasks/[taskId]/route.ts",
+    "lineCount": 38,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/runtime/agent-runtime-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/[agentId]/tasks/[taskId]/route.ts",
+        "line": 14,
+        "text": "export async function GET(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/agents/[agentId]/tasks",
+    "type": "route-handler",
+    "file": "src/app/api/v1/agents/[agentId]/tasks/route.ts",
+    "lineCount": 97,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "AgentTaskCreateRequest"
+    ],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/runtime/agent-runtime-service",
+      "@/lib/backend/runtime/runtime-constants",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/[agentId]/tasks/route.ts",
+        "line": 23,
+        "text": "export async function POST(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/agents/memory-compress",
+    "type": "route-handler",
+    "file": "src/app/api/v1/agents/memory-compress/route.ts",
+    "lineCount": 104,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/memory-compress-service",
+      "@/lib/backend/runtime/agent-runtime-service"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/agents/memory-compress/route.ts",
+        "line": 15,
+        "text": "export const POST = apiHandler({"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/artifacts/[artifactId]/archive",
+    "type": "route-handler",
+    "file": "src/app/api/v1/artifacts/[artifactId]/archive/route.ts",
+    "lineCount": 57,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "ArtifactArchiveRequest"
+    ],
+    "imports": [
+      "../../artifact-route-validation",
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/artifacts/artifact-route-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/artifacts/[artifactId]/archive/route.ts",
+        "line": 18,
+        "text": "export async function POST(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/artifacts/[artifactId]/asset",
+    "type": "route-handler",
+    "file": "src/app/api/v1/artifacts/[artifactId]/asset/route.ts",
+    "lineCount": 214,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-auth",
+      "@/lib/backend/api/api-errors",
+      "@/lib/backend/artifacts/artifact-route-service",
+      "@/lib/backend/contracts/idempotency",
+      "@/lib/backend/image-generation/generated-image-asset-storage",
+      "@/lib/backend/security/auth-session",
+      "@/lib/backend/workspace/workspace-permission"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/artifacts/[artifactId]/asset/route.ts",
+        "line": 15,
+        "text": "export async function GET(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/artifacts/[artifactId]/references",
+    "type": "route-handler",
+    "file": "src/app/api/v1/artifacts/[artifactId]/references/route.ts",
+    "lineCount": 51,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "ArtifactReferenceCreateRequest"
+    ],
+    "imports": [
+      "../../artifact-route-validation",
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/artifacts/artifact-route-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/artifacts/[artifactId]/references/route.ts",
+        "line": 18,
+        "text": "export async function POST(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/artifacts/[artifactId]",
+    "type": "route-handler",
+    "file": "src/app/api/v1/artifacts/[artifactId]/route.ts",
+    "lineCount": 35,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/artifacts/artifact-route-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/artifacts/[artifactId]/route.ts",
+        "line": 12,
+        "text": "export async function GET(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/artifacts/[artifactId]/versions",
+    "type": "route-handler",
+    "file": "src/app/api/v1/artifacts/[artifactId]/versions/route.ts",
+    "lineCount": 51,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "ArtifactVersionCreateRequest"
+    ],
+    "imports": [
+      "../../artifact-route-validation",
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/artifacts/artifact-route-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/artifacts/[artifactId]/versions/route.ts",
+        "line": 18,
+        "text": "export async function POST(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/artifacts",
+    "type": "route-handler",
+    "file": "src/app/api/v1/artifacts/route.ts",
+    "lineCount": 70,
+    "httpMethods": [
+      "GET",
+      "POST"
+    ],
+    "components": [
+      "CreateArtifactRequest"
+    ],
+    "imports": [
+      "./artifact-route-validation",
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/artifacts/artifact-route-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/artifacts/route.ts",
+        "line": 15,
+        "text": "export const GET = apiHandler<undefined, ArtifactListResponse>({"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/deployment/checks/latest",
+    "type": "route-handler",
+    "file": "src/app/api/v1/deployment/checks/latest/route.ts",
+    "lineCount": 29,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/deployment/deployment-check-service",
+      "@/lib/backend/deployment/deployment-types",
+      "@/lib/backend/workspace/workspace-permission"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/deployment/checks/latest/route.ts",
+        "line": 10,
+        "text": "export const GET = apiHandler<undefined, LatestDeploymentCheckResult>({"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/deployment/checks/run",
+    "type": "route-handler",
+    "file": "src/app/api/v1/deployment/checks/run/route.ts",
+    "lineCount": 102,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "DeploymentEnvironment"
+    ],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/deployment/deployment-check-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/deployment/checks/run/route.ts",
+        "line": 24,
+        "text": "export const POST = apiHandler<"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/feature-flags/[flagKey]/toggle",
+    "type": "route-handler",
+    "file": "src/app/api/v1/feature-flags/[flagKey]/toggle/route.ts",
+    "lineCount": 112,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "FeatureFlagToggleRequest"
+    ],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/deployment/feature-flag-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/feature-flags/[flagKey]/toggle/route.ts",
+        "line": 22,
+        "text": "export async function POST(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/feature-flags",
+    "type": "route-handler",
+    "file": "src/app/api/v1/feature-flags/route.ts",
+    "lineCount": 39,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/deployment/feature-flag-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/feature-flags/route.ts",
+        "line": 10,
+        "text": "export const GET = apiHandler<undefined, FeatureFlagsResponse>({"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/health",
+    "type": "route-handler",
+    "file": "src/app/api/v1/health/route.ts",
+    "lineCount": 14,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/deployment/deployment-check-service",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/health/route.ts",
+        "line": 9,
+        "text": "export const GET = apiHandler<undefined, RuntimeHealthResponse>({"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/notebooks",
+    "type": "route-handler",
+    "file": "src/app/api/v1/notebooks/route.ts",
+    "lineCount": 74,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/notebooks/notebook-service",
+      "@/lib/backend/security/auth-session",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/notebooks/route.ts",
+        "line": 17,
+        "text": "export async function GET(request: Request) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/observability/events",
+    "type": "route-handler",
+    "file": "src/app/api/v1/observability/events/route.ts",
+    "lineCount": 43,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "../observability-route-helpers",
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/observability",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/observability/events/route.ts",
+        "line": 16,
+        "text": "export const GET = apiHandler<undefined, SystemEventListResponse>({"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/observability/metrics",
+    "type": "route-handler",
+    "file": "src/app/api/v1/observability/metrics/route.ts",
+    "lineCount": 38,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "../observability-route-helpers",
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/observability",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/observability/metrics/route.ts",
+        "line": 12,
+        "text": "export const GET = apiHandler<undefined, UsageMetricsResponse>({"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/observability/traces/[traceId]",
+    "type": "route-handler",
+    "file": "src/app/api/v1/observability/traces/[traceId]/route.ts",
+    "lineCount": 43,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "../../observability-route-helpers",
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/observability",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/observability/traces/[traceId]/route.ts",
+        "line": 16,
+        "text": "export async function GET(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/prompts",
+    "type": "route-handler",
+    "file": "src/app/api/v1/prompts/route.ts",
+    "lineCount": 75,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/prompts/prompt-service",
+      "@/lib/backend/security/auth-session",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/prompts/route.ts",
+        "line": 17,
+        "text": "export async function GET(request: Request) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/providers/status",
+    "type": "route-handler",
+    "file": "src/app/api/v1/providers/status/route.ts",
+    "lineCount": 26,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/nexus-defaults"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/providers/status/route.ts",
+        "line": 5,
+        "text": "export async function GET() {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/providers/verify",
+    "type": "route-handler",
+    "file": "src/app/api/v1/providers/verify/route.ts",
+    "lineCount": 169,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/runtime/provider-adapter",
+      "@/lib/backend/security/legacy-tool-route-boundary",
+      "@/lib/nexus-registry",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/providers/verify/route.ts",
+        "line": 32,
+        "text": "export async function POST(request: Request) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/public-config",
+    "type": "route-handler",
+    "file": "src/app/api/v1/public-config/route.ts",
+    "lineCount": 28,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/public-config"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/public-config/route.ts",
+        "line": 6,
+        "text": "export const GET = apiHandler<undefined, NexusPublicConfig>({"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/sync/operations/[operationId]/cancel",
+    "type": "route-handler",
+    "file": "src/app/api/v1/sync/operations/[operationId]/cancel/route.ts",
+    "lineCount": 74,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "CancelRequestBody"
+    ],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/sync/sync-queue-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/sync/operations/[operationId]/cancel/route.ts",
+        "line": 23,
+        "text": "export async function POST(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/sync/operations/[operationId]/retry",
+    "type": "route-handler",
+    "file": "src/app/api/v1/sync/operations/[operationId]/retry/route.ts",
+    "lineCount": 83,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "RetryRequestBody"
+    ],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/sync/sync-queue-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/sync/operations/[operationId]/retry/route.ts",
+        "line": 24,
+        "text": "export async function POST(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/sync/operations",
+    "type": "route-handler",
+    "file": "src/app/api/v1/sync/operations/route.ts",
+    "lineCount": 88,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "SyncOperationRequest"
+    ],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/sync/sync-queue-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/sync/operations/route.ts",
+        "line": 15,
+        "text": "export const POST = apiHandler<SyncOperationRequest, SyncOperationResponse>({"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/sync/status",
+    "type": "route-handler",
+    "file": "src/app/api/v1/sync/status/route.ts",
+    "lineCount": 33,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/sync/sync-queue-service",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/sync/status/route.ts",
+        "line": 10,
+        "text": "export const GET = apiHandler<undefined, SyncStatusResponse>({"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/tool-runs/[toolRunId]/cancel",
+    "type": "route-handler",
+    "file": "src/app/api/v1/tool-runs/[toolRunId]/cancel/route.ts",
+    "lineCount": 76,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "ToolRunCancelRequest"
+    ],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/tools/tool-execution-service",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/tool-runs/[toolRunId]/cancel/route.ts",
+        "line": 20,
+        "text": "export async function POST(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/tool-runs/[toolRunId]/confirm",
+    "type": "route-handler",
+    "file": "src/app/api/v1/tool-runs/[toolRunId]/confirm/route.ts",
+    "lineCount": 78,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "ToolRunConfirmRequest"
+    ],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/api/memory-compress-service",
+      "@/lib/backend/tools/tool-execution-service",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/tool-runs/[toolRunId]/confirm/route.ts",
+        "line": 21,
+        "text": "export async function POST(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/tool-runs/[toolRunId]",
+    "type": "route-handler",
+    "file": "src/app/api/v1/tool-runs/[toolRunId]/route.ts",
+    "lineCount": 40,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/tools/tool-execution-service",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/tool-runs/[toolRunId]/route.ts",
+        "line": 13,
+        "text": "export async function GET(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/tool-runs",
+    "type": "route-handler",
+    "file": "src/app/api/v1/tool-runs/route.ts",
+    "lineCount": 36,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/tools/tool-execution-service",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/tool-runs/route.ts",
+        "line": 9,
+        "text": "export const GET = apiHandler<undefined, ToolRunListResponse>({"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/tools/[toolId]/run",
+    "type": "route-handler",
+    "file": "src/app/api/v1/tools/[toolId]/run/route.ts",
+    "lineCount": 78,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "ToolRunRequest"
+    ],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/api/memory-compress-service",
+      "@/lib/backend/tools/tool-execution-service",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/tools/[toolId]/run/route.ts",
+        "line": 19,
+        "text": "export async function POST(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/workflows/groups",
+    "type": "route-handler",
+    "file": "src/app/api/v1/workflows/groups/route.ts",
+    "lineCount": 420,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "NonNullable",
+      "WorkflowGroupRecordWriteRequest",
+      "WorkflowRuntimeGroupRef",
+      "WorkflowRuntimeNodeStatus",
+      "WorkflowRuntimeNodeType"
+    ],
+    "imports": [
+      "../../observability/observability-route-helpers",
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/observability",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/workflows/groups/route.ts",
+        "line": 66,
+        "text": "export const POST = apiHandler<"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/workflows/runtime-trace",
+    "type": "route-handler",
+    "file": "src/app/api/v1/workflows/runtime-trace/route.ts",
+    "lineCount": 512,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "NonNullable",
+      "WorkflowRuntimeGroupRef",
+      "WorkflowRuntimeNodeStatus",
+      "WorkflowRuntimeRunStatus",
+      "WorkflowRuntimeTraceWriteRequest"
+    ],
+    "imports": [
+      "../../observability/observability-route-helpers",
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/observability",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/workflows/runtime-trace/route.ts",
+        "line": 64,
+        "text": "export const POST = apiHandler<"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/workspaces/[workspaceId]/state",
+    "type": "route-handler",
+    "file": "src/app/api/v1/workspaces/[workspaceId]/state/route.ts",
+    "lineCount": 136,
+    "httpMethods": [
+      "GET",
+      "PUT"
+    ],
+    "components": [
+      "WorkspaceCloudSnapshotType",
+      "WorkspaceStatePutRequest"
+    ],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/workspace/workspace-permission",
+      "@/lib/backend/workspace/workspace-state-service",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/workspaces/[workspaceId]/state/route.ts",
+        "line": 30,
+        "text": "export async function GET(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/workspaces/recovery/[workspaceId]",
+    "type": "route-handler",
+    "file": "src/app/api/v1/workspaces/recovery/[workspaceId]/route.ts",
+    "lineCount": 66,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/security/auth-session",
+      "@/lib/backend/workspace/workspace-state-service",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/workspaces/recovery/[workspaceId]/route.ts",
+        "line": 20,
+        "text": "export async function GET(request: Request, context: RouteContext) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/workspaces/recovery/latest",
+    "type": "route-handler",
+    "file": "src/app/api/v1/workspaces/recovery/latest/route.ts",
+    "lineCount": 45,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/security/auth-session",
+      "@/lib/backend/workspace/workspace-state-service",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/workspaces/recovery/latest/route.ts",
+        "line": 13,
+        "text": "export async function GET(request: Request) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/workspaces/recovery",
+    "type": "route-handler",
+    "file": "src/app/api/v1/workspaces/recovery/route.ts",
+    "lineCount": 59,
+    "httpMethods": [
+      "GET"
+    ],
+    "components": [],
+    "imports": [
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/security/auth-session",
+      "@/lib/backend/workspace/workspace-state-service",
+      "@/lib/nexus-types"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/workspaces/recovery/route.ts",
+        "line": 17,
+        "text": "export async function GET(request: Request) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/v1/workspaces/session",
+    "type": "route-handler",
+    "file": "src/app/api/v1/workspaces/session/route.ts",
+    "lineCount": 235,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "WorkspaceSessionEnsureRequest",
+      "WorkspaceSessionEnsureResponse"
+    ],
+    "imports": [
+      "@/lib/backend/api/api-errors",
+      "@/lib/backend/api/api-handler",
+      "@/lib/backend/api/api-request-validator",
+      "@/lib/backend/security/auth-session",
+      "@/lib/backend/workspace/workspace-session-service",
+      "@/lib/nexus-types",
+      "@/lib/supabase/admin",
+      "@/lib/supabase/request"
+    ],
+    "usesApiHandler": true,
+    "evidence": [
+      {
+        "file": "src/app/api/v1/workspaces/session/route.ts",
+        "line": 27,
+        "text": "export async function POST(request: Request) {"
+      }
+    ]
+  },
+  {
+    "route": "/api/workflow-pro/brain-draft",
+    "type": "route-handler",
+    "file": "src/app/api/workflow-pro/brain-draft/route.ts",
+    "lineCount": 514,
+    "httpMethods": [
+      "POST"
+    ],
+    "components": [
+      "WorkflowGraphBrainModelSettings",
+      "WorkflowGraphBrainPlannerResult"
+    ],
+    "imports": [
+      "@/lib/nexus-types",
+      "@/lib/workflow-pro/brain-draft-templates",
+      "@/lib/workflow-pro/brain-review-proposal",
+      "@/lib/workflow-pro/graph-brain-planner"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/api/workflow-pro/brain-draft/route.ts",
+        "line": 26,
+        "text": "export async function POST(request: Request) {"
+      }
+    ]
+  },
+  {
+    "route": "/",
+    "type": "layout",
+    "file": "src/app/layout.tsx",
+    "lineCount": 39,
+    "httpMethods": [],
+    "components": [
+      "ThemeProvider"
+    ],
+    "imports": [
+      "@/components/theme-provider",
+      "next",
+      "next/font/google"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/layout.tsx",
+        "line": 22,
+        "text": "export default function RootLayout({"
+      }
+    ]
+  },
+  {
+    "route": "/",
+    "type": "page",
+    "file": "src/app/page.tsx",
+    "lineCount": 32,
+    "httpMethods": [],
+    "components": [
+      "NexusOps",
+      "NexusProductionPageShellBoundary",
+      "NexusProductionPreviewController",
+      "NexusStyleRuntimeProvider"
+    ],
+    "imports": [
+      "@/components/nexus/nexus-ops",
+      "@/components/nexus/nexus-production-page-shell-boundary",
+      "@/components/nexus/nexus-production-preview-controller",
+      "@/components/style-engine/nexus-style-runtime-provider"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/page.tsx",
+        "line": 12,
+        "text": "export default async function Home({ searchParams }: HomeProps) {"
+      }
+    ]
+  },
+  {
+    "route": "/style-lab",
+    "type": "page",
+    "file": "src/app/style-lab/page.tsx",
+    "lineCount": 11,
+    "httpMethods": [],
+    "components": [
+      "NexusStyleLab",
+      "NexusStyleRuntimeProvider"
+    ],
+    "imports": [
+      "@/components/style-engine/nexus-style-lab",
+      "@/components/style-engine/nexus-style-runtime-provider"
+    ],
+    "usesApiHandler": false,
+    "evidence": [
+      {
+        "file": "src/app/style-lab/page.tsx",
+        "line": 4,
+        "text": "export default function StyleLabPage() {"
+      }
+    ]
+  }
+]

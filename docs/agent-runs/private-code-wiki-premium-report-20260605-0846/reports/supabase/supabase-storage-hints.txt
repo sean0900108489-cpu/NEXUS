@@ -1,0 +1,488 @@
+src/store/nexus-store.test.ts:209:                type: "generated-image",
+src/store/nexus-store.test.ts:824:  it("hydrates generated artifact history records from workflow image node outputs", () => {
+src/store/nexus-store.test.ts:834:      title: "Existing generated image",
+src/store/nexus-store.test.ts:835:      type: "generated-image",
+src/store/nexus-store.test.ts:849:      type: "generated-image",
+src/store/nexus-store.test.ts:897:      type: "generated-image",
+src/store/nexus-store.test.ts:901:  it("collects transient generated image records when artifact persistence fails", () => {
+src/store/nexus-store.test.ts:956:        type: "generated-image",
+src/store/nexus-store.test.ts:1001:    type TestStorage = NonNullable<PersistOptions["storage"]>;
+src/store/nexus-store.test.ts:1002:    const originalStorage = useNexusStore.persist.getOptions().storage;
+src/store/nexus-store.test.ts:1004:    const storage: TestStorage = {
+src/store/nexus-store.test.ts:1010:    useNexusStore.persist.setOptions({ storage });
+src/store/nexus-store.test.ts:1017:      useNexusStore.persist.setOptions({ storage: originalStorage });
+src/store/nexus-store.test.ts:1077:    const storageValue = {
+src/store/nexus-store.test.ts:1082:    type TestStorage = NonNullable<PersistOptions["storage"]>;
+src/store/nexus-store.test.ts:1083:    const originalStorage = useNexusStore.persist.getOptions().storage;
+src/store/nexus-store.test.ts:1085:    const storage: TestStorage = {
+src/store/nexus-store.test.ts:1086:      getItem: vi.fn(() => storageValue),
+src/store/nexus-store.test.ts:1091:    useNexusStore.persist.setOptions({ storage });
+src/store/nexus-store.test.ts:1096:      useNexusStore.persist.setOptions({ storage: originalStorage });
+src/store/nexus-store.test.ts:1189:    const storageValue = {
+src/store/nexus-store.test.ts:1194:    type TestStorage = NonNullable<PersistOptions["storage"]>;
+src/store/nexus-store.test.ts:1195:    const originalStorage = useNexusStore.persist.getOptions().storage;
+src/store/nexus-store.test.ts:1197:    const storage: TestStorage = {
+src/store/nexus-store.test.ts:1198:      getItem: vi.fn(() => storageValue),
+src/store/nexus-store.test.ts:1203:    useNexusStore.persist.setOptions({ storage });
+src/store/nexus-store.test.ts:1208:      useNexusStore.persist.setOptions({ storage: originalStorage });
+supabase/migrations/20260527008000_observability_event_spine.sql:6:-- agent memory historical paging/storage.
+src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts:257:      /surfaceStyleOps[\s\S]*window\.localStorage/,
+src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts:260:      /surfaceStyleScene[\s\S]*window\.localStorage/,
+src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts:266:      /surfaceStyleRightMetrics[\s\S]*window\.localStorage/,
+src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts:272:      /surfaceStyleAgent[\s\S]*window\.localStorage/,
+src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts:278:      /surfaceStyleSegmented[\s\S]*window\.localStorage/,
+src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts:284:      /surfaceStyleControlChrome[\s\S]*window\.localStorage/,
+src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts:290:      /styleRuntimeBudget[\s\S]*window\.localStorage/,
+src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts:296:      /styleRuntimePreviewDiagnostics[\s\S]*window\.localStorage/,
+src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts:302:      /styleRuntimePreviewPreflight[\s\S]*window\.localStorage/,
+src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts:312:    expect(source).not.toContain("/Users/sean/Downloads");
+src/components/style-engine/nexus-style-lab-imported-workspace-style.test.ts:105:    expect(importedPanelSource).not.toContain("localStorage");
+supabase/migrations/20260527009000_historical_data_paging.sql:1:-- V10: Historical Data Paging & Storage Partition
+src/components/style-engine/nexus-style-lab-production-chrome-smoke.test.ts:48:    expect(source).not.toContain("window.localStorage");
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:1:-- V22: Durable generated image asset storage.
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:4:-- - Generated-image artifact rows must not depend on Vercel function memory.
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:5:-- - Owner/admin/editor users may upload generated assets.
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:6:-- - Workspace viewers may download historical generated assets, but cannot
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:7:--   mutate the bucket.
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:9:INSERT INTO storage.buckets (
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:39:    WHERE schemaname = 'storage'
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:44:    ON storage.objects
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:48:      bucket_id = 'nexus-generated-assets'
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:56:    WHERE schemaname = 'storage'
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:61:    ON storage.objects
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:65:      bucket_id = 'nexus-generated-assets'
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:73:    WHERE schemaname = 'storage'
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:78:    ON storage.objects
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:82:      bucket_id = 'nexus-generated-assets'
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:86:      bucket_id = 'nexus-generated-assets'
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:94:    WHERE schemaname = 'storage'
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:99:    ON storage.objects
+supabase/migrations/20260604093000_v22_generated_image_storage.sql:103:      bucket_id = 'nexus-generated-assets'
+src/store/nexus-store.ts:5:import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
+src/store/nexus-store.ts:153:const PERSIST_STORAGE_NAME = "nexus-ai-ops-workspace";
+src/store/nexus-store.ts:154:const LEGACY_LOCAL_STORAGE_KEYS = ["nexus-workspace-storage", PERSIST_STORAGE_NAME] as const;
+src/store/nexus-store.ts:159:let initialStorageReadFinished = false;
+src/store/nexus-store.ts:405:    type: "generated-image",
+src/store/nexus-store.ts:724:  return Array.from(new Set([name, ...LEGACY_LOCAL_STORAGE_KEYS]));
+src/store/nexus-store.ts:734:      const value = window.localStorage.getItem(key);
+src/store/nexus-store.ts:753:    window.localStorage.setItem(name, value);
+src/store/nexus-store.ts:755:    // IndexedDB is the primary store; localStorage is only a best-effort fallback.
+src/store/nexus-store.ts:766:      window.localStorage.removeItem(key);
+src/store/nexus-store.ts:773:const indexedDbStateStorage: StateStorage<Promise<void>> = {
+src/store/nexus-store.ts:799:      initialStorageReadFinished = true;
+src/store/nexus-store.ts:803:    if (!initialStorageReadFinished) {
+src/store/nexus-store.ts:1826:    storage: indexedDbStore ? "indexedDB:idb-keyval" : "localStorage:fallback",
+src/store/nexus-store.ts:4572:      name: PERSIST_STORAGE_NAME,
+src/store/nexus-store.ts:4573:      storage: createJSONStorage(() => indexedDbStateStorage),
+src/store/nexus-store.ts:4575:      onRehydrateStorage: () => (state) => {
+src/components/nexus/nexus-production-preview-controller.test.ts:43:      /\blocalStorage\b/,
+src/components/nexus/nexus-ops-outer-shell-frame.test.tsx:87:      /\blocalStorage\b/,
+src/lib/media/generated-image-artifact.ts:1:export function getGeneratedImageMimeType(url: string) {
+src/lib/media/generated-image-artifact.ts:17:export function getGeneratedImageUrlKind(url: string) {
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:5:  Download,
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:13:  Upload,
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:224:            <Download className="h-3.5 w-3.5" />
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:234:            <Upload className="h-3.5 w-3.5" />
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:626:              Generated media should keep using artifact-backed history and downloads.
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1107:      body: "Generated image asset downloads are screen verified; R91 makes /api/image-gen a formal protected production route with Supabase session and runtime provider credentials separated.",
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1110:      title: "Generated image route guard",
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1119:      body: "Still open: run owner/editor/viewer/new-account screen matrix on the strict-preview-green deployment, then verify non-owner generated media download before production promotion.",
+src/components/nexus/workflow-pro/workflow-pro-surface.tsx:1450:      body: "The original upload or generated file reference remains addressable.",
+src/components/nexus/nexus-ops-top-bar-frame.test.tsx:102:      /\blocalStorage\b/,
+src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx:165:          "Generated image route guard",
+src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx:173:          "verify non-owner generated media download",
+src/lib/adapters/image-adapter.ts:35:    bucket?: string;
+src/lib/adapters/image-adapter.ts:39:    provider: "memory" | "supabase-storage";
+src/lib/adapters/image-adapter.ts:222:        `${this.request.toolName} generated an image through ${model}.`,
+src/components/nexus/nexus-ops-body-frame.test.tsx:70:      /\blocalStorage\b/,
+src/components/nexus/nexus-theme-panel-live-style-controls.test.ts:129:    expect(controlsPanelSource).not.toContain("localStorage");
+src/components/nexus/nexus-theme-panel-live-style-controls.test.ts:159:    expect(bootApplySource).not.toContain("localStorage");
+src/components/nexus/nexus-production-page-shell-boundary.test.tsx:89:      /\blocalStorage\b/,
+src/components/nexus/nexus-workspace-chat-composer-shell.test.ts:151:    expect(source).toContain("Composer Image Mode generated an image");
+src/components/nexus/nexus-workspace-chat-composer-shell.test.ts:155:    expect(source).toContain('type: "generated-image"');
+src/components/nexus/nexus-workspace-chat-composer-shell.test.ts:159:    expect(source).toContain("getGeneratedImageMimeType");
+src/components/nexus/nexus-workspace-chat-composer-shell.test.ts:160:    expect(source).toContain("getGeneratedImageUrlKind");
+src/components/nexus/nexus-workspace-chat-composer-shell.test.ts:161:    expect(attachmentActionsSource).toContain('id: "local-file-upload"');
+src/components/nexus/nexus-workspace-chat-composer-shell.test.ts:181:  it("adds downloadable generated asset records to the right dock", () => {
+src/components/nexus/nexus-workspace-chat-composer-shell.test.ts:187:    expect(source).toContain("onDownloadArtifact");
+src/components/nexus/nexus-workspace-chat-composer-shell.test.ts:188:    expect(source).toContain("createArtifactDownloadFilename");
+src/components/nexus/nexus-workspace-chat-composer-shell.test.ts:189:    expect(source).toContain("Generated asset download started");
+src/components/nexus/nexus-workspace-chat-composer-shell.test.ts:191:    expect(source).toContain("downloadMediaArtifact");
+src/components/nexus/nexus-workspace-chat-composer-shell.test.ts:192:    expect(source).toContain('aria-label={`Download ${artifact.type} preview`}');
+src/app/api/workflow-pro/brain-draft/route.ts:150:              "For image nodes include data.prompt, data.model, data.provider, quality/aspectRatio settings, and downloadable generated-image artifactPolicy.",
+src/components/nexus/nexus-production-style-layer-contract.test.ts:48:    expect(stylePreviewMapperSource).not.toContain("localStorage");
+src/components/nexus/nexus-production-style-layer-contract.test.ts:49:    expect(stylePreviewMapperSource).not.toContain("sessionStorage");
+src/components/nexus/nexus-workspace-style-payload-export-import.test.ts:44:    expect(handleImportSource).not.toContain("localStorage");
+src/components/nexus/nexus-workspace-style-payload-export-import.test.ts:74:    expect(handleExportSource).not.toContain("localStorage");
+src/components/nexus/nexus-ops.tsx:15:  Download,
+src/components/nexus/nexus-ops.tsx:43:  Upload,
+src/components/nexus/nexus-ops.tsx:153:  getGeneratedImageMimeType,
+src/components/nexus/nexus-ops.tsx:154:  getGeneratedImageUrlKind,
+src/components/nexus/nexus-ops.tsx:155:} from "@/lib/media/generated-image-artifact";
+src/components/nexus/nexus-ops.tsx:557:      writesToStorage: false,
+src/components/nexus/nexus-ops.tsx:1007:function inferDownloadExtension(input: {
+src/components/nexus/nexus-ops.tsx:1045:function sanitizeDownloadFileName(value: string) {
+src/components/nexus/nexus-ops.tsx:1055:function appendDownloadExtension(fileName: string, extension: string) {
+src/components/nexus/nexus-ops.tsx:1061:function createMediaDownloadFilename(artifact: AgentMediaArtifact) {
+src/components/nexus/nexus-ops.tsx:1062:  const extension = inferDownloadExtension({
+src/components/nexus/nexus-ops.tsx:1066:  const baseName = sanitizeDownloadFileName(
+src/components/nexus/nexus-ops.tsx:1070:  return appendDownloadExtension(baseName, extension);
+src/components/nexus/nexus-ops.tsx:1073:function createArtifactDownloadFilename(artifact: ArtifactVaultRecord) {
+src/components/nexus/nexus-ops.tsx:1074:  const extension = inferDownloadExtension({
+src/components/nexus/nexus-ops.tsx:1079:  const baseName = sanitizeDownloadFileName(
+src/components/nexus/nexus-ops.tsx:1083:  return appendDownloadExtension(baseName, extension);
+src/components/nexus/nexus-ops.tsx:1086:function downloadUrlPayload(url: string, fileName: string) {
+src/components/nexus/nexus-ops.tsx:1090:  link.download = fileName;
+src/components/nexus/nexus-ops.tsx:1097:function downloadTextPayload(text: string, fileName: string, mimeType?: string | null) {
+src/components/nexus/nexus-ops.tsx:1102:    downloadUrlPayload(url, fileName);
+src/components/nexus/nexus-ops.tsx:1108:async function downloadAuthenticatedUrlPayload(
+src/components/nexus/nexus-ops.tsx:1138:    throw new Error(`Download route returned ${response.status}.`);
+src/components/nexus/nexus-ops.tsx:1145:    downloadUrlPayload(objectUrl, fileName);
+src/components/nexus/nexus-ops.tsx:1162:function downloadMediaArtifact(artifact: AgentMediaArtifact) {
+src/components/nexus/nexus-ops.tsx:1163:  downloadUrlPayload(artifact.url, createMediaDownloadFilename(artifact));
+src/components/nexus/nexus-ops.tsx:1591:    downloadTextPayload(
+src/components/nexus/nexus-ops.tsx:2256:    const downloadSnapshot = (snapshot: WorkspaceSnapshot) => {
+src/components/nexus/nexus-ops.tsx:2270:      link.download = `nexus-ai-ops-${Date.now()}.json`;
+src/components/nexus/nexus-ops.tsx:2279:        const exportStatus = downloadSnapshot(
+src/components/nexus/nexus-ops.tsx:2288:        const exportStatus = downloadSnapshot(exportActiveWorkspace());
+src/components/nexus/nexus-ops.tsx:2410:  const handleDownloadArtifact = useCallback((artifact: ArtifactVaultRecord) => {
+src/components/nexus/nexus-ops.tsx:2412:      const localFileName = createArtifactDownloadFilename(artifact);
+src/components/nexus/nexus-ops.tsx:2417:            throw new Error("Transient generated asset has no downloadable URL.");
+src/components/nexus/nexus-ops.tsx:2420:          downloadUrlPayload(artifact.contentUrl, localFileName);
+src/components/nexus/nexus-ops.tsx:2421:          setNotice("Generated asset download started");
+src/components/nexus/nexus-ops.tsx:2427:            await downloadAuthenticatedUrlPayload(
+src/components/nexus/nexus-ops.tsx:2440:            downloadUrlPayload(artifact.contentUrl, localFileName);
+src/components/nexus/nexus-ops.tsx:2442:          setNotice("Generated asset download started");
+src/components/nexus/nexus-ops.tsx:2454:        const fileName = createArtifactDownloadFilename({
+src/components/nexus/nexus-ops.tsx:2461:          downloadUrlPayload(detail.contentUrl, fileName);
+src/components/nexus/nexus-ops.tsx:2462:          setNotice("Generated asset download started");
+src/components/nexus/nexus-ops.tsx:2467:          downloadTextPayload(detail.contentText, fileName, detail.mimeType);
+src/components/nexus/nexus-ops.tsx:2468:          setNotice("Generated asset download started");
+src/components/nexus/nexus-ops.tsx:2473:          downloadUrlPayload(artifact.contentUrl, fileName);
+src/components/nexus/nexus-ops.tsx:2474:          setNotice("Generated asset download started");
+src/components/nexus/nexus-ops.tsx:2478:        throw new Error("Artifact has no downloadable payload.");
+src/components/nexus/nexus-ops.tsx:2480:        setNotice("Generated asset download unavailable");
+src/components/nexus/nexus-ops.tsx:3084:                mediaUrlKind: getGeneratedImageUrlKind(result.media.url),
+src/components/nexus/nexus-ops.tsx:3091:              mimeType: getGeneratedImageMimeType(result.media.url),
+src/components/nexus/nexus-ops.tsx:3094:              title: `Generated image - ${prompt.slice(0, 48)}`,
+src/components/nexus/nexus-ops.tsx:3095:              type: "generated-image",
+src/components/nexus/nexus-ops.tsx:3099:              idempotencyKey: `generated_image_${assistantMessageId}`,
+src/components/nexus/nexus-ops.tsx:3115:            `Composer Image Mode generated an image${result.mode === "mock" ? " (mock)" : ""}.`,
+src/components/nexus/nexus-ops.tsx:3346:        detail: "Download a portable NEXUS snapshot",
+src/components/nexus/nexus-ops.tsx:3347:        icon: <Download className="h-4 w-4" />,
+src/components/nexus/nexus-ops.tsx:3357:        icon: <Upload className="h-4 w-4" />,
+src/components/nexus/nexus-ops.tsx:3611:                onDownloadArtifact={handleDownloadArtifact}
+src/components/nexus/nexus-ops.tsx:3822:          onDownloadArtifact={handleDownloadArtifact}
+src/components/nexus/nexus-ops.tsx:4448:                <TopMenuAction icon={<Download className="h-3.5 w-3.5" />} label="Export" onClick={() => {
+src/components/nexus/nexus-ops.tsx:4943:  onDownloadArtifact,
+src/components/nexus/nexus-ops.tsx:4999:  onDownloadArtifact: (artifact: ArtifactVaultRecord) => void;
+src/components/nexus/nexus-ops.tsx:5138:    downloadTextPayload(
+src/components/nexus/nexus-ops.tsx:5140:      `nexus-workflow-runtime-evidence-${sanitizeDownloadFileName(workspaceId)}-${Date.now()}.json`,
+src/components/nexus/nexus-ops.tsx:5898:                    Generated files from image and future media modes
+src/components/nexus/nexus-ops.tsx:5926:                    No generated files yet. Switch the composer to image mode and
+src/components/nexus/nexus-ops.tsx:5956:                          {artifact.mimeType ?? "downloadable asset"} / v
+src/components/nexus/nexus-ops.tsx:5963:                          onClick={() => onDownloadArtifact(artifact)}
+src/components/nexus/nexus-ops.tsx:5966:                          <Download className="h-3 w-3" />
+src/components/nexus/nexus-ops.tsx:5967:                          Download
+src/components/nexus/nexus-ops.tsx:6759:          writesToStorage: false,
+src/components/nexus/nexus-ops.tsx:8396:          alt={`Generated image for ${artifact.prompt}`}
+src/components/nexus/nexus-ops.tsx:8413:        aria-label={`Download ${artifact.type} preview`}
+src/components/nexus/nexus-ops.tsx:8415:        onClick={() => downloadMediaArtifact(artifact)}
+src/components/nexus/nexus-ops.tsx:8416:        title={`Download ${artifact.type} preview`}
+src/components/nexus/nexus-ops.tsx:8419:        <Download className="h-3.5 w-3.5" />
+src/components/nexus/nexus-ops.tsx:8588:    (attachment) => attachment.status === "uploading",
+src/components/nexus/nexus-ops.tsx:8633:    if (actionId === "local-file-upload") {
+src/components/nexus/nexus-ops.tsx:8682:      status: "uploading",
+src/components/nexus/nexus-ops.tsx:8938:                        {action.id === "local-file-upload" ? (
+src/components/nexus/nexus-ops.tsx:9123:                      attachment.status === "uploading" &&
+src/components/nexus/nexus-production-preview-controller.tsx:168:        writesToStorage: false,
+src/components/nexus/nexus-production-preview-controller.tsx:368:      writesToStorage: false,
+src/lib/backend/history/index.ts:5:export * from "./storage-partition-service";
+src/lib/backend/history/message-history-service.test.ts:30:import { StoragePartitionService } from "./storage-partition-service";
+src/lib/backend/history/message-history-service.test.ts:70:describe("V10 StoragePartitionService", () => {
+src/lib/backend/history/message-history-service.test.ts:72:    const service = new StoragePartitionService("history-secret", () => 1000);
+src/lib/backend/history/message-history-service.test.ts:95:    const expired = new StoragePartitionService(
+src/lib/backend/history/message-history-service.test.ts:279:  it("is additive, indexed, backfill-safe, and does not introduce vector storage", () => {
+src/app/api/image-gen/assets/[assetId]/route.ts:1:import { getGeneratedImageAsset } from "@/lib/backend/image-generation/generated-image-asset-cache";
+src/app/api/image-gen/assets/[assetId]/route.ts:2:import { downloadGeneratedImageAssetFromStorage } from "@/lib/backend/image-generation/generated-image-asset-storage";
+src/app/api/image-gen/assets/[assetId]/route.ts:13:  const asset = getGeneratedImageAsset(assetId);
+src/app/api/image-gen/assets/[assetId]/route.ts:16:    return createGeneratedImageResponse({
+src/app/api/image-gen/assets/[assetId]/route.ts:25:  const stored = await downloadGeneratedImageAssetFromStorage({
+src/app/api/image-gen/assets/[assetId]/route.ts:34:    return Response.json({ error: "Generated image asset was not found." }, { status: 404 });
+src/app/api/image-gen/assets/[assetId]/route.ts:37:  return createGeneratedImageResponse({
+src/app/api/image-gen/assets/[assetId]/route.ts:46:function createGeneratedImageResponse(input: {
+src/app/api/image-gen/assets/[assetId]/route.ts:60:      "Content-Disposition": `${input.disposition}; filename="${createGeneratedImageFilename(input.assetId, input.mimeType)}"`,
+src/app/api/image-gen/assets/[assetId]/route.ts:69:function createGeneratedImageFilename(assetId: string, mimeType: string) {
+src/app/api/image-gen/assets/[assetId]/route.ts:74:  return value.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(0, 96) || "generated-image";
+src/lib/backend/history/storage-partition-service.ts:26:export class StoragePartitionService {
+src/app/api/image-gen/route.ts:9:  createGeneratedImageAssetFromBytes,
+src/app/api/image-gen/route.ts:10:  createGeneratedImageAssetUrl,
+src/app/api/image-gen/route.ts:12:} from "@/lib/backend/image-generation/generated-image-asset-cache";
+src/app/api/image-gen/route.ts:13:import { uploadGeneratedImageAssetToStorage } from "@/lib/backend/image-generation/generated-image-asset-storage";
+src/app/api/image-gen/route.ts:14:import { normalizeGeneratedPngForAspectRatio } from "@/lib/backend/image-generation/generated-image-postprocess";
+src/app/api/image-gen/route.ts:274:  const transientAsset = createGeneratedImageAssetFromBytes({
+src/app/api/image-gen/route.ts:278:  const assetUrl = createGeneratedImageAssetUrl(
+src/app/api/image-gen/route.ts:282:  let generatedAsset: ImageAdapterResult["generatedAsset"] = {
+src/app/api/image-gen/route.ts:292:    const storageReference = await uploadGeneratedImageAssetToStorage({
+src/app/api/image-gen/route.ts:300:    if (storageReference) {
+src/app/api/image-gen/route.ts:302:        assetId: storageReference.assetId,
+src/app/api/image-gen/route.ts:303:        bucket: storageReference.bucket,
+src/app/api/image-gen/route.ts:305:        mimeType: storageReference.mimeType,
+src/app/api/image-gen/route.ts:306:        path: storageReference.path,
+src/app/api/image-gen/route.ts:307:        provider: storageReference.provider,
+src/app/api/image-gen/route.ts:308:        sizeBytes: storageReference.sizeBytes,
+src/components/nexus/nexus-graph.tsx:27:  Download,
+src/components/nexus/nexus-graph.tsx:442:                alt="Workflow generated image"
+src/components/nexus/nexus-graph.tsx:1050:  onDownloadArtifact,
+src/components/nexus/nexus-graph.tsx:1085:  onDownloadArtifact: (artifact: ArtifactVaultRecord) => void;
+src/components/nexus/nexus-graph.tsx:1595:            onDownloadArtifact={onDownloadArtifact}
+src/components/nexus/nexus-graph.tsx:2234:  onDownloadArtifact,
+src/components/nexus/nexus-graph.tsx:2237:  onDownloadArtifact: (artifact: ArtifactVaultRecord) => void;
+src/components/nexus/nexus-graph.tsx:2249:        <Download className="h-3.5 w-3.5" />
+src/components/nexus/nexus-graph.tsx:2285:                    onClick={() => onDownloadArtifact(artifact)}
+src/components/nexus/nexus-graph.tsx:2288:                    <Download className="h-3 w-3" />
+src/components/nexus/nexus-graph.tsx:2289:                    Download
+src/lib/backend/image-generation/generated-image-asset-cache.ts:1:export type GeneratedImageAsset = {
+src/lib/backend/image-generation/generated-image-asset-cache.ts:8:export type GeneratedImageAssetBytesInput = {
+src/lib/backend/image-generation/generated-image-asset-cache.ts:13:export type CreatedGeneratedImageAsset = GeneratedImageAsset & {
+src/lib/backend/image-generation/generated-image-asset-cache.ts:17:const GENERATED_IMAGE_ASSET_MAX_AGE_MS = 60 * 60 * 1000;
+src/lib/backend/image-generation/generated-image-asset-cache.ts:18:const GENERATED_IMAGE_ASSET_MAX_COUNT = 40;
+src/lib/backend/image-generation/generated-image-asset-cache.ts:19:const GENERATED_IMAGE_ASSET_MAX_TOTAL_BYTES = 160 * 1024 * 1024;
+src/lib/backend/image-generation/generated-image-asset-cache.ts:20:const generatedImageAssets = new Map<string, GeneratedImageAsset>();
+src/lib/backend/image-generation/generated-image-asset-cache.ts:22:export function createGeneratedImageAssetUrlFromDataUrl(dataUrl: string) {
+src/lib/backend/image-generation/generated-image-asset-cache.ts:29:  return createGeneratedImageAssetUrlFromBytes({
+src/lib/backend/image-generation/generated-image-asset-cache.ts:35:export function createGeneratedImageAssetUrlFromBytes(
+src/lib/backend/image-generation/generated-image-asset-cache.ts:36:  input: GeneratedImageAssetBytesInput,
+src/lib/backend/image-generation/generated-image-asset-cache.ts:38:  return createGeneratedImageAssetFromBytes(input).url;
+src/lib/backend/image-generation/generated-image-asset-cache.ts:41:export function createGeneratedImageAssetFromBytes(
+src/lib/backend/image-generation/generated-image-asset-cache.ts:42:  input: GeneratedImageAssetBytesInput,
+src/lib/backend/image-generation/generated-image-asset-cache.ts:43:): CreatedGeneratedImageAsset {
+src/lib/backend/image-generation/generated-image-asset-cache.ts:44:  const id = createGeneratedImageAssetId();
+src/lib/backend/image-generation/generated-image-asset-cache.ts:45:  const asset: GeneratedImageAsset = {
+src/lib/backend/image-generation/generated-image-asset-cache.ts:52:  generatedImageAssets.set(id, asset);
+src/lib/backend/image-generation/generated-image-asset-cache.ts:53:  pruneGeneratedImageAssetCache();
+src/lib/backend/image-generation/generated-image-asset-cache.ts:57:    url: createGeneratedImageAssetUrl(id),
+src/lib/backend/image-generation/generated-image-asset-cache.ts:61:export function createGeneratedImageAssetUrl(
+src/lib/backend/image-generation/generated-image-asset-cache.ts:74:export function getGeneratedImageAsset(id: string) {
+src/lib/backend/image-generation/generated-image-asset-cache.ts:75:  pruneGeneratedImageAssetCache();
+src/lib/backend/image-generation/generated-image-asset-cache.ts:77:  return generatedImageAssets.get(id) ?? null;
+src/lib/backend/image-generation/generated-image-asset-cache.ts:80:export function clearGeneratedImageAssetCacheForTests() {
+src/lib/backend/image-generation/generated-image-asset-cache.ts:81:  generatedImageAssets.clear();
+src/lib/backend/image-generation/generated-image-asset-cache.ts:99:function pruneGeneratedImageAssetCache() {
+src/lib/backend/image-generation/generated-image-asset-cache.ts:102:  for (const [id, asset] of generatedImageAssets) {
+src/lib/backend/image-generation/generated-image-asset-cache.ts:103:    if (now - asset.createdAtMs > GENERATED_IMAGE_ASSET_MAX_AGE_MS) {
+src/lib/backend/image-generation/generated-image-asset-cache.ts:104:      generatedImageAssets.delete(id);
+src/lib/backend/image-generation/generated-image-asset-cache.ts:109:    generatedImageAssets.size > GENERATED_IMAGE_ASSET_MAX_COUNT ||
+src/lib/backend/image-generation/generated-image-asset-cache.ts:110:    getGeneratedImageAssetTotalBytes() > GENERATED_IMAGE_ASSET_MAX_TOTAL_BYTES
+src/lib/backend/image-generation/generated-image-asset-cache.ts:112:    const oldestId = generatedImageAssets.keys().next().value as string | undefined;
+src/lib/backend/image-generation/generated-image-asset-cache.ts:118:    generatedImageAssets.delete(oldestId);
+src/lib/backend/image-generation/generated-image-asset-cache.ts:122:function getGeneratedImageAssetTotalBytes() {
+src/lib/backend/image-generation/generated-image-asset-cache.ts:125:  for (const asset of generatedImageAssets.values()) {
+src/lib/backend/image-generation/generated-image-asset-cache.ts:132:function createGeneratedImageAssetId() {
+src/lib/backend/history/message-history-service.ts:27:import { StoragePartitionService } from "./storage-partition-service";
+src/lib/backend/history/message-history-service.ts:38:  partition?: StoragePartitionService;
+src/lib/backend/history/message-history-service.ts:45:  private readonly partition: StoragePartitionService;
+src/lib/backend/history/message-history-service.ts:51:    this.partition = dependencies.partition ?? new StoragePartitionService();
+src/lib/style-engine/v2-surface-style-ops-coverage.test.ts:226:      /\blocalStorage\b/,
+src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx:80:      /\blocalStorage\b/,
+src/lib/backend/history/message-repository.ts:20:import type { HistoryCursorPayload } from "./storage-partition-service";
+src/lib/backend/image-generation/generated-image-asset-storage.ts:3:export const GENERATED_IMAGE_STORAGE_BUCKET = "nexus-generated-assets";
+src/lib/backend/image-generation/generated-image-asset-storage.ts:5:export type GeneratedImageStorageReference = {
+src/lib/backend/image-generation/generated-image-asset-storage.ts:7:  bucket: string;
+src/lib/backend/image-generation/generated-image-asset-storage.ts:10:  provider: "supabase-storage";
+src/lib/backend/image-generation/generated-image-asset-storage.ts:14:export type GeneratedImageStorageUploadInput = {
+src/lib/backend/image-generation/generated-image-asset-storage.ts:22:export type GeneratedImageStorageDownloadInput = {
+src/lib/backend/image-generation/generated-image-asset-storage.ts:29:export type DownloadedGeneratedImageAsset = {
+src/lib/backend/image-generation/generated-image-asset-storage.ts:36:type GeneratedImageStorageGateway = {
+src/lib/backend/image-generation/generated-image-asset-storage.ts:37:  download(
+src/lib/backend/image-generation/generated-image-asset-storage.ts:38:    input: GeneratedImageStorageDownloadInput,
+src/lib/backend/image-generation/generated-image-asset-storage.ts:39:  ): Promise<DownloadedGeneratedImageAsset | null>;
+src/lib/backend/image-generation/generated-image-asset-storage.ts:40:  upload(
+src/lib/backend/image-generation/generated-image-asset-storage.ts:41:    input: GeneratedImageStorageUploadInput,
+src/lib/backend/image-generation/generated-image-asset-storage.ts:42:  ): Promise<GeneratedImageStorageReference | null>;
+src/lib/backend/image-generation/generated-image-asset-storage.ts:45:let storageGatewayOverride: GeneratedImageStorageGateway | null = null;
+src/lib/backend/image-generation/generated-image-asset-storage.ts:47:export async function uploadGeneratedImageAssetToStorage(
+src/lib/backend/image-generation/generated-image-asset-storage.ts:48:  input: GeneratedImageStorageUploadInput,
+src/lib/backend/image-generation/generated-image-asset-storage.ts:50:  if (storageGatewayOverride) {
+src/lib/backend/image-generation/generated-image-asset-storage.ts:51:    return storageGatewayOverride.upload(input);
+src/lib/backend/image-generation/generated-image-asset-storage.ts:55:  const workspaceId = normalizeStoragePathSegment(input.workspaceId);
+src/lib/backend/image-generation/generated-image-asset-storage.ts:56:  const assetId = normalizeStoragePathSegment(input.assetId);
+src/lib/backend/image-generation/generated-image-asset-storage.ts:62:  const path = createGeneratedImageStoragePath({ assetId, workspaceId });
+src/lib/backend/image-generation/generated-image-asset-storage.ts:63:  const { error } = await client.storage
+src/lib/backend/image-generation/generated-image-asset-storage.ts:64:    .from(GENERATED_IMAGE_STORAGE_BUCKET)
+src/lib/backend/image-generation/generated-image-asset-storage.ts:65:    .upload(path, Buffer.from(input.bytes), {
+src/lib/backend/image-generation/generated-image-asset-storage.ts:77:    bucket: GENERATED_IMAGE_STORAGE_BUCKET,
+src/lib/backend/image-generation/generated-image-asset-storage.ts:80:    provider: "supabase-storage" as const,
+src/lib/backend/image-generation/generated-image-asset-storage.ts:85:export async function downloadGeneratedImageAssetFromStorage(
+src/lib/backend/image-generation/generated-image-asset-storage.ts:86:  input: GeneratedImageStorageDownloadInput,
+src/lib/backend/image-generation/generated-image-asset-storage.ts:88:  if (storageGatewayOverride) {
+src/lib/backend/image-generation/generated-image-asset-storage.ts:89:    return storageGatewayOverride.download(input);
+src/lib/backend/image-generation/generated-image-asset-storage.ts:100:    createStoragePathFromWorkspaceAndAsset(input.workspaceId, input.assetId);
+src/lib/backend/image-generation/generated-image-asset-storage.ts:106:  const { data, error } = await client.storage
+src/lib/backend/image-generation/generated-image-asset-storage.ts:107:    .from(GENERATED_IMAGE_STORAGE_BUCKET)
+src/lib/backend/image-generation/generated-image-asset-storage.ts:108:    .download(path);
+src/lib/backend/image-generation/generated-image-asset-storage.ts:124:export function createGeneratedImageStoragePath(input: {
+src/lib/backend/image-generation/generated-image-asset-storage.ts:131:export function setGeneratedImageStorageGatewayForTests(
+src/lib/backend/image-generation/generated-image-asset-storage.ts:132:  gateway: GeneratedImageStorageGateway | null,
+src/lib/backend/image-generation/generated-image-asset-storage.ts:134:  storageGatewayOverride = gateway;
+src/lib/backend/image-generation/generated-image-asset-storage.ts:137:function createStoragePathFromWorkspaceAndAsset(
+src/lib/backend/image-generation/generated-image-asset-storage.ts:141:  const normalizedWorkspaceId = normalizeStoragePathSegment(workspaceId);
+src/lib/backend/image-generation/generated-image-asset-storage.ts:142:  const normalizedAssetId = normalizeStoragePathSegment(assetId);
+src/lib/backend/image-generation/generated-image-asset-storage.ts:148:  return createGeneratedImageStoragePath({
+src/lib/backend/image-generation/generated-image-asset-storage.ts:154:function normalizeStoragePathSegment(value: string | null | undefined) {
+src/app/api/image-gen/route.test.ts:5:  clearGeneratedImageAssetCacheForTests,
+src/app/api/image-gen/route.test.ts:6:  getGeneratedImageAsset,
+src/app/api/image-gen/route.test.ts:7:} from "@/lib/backend/image-generation/generated-image-asset-cache";
+src/app/api/image-gen/route.test.ts:8:import { setGeneratedImageStorageGatewayForTests } from "@/lib/backend/image-generation/generated-image-asset-storage";
+src/app/api/image-gen/route.test.ts:11:import { GET as GET_GENERATED_IMAGE_ASSET } from "./assets/[assetId]/route";
+src/app/api/image-gen/route.test.ts:25:    clearGeneratedImageAssetCacheForTests();
+src/app/api/image-gen/route.test.ts:26:    setGeneratedImageStorageGatewayForTests(null);
+src/app/api/image-gen/route.test.ts:85:    const asset = getGeneratedImageAsset(assetId);
+src/app/api/image-gen/route.test.ts:352:  it("persists generated image bytes to durable storage when workspace session credentials are present", async () => {
+src/app/api/image-gen/route.test.ts:370:    const storageUploads: Array<{
+src/app/api/image-gen/route.test.ts:377:    setGeneratedImageStorageGatewayForTests({
+src/app/api/image-gen/route.test.ts:378:      download: async () => null,
+src/app/api/image-gen/route.test.ts:379:      upload: async (input) => {
+src/app/api/image-gen/route.test.ts:380:        storageUploads.push({
+src/app/api/image-gen/route.test.ts:390:          bucket: "nexus-generated-assets",
+src/app/api/image-gen/route.test.ts:393:          provider: "supabase-storage",
+src/app/api/image-gen/route.test.ts:433:      bucket: "nexus-generated-assets",
+src/app/api/image-gen/route.test.ts:437:      provider: "supabase-storage",
+src/app/api/image-gen/route.test.ts:441:    expect(storageUploads).toEqual([
+src/app/api/image-gen/route.test.ts:498:  it("serves generated b64 images through the transient asset route", async () => {
+src/app/api/image-gen/route.test.ts:522:    const assetResponse = await GET_GENERATED_IMAGE_ASSET(
+src/app/api/image-gen/route.test.ts:579:    const asset = getGeneratedImageAsset(assetId);
+src/lib/backend/image-generation/generated-image-postprocess.ts:5:export type GeneratedImagePostprocessResult = {
+src/lib/backend/image-generation/generated-image-postprocess.ts:28:}): Promise<GeneratedImagePostprocessResult> {
+src/components/nexus/nexus-message-bubble-primitive.test.ts:43:      /\blocalStorage\b/,
+src/lib/backend/api/api-errors.ts:229:    message: "Artifact content exceeds the inline storage size cap.",
+src/lib/workflow-runtime-lite/image-client.test.ts:79:  it("keeps the generated image when artifact persistence is denied", async () => {
+src/lib/workflow-runtime-lite/image-client.ts:8:  getGeneratedImageMimeType,
+src/lib/workflow-runtime-lite/image-client.ts:9:  getGeneratedImageUrlKind,
+src/lib/workflow-runtime-lite/image-client.ts:10:} from "@/lib/media/generated-image-artifact";
+src/lib/workflow-runtime-lite/image-client.ts:90:        mediaUrlKind: getGeneratedImageUrlKind(result.media.url),
+src/lib/workflow-runtime-lite/image-client.ts:95:        `Workflow Image Model generated an image${result.mode === "mock" ? " (mock)" : ""}.`,
+src/lib/workflow-runtime-lite/image-client.ts:146:          mediaUrlKind: getGeneratedImageUrlKind(result.media.url),
+src/lib/workflow-runtime-lite/image-client.ts:155:        mimeType: getGeneratedImageMimeType(result.media.url),
+src/lib/workflow-runtime-lite/image-client.ts:159:        type: "generated-image",
+src/lib/workflow-runtime-lite/image-client.ts:163:        idempotencyKey: `workflow_generated_image_${runId}_${nodeId}`,
+src/lib/backend/security/auth-boundary-gate.test.ts:10:  browserStorageGate: {
+src/lib/backend/security/auth-boundary-gate.test.ts:73:    expect(report.browserStorageGate.authVaultScrubbedBeforePersist).toBe(true);
+src/lib/backend/security/auth-boundary-gate.test.ts:74:    expect(report.browserStorageGate.persistenceVersion).toBeGreaterThanOrEqual(15);
+src/lib/backend/deployment/feature-flag-service.ts:169:      stablePercentageBucket([
+src/lib/backend/deployment/feature-flag-service.ts:275:function stablePercentageBucket(value: string) {
+src/lib/backend/security/secret-boundary-service.ts:8:  summarizeSecretForStorage,
+src/lib/backend/security/secret-boundary-service.ts:174:              ...summarizeSecretForStorage(stringValue),
+src/lib/backend/primitives/redaction.ts:118:export function summarizeSecretForStorage(value: string): RedactedSecretSummary {
+src/lib/backend/primitives/redaction.ts:141:      return summarizeSecretForStorage(value);
+src/lib/backend/primitives/redaction.ts:156:          ? summarizeSecretForStorage(String(nestedValue ?? ""))
+src/lib/style-engine/v2-production-token-bridge-runtime.test.ts:198:      /\blocalStorage\b/,
+src/lib/style-engine/v2-page-shell-feature-registry.test.ts:177:      /\blocalStorage\b/,
+src/lib/style-engine/v2-validators.test.ts:206:      /\blocalStorage\b/,
+src/lib/backend/artifacts/artifact-service.test.ts:17:import { setGeneratedImageStorageGatewayForTests } from "@/lib/backend/image-generation/generated-image-asset-storage";
+src/lib/backend/artifacts/artifact-service.test.ts:53:  setGeneratedImageStorageGatewayForTests(null);
+src/lib/backend/artifacts/artifact-service.test.ts:101:  it("stores only preview and storage reference for oversized text content", async () => {
+src/lib/backend/artifacts/artifact-service.test.ts:302:          previewText: "route matrix generated image",
+src/lib/backend/artifacts/artifact-service.test.ts:304:          type: "generated-image",
+src/lib/backend/artifacts/artifact-service.test.ts:316:        `http://localhost/api/v1/artifacts?workspaceId=${workspaceId}&type=generated-image`,
+src/lib/backend/artifacts/artifact-service.test.ts:334:            type: "generated-image",
+src/lib/backend/artifacts/artifact-service.test.ts:345:          type: "generated-image",
+src/lib/backend/artifacts/artifact-service.test.ts:366:  it("lets viewers download durable generated artifact assets through the artifact route", async () => {
+src/lib/backend/artifacts/artifact-service.test.ts:372:    const storagePath = `${workspaceId}/image-gen/img_route_asset`;
+src/lib/backend/artifacts/artifact-service.test.ts:374:    setGeneratedImageStorageGatewayForTests({
+src/lib/backend/artifacts/artifact-service.test.ts:375:      download: async (input) => {
+src/lib/backend/artifacts/artifact-service.test.ts:378:          path: storagePath,
+src/lib/backend/artifacts/artifact-service.test.ts:385:          path: storagePath,
+src/lib/backend/artifacts/artifact-service.test.ts:389:      upload: async () => null,
+src/lib/backend/artifacts/artifact-service.test.ts:399:              bucket: "nexus-generated-assets",
+src/lib/backend/artifacts/artifact-service.test.ts:402:              path: storagePath,
+src/lib/backend/artifacts/artifact-service.test.ts:403:              provider: "supabase-storage",
+src/lib/backend/artifacts/artifact-service.test.ts:409:          previewText: "route matrix generated image",
+src/lib/backend/artifacts/artifact-service.test.ts:411:          type: "generated-image",
+src/lib/style-engine/v2-style-runtime-budget.test.ts:173:      /\blocalStorage\b/,
+src/lib/style-engine/v2-style-runtime-budget.test.ts:186:      /\blocalStorage\b/,
+src/lib/style-engine/v2-recipe-specimen-preview.test.ts:163:      /\blocalStorage\b/,
+src/lib/style-engine/v2-authoring-context.test.ts:54:      /\blocalStorage\b/,
+src/lib/style-engine/v2-page-shell-feature-registry.ts:918:  "localstorage",
+src/lib/style-engine/v2-page-shell-feature-registry.ts:971:  /\blocalStorage\b/,
+src/lib/style-engine/v2-production-preview-preflight.ts:47:  writesToStorage: boolean;
+src/lib/style-engine/v2-production-preview-preflight.ts:71:  | "productionPreviewPreflight.storageWriteBlocked"
+src/lib/style-engine/v2-production-preview-preflight.ts:375:  if (input.flags.writesToStorage) {
+src/lib/style-engine/v2-production-preview-preflight.ts:378:        code: "productionPreviewPreflight.storageWriteBlocked",
+src/lib/style-engine/v2-production-preview-preflight.ts:379:        message: "Storage writes are blocked for non-persistent preview.",
+src/lib/style-engine/v2-production-preview-preflight.ts:660:    flags.writesToStorage ||
+src/lib/nexus-types.ts:1752: * localStorage.
+src/lib/nexus-types.ts:1767: * artifact payloads directly into localStorage once L4 sync is enabled.
+src/lib/attachments/attachment-types.ts:4:  | "local-file-upload"
+src/lib/attachments/attachment-types.ts:18:export type WorkspaceComposerAttachmentStatus = "ready" | "uploading" | "error";
+src/lib/attachments/attachment-compiler-execution.test.ts:35:      upstreamRawText: "Summarize the uploaded brief.",
+src/lib/attachments/attachment-compiler-execution.test.ts:39:    expect(report.rawText).toBe("Summarize the uploaded brief.");
+src/lib/style-engine/v2-workspace-style-payload.ts:113:export const NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_STORAGE_KEY =
+src/lib/style-engine/v2-workspace-style-payload.ts:508:    const stored = window.sessionStorage.getItem(
+src/lib/style-engine/v2-workspace-style-payload.ts:509:      NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_STORAGE_KEY,
+src/lib/style-engine/v2-workspace-style-payload.ts:534:        window.sessionStorage.setItem(
+src/lib/style-engine/v2-workspace-style-payload.ts:535:          NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_STORAGE_KEY,
+src/lib/style-engine/v2-workspace-style-payload.ts:539:        window.sessionStorage.removeItem(
+src/lib/style-engine/v2-workspace-style-payload.ts:540:          NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_STORAGE_KEY,
+src/lib/style-engine/v2-workspace-style-payload.ts:548:      // Keep the in-memory review state even if the browser blocks session storage.
+src/lib/style-engine/v2-workspace-style-payload.ts:561:      window.sessionStorage.removeItem(
+src/lib/style-engine/v2-workspace-style-payload.ts:562:        NEXUS_IMPORTED_WORKSPACE_STYLE_REVIEW_STORAGE_KEY,
+src/lib/attachments/attachment-input-actions.ts:6:    id: "local-file-upload",
+src/lib/style-engine/v2-token-preview.test.ts:169:      /\blocalStorage\b/,
+src/lib/style-engine/v2-production-preview-transaction.test.ts:175:    expect(serialized).not.toMatch(/document\.|querySelector|localStorage|indexedDB|fetch\s*\(/);
+src/lib/style-engine/v2-production-preview-transaction.test.ts:183:    expect(source).not.toMatch(/\blocalStorage\b/);
+src/lib/workflow-pro/workflow-contract.ts:44:    downloadable: boolean;
+src/lib/workflow-pro/workflow-contract.ts:47:    type: "generated-image" | "text" | "custom";
+src/lib/workflow-pro/workflow-contract.ts:249:        downloadable: true,
+src/lib/workflow-pro/workflow-contract.ts:252:        type: "generated-image",
+src/lib/workflow-pro/workflow-contract.ts:268:        downloadable: false,
+src/lib/style-engine/v2-render-plan.test.ts:191:      /\blocalStorage\b/,
+src/lib/sync/local-sync-queue-adapter.ts:66:const memoryStorage = new Map<string, LocalSyncQueueOperation[]>();
+src/lib/sync/local-sync-queue-adapter.ts:424:      return memoryStorage.get(LOCAL_SYNC_QUEUE_KEY) ?? [];
+src/lib/sync/local-sync-queue-adapter.ts:442:      memoryStorage.set(LOCAL_SYNC_QUEUE_KEY, queue);
+src/lib/sync/local-sync-queue-adapter.ts:456:        memoryStorage.set(LOCAL_SYNC_QUEUE_KEY, queue);
+src/lib/sync/local-sync-queue-adapter.ts:468:        memoryStorage.set(LOCAL_SYNC_QUEUE_KEY, queue);
+src/lib/sync/local-sync-queue-adapter.ts:712:  memoryStorage.set(LOCAL_SYNC_QUEUE_KEY, []);
+src/lib/style-engine/v2-production-preview-transaction.ts:53:  writesToStorage?: boolean;
+src/lib/style-engine/v2-production-preview-transaction.ts:528:    flags.writesToStorage ||
+src/lib/style-engine/v2-production-preview-transaction.ts:535:        message: "Production preview first cut blocks store, backend, storage, document root, and behavior writes.",
+src/lib/style-engine/v2-layout-boundary.ts:968:  "localstorage",
+src/lib/style-engine/v2-layout-boundary.ts:1026:  /\blocalStorage\b/,
+src/lib/style-engine/v2-production-preview-preflight.test.ts:113:  it("blocks store, backend, and storage write flags", () => {
+src/lib/style-engine/v2-production-preview-preflight.test.ts:120:    const storageSummary = createProductionPreviewPreflight(
+src/lib/style-engine/v2-production-preview-preflight.test.ts:121:      createPreflightInput({ flags: { writesToStorage: true } }),
+src/lib/style-engine/v2-production-preview-preflight.test.ts:126:    expect(storageSummary.verdict).toBe("blocked");
+src/lib/style-engine/v2-production-preview-preflight.test.ts:133:    expect(storageSummary.blockers.map((blocker) => blocker.code)).toContain(
+src/lib/style-engine/v2-production-preview-preflight.test.ts:134:      "productionPreviewPreflight.storageWriteBlocked",
+src/lib/style-engine/v2-production-preview-preflight.test.ts:229:      /\blocalStorage\b/,
+src/lib/style-engine/v2-production-preview-preflight.test.ts:241:      /\blocalStorage\b/,
+src/lib/style-engine/v2-production-preview-preflight.test.ts:295:    writesToStorage: false,
+src/lib/style-engine/v2-production-token-bridge.test.ts:212:      /\blocalStorage\b/,
+src/lib/workflow-pro/workflow-contract.test.ts:156:      downloadable: true,
+src/lib/workflow-pro/workflow-contract.test.ts:158:      type: "generated-image",
+src/lib/workflow-pro/brain-draft-templates.ts:129:      "Carries uploaded image/file references through a compiler boundary. Current compiler is noop; future image extraction or zip expansion can be plugged in here.",
+src/lib/workflow-pro/brain-draft-templates.ts:213:      "Read the generated image artifact reference, model prompt, and metadata. Infer a reusable style grammar, then prepare three branch prompts with different visual intent.",
+src/lib/workflow-pro/brain-draft-templates.ts:341:      artifactPolicy: generatedImageArtifactPolicy(),
+src/lib/workflow-pro/brain-draft-templates.ts:350:      "Generated image nodes keep downloadable artifact history policy.",
+src/lib/workflow-pro/brain-draft-templates.ts:507:    artifactPolicy: generatedImageArtifactPolicy(),
+src/lib/workflow-pro/brain-draft-templates.ts:524:    rationale: `${label} is part of the generated Graph Brain image branch.`,
+src/lib/workflow-pro/brain-draft-templates.ts:588:    downloadable: true,
+src/lib/workflow-pro/brain-draft-templates.ts:595:function generatedImageArtifactPolicy(): NonNullable<
+src/lib/workflow-pro/brain-draft-templates.ts:599:    downloadable: true,
+src/lib/workflow-pro/brain-draft-templates.ts:602:    type: "generated-image",
+src/app/api/v1/artifacts/[artifactId]/asset/route.ts:5:import { downloadGeneratedImageAssetFromStorage } from "@/lib/backend/image-generation/generated-image-asset-storage";
+src/app/api/v1/artifacts/[artifactId]/asset/route.ts:65:      readGeneratedImageAssetIdFromUrl(artifact.contentUrl ?? "");
+src/app/api/v1/artifacts/[artifactId]/asset/route.ts:66:    const stored = await downloadGeneratedImageAssetFromStorage({
+src/app/api/v1/artifacts/[artifactId]/asset/route.ts:159:function readGeneratedImageAssetIdFromUrl(value: string) {
+src/app/api/v1/artifacts/[artifactId]/asset/route.ts:176:    input.title ?? `generated-image-${input.artifactId.slice(0, 8)}`,
+src/app/api/v1/artifacts/[artifactId]/asset/route.ts:183:  return value.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(0, 96) || "generated-image";
+src/lib/backend/workspace/workspace-state.test.ts:206:          type: "generated-image",
+src/lib/workflow-pro/capability-inventory.ts:97:        summary: "Generated image output can be persisted, listed, previewed, and downloaded through the existing artifact vault.",
+src/lib/workflow-pro/file-node-contract.test.ts:38:          id: "local-file-upload",
+src/lib/workflow-pro/foundation-benchmark-fixtures.ts:151:          artifactPolicy: generatedImageArtifactPolicy(),
+src/lib/workflow-pro/foundation-benchmark-fixtures.ts:230:    artifactPolicy: generatedImageArtifactPolicy(),
+src/lib/workflow-pro/foundation-benchmark-fixtures.ts:424:    artifactPolicy: generatedImageArtifactPolicy(),
+src/lib/workflow-pro/foundation-benchmark-fixtures.ts:513:function generatedImageArtifactPolicy() {
+src/lib/workflow-pro/foundation-benchmark-fixtures.ts:515:    downloadable: true,
+src/lib/workflow-pro/foundation-benchmark-fixtures.ts:518:    type: "generated-image",
+src/lib/workflow-pro/foundation-benchmark-fixtures.ts:524:    downloadable: false,

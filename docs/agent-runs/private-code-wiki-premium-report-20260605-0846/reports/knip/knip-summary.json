@@ -1,0 +1,302 @@
+{
+  "totalIssues": 113,
+  "byPrefix": {
+    "scripts": 1,
+    "reports": 1,
+    "src": 111
+  },
+  "srcFilesFirst50": [
+    "src/components/nexus/dynamic-icon.tsx",
+    "src/lib/adapters/image-adapter.ts",
+    "src/lib/adapters/memory-compression-adapter.ts",
+    "src/lib/api/nexus-api-client.ts",
+    "src/lib/attachments/attachment-compiler-execution.ts",
+    "src/lib/attachments/attachment-types.ts",
+    "src/lib/backend/api/api-auth-test-helper.ts",
+    "src/lib/backend/api/api-contract-service.ts",
+    "src/lib/backend/api/api-errors.ts",
+    "src/lib/backend/api/api-handler.ts",
+    "src/lib/backend/api/idempotency-repository.ts",
+    "src/lib/backend/api/index.ts",
+    "src/lib/backend/api/memory-compress-service.ts",
+    "src/lib/backend/api/route-compatibility.ts",
+    "src/lib/backend/artifacts/artifact-constants.ts",
+    "src/lib/backend/artifacts/artifact-materializer.ts",
+    "src/lib/backend/artifacts/artifact-service.ts",
+    "src/lib/backend/artifacts/index.ts",
+    "src/lib/backend/contracts/feature-flags.ts",
+    "src/lib/backend/contracts/idempotency.ts",
+    "src/lib/backend/contracts/layering.ts",
+    "src/lib/backend/contracts/permission.ts",
+    "src/lib/backend/deployment/deployment-check-service.ts",
+    "src/lib/backend/deployment/deployment-types.ts",
+    "src/lib/backend/history/agent-memory-record-repository.ts",
+    "src/lib/backend/history/history-constants.ts",
+    "src/lib/backend/history/index.ts",
+    "src/lib/backend/history/message-repository.ts",
+    "src/lib/backend/image-generation/generated-image-asset-cache.ts",
+    "src/lib/backend/image-generation/generated-image-asset-storage.ts",
+    "src/lib/backend/notebooks/notebook-repository.ts",
+    "src/lib/backend/notebooks/notebook-service.ts",
+    "src/lib/backend/observability/event-retention-worker.ts",
+    "src/lib/backend/observability/observability-types.ts",
+    "src/lib/backend/observability/redaction-pipeline.ts",
+    "src/lib/backend/observability/system-event-repository.ts",
+    "src/lib/backend/observability/trace-context-middleware.ts",
+    "src/lib/backend/observability/usage-metrics-repository.ts",
+    "src/lib/backend/primitives/errors.ts",
+    "src/lib/backend/primitives/ids.ts",
+    "src/lib/backend/primitives/metadata.ts",
+    "src/lib/backend/primitives/redaction.ts",
+    "src/lib/backend/primitives/status.ts",
+    "src/lib/backend/prompts/prompt-repository.ts",
+    "src/lib/backend/runtime/agent-runtime-repository.ts",
+    "src/lib/backend/runtime/provider-adapter.ts",
+    "src/lib/backend/runtime/runtime-constants.ts",
+    "src/lib/backend/security/auth-session.ts",
+    "src/lib/backend/security/index.ts",
+    "src/lib/backend/security/repositories.ts"
+  ],
+  "allIssuesFirst80": [
+    {
+      "file": "scripts/workflow-pro-account-matrix-runner.mjs"
+    },
+    {
+      "file": "reports/workflow-pro-30-point-blueprint-20260604/assets/report.css"
+    },
+    {
+      "file": "src/components/nexus/dynamic-icon.tsx"
+    },
+    {
+      "file": "src/lib/supabase/test-connection.ts"
+    },
+    {
+      "file": "src/lib/backend/artifacts/index.ts"
+    },
+    {
+      "file": "src/lib/backend/api/api-contract-service.ts"
+    },
+    {
+      "file": "src/lib/backend/api/index.ts"
+    },
+    {
+      "file": "src/lib/backend/api/route-compatibility.ts"
+    },
+    {
+      "file": "src/lib/backend/history/index.ts"
+    },
+    {
+      "file": "src/lib/backend/security/index.ts"
+    },
+    {
+      "file": "src/lib/backend/sync/index.ts"
+    },
+    {
+      "file": "src/lib/backend/sync/sync-retention-service.ts"
+    },
+    {
+      "file": "src/lib/backend/tools/index.ts"
+    },
+    {
+      "file": "src/lib/backend/workspace/index.ts"
+    },
+    {
+      "file": "src/lib/backend/history/history-constants.ts"
+    },
+    {
+      "file": "src/lib/backend/workspace/workspace-snapshot-serializer.ts"
+    },
+    {
+      "file": "src/lib/nexus-defaults.ts"
+    },
+    {
+      "file": "src/lib/stream-retry.ts"
+    },
+    {
+      "file": "src/lib/workflow-engine.ts"
+    },
+    {
+      "file": "src/lib/adapters/image-adapter.ts"
+    },
+    {
+      "file": "src/lib/attachments/attachment-compiler-execution.ts"
+    },
+    {
+      "file": "src/lib/composer/composer-mode-types.ts"
+    },
+    {
+      "file": "src/lib/composer/image-generation-settings.ts"
+    },
+    {
+      "file": "src/lib/sync/local-sync-queue-adapter.ts"
+    },
+    {
+      "file": "src/lib/style-engine/checksum.ts"
+    },
+    {
+      "file": "src/lib/workflow-pro/durable-group-records.ts"
+    },
+    {
+      "file": "src/lib/workflow-pro/foundation-benchmark-fixtures.ts"
+    },
+    {
+      "file": "src/lib/api/nexus-api-client.ts"
+    },
+    {
+      "file": "src/lib/workflow-runtime-lite/llm-client.ts"
+    },
+    {
+      "file": "src/lib/workflow-runtime-lite/state.ts"
+    },
+    {
+      "file": "src/lib/workflow-runtime-lite/executors.ts"
+    },
+    {
+      "file": "src/lib/supabase/client.ts"
+    },
+    {
+      "file": "src/lib/backend/image-generation/generated-image-asset-cache.ts"
+    },
+    {
+      "file": "src/lib/backend/image-generation/generated-image-asset-storage.ts"
+    },
+    {
+      "file": "src/lib/backend/api/memory-compress-service.ts"
+    },
+    {
+      "file": "src/lib/backend/security/auth-session.ts"
+    },
+    {
+      "file": "src/lib/predictive-intel.ts"
+    },
+    {
+      "file": "src/lib/nexus-registry.ts"
+    },
+    {
+      "file": "src/lib/backend/api/idempotency-repository.ts"
+    },
+    {
+      "file": "src/lib/backend/history/message-repository.ts"
+    },
+    {
+      "file": "src/lib/backend/notebooks/notebook-repository.ts"
+    },
+    {
+      "file": "src/lib/backend/notebooks/notebook-service.ts"
+    },
+    {
+      "file": "src/lib/backend/api/api-auth-test-helper.ts"
+    },
+    {
+      "file": "src/lib/backend/artifacts/artifact-constants.ts"
+    },
+    {
+      "file": "src/lib/backend/artifacts/artifact-service.ts"
+    },
+    {
+      "file": "src/lib/backend/api/api-errors.ts"
+    },
+    {
+      "file": "src/lib/backend/history/agent-memory-record-repository.ts"
+    },
+    {
+      "file": "src/lib/backend/observability/redaction-pipeline.ts"
+    },
+    {
+      "file": "src/lib/backend/observability/system-event-repository.ts"
+    },
+    {
+      "file": "src/lib/backend/observability/usage-metrics-repository.ts"
+    },
+    {
+      "file": "src/lib/backend/runtime/agent-runtime-repository.ts"
+    },
+    {
+      "file": "src/lib/backend/runtime/provider-adapter.ts"
+    },
+    {
+      "file": "src/lib/backend/prompts/prompt-repository.ts"
+    },
+    {
+      "file": "src/lib/backend/sync/sync-constants.ts"
+    },
+    {
+      "file": "src/lib/backend/sync/sync-operation-repository.ts"
+    },
+    {
+      "file": "src/lib/backend/workspace/workspace-session-service.ts"
+    },
+    {
+      "file": "src/lib/backend/workspace/workspace-snapshot-repository.ts"
+    },
+    {
+      "file": "src/lib/backend/workspace/workspace-state-entity-repository.ts"
+    },
+    {
+      "file": "src/lib/backend/security/repositories.ts"
+    },
+    {
+      "file": "src/lib/backend/security/secret-boundary-service.ts"
+    },
+    {
+      "file": "src/lib/backend/security/types.ts"
+    },
+    {
+      "file": "src/lib/backend/tools/tool-run-repository.ts"
+    },
+    {
+      "file": "src/lib/backend/deployment/deployment-check-service.ts"
+    },
+    {
+      "file": "src/lib/supabase/admin.ts"
+    },
+    {
+      "file": "src/lib/backend/contracts/idempotency.ts"
+    },
+    {
+      "file": "src/lib/backend/runtime/runtime-constants.ts"
+    },
+    {
+      "file": "src/lib/adapters/memory-compression-adapter.ts"
+    },
+    {
+      "file": "src/lib/style-engine/v2-validators.ts"
+    },
+    {
+      "file": "src/lib/backend/primitives/redaction.ts"
+    },
+    {
+      "file": "src/lib/style-engine/accessibility.ts"
+    },
+    {
+      "file": "src/lib/style-engine/validator.ts"
+    },
+    {
+      "file": "src/lib/style-engine/governance.ts"
+    },
+    {
+      "file": "src/lib/style-engine/exchange.ts"
+    },
+    {
+      "file": "src/lib/style-engine/import-text.ts"
+    },
+    {
+      "file": "src/lib/style-engine/intent-manifest.ts"
+    },
+    {
+      "file": "src/lib/style-engine/intent-normalizer.ts"
+    },
+    {
+      "file": "src/lib/style-engine/react-flow-adapter.ts"
+    },
+    {
+      "file": "src/lib/style-engine/window-modal-recipe-adapter.ts"
+    },
+    {
+      "file": "src/lib/style-engine/v2-layout-boundary.ts"
+    },
+    {
+      "file": "src/lib/style-engine/v2-page-shell-prototype.ts"
+    }
+  ]
+}

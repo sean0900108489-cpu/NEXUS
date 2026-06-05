@@ -1,0 +1,14 @@
+{
+  "index": 5,
+  "title": "Evidence Timeline Cockpit",
+  "score": "8.9 / 10",
+  "slug": "evidence-timeline-cockpit",
+  "file": "assets/v23-ui-concepts/05-evidence-timeline-cockpit.png",
+  "generatedAt": "2026-06-03T03:57:26.063Z",
+  "model": "gpt-image-2",
+  "size": "1536x1024",
+  "quality": "medium",
+  "output_format": "png",
+  "prompt": "Create \"NEXUS Evidence Timeline Cockpit\", a dark AI workflow operations UI. 16:9.\nTop: compact workflow graph with node status rings. Bottom: horizontal execution timeline with run steps, checkpoints, errors, artifacts, duration bars. Right: Brain Diagnosis panel showing \"slow node\", \"packet mismatch\", \"artifact saved\", \"recommended fix\".\nInclude filters: Run, Node, Artifact, Error, Model settings. Style: quiet ops dashboard, precise, high-density, green/amber/rose status system.\n\nRendering requirements: Generate a crisp browser-app UI concept mockup, landscape composition, no fake browser chrome, no illegible tiny lorem ipsum, make labels readable, align panels carefully, professional product design artifact for a technical architecture report.",
+  "revised_prompt": null
+}

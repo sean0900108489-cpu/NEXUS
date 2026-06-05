@@ -1,0 +1,82 @@
+[
+  {
+    "name": "json machine-manifest.json",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "json assets/data/image-metadata.json",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "json reports/supabase/supabase-connection-manifest.json",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists index.html",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists report.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists README.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists completion-report.md",
+    "pass": false,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/02-supabase-map.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/06-risk-register.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists round-logs/round-03.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "image exists assets/images/cover.png",
+    "pass": true,
+    "detail": "1268223 bytes"
+  },
+  {
+    "name": "image exists assets/diagrams/system-architecture.png",
+    "pass": true,
+    "detail": "1053427 bytes"
+  },
+  {
+    "name": "image exists assets/diagrams/supabase-connection-map.png",
+    "pass": true,
+    "detail": "1158715 bytes"
+  },
+  {
+    "name": "image exists assets/diagrams/module-migration-map.png",
+    "pass": true,
+    "detail": "1223940 bytes"
+  },
+  {
+    "name": "image exists assets/diagrams/risk-heatmap.png",
+    "pass": true,
+    "detail": "1182036 bytes"
+  },
+  {
+    "name": "html relative refs",
+    "pass": true,
+    "detail": ""
+  }
+]

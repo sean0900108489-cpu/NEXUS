@@ -1,0 +1,222 @@
+[
+  {
+    "name": "json machine-manifest.json",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "json assets/data/image-metadata.json",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "json reports/supabase/supabase-connection-manifest.json",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "json assets/data/validation-preflight.json",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "json reports/security/run-folder-secret-shape-scan.json",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists index.html",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists README.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists report.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists completion-report.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/00-project-index.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/01-runtime-map.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/02-supabase-map.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/03-nexus-domain-map.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/04-state-store-contracts.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/05-ui-dataflow.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/06-risk-register.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/07-refactor-playbook.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/08-agent-context-pack.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/09-unknowns-and-questions.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/10-visual-design-brief.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/repo-map.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/security/third-party-skill-audit.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/security/secret-scan-report.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/supabase/supabase-risk-register.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/dependency-cruiser/dependency-cruiser-report.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/knip/knip-report.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/codewiki/codewiki-safety-decision.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists reports/serena-mcp-evaluation.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists context-packs/repo-map-compact.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists round-logs/round-01.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists round-logs/round-02.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists round-logs/round-03.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists round-logs/round-04.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists notes/line-keep-ready-round-01.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists notes/line-keep-ready-round-02.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists notes/line-keep-ready-round-03.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "exists notes/line-keep-ready-round-04.md",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "image cover",
+    "pass": true,
+    "detail": "1268223 bytes generated"
+  },
+  {
+    "name": "image system-architecture",
+    "pass": true,
+    "detail": "1053427 bytes generated"
+  },
+  {
+    "name": "image supabase-connection-map",
+    "pass": true,
+    "detail": "1158715 bytes generated"
+  },
+  {
+    "name": "image module-migration-map",
+    "pass": true,
+    "detail": "1223940 bytes generated"
+  },
+  {
+    "name": "image risk-heatmap",
+    "pass": true,
+    "detail": "1182036 bytes generated"
+  },
+  {
+    "name": "html relative refs",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "name": "run folder secret shape hits",
+    "pass": true,
+    "detail": "0"
+  }
+]

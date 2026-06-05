@@ -1,0 +1,212 @@
+{
+  "modules": 401,
+  "dependencies": 1,
+  "circularCount": 0,
+  "circularFirst20": [],
+  "topDeps": [
+    {
+      "source": "src/app/layout.tsx",
+      "depCount": 1
+    },
+    {
+      "source": "src/app/api/agent-stream/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/image-gen/assets/[assetId]/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/image-gen/route.test.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/image-gen/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/memory-compress/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/predictive-intel/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/system-status/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/tools/fs-scanner/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/tools/web-surfer/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/agents/[agentId]/memory/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/agents/[agentId]/messages/archive/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/agents/[agentId]/messages/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/agents/[agentId]/stream/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/agents/[agentId]/tasks/[taskId]/cancel/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/agents/[agentId]/tasks/[taskId]/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/agents/[agentId]/tasks/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/agents/memory-compress/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/artifacts/[artifactId]/archive/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/artifacts/[artifactId]/asset/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/artifacts/[artifactId]/references/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/artifacts/[artifactId]/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/artifacts/[artifactId]/versions/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/artifacts/artifact-route-validation.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/artifacts/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/deployment/checks/latest/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/deployment/checks/run/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/feature-flags/[flagKey]/toggle/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/feature-flags/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/health/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/notebooks/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/observability/events/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/observability/metrics/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/observability/observability-route-helpers.test.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/observability/observability-route-helpers.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/observability/traces/[traceId]/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/prompts/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/providers/status/route.test.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/providers/status/route.ts",
+      "depCount": 0
+    },
+    {
+      "source": "src/app/api/v1/providers/verify/route.ts",
+      "depCount": 0
+    }
+  ],
+  "byTop": {
+    "src/app/api": 59,
+    "src/app/layout.tsx": 1,
+    "src/app/globals.css": 1,
+    "src/app/page.test.tsx": 1,
+    "src/app/page.tsx": 1,
+    "src/app/style-lab": 1,
+    "src/components/nexus": 35,
+    "src/components/style-engine": 5,
+    "src/components/theme-provider.tsx": 1,
+    "src/lib/adapters": 3,
+    "src/lib/api": 1,
+    "src/lib/attachments": 6,
+    "src/lib/backend": 122,
+    "src/lib/composer": 4,
+    "src/lib/embed-url.test.ts": 1,
+    "src/lib/embed-url.ts": 1,
+    "src/lib/media": 4,
+    "src/lib/mock-stream.test.ts": 1,
+    "src/lib/mock-stream.ts": 1,
+    "src/lib/nexus-defaults.ts": 1,
+    "src/lib/nexus-registry.ts": 1,
+    "src/lib/nexus-types.ts": 1,
+    "src/lib/predictive-intel.ts": 1,
+    "src/lib/public-config.ts": 1,
+    "src/lib/state-sync.ts": 1,
+    "src/lib/stream-retry.test.ts": 1,
+    "src/lib/stream-retry.ts": 1,
+    "src/lib/style-engine": 67,
+    "src/lib/supabase": 6,
+    "src/lib/sync": 2,
+    "src/lib/tool-executors.ts": 1,
+    "src/lib/tools": 2,
+    "src/lib/workflow-engine.test.ts": 1,
+    "src/lib/workflow-engine.ts": 1,
+    "src/lib/workflow-pro": 43,
+    "src/lib/workflow-runtime-lite": 15,
+    "src/lib/workspace-kernel.test.ts": 1,
+    "src/lib/workspace-kernel.ts": 1,
+    "src/lib/workspace-recovery-local.test.ts": 1,
+    "src/lib/workspace-recovery-local.ts": 1,
+    "src/store/nexus-store.test.ts": 1,
+    "src/store/nexus-store.ts": 1
+  }
+}

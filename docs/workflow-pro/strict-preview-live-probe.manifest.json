@@ -1,0 +1,217 @@
+{
+  "schema": "nexus.workflowPro.strictPreviewLiveProbe.v1",
+  "generatedAt": "2026-06-04T05:06:52+10:00",
+  "scope": [
+    "workflow-pro",
+    "auth-boundary",
+    "vercel-preview",
+    "deployment-protection",
+    "production-domain-drift"
+  ],
+  "branch": "v22",
+  "vercelProject": {
+    "projectId": "prj_p94k8pAgKGAjFUeGhsjVp1lTe8Qg",
+    "projectName": "nexus",
+    "teamId": "team_BeCupcYt8AmCaS997mpzdA1n"
+  },
+  "latestPreviewDeployment": {
+    "deploymentId": "dpl_F96z1ZAg1yCRGtsZPKn6d9rgigd4",
+    "url": "https://nexus-18zerfafc-sean-s-projects10.vercel.app",
+    "state": "READY",
+    "source": "local-cli-working-tree-preview",
+    "branch": "v22",
+    "uploadSize": "358.3KB incremental / R93 harness preview",
+    "inspectorUrl": "https://vercel.com/sean-s-projects10/nexus/F96z1ZAg1yCRGtsZPKn6d9rgigd4",
+    "build": {
+      "command": "npx vercel deploy --yes",
+      "status": "passed",
+      "nextVersion": "16.2.6",
+      "routeSignals": [
+        "/api/image-gen is deployed as a dynamic function",
+        "/api/image-gen/assets/[assetId] is deployed as a dynamic function",
+        "/api/v1/health and /api/v1/public-config are deployed as public dynamic routes"
+      ],
+      "knownWarnings": [
+        "Existing Next.js edge runtime warning: using edge runtime on a page disables static generation for that page."
+      ]
+    },
+    "probe": {
+      "command": "AUTH_BOUNDARY_LIVE_BASE_URL=<r93-preview-url> AUTH_BOUNDARY_LIVE_COOKIE_JAR=<local-cookie-jar> AUTH_BOUNDARY_LIVE_EXPECT_LEGACY_404=true npm run check:auth-boundary:live",
+      "status": "passed-through-vercel-protection-and-app-boundary-r93-preview",
+      "blockingFindings": 0,
+      "warnings": 0,
+      "totalProbes": 49,
+      "publicReachable": 2,
+      "legacyProduction404": 8,
+      "protectedSpoofOnly": 39,
+      "platformProtectionLikely": false,
+      "vercelAutomationBypassSecretPresent": false,
+      "cookieAccess": "header-present",
+      "observedPattern": "Vercel share access cookie allowed the strict probe to reach the NEXUS app layer. Public health/public-config returned 200, legacy routes returned 404, and protected spoof-only routes returned non-success statuses.",
+      "imageGenerationBoundary": {
+        "apiPath": "/api/image-gen",
+        "expectation": "protectedRejectsSpoofOnly",
+        "observedStatus": 401,
+        "meaning": "Unauthenticated image generation is rejected before provider execution on the R93 harness preview."
+      }
+    }
+  },
+  "publicProductionDomainProbe": {
+    "url": "https://nexus-swart-ten.vercel.app",
+    "command": "AUTH_BOUNDARY_LIVE_BASE_URL=https://nexus-swart-ten.vercel.app npm run check:auth-boundary:live",
+    "status": "app-layer-reached-with-one-blocking-drift",
+    "counts": {
+      "totalProbes": 49,
+      "publicReachable": 2,
+      "protectedSpoofOnly": 38,
+      "legacyProduction404": 9,
+      "warnings": 0,
+      "blockingFindings": 1
+    },
+    "passedSignals": [
+      "/api/v1/health returned 200",
+      "/api/v1/public-config returned 200",
+      "protected spoof-only routes rejected with non-success status",
+      "legacy routes except image-gen returned production 404"
+    ],
+    "blockingFinding": {
+      "apiPath": "/api/image-gen",
+      "expected": 404,
+      "observed": 400,
+      "reason": "The public production domain appears to expose the image generation route as an app-layer endpoint while the v22 source gate still models it as a legacy production-blocked route."
+    }
+  },
+  "toolingChange": {
+    "file": "scripts/live-auth-boundary-probe.mjs",
+    "status": "implemented",
+    "behavior": [
+      "Reads VERCEL_AUTOMATION_BYPASS_SECRET from the environment when present.",
+      "Sends x-vercel-protection-bypass only when a bypass secret is configured.",
+      "Reports only header-present or not-configured; it never prints the secret.",
+      "Adds platformProtectionLikely so preview auth failures are not confused with app-layer permission failures.",
+      "Reads AUTH_BOUNDARY_LIVE_COOKIE_JAR or AUTH_BOUNDARY_LIVE_COOKIE when preview protection is accessed through a temporary Vercel share URL.",
+      "Parses Netscape cookie jars including #HttpOnly_ Vercel protection cookies without printing cookie values."
+    ]
+  },
+  "scoreImpact": {
+    "strictPreviewLiveProbe": "pass-new-preview-cookie-access",
+    "publicDomainAuthBoundary": "production-domain-not-promoted-this-round",
+    "imageGenerationProductionBoundary": "preview-deployed-and-probe-verified",
+    "screenMatrix": "harness-ready-pending-real-screen-operation"
+  },
+  "forbiddenEvidence": [
+    "accessTokens",
+    "apiKeys",
+    "refreshTokens",
+    "cookies",
+    "rawSecrets",
+    "rawActorUserIds",
+    "vercelAutomationBypassSecret"
+  ],
+  "nextRequiredRounds": [
+    "Run owner/editor/viewer/new-account screen matrix against the strict-preview-green deployment.",
+    "Convert temporary share-cookie access into either documented VERCEL_AUTOMATION_BYPASS_SECRET usage or a repeatable authenticated preview verification setup.",
+    "Promote to production only after the screen matrix passes and the generated media path is verified by non-owner writable accounts."
+  ],
+  "previousBlockedPreviewDeployment": {
+    "deploymentId": "dpl_8dSUCfXC2MVAdSjiQ4mT3N59XADA",
+    "url": "https://nexus-csi61m51s-sean-s-projects10.vercel.app",
+    "state": "READY",
+    "gitRef": "v22",
+    "gitSha": "022a5301c5825a0a4716f0007db26e85d8b144d5",
+    "commitMessage": "fix: harden workflow pro supabase policies",
+    "probe": {
+      "command": "AUTH_BOUNDARY_LIVE_BASE_URL=https://nexus-csi61m51s-sean-s-projects10.vercel.app npm run check:auth-boundary:live",
+      "status": "blocked-by-vercel-deployment-protection",
+      "blockingFindings": 11,
+      "platformProtectionLikely": true,
+      "vercelAutomationBypassSecretPresent": false,
+      "observedPattern": "public health and public config returned 401 together with legacy and protected routes, indicating the request did not reliably reach the NEXUS app layer.",
+      "nextCommandWhenBypassSecretExists": "VERCEL_AUTOMATION_BYPASS_SECRET=<configured-in-env> AUTH_BOUNDARY_LIVE_BASE_URL=https://nexus-csi61m51s-sean-s-projects10.vercel.app npm run check:auth-boundary:live"
+    }
+  },
+  "previousPassedPreviewDeployment": {
+    "deploymentId": "dpl_G4CppyUixKjn3tnHSik6cTuFPtw2",
+    "url": "https://nexus-c5o21hsqd-sean-s-projects10.vercel.app",
+    "state": "READY",
+    "source": "local-cli-working-tree-preview",
+    "branch": "v22",
+    "uploadSize": "1.3MB",
+    "inspectorUrl": "https://vercel.com/sean-s-projects10/nexus/G4CppyUixKjn3tnHSik6cTuFPtw2",
+    "build": {
+      "command": "npx vercel deploy --yes",
+      "status": "passed",
+      "nextVersion": "16.2.6",
+      "routeSignals": [
+        "/api/image-gen is deployed as a dynamic function",
+        "/api/image-gen/assets/[assetId] is deployed as a dynamic function",
+        "/api/v1/health and /api/v1/public-config are deployed as public dynamic routes"
+      ],
+      "knownWarnings": [
+        "Existing Next.js edge runtime warning: using edge runtime on a page disables static generation for that page."
+      ]
+    },
+    "probe": {
+      "command": "AUTH_BOUNDARY_LIVE_BASE_URL=<preview-url> AUTH_BOUNDARY_LIVE_COOKIE_JAR=<local-cookie-jar> AUTH_BOUNDARY_LIVE_EXPECT_LEGACY_404=true npm run check:auth-boundary:live",
+      "status": "passed-through-vercel-protection-and-app-boundary",
+      "blockingFindings": 0,
+      "warnings": 0,
+      "totalProbes": 49,
+      "publicReachable": 2,
+      "legacyProduction404": 8,
+      "protectedSpoofOnly": 39,
+      "platformProtectionLikely": false,
+      "vercelAutomationBypassSecretPresent": false,
+      "cookieAccess": "header-present",
+      "observedPattern": "Vercel share access cookie allowed the strict probe to reach the NEXUS app layer. Public health/public-config returned 200, legacy routes returned 404, and protected spoof-only routes returned non-success statuses.",
+      "imageGenerationBoundary": {
+        "apiPath": "/api/image-gen",
+        "expectation": "protectedRejectsSpoofOnly",
+        "observedStatus": 401,
+        "meaning": "Unauthenticated image generation is rejected before provider execution."
+      }
+    }
+  },
+  "previousR92FinalPreviewDeployment": {
+    "deploymentId": "dpl_5SNJR4mQQQ8dKkVaTuWM2UobHEUo",
+    "url": "https://nexus-dzr5x2rl3-sean-s-projects10.vercel.app",
+    "state": "READY",
+    "source": "local-cli-working-tree-preview",
+    "branch": "v22",
+    "uploadSize": "341.7KB incremental / clean deploy package",
+    "inspectorUrl": "https://vercel.com/sean-s-projects10/nexus/5SNJR4mQQQ8dKkVaTuWM2UobHEUo",
+    "build": {
+      "command": "npx vercel deploy --yes",
+      "status": "passed",
+      "nextVersion": "16.2.6",
+      "routeSignals": [
+        "/api/image-gen is deployed as a dynamic function",
+        "/api/image-gen/assets/[assetId] is deployed as a dynamic function",
+        "/api/v1/health and /api/v1/public-config are deployed as public dynamic routes"
+      ],
+      "knownWarnings": [
+        "Existing Next.js edge runtime warning: using edge runtime on a page disables static generation for that page."
+      ]
+    },
+    "probe": {
+      "command": "AUTH_BOUNDARY_LIVE_BASE_URL=<final-r92-preview-url> AUTH_BOUNDARY_LIVE_COOKIE_JAR=<local-cookie-jar> AUTH_BOUNDARY_LIVE_EXPECT_LEGACY_404=true npm run check:auth-boundary:live",
+      "status": "passed-through-vercel-protection-and-app-boundary-final-r92-preview",
+      "blockingFindings": 0,
+      "warnings": 0,
+      "totalProbes": 49,
+      "publicReachable": 2,
+      "legacyProduction404": 8,
+      "protectedSpoofOnly": 39,
+      "platformProtectionLikely": false,
+      "vercelAutomationBypassSecretPresent": false,
+      "cookieAccess": "header-present",
+      "observedPattern": "Vercel share access cookie allowed the strict probe to reach the NEXUS app layer. Public health/public-config returned 200, legacy routes returned 404, and protected spoof-only routes returned non-success statuses.",
+      "imageGenerationBoundary": {
+        "apiPath": "/api/image-gen",
+        "expectation": "protectedRejectsSpoofOnly",
+        "observedStatus": 401,
+        "meaning": "Unauthenticated image generation is rejected before provider execution on the final R92 preview."
+      }
+    }
+  }
+}

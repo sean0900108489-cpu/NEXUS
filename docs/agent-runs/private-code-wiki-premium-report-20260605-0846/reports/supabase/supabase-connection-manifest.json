@@ -1,0 +1,2321 @@
+{
+  "createdAt": "2026-06-04T22:55:56.115Z",
+  "clientInitialization": [
+    {
+      "file": "src/lib/supabase/client.ts",
+      "mode": "browser/runtime public anon client",
+      "env": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "risk": "public anon key acceptable; must keep RLS correct"
+    },
+    {
+      "file": "src/lib/supabase/admin.ts",
+      "mode": "server admin client",
+      "env": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY"
+      ],
+      "risk": "P0 if imported by client component or bundled to browser"
+    },
+    {
+      "file": "src/lib/supabase/request.ts",
+      "mode": "server request-scoped anon client with bearer token",
+      "env": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "risk": "authorization header must stay request scoped"
+    }
+  ],
+  "touchpoints": [
+    {
+      "file": "src/app/api/image-gen/assets/[assetId]/route.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/app/api/image-gen/route.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": [
+        "OPENAI_API_KEY",
+        "OPENAI_IMAGE_MODEL",
+        "OPENAI_API_KEY",
+        "OPENAI_IMAGE_MODEL",
+        "OPENAI_API_KEY",
+        "OPENAI_IMAGE_MODEL",
+        "OPENAI_API_KEY",
+        "OPENAI_API_KEY",
+        "OPENAI_API_KEY",
+        "OPENAI_API_KEY",
+        "OPENAI_API_KEY",
+        "OPENAI_API_KEY",
+        "OPENAI_API_KEY",
+        "OPENAI_API_KEY"
+      ]
+    },
+    {
+      "file": "src/app/api/image-gen/route.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": [
+        "OPENAI_API_KEY",
+        "OPENAI_IMAGE_BASE_URL",
+        "OPENAI_BASE_URL",
+        "OPENAI_IMAGE_MODEL",
+        "NODE_ENV",
+        "VERCEL_ENV"
+      ]
+    },
+    {
+      "file": "src/app/api/v1/artifacts/[artifactId]/asset/route.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/app/api/v1/notebooks/route.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/app/api/v1/prompts/route.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/app/api/v1/public-config/route.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/app/api/v1/workflows/groups/route.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/app/api/v1/workflows/runtime-trace/route.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/app/api/v1/workspaces/recovery/[workspaceId]/route.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/app/api/v1/workspaces/recovery/latest/route.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/app/api/v1/workspaces/recovery/route.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/app/api/v1/workspaces/session/route.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "NODE_ENV",
+        "VERCEL_ENV"
+      ]
+    },
+    {
+      "file": "src/app/page.test.tsx",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/PromptVaultManager.tsx",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/auth-screen.tsx",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-generated-history-hydration.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-ops.tsx",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-production-preview-controller.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/nexus-workspace-readonly-gate.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/style-engine/nexus-style-lab-production-chrome-smoke.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/style-engine/nexus-style-lab.tsx",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/components/style-engine/nexus-style-runtime-provider.tsx",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/adapters/image-adapter.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/adapters/memory-compression-adapter.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/api/nexus-api-client.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": true,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/api/agent-stream-service.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": [
+        "OPENAI_BASE_URL",
+        "OPENAI_API_KEY",
+        "OPENAI_MODEL"
+      ]
+    },
+    {
+      "file": "src/lib/backend/api/api-auth-test-helper.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/api/api-auth.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/api/api-contract.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      ]
+    },
+    {
+      "file": "src/lib/backend/api/api-handler.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": [
+        "API_IDEMPOTENCY_ENABLED"
+      ]
+    },
+    {
+      "file": "src/lib/backend/api/idempotency-repository.ts",
+      "tables": [
+        "api_idempotency_keys",
+        "api_idempotency_keys",
+        "api_idempotency_keys",
+        "api_idempotency_keys",
+        "api_idempotency_keys"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/artifacts/artifact-repository.ts",
+      "tables": [
+        "artifacts",
+        "artifacts",
+        "artifacts",
+        "artifacts",
+        "artifact_references",
+        "artifact_references",
+        "artifact_references"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/artifacts/artifact-route-service.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/artifacts/artifact-service.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/contracts/layering.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/deployment/deployment-api.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/deployment/deployment-check-service.ts",
+      "tables": [
+        "deployment_checks",
+        "deployment_checks"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/deployment/deployment-services.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/deployment/environment-validator.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/deployment/feature-flag-service.ts",
+      "tables": [
+        "feature_flags",
+        "feature_flags",
+        "feature_flags"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/deployment/schema-drift-checker.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/history/agent-memory-record-repository.ts",
+      "tables": [
+        "agent_memory_records",
+        "agent_memory_records"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/history/message-history-service.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/history/message-repository.ts",
+      "tables": [
+        "messages",
+        "messages",
+        "messages",
+        "messages",
+        "messages"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/history/storage-partition-service.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": [
+        "HISTORY_CURSOR_SECRET",
+        "NEXTAUTH_SECRET",
+        "SUPABASE_SERVICE_ROLE_KEY"
+      ]
+    },
+    {
+      "file": "src/lib/backend/image-generation/generated-image-asset-storage.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/notebooks/notebook-repository.ts",
+      "tables": [
+        "notebooks",
+        "notebooks",
+        "notebooks",
+        "notebooks",
+        "notebooks",
+        "notebooks",
+        "workspace_memberships",
+        "workspace_memberships",
+        "notebooks"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/notebooks/notebook-route.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/observability/observability-service.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/observability/system-event-repository.ts",
+      "tables": [
+        "system_events",
+        "system_events",
+        "system_events",
+        "system_events"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/observability/usage-metrics-repository.ts",
+      "tables": [
+        "usage_metrics",
+        "usage_metrics",
+        "usage_metrics"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/primitives/errors.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/primitives/redaction.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/prompts/prompt-repository.ts",
+      "tables": [
+        "prompts",
+        "prompt_revisions",
+        "prompts",
+        "prompt_revisions",
+        "prompts",
+        "prompts",
+        "workspace_memberships"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/prompts/prompt-route.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/runtime/agent-runtime-repository.ts",
+      "tables": [
+        "agent_runtime_sessions",
+        "agent_runtime_sessions",
+        "agent_runtime_sessions",
+        "agent_tasks",
+        "agent_tasks",
+        "agent_tasks",
+        "agent_runtime_events"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/runtime/agent-runtime-service.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/runtime/agent-runtime.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/runtime/runtime-constants.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/security/auth-boundary-gate.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/security/auth-session.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": true,
+      "envVars": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      ]
+    },
+    {
+      "file": "src/lib/backend/security/frontend-bundle-safety.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/security/permission-service.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/security/repositories.ts",
+      "tables": [
+        "workspace_memberships",
+        "permission_audit_logs"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/security/route-spoof-boundary.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/security/security-migration.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/security/security-services.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/sync/sync-operation-repository.ts",
+      "tables": [
+        "sync_operations",
+        "sync_operations",
+        "sync_operations",
+        "sync_operations",
+        "sync_operations",
+        "sync_operations"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/sync/sync-queue.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/tools/tool-execution.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/tools/tool-permission-repository.ts",
+      "tables": [
+        "tool_permissions",
+        "tool_permissions"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/tools/tool-run-repository.ts",
+      "tables": [
+        "tool_runs",
+        "tool_runs",
+        "tool_runs",
+        "tool_runs"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/workspace/workspace-permission-request.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": true,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/workspace/workspace-permission.ts",
+      "tables": [
+        "workspace_memberships",
+        "workspaces",
+        "workspace_memberships",
+        "workspaces",
+        "workspace_memberships"
+      ],
+      "rpcs": [
+        "record_permission_audit_log"
+      ],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": [
+        "NODE_ENV",
+        "NODE_ENV",
+        "VERCEL_ENV"
+      ]
+    },
+    {
+      "file": "src/lib/backend/workspace/workspace-session-service.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/workspace/workspace-session-service.ts",
+      "tables": [
+        "workspace_memberships",
+        "workspace_memberships",
+        "workspaces",
+        "workspaces",
+        "workspace_memberships"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": [
+        "NODE_ENV",
+        "VERCEL_ENV"
+      ]
+    },
+    {
+      "file": "src/lib/backend/workspace/workspace-snapshot-repository.ts",
+      "tables": [
+        "workspace_snapshots",
+        "workspace_snapshots",
+        "workspace_snapshots",
+        "workspace_snapshots",
+        "workspace_snapshots",
+        "workspace_snapshots",
+        "workspace_snapshots",
+        "workspace_snapshots"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/workspace/workspace-state-entity-repository.ts",
+      "tables": [
+        "workspace_state_entities",
+        "workspace_state_entities"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/backend/workspace/workspace-state.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/nexus-types.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/public-config.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/state-sync.ts",
+      "tables": [
+        "workflow_templates",
+        "workflow_templates",
+        "prompt_revisions"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": true,
+      "envVars": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      ]
+    },
+    {
+      "file": "src/lib/style-engine/intent-normalizer.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/intent-normalizer.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/runtime-controller.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/runtime-controller.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/runtime-target.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/runtime-target.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-authoring-context.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-authoring-context.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-layout-boundary.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-page-shell-feature-registry.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-page-shell-feature-registry.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-production-preview-preflight.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-production-preview-preflight.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-production-preview-transaction.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-production-preview-transaction.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-production-token-bridge-runtime.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-production-token-bridge-runtime.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-production-token-bridge.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-recipe-specimen-preview.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-render-plan.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-review-import.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-style-runtime-budget.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-surface-style-ops-coverage.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-token-preview.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-validators.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-validators.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/v2-workspace-style-payload.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/style-engine/validator.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": [
+        "PRIVATE_STYLE_TOKEN"
+      ]
+    },
+    {
+      "file": "src/lib/style-engine/validator.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/supabase/admin.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": true,
+      "envVars": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY"
+      ]
+    },
+    {
+      "file": "src/lib/supabase/client.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": true,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/supabase/client.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": true,
+      "envVars": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      ]
+    },
+    {
+      "file": "src/lib/supabase/database.types.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/supabase/request.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": true,
+      "envVars": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      ]
+    },
+    {
+      "file": "src/lib/supabase/test-connection.ts",
+      "tables": [
+        "workspaces"
+      ],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": false,
+      "createClient": false,
+      "envVars": [
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "NEXT_PUBLIC_SUPABASE_URL"
+      ]
+    },
+    {
+      "file": "src/lib/sync/local-sync-queue-adapter.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": true,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/workflow-runtime-lite/llm-client.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/lib/workflow-runtime-lite/runner.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": false,
+      "realtime": true,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/store/nexus-store.test.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    },
+    {
+      "file": "src/store/nexus-store.ts",
+      "tables": [],
+      "rpcs": [],
+      "storageBuckets": [],
+      "auth": true,
+      "realtime": false,
+      "createClient": false,
+      "envVars": []
+    }
+  ],
+  "tables": {
+    "api_idempotency_keys": [
+      "src/lib/backend/api/idempotency-repository.ts"
+    ],
+    "artifacts": [
+      "src/lib/backend/artifacts/artifact-repository.ts"
+    ],
+    "artifact_references": [
+      "src/lib/backend/artifacts/artifact-repository.ts"
+    ],
+    "deployment_checks": [
+      "src/lib/backend/deployment/deployment-check-service.ts"
+    ],
+    "feature_flags": [
+      "src/lib/backend/deployment/feature-flag-service.ts"
+    ],
+    "agent_memory_records": [
+      "src/lib/backend/history/agent-memory-record-repository.ts"
+    ],
+    "messages": [
+      "src/lib/backend/history/message-repository.ts"
+    ],
+    "notebooks": [
+      "src/lib/backend/notebooks/notebook-repository.ts"
+    ],
+    "workspace_memberships": [
+      "src/lib/backend/notebooks/notebook-repository.ts",
+      "src/lib/backend/prompts/prompt-repository.ts",
+      "src/lib/backend/security/repositories.ts",
+      "src/lib/backend/workspace/workspace-permission.ts",
+      "src/lib/backend/workspace/workspace-session-service.ts"
+    ],
+    "system_events": [
+      "src/lib/backend/observability/system-event-repository.ts"
+    ],
+    "usage_metrics": [
+      "src/lib/backend/observability/usage-metrics-repository.ts"
+    ],
+    "prompts": [
+      "src/lib/backend/prompts/prompt-repository.ts"
+    ],
+    "prompt_revisions": [
+      "src/lib/backend/prompts/prompt-repository.ts",
+      "src/lib/state-sync.ts"
+    ],
+    "agent_runtime_sessions": [
+      "src/lib/backend/runtime/agent-runtime-repository.ts"
+    ],
+    "agent_tasks": [
+      "src/lib/backend/runtime/agent-runtime-repository.ts"
+    ],
+    "agent_runtime_events": [
+      "src/lib/backend/runtime/agent-runtime-repository.ts"
+    ],
+    "permission_audit_logs": [
+      "src/lib/backend/security/repositories.ts"
+    ],
+    "sync_operations": [
+      "src/lib/backend/sync/sync-operation-repository.ts"
+    ],
+    "tool_permissions": [
+      "src/lib/backend/tools/tool-permission-repository.ts"
+    ],
+    "tool_runs": [
+      "src/lib/backend/tools/tool-run-repository.ts"
+    ],
+    "workspaces": [
+      "src/lib/backend/workspace/workspace-permission.ts",
+      "src/lib/backend/workspace/workspace-session-service.ts",
+      "src/lib/supabase/test-connection.ts"
+    ],
+    "workspace_snapshots": [
+      "src/lib/backend/workspace/workspace-snapshot-repository.ts"
+    ],
+    "workspace_state_entities": [
+      "src/lib/backend/workspace/workspace-state-entity-repository.ts"
+    ],
+    "workflow_templates": [
+      "src/lib/state-sync.ts"
+    ]
+  },
+  "rpcs": {
+    "record_permission_audit_log": [
+      "src/lib/backend/workspace/workspace-permission.ts"
+    ]
+  },
+  "storageBuckets": {},
+  "authFiles": [
+    "src/app/api/image-gen/assets/[assetId]/route.ts",
+    "src/app/api/image-gen/route.test.ts",
+    "src/app/api/image-gen/route.ts",
+    "src/app/api/v1/artifacts/[artifactId]/asset/route.ts",
+    "src/app/api/v1/notebooks/route.ts",
+    "src/app/api/v1/prompts/route.ts",
+    "src/app/api/v1/workflows/groups/route.test.ts",
+    "src/app/api/v1/workflows/runtime-trace/route.test.ts",
+    "src/app/api/v1/workspaces/recovery/[workspaceId]/route.ts",
+    "src/app/api/v1/workspaces/recovery/latest/route.ts",
+    "src/app/api/v1/workspaces/recovery/route.ts",
+    "src/app/api/v1/workspaces/session/route.ts",
+    "src/components/nexus/auth-screen.tsx",
+    "src/components/nexus/nexus-generated-history-hydration.test.ts",
+    "src/components/nexus/nexus-ops.tsx",
+    "src/components/nexus/nexus-production-preview-controller.tsx",
+    "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+    "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+    "src/components/nexus/nexus-workspace-readonly-gate.test.ts",
+    "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+    "src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts",
+    "src/components/style-engine/nexus-style-lab.tsx",
+    "src/components/style-engine/nexus-style-runtime-provider.tsx",
+    "src/lib/adapters/image-adapter.ts",
+    "src/lib/api/nexus-api-client.ts",
+    "src/lib/backend/api/agent-stream-service.ts",
+    "src/lib/backend/api/api-auth-test-helper.ts",
+    "src/lib/backend/api/api-auth.ts",
+    "src/lib/backend/api/api-contract.test.ts",
+    "src/lib/backend/api/api-handler.ts",
+    "src/lib/backend/artifacts/artifact-route-service.ts",
+    "src/lib/backend/artifacts/artifact-service.test.ts",
+    "src/lib/backend/deployment/deployment-api.test.ts",
+    "src/lib/backend/deployment/schema-drift-checker.ts",
+    "src/lib/backend/history/message-history-service.test.ts",
+    "src/lib/backend/notebooks/notebook-route.test.ts",
+    "src/lib/backend/observability/observability-service.test.ts",
+    "src/lib/backend/primitives/errors.ts",
+    "src/lib/backend/prompts/prompt-route.test.ts",
+    "src/lib/backend/runtime/agent-runtime-repository.ts",
+    "src/lib/backend/runtime/agent-runtime-service.ts",
+    "src/lib/backend/runtime/agent-runtime.test.ts",
+    "src/lib/backend/runtime/runtime-constants.ts",
+    "src/lib/backend/security/auth-session.ts",
+    "src/lib/backend/security/permission-service.ts",
+    "src/lib/backend/security/route-spoof-boundary.test.ts",
+    "src/lib/backend/security/security-migration.test.ts",
+    "src/lib/backend/sync/sync-queue.test.ts",
+    "src/lib/backend/tools/tool-execution.test.ts",
+    "src/lib/backend/workspace/workspace-permission-request.test.ts",
+    "src/lib/backend/workspace/workspace-permission.ts",
+    "src/lib/backend/workspace/workspace-session-service.test.ts",
+    "src/lib/backend/workspace/workspace-session-service.ts",
+    "src/lib/backend/workspace/workspace-state.test.ts",
+    "src/lib/nexus-types.ts",
+    "src/lib/state-sync.ts",
+    "src/lib/style-engine/runtime-controller.test.ts",
+    "src/lib/style-engine/runtime-controller.ts",
+    "src/lib/style-engine/runtime-target.test.ts",
+    "src/lib/style-engine/runtime-target.ts",
+    "src/lib/style-engine/v2-production-preview-preflight.test.ts",
+    "src/lib/style-engine/v2-production-preview-preflight.ts",
+    "src/lib/style-engine/v2-production-preview-transaction.test.ts",
+    "src/lib/style-engine/v2-production-preview-transaction.ts",
+    "src/lib/style-engine/v2-production-token-bridge-runtime.test.ts",
+    "src/lib/style-engine/v2-production-token-bridge-runtime.ts",
+    "src/lib/style-engine/v2-workspace-style-payload.ts",
+    "src/lib/supabase/admin.ts",
+    "src/lib/supabase/database.types.ts",
+    "src/lib/supabase/request.ts",
+    "src/lib/sync/local-sync-queue-adapter.ts",
+    "src/lib/workflow-runtime-lite/llm-client.ts",
+    "src/store/nexus-store.test.ts",
+    "src/store/nexus-store.ts"
+  ],
+  "realtimeFiles": [
+    "src/lib/workflow-runtime-lite/runner.test.ts"
+  ],
+  "envVars": {
+    "OPENAI_API_KEY": [
+      "src/app/api/image-gen/route.test.ts",
+      "src/app/api/image-gen/route.ts",
+      "src/app/api/v1/providers/status/route.ts",
+      "src/app/api/workflow-pro/brain-draft/route.ts",
+      "src/lib/backend/api/agent-stream-service.ts"
+    ],
+    "OPENAI_IMAGE_MODEL": [
+      "src/app/api/image-gen/route.test.ts",
+      "src/app/api/image-gen/route.ts",
+      "src/app/api/v1/providers/status/route.ts"
+    ],
+    "OPENAI_IMAGE_BASE_URL": [
+      "src/app/api/image-gen/route.ts",
+      "src/app/api/v1/providers/status/route.ts"
+    ],
+    "OPENAI_BASE_URL": [
+      "src/app/api/image-gen/route.ts",
+      "src/app/api/memory-compress/route.ts",
+      "src/app/api/predictive-intel/route.ts",
+      "src/app/api/v1/agents/memory-compress/route.ts",
+      "src/app/api/v1/providers/status/route.ts",
+      "src/lib/backend/api/agent-stream-service.ts"
+    ],
+    "NODE_ENV": [
+      "src/app/api/image-gen/route.ts",
+      "src/app/api/v1/workspaces/session/route.ts",
+      "src/lib/backend/security/legacy-tool-route-boundary.ts",
+      "src/lib/backend/workspace/workspace-permission.ts",
+      "src/lib/backend/workspace/workspace-session-service.ts"
+    ],
+    "VERCEL_ENV": [
+      "src/app/api/image-gen/route.ts",
+      "src/app/api/v1/workspaces/session/route.ts",
+      "src/lib/backend/security/legacy-tool-route-boundary.ts",
+      "src/lib/backend/workspace/workspace-permission.ts",
+      "src/lib/backend/workspace/workspace-session-service.ts"
+    ],
+    "OPENAI_MODEL": [
+      "src/app/api/predictive-intel/route.ts",
+      "src/lib/backend/api/agent-stream-service.ts"
+    ],
+    "NEXT_PUBLIC_SUPABASE_URL": [
+      "src/app/api/v1/workspaces/session/route.ts",
+      "src/lib/backend/api/api-contract.test.ts",
+      "src/lib/backend/security/auth-session.ts",
+      "src/lib/state-sync.ts",
+      "src/lib/supabase/admin.ts",
+      "src/lib/supabase/client.ts",
+      "src/lib/supabase/request.ts",
+      "src/lib/supabase/test-connection.ts"
+    ],
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": [
+      "src/app/api/v1/workspaces/session/route.ts",
+      "src/lib/backend/api/api-contract.test.ts",
+      "src/lib/backend/security/auth-session.ts",
+      "src/lib/state-sync.ts",
+      "src/lib/supabase/client.ts",
+      "src/lib/supabase/request.ts",
+      "src/lib/supabase/test-connection.ts"
+    ],
+    "WORKFLOW_BRAIN_MODEL": [
+      "src/app/api/workflow-pro/brain-draft/route.ts"
+    ],
+    "REPORT_MODEL": [
+      "src/app/api/workflow-pro/brain-draft/route.ts"
+    ],
+    "WORKFLOW_BRAIN_REASONING_EFFORT": [
+      "src/app/api/workflow-pro/brain-draft/route.ts"
+    ],
+    "WORKFLOW_BRAIN_VERBOSITY": [
+      "src/app/api/workflow-pro/brain-draft/route.ts"
+    ],
+    "WORKFLOW_BRAIN_MODEL_TIMEOUT_MS": [
+      "src/app/api/workflow-pro/brain-draft/route.ts"
+    ],
+    "WORKFLOW_BRAIN_MAX_OUTPUT_TOKENS": [
+      "src/app/api/workflow-pro/brain-draft/route.ts"
+    ],
+    "API_IDEMPOTENCY_ENABLED": [
+      "src/lib/backend/api/api-handler.ts"
+    ],
+    "HISTORY_CURSOR_SECRET": [
+      "src/lib/backend/history/storage-partition-service.ts"
+    ],
+    "NEXTAUTH_SECRET": [
+      "src/lib/backend/history/storage-partition-service.ts"
+    ],
+    "SUPABASE_SERVICE_ROLE_KEY": [
+      "src/lib/backend/history/storage-partition-service.ts",
+      "src/lib/supabase/admin.ts"
+    ],
+    "SYNC_QUEUE_INLINE_APPLY": [
+      "src/lib/backend/sync/sync-queue-service.ts"
+    ],
+    "PRIVATE_STYLE_TOKEN": [
+      "src/lib/style-engine/validator.test.ts"
+    ]
+  },
+  "migrations": [
+    {
+      "file": "supabase/migrations/20260525000000_create_workflow_templates.sql",
+      "tables": [
+        "workflow_templates"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527000000_security_boundary_rls_foundation.sql",
+      "tables": [
+        "workspace_memberships",
+        "permission_audit_logs"
+      ],
+      "functions": [
+        "set_updated_at",
+        "private",
+        "private",
+        "is_workspace_member",
+        "has_workspace_role"
+      ],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527001000_api_idempotency_keys.sql",
+      "tables": [
+        "api_idempotency_keys"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527002000_workspace_cloud_state.sql",
+      "tables": [
+        "workspace_snapshots",
+        "workspace_state_entities"
+      ],
+      "functions": [
+        "set_updated_at"
+      ],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527003000_durable_sync_queue.sql",
+      "tables": [
+        "sync_operations"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527004000_deployment_safety_gate.sql",
+      "tables": [
+        "feature_flags",
+        "deployment_checks"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527005000_agent_runtime_sessions.sql",
+      "tables": [
+        "agent_runtime_sessions",
+        "agent_tasks",
+        "agent_runtime_events"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527006000_tool_execution_control_plane.sql",
+      "tables": [
+        "tool_runs",
+        "tool_permissions"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527007000_artifact_asset_layer.sql",
+      "tables": [
+        "artifacts",
+        "artifact_references"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527008000_observability_event_spine.sql",
+      "tables": [
+        "system_events",
+        "usage_metrics"
+      ],
+      "functions": [],
+      "storage": true,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527009000_historical_data_paging.sql",
+      "tables": [
+        "agent_memory_records"
+      ],
+      "functions": [
+        "backfill_message_history_fields"
+      ],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527010000_notebook_durable_tombstones.sql",
+      "tables": [
+        "notebooks"
+      ],
+      "functions": [
+        "set_updated_at"
+      ],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527011000_prompt_durable_tombstones.sql",
+      "tables": [
+        "prompts"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527012000_message_history_base_table.sql",
+      "tables": [
+        "messages"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527013000_prompt_revision_history.sql",
+      "tables": [
+        "prompt_revisions"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260529001000_artifacts_tool_runs_live_parity.sql",
+      "tables": [
+        "tool_runs",
+        "tool_permissions",
+        "artifacts"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260601001000_v20_auth_boundary_rls_hardening.sql",
+      "tables": [],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260601002000_v20_client_grant_hardening.sql",
+      "tables": [],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260601003000_v20_schema_live_parity_repair.sql",
+      "tables": [
+        "feature_flags",
+        "deployment_checks",
+        "agent_memory_records"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260601004000_v20_schema_live_parity_grant_tightening.sql",
+      "tables": [],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260603001000_v22_rls_policy_performance_hardening.sql",
+      "tables": [],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260603002000_v22_workspace_session_rpc.sql",
+      "tables": [],
+      "functions": [
+        "nexus_ensure_workspace_session"
+      ],
+      "storage": false,
+      "rls": false
+    },
+    {
+      "file": "supabase/migrations/20260604081500_v22_workspace_session_viewer_readable.sql",
+      "tables": [],
+      "functions": [
+        "nexus_ensure_workspace_session"
+      ],
+      "storage": false,
+      "rls": false
+    },
+    {
+      "file": "supabase/migrations/20260604093000_v22_generated_image_storage.sql",
+      "tables": [],
+      "functions": [],
+      "storage": true,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260604102000_v22_request_scoped_permission_audit_rpc.sql",
+      "tables": [],
+      "functions": [
+        "record_permission_audit_log"
+      ],
+      "storage": false,
+      "rls": false
+    }
+  ],
+  "rlsMigrations": [
+    {
+      "file": "supabase/migrations/20260525000000_create_workflow_templates.sql",
+      "tables": [
+        "workflow_templates"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527000000_security_boundary_rls_foundation.sql",
+      "tables": [
+        "workspace_memberships",
+        "permission_audit_logs"
+      ],
+      "functions": [
+        "set_updated_at",
+        "private",
+        "private",
+        "is_workspace_member",
+        "has_workspace_role"
+      ],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527001000_api_idempotency_keys.sql",
+      "tables": [
+        "api_idempotency_keys"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527002000_workspace_cloud_state.sql",
+      "tables": [
+        "workspace_snapshots",
+        "workspace_state_entities"
+      ],
+      "functions": [
+        "set_updated_at"
+      ],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527003000_durable_sync_queue.sql",
+      "tables": [
+        "sync_operations"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527004000_deployment_safety_gate.sql",
+      "tables": [
+        "feature_flags",
+        "deployment_checks"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527005000_agent_runtime_sessions.sql",
+      "tables": [
+        "agent_runtime_sessions",
+        "agent_tasks",
+        "agent_runtime_events"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527006000_tool_execution_control_plane.sql",
+      "tables": [
+        "tool_runs",
+        "tool_permissions"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527007000_artifact_asset_layer.sql",
+      "tables": [
+        "artifacts",
+        "artifact_references"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527008000_observability_event_spine.sql",
+      "tables": [
+        "system_events",
+        "usage_metrics"
+      ],
+      "functions": [],
+      "storage": true,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527009000_historical_data_paging.sql",
+      "tables": [
+        "agent_memory_records"
+      ],
+      "functions": [
+        "backfill_message_history_fields"
+      ],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527010000_notebook_durable_tombstones.sql",
+      "tables": [
+        "notebooks"
+      ],
+      "functions": [
+        "set_updated_at"
+      ],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527011000_prompt_durable_tombstones.sql",
+      "tables": [
+        "prompts"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527012000_message_history_base_table.sql",
+      "tables": [
+        "messages"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260527013000_prompt_revision_history.sql",
+      "tables": [
+        "prompt_revisions"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260529001000_artifacts_tool_runs_live_parity.sql",
+      "tables": [
+        "tool_runs",
+        "tool_permissions",
+        "artifacts"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260601001000_v20_auth_boundary_rls_hardening.sql",
+      "tables": [],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260601002000_v20_client_grant_hardening.sql",
+      "tables": [],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260601003000_v20_schema_live_parity_repair.sql",
+      "tables": [
+        "feature_flags",
+        "deployment_checks",
+        "agent_memory_records"
+      ],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260601004000_v20_schema_live_parity_grant_tightening.sql",
+      "tables": [],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260603001000_v22_rls_policy_performance_hardening.sql",
+      "tables": [],
+      "functions": [],
+      "storage": false,
+      "rls": true
+    },
+    {
+      "file": "supabase/migrations/20260604093000_v22_generated_image_storage.sql",
+      "tables": [],
+      "functions": [],
+      "storage": true,
+      "rls": true
+    }
+  ],
+  "dynamicStorageBuckets": [
+    {
+      "bucket": "nexus-generated-assets",
+      "files": [
+        "src/lib/backend/image-generation/generated-image-asset-storage.ts",
+        "supabase/migrations/20260604093000_v22_generated_image_storage.sql"
+      ],
+      "usage": "generated image upload/download via request-scoped Supabase client"
+    }
+  ]
+}

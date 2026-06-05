@@ -1,0 +1,171 @@
+{
+  "schema": "nexus.workflowPro.accountMatrixLiveAudit.v1",
+  "generatedAt": "2026-06-04T04:29:47+10:00",
+  "status": "live-audited-screen-matrix-pending",
+  "scope": [
+    "supabase-live-schema",
+    "supabase-live-rls-policies",
+    "supabase-advisors",
+    "permission-audit-log-aggregate",
+    "local-live-auth-boundary-probe"
+  ],
+  "environment": {
+    "branch": "v22",
+    "localUrl": "http://127.0.0.1:3000",
+    "supabaseProjectRef": "xjuglddxwnikvcwxfbzg",
+    "supabaseProjectName": "NEXUS",
+    "supabaseStatus": "ACTIVE_HEALTHY"
+  },
+  "liveSchemaEvidence": {
+    "rlsEnabledCoreTables": [
+      "workspaces",
+      "workspace_memberships",
+      "workspace_snapshots",
+      "workspace_state_entities",
+      "sync_operations",
+      "messages",
+      "artifacts",
+      "artifact_references",
+      "agent_runtime_sessions",
+      "agent_tasks",
+      "agent_runtime_events",
+      "system_events",
+      "usage_metrics",
+      "permission_audit_logs",
+      "tool_runs",
+      "tool_permissions",
+      "feature_flags",
+      "deployment_checks",
+      "agent_memory_records"
+    ],
+    "coreRowCounts": {
+      "workspace_memberships": 16,
+      "workspaces": 16,
+      "workspace_snapshots": 23,
+      "sync_operations": 114,
+      "artifacts": 6,
+      "permission_audit_logs": 294,
+      "system_events": 1549,
+      "tool_runs": 0
+    },
+    "policySummary": {
+      "artifacts": "members can select; owner/admin/editor can insert, update, and delete",
+      "sync_operations": "members can select; owner/admin/editor can insert and update",
+      "tool_runs": "members can select; owner/admin can insert and update",
+      "workspace_memberships": "self or manager can select; owner/admin manage with owner protections",
+      "workspace_snapshots": "members can select; owner/admin/editor can insert and update when user-owned",
+      "workspaces": "members and owners can select; owner/admin/editor can update; owner/admin can delete"
+    }
+  },
+  "advisorEvidence": {
+    "security": {
+      "blockingFindings": 0,
+      "infoFindings": [
+        {
+          "table": "api_idempotency_keys",
+          "finding": "rls_enabled_no_policy",
+          "classification": "expected-server-only-ledger"
+        },
+        {
+          "table": "deployment_checks",
+          "finding": "rls_enabled_no_policy",
+          "classification": "expected-server-only-ledger"
+        },
+        {
+          "table": "permission_audit_logs",
+          "finding": "rls_enabled_no_policy",
+          "classification": "expected-server-only-audit-log"
+        }
+      ]
+    },
+    "performance": {
+      "blockingFindings": 0,
+      "infoFindingClass": "unused-index-and-auth-connection-advisories",
+      "action": "do-not-drop-indexes-during-workflow-pro-foundation; revisit after production traffic"
+    }
+  },
+  "permissionAuditAggregate": {
+    "window": "last-7-days",
+    "allowed": [
+      {
+        "reasonCode": "PERMISSION_ALLOWED",
+        "action": "workspace.update",
+        "resourceType": "workspace",
+        "count": 177
+      },
+      {
+        "reasonCode": "PERMISSION_ALLOWED",
+        "action": "workspace.read",
+        "resourceType": "workspace",
+        "count": 38
+      },
+      {
+        "reasonCode": "PERMISSION_ALLOWED",
+        "action": "agent_task.create",
+        "resourceType": "workspace",
+        "count": 32
+      }
+    ],
+    "denied": [
+      {
+        "reasonCode": "PERMISSION_DENIED",
+        "action": "workspace.update",
+        "resourceType": "workspace",
+        "riskLevel": "high",
+        "count": 21
+      },
+      {
+        "reasonCode": "PERMISSION_DENIED",
+        "action": "workspace.read",
+        "resourceType": "workspace",
+        "riskLevel": "high",
+        "count": 11
+      },
+      {
+        "reasonCode": "PERMISSION_DENIED",
+        "action": "workspace.update",
+        "resourceType": "artifact",
+        "riskLevel": "high",
+        "count": 3
+      },
+      {
+        "reasonCode": "INTERNAL_DEPENDENCY_FAILED",
+        "action": "workspace.read",
+        "resourceType": "workspace",
+        "riskLevel": "critical",
+        "count": 1
+      }
+    ],
+    "interpretation": "Live audit proves denials are traceable, but it does not prove every denial was a correct actor outcome. Owner/editor/viewer/new-account screen matrix remains required."
+  },
+  "localLiveAuthBoundaryProbe": {
+    "command": "AUTH_BOUNDARY_LIVE_BASE_URL=http://127.0.0.1:3000 AUTH_BOUNDARY_LIVE_EXPECT_LEGACY_404=false npm run check:auth-boundary:live",
+    "blockingFindings": 0,
+    "protectedSpoofOnly": 38,
+    "publicReachable": 2,
+    "totalProbes": 49,
+    "warnings": 9,
+    "warningInterpretation": "Expected in local development because legacy production 404 enforcement was intentionally disabled for localhost.",
+    "credentialsSent": false,
+    "destructivePayloads": false
+  },
+  "previewReadyImpact": {
+    "scoreContribution": "source-plus-live-read-only-evidence",
+    "strictPreviewLiveProbe": "tool-ready-blocked-by-vercel-protection-without-bypass-secret",
+    "strictPreviewProbeManifest": "docs/workflow-pro/strict-preview-live-probe.manifest.json",
+    "ownerEditorViewerNewAccountScreenMatrix": "pending",
+    "imageGenerationProductionBoundary": "source-guarded-deploy-pending",
+    "imageGenerationProductionBoundaryManifest": "docs/workflow-pro/image-generation-production-boundary.manifest.json",
+    "nonOwnerGeneratedDownload": "pending",
+    "currentAuthScore": 9
+  },
+  "forbiddenEvidence": [
+    "accessTokens",
+    "apiKeys",
+    "refreshTokens",
+    "cookies",
+    "rawSecrets",
+    "privateEmails",
+    "rawActorUserIds"
+  ]
+}

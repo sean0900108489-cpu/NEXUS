@@ -1,0 +1,29 @@
+{
+  "unavailableNamedSkill": "nexus-current-system-cartographer",
+  "fallbackSkillUsed": "private-codebase-wiki",
+  "reason": "Named skill was not present in the confirmed skills list; fallback skill covers private Next.js + Supabase architecture mapping with privacy-preserving static analysis.",
+  "toolsUsed": [
+    "functions.exec_command",
+    "functions.update_plan",
+    "multi_tool_use.parallel"
+  ],
+  "toolsExplicitlyNotUsed": [
+    "Supabase production tools",
+    "database queries",
+    "network deployment tools"
+  ],
+  "sourceBoundary": [
+    "src/** static files",
+    "supabase/migrations/** local SQL",
+    "node_modules/next/dist/docs/** required local Next docs"
+  ],
+  "writeBoundary": [
+    "docs/agent-runs/nexus-current-system-intelligence-20260605-1215/**"
+  ],
+  "nextDocsRead": [
+    "node_modules/next/dist/docs/01-app/01-getting-started/02-project-structure.md",
+    "node_modules/next/dist/docs/01-app/01-getting-started/03-layouts-and-pages.md",
+    "node_modules/next/dist/docs/01-app/01-getting-started/15-route-handlers.md",
+    "node_modules/next/dist/docs/01-app/02-guides/upgrading/version-16.md"
+  ]
+}

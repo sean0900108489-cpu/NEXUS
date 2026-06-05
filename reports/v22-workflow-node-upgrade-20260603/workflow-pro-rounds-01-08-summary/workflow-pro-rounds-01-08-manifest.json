@@ -1,0 +1,106 @@
+{
+  "schema": "nexus.workflowPro.roundBatch.v1",
+  "generatedAt": "2026-06-03T00:00:00+10:00",
+  "branch": "v22",
+  "batch": {
+    "id": "workflow-pro-r1-r8",
+    "status": "ready-for-first-source-implementation",
+    "cadence": "total report and total audio after at least 7-8 high-ROI rounds",
+    "roundsCompleted": 8,
+    "remainingEstimateRounds": "20-25"
+  },
+  "rounds": [
+    {
+      "id": "R1",
+      "title": "Current-state scan",
+      "status": "complete",
+      "summary": "Confirmed current Graph, Runtime Lite, artifact, attachment, workspace state, Vercel, and Supabase boundaries."
+    },
+    {
+      "id": "R2",
+      "title": "Engineering launch report",
+      "status": "complete",
+      "summary": "Produced the 14-page engineering launch report and initial machine manifest."
+    },
+    {
+      "id": "R3",
+      "title": "Documentation pack consolidation",
+      "status": "complete",
+      "summary": "Created docs/workflow-pro as the stable continuation pack."
+    },
+    {
+      "id": "R4",
+      "title": "Canonical workflow contract",
+      "status": "complete",
+      "summary": "Defined nexus.workflow.v1 as distinct from workspace snapshots and Runtime Lite execution state."
+    },
+    {
+      "id": "R5",
+      "title": "Workflow Brain boot prompt",
+      "status": "complete",
+      "summary": "Created the stable brain prompt for understanding, critiquing, optimizing, and proposing workflows."
+    },
+    {
+      "id": "R6",
+      "title": "UI architecture",
+      "status": "complete",
+      "summary": "Defined Workflow Pro as a third tab with Design, Brain, Evidence, Proposal Diff, Files, and Settings modes."
+    },
+    {
+      "id": "R7",
+      "title": "Backend and persistence plan",
+      "status": "complete",
+      "summary": "Documented artifact-first persistence, file node raw/compiler/compiled artifact flow, Supabase RLS boundary, and Vercel preview boundary."
+    },
+    {
+      "id": "R8",
+      "title": "Verification and batch close",
+      "status": "complete",
+      "summary": "Verified JSON docs and created the R1-R8 total report handoff package."
+    }
+  ],
+  "durableDocs": [
+    "docs/workflow-pro/README.md",
+    "docs/workflow-pro/human-guide.md",
+    "docs/workflow-pro/llm-guide.md",
+    "docs/workflow-pro/workflow-contract-v1.md",
+    "docs/workflow-pro/workflow-contract-v1.schema.json",
+    "docs/workflow-pro/brain-boot-prompt.md",
+    "docs/workflow-pro/ui-architecture.md",
+    "docs/workflow-pro/backend-persistence-plan.md",
+    "docs/workflow-pro/implementation-rounds.md",
+    "docs/workflow-pro/file-map.json"
+  ],
+  "reportFiles": {
+    "markdown": "workflow-pro-rounds-01-08-summary/workflow-pro-rounds-01-08-summary-report.md",
+    "html": "workflow-pro-rounds-01-08-summary/workflow-pro-rounds-01-08-summary-report.html",
+    "manifest": "workflow-pro-rounds-01-08-summary/workflow-pro-rounds-01-08-manifest.json",
+    "roundLog": "workflow-pro-rounds-01-08-summary/notes/round-log.md"
+  },
+  "firstSourceImplementationBatch": {
+    "title": "Stage 2/R9-R16",
+    "goal": "Add Workflow Pro as a third workspace view without changing existing Graph behavior.",
+    "filesToTouchFirst": [
+      "src/lib/nexus-types.ts",
+      "src/lib/workspace-kernel.ts",
+      "src/store/nexus-store.ts",
+      "src/components/nexus/nexus-ops.tsx",
+      "src/components/nexus/workflow-pro/*",
+      "src/lib/workflow-pro/*"
+    ],
+    "verification": [
+      "focused view mode sanitizer tests",
+      "focused store/view mode tests",
+      "browser smoke for Panels, Graph, Workflow Pro",
+      "typecheck before deployment"
+    ]
+  },
+  "protectedBehavior": [
+    "Graph pan, zoom, drag, connect, node delete, and edge delete behavior",
+    "Runtime Lite execution order",
+    "Artifact vault generated history",
+    "Workspace export/import recovery semantics",
+    "Provider vault and secret handling",
+    "Supabase service role server-only boundary"
+  ]
+}

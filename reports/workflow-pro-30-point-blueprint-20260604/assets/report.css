@@ -1,0 +1,543 @@
+:root {
+  --bg: #050606;
+  --panel: rgba(18, 19, 19, 0.82);
+  --panel-2: rgba(33, 35, 34, 0.72);
+  --line: rgba(231, 231, 224, 0.14);
+  --line-strong: rgba(231, 231, 224, 0.28);
+  --text: #f1f1eb;
+  --muted: #9d9f9a;
+  --quiet: #676b67;
+  --cyan: #8ccbd0;
+  --green: #a4c79a;
+  --amber: #d2bd86;
+  --danger: #d89090;
+  --shadow: 0 28px 90px rgba(0, 0, 0, 0.48);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    radial-gradient(circle at 78% 12%, rgba(140, 203, 208, 0.09), transparent 34%),
+    #050606;
+  background-size: 28px 28px, 28px 28px, 100% 100%, 100% 100%;
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+}
+
+a {
+  color: inherit;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.report-shell {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.rail {
+  border-right: 1px solid var(--line);
+  background: rgba(8, 9, 9, 0.86);
+  min-height: 100vh;
+  padding: 24px 18px;
+  position: sticky;
+  top: 0;
+}
+
+.brand {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+}
+
+.eyebrow,
+.page-kicker,
+.chip,
+.nav a,
+.metric-label,
+.table th,
+.foot {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.eyebrow {
+  color: var(--cyan);
+  font-size: 11px;
+}
+
+.brand h1 {
+  font-size: 22px;
+  line-height: 1.05;
+  margin: 10px 0 0;
+  font-weight: 650;
+}
+
+.rail-kicker {
+  border-bottom: 1px solid var(--line);
+  color: var(--cyan);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  margin-bottom: 16px;
+  padding-bottom: 18px;
+  text-transform: uppercase;
+}
+
+.rail > a {
+  border: 1px solid transparent;
+  color: var(--muted);
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  padding: 9px 10px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.rail > a:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.nav {
+  display: grid;
+  gap: 6px;
+}
+
+.nav a {
+  border: 1px solid transparent;
+  color: var(--muted);
+  display: block;
+  font-size: 10px;
+  padding: 9px 10px;
+  text-decoration: none;
+}
+
+.nav a:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.content {
+  padding: 28px;
+}
+
+.hero,
+.page {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  margin: 0 auto 22px;
+  max-width: 1160px;
+}
+
+.hero {
+  min-height: 680px;
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(360px, 1fr);
+  gap: 0;
+}
+
+.hero-copy {
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.hero > div:not(.hero-visual):not(.hero-copy) {
+  padding: 48px;
+}
+
+.hero-card {
+  border-left: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+  align-content: center;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.hero-card span {
+  color: var(--quiet);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hero-card strong {
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  display: block;
+  font-size: 18px;
+  font-weight: 560;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+}
+
+.hero h2 {
+  font-size: clamp(42px, 6vw, 78px);
+  line-height: 0.94;
+  margin: 18px 0;
+  font-weight: 680;
+}
+
+.hero h1 {
+  font-size: clamp(42px, 6vw, 78px);
+  line-height: 0.94;
+  margin: 18px 0;
+  font-weight: 680;
+}
+
+.hero p {
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.75;
+  max-width: 680px;
+}
+
+.hero-visual {
+  border-left: 1px solid var(--line);
+  background: #030404;
+  min-height: 420px;
+  overflow: hidden;
+}
+
+.hero-visual img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.82;
+  width: 100%;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.chip {
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 10px;
+  padding: 7px 9px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.page {
+  min-height: 620px;
+  padding: 38px;
+}
+
+.page-head {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 30px;
+  padding-bottom: 18px;
+}
+
+.page-kicker {
+  color: var(--quiet);
+  font-size: 10px;
+  margin-bottom: 8px;
+}
+
+.page h2 {
+  font-size: clamp(28px, 4vw, 48px);
+  line-height: 1.03;
+  margin: 0;
+  font-weight: 650;
+}
+
+.page-number {
+  color: var(--cyan);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.lead {
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.75;
+  max-width: 920px;
+}
+
+.grid-2,
+.grid-3,
+.grid.two {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.panel {
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  padding: 18px;
+}
+
+.inline-visual {
+  border: 1px solid var(--line);
+  display: block;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.button-link {
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  display: inline-block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  margin-top: 10px;
+  padding: 10px 12px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.button-link:hover {
+  background: rgba(140, 203, 208, 0.1);
+  border-color: rgba(140, 203, 208, 0.5);
+}
+
+.panel h3 {
+  font-size: 16px;
+  margin: 0 0 10px;
+}
+
+.panel p,
+.panel li,
+.table td {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.62;
+}
+
+.panel ul,
+.panel ol {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+.metric {
+  border: 1px solid var(--line);
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.028);
+}
+
+.metric-row {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 24px 0;
+}
+
+.metric strong {
+  color: var(--text);
+  display: block;
+  font-size: 34px;
+  font-weight: 680;
+}
+
+.metric span {
+  color: var(--muted);
+  display: block;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+.metric-value {
+  color: var(--text);
+  font-size: 34px;
+  font-weight: 680;
+}
+
+.metric-label {
+  color: var(--quiet);
+  font-size: 10px;
+  margin-top: 6px;
+}
+
+.flow {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.flow-row {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 42px 1fr 42px 1fr;
+}
+
+.node,
+.arrow {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+  min-height: 72px;
+  padding: 13px;
+}
+
+.node strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.node span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.arrow {
+  align-items: center;
+  color: var(--cyan);
+  display: flex;
+  justify-content: center;
+  min-height: 72px;
+  padding: 0;
+}
+
+.table {
+  border-collapse: collapse;
+  margin-top: 22px;
+  width: 100%;
+}
+
+.table th,
+.table td {
+  border: 1px solid var(--line);
+  padding: 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  color: var(--text);
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.score {
+  color: var(--green);
+}
+
+.warn {
+  color: var(--amber);
+}
+
+.risk {
+  color: var(--danger);
+}
+
+.image-band {
+  border: 1px solid var(--line);
+  margin-top: 24px;
+  overflow: hidden;
+}
+
+.image-band img {
+  display: block;
+  width: 100%;
+}
+
+.foot {
+  color: var(--quiet);
+  font-size: 10px;
+  margin: 28px auto 0;
+  max-width: 1160px;
+}
+
+.list {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.028);
+  margin-top: 22px;
+  padding: 18px;
+}
+
+.list p {
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0;
+  padding: 12px 0;
+}
+
+.list p:last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 980px) {
+  .shell,
+  .report-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .rail {
+    position: relative;
+    min-height: auto;
+  }
+
+  .hero,
+  .grid-2,
+  .grid-3,
+  .grid.two,
+  .metric-row,
+  .flow-row {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-visual,
+  .hero-card {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .arrow {
+    min-height: 42px;
+  }
+}

@@ -68,8 +68,14 @@ The companion metadata is available at
 
 ## Machine Handoff Summary
 
-The companion `machine-manifest.json` defines a workflow format that can be read
-by future LLMs. The intended import shape includes:
+The companion `machine-manifest.json` and
+`workflow-brain-contract.md` now separate three layers:
+
+- current workspace snapshot export
+- current backend cloud state and projection rows
+- future canonical workflow JSON for brain-readable design/import/export
+
+The intended canonical workflow shape includes:
 
 - `inputs[]`
 - `nodes[]`
@@ -77,7 +83,8 @@ by future LLMs. The intended import shape includes:
 - `outputs[]`
 - `compiler`
 - `artifactPolicy`
-- `telemetry`
+- `capabilityInventory`
+- `execution`
 - `brain`
 
 This allows a future LLM to answer:
@@ -88,24 +95,34 @@ This allows a future LLM to answer:
 - Which nodes compile files or transform payloads?
 - Which edges are always-on, conditional, or brain-controlled?
 - Which outputs are persisted and downloadable?
+- Why does each node exist?
+- What can this project currently do, and what can it not do yet?
 
-## Future Brain / Neural Message Layer
+## Corrected Future Brain Model
 
-The next architecture step is a graph brain that observes context packets,
-node states, run telemetry, artifact creation, and failures.
+The future brain is not just a telemetry observer.
 
-The brain should receive structured telemetry rather than scraping UI state:
+The target is a workflow design brain that reads one canonical JSON file before
+the run starts. It should understand the workflow goal, order, dependencies,
+serial and parallel paths, node rationale, edge packet contracts, model
+settings, compiler layers, artifact policy, and current platform capability
+limits.
 
-- `ContextPacket`
-- `NodeExecution`
-- `WorkflowRun`
-- `ArtifactVaultRecord`
-- `WorkflowRuntimeEdge`
-- selected model settings
-- compiler metadata
+Runtime telemetry still matters, but it becomes secondary evidence after the
+brain already understands the workflow contract.
 
-That lets the brain diagnose the current node state, propose routing changes,
-or generate workflow JSON without guessing from pixels.
+Required next work:
+
+- Add `src/lib/workflow-contract/` for canonical schema, validator, and
+  runtimeLite bridge.
+- Add `Export Workflow JSON` and `Import Workflow JSON` beside the current
+  workspace snapshot export.
+- Add a backend `workflow_contract` persistence boundary or equivalent entity
+  projection.
+- Add brain proposal JSON that returns an optimized workflow plus
+  `missingCapabilities[]` for Codex upgrade tasks.
+
+See `workflow-brain-contract.md` for the corrected contract and example JSON.
 
 ## Verification Plan
 

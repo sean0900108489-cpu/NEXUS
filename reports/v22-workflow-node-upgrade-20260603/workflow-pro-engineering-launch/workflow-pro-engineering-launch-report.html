@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Workflow Pro Engineering Launch</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #090b0d;
+        --surface: rgba(17, 20, 23, 0.88);
+        --surface-2: rgba(25, 30, 35, 0.82);
+        --ink: #f4f4f5;
+        --soft: #d4d4d8;
+        --muted: #a1a1aa;
+        --dim: #71717a;
+        --line: rgba(212, 212, 216, 0.18);
+        --line-strong: rgba(212, 212, 216, 0.34);
+        --ok: #86efac;
+        --warn: #fde68a;
+        --bad: #fca5a5;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+          var(--bg);
+        background-size: 28px 28px, 28px 28px, auto;
+        color: var(--ink);
+        font-family: var(--sans);
+        letter-spacing: 0;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .shell {
+        width: min(1240px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 28px 0 72px;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin: 0 -16px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(9, 11, 13, 0.86);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .mark {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border: 1px solid var(--line-strong);
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .nav a,
+      .pill {
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+        color: var(--soft);
+        padding: 0 11px;
+        font-family: var(--mono);
+        font-size: 11px;
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+
+      .hero {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.72fr);
+        padding: 56px 0 42px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      h1 {
+        margin: 0;
+        max-width: 780px;
+        font-size: clamp(46px, 7.6vw, 100px);
+        line-height: 0.9;
+        letter-spacing: 0;
+      }
+
+      .eyebrow {
+        color: var(--ok);
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      .lead {
+        max-width: 820px;
+        margin: 22px 0 0;
+        color: var(--soft);
+        font-size: 18px;
+        line-height: 1.75;
+      }
+
+      .hero-panel,
+      .page,
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .hero-panel {
+        display: grid;
+        align-content: start;
+        gap: 12px;
+        padding: 18px;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .metric {
+        min-height: 98px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface-2);
+        padding: 13px;
+      }
+
+      .metric span {
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 10px;
+        text-transform: uppercase;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 10px;
+        font-size: 23px;
+      }
+
+      .pages {
+        display: grid;
+        gap: 18px;
+        padding-top: 28px;
+      }
+
+      .page {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: 130px minmax(0, 1fr);
+        padding: 22px;
+        scroll-margin-top: 84px;
+      }
+
+      .page-no {
+        color: var(--dim);
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: clamp(26px, 3.4vw, 44px);
+        line-height: 1.02;
+      }
+
+      h3 {
+        margin: 0 0 10px;
+        font-size: 17px;
+      }
+
+      p,
+      li {
+        color: var(--soft);
+        line-height: 1.75;
+      }
+
+      p {
+        margin: 0;
+      }
+
+      ul,
+      ol {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .card {
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      pre {
+        overflow: auto;
+        margin: 0;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.32);
+        color: #e4e4e7;
+        padding: 16px;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.62;
+      }
+
+      .concepts {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .concepts img {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #050607;
+        object-fit: contain;
+      }
+
+      .status-ok {
+        color: var(--ok);
+      }
+
+      .status-warn {
+        color: var(--warn);
+      }
+
+      @media (max-width: 900px) {
+        .hero,
+        .page,
+        .grid,
+        .two,
+        .concepts {
+          grid-template-columns: 1fr;
+        }
+
+        .page {
+          padding: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <nav class="topbar">
+        <div class="brand"><span class="mark">WP</span> Workflow Pro Launch</div>
+        <div class="nav">
+          <a href="#rounds">Rounds</a>
+          <a href="#contract">Contract</a>
+          <a href="#brain">Brain</a>
+          <a href="#start">Start Gate</a>
+        </div>
+      </nav>
+
+      <section class="hero">
+        <div>
+          <div class="eyebrow">NEXUS // V23 / Engineering Launch</div>
+          <h1>Workflow Pro 開工前作戰圖</h1>
+          <p class="lead">
+            這份報告把目前 Graph MVP、runtimeLite、artifact backend、Supabase/Vercel 邊界、
+            Workflow Brain 合約、檔案節點與編譯層、以及 23+5 輪工程路線收斂成一個可開工的工程契約。
+          </p>
+        </div>
+        <aside class="hero-panel">
+          <div class="metric-grid">
+            <div class="metric"><span>Primary rounds</span><strong>23</strong></div>
+            <div class="metric"><span>Buffer</span><strong>+5</strong></div>
+            <div class="metric"><span>Stages</span><strong>8+1</strong></div>
+            <div class="metric"><span>Status</span><strong class="status-ok">Ready</strong></div>
+          </div>
+          <span class="pill">Planning only, source untouched</span>
+        </aside>
+      </section>
+
+      <section class="pages">
+        <article class="page" id="p01">
+          <div class="page-no">Page 01</div>
+          <div>
+            <h2>現況起點</h2>
+            <p>
+              這次不是從零開始。現有 Graph 已經具備 React Flow、自訂節點、自訂 edge、
+              runtimeLite、Input/LLM/Image/Output、拖曳新增、Start All、Generated 歷史、節點刪除、
+              LLM reasoning、Image quality/ratio。高 ROI 路線是把它升級為 Workflow Pro，
+              不是重建一套平行 graph。
+            </p>
+          </div>
+        </article>
+
+        <article class="page" id="p02">
+          <div class="page-no">Page 02</div>
+          <div>
+            <h2>痛點</h2>
+            <div class="grid">
+              <div class="card"><h3>語意不足</h3><p>runtime state 可以跑，但還不夠讓 Workflow Brain 理解 intent、rationale、limits。</p></div>
+              <div class="card"><h3>文件分散</h3><p>人類看的圖與 LLM 接手的結構需要分開存放，但彼此要可互相引用。</p></div>
+              <div class="card"><h3>後端邊界</h3><p>generated assets、file node、compiler layer 不能變成孤立 local-only 狀態。</p></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="page" id="p03">
+          <div class="page-no">Page 03</div>
+          <div>
+            <h2>核心目標</h2>
+            <p>
+              一份 `nexus.workflow.v1` JSON 應該能生成 workflow、說明 workflow、餵給 Workflow Brain、
+              驗證能力邊界、橋接 runtimeLite、記錄 artifacts，並讓大腦提出可落地的優化版 workflow。
+            </p>
+          </div>
+        </article>
+
+        <article class="page" id="p04">
+          <div class="page-no">Page 04</div>
+          <div>
+            <h2>UI 參考邊界</h2>
+            <p>
+              只採用概念 5/6 的資訊結構，不採用彩色視覺。Workflow Pro 會維持現有 NEXUS 暗色、
+              低彩度、細線、玻璃、工具型密度。Evidence Timeline 與 Proposal Diff 應該用切換視圖，
+              不要同時擠在畫面上。
+            </p>
+            <div class="concepts">
+              <img src="../assets/v23-ui-concepts/05-evidence-timeline-cockpit.png" alt="Evidence timeline cockpit concept" />
+              <img src="../assets/v23-ui-concepts/06-proposal-diff-war-room.png" alt="Proposal diff war room concept" />
+            </div>
+          </div>
+        </article>
+
+        <article class="page" id="p05">
+          <div class="page-no">Page 05</div>
+          <div>
+            <h2>工程錨點</h2>
+            <pre>src/lib/nexus-types.ts
+src/store/nexus-store.ts
+src/lib/workspace-kernel.ts
+src/components/nexus/nexus-ops.tsx
+src/components/nexus/nexus-graph.tsx
+src/lib/workflow-runtime-lite/*
+src/lib/attachments/*
+src/lib/backend/artifacts/*
+src/app/api/v1/artifacts/*
+supabase/migrations/*</pre>
+          </div>
+        </article>
+
+        <article class="page" id="p06">
+          <div class="page-no">Page 06</div>
+          <div>
+            <h2>檔案整理藍圖</h2>
+            <pre>src/components/nexus/workflow-pro/
+src/lib/workflow-pro/contract/
+src/lib/workflow-pro/brain/
+src/lib/workflow-pro/file-node/
+docs/workflow-pro/
+reports/v22-workflow-node-upgrade-20260603/workflow-pro-engineering-launch/</pre>
+          </div>
+        </article>
+
+        <article class="page" id="rounds">
+          <div class="page-no">Page 07</div>
+          <div>
+            <h2>階段與輪數</h2>
+            <div class="grid">
+              <div class="card"><h3>S1 掃描</h3><p>2 輪，已完成規劃掃描。</p></div>
+              <div class="card"><h3>S2 接合</h3><p>3 輪，view mode、shell route、runtime bridge。</p></div>
+              <div class="card"><h3>S3 未來合約</h3><p>3 輪，workflow JSON、brain、compiler。</p></div>
+              <div class="card"><h3>S4 實作</h3><p>8 輪，Workflow Pro surface 與主要視圖。</p></div>
+              <div class="card"><h3>S5 後端</h3><p>3 輪，artifact、file persistence、RLS gate。</p></div>
+              <div class="card"><h3>S6-S8 收斂</h3><p>7 輪，docs、cleanup、tests、Vercel preview。</p></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="page" id="p08">
+          <div class="page-no">Page 08</div>
+          <div>
+            <h2>Vercel / Supabase 邊界</h2>
+            <p>
+              Vercel 使用 preview deployment 與 env-aware build 作為驗證門。Supabase 新表與 storage bucket
+              不是第一步，先用既有 workspace state 與 artifact service；只有當現有 artifact/state 無法表示
+              Workflow Pro 事實時才加 migration，並同步設計 RLS。
+            </p>
+          </div>
+        </article>
+
+        <article class="page" id="brain">
+          <div class="page-no">Page 09</div>
+          <div>
+            <h2>Workflow Brain</h2>
+            <p>
+              大腦不是只在跑完後摘要，它必須在開始前讀懂 workflow。它要知道順序、串聯、並聯、原因、
+              能力邊界、缺少功能、artifact policy、compiler registry，並能輸出 optimizedWorkflow 與
+              missingCapabilities 給 Codex 升級。
+            </p>
+          </div>
+        </article>
+
+        <article class="page" id="p10">
+          <div class="page-no">Page 10</div>
+          <div>
+            <h2>檔案節點與編譯層</h2>
+            <p>
+              File node 應該讓文字 packet 和檔案一起通過 workflow。第一版保留 no-op compiler，
+              未來再掛 zip extract、PDF parse、image caption、audio transcribe、video shot list、
+              CSV profile 等轉換器。空編譯層是插件架構，不是多餘步驟。
+            </p>
+          </div>
+        </article>
+
+        <article class="page" id="p11">
+          <div class="page-no">Page 11</div>
+          <div>
+            <h2>驗收策略</h2>
+            <ul>
+              <li>Typecheck、lint、focused tests。</li>
+              <li>viewMode 與 workspace sanitizer 測試。</li>
+              <li>workflow contract validator 測試。</li>
+              <li>runtime adapter 測試。</li>
+              <li>artifact/file route 測試，如果碰後端。</li>
+              <li>Panels / Graph / Workflow Pro browser smoke。</li>
+              <li>Vercel preview smoke，通過後才進 landing。</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="page" id="p12">
+          <div class="page-no">Page 12</div>
+          <div>
+            <h2>風險與控制</h2>
+            <div class="grid two">
+              <div class="card"><h3>檔案膨脹</h3><p>用 workflow-pro folder 與 docs/workflow-pro 分層，不塞回 nexus-graph。</p></div>
+              <div class="card"><h3>大腦幻覺</h3><p>capabilityInventory 必須寫出 available 與 notAvailableYet。</p></div>
+              <div class="card"><h3>後端髒亂</h3><p>優先 artifact service，migration 需 RLS 設計後才做。</p></div>
+              <div class="card"><h3>視覺偏航</h3><p>只用概念資訊架構，不用彩色設計。</p></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="page" id="contract">
+          <div class="page-no">Page 13</div>
+          <div>
+            <h2>Contract Skeleton</h2>
+            <pre>{
+  "schema": "nexus.workflow.v1",
+  "intent": "string",
+  "successCriteria": ["string"],
+  "capabilityInventory": {
+    "availableNodeTypes": ["input.text", "model.llm", "model.image", "output.text"],
+    "availableCompilers": ["compiler.noop"],
+    "notAvailableYet": ["condition.ifElse", "model.video", "parallel.fanOut"]
+  },
+  "nodes": [],
+  "edges": [],
+  "brain": {
+    "readBeforeRun": true,
+    "canPropose": ["prompt rewrite", "node insertion", "optimized workflow"]
+  }
+}</pre>
+          </div>
+        </article>
+
+        <article class="page" id="start">
+          <div class="page-no">Page 14</div>
+          <div>
+            <h2>開工信號</h2>
+            <p>
+              下一個工程起手式建議是：開始 Stage 2/R3-R5，加入 `workflow-pro` view mode、
+              路由到 skeleton Workflow Pro surface、保留 Graph 不動、補 view mode persistence 與
+              snapshot sanitizer 測試。這是最穩的第一刀。
+            </p>
+            <p class="status-warn">
+              若測試失敗，停止 landing，新增 3-6 輪診斷，先處理第一個失敗 gate，再重新估算。
+            </p>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

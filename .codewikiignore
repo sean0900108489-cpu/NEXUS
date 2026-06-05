@@ -1,0 +1,17 @@
+.next/
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+.vercel/
+.env
+.env.*
+*.pem
+*.key
+*.cert
+*.p12
+*.sqlite
+*.db
+secrets/
+credentials/

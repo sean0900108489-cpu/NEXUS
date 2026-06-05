@@ -339,9 +339,33 @@ export type WorkflowRuntimeRunStatus =
   | "failed"
   | "failed_interrupted";
 
+export type WorkflowRuntimeTraceSyncStatus =
+  | "syncing"
+  | "synced"
+  | "failed"
+  | "skipped";
+
+export type WorkflowRuntimeTraceSyncState = {
+  status: WorkflowRuntimeTraceSyncStatus;
+  attemptedAt?: string;
+  completedAt?: string;
+  error?: string;
+  eventId?: string;
+  eventType?: string;
+  retryable?: boolean;
+  traceId?: string;
+};
+
 export type WorkflowRuntimePosition = {
   x: number;
   y: number;
+};
+
+export type WorkflowRuntimeGroupRef = {
+  id: string;
+  createdAt?: string;
+  label?: string;
+  source?: "brain" | "import" | "manual" | "runtime-append";
 };
 
 export type ContextPacket = {
@@ -424,6 +448,7 @@ export type WorkflowNodeInstance<
   inputSnapshot?: ContextPacket | null;
   outputSnapshot?: ContextPacket | null;
   error?: string | null;
+  group?: WorkflowRuntimeGroupRef;
 };
 
 export type WorkflowRuntimeEdge = {
@@ -434,6 +459,7 @@ export type WorkflowRuntimeEdge = {
   targetHandle: string;
   animated?: boolean;
   label?: string;
+  group?: WorkflowRuntimeGroupRef;
 };
 
 export type NodeExecution = {
@@ -451,11 +477,97 @@ export type NodeExecution = {
 export type WorkflowRun = {
   runId: string;
   workflowId: string;
+  group?: WorkflowRuntimeGroupRef;
   status: WorkflowRuntimeRunStatus;
   startedAt: string;
   completedAt?: string | null;
   error?: string | null;
   nodeExecutions: NodeExecution[];
+  traceSync?: WorkflowRuntimeTraceSyncState;
+};
+
+export type WorkflowRuntimeTraceNodeExecutionInput = {
+  nodeId: string;
+  status: WorkflowRuntimeNodeStatus;
+  artifactId?: string | null;
+  artifactVaultRecordId?: string | null;
+  completedAt?: string | null;
+  latencyMs?: number | null;
+  runId?: string;
+  startedAt?: string;
+};
+
+export type WorkflowRuntimeTraceRunInput = {
+  runId: string;
+  workflowId: string;
+  group?: WorkflowRuntimeGroupRef;
+  status: WorkflowRuntimeRunStatus;
+  completedAt?: string | null;
+  nodeExecutions: WorkflowRuntimeTraceNodeExecutionInput[];
+  startedAt: string;
+};
+
+export type WorkflowRuntimeTraceWriteRequest = {
+  occurredAt?: string;
+  run: WorkflowRuntimeTraceRunInput;
+  traceId?: string;
+  workspaceId: string;
+};
+
+export type WorkflowRuntimeTraceWriteResponse = {
+  eventId: string;
+  eventType: string;
+  schema: string;
+  status: WorkflowRuntimeRunStatus;
+  traceId: string;
+  workflowGroupId: string;
+  workflowRunId: string;
+  workspaceId: string;
+};
+
+export type WorkflowGroupRecordNodeInput = {
+  id: string;
+  label?: string;
+  status?: WorkflowRuntimeNodeStatus;
+  type: WorkflowRuntimeNodeType;
+};
+
+export type WorkflowGroupRecordEdgeInput = {
+  id: string;
+  label?: string;
+  source: string;
+  target: string;
+};
+
+export type WorkflowGroupRecordContractInput = {
+  name?: string;
+  schema: string;
+  version?: string;
+};
+
+export type WorkflowGroupRecordWriteRequest = {
+  capabilityGaps?: string[];
+  compilerManifestSchema?: string;
+  contract?: WorkflowGroupRecordContractInput;
+  edges: WorkflowGroupRecordEdgeInput[];
+  group: WorkflowRuntimeGroupRef;
+  nodes: WorkflowGroupRecordNodeInput[];
+  occurredAt?: string;
+  traceId?: string;
+  workflowId?: string;
+  workspaceId: string;
+};
+
+export type WorkflowGroupRecordWriteResponse = {
+  edgeCount: number;
+  eventId: string;
+  eventType: string;
+  nodeCount: number;
+  schema: string;
+  traceId: string;
+  workflowGroupId: string;
+  workflowId: string;
+  workspaceId: string;
 };
 
 export type WorkflowRuntimeLiteState = {
@@ -810,6 +922,7 @@ export type WorkspaceSessionEnsureRequest = {
 
 export type WorkspaceSessionEnsureReason =
   | "preferred_workspace_member"
+  | "existing_readable_workspace"
   | "existing_writable_workspace"
   | "created_user_workspace";
 
@@ -817,7 +930,7 @@ export type WorkspaceSessionEnsureResponse = {
   created: boolean;
   preferredWorkspaceId: string | null;
   reason: WorkspaceSessionEnsureReason;
-  role: "owner" | "admin" | "editor";
+  role: "owner" | "admin" | "editor" | "viewer";
   workspaceId: string;
   workspaceName: string;
 };
@@ -1709,6 +1822,7 @@ export interface IStateSyncManager {
   }): Promise<WorkspaceRecoveryListResponse>;
   ensureWorkspaceSession(
     input: WorkspaceSessionEnsureRequest & { userId: string },
+    accessTokenOverride?: string | null,
   ): Promise<WorkspaceSessionEnsureResponse | null>;
   syncActiveUiState(snapshot: ActiveUiStateSnapshot): Promise<StateSyncResult>;
   syncHistoricalMessage(record: HistoricalMessageRecord): Promise<StateSyncResult>;

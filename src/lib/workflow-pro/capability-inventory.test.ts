@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createWorkflowProRuntimeCapabilityReport,
   createWorkflowProCapabilityInventory,
   summarizeWorkflowProRuntime,
 } from "./capability-inventory";
@@ -81,5 +82,74 @@ describe("Workflow Pro capability inventory", () => {
     expect(summary.nodeTypeCounts["model.llm"]).toBe(1);
     expect(summary.nodeStatusCounts.success).toBe(1);
     expect(summary.lastRunStatus).toBe("success");
+  });
+
+  it("reports RuntimeLite ready-parallel execution policy and fan-out limits for the Brain", () => {
+    const runtimeLite: WorkflowRuntimeLiteState = {
+      edges: [
+        {
+          id: "edge-input-a",
+          source: "input-1",
+          sourceHandle: "output",
+          target: "llm-a",
+          targetHandle: "input",
+        },
+        {
+          id: "edge-input-b",
+          source: "input-1",
+          sourceHandle: "output",
+          target: "llm-b",
+          targetHandle: "input",
+        },
+      ],
+      lastError: null,
+      lastRunId: null,
+      nodes: [
+        {
+          data: { label: "Input", text: "brief" },
+          error: null,
+          id: "input-1",
+          inputSnapshot: null,
+          outputSnapshot: null,
+          position: { x: 0, y: 0 },
+          status: "idle",
+          type: "input.text",
+        },
+        {
+          data: { label: "LLM A", model: "gpt-5.5", prompt: "a" },
+          error: null,
+          id: "llm-a",
+          inputSnapshot: null,
+          outputSnapshot: null,
+          position: { x: 300, y: -80 },
+          status: "idle",
+          type: "model.llm",
+        },
+        {
+          data: { label: "LLM B", model: "gpt-5.5", prompt: "b" },
+          error: null,
+          id: "llm-b",
+          inputSnapshot: null,
+          outputSnapshot: null,
+          position: { x: 300, y: 80 },
+          status: "idle",
+          type: "model.llm",
+        },
+      ],
+      runs: [],
+      version: 1,
+    };
+
+    const report = createWorkflowProRuntimeCapabilityReport(runtimeLite);
+
+    expect(report.schema).toBe("nexus.workflowPro.runtimeCapabilityReport.v1");
+    expect(report.executionPolicy.workflowTimeout).toBe("none");
+    expect(report.executionPolicy.mode).toBe("ready-parallel");
+    expect(report.executionPolicy.nativeParallelExecution).toBe(true);
+    expect(report.graphShape.fanOutNodeIds).toEqual(["input-1"]);
+    expect(report.validation.ok).toBe(true);
+    expect(report.recommendations.join("\n")).toContain(
+      "ready-node parallel",
+    );
   });
 });

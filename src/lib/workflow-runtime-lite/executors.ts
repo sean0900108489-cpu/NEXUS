@@ -4,6 +4,7 @@ import type {
   WorkflowNodeInstance,
   WorkflowRuntimeNodeType,
 } from "@/lib/nexus-types";
+import { runAttachmentCompilerPipeline } from "@/lib/attachments/attachment-compiler-execution";
 
 import { createContextPacket } from "./state";
 
@@ -157,14 +158,15 @@ export async function executeFileNode({
     throw new Error("node.file requires an upstream ContextPacket.");
   }
 
-  const attachmentCount = node.data.attachments.length;
+  const compilerExecution = await runAttachmentCompilerPipeline({
+    attachments: node.data.attachments,
+    upstreamRawText: inputPacket.rawText,
+  });
 
   return createContextPacket({
     displayText: [
       inputPacket.displayText,
-      attachmentCount
-        ? `File node attached ${attachmentCount} artifact reference${attachmentCount === 1 ? "" : "s"}.`
-        : "File node passed through with no attachment references.",
+      compilerExecution.displayText,
     ]
       .filter(Boolean)
       .join("\n\n"),
@@ -173,13 +175,27 @@ export async function executeFileNode({
       attachmentCompiler: {
         compilerId: node.data.compilerId,
         compilerVersion: node.data.compilerVersion,
+        execution: {
+          attachmentCount: compilerExecution.attachmentCount,
+          resultSummary: compilerExecution.results.map((result) =>
+            [
+              result.name,
+              result.laneId,
+              result.status,
+              result.compiledArtifactId ?? result.artifactId ?? result.rawArtifactId ?? "unresolved",
+            ].join(":"),
+          ),
+          schema: compilerExecution.schema,
+          status: compilerExecution.status,
+        },
+        lanes: compilerExecution.lanes,
         mode: "noop",
       },
       attachments: node.data.attachments,
       nodeType: node.type,
       upstreamPacketId: inputPacket.id,
     },
-    rawText: inputPacket.rawText,
+    rawText: compilerExecution.rawText,
     runId,
     sourceNodeId: node.id,
   });

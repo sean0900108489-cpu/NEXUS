@@ -12,8 +12,10 @@ import { ApiError } from "../api/api-errors";
 import { emitBackendEvent } from "../observability/events";
 import { getDefaultObservabilityService } from "../observability/observability-service";
 import { SecretBoundaryService } from "../security/secret-boundary-service";
+import { getBearerToken } from "../security/auth-session";
 import type { PermissionService } from "../security/permission-service";
 import { createWorkspaceStatePermissionService } from "../workspace/workspace-permission";
+import { createNexusSupabaseRequestClient } from "@/lib/supabase/request";
 
 import {
   createAgentRuntimeRepository,
@@ -50,17 +52,20 @@ export class AgentRuntimeService {
   private readonly repository: AgentRuntimeRepository;
   private readonly secretBoundaryService: SecretBoundaryService;
   private readonly permissionService: PermissionService;
+  private readonly runtimeEventsBestEffort: boolean;
 
   constructor(dependencies: {
     repository?: AgentRuntimeRepository;
     secretBoundaryService?: SecretBoundaryService;
     permissionService?: PermissionService;
+    runtimeEventsBestEffort?: boolean;
   } = {}) {
     this.repository = dependencies.repository ?? createAgentRuntimeRepository();
     this.secretBoundaryService =
       dependencies.secretBoundaryService ?? new SecretBoundaryService();
     this.permissionService =
       dependencies.permissionService ?? createWorkspaceStatePermissionService();
+    this.runtimeEventsBestEffort = Boolean(dependencies.runtimeEventsBestEffort);
   }
 
   async createTask(
@@ -498,11 +503,17 @@ export class AgentRuntimeService {
     eventType: Parameters<AgentRuntimeRepository["appendEvent"]>[0]["eventType"];
     payload?: Record<string, unknown>;
   }) {
-    await this.repository.appendEvent({
-      eventType: input.eventType,
-      payload: this.sanitizeRuntimeRecord(input.payload ?? {}),
-      taskId: input.taskId,
-    });
+    try {
+      await this.repository.appendEvent({
+        eventType: input.eventType,
+        payload: this.sanitizeRuntimeRecord(input.payload ?? {}),
+        taskId: input.taskId,
+      });
+    } catch (error) {
+      if (!this.runtimeEventsBestEffort) {
+        throw error;
+      }
+    }
   }
 
   private sanitizeRuntimeRecord(value: Record<string, unknown>) {
@@ -585,8 +596,29 @@ export class AgentRuntimeService {
   }
 }
 
-export function createAgentRuntimeService() {
-  return new AgentRuntimeService();
+export function createAgentRuntimeService(
+  input: {
+    accessToken?: string | null;
+    forceInMemoryRepository?: boolean;
+    request?: Request;
+  } = {},
+) {
+  const accessToken =
+    input.accessToken ??
+    (input.request ? getBearerToken(input.request.headers.get("authorization")) : null);
+  const requestClient = createNexusSupabaseRequestClient(accessToken);
+
+  return new AgentRuntimeService({
+    permissionService: createWorkspaceStatePermissionService({
+      accessToken,
+      request: input.request,
+    }),
+    repository: createAgentRuntimeRepository({
+      forceInMemory: input.forceInMemoryRepository,
+      requestClient,
+    }),
+    runtimeEventsBestEffort: Boolean(requestClient),
+  });
 }
 
 function numberOrNull(value: unknown) {

@@ -40,7 +40,8 @@ export async function GET(request: Request, context: RouteContext) {
     methods: ["GET"],
     permission: {
       action: "workspace.read",
-      permissionService: createWorkspaceStatePermissionService(),
+      permissionServiceFactory: ({ request: routeRequest }) =>
+        createWorkspaceStatePermissionService({ request: routeRequest }),
       resourceId: () => workspaceId,
       resourceType: "workspace",
     },
@@ -71,7 +72,8 @@ export async function PUT(request: Request, context: RouteContext) {
     methods: ["PUT"],
     permission: {
       action: "workspace.update",
-      permissionService: createWorkspaceStatePermissionService(),
+      permissionServiceFactory: ({ request: routeRequest }) =>
+        createWorkspaceStatePermissionService({ request: routeRequest }),
       resourceId: () => workspaceId,
       resourceType: "workspace",
     },

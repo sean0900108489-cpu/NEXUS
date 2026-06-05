@@ -5,6 +5,10 @@ import {
   findSensitiveStringMatches,
   isSensitiveFieldName,
 } from "@/lib/backend/primitives/redaction";
+import {
+  SYNC_STANDARD_PAYLOAD_MAX_BYTES,
+  SYNC_WORKSPACE_SNAPSHOT_PAYLOAD_MAX_BYTES,
+} from "@/lib/backend/sync/sync-constants";
 import { stableStringify } from "@/lib/backend/workspace/workspace-snapshot-serializer";
 import type {
   LocalSyncQueueOperation,
@@ -13,12 +17,21 @@ import type {
 } from "@/lib/nexus-types";
 import { getNexusSupabaseClient } from "@/lib/supabase/client";
 
-export const LOCAL_SYNC_QUEUE_MAX_PAYLOAD_BYTES = 128 * 1024;
+export const LOCAL_SYNC_QUEUE_MAX_PAYLOAD_BYTES = SYNC_STANDARD_PAYLOAD_MAX_BYTES;
+export const LOCAL_SYNC_QUEUE_WORKSPACE_SNAPSHOT_MAX_PAYLOAD_BYTES =
+  SYNC_WORKSPACE_SNAPSHOT_PAYLOAD_MAX_BYTES;
 const LOCAL_SYNC_QUEUE_KEY = "nexus-local-sync-queue-v4";
 export const LOCAL_SYNC_QUEUE_DB = "nexus-ai-ops-sync-queue";
 export const LOCAL_SYNC_QUEUE_DB_VERSION = 2;
 export const LOCAL_SYNC_QUEUE_STORE = "sync-queue";
 const DEFAULT_FLUSH_DELAY_MS = 750;
+const WORKSPACE_SNAPSHOT_MANUAL_RECOVERY_COMPACT_ERROR_CODES = new Set([
+  "SYNC_PAYLOAD_TOO_LARGE",
+  "SYNC_SECRET_DETECTED",
+  "WORKSPACE_SNAPSHOT_TOO_LARGE",
+  "WORKSPACE_STATE_SCHEMA_MISMATCH",
+  "WORKSPACE_STATE_SECRET_DETECTED",
+]);
 
 type LocalSyncQueueAdapterOptions = {
   flushDelayMs?: number;
@@ -41,6 +54,15 @@ type QueueStatusProjection = {
   lastSyncedAt?: string;
 };
 
+type QueueStatusInput = {
+  workspaceId?: string | null;
+};
+
+export type LocalSyncQueueIssueRecoveryResult =
+  | "compacted"
+  | "missing"
+  | "queued";
+
 const memoryStorage = new Map<string, LocalSyncQueueOperation[]>();
 let queueStore: UseStore | undefined =
   typeof indexedDB === "undefined"
@@ -56,6 +78,7 @@ export class LocalSyncQueueAdapter {
   private drainPromise?: Promise<void>;
   private flushTimer?: ReturnType<typeof setTimeout>;
   private readonly flushDelayMs: number;
+  private readonly readOnlyWorkspaceIds = new Set<string>();
 
   constructor(options: LocalSyncQueueAdapterOptions = {}) {
     this.flushDelayMs = options.flushDelayMs ?? DEFAULT_FLUSH_DELAY_MS;
@@ -68,7 +91,7 @@ export class LocalSyncQueueAdapter {
   }
 
   async enqueue(input: EnqueueSyncOperationInput) {
-    assertLocalPayloadSafe(input.payload);
+    assertLocalPayloadSafe(input);
     const payloadHash = input.payloadHash ?? await computeLocalPayloadHash(input.payload);
     const now = new Date().toISOString();
     const operation: LocalSyncQueueOperation = {
@@ -87,6 +110,23 @@ export class LocalSyncQueueAdapter {
       updatedAt: now,
     };
     const queue = await this.readQueue();
+
+    if (this.isWorkspaceReadOnly(input.workspaceId)) {
+      const compactedOperation: LocalSyncQueueOperation = {
+        ...operation,
+        lastErrorCode: "WORKSPACE_READ_ONLY",
+        lastErrorMessage: "Local sync operation suppressed because the workspace is read-only.",
+        status: "compacted",
+      };
+
+      await this.writeQueue([
+        ...compactReadOnlyWorkspaceQueue(queue, input.workspaceId, now),
+        compactedOperation,
+      ]);
+
+      return compactedOperation;
+    }
+
     const compactTerminal =
       input.entityType === "workspace" && input.operationType === "snapshot";
     const compactedQueue = input.compactKey
@@ -111,6 +151,27 @@ export class LocalSyncQueueAdapter {
     this.scheduleFlush();
 
     return operation;
+  }
+
+  async setWorkspaceReadOnly(workspaceId: string | null | undefined, readOnly: boolean) {
+    const normalizedWorkspaceId = workspaceId?.trim();
+
+    if (!normalizedWorkspaceId) {
+      return;
+    }
+
+    if (!readOnly) {
+      this.readOnlyWorkspaceIds.delete(normalizedWorkspaceId);
+      return;
+    }
+
+    this.readOnlyWorkspaceIds.add(normalizedWorkspaceId);
+
+    const queue = await this.readQueue();
+    const now = new Date().toISOString();
+    await this.writeQueue(
+      compactReadOnlyWorkspaceQueue(queue, normalizedWorkspaceId, now),
+    );
   }
 
   async flush() {
@@ -146,6 +207,27 @@ export class LocalSyncQueueAdapter {
     this.scheduleFlush(0);
   }
 
+  async recoverIssue(
+    clientMutationId: string,
+  ): Promise<LocalSyncQueueIssueRecoveryResult> {
+    const queue = await this.readQueue();
+    const operation = queue.find(
+      (candidate) => candidate.clientMutationId === clientMutationId,
+    );
+
+    if (!operation || !["failed", "retrying", "conflicted"].includes(operation.status)) {
+      return "missing";
+    }
+
+    if (shouldCompactWorkspaceSnapshotIssueOnManualRecovery(operation)) {
+      await this.compactWorkspaceSnapshotIssues(operation.workspaceId);
+      return "compacted";
+    }
+
+    await this.retry(clientMutationId);
+    return "queued";
+  }
+
   async getOperations() {
     return this.readQueue();
   }
@@ -171,8 +253,8 @@ export class LocalSyncQueueAdapter {
     );
   }
 
-  async getStatus(): Promise<QueueStatusProjection> {
-    const queue = await this.readQueue();
+  async getStatus(input: QueueStatusInput = {}): Promise<QueueStatusProjection> {
+    const queue = filterQueueByWorkspace(await this.readQueue(), input.workspaceId);
 
     return {
       conflicted: queue.filter((operation) => operation.status === "conflicted").length,
@@ -225,6 +307,16 @@ export class LocalSyncQueueAdapter {
     );
 
     if (!operation || !["queued", "retrying"].includes(operation.status)) {
+      return;
+    }
+
+    if (this.isWorkspaceReadOnly(operation.workspaceId)) {
+      await this.patchOperation(clientMutationId, {
+        lastErrorCode: "WORKSPACE_READ_ONLY",
+        lastErrorMessage:
+          "Local sync operation suppressed because the workspace is read-only.",
+        status: "compacted",
+      });
       return;
     }
 
@@ -377,9 +469,55 @@ export class LocalSyncQueueAdapter {
       }
     }
   }
+
+  private isWorkspaceReadOnly(workspaceId: string | null | undefined) {
+    const normalizedWorkspaceId = workspaceId?.trim();
+
+    return Boolean(
+      normalizedWorkspaceId &&
+        this.readOnlyWorkspaceIds.has(normalizedWorkspaceId),
+    );
+  }
+}
+
+function filterQueueByWorkspace(
+  queue: LocalSyncQueueOperation[],
+  workspaceId?: string | null,
+) {
+  const normalizedWorkspaceId = workspaceId?.trim();
+
+  return normalizedWorkspaceId
+    ? queue.filter((operation) => operation.workspaceId === normalizedWorkspaceId)
+    : queue;
 }
 
 export const localSyncQueueAdapter = new LocalSyncQueueAdapter();
+
+function compactReadOnlyWorkspaceQueue(
+  queue: LocalSyncQueueOperation[],
+  workspaceId: string | null | undefined,
+  updatedAt: string,
+) {
+  const normalizedWorkspaceId = workspaceId?.trim();
+
+  if (!normalizedWorkspaceId) {
+    return queue;
+  }
+
+  return queue.map((operation) =>
+    operation.workspaceId === normalizedWorkspaceId &&
+    !["synced", "compacted", "cancelled"].includes(operation.status)
+      ? {
+          ...operation,
+          lastErrorCode: "WORKSPACE_READ_ONLY",
+          lastErrorMessage:
+            "Local sync operation suppressed because the workspace is read-only.",
+          status: "compacted" as const,
+          updatedAt,
+        }
+      : operation,
+  );
+}
 
 export async function computeLocalPayloadHash(payload: unknown) {
   const canonical = stableStringify(payload);
@@ -394,16 +532,27 @@ export async function computeLocalPayloadHash(payload: unknown) {
   return `sha256:${hex}`;
 }
 
-function assertLocalPayloadSafe(payload: unknown) {
-  const payloadSizeBytes = new TextEncoder().encode(stableStringify(payload)).byteLength;
+function assertLocalPayloadSafe(input: EnqueueSyncOperationInput) {
+  const payloadSizeBytes = new TextEncoder().encode(
+    stableStringify(input.payload),
+  ).byteLength;
+  const maxPayloadSizeBytes = getLocalQueuePayloadMaxBytes(input);
 
-  if (payloadSizeBytes > LOCAL_SYNC_QUEUE_MAX_PAYLOAD_BYTES) {
+  if (payloadSizeBytes > maxPayloadSizeBytes) {
     throw new Error("SYNC_PAYLOAD_TOO_LARGE");
   }
 
-  if (localPayloadHasSecret(payload)) {
+  if (localPayloadHasSecret(input.payload)) {
     throw new Error("SYNC_SECRET_DETECTED");
   }
+}
+
+function getLocalQueuePayloadMaxBytes(input: EnqueueSyncOperationInput) {
+  if (input.entityType === "workspace" && input.operationType === "snapshot") {
+    return LOCAL_SYNC_QUEUE_WORKSPACE_SNAPSHOT_MAX_PAYLOAD_BYTES;
+  }
+
+  return LOCAL_SYNC_QUEUE_MAX_PAYLOAD_BYTES;
 }
 
 function localPayloadHasSecret(value: unknown): boolean {
@@ -437,6 +586,22 @@ function isWorkspaceSnapshotIssue(
     operation.entityType === "workspace" &&
     operation.operationType === "snapshot" &&
     ["failed", "conflicted"].includes(operation.status)
+  );
+}
+
+function shouldCompactWorkspaceSnapshotIssueOnManualRecovery(
+  operation: LocalSyncQueueOperation,
+) {
+  if (!isWorkspaceSnapshotIssue(operation, operation.workspaceId)) {
+    return false;
+  }
+
+  if (operation.status === "conflicted") {
+    return true;
+  }
+
+  return WORKSPACE_SNAPSHOT_MANUAL_RECOVERY_COMPACT_ERROR_CODES.has(
+    operation.lastErrorCode ?? "",
   );
 }
 

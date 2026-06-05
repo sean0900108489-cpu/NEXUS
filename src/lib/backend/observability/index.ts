@@ -7,3 +7,5 @@ export * from "./system-event-repository";
 export * from "./trace-context";
 export * from "./trace-context-middleware";
 export * from "./usage-metrics-repository";
+export * from "./workflow-group-records";
+export * from "./workflow-runtime-events";

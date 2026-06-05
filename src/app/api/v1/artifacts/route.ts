@@ -1,6 +1,6 @@
 import { apiHandler } from "@/lib/backend/api/api-handler";
 import { createRequestValidator } from "@/lib/backend/api/api-request-validator";
-import { createArtifactService } from "@/lib/backend/artifacts/artifact-service";
+import { createArtifactServiceForRequest } from "@/lib/backend/artifacts/artifact-route-service";
 import { createWorkspaceStatePermissionService } from "@/lib/backend/workspace/workspace-permission";
 import type {
   ArtifactCreateResponse,
@@ -12,12 +12,10 @@ import { validateCreateArtifactRequest } from "./artifact-route-validation";
 
 export const runtime = "nodejs";
 
-const artifactService = createArtifactService();
-const permissionService = createWorkspaceStatePermissionService();
-
 export const GET = apiHandler<undefined, ArtifactListResponse>({
   handler: ({ request, workspaceId }) => {
     const url = new URL(request.url);
+    const artifactService = createArtifactServiceForRequest(request);
 
     return artifactService.listArtifacts({
       cursor: url.searchParams.get("cursor"),
@@ -30,7 +28,8 @@ export const GET = apiHandler<undefined, ArtifactListResponse>({
   methods: ["GET"],
   permission: {
     action: "workspace.read",
-    permissionService,
+    permissionServiceFactory: ({ request }) =>
+      createWorkspaceStatePermissionService({ request }),
     resourceType: "artifact",
   },
   route: "/api/v1/artifacts",
@@ -41,8 +40,8 @@ export const GET = apiHandler<undefined, ArtifactListResponse>({
 });
 
 export const POST = apiHandler<CreateArtifactRequest, ArtifactCreateResponse>({
-  handler: ({ body, requestId, trace, traceId }) =>
-    artifactService.createArtifact(body, {
+  handler: ({ body, request, requestId, trace, traceId }) =>
+    createArtifactServiceForRequest(request).createArtifact(body, {
       requestId,
       traceId,
       userId: trace.userId,
@@ -53,7 +52,8 @@ export const POST = apiHandler<CreateArtifactRequest, ArtifactCreateResponse>({
   methods: ["POST"],
   permission: {
     action: "workspace.update",
-    permissionService,
+    permissionServiceFactory: ({ request }) =>
+      createWorkspaceStatePermissionService({ request }),
     resourceType: "artifact",
   },
   route: "/api/v1/artifacts",

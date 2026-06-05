@@ -1,11 +1,7 @@
-import type {
-  WorkflowRuntimeLiteState,
-  WorkflowRuntimeNodeData,
-} from "@/lib/nexus-types";
-import { WORKFLOW_RUNTIME_LITE_VERSION } from "@/lib/workflow-runtime-lite/constants";
-import { normalizeWorkflowRuntimeLiteState } from "@/lib/workflow-runtime-lite/state";
+import type { WorkflowRuntimeLiteState } from "@/lib/nexus-types";
 
 import type { WorkflowProContractDraft } from "./workflow-contract";
+import { createWorkflowProRuntimeBridge } from "./runtime-bridge";
 import {
   validateWorkflowProContractDraft,
   type WorkflowProContractValidationResult,
@@ -50,13 +46,14 @@ export function createWorkflowProApplyPlan({
   if (!validation.ok) {
     reasons.push("Contract validation failed; apply preview is blocked.");
   } else {
-    candidateRuntimeLite = createRuntimeLiteCandidate(contract);
+    const bridge = createWorkflowProRuntimeBridge(contract);
+    candidateRuntimeLite = bridge.runtimeLite;
 
-    if (candidateRuntimeLite.nodes.length !== contract.nodes.length) {
+    if (bridge.droppedNodes) {
       reasons.push("Runtime Lite normalization dropped one or more contract nodes.");
     }
 
-    if (candidateRuntimeLite.edges.length !== contract.edges.length) {
+    if (bridge.droppedEdges) {
       reasons.push("Runtime Lite normalization dropped one or more contract edges.");
     }
   }
@@ -93,34 +90,4 @@ export function createWorkflowProApplyPlan({
     status,
     validation,
   };
-}
-
-function createRuntimeLiteCandidate(
-  contract: WorkflowProContractDraft,
-): WorkflowRuntimeLiteState {
-  return normalizeWorkflowRuntimeLiteState({
-    edges: contract.edges.map((edge) => ({
-      animated: true,
-      id: edge.id,
-      label: edge.mode === "always" ? undefined : edge.mode,
-      source: edge.source,
-      sourceHandle: edge.sourceHandle,
-      target: edge.target,
-      targetHandle: edge.targetHandle,
-    })),
-    lastError: null,
-    lastRunId: null,
-    nodes: contract.nodes.map((node) => ({
-      data: node.data as WorkflowRuntimeNodeData,
-      error: null,
-      id: node.id,
-      inputSnapshot: null,
-      outputSnapshot: null,
-      position: node.position,
-      status: "idle",
-      type: node.type,
-    })),
-    runs: [],
-    version: WORKFLOW_RUNTIME_LITE_VERSION,
-  });
 }

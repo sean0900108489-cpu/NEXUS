@@ -174,6 +174,51 @@ describe("V9 ObservabilityService", () => {
     expect(response.status).toBe(401);
   });
 
+  it("allows viewer sessions to read workspace events and trace projections", async () => {
+    const service = getDefaultObservabilityService();
+
+    await service.recordSystemEvent({
+      ...makeEvent(1),
+      trace: {
+        ...makeEvent(1).trace,
+        traceId: "trace-viewer-readable",
+      },
+    });
+
+    const eventsResponse = await eventsGet(
+      new Request(
+        `http://localhost/api/v1/observability/events?workspaceId=${WORKSPACE_ID}&traceId=trace-viewer-readable`,
+        {
+          headers: {
+            ...authHeaders("local-viewer"),
+          },
+        },
+      ),
+    );
+    const eventsJson = await readJson<SystemEventListResponse>(eventsResponse);
+
+    expect(eventsResponse.status).toBe(200);
+    expect(eventsJson.data.events).toHaveLength(1);
+
+    const traceResponse = await traceGet(
+      new Request(
+        `http://localhost/api/v1/observability/traces/trace-viewer-readable?workspaceId=${WORKSPACE_ID}`,
+        {
+          headers: {
+            ...authHeaders("local-viewer"),
+          },
+        },
+      ),
+      {
+        params: Promise.resolve({ traceId: "trace-viewer-readable" }),
+      },
+    );
+    const traceJson = await readJson<TraceEventsResponse>(traceResponse);
+
+    expect(traceResponse.status).toBe(200);
+    expect(traceJson.data.events).toHaveLength(1);
+  });
+
   it("returns trace-scoped lifecycle projection with source and severity summary", async () => {
     const service = getDefaultObservabilityService();
 
@@ -267,6 +312,36 @@ describe("V9 ObservabilityService", () => {
       inputTokens: 300,
       outputTokens: 150,
     });
+  });
+
+  it("keeps provider usage metrics editor-scoped", async () => {
+    const service = getDefaultObservabilityService();
+
+    await service.insertUsageMetric({
+      agentId: "agent-ops",
+      costEstimate: 0.04,
+      createdAt: "2026-05-27T01:00:00.000Z",
+      inputTokens: 100,
+      latencyMs: 1200,
+      model: "gpt-4o-mini",
+      outputTokens: 50,
+      provider: "openai-compatible",
+      taskId: crypto.randomUUID(),
+      workspaceId: WORKSPACE_ID,
+    });
+
+    const response = await metricsGet(
+      new Request(
+        `http://localhost/api/v1/observability/metrics?workspaceId=${WORKSPACE_ID}`,
+        {
+          headers: {
+            ...authHeaders("local-viewer"),
+          },
+        },
+      ),
+    );
+
+    expect(response.status).toBe(403);
   });
 
   it("creates V9 tables with indexes, RLS, and no historical paging changes", () => {

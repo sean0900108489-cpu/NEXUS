@@ -38,7 +38,10 @@ export type ApiHandlerOptions<TBody, TData> = {
   methods: string[];
   permission?: {
     action: string;
-    permissionService: PermissionService;
+    permissionService?: PermissionService;
+    permissionServiceFactory?: (
+      context: ApiHandlerContext<TBody>,
+    ) => PermissionService;
     resourceId?: (context: ApiHandlerContext<TBody>) => string | undefined;
     resourceType: string;
   };
@@ -109,7 +112,19 @@ export function apiHandler<TBody = unknown, TData = unknown>(
       };
 
       if (options.permission) {
-        const decision = await options.permission.permissionService.check({
+        const permissionService =
+          options.permission.permissionServiceFactory?.(context) ??
+          options.permission.permissionService;
+
+        if (!permissionService) {
+          throw new ApiError(
+            "INTERNAL_ERROR",
+            "Permission service is not configured.",
+            500,
+          );
+        }
+
+        const decision = await permissionService.check({
           action: options.permission.action,
           resourceId: options.permission.resourceId?.(context),
           resourceType: options.permission.resourceType,

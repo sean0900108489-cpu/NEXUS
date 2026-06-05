@@ -10,6 +10,7 @@ import {
   getNexusSupabaseAdminClient,
   hasSupabaseServiceRoleConfig,
 } from "@/lib/supabase/admin";
+import { createNexusSupabaseRequestClient } from "@/lib/supabase/request";
 import type {
   ArtifactInsert,
   ArtifactReferenceInsert,
@@ -353,10 +354,24 @@ export class SupabaseArtifactRepository implements ArtifactRepository {
 
 const inMemoryArtifactRepository = new InMemoryArtifactRepository();
 
-export function createArtifactRepository(): ArtifactRepository {
-  return hasSupabaseServiceRoleConfig()
-    ? new SupabaseArtifactRepository(getNexusSupabaseAdminClient())
-    : inMemoryArtifactRepository;
+export type CreateArtifactRepositoryOptions = {
+  accessToken?: string | null;
+};
+
+export function createArtifactRepository(
+  options: CreateArtifactRepositoryOptions = {},
+): ArtifactRepository {
+  if (hasSupabaseServiceRoleConfig()) {
+    return new SupabaseArtifactRepository(getNexusSupabaseAdminClient());
+  }
+
+  const requestClient = createNexusSupabaseRequestClient(options.accessToken);
+
+  if (requestClient) {
+    return new SupabaseArtifactRepository(requestClient);
+  }
+
+  return inMemoryArtifactRepository;
 }
 
 export function toVaultRecord(artifact: ArtifactRecord): ArtifactVaultRecord {

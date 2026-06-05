@@ -4,6 +4,8 @@ import {
   getNexusSupabaseAdminClient,
   hasSupabaseServiceRoleConfig,
 } from "@/lib/supabase/admin";
+import { getSupabaseRequestAccessToken } from "@/lib/backend/security/auth-session";
+import { createNexusSupabaseRequestClient } from "@/lib/supabase/request";
 import type {
   Database,
   WorkspaceMembershipInsert,
@@ -168,9 +170,44 @@ class LocalSecurityAuditStore implements SecurityAuditStore {
   }
 }
 
+class RequestScopedSecurityAuditStore implements SecurityAuditStore {
+  constructor(private readonly client: SupabaseClient<Database>) {}
+
+  async insert(entry: SecurityAuditLogEntry & { metadata: Record<string, unknown> }) {
+    const { error } = await (
+      this.client as unknown as {
+        rpc(
+          fn: "record_permission_audit_log",
+          args: Record<string, unknown>,
+        ): Promise<{ error: { code?: string; message?: string } | null }>;
+      }
+    ).rpc(
+      "record_permission_audit_log",
+      {
+        p_action: entry.action,
+        p_decision: entry.decision,
+        p_metadata: entry.metadata,
+        p_reason_code: entry.reasonCode ?? null,
+        p_resource_id: entry.resourceId ?? null,
+        p_resource_type: entry.resourceType,
+        p_workspace_id: entry.workspaceId ?? null,
+      },
+    );
+
+    if (error) {
+      throw new Error(sanitizeSupabaseError(error));
+    }
+  }
+}
+
 let localPermissionService: PermissionService | undefined;
 
-export function createWorkspaceStatePermissionService() {
+export function createWorkspaceStatePermissionService(
+  input: {
+    accessToken?: string | null;
+    request?: Request;
+  } = {},
+) {
   if (hasSupabaseServiceRoleConfig()) {
     const client = getNexusSupabaseAdminClient();
     const securityClient = client as unknown as SecuritySupabaseClient;
@@ -179,6 +216,22 @@ export function createWorkspaceStatePermissionService() {
       audit: SecurityAuditRepository.fromSupabase(securityClient),
       memberships: new WorkspaceMembershipRepository(
         new SupabaseWorkspaceMembershipStore(client),
+      ),
+    });
+  }
+
+  const accessToken =
+    input.accessToken ??
+    (input.request ? getSupabaseRequestAccessToken(input.request) : null);
+  const requestClient = createNexusSupabaseRequestClient(accessToken);
+
+  if (requestClient) {
+    return new PermissionService({
+      audit: new SecurityAuditRepository(
+        new RequestScopedSecurityAuditStore(requestClient),
+      ),
+      memberships: new WorkspaceMembershipRepository(
+        new SupabaseWorkspaceMembershipStore(requestClient),
       ),
     });
   }

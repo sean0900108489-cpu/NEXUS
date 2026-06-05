@@ -25,7 +25,8 @@ export const POST = apiHandler<SyncOperationRequest, SyncOperationResponse>({
   methods: ["POST"],
   permission: {
     action: "workspace.update",
-    permissionService: createWorkspaceStatePermissionService(),
+    permissionServiceFactory: ({ request }) =>
+      createWorkspaceStatePermissionService({ request }),
     resourceType: "workspace",
   },
   route: "/api/v1/sync/operations",

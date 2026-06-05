@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   computeLocalPayloadHash,
   LocalSyncQueueAdapter,
+  LOCAL_SYNC_QUEUE_MAX_PAYLOAD_BYTES,
+  LOCAL_SYNC_QUEUE_WORKSPACE_SNAPSHOT_MAX_PAYLOAD_BYTES,
 } from "./local-sync-queue-adapter";
 
 function makeAdapter() {
@@ -165,6 +167,62 @@ describe("LocalSyncQueueAdapter", () => {
     expect((await adapter.getStatus()).lastSyncedAt).toBeDefined();
   });
 
+  it("scopes queue status to the active workspace when requested", async () => {
+    const adapter = makeAdapter();
+    await adapter.clear();
+    const staleOperation = await adapter.enqueue({
+      ...makeOperation(61),
+      workspaceId: "workspace-stale",
+    });
+
+    vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(new Error("permission denied"));
+    await adapter.flush();
+
+    const activeOperation = await adapter.enqueue({
+      ...makeOperation(62),
+      workspaceId: "workspace-active",
+    });
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      Response.json({
+        data: {
+          deduplicated: false,
+          operation: {
+            attemptCount: 1,
+            createdAt: "2026-05-27T00:00:00.000Z",
+            entityId: activeOperation.entityId,
+            entityType: activeOperation.entityType,
+            id: activeOperation.clientMutationId,
+            maxAttempts: 5,
+            operationType: activeOperation.operationType,
+            payloadHash: activeOperation.payloadHash,
+            status: "synced",
+            updatedAt: "2026-05-27T00:00:00.000Z",
+            workspaceId: activeOperation.workspaceId,
+          },
+        },
+        error: null,
+        meta: {
+          requestId: "req-local",
+          traceId: "trace-local",
+        },
+        ok: true,
+      }),
+    );
+
+    await adapter.flush();
+
+    expect(await adapter.getStatus()).toMatchObject({
+      failed: 1,
+    });
+    expect(await adapter.getStatus({ workspaceId: "workspace-active" })).toMatchObject({
+      failed: 0,
+      lastSyncedAt: expect.any(String),
+    });
+    expect(await adapter.getStatus({ workspaceId: staleOperation.workspaceId })).toMatchObject({
+      failed: 1,
+    });
+  });
+
   it("compacts rapid layout operations to the final state", async () => {
     const adapter = makeAdapter();
     await adapter.clear();
@@ -246,6 +304,157 @@ describe("LocalSyncQueueAdapter", () => {
     expect(status.pending).toBe(1);
   });
 
+  it("compacts read-only workspace operations before they reach the backend", async () => {
+    const adapter = makeAdapter();
+    await adapter.clear();
+    await adapter.setWorkspaceReadOnly("workspace-local-queue", true);
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+    const operation = await adapter.enqueue(makeWorkspaceSnapshotOperation(43));
+
+    await adapter.flush();
+    const operations = await adapter.getOperations();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(operation.status).toBe("compacted");
+    expect(
+      operations.find(
+        (candidate) => candidate.clientMutationId === operation.clientMutationId,
+      ),
+    ).toMatchObject({
+      lastErrorCode: "WORKSPACE_READ_ONLY",
+      status: "compacted",
+    });
+    expect(await adapter.getStatus({ workspaceId: "workspace-local-queue" })).toMatchObject({
+      failed: 0,
+      pending: 0,
+      syncing: 0,
+    });
+  });
+
+  it("compacts queued read-only workspace operations when role knowledge arrives late", async () => {
+    const adapter = makeAdapter();
+    await adapter.clear();
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+    const operation = await adapter.enqueue(makeWorkspaceSnapshotOperation(44));
+
+    await adapter.setWorkspaceReadOnly("workspace-local-queue", true);
+    await adapter.flush();
+    const operations = await adapter.getOperations();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(
+      operations.find(
+        (candidate) => candidate.clientMutationId === operation.clientMutationId,
+      ),
+    ).toMatchObject({
+      lastErrorCode: "WORKSPACE_READ_ONLY",
+      status: "compacted",
+    });
+    expect(await adapter.getStatus({ workspaceId: "workspace-local-queue" })).toMatchObject({
+      failed: 0,
+      pending: 0,
+      syncing: 0,
+    });
+  });
+
+  it("compacts non-retryable workspace snapshot schema issues during manual recovery", async () => {
+    const adapter = makeAdapter();
+    await adapter.clear();
+    const operation = await adapter.enqueue(makeWorkspaceSnapshotOperation(41));
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      Response.json({
+        data: {
+          deduplicated: false,
+          operation: {
+            attemptCount: 1,
+            createdAt: "2026-05-27T00:00:00.000Z",
+            entityId: operation.entityId,
+            entityType: operation.entityType,
+            id: operation.clientMutationId,
+            lastErrorCode: "WORKSPACE_STATE_SCHEMA_MISMATCH",
+            lastErrorMessage:
+              "Workspace snapshot contains disallowed unbounded or binary payload.",
+            maxAttempts: 5,
+            operationType: operation.operationType,
+            payloadHash: operation.payloadHash,
+            status: "failed",
+            updatedAt: "2026-05-27T00:00:00.000Z",
+            workspaceId: operation.workspaceId,
+          },
+        },
+        error: null,
+        meta: {
+          requestId: "req-local",
+          traceId: "trace-local",
+        },
+        ok: true,
+      }),
+    );
+
+    await adapter.flush();
+    const recoveryResult = await adapter.recoverIssue(operation.clientMutationId);
+    const operations = await adapter.getOperations();
+
+    expect(recoveryResult).toBe("compacted");
+    expect(
+      operations.find(
+        (candidate) => candidate.clientMutationId === operation.clientMutationId,
+      )?.status,
+    ).toBe("compacted");
+    expect(await adapter.getStatus()).toMatchObject({
+      conflicted: 0,
+      failed: 0,
+    });
+  });
+
+  it("keeps permission issues retryable so auth failures are not silently hidden", async () => {
+    const adapter = makeAdapter();
+    await adapter.clear();
+    const operation = await adapter.enqueue(makeWorkspaceSnapshotOperation(42));
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      Response.json({
+        data: {
+          deduplicated: false,
+          operation: {
+            attemptCount: 1,
+            createdAt: "2026-05-27T00:00:00.000Z",
+            entityId: operation.entityId,
+            entityType: operation.entityType,
+            id: operation.clientMutationId,
+            lastErrorCode: "PERMISSION_DENIED",
+            lastErrorMessage: "Permission denied.",
+            maxAttempts: 5,
+            operationType: operation.operationType,
+            payloadHash: operation.payloadHash,
+            status: "failed",
+            updatedAt: "2026-05-27T00:00:00.000Z",
+            workspaceId: operation.workspaceId,
+          },
+        },
+        error: null,
+        meta: {
+          requestId: "req-local",
+          traceId: "trace-local",
+        },
+        ok: true,
+      }),
+    );
+
+    await adapter.flush();
+    const recoveryResult = await adapter.recoverIssue(operation.clientMutationId);
+    const operations = await adapter.getOperations();
+
+    expect(recoveryResult).toBe("queued");
+    expect(
+      operations.find(
+        (candidate) => candidate.clientMutationId === operation.clientMutationId,
+      )?.status,
+    ).toBe("queued");
+    expect(await adapter.getStatus()).toMatchObject({
+      pending: 1,
+    });
+  });
+
   it("rejects secret-bearing local queue payloads", async () => {
     const adapter = makeAdapter();
     await adapter.clear();
@@ -258,6 +467,27 @@ describe("LocalSyncQueueAdapter", () => {
         },
       }),
     ).rejects.toThrow("SYNC_SECRET_DETECTED");
+  });
+
+  it("allows workspace snapshot payloads above the standard local queue cap", async () => {
+    const adapter = makeAdapter();
+    await adapter.clear();
+    const payload = {
+      ...makeWorkspaceSnapshotOperation(51).payload,
+      snapshot: {
+        body: "x".repeat(LOCAL_SYNC_QUEUE_MAX_PAYLOAD_BYTES + 1),
+      },
+    };
+
+    const operation = await adapter.enqueue({
+      ...makeWorkspaceSnapshotOperation(51),
+      payload,
+    });
+
+    expect(operation.status).toBe("queued");
+    expect(JSON.stringify(payload).length).toBeLessThan(
+      LOCAL_SYNC_QUEUE_WORKSPACE_SNAPSHOT_MAX_PAYLOAD_BYTES,
+    );
   });
 
   it("computes stable local payload hashes", async () => {

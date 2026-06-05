@@ -1,5 +1,5 @@
 import { apiHandler } from "@/lib/backend/api/api-handler";
-import { createArtifactService } from "@/lib/backend/artifacts/artifact-service";
+import { createArtifactServiceForRequest } from "@/lib/backend/artifacts/artifact-route-service";
 import { createWorkspaceStatePermissionService } from "@/lib/backend/workspace/workspace-permission";
 import type { ArtifactGetResponse } from "@/lib/nexus-types";
 
@@ -9,21 +9,19 @@ type RouteContext = {
   params: Promise<{ artifactId: string }>;
 };
 
-const artifactService = createArtifactService();
-const permissionService = createWorkspaceStatePermissionService();
-
 export async function GET(request: Request, context: RouteContext) {
   const { artifactId } = await context.params;
 
   return apiHandler<undefined, ArtifactGetResponse>({
-    handler: ({ workspaceId }) =>
-      artifactService.getArtifact(artifactId, {
+    handler: ({ request: routeRequest, workspaceId }) =>
+      createArtifactServiceForRequest(routeRequest).getArtifact(artifactId, {
         workspaceId,
       }),
     methods: ["GET"],
     permission: {
       action: "workspace.read",
-      permissionService,
+      permissionServiceFactory: ({ request: routeRequest }) =>
+        createWorkspaceStatePermissionService({ request: routeRequest }),
       resourceId: () => artifactId,
       resourceType: "artifact",
     },

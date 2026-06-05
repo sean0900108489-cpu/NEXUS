@@ -1,20 +1,24 @@
 import type {
+  AgentModelSettings,
   ContextPacket,
   NodeExecution,
   WorkflowNodeInstance,
   WorkflowRun,
   WorkflowRuntimeEdge,
+  WorkflowRuntimeGroupRef,
   WorkflowRuntimeLiteState,
   WorkflowRuntimeNodeData,
   WorkflowRuntimeNodeStatus,
   WorkflowRuntimeNodeType,
   WorkflowRuntimeRunStatus,
+  WorkflowRuntimeTraceSyncState,
 } from "@/lib/nexus-types";
 import {
   normalizeWorkspaceComposerImageSettings,
   type WorkspaceComposerImageAspectRatio,
   type WorkspaceComposerImageQuality,
 } from "@/lib/composer/image-generation-settings";
+import { normalizeAgentModelSettings } from "@/lib/nexus-registry";
 
 import {
   WORKFLOW_RUNTIME_LITE_VERSION,
@@ -55,6 +59,22 @@ export function createWorkflowRuntimeId(prefix: string) {
       : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
   return `${prefix}_${random}`;
+}
+
+export function createWorkflowRuntimeGroupRef({
+  createdAt = new Date().toISOString(),
+  id = createWorkflowRuntimeId("wf_group"),
+  label,
+  source = "runtime-append",
+}: Partial<WorkflowRuntimeGroupRef> & {
+  id?: string;
+} = {}): WorkflowRuntimeGroupRef {
+  return {
+    createdAt,
+    id,
+    ...(label ? { label: limitConfigText(label) } : {}),
+    source,
+  };
 }
 
 export function createContextPacket({
@@ -183,10 +203,12 @@ function normalizeNode(
   const definition = getWorkflowRuntimeNodeDefinition(value.type);
   const defaults = definition.defaultData();
   const status = normalizeNodeStatus(value.status, resetInterrupted);
+  const group = normalizeWorkflowRuntimeGroupRef(value.group);
 
   return {
     data: normalizeNodeData(value.type, value.data, defaults),
     error: typeof value.error === "string" ? value.error : null,
+    ...(group ? { group } : {}),
     id: typeof value.id === "string" && value.id ? value.id : createWorkflowRuntimeId("wf_node"),
     inputSnapshot: normalizeContextPacket(value.inputSnapshot),
     outputSnapshot: normalizeContextPacket(value.outputSnapshot),
@@ -217,13 +239,18 @@ function normalizeNodeData(
 
   if (type === "model.llm") {
     const modelDefaults = defaults as WorkflowNodeInstance<"model.llm">["data"];
+    const model = typeof value.model === "string" && value.model.trim()
+      ? value.model.trim()
+      : modelDefaults.model;
+    const rawModelSettings = isRecord(value.modelSettings)
+      ? (value.modelSettings as AgentModelSettings)
+      : modelDefaults.modelSettings;
 
     return {
       ...modelDefaults,
       label: typeof value.label === "string" ? value.label : modelDefaults.label,
-      model: typeof value.model === "string" && value.model.trim()
-        ? value.model.trim()
-        : modelDefaults.model,
+      model,
+      modelSettings: normalizeAgentModelSettings(model, rawModelSettings),
       prompt: typeof value.prompt === "string"
         ? limitConfigText(value.prompt)
         : modelDefaults.prompt,
@@ -331,9 +358,11 @@ function normalizeEdge(value: unknown): WorkflowRuntimeEdge | undefined {
   ) {
     return undefined;
   }
+  const group = normalizeWorkflowRuntimeGroupRef(value.group);
 
   return {
     animated: typeof value.animated === "boolean" ? value.animated : true,
+    ...(group ? { group } : {}),
     id: value.id,
     label: typeof value.label === "string" ? value.label : undefined,
     source: value.source,
@@ -363,6 +392,8 @@ function normalizeRun(
   const interrupted =
     resetInterrupted &&
     (value.status === "queued" || value.status === "running");
+  const group = normalizeWorkflowRuntimeGroupRef(value.group);
+  const traceSync = normalizeWorkflowRuntimeTraceSyncState(value.traceSync);
 
   return {
     completedAt:
@@ -382,10 +413,82 @@ function normalizeRun(
           .map((execution) => normalizeNodeExecution(execution, resetInterrupted))
           .filter((execution): execution is NodeExecution => Boolean(execution))
       : [],
+    ...(group ? { group } : {}),
+    ...(traceSync ? { traceSync } : {}),
     runId: value.runId,
     startedAt: value.startedAt,
     status,
     workflowId: value.workflowId,
+  };
+}
+
+function normalizeWorkflowRuntimeTraceSyncState(
+  value: unknown,
+): WorkflowRuntimeTraceSyncState | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const status =
+    value.status === "syncing" ||
+    value.status === "synced" ||
+    value.status === "failed" ||
+    value.status === "skipped"
+      ? value.status
+      : undefined;
+
+  if (!status) {
+    return undefined;
+  }
+
+  return {
+    ...(typeof value.attemptedAt === "string" && value.attemptedAt.trim()
+      ? { attemptedAt: value.attemptedAt.trim() }
+      : {}),
+    ...(typeof value.completedAt === "string" && value.completedAt.trim()
+      ? { completedAt: value.completedAt.trim() }
+      : {}),
+    ...(typeof value.error === "string" && value.error.trim()
+      ? { error: limitConfigText(value.error.trim()) }
+      : {}),
+    ...(typeof value.eventId === "string" && value.eventId.trim()
+      ? { eventId: value.eventId.trim() }
+      : {}),
+    ...(typeof value.eventType === "string" && value.eventType.trim()
+      ? { eventType: limitConfigText(value.eventType.trim()) }
+      : {}),
+    ...(typeof value.retryable === "boolean" ? { retryable: value.retryable } : {}),
+    ...(typeof value.traceId === "string" && value.traceId.trim()
+      ? { traceId: value.traceId.trim() }
+      : {}),
+    status,
+  };
+}
+
+export function normalizeWorkflowRuntimeGroupRef(
+  value: unknown,
+): WorkflowRuntimeGroupRef | undefined {
+  if (!isRecord(value) || typeof value.id !== "string" || !value.id.trim()) {
+    return undefined;
+  }
+
+  const source =
+    value.source === "brain" ||
+    value.source === "import" ||
+    value.source === "manual" ||
+    value.source === "runtime-append"
+      ? value.source
+      : undefined;
+
+  return {
+    id: value.id.trim(),
+    ...(typeof value.createdAt === "string" && value.createdAt.trim()
+      ? { createdAt: value.createdAt.trim() }
+      : {}),
+    ...(typeof value.label === "string" && value.label.trim()
+      ? { label: limitConfigText(value.label.trim()) }
+      : {}),
+    ...(source ? { source } : {}),
   };
 }
 

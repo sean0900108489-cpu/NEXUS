@@ -88,6 +88,13 @@ export function getBearerToken(header: string | null) {
   return token || null;
 }
 
+export function getSupabaseRequestAccessToken(request: Request) {
+  return (
+    getBearerToken(request.headers.get("authorization")) ??
+    getSupabaseCookieAccessToken(request.headers.get("cookie"))
+  );
+}
+
 function getSupabaseCookieAccessToken(header: string | null) {
   if (!header) {
     return null;

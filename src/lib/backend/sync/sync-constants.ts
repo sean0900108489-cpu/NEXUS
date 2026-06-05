@@ -4,7 +4,9 @@ import type {
   SyncOperationType,
 } from "@/lib/nexus-types";
 
-export const SYNC_PAYLOAD_MAX_BYTES = 128 * 1024;
+export const SYNC_STANDARD_PAYLOAD_MAX_BYTES = 128 * 1024;
+export const SYNC_WORKSPACE_SNAPSHOT_PAYLOAD_MAX_BYTES = 640 * 1024;
+export const SYNC_PAYLOAD_MAX_BYTES = SYNC_STANDARD_PAYLOAD_MAX_BYTES;
 export const SYNC_OPERATION_LEASE_MS = 2 * 60 * 1000;
 export const SYNC_OPERATION_DEFAULT_MAX_ATTEMPTS = 5;
 export const SYNC_RETRY_BASE_DELAYS_MS = [

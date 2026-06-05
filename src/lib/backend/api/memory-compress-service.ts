@@ -79,9 +79,9 @@ export function getBearerToken(header: string | null) {
     return "";
   }
 
-  const [scheme, token] = header.split(/\s+/, 2);
+  const bearerMatch = /^Bearer\s+([\s\S]+)$/i.exec(header.trim());
 
-  return scheme?.toLowerCase() === "bearer" ? sanitizeHeaderValue(token) : "";
+  return bearerMatch ? sanitizeHeaderValue(bearerMatch[1]) : "";
 }
 
 export function getRuntimeBearerToken(headers: Headers) {

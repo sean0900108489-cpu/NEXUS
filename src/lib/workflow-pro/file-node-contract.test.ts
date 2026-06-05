@@ -12,6 +12,25 @@ describe("Workflow Pro file node contract", () => {
       mode: "noop",
       version: "v1",
     });
+    expect(contract.compilerManifest.schema).toBe(
+      "nexus.attachmentCompilerManifest.v1",
+    );
+    expect(contract.compilerManifest.lanes.map((lane) => lane.id)).toEqual([
+      "text",
+      "image",
+      "audio",
+      "video",
+      "archive",
+      "document",
+      "binary-reference",
+    ]);
+    expect(contract.compilerManifest.lanes.find((lane) => lane.id === "audio")).toMatchObject({
+      defaultCompiler: {
+        mode: "noop",
+      },
+      futureAdapters: expect.arrayContaining(["speech-to-text"]),
+      status: "reserved",
+    });
     expect(contract.targetCapabilities).toEqual(["chat", "image", "video"]);
     expect(contract.inputActions).toEqual(
       expect.arrayContaining([

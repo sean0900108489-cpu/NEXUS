@@ -13,6 +13,8 @@ export const WORKSPACE_CLOUD_SNAPSHOT_SCHEMA_VERSION = 1;
 export const MAX_WORKSPACE_SNAPSHOT_BYTES = 512 * 1024;
 export const WORKSPACE_SNAPSHOT_DEBOUNCE_MS = 1500;
 export const WORKSPACE_SNAPSHOT_MESSAGE_REF_LIMIT = 8;
+const CLOUD_SNAPSHOT_BINARY_DATA_URL_PLACEHOLDER =
+  "[binary data URL omitted from cloud workspace snapshot]";
 
 export function serializeActiveUiStateSnapshot(
   snapshot: ActiveUiStateSnapshot,
@@ -26,13 +28,13 @@ export function serializeActiveUiStateSnapshot(
       activeAgentId: snapshot.activeAgentId,
       agents: snapshot.agents.map(serializeAgent),
       createdAt: snapshot.createdAt,
-      graph: serializeGraphForCloud(snapshot.graph),
+      graph: sanitizeCloudSnapshotValue(serializeGraphForCloud(snapshot.graph)),
       id: snapshot.id,
       name: snapshot.name,
-      panels: snapshot.panels,
+      panels: sanitizeCloudSnapshotValue(snapshot.panels),
       selectedAgentId: snapshot.selectedAgentId,
-      settings: snapshot.settings,
-      themeConfig: snapshot.themeConfig,
+      settings: sanitizeCloudSnapshotValue(snapshot.settings),
+      themeConfig: sanitizeCloudSnapshotValue(snapshot.themeConfig),
       updatedAt: snapshot.updatedAt,
     },
   };
@@ -91,6 +93,35 @@ function compactText(value: string) {
   return value.length <= WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS
     ? value
     : value.slice(0, WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS);
+}
+
+function sanitizeCloudSnapshotValue<T>(value: T): T {
+  if (typeof value === "string") {
+    return (isBinaryLikeDataUrl(value)
+      ? CLOUD_SNAPSHOT_BINARY_DATA_URL_PLACEHOLDER
+      : value) as T;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => sanitizeCloudSnapshotValue(item)) as T;
+  }
+
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).map(([key, nestedValue]) => [
+      key,
+      sanitizeCloudSnapshotValue(nestedValue),
+    ]),
+  ) as T;
+}
+
+function isBinaryLikeDataUrl(value: string) {
+  return /^data:(?:image|video|audio|application\/octet-stream|application\/pdf)/i.test(
+    value,
+  );
 }
 
 export async function computeWorkspaceSnapshotChecksum(

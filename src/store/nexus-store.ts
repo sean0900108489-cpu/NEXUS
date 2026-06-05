@@ -59,9 +59,19 @@ import {
   normalizeWorkflowRuntimeLiteState,
 } from "@/lib/workflow-runtime-lite/state";
 import {
+  appendWorkflowRuntimeGroupToRuntime,
+  type AppendWorkflowRuntimeGroupOptions,
+  type AppendWorkflowRuntimeGroupResult,
+} from "@/lib/workflow-runtime-lite/group-append";
+import {
   runWorkflowRuntimeLite,
   type WorkflowRuntimeNodePatch,
 } from "@/lib/workflow-runtime-lite/runner";
+import {
+  createWorkflowRuntimeTraceSyncError,
+  publishWorkflowRuntimeTrace,
+} from "@/lib/workflow-runtime-lite/trace-client";
+import { publishWorkflowGroupRecord } from "@/lib/workflow-pro/group-record-client";
 import { inferLinearWorkflowRuntimeLiteEdges } from "@/lib/workflow-runtime-lite/topology";
 import type {
   ActiveUiStateSnapshot,
@@ -95,6 +105,8 @@ import type {
   ToolRunResponse,
   ToolStatus,
   WorkflowNodeInstance,
+  WorkflowRuntimeGroupRef,
+  WorkflowRuntimeTraceSyncState,
   WorkflowRun,
   WorkflowRuntimeEdge,
   WorkflowRuntimeLiteState,
@@ -124,6 +136,10 @@ type WorkspaceThemeConfigUpdate = Partial<WorkspaceThemeConfig>;
 type AddWorkflowRuntimeNodeOptions = {
   position?: WorkflowRuntimePosition;
 };
+type AppendWorkflowRuntimeGroupStoreResult = Omit<
+  AppendWorkflowRuntimeGroupResult,
+  "runtimeLite"
+>;
 type RunWorkflowRuntimeLiteFlowOptions = {
   startNodeId?: string;
 };
@@ -324,14 +340,87 @@ export function collectWorkflowGeneratedArtifactVaultRecords(
   const records: ArtifactVaultRecord[] = [];
 
   for (const execution of run.nodeExecutions) {
-    const record = execution.outputSnapshot?.metadata.artifactVaultRecord;
+    const output = execution.outputSnapshot;
+    const record = output?.metadata.artifactVaultRecord;
 
     if (isArtifactVaultRecord(record)) {
       records.push(record);
+      continue;
+    }
+
+    const transientRecord = createTransientWorkflowGeneratedArtifactRecord({
+      execution,
+      run,
+    });
+
+    if (transientRecord) {
+      records.push(transientRecord);
     }
   }
 
   return records;
+}
+
+function createTransientWorkflowGeneratedArtifactRecord({
+  execution,
+  run,
+}: {
+  execution: WorkflowRun["nodeExecutions"][number];
+  run: WorkflowRun;
+}): ArtifactVaultRecord | null {
+  const output = execution.outputSnapshot;
+  const metadata = output?.metadata;
+  const generatedAsset = getRecordValue(metadata?.generatedAsset);
+  const imageUrl = getStringValue(metadata?.imageUrl);
+
+  if (!output || !imageUrl || !generatedAsset) {
+    return null;
+  }
+
+  const assetId = getStringValue(generatedAsset.assetId);
+  const sourceNodeId = output.sourceNodeId || execution.nodeId;
+
+  if (!assetId || !sourceNodeId) {
+    return null;
+  }
+
+  const prompt = getStringValue(metadata?.prompt) || output.rawText;
+  const mimeType =
+    getStringValue(generatedAsset.mimeType) ||
+    getStringValue(metadata?.mimeType) ||
+    "image/png";
+  const sizeBytes = getNumberValue(generatedAsset.sizeBytes);
+  const createdAt = output.createdAt || run.completedAt || run.startedAt;
+
+  return {
+    contentSizeBytes: sizeBytes,
+    contentUrl: imageUrl,
+    createdAt,
+    id: `transient_${assetId}`,
+    mimeType,
+    previewText: prompt,
+    sourceMessageId: `${run.runId}:${sourceNodeId}:image`,
+    status: "saved",
+    title: `Workflow image - ${prompt.slice(0, 48)}`,
+    type: "generated-image",
+    updatedAt: createdAt,
+    version: 1,
+    workspaceId: run.workflowId,
+  };
+}
+
+function getRecordValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function getStringValue(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function getNumberValue(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 export function mergeArtifactVaultRecordsIntoCache(
@@ -511,6 +600,10 @@ type NexusStore = {
     position: { x: number; y: number },
   ) => void;
   connectWorkflowRuntimeNodes: (edge: WorkflowRuntimeEdge) => void;
+  appendWorkflowRuntimeGroup: (
+    runtimeLite: WorkflowRuntimeLiteState,
+    options?: AppendWorkflowRuntimeGroupOptions,
+  ) => AppendWorkflowRuntimeGroupStoreResult;
   replaceWorkflowRuntimeLite: (runtimeLite: WorkflowRuntimeLiteState) => void;
   removeWorkflowRuntimeNodes: (nodeIds: string[]) => void;
   removeWorkflowRuntimeEdges: (edgeIds: string[]) => void;
@@ -518,6 +611,7 @@ type NexusStore = {
   runWorkflowRuntimeLiteFlow: (
     options?: RunWorkflowRuntimeLiteFlowOptions,
   ) => Promise<WorkflowRun | undefined>;
+  retryWorkflowRuntimeTraceSync: (runId: string) => Promise<WorkflowRun | undefined>;
   updateAgentTelemetry: (agentId: string, generatedCharacters: number) => void;
   clearAgentMessages: (agentId: string) => void;
   runTool: (agentId: string, toolId: string, input?: ToolExecutorInput) => Promise<void>;
@@ -1132,6 +1226,30 @@ function withActiveWorkspace(
   );
 }
 
+function withWorkspaceById(
+  state: NexusStore,
+  workspaceId: string,
+  updater: (workspace: NexusWorkspace) => NexusWorkspace,
+) {
+  const now = new Date().toISOString();
+
+  return state.workspaces.map((workspace) =>
+    workspace.id === workspaceId
+      ? (() => {
+          const updated = syncPanels({ ...updater(workspace), updatedAt: now });
+
+          return {
+            ...updated,
+            settings: {
+              ...updated.settings,
+              streamMode: resolveStreamMode(updated, state.authVault),
+            },
+          };
+        })()
+      : workspace,
+  );
+}
+
 function withAgent(
   workspace: NexusWorkspace,
   agentId: string,
@@ -1221,6 +1339,20 @@ function selectWorkflowRuntimeLiteFromStartNode(
   };
 }
 
+function resolveWorkflowRuntimeGroupForRun(
+  runtimeLite: WorkflowRuntimeLiteState,
+): WorkflowRuntimeGroupRef | undefined {
+  const groups = new Map<string, WorkflowRuntimeGroupRef>();
+
+  for (const node of runtimeLite.nodes) {
+    if (node.group?.id) {
+      groups.set(node.group.id, node.group);
+    }
+  }
+
+  return groups.size === 1 ? [...groups.values()][0] : undefined;
+}
+
 function patchWorkflowRuntimeNode(
   node: WorkflowNodeInstance,
   patch: WorkflowRuntimeNodePatch,
@@ -1249,6 +1381,21 @@ function upsertWorkflowRun(runs: WorkflowRun[], run: WorkflowRun) {
     : [run, ...runs];
 
   return limitWorkflowRuns(nextRuns);
+}
+
+function markWorkflowRunTraceSync(
+  runs: WorkflowRun[],
+  runId: string,
+  traceSync: WorkflowRuntimeTraceSyncState,
+) {
+  return runs.map((run) =>
+    run.runId === runId
+      ? {
+          ...run,
+          traceSync,
+        }
+      : run,
+  );
 }
 
 function resolveStreamMode(_workspace: NexusWorkspace | undefined, authVault?: IAuthVault): StreamMode {
@@ -3864,6 +4011,39 @@ export const useNexusStore = create<NexusStore>()(
         }));
       },
 
+      appendWorkflowRuntimeGroup: (groupRuntimeLite, options) => {
+        const state = get();
+        const workspace = getActiveWorkspace(state);
+        const result = appendWorkflowRuntimeGroupToRuntime({
+          currentRuntimeLite: workspace.graph.runtimeLite,
+          groupRuntimeLite,
+          options,
+        });
+
+        set((state) => ({
+          workspaces: withActiveWorkspace(state, (workspace) =>
+            withWorkflowRuntimeLite(workspace, () => result.runtimeLite),
+          ),
+        }));
+
+        if (result.nodeIds.length) {
+          void publishWorkflowGroupRecord({
+            groupId: result.groupId,
+            runtimeLite: result.runtimeLite,
+            userId: get().authVault.user?.id ?? "local-owner",
+            workspaceId: workspace.id,
+          }).catch((error) => {
+            console.warn("[workflow-pro] group record publish failed", error);
+          });
+        }
+
+        return {
+          edgeIds: result.edgeIds,
+          groupId: result.groupId,
+          nodeIds: result.nodeIds,
+        };
+      },
+
       replaceWorkflowRuntimeLite: (nextRuntimeLite) => {
         const normalizedRuntimeLite = normalizeWorkflowRuntimeLiteState(
           nextRuntimeLite,
@@ -3947,6 +4127,7 @@ export const useNexusStore = create<NexusStore>()(
           runtimeLite,
           options?.startNodeId?.trim(),
         );
+        const selectedWorkflowGroup = resolveWorkflowRuntimeGroupForRun(selectedRuntimeLite);
         const selectedNodeIds = new Set(
           selectedRuntimeLite.nodes.map((node) => node.id),
         );
@@ -3957,6 +4138,7 @@ export const useNexusStore = create<NexusStore>()(
           const failedRun: WorkflowRun = {
             completedAt: new Date().toISOString(),
             error: "Workflow Runtime Lite requires an existing NEXUS agent for LLM execution.",
+            ...(selectedWorkflowGroup ? { group: selectedWorkflowGroup } : {}),
             nodeExecutions: [],
             runId,
             startedAt: new Date().toISOString(),
@@ -4046,6 +4228,7 @@ export const useNexusStore = create<NexusStore>()(
           runId,
           runtimeLite: preparedSelectedRuntimeLite,
           signal: controller.signal,
+          workflowGroup: selectedWorkflowGroup,
           workflowId: workspace.id,
         }).finally(() => {
           if (workflowRuntimeAbortControllers.get(workspace.id) === controller) {
@@ -4065,9 +4248,128 @@ export const useNexusStore = create<NexusStore>()(
           }));
         }
 
+        const updateTraceSync = (traceSync: WorkflowRuntimeTraceSyncState) => {
+          set((state) => ({
+            workspaces: withWorkspaceById(state, workspace.id, (workspace) =>
+              withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+                ...runtimeLite,
+                runs: markWorkflowRunTraceSync(runtimeLite.runs, run.runId, traceSync),
+              })),
+            ),
+          }));
+        };
+        const traceAttemptedAt = new Date().toISOString();
+
+        updateTraceSync({
+          attemptedAt: traceAttemptedAt,
+          status: "syncing",
+          traceId: `workflow-runtime:${run.runId}`,
+        });
+        void publishWorkflowRuntimeTrace({
+          run,
+          userId: get().authVault.user?.id ?? "local-owner",
+          workspaceId: workspace.id,
+        })
+          .then((response) => {
+            updateTraceSync({
+              attemptedAt: traceAttemptedAt,
+              completedAt: new Date().toISOString(),
+              eventId: response.eventId,
+              eventType: response.eventType,
+              status: "synced",
+              traceId: response.traceId,
+            });
+          })
+          .catch((error) => {
+            const syncError = createWorkflowRuntimeTraceSyncError(error);
+
+            updateTraceSync({
+              attemptedAt: traceAttemptedAt,
+              completedAt: new Date().toISOString(),
+              error: syncError.error,
+              retryable: syncError.retryable,
+              status: "failed",
+              traceId: `workflow-runtime:${run.runId}`,
+            });
+          });
+
         queueWorkspaceCloudSync(getActiveWorkspace(get()));
 
         return run;
+      },
+
+      retryWorkflowRuntimeTraceSync: async (runId) => {
+        const state = get();
+        const workspace = getActiveWorkspace(state);
+        const runtimeLite = normalizeWorkflowRuntimeLiteState(
+          workspace.graph.runtimeLite ?? createEmptyWorkflowRuntimeLiteState(),
+        );
+        const run = runtimeLite.runs.find((candidate) => candidate.runId === runId);
+
+        if (!run || run.status === "queued" || run.status === "running") {
+          return run;
+        }
+
+        const traceAttemptedAt = new Date().toISOString();
+        const syncStarted: WorkflowRuntimeTraceSyncState = {
+          attemptedAt: traceAttemptedAt,
+          status: "syncing",
+          traceId: run.traceSync?.traceId ?? `workflow-runtime:${run.runId}`,
+        };
+        const updateTraceSync = (traceSync: WorkflowRuntimeTraceSyncState) => {
+          set((state) => ({
+            workspaces: withWorkspaceById(state, workspace.id, (workspace) =>
+              withWorkflowRuntimeLite(workspace, (runtimeLite) => ({
+                ...runtimeLite,
+                runs: markWorkflowRunTraceSync(runtimeLite.runs, run.runId, traceSync),
+              })),
+            ),
+          }));
+        };
+
+        updateTraceSync(syncStarted);
+
+        try {
+          const response = await publishWorkflowRuntimeTrace({
+            run,
+            userId: get().authVault.user?.id ?? "local-owner",
+            workspaceId: workspace.id,
+          });
+          const traceSync: WorkflowRuntimeTraceSyncState = {
+            attemptedAt: traceAttemptedAt,
+            completedAt: new Date().toISOString(),
+            eventId: response.eventId,
+            eventType: response.eventType,
+            status: "synced",
+            traceId: response.traceId,
+          };
+
+          updateTraceSync(traceSync);
+          queueWorkspaceCloudSync(getActiveWorkspace(get()));
+
+          return {
+            ...run,
+            traceSync,
+          };
+        } catch (error) {
+          const syncError = createWorkflowRuntimeTraceSyncError(error);
+          const traceSync: WorkflowRuntimeTraceSyncState = {
+            attemptedAt: traceAttemptedAt,
+            completedAt: new Date().toISOString(),
+            error: syncError.error,
+            retryable: syncError.retryable,
+            status: "failed",
+            traceId: run.traceSync?.traceId ?? `workflow-runtime:${run.runId}`,
+          };
+
+          updateTraceSync(traceSync);
+          queueWorkspaceCloudSync(getActiveWorkspace(get()));
+
+          return {
+            ...run,
+            traceSync,
+          };
+        }
       },
 
       updateAgentTelemetry: (agentId, generatedCharacters) => {

@@ -10,6 +10,7 @@ import {
   getNexusSupabaseAdminClient,
   hasSupabaseServiceRoleConfig,
 } from "@/lib/supabase/admin";
+import type { NexusSupabaseRequestClient } from "@/lib/supabase/request";
 import type {
   Database,
   MessageInsert,
@@ -289,10 +290,20 @@ export class SupabaseMessageRepository implements MessageRepository {
 
 const inMemoryMessageRepository = new InMemoryMessageRepository();
 
-export function createMessageRepository(): MessageRepository {
-  return hasSupabaseServiceRoleConfig()
-    ? new SupabaseMessageRepository(getNexusSupabaseAdminClient())
-    : inMemoryMessageRepository;
+export function createMessageRepository(
+  input: {
+    requestClient?: NexusSupabaseRequestClient | null;
+  } = {},
+): MessageRepository {
+  if (hasSupabaseServiceRoleConfig()) {
+    return new SupabaseMessageRepository(getNexusSupabaseAdminClient());
+  }
+
+  if (input.requestClient) {
+    return new SupabaseMessageRepository(input.requestClient);
+  }
+
+  return inMemoryMessageRepository;
 }
 
 export function getInMemoryMessageRepository() {

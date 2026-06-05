@@ -261,8 +261,9 @@ function createImageReverseFanoutBenchmark(): WorkflowProFoundationBenchmarkFixt
       ],
       execution: sequentialExecution(
         [
-          "This benchmark represents fan-out groups, but Runtime Lite executes the topological path sequentially today.",
+          "This benchmark represents fan-out groups that Runtime Lite can execute as ready-node parallel batches.",
           "Native vision input is not available yet; the reverse planner consumes image URL/artifact metadata text.",
+          "Explicit join nodes are still not available; fan-in currently merges upstream ContextPackets automatically.",
         ],
         [
           {
@@ -273,13 +274,13 @@ function createImageReverseFanoutBenchmark(): WorkflowProFoundationBenchmarkFixt
               "bench-c-llm-style-3",
             ],
             reason: "Three style instructions can be evaluated independently after reverse planning.",
-            runtimeStatus: "runtime-lite-sequential",
+            runtimeStatus: "native-parallel",
           },
           {
             id: "image-model-fanout",
             nodeIds: ["bench-c-image-1", "bench-c-image-2", "bench-c-image-3"],
             reason: "Three final image generations can be evaluated independently after style prompts.",
-            runtimeStatus: "runtime-lite-sequential",
+            runtimeStatus: "native-parallel",
           },
         ],
       ),
@@ -293,7 +294,7 @@ function createImageReverseFanoutBenchmark(): WorkflowProFoundationBenchmarkFixt
         "The JSON contract validates.",
         "Apply Preview can replace Runtime Lite.",
         "Start All reaches all three branch outputs.",
-        "The contract explicitly records current limits: runtime-lite-sequential fan-out and text-based image reference reverse planning.",
+        "The contract explicitly records current limits: automatic fan-in merge and text-based image reference reverse planning.",
       ],
     }),
     expectedScore: 10,

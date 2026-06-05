@@ -22,7 +22,8 @@ export const GET = apiHandler<undefined, SyncStatusResponse>({
   methods: ["GET"],
   permission: {
     action: "workspace.read",
-    permissionService: createWorkspaceStatePermissionService(),
+    permissionServiceFactory: ({ request: routeRequest }) =>
+      createWorkspaceStatePermissionService({ request: routeRequest }),
     resourceType: "workspace",
   },
   route: "/api/v1/sync/status",

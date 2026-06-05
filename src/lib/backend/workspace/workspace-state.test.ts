@@ -194,6 +194,80 @@ describe("WorkspaceSnapshotSerializer", () => {
     expect(cloudPacket?.truncated).toBe(true);
   });
 
+  it("omits binary data URLs from cloud workflow runtime snapshots", () => {
+    const workspace = makeWorkspace("workspace-cloud-data-url-sanitize");
+    const dataUrl = `data:image/png;base64,${"aW1hZ2U=".repeat(1024)}`;
+    const packet = createContextPacket({
+      displayText: dataUrl,
+      metadata: {
+        artifactVaultRecord: {
+          contentUrl: dataUrl,
+          id: "artifact-data-url",
+          type: "generated-image",
+          workspaceId: workspace.id,
+        },
+        imageUrl: dataUrl,
+      },
+      rawText: dataUrl,
+      runId: "run-data-url",
+      sourceNodeId: "image-node",
+    });
+
+    workspace.graph.runtimeLite = {
+      edges: [],
+      lastError: null,
+      lastRunId: "run-data-url",
+      nodes: [
+        {
+          ...createWorkflowRuntimeNode({
+            id: "image-node",
+            position: { x: 120, y: 120 },
+            type: "model.image",
+          }),
+          outputSnapshot: packet,
+          status: "success",
+        },
+      ],
+      runs: [
+        {
+          completedAt: "2026-06-03T00:02:00.000Z",
+          error: null,
+          nodeExecutions: [
+            {
+              completedAt: "2026-06-03T00:02:00.000Z",
+              nodeId: "image-node",
+              outputSnapshot: packet,
+              runId: "run-data-url",
+              startedAt: "2026-06-03T00:01:00.000Z",
+              status: "success",
+            },
+          ],
+          runId: "run-data-url",
+          startedAt: "2026-06-03T00:01:00.000Z",
+          status: "success",
+          workflowId: workspace.id,
+        },
+      ],
+      version: 1,
+    };
+
+    const payload = serializeActiveUiStateSnapshot(workspace);
+    const serialized = JSON.stringify(payload.workspace.graph.runtimeLite);
+
+    expect(serialized).not.toContain("data:image/png");
+    expect(serialized).toContain(
+      "[binary data URL omitted from cloud workspace snapshot]",
+    );
+    expect(() =>
+      new WorkspaceSnapshotValidator().validate({
+        payload,
+        schemaVersion: 1,
+        snapshotType: "active",
+        workspaceId: workspace.id,
+      }),
+    ).not.toThrow();
+  });
+
   it("computes deterministic checksums and detects unchanged payloads", async () => {
     const payload = makePayload();
     const first = await computeWorkspaceSnapshotChecksum(payload);

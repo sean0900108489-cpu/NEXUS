@@ -75,6 +75,9 @@ describe("Workflow Pro apply plan", () => {
       "input.text",
       "node.file",
     ]);
+    expect(plan.candidateRuntimeLite?.nodes.every((node) => node.status === "idle")).toBe(
+      true,
+    );
     expect(plan.operations[0]).toMatchObject({
       action: "replace-runtime-lite-preview",
       edgeDelta: 1,

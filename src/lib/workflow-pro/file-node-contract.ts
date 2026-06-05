@@ -1,6 +1,8 @@
 import {
+  createAttachmentCompilerManifest,
   NEXUS_ATTACHMENT_NOOP_COMPILER,
   NEXUS_ATTACHMENT_NOOP_TARGETS,
+  type NexusAttachmentCompilerLane,
 } from "@/lib/attachments/attachment-compiler-registry";
 import { WORKSPACE_ATTACHMENT_INPUT_ACTIONS } from "@/lib/attachments/attachment-input-actions";
 import type { AgentCapabilityType } from "@/lib/nexus-types";
@@ -11,6 +13,15 @@ export type WorkflowProFileNodeContract = {
     id: string;
     mode: "noop";
     version: string;
+  };
+  compilerManifest: {
+    lanes: Array<
+      Pick<
+        NexusAttachmentCompilerLane,
+        "acceptedMimeTypes" | "defaultCompiler" | "futureAdapters" | "id" | "label" | "packetPolicy" | "status" | "targetCapabilities"
+      >
+    >;
+    schema: "nexus.attachmentCompilerManifest.v1";
   };
   inputActions: Array<{
     id: string;
@@ -27,6 +38,8 @@ export type WorkflowProFileNodeContract = {
 };
 
 export function createWorkflowProFileNodeContract(): WorkflowProFileNodeContract {
+  const compilerManifest = createAttachmentCompilerManifest();
+
   return {
     acceptedMimeTypes: [
       "text/*",
@@ -44,6 +57,7 @@ export function createWorkflowProFileNodeContract(): WorkflowProFileNodeContract
       mode: "noop",
       version: NEXUS_ATTACHMENT_NOOP_COMPILER.version,
     },
+    compilerManifest,
     inputActions: WORKSPACE_ATTACHMENT_INPUT_ACTIONS.map((action) => ({
       id: action.id,
       label: action.label,

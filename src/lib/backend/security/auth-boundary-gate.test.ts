@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
@@ -13,6 +14,16 @@ type AuthBoundaryScanReport = {
   legacyProductionGate: {
     requiredRoutes: number;
     routesWithProductionBlock: number;
+  };
+  productionImageGenerationGate: {
+    formalRoutes: number;
+    routesWithAccessGuard: number;
+    routesWithRuntimeAuthorizationHeader: number;
+  };
+  requestScopedWorkspacePermissionGate: {
+    requiredRoutes: number;
+    routesWithFormalImageAccessGuard: number;
+    routesWithRequestScopedFactory: number;
   };
   routeInventory: {
     apiHandlerRoutes: number;
@@ -47,10 +58,34 @@ describe("V20 auth boundary gate", () => {
     expect(report.legacyProductionGate.routesWithProductionBlock).toBe(
       report.legacyProductionGate.requiredRoutes,
     );
+    expect(report.productionImageGenerationGate.routesWithAccessGuard).toBe(
+      report.productionImageGenerationGate.formalRoutes,
+    );
+    expect(report.productionImageGenerationGate.routesWithRuntimeAuthorizationHeader).toBe(
+      report.productionImageGenerationGate.formalRoutes,
+    );
+    expect(
+      report.requestScopedWorkspacePermissionGate.routesWithRequestScopedFactory +
+        report.requestScopedWorkspacePermissionGate.routesWithFormalImageAccessGuard,
+    ).toBe(report.requestScopedWorkspacePermissionGate.requiredRoutes);
     expect(report.runtimeAuthGate.usesRuntimeAuthorizationHeader).toBe(true);
     expect(report.runtimeAuthGate.usesSupabaseAuthorizationFallback).toBe(false);
     expect(report.browserStorageGate.authVaultScrubbedBeforePersist).toBe(true);
     expect(report.browserStorageGate.persistenceVersion).toBeGreaterThanOrEqual(15);
     expect(report.supabaseGate.hardeningMigrationPresent).toBe(true);
+  });
+
+  it("keeps the live probe ready for protected Vercel previews without logging the bypass secret", () => {
+    const source = readFileSync(
+      new URL("../../../../scripts/live-auth-boundary-probe.mjs", import.meta.url),
+      "utf8",
+    );
+
+    expect(source).toContain("VERCEL_AUTOMATION_BYPASS_SECRET");
+    expect(source).toContain("x-vercel-protection-bypass");
+    expect(source).toContain("platformProtectionLikely");
+    expect(source).toContain("vercelProtectionBypass");
+    expect(source).toContain('"header-present"');
+    expect(source).not.toContain("console.log(vercelProtectionBypassSecret)");
   });
 });

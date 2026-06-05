@@ -68,7 +68,109 @@ describe("workflow runtime LLM client", () => {
     expect(headers.get(NEXUS_RUNTIME_AUTHORIZATION_HEADER)).toBe("Bearer sk-test");
     expect(headers.get("Authorization")).toBeNull();
   });
+
+  it("retries when the workflow stream body aborts before tokens arrive", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.error(new Error("BodyStreamBuffer was aborted"));
+            },
+          }),
+        ),
+      )
+      .mockResolvedValueOnce(createSseResponse([
+        { type: "token", delta: "retry ok" },
+        { type: "done" },
+      ]));
+
+    vi.stubGlobal("fetch", fetcher);
+
+    const result = await executeWorkflowRuntimeLlm({
+      authVault: makeAuthVault(),
+      executionAgent: makeAgent(),
+      node: makeLlmNode(),
+      prompt: "Summarize",
+      runId: "run-test",
+      upstream: makePacket(),
+      workspace: makeWorkspace(),
+    });
+
+    expect(result.text).toBe("retry ok");
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps partial workflow stream text when body reading is interrupted after tokens", async () => {
+    let partialStreamSentToken = false;
+    const fetcher = vi.fn(async () =>
+      new Response(
+        new ReadableStream({
+          pull(controller) {
+            const encoder = new TextEncoder();
+
+            if (!partialStreamSentToken) {
+              partialStreamSentToken = true;
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({ type: "token", delta: "partial" })}\n\n`,
+                ),
+              );
+              return;
+            }
+
+            controller.error(new Error("BodyStreamBuffer was aborted"));
+          },
+        }),
+      ),
+    );
+
+    vi.stubGlobal("fetch", fetcher);
+
+    const result = await executeWorkflowRuntimeLlm({
+      authVault: makeAuthVault(),
+      executionAgent: makeAgent(),
+      node: makeLlmNode(),
+      prompt: "Summarize",
+      runId: "run-test",
+      upstream: makePacket(),
+      workspace: makeWorkspace(),
+    });
+
+    expect(result.text).toBe("partial");
+    expect(result.metadata?.streamReadWarning).toBe("BodyStreamBuffer was aborted");
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
 });
+
+function createSseResponse(events: Array<Record<string, unknown>>) {
+  const encoder = new TextEncoder();
+
+  return new Response(
+    new ReadableStream({
+      start(controller) {
+        for (const event of events) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+        }
+
+        controller.close();
+      },
+    }),
+  );
+}
+
+function makePacket() {
+  return {
+    createdAt: new Date().toISOString(),
+    displayText: "Hello",
+    id: "packet-test",
+    metadata: {},
+    rawText: "Hello",
+    runId: "run-test",
+    sourceNodeId: "input",
+  };
+}
 
 function makeAuthVault(): IAuthVault {
   return {

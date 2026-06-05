@@ -177,6 +177,70 @@ async function resolveStateSyncAccessToken() {
   }
 }
 
+async function ensureWorkspaceSessionViaSupabaseRpc(
+  input: WorkspaceSessionEnsureRequest & { userId: string },
+  accessToken: string,
+): Promise<WorkspaceSessionEnsureResponse | null> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+
+  if (!supabaseUrl || !anonKey) {
+    return null;
+  }
+
+  const response = await fetch(
+    `${supabaseUrl.replace(/\/$/, "")}/rest/v1/rpc/nexus_ensure_workspace_session`,
+    {
+      body: JSON.stringify({
+        p_preferred_workspace_id: input.preferredWorkspaceId ?? null,
+        p_preferred_workspace_name: input.preferredWorkspaceName ?? null,
+      }),
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Workspace session RPC failed with HTTP ${response.status}.`);
+  }
+
+  const payload = (await response.json().catch(() => null)) as unknown;
+  const row = Array.isArray(payload) ? payload[0] : payload;
+
+  if (!isRecord(row) || typeof row.workspace_id !== "string") {
+    throw new Error("Workspace session RPC returned an invalid payload.");
+  }
+
+  return {
+    created: row.created === true,
+    preferredWorkspaceId:
+      typeof row.preferred_workspace_id === "string"
+        ? row.preferred_workspace_id
+        : input.preferredWorkspaceId ?? null,
+    reason:
+      typeof row.reason === "string"
+        ? (row.reason as WorkspaceSessionEnsureResponse["reason"])
+        : "created_user_workspace",
+    role:
+      typeof row.role === "string"
+        ? (row.role as WorkspaceSessionEnsureResponse["role"])
+        : "owner",
+    workspaceId: row.workspace_id,
+    workspaceName:
+      typeof row.workspace_name === "string"
+        ? row.workspace_name
+        : input.preferredWorkspaceName ?? "NEXUS // AI OPS",
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 type TransactionLogger = (entry: ITransactionLog) => void;
 
 type PendingWorkspaceSnapshotSync = {
@@ -397,6 +461,7 @@ export class MockStateSyncManager implements IStateSyncManager {
 
   async ensureWorkspaceSession(
     input: WorkspaceSessionEnsureRequest & { userId: string },
+    _accessTokenOverride?: string | null,
   ): Promise<WorkspaceSessionEnsureResponse | null> {
     return {
       created: false,
@@ -1021,11 +1086,13 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
 
   async ensureWorkspaceSession(
     input: WorkspaceSessionEnsureRequest & { userId: string },
+    accessTokenOverride?: string | null,
   ): Promise<WorkspaceSessionEnsureResponse | null> {
     this.status = "syncing";
+    let accessToken: string | null = accessTokenOverride?.trim() || null;
 
     try {
-      const accessToken = await resolveStateSyncAccessToken();
+      accessToken ??= await resolveStateSyncAccessToken();
 
       if (!accessToken) {
         this.status = "idle";
@@ -1060,6 +1127,24 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
       return response;
     } catch (error) {
       logSupabaseSyncError(error);
+
+      if (accessToken) {
+        try {
+          const fallback = await ensureWorkspaceSessionViaSupabaseRpc(
+            input,
+            accessToken,
+          );
+
+          if (fallback) {
+            this.status = "idle";
+
+            return fallback;
+          }
+        } catch (fallbackError) {
+          logSupabaseSyncError(fallbackError);
+        }
+      }
+
       this.status = "idle";
 
       return null;

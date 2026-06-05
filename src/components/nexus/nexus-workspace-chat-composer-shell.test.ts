@@ -122,6 +122,7 @@ describe("Nexus workspace chat composer shell", () => {
     expect(composerSource).not.toContain('className="overflow-hidden border"');
     expect(composerSource).toContain("Select a chatroom before attaching a file.");
     expect(composerSource).toContain("attachLocalFile");
+    expect(composerSource).toContain("resolveAttachmentCompilerLane");
     expect(composerSource).toContain('"/api/v1/artifacts"');
     expect(composerSource).toContain("createNoopAttachmentCompilerMetadata");
     expect(composerSource).toContain("createWorkspaceAttachmentMessagePayload");
@@ -132,8 +133,12 @@ describe("Nexus workspace chat composer shell", () => {
     expect(composerSource).toContain("artifact.id");
     expect(composerSource).toContain("compiledArtifactId: artifact.id");
     expect(attachmentCompilerSource).toContain("nexus-attachment-noop-compiler-v1");
+    expect(attachmentCompilerSource).toContain("NEXUS_ATTACHMENT_COMPILER_LANES");
+    expect(attachmentCompilerSource).toContain("createAttachmentCompilerManifest");
+    expect(attachmentCompilerSource).toContain("resolveAttachmentCompilerLane");
     expect(attachmentCompilerSource).toContain('mode: "noop"');
     expect(attachmentCompilerSource).toContain("passthrough-reference");
+    expect(attachmentCompilerSource).toContain("attachmentCompilerLane");
     expect(attachmentCompilerSource).toContain("targetCapabilities");
   });
 
@@ -182,6 +187,7 @@ describe("Nexus workspace chat composer shell", () => {
     expect(source).toContain("onDownloadArtifact");
     expect(source).toContain("createArtifactDownloadFilename");
     expect(source).toContain("Generated asset download started");
+    expect(source).toContain('/api/v1/artifacts/${encodeURIComponent(artifact.id)}/asset');
     expect(source).toContain("downloadMediaArtifact");
     expect(source).toContain('aria-label={`Download ${artifact.type} preview`}');
     expect(source).toContain("isMockGeneratedMediaUrl");

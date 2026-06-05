@@ -8,6 +8,7 @@ import {
   WORKFLOW_RUNTIME_NODE_DEFINITIONS,
   WORKFLOW_RUNTIME_NODE_TYPES,
 } from "@/lib/workflow-runtime-lite/registry";
+import { validateWorkflowRuntimeLiteTopology } from "@/lib/workflow-runtime-lite/topology";
 
 export type WorkflowProCapabilityState = "available" | "planned";
 
@@ -53,6 +54,38 @@ export type WorkflowProRuntimeSummary = {
   nodeStatusCounts: Record<WorkflowRuntimeNodeStatus, number>;
   nodeTypeCounts: Record<WorkflowRuntimeNodeType, number>;
   runCount: number;
+};
+
+export type WorkflowProRuntimeCapabilityReport = {
+  executionPolicy: {
+    mode: "ready-parallel";
+    nativeParallelExecution: true;
+    pauseControl: "abort-signal";
+    workflowTimeout: "none";
+  };
+  graphShape: {
+    disconnectedNodeIds: string[];
+    fanInNodeIds: string[];
+    fanOutNodeIds: string[];
+    inputNodeCount: number;
+  };
+  recommendations: string[];
+  schema: "nexus.workflowPro.runtimeCapabilityReport.v1";
+  support: {
+    contextMerge: true;
+    fileNoopCompiler: true;
+    imageGenerationBoundary: true;
+    joinNode: false;
+    loops: false;
+    nativeParallelExecution: true;
+    singleStartInput: true;
+  };
+  validation: {
+    error: string | null;
+    ok: boolean;
+    runnableEdgeCount: number;
+    runnableNodeCount: number;
+  };
 };
 
 export function createWorkflowProCapabilityInventory(): WorkflowProCapabilityInventory {
@@ -136,6 +169,68 @@ export function summarizeWorkflowProRuntime(
   };
 }
 
+export function createWorkflowProRuntimeCapabilityReport(
+  runtimeLite: WorkflowRuntimeLiteState | undefined,
+): WorkflowProRuntimeCapabilityReport {
+  const nodes = runtimeLite?.nodes ?? [];
+  const edges = runtimeLite?.edges ?? [];
+  const incomingCounts = countEdgesByNode(edges, "target");
+  const outgoingCounts = countEdgesByNode(edges, "source");
+  const fanInNodeIds = nodes
+    .filter((node) => (incomingCounts.get(node.id) ?? 0) > 1)
+    .map((node) => node.id);
+  const fanOutNodeIds = nodes
+    .filter((node) => (outgoingCounts.get(node.id) ?? 0) > 1)
+    .map((node) => node.id);
+  const disconnectedNodeIds = nodes
+    .filter(
+      (node) =>
+        nodes.length > 1 &&
+        (incomingCounts.get(node.id) ?? 0) === 0 &&
+        (outgoingCounts.get(node.id) ?? 0) === 0,
+    )
+    .map((node) => node.id);
+  const validation = validateWorkflowRuntimeLiteTopology({ edges, nodes });
+  const recommendations = createRuntimeCapabilityRecommendations({
+    disconnectedNodeIds,
+    fanInNodeIds,
+    fanOutNodeIds,
+    validationError: validation.ok ? null : validation.error,
+  });
+
+  return {
+    executionPolicy: {
+      mode: "ready-parallel",
+      nativeParallelExecution: true,
+      pauseControl: "abort-signal",
+      workflowTimeout: "none",
+    },
+    graphShape: {
+      disconnectedNodeIds,
+      fanInNodeIds,
+      fanOutNodeIds,
+      inputNodeCount: nodes.filter((node) => node.type === "input.text").length,
+    },
+    recommendations,
+    schema: "nexus.workflowPro.runtimeCapabilityReport.v1",
+    support: {
+      contextMerge: true,
+      fileNoopCompiler: true,
+      imageGenerationBoundary: true,
+      joinNode: false,
+      loops: false,
+      nativeParallelExecution: true,
+      singleStartInput: true,
+    },
+    validation: {
+      error: validation.ok ? null : validation.error,
+      ok: validation.ok,
+      runnableEdgeCount: validation.ok ? validation.edges.length : 0,
+      runnableNodeCount: validation.ok ? validation.path.length : 0,
+    },
+  };
+}
+
 function createNodeTypeCountRecord(): Record<WorkflowRuntimeNodeType, number> {
   return WORKFLOW_RUNTIME_NODE_TYPES.reduce(
     (record, type) => ({
@@ -155,4 +250,61 @@ function createNodeStatusCountRecord(): Record<WorkflowRuntimeNodeStatus, number
     running: 0,
     success: 0,
   };
+}
+
+function countEdgesByNode(
+  edges: WorkflowRuntimeLiteState["edges"],
+  field: "source" | "target",
+) {
+  const counts = new Map<string, number>();
+
+  for (const edge of edges) {
+    counts.set(edge[field], (counts.get(edge[field]) ?? 0) + 1);
+  }
+
+  return counts;
+}
+
+function createRuntimeCapabilityRecommendations({
+  disconnectedNodeIds,
+  fanInNodeIds,
+  fanOutNodeIds,
+  validationError,
+}: {
+  disconnectedNodeIds: string[];
+  fanInNodeIds: string[];
+  fanOutNodeIds: string[];
+  validationError: string | null;
+}) {
+  const recommendations: string[] = [];
+
+  if (validationError) {
+    recommendations.push(`Resolve topology validation before execution: ${validationError}`);
+  }
+
+  if (fanOutNodeIds.length) {
+    recommendations.push(
+      "Fan-out branches can run as ready-node parallel batches; add an explicit join node before treating merge behavior as user-configurable.",
+    );
+  }
+
+  if (fanInNodeIds.length) {
+    recommendations.push(
+      "Fan-in currently merges ContextPackets automatically; add an explicit join node before treating merge behavior as user-configurable.",
+    );
+  }
+
+  if (disconnectedNodeIds.length) {
+    recommendations.push(
+      "Disconnected draft nodes are safe on the canvas, but a runnable workflow group should be selected from one populated input.",
+    );
+  }
+
+  if (!recommendations.length) {
+    recommendations.push(
+      "Current graph shape is compatible with RuntimeLite ready-node parallel execution.",
+    );
+  }
+
+  return recommendations;
 }

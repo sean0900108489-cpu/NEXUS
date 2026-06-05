@@ -19,6 +19,10 @@ import { InMemoryPromptRepository } from "@/lib/backend/prompts/prompt-repositor
 import { PromptService } from "@/lib/backend/prompts/prompt-service";
 
 import { SyncOperationApplier } from "./sync-operation-applier";
+import {
+  SYNC_STANDARD_PAYLOAD_MAX_BYTES,
+  SYNC_WORKSPACE_SNAPSHOT_PAYLOAD_MAX_BYTES,
+} from "./sync-constants";
 import { InMemorySyncOperationRepository } from "./sync-operation-repository";
 import { SyncQueueService } from "./sync-queue-service";
 
@@ -128,9 +132,34 @@ describe("SyncQueueService", () => {
     ).rejects.toMatchObject({ code: "SYNC_SECRET_DETECTED" });
     await expect(
       service.createOperation(
-        makeOperation({ payload: { body: "x".repeat(128 * 1024 + 1) } }),
+        makeOperation({
+          payload: { body: "x".repeat(SYNC_STANDARD_PAYLOAD_MAX_BYTES + 1) },
+        }),
       ),
     ).rejects.toMatchObject({ code: "SYNC_PAYLOAD_TOO_LARGE" });
+  });
+
+  it("allows workspace snapshot sync envelopes above the standard operation cap", async () => {
+    const service = new SyncQueueService({
+      inlineApply: false,
+      repository: new InMemorySyncOperationRepository(),
+    });
+    const input = makeOperation({
+      entityId: "workspace-sync-a",
+      entityType: "workspace",
+      operationType: "snapshot",
+      payload: {
+        body: "x".repeat(SYNC_STANDARD_PAYLOAD_MAX_BYTES + 1),
+      },
+      workspaceId: "workspace-sync-a",
+    });
+
+    const result = await service.createOperation(input, { userId: "user-owner" });
+
+    expect(result.operation.status).toBe("queued");
+    expect(JSON.stringify(input.payload).length).toBeLessThan(
+      SYNC_WORKSPACE_SNAPSHOT_PAYLOAD_MAX_BYTES,
+    );
   });
 
   it("marks transient apply failures retrying and checksum conflicts conflicted", async () => {

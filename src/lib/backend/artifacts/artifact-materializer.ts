@@ -42,13 +42,14 @@ export class ArtifactMaterializer {
     this.assertNoContentSecrets(contentText);
     this.assertNoContentSecrets(contentUrl);
 
-    const hashSource = contentText || contentUrl;
-    const contentHash = await createArtifactContentHash(hashSource);
-    const contentSizeBytes = byteSize(contentText || contentUrl);
-    const inline = Boolean(contentText) && contentSizeBytes <= ARTIFACT_CONTENT_TEXT_MAX_BYTES;
-    const previewText = createPreviewText(contentText || contentUrl);
     const redactedMetadata = this.secretBoundaryService.redact(input.metadata ?? {});
     const metadata = isRecord(redactedMetadata) ? redactedMetadata : {};
+    const hashSource = contentText || contentUrl;
+    const contentHash = await createArtifactContentHash(hashSource);
+    const contentSizeBytes =
+      readGeneratedAssetSizeBytes(metadata) ?? byteSize(contentText || contentUrl);
+    const inline = Boolean(contentText) && contentSizeBytes <= ARTIFACT_CONTENT_TEXT_MAX_BYTES;
+    const previewText = createPreviewText(contentText || contentUrl);
 
     this.secretBoundaryService.assertNoSecrets(metadata);
     this.secretBoundaryService.assertNoSecrets(previewText);
@@ -129,6 +130,20 @@ function normalizeText(value: unknown) {
 
 function byteSize(value: string) {
   return new TextEncoder().encode(value).byteLength;
+}
+
+function readGeneratedAssetSizeBytes(metadata: Record<string, unknown>) {
+  const generatedAsset = metadata.generatedAsset;
+
+  if (!isRecord(generatedAsset)) {
+    return null;
+  }
+
+  const sizeBytes = generatedAsset.sizeBytes;
+
+  return typeof sizeBytes === "number" && Number.isFinite(sizeBytes) && sizeBytes >= 0
+    ? Math.floor(sizeBytes)
+    : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

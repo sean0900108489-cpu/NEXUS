@@ -57,7 +57,7 @@ describe("executeImageAdapterForAgent", () => {
     });
   });
 
-  it("passes a browser API key as a Bearer token when one is available", async () => {
+  it("passes a browser API key through the runtime authorization header when one is available", async () => {
     const fetchCalls: Array<[RequestInfo | URL, RequestInit | undefined]> = [];
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       fetchCalls.push([input, init]);
@@ -85,13 +85,20 @@ describe("executeImageAdapterForAgent", () => {
       baseUrl: "https://api.openai.com/v1",
       prompt: "Y2K wide-leg pants",
       toolName: "Composer Image Mode",
+      userId: "user-image",
+      workspaceId: "workspace-image",
     });
 
     const [, init] = fetchCalls[0] ?? [];
     expect(init?.headers).toEqual({
-      Authorization: "Bearer sk-browser-test",
       "Content-Type": "application/json",
+      "X-Nexus-Runtime-Authorization": "Bearer sk-browser-test",
+      "X-User-Id": "user-image",
+      "X-Workspace-Id": "workspace-image",
       "x-openai-base-url": "https://api.openai.com/v1",
+    });
+    expect(JSON.parse(String(init?.body))).toMatchObject({
+      workspaceId: "workspace-image",
     });
   });
 });

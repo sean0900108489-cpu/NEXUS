@@ -1,7 +1,11 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-import { WorkflowProSurface } from "./workflow-pro-surface";
+import {
+  WorkflowProSurface,
+  type WorkflowProMode,
+  type WorkflowProSurfaceProps,
+} from "./workflow-pro-surface";
 import {
   createWorkflowProCapabilityInventory,
   summarizeWorkflowProRuntime,
@@ -40,34 +44,46 @@ const importReview = parseWorkflowProContractImportText({
   text: JSON.stringify(contractDraft),
 });
 
+function renderWorkflowProSurface(
+  overrides: Partial<WorkflowProSurfaceProps> = {},
+) {
+  return renderToStaticMarkup(
+    <WorkflowProSurface
+      agentCount={4}
+      applyPlan={applyPlan}
+      brainContext={brainContext}
+      contractDraft={contractDraft}
+      fileNodeContract={fileNodeContract}
+      generatedArtifactCount={2}
+      importReview={null}
+      inventory={inventory}
+      onApplyPlan={vi.fn()}
+      onClearImportedContract={vi.fn()}
+      onExportContract={vi.fn()}
+      onImportContractText={vi.fn()}
+      onOpenGraph={vi.fn()}
+      onOpenPanels={vi.fn()}
+      proposalDiff={proposalDiff}
+      runtimeSummary={runtimeSummary}
+      runtimeEdgeCount={1}
+      runtimeNodeCount={3}
+      workspaceName="NEXUS // TEST"
+      {...overrides}
+    />,
+  );
+}
+
 describe("WorkflowProSurface", () => {
   it("renders the Workflow Pro skeleton with contract and brain landmarks", () => {
-    const html = renderToStaticMarkup(
-      <WorkflowProSurface
-        agentCount={4}
-        applyPlan={applyPlan}
-        brainContext={brainContext}
-        contractDraft={contractDraft}
-        fileNodeContract={fileNodeContract}
-        generatedArtifactCount={2}
-        importReview={null}
-        inventory={inventory}
-        onApplyPlan={vi.fn()}
-        onClearImportedContract={vi.fn()}
-        onExportContract={vi.fn()}
-        onImportContractText={vi.fn()}
-        onOpenGraph={vi.fn()}
-        onOpenPanels={vi.fn()}
-        proposalDiff={proposalDiff}
-        runtimeSummary={runtimeSummary}
-        runtimeEdgeCount={1}
-        runtimeNodeCount={3}
-        workspaceName="NEXUS // TEST"
-      />,
-    );
+    const html = renderWorkflowProSurface();
 
     expect(html).toContain("Workflow Pro");
     expect(html).toContain("NEXUS // TEST");
+    expect(html).toContain("Active Cockpit Bay");
+    expect(html).toContain("Foundation gate");
+    expect(html).toContain("01 Load contract");
+    expect(html).toContain("02 Import review");
+    expect(html).toContain("03 Apply preview");
     expect(html).toContain("nexus.workflow.v1");
     expect(html).toContain("Workflow Brain");
     expect(html).toContain("Evidence Timeline");
@@ -91,28 +107,13 @@ describe("WorkflowProSurface", () => {
   });
 
   it("exposes explicit navigation controls back to Graph and Panels", () => {
-    const html = renderToStaticMarkup(
-      <WorkflowProSurface
-        agentCount={0}
-        applyPlan={applyPlan}
-        brainContext={brainContext}
-        contractDraft={contractDraft}
-        fileNodeContract={fileNodeContract}
-        generatedArtifactCount={0}
-        importReview={null}
-        inventory={inventory}
-        onApplyPlan={vi.fn()}
-        onClearImportedContract={vi.fn()}
-        onExportContract={vi.fn()}
-        onImportContractText={vi.fn()}
-        onOpenGraph={vi.fn()}
-        onOpenPanels={vi.fn()}
-        proposalDiff={proposalDiff}
-        runtimeSummary={runtimeSummary}
-        runtimeEdgeCount={0}
-        runtimeNodeCount={0}
-      />,
-    );
+    const html = renderWorkflowProSurface({
+      agentCount: 0,
+      generatedArtifactCount: 0,
+      runtimeEdgeCount: 0,
+      runtimeNodeCount: 0,
+      workspaceName: undefined,
+    });
 
     expect(html).toContain('aria-label="Open executable Graph workspace"');
     expect(html).toContain('aria-label="Open agent Panels workspace"');
@@ -123,29 +124,109 @@ describe("WorkflowProSurface", () => {
     expect(html).toContain('aria-label="Apply Workflow Pro preview to Graph"');
   });
 
+  it("renders a compact import status band when a contract review exists", () => {
+    const html = renderWorkflowProSurface({
+      importReview,
+    });
+
+    expect(html).toContain('aria-label="Workflow Pro import status"');
+    expect(html).toContain("Import accepted");
+    expect(html).toContain("Ready to apply preview");
+    expect(html).toContain("workflow.json");
+  });
+
+  it("renders every cockpit mode with its dedicated operational details", () => {
+    const modeExpectations: Array<{
+      expectedText: string[];
+      mode: WorkflowProMode;
+    }> = [
+      {
+        expectedText: ["Foundation gate", "Workflow intent", "Apply safety"],
+        mode: "Design",
+      },
+      {
+        expectedText: [
+          "System brief",
+          "Required output",
+          "Missing capability signal",
+        ],
+        mode: "Brain",
+      },
+      {
+        expectedText: [
+          "Run ledger",
+          "Node status counts",
+          "Last error",
+          "Evidence gate summary",
+          "Foundation 30/30",
+          "Account matrix source guard",
+          "preview green",
+          "R92 deployed a clean protected preview",
+          "Generated image route guard",
+          "protected",
+          "R91 makes /api/image-gen a formal protected production route",
+          "Account matrix screen run",
+          "harness ready",
+          "Current score is 0/100 pending",
+          "Preview ready gaps",
+          "run owner/editor/viewer/new-account screen matrix",
+          "verify non-owner generated media download",
+        ],
+        mode: "Evidence",
+      },
+      {
+        expectedText: [
+          "Proposal review queue",
+          "No pending review",
+          "Brain proposal intake",
+          "Workflow Brain proposal JSON paste input",
+          "Validate Brain Proposal",
+          "Import optimized workflow",
+          "Editing after validation locks import until",
+        ],
+        mode: "Proposal Diff",
+      },
+      {
+        expectedText: [
+          "File pipeline path",
+          "Compiled artifact",
+          "ContextPacket attachments",
+        ],
+        mode: "Files",
+      },
+      {
+        expectedText: [
+          "Capability registry",
+          "Node capabilities",
+          "Compiler capabilities",
+          "Artifact policies",
+          "compiler.file.transform",
+        ],
+        mode: "Settings",
+      },
+    ];
+
+    for (const { expectedText, mode } of modeExpectations) {
+      const html = renderWorkflowProSurface({ initialMode: mode });
+
+      expect(html).toContain(`Open Workflow Pro ${mode} bay`);
+      expect(html).toContain(mode);
+
+      for (const text of expectedText) {
+        expect(html).toContain(text);
+      }
+    }
+  });
+
   it("renders accepted import review state without applying it to Graph", () => {
-    const html = renderToStaticMarkup(
-      <WorkflowProSurface
-        agentCount={0}
-        applyPlan={applyPlan}
-        brainContext={brainContext}
-        contractDraft={contractDraft}
-        fileNodeContract={fileNodeContract}
-        generatedArtifactCount={0}
-        importReview={importReview}
-        inventory={inventory}
-        onApplyPlan={vi.fn()}
-        onClearImportedContract={vi.fn()}
-        onExportContract={vi.fn()}
-        onImportContractText={vi.fn()}
-        onOpenGraph={vi.fn()}
-        onOpenPanels={vi.fn()}
-        proposalDiff={proposalDiff}
-        runtimeSummary={runtimeSummary}
-        runtimeEdgeCount={0}
-        runtimeNodeCount={0}
-      />,
-    );
+    const html = renderWorkflowProSurface({
+      agentCount: 0,
+      generatedArtifactCount: 0,
+      importReview,
+      runtimeEdgeCount: 0,
+      runtimeNodeCount: 0,
+      workspaceName: undefined,
+    });
 
     expect(html).toContain("Import Review");
     expect(html).toContain("workflow.json");

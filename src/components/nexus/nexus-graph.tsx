@@ -46,6 +46,14 @@ import {
 
 import { getDefaultGraphPosition } from "@/lib/nexus-defaults";
 import {
+  WORKFLOW_BRAIN_DRAFT_TEMPLATES,
+  inferWorkflowBrainDraftTemplateId,
+  serializeWorkflowBrainDraftTemplate,
+  type WorkflowBrainDraftTemplateId,
+} from "@/lib/workflow-pro/brain-draft-templates";
+import type { WorkflowGraphBrainPlannerResult } from "@/lib/workflow-pro/graph-brain-planner";
+import { createWorkflowProRuntimeEvidenceReport } from "@/lib/workflow-pro/runtime-evidence";
+import {
   getModelCapabilityProfile,
   getModelOption,
   getModelOptionsForCapability,
@@ -81,6 +89,8 @@ type AgentNodeData = {
   agent: NexusAgent;
   onOpenAgent: (agentId: string) => void;
   onRemoveAgent: (agentId: string) => void;
+  readOnly?: boolean;
+  readOnlyMessage?: string;
 };
 type RuntimeNodeData = {
   node: WorkflowNodeInstance;
@@ -93,12 +103,15 @@ type RuntimeNodeData = {
     nodeId: string,
     data: Partial<WorkflowRuntimeNodeData>,
   ) => void;
+  readOnly?: boolean;
+  readOnlyMessage?: string;
   workflowRunning: boolean;
 };
 type AgentEdgeData = {
   label?: string;
   onRemoveEdge: (edgeId: string) => void;
   onSelectEdge: (edgeId: string) => void;
+  readOnly?: boolean;
   selected: boolean;
   sourceAgentId: string;
   targetAgentId: string;
@@ -115,6 +128,12 @@ type WorkflowGraphFeedback = {
   detail?: string | null;
   status: WorkflowRuntimeRunStatus;
   title: string;
+};
+type WorkflowBrainAppendResult = {
+  detail: string;
+  edgeCount?: number;
+  nodeCount?: number;
+  status: "accepted" | "rejected";
 };
 
 function cx(...classes: Array<string | false | null | undefined>) {
@@ -170,7 +189,7 @@ function getRuntimeNodeIcon(type: WorkflowRuntimeNodeType) {
 }
 
 function AgentNode({ data, selected }: NodeProps<AgentFlowNode>) {
-  const { agent, onOpenAgent, onRemoveAgent } = data;
+  const { agent, onOpenAgent, onRemoveAgent, readOnly, readOnlyMessage } = data;
   const active = agent.status === "thinking" || agent.status === "streaming";
   const errored = agent.status === "error";
   const capabilityType = agent.capabilities?.type ?? "chat";
@@ -263,12 +282,16 @@ function AgentNode({ data, selected }: NodeProps<AgentFlowNode>) {
         </button>
         <button
           aria-label={`Delete ${agent.callsign}`}
-          className="grid h-6 w-6 place-items-center border border-white/10 text-neutral-400 transition hover:border-neutral-300/45 hover:bg-neutral-400/10 hover:text-neutral-100 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.55))]"
+          className="grid h-6 w-6 place-items-center border border-white/10 text-neutral-400 transition hover:border-neutral-300/45 hover:bg-neutral-400/10 hover:text-neutral-100 disabled:cursor-not-allowed disabled:opacity-45 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.55))]"
+          disabled={readOnly}
           onClick={(event) => {
             event.stopPropagation();
+            if (readOnly) {
+              return;
+            }
             onRemoveAgent(agent.id);
           }}
-          title={`Delete ${agent.callsign}`}
+          title={readOnly ? readOnlyMessage : `Delete ${agent.callsign}`}
           type="button"
         >
           <X className="h-3 w-3" />
@@ -287,11 +310,13 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
     onRemoveNode,
     onRunFromInput,
     onUpdateNodeData,
+    readOnly,
+    readOnlyMessage,
     workflowRunning,
   } = data;
   const definition = getWorkflowRuntimeNodeDefinition(node.type);
   const packet = node.outputSnapshot ?? null;
-  const outputText = packet?.rawText || packet?.displayText || "";
+  const outputText = packet?.displayText || packet?.rawText || "";
   const imageUrl = getWorkflowPacketImageUrl(packet);
   const statusClass = getRuntimeStatusClass(node.status);
 
@@ -330,12 +355,16 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
           </span>
           <button
             aria-label={`Delete ${definition.label}`}
-            className="nodrag nopan grid h-7 w-7 place-items-center border border-white/10 text-neutral-400 transition hover:border-neutral-300/45 hover:bg-neutral-400/10 hover:text-neutral-100"
+            className="nodrag nopan grid h-7 w-7 place-items-center border border-white/10 text-neutral-400 transition hover:border-neutral-300/45 hover:bg-neutral-400/10 hover:text-neutral-100 disabled:cursor-not-allowed disabled:opacity-45"
+            disabled={readOnly}
             onClick={(event) => {
               event.stopPropagation();
+              if (readOnly) {
+                return;
+              }
               onRemoveNode(node.id);
             }}
-            title={`Delete ${definition.label}`}
+            title={readOnly ? readOnlyMessage : `Delete ${definition.label}`}
             type="button"
           >
             <X className="h-3.5 w-3.5" />
@@ -350,6 +379,8 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
           onPauseWorkflow={onPauseWorkflow}
           onRunFromInput={onRunFromInput}
           onUpdateNodeData={onUpdateNodeData}
+          readOnly={readOnly}
+          readOnlyMessage={readOnlyMessage}
           workflowRunning={workflowRunning}
         />
       ) : null}
@@ -358,6 +389,8 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
         <ModelRuntimeEditor
           node={node as WorkflowNodeInstance<"model.llm">}
           onUpdateNodeData={onUpdateNodeData}
+          readOnly={readOnly}
+          readOnlyMessage={readOnlyMessage}
         />
       ) : null}
 
@@ -365,6 +398,8 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
         <FileRuntimeEditor
           node={node as WorkflowNodeInstance<"node.file">}
           onUpdateNodeData={onUpdateNodeData}
+          readOnly={readOnly}
+          readOnlyMessage={readOnlyMessage}
         />
       ) : null}
 
@@ -373,6 +408,8 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
           imageUrl={imageUrl}
           node={node as WorkflowNodeInstance<"model.image">}
           onUpdateNodeData={onUpdateNodeData}
+          readOnly={readOnly}
+          readOnlyMessage={readOnlyMessage}
         />
       ) : null}
 
@@ -446,6 +483,8 @@ function InputTextRuntimeEditor({
   onPauseWorkflow,
   onRunFromInput,
   onUpdateNodeData,
+  readOnly,
+  readOnlyMessage,
   workflowRunning,
 }: {
   node: WorkflowNodeInstance<"input.text">;
@@ -456,6 +495,8 @@ function InputTextRuntimeEditor({
     nodeId: string,
     data: Partial<WorkflowRuntimeNodeData>,
   ) => void;
+  readOnly?: boolean;
+  readOnlyMessage?: string;
   workflowRunning: boolean;
 }) {
   return (
@@ -465,20 +506,23 @@ function InputTextRuntimeEditor({
           Seed Text
         </span>
         <textarea
-          className="nodrag min-h-36 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          className="nodrag min-h-36 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/55 disabled:cursor-not-allowed disabled:opacity-65 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          disabled={readOnly}
           onChange={(event) =>
             onUpdateNodeData(node.id, { text: event.currentTarget.value })
           }
           placeholder="Write the workflow input..."
           spellCheck={false}
+          title={readOnly ? readOnlyMessage : "Workflow input text"}
           value={node.data.text}
         />
       </label>
       <div className="grid grid-cols-3 gap-2">
         <button
           className="nodrag inline-flex h-8 items-center justify-center gap-1.5 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
-          disabled={workflowRunning}
+          disabled={readOnly || workflowRunning}
           onClick={() => onRunFromInput(node.id)}
+          title={readOnly ? readOnlyMessage : "Start this workflow input"}
           type="button"
         >
           <Play className="h-3 w-3" />
@@ -486,8 +530,9 @@ function InputTextRuntimeEditor({
         </button>
         <button
           className="nodrag inline-flex h-8 items-center justify-center gap-1.5 border border-white/12 bg-white/[0.045] px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-300 transition hover:border-neutral-300/35 hover:text-neutral-100 disabled:opacity-40"
-          disabled={!workflowRunning}
+          disabled={readOnly || !workflowRunning}
           onClick={onPauseWorkflow}
+          title={readOnly ? readOnlyMessage : "Pause workflow"}
           type="button"
         >
           <Pause className="h-3 w-3" />
@@ -510,14 +555,18 @@ function InputTextRuntimeEditor({
 function ModelRuntimeEditor({
   node,
   onUpdateNodeData,
+  readOnly,
+  readOnlyMessage,
 }: {
   node: WorkflowNodeInstance<"model.llm">;
   onUpdateNodeData: (
     nodeId: string,
     data: Partial<WorkflowRuntimeNodeData>,
   ) => void;
+  readOnly?: boolean;
+  readOnlyMessage?: string;
 }) {
-  const outputText = node.outputSnapshot?.rawText || node.outputSnapshot?.displayText || "";
+  const outputText = node.outputSnapshot?.displayText || node.outputSnapshot?.rawText || "";
   const showLiveOutput =
     Boolean(outputText) ||
     node.status === "running" ||
@@ -540,12 +589,14 @@ function ModelRuntimeEditor({
           Prompt
         </span>
         <textarea
-          className="nodrag min-h-24 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          className="nodrag min-h-24 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/55 disabled:cursor-not-allowed disabled:opacity-65 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          disabled={readOnly}
           onChange={(event) =>
             onUpdateNodeData(node.id, { prompt: event.currentTarget.value })
           }
           placeholder="Tell this LLM node what to do..."
           spellCheck={false}
+          title={readOnly ? readOnlyMessage : "LLM node prompt"}
           value={node.data.prompt}
         />
       </label>
@@ -554,7 +605,8 @@ function ModelRuntimeEditor({
           Model
         </span>
         <select
-          className="nodrag border border-white/10 px-2.5 py-2 font-mono text-[11px] text-neutral-100 outline-none transition focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          className="nodrag border border-white/10 px-2.5 py-2 font-mono text-[11px] text-neutral-100 outline-none transition focus:border-neutral-300/55 disabled:cursor-not-allowed disabled:opacity-65 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          disabled={readOnly}
           onChange={(event) => {
             const model = event.currentTarget.value;
 
@@ -566,6 +618,7 @@ function ModelRuntimeEditor({
               ),
             });
           }}
+          title={readOnly ? readOnlyMessage : "LLM node model"}
           value={node.data.model}
         >
           {getModelOptionsForCapability("chat").map((model) => (
@@ -583,7 +636,8 @@ function ModelRuntimeEditor({
                 Reasoning
               </span>
               <select
-                className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+                className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 disabled:cursor-not-allowed disabled:opacity-65 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+                disabled={readOnly}
                 onChange={(event) =>
                   onUpdateNodeData(node.id, {
                     modelSettings: normalizeAgentModelSettings(node.data.model, {
@@ -593,6 +647,7 @@ function ModelRuntimeEditor({
                     }),
                   })
                 }
+                title={readOnly ? readOnlyMessage : "LLM reasoning effort"}
                 value={settings.reasoningEffort}
               >
                 {reasoningEffortOptions.map((effort) => (
@@ -609,7 +664,8 @@ function ModelRuntimeEditor({
                 Detail
               </span>
               <select
-                className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+                className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 disabled:cursor-not-allowed disabled:opacity-65 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+                disabled={readOnly}
                 onChange={(event) =>
                   onUpdateNodeData(node.id, {
                     modelSettings: normalizeAgentModelSettings(node.data.model, {
@@ -619,6 +675,7 @@ function ModelRuntimeEditor({
                     }),
                   })
                 }
+                title={readOnly ? readOnlyMessage : "LLM reasoning detail"}
                 value={settings.reasoningDetail}
               >
                 {reasoningDetailOptions.map((detail) => (
@@ -664,12 +721,16 @@ function ModelRuntimeEditor({
 function FileRuntimeEditor({
   node,
   onUpdateNodeData,
+  readOnly,
+  readOnlyMessage,
 }: {
   node: WorkflowNodeInstance<"node.file">;
   onUpdateNodeData: (
     nodeId: string,
     data: Partial<WorkflowRuntimeNodeData>,
   ) => void;
+  readOnly?: boolean;
+  readOnlyMessage?: string;
 }) {
   return (
     <div className="grid gap-2">
@@ -678,12 +739,14 @@ function FileRuntimeEditor({
           File note
         </span>
         <textarea
-          className="nodrag min-h-20 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          className="nodrag min-h-20 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/55 disabled:cursor-not-allowed disabled:opacity-65 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          disabled={readOnly}
           onChange={(event) =>
             onUpdateNodeData(node.id, { note: event.currentTarget.value })
           }
           placeholder="Optional instructions for the file compiler lane..."
           spellCheck={false}
+          title={readOnly ? readOnlyMessage : "File compiler note"}
           value={node.data.note}
         />
       </label>
@@ -717,6 +780,8 @@ function ModelImageRuntimeEditor({
   imageUrl,
   node,
   onUpdateNodeData,
+  readOnly,
+  readOnlyMessage,
 }: {
   imageUrl: string;
   node: WorkflowNodeInstance<"model.image">;
@@ -724,6 +789,8 @@ function ModelImageRuntimeEditor({
     nodeId: string,
     data: Partial<WorkflowRuntimeNodeData>,
   ) => void;
+  readOnly?: boolean;
+  readOnlyMessage?: string;
 }) {
   const outputText = node.outputSnapshot?.displayText || node.outputSnapshot?.rawText || "";
   const showLiveOutput =
@@ -739,12 +806,14 @@ function ModelImageRuntimeEditor({
           Prompt add-on
         </span>
         <textarea
-          className="nodrag min-h-20 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          className="nodrag min-h-20 resize-none border border-white/10 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/55 disabled:cursor-not-allowed disabled:opacity-65 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+          disabled={readOnly}
           onChange={(event) =>
             onUpdateNodeData(node.id, { prompt: event.currentTarget.value })
           }
           placeholder="Optional style or production notes..."
           spellCheck={false}
+          title={readOnly ? readOnlyMessage : "Image node prompt add-on"}
           value={node.data.prompt}
         />
       </label>
@@ -754,10 +823,12 @@ function ModelImageRuntimeEditor({
             Model
           </span>
           <select
-            className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+            className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 disabled:cursor-not-allowed disabled:opacity-65 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+            disabled={readOnly}
             onChange={(event) =>
               onUpdateNodeData(node.id, { modelId: event.currentTarget.value })
             }
+            title={readOnly ? readOnlyMessage : "Image model"}
             value={node.data.modelId}
           >
             {WORKSPACE_COMPOSER_IMAGE_MODEL_OPTIONS.map((option) => (
@@ -772,12 +843,14 @@ function ModelImageRuntimeEditor({
             Quality
           </span>
           <select
-            className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+            className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 disabled:cursor-not-allowed disabled:opacity-65 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+            disabled={readOnly}
             onChange={(event) =>
               onUpdateNodeData(node.id, {
                 quality: event.currentTarget.value as WorkspaceComposerImageQuality,
               })
             }
+            title={readOnly ? readOnlyMessage : "Image quality"}
             value={node.data.quality}
           >
             {WORKSPACE_COMPOSER_IMAGE_QUALITY_OPTIONS.map((option) => (
@@ -792,12 +865,14 @@ function ModelImageRuntimeEditor({
             Ratio
           </span>
           <select
-            className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+            className="nodrag min-w-0 border border-white/10 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 disabled:cursor-not-allowed disabled:opacity-65 [background:var(--nexus-layout-panel-muted-bg,rgba(0,0,0,0.35))]"
+            disabled={readOnly}
             onChange={(event) =>
               onUpdateNodeData(node.id, {
                 aspectRatio: event.currentTarget.value as WorkspaceComposerImageAspectRatio,
               })
             }
+            title={readOnly ? readOnlyMessage : "Image aspect ratio"}
             value={node.data.aspectRatio}
           >
             {WORKSPACE_COMPOSER_IMAGE_ASPECT_RATIO_OPTIONS.map((option) => (
@@ -923,28 +998,30 @@ function BlueprintEdge({
           </text>
         </g>
       ) : null}
-      <g
-        aria-label="Delete edge"
-        className="nexus-edge-delete nodrag nopan"
-        onClick={(event) => {
-          event.stopPropagation();
-          data?.onRemoveEdge(id);
-        }}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
+      {data?.readOnly ? null : (
+        <g
+          aria-label="Delete edge"
+          className="nexus-edge-delete nodrag nopan"
+          onClick={(event) => {
+            event.stopPropagation();
             data?.onRemoveEdge(id);
-          }
-        }}
-        role="button"
-        tabIndex={0}
-        transform={`translate(${labelX}, ${labelY})`}
-      >
-        <circle r="11" />
-        <text dy="3.5" textAnchor="middle">
-          X
-        </text>
-      </g>
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              data?.onRemoveEdge(id);
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          transform={`translate(${labelX}, ${labelY})`}
+        >
+          <circle r="11" />
+          <text dy="3.5" textAnchor="middle">
+            X
+          </text>
+        </g>
+      )}
     </g>
   );
 }
@@ -965,6 +1042,7 @@ export function NexusGraph({
   agents,
   graph,
   onAddWorkflowNode,
+  onAppendWorkflowContractText,
   onConnectAgents,
   onConnectWorkflowNodes,
   onCopyWorkflowInput,
@@ -982,6 +1060,9 @@ export function NexusGraph({
   onUpdateWorkflowNodeData,
   onUpdateWorkflowNodePosition,
   onUpdateNodePosition,
+  readOnly,
+  readOnlyMessage,
+  workspaceRole,
   workflowFeedback,
   workflowRunning,
   generatedArtifacts,
@@ -993,6 +1074,10 @@ export function NexusGraph({
     type: WorkflowRuntimeNodeType,
     position?: { x: number; y: number },
   ) => void;
+  onAppendWorkflowContractText: (input: {
+    sourceName: string;
+    text: string;
+  }) => WorkflowBrainAppendResult;
   onConnectAgents: (edge: WorkspaceGraphEdge) => void;
   onConnectWorkflowNodes: (edge: WorkflowRuntimeEdge) => void;
   onCopyWorkflowInput: (nodeId: string) => void;
@@ -1016,6 +1101,9 @@ export function NexusGraph({
     position: { x: number; y: number },
   ) => void;
   onUpdateNodePosition: (agentId: string, position: { x: number; y: number }) => void;
+  readOnly?: boolean;
+  readOnlyMessage?: string;
+  workspaceRole?: string;
   workflowFeedback?: WorkflowGraphFeedback | null;
   workflowRunning?: boolean;
 }) {
@@ -1033,6 +1121,7 @@ export function NexusGraph({
     [runtimeLite?.nodes],
   );
   const [selectedEdgeIds, setSelectedEdgeIds] = useState<string[]>([]);
+  const [workflowBrainOpen, setWorkflowBrainOpen] = useState(false);
   const graphContainerRef = useRef<HTMLDivElement | null>(null);
   const [flowInstance, setFlowInstance] = useState<ReactFlowInstance<
     AgentFlowNode | RuntimeFlowNode,
@@ -1056,6 +1145,8 @@ export function NexusGraph({
             agent,
             onOpenAgent,
             onRemoveAgent,
+            readOnly,
+            readOnlyMessage,
           },
         };
       });
@@ -1072,6 +1163,8 @@ export function NexusGraph({
             onRemoveNode: (nodeId: string) => onRemoveWorkflowNodes([nodeId]),
             onRunFromInput: onRunWorkflowFromInput,
             onUpdateNodeData: onUpdateWorkflowNodeData,
+            readOnly,
+            readOnlyMessage,
             workflowRunning: Boolean(workflowRunning),
           },
         }),
@@ -1090,6 +1183,8 @@ export function NexusGraph({
       onRemoveWorkflowNodes,
       onRunWorkflowFromInput,
       onUpdateWorkflowNodeData,
+      readOnly,
+      readOnlyMessage,
       runtimeLite?.nodes,
       workflowRunning,
     ],
@@ -1126,6 +1221,7 @@ export function NexusGraph({
             label: edge.label,
             onRemoveEdge: (edgeId: string) => onRemoveEdges([edgeId]),
             onSelectEdge: (edgeId: string) => setSelectedEdgeIds([edgeId]),
+            readOnly,
             selected: selectedEdgeIds.includes(edge.id),
             sourceAgentId: edge.sourceAgentId,
             targetAgentId: edge.targetAgentId,
@@ -1156,6 +1252,7 @@ export function NexusGraph({
             label: edge.label,
             onRemoveEdge: (edgeId: string) => onRemoveWorkflowEdges([edgeId]),
             onSelectEdge: (edgeId: string) => setSelectedEdgeIds([edgeId]),
+            readOnly,
             selected: selectedEdgeIds.includes(edge.id),
             sourceAgentId: edge.source,
             targetAgentId: edge.target,
@@ -1169,6 +1266,7 @@ export function NexusGraph({
       graph.edges,
       onRemoveEdges,
       onRemoveWorkflowEdges,
+      readOnly,
       runtimeLite?.edges,
       runtimeNodeById,
       selectedEdgeIds,
@@ -1231,6 +1329,11 @@ export function NexusGraph({
         return;
       }
 
+      if (readOnly) {
+        event.preventDefault();
+        return;
+      }
+
       event.preventDefault();
       removeEdgesByIds(selectedEdgeIds);
       setSelectedEdgeIds([]);
@@ -1241,9 +1344,13 @@ export function NexusGraph({
     return () => {
       window.removeEventListener("keydown", deleteSelectedEdges);
     };
-  }, [removeEdgesByIds, selectedEdgeIds]);
+  }, [readOnly, removeEdgesByIds, selectedEdgeIds]);
 
   const onNodesChange = (changes: NodeChange<AgentFlowNode | RuntimeFlowNode>[]) => {
+    if (readOnly && changes.some((change) => change.type === "remove")) {
+      return;
+    }
+
     const removedAgentIds = changes
       .filter((change) => change.type === "remove")
       .filter((change) => agentById.has(change.id))
@@ -1266,6 +1373,10 @@ export function NexusGraph({
   };
 
   const onEdgesChange = (changes: EdgeChange<AgentFlowEdge>[]) => {
+    if (readOnly && changes.some((change) => change.type === "remove")) {
+      return;
+    }
+
     const removedIds = changes
       .filter((change) => change.type === "remove")
       .map((change) => change.id);
@@ -1279,6 +1390,10 @@ export function NexusGraph({
   };
 
   const onConnect = (connection: Connection) => {
+    if (readOnly) {
+      return;
+    }
+
     if (!connection.source || !connection.target || connection.source === connection.target) {
       return;
     }
@@ -1313,6 +1428,10 @@ export function NexusGraph({
   }, [flowInstance]);
 
   const addWorkflowNodeAtCenter = useCallback((type: WorkflowRuntimeNodeType) => {
+    if (readOnly) {
+      return;
+    }
+
     const bounds = graphContainerRef.current?.getBoundingClientRect();
     const position = bounds
       ? toWorkflowPosition({
@@ -1322,9 +1441,13 @@ export function NexusGraph({
       : undefined;
 
     onAddWorkflowNode(type, position);
-  }, [onAddWorkflowNode, toWorkflowPosition]);
+  }, [onAddWorkflowNode, readOnly, toWorkflowPosition]);
 
   const handleWorkflowNodeDrop = useCallback((event: ReactDragEvent<HTMLDivElement>) => {
+    if (readOnly) {
+      return;
+    }
+
     const type = event.dataTransfer.getData("application/x-nexus-workflow-node");
 
     if (!isWorkflowRuntimeNodeType(type)) {
@@ -1339,14 +1462,19 @@ export function NexusGraph({
         y: event.clientY,
       }),
     );
-  }, [onAddWorkflowNode, toWorkflowPosition]);
+  }, [onAddWorkflowNode, readOnly, toWorkflowPosition]);
 
   const handleWorkflowNodeDragOver = useCallback(
     (event: ReactDragEvent<HTMLDivElement>) => {
+      if (readOnly) {
+        event.dataTransfer.dropEffect = "none";
+        return;
+      }
+
       event.preventDefault();
       event.dataTransfer.dropEffect = "copy";
     },
-    [],
+    [readOnly],
   );
 
   return (
@@ -1370,7 +1498,7 @@ export function NexusGraph({
             strokeWidth: 1.8,
           },
         }}
-        deleteKeyCode={["Backspace", "Delete"]}
+        deleteKeyCode={readOnly ? null : ["Backspace", "Delete"]}
         edges={edges}
         edgeTypes={edgeTypes}
         fitView
@@ -1378,7 +1506,8 @@ export function NexusGraph({
         minZoom={0.25}
         nodeTypes={nodeTypes}
         nodes={nodes}
-        nodesDraggable
+        nodesConnectable={!readOnly}
+        nodesDraggable={!readOnly}
         onConnect={onConnect}
         onEdgeClick={(event, edge) => {
           event.stopPropagation();
@@ -1406,38 +1535,57 @@ export function NexusGraph({
         proOptions={{ hideAttribution: true }}
       >
         <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-24px)] flex-wrap items-start gap-2">
+          {readOnly ? (
+            <div
+              className="pointer-events-auto inline-flex h-8 items-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md"
+              title={readOnlyMessage}
+            >
+              <span>{workspaceRole ?? "viewer"} read only</span>
+            </div>
+          ) : null}
           <WorkflowGraphAction
+            disabled={readOnly}
+            disabledReason={readOnlyMessage}
             icon={<Type className="h-3.5 w-3.5" />}
             label="Add Input"
             nodeType="input.text"
             onClick={() => addWorkflowNodeAtCenter("input.text")}
           />
           <WorkflowGraphAction
+            disabled={readOnly}
+            disabledReason={readOnlyMessage}
             icon={<BrainCircuit className="h-3.5 w-3.5" />}
             label="Add LLM"
             nodeType="model.llm"
             onClick={() => addWorkflowNodeAtCenter("model.llm")}
           />
           <WorkflowGraphAction
+            disabled={readOnly}
+            disabledReason={readOnlyMessage}
             icon={<Paperclip className="h-3.5 w-3.5" />}
             label="Add File"
             nodeType="node.file"
             onClick={() => addWorkflowNodeAtCenter("node.file")}
           />
           <WorkflowGraphAction
+            disabled={readOnly}
+            disabledReason={readOnlyMessage}
             icon={<ImageIcon className="h-3.5 w-3.5" />}
             label="Add Image"
             nodeType="model.image"
             onClick={() => addWorkflowNodeAtCenter("model.image")}
           />
           <WorkflowGraphAction
+            disabled={readOnly}
+            disabledReason={readOnlyMessage}
             icon={<FileText className="h-3.5 w-3.5" />}
             label="Add Output"
             nodeType="output.text"
             onClick={() => addWorkflowNodeAtCenter("output.text")}
           />
           <WorkflowGraphAction
-            disabled={workflowRunning}
+            disabled={readOnly || workflowRunning}
+            disabledReason={readOnly ? readOnlyMessage : undefined}
             icon={<Play className="h-3.5 w-3.5" />}
             label={workflowRunning ? "Running" : "Start All"}
             onClick={onRunWorkflow}
@@ -1446,8 +1594,24 @@ export function NexusGraph({
             artifacts={generatedArtifacts ?? []}
             onDownloadArtifact={onDownloadArtifact}
           />
+          <WorkflowGraphAction
+            disabled={readOnly}
+            disabledReason={readOnlyMessage}
+            icon={<BrainCircuit className="h-3.5 w-3.5" />}
+            label="Brain"
+            onClick={() => setWorkflowBrainOpen((current) => !current)}
+          />
           <WorkflowGraphStatus feedback={workflowFeedback} />
         </div>
+        {workflowBrainOpen ? (
+          <WorkflowGraphBrainPanel
+            onAppendWorkflowContractText={onAppendWorkflowContractText}
+            onClose={() => setWorkflowBrainOpen(false)}
+            readOnly={readOnly}
+            readOnlyMessage={readOnlyMessage}
+            runtimeLite={runtimeLite}
+          />
+        ) : null}
         <Background
           bgColor="transparent"
           color="var(--nexus-workspace-grid-primary, rgba(34, 211, 238, 0.22))"
@@ -1469,12 +1633,14 @@ export function NexusGraph({
 
 function WorkflowGraphAction({
   disabled,
+  disabledReason,
   icon,
   label,
   nodeType,
   onClick,
 }: {
   disabled?: boolean;
+  disabledReason?: string;
   icon: ReactNode;
   label: string;
   nodeType?: WorkflowRuntimeNodeType;
@@ -1485,7 +1651,13 @@ function WorkflowGraphAction({
       className="pointer-events-auto inline-flex h-8 items-center gap-2 border border-white/10 px-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-200 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md transition hover:border-neutral-300/40 hover:text-neutral-100 disabled:opacity-45 [background:var(--nexus-layout-panel-bg,rgba(2,6,23,0.82))] hover:[background:var(--nexus-layout-panel-muted-bg,rgba(34,211,238,0.1))]"
       disabled={disabled}
       draggable={Boolean(nodeType) && !disabled}
-      onClick={onClick}
+      onClick={() => {
+        if (disabled) {
+          return;
+        }
+
+        onClick();
+      }}
       onDragStart={(event) => {
         if (!nodeType) {
           return;
@@ -1494,12 +1666,567 @@ function WorkflowGraphAction({
         event.dataTransfer.effectAllowed = "copy";
         event.dataTransfer.setData("application/x-nexus-workflow-node", nodeType);
       }}
+      title={disabled ? disabledReason : label}
       type="button"
     >
       {icon}
       <span>{label}</span>
     </button>
   );
+}
+
+type WorkflowGraphBrainThreadEntry = {
+  content: string;
+  id: string;
+  role: "operator" | "architect" | "compiler" | "system";
+  status: "accepted" | "rejected";
+  title: string;
+};
+
+function createGraphBrainThreadEntry({
+  content,
+  role,
+  status,
+  title,
+}: Omit<WorkflowGraphBrainThreadEntry, "id">): WorkflowGraphBrainThreadEntry {
+  return {
+    content,
+    id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    role,
+    status,
+    title,
+  };
+}
+
+function WorkflowGraphBrainPanel({
+  onAppendWorkflowContractText,
+  onClose,
+  readOnly,
+  readOnlyMessage,
+  runtimeLite,
+}: {
+  onAppendWorkflowContractText: (input: {
+    sourceName: string;
+    text: string;
+  }) => WorkflowBrainAppendResult;
+  onClose: () => void;
+  readOnly?: boolean;
+  readOnlyMessage?: string;
+  runtimeLite?: WorkspaceGraph["runtimeLite"];
+}) {
+  const [brainThread, setBrainThread] = useState<
+    WorkflowGraphBrainThreadEntry[]
+  >([]);
+  const [description, setDescription] = useState(
+    "我把圖填在 input 傳上之後，連接兩個不同且已經設定好提示詞的 LLM，最後給我答案。",
+  );
+  const [brainResult, setBrainResult] =
+    useState<WorkflowGraphBrainPlannerResult | null>(null);
+  const [brainThinking, setBrainThinking] = useState(false);
+  const [templateId, setTemplateId] = useState<WorkflowBrainDraftTemplateId>(
+    "image-file-two-llm-answer",
+  );
+  const [contractText, setContractText] = useState(() =>
+    serializeWorkflowBrainDraftTemplate({
+      description:
+        "我把圖填在 input 傳上之後，連接兩個不同且已經設定好提示詞的 LLM，最後給我答案。",
+      templateId: "image-file-two-llm-answer",
+    }),
+  );
+  const [status, setStatus] = useState<WorkflowBrainAppendResult | null>(null);
+  const [brainError, setBrainError] = useState("");
+  const selectedTemplate =
+    WORKFLOW_BRAIN_DRAFT_TEMPLATES.find((template) => template.id === templateId) ??
+    WORKFLOW_BRAIN_DRAFT_TEMPLATES[0];
+  const runtimeEvidenceReport = useMemo(
+    () => createWorkflowProRuntimeEvidenceReport(runtimeLite),
+    [runtimeLite],
+  );
+
+  const writeDraft = useCallback(
+    (nextTemplateId: WorkflowBrainDraftTemplateId) => {
+      setTemplateId(nextTemplateId);
+      setContractText(
+        serializeWorkflowBrainDraftTemplate({
+          description,
+          templateId: nextTemplateId,
+        }),
+      );
+      setBrainResult(null);
+      setBrainError("");
+      setStatus({
+        detail: `Draft ready: ${nextTemplateId}`,
+        status: "accepted",
+      });
+    },
+    [description],
+  );
+
+  const inferDraft = useCallback(() => {
+    writeDraft(inferWorkflowBrainDraftTemplateId(description));
+  }, [description, writeDraft]);
+
+  const requestBrainDraft = useCallback(async () => {
+    setBrainThinking(true);
+    setBrainError("");
+    setStatus(null);
+
+    try {
+      const response = await fetch("/api/workflow-pro/brain-draft", {
+        body: JSON.stringify({
+          conversation: brainThread.slice(-8).map((entry) => ({
+            content: entry.content,
+            role: entry.role,
+            title: entry.title,
+          })),
+          modelSettings: {
+            modelId: "gpt-5.5",
+            reasoningDetail: "high",
+            reasoningEffort: "xhigh",
+            verbosity: "high",
+          },
+          operatorRequest: description,
+          runtimeLite: runtimeLite ?? null,
+          templateHint: "auto",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const payload = (await response.json()) as
+        | WorkflowGraphBrainPlannerResult
+        | { error?: string };
+
+      if (!response.ok) {
+        const detail = isWorkflowBrainErrorPayload(payload)
+          ? payload.error
+          : "Graph Brain request failed.";
+
+        throw new Error(detail ?? "Graph Brain request failed.");
+      }
+
+      if (isWorkflowBrainErrorPayload(payload)) {
+        throw new Error(payload.error ?? "Graph Brain request failed.");
+      }
+
+      setBrainResult(payload);
+      setTemplateId(payload.compiler.selectedTemplateId);
+      setContractText(payload.compiler.contractJson);
+      setBrainThread((current) =>
+        [
+          ...current,
+          ...payload.messages.map((message) =>
+            createGraphBrainThreadEntry({
+              content: message.content,
+              role: message.role,
+              status: "accepted",
+              title: message.title,
+            }),
+          ),
+          createGraphBrainThreadEntry({
+            content: `Ready to append as a new workflow group: ${payload.proposal.optimizedWorkflow?.nodes.length ?? 0} nodes / ${payload.proposal.optimizedWorkflow?.edges.length ?? 0} edges.`,
+            role: "system",
+            status: payload.compiler.validation.ok ? "accepted" : "rejected",
+            title: "Screen Apply Gate",
+          }),
+        ].slice(-28),
+      );
+      setStatus({
+        detail: `Brain planned ${payload.compiler.selectedTemplateId}`,
+        edgeCount: payload.proposal.optimizedWorkflow?.edges.length,
+        nodeCount: payload.proposal.optimizedWorkflow?.nodes.length,
+        status: payload.compiler.validation.ok ? "accepted" : "rejected",
+      });
+    } catch (error) {
+      const detail =
+        error instanceof Error ? error.message : "Graph Brain request failed.";
+
+      setBrainError(detail);
+      setBrainThread((current) =>
+        [
+          ...current,
+          createGraphBrainThreadEntry({
+            content: description,
+            role: "operator",
+            status: "rejected",
+            title: "Operator Request",
+          }),
+          createGraphBrainThreadEntry({
+            content: detail,
+            role: "system",
+            status: "rejected",
+            title: "Graph Brain Error",
+          }),
+        ].slice(-28),
+      );
+      setStatus({
+        detail,
+        status: "rejected",
+      });
+    } finally {
+      setBrainThinking(false);
+    }
+  }, [brainThread, description, runtimeLite]);
+
+  const appendDraft = useCallback(() => {
+    if (readOnly) {
+      setStatus({
+        detail: readOnlyMessage ?? "Workspace is read-only.",
+        status: "rejected",
+      });
+      return;
+    }
+
+    const result = onAppendWorkflowContractText({
+      sourceName: `graph-brain-${templateId}.json`,
+      text: contractText,
+    });
+    setStatus(result);
+  }, [
+    contractText,
+    onAppendWorkflowContractText,
+    readOnly,
+    readOnlyMessage,
+    templateId,
+  ]);
+
+  return (
+    <aside className="pointer-events-auto absolute right-4 top-16 z-20 grid max-h-[calc(100vh-96px)] w-[min(520px,calc(100vw-32px))] gap-3 overflow-y-auto border border-white/10 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.48)] backdrop-blur-xl [background:var(--nexus-layout-panel-bg,rgba(2,6,23,0.94))]">
+      <header className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-100">
+            <BrainCircuit className="h-3.5 w-3.5" />
+            <span>Graph Brain</span>
+          </div>
+          <div className="mt-1 flex flex-wrap gap-1.5 font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-500">
+            <span className="border border-white/10 bg-white/[0.03] px-1.5 py-0.5">
+              gpt-5.5
+            </span>
+            <span className="border border-white/10 bg-white/[0.03] px-1.5 py-0.5">
+              effort xhigh
+            </span>
+            <span className="border border-white/10 bg-white/[0.03] px-1.5 py-0.5">
+              verbosity high
+            </span>
+            <span className="border border-white/10 bg-white/[0.03] px-1.5 py-0.5">
+              detail high
+            </span>
+            <span className="border border-white/10 bg-white/[0.03] px-1.5 py-0.5">
+              append group
+            </span>
+            {brainResult ? (
+              <span className="border border-white/10 bg-white/[0.03] px-1.5 py-0.5">
+                {brainResult.source}
+              </span>
+            ) : null}
+          </div>
+        </div>
+        <button
+          aria-label="Close Graph Brain"
+          className="inline-flex h-7 w-7 items-center justify-center border border-white/10 text-neutral-400 transition hover:border-neutral-300/35 hover:text-neutral-100"
+          onClick={onClose}
+          type="button"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </header>
+
+      <label className="grid gap-1.5">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+          Request
+        </span>
+        <textarea
+          className="min-h-24 resize-y border border-white/10 bg-black/35 px-3 py-2 text-xs leading-5 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/35"
+          onChange={(event) => setDescription(event.target.value)}
+          value={description}
+        />
+      </label>
+
+      <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+        <label className="grid gap-1.5">
+          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+            Template
+          </span>
+          <select
+            className="h-9 border border-white/10 bg-black/35 px-2 font-mono text-[10px] uppercase tracking-[0.1em] text-neutral-100 outline-none focus:border-neutral-300/35"
+            onChange={(event) =>
+              writeDraft(event.target.value as WorkflowBrainDraftTemplateId)
+            }
+            value={templateId}
+          >
+            {WORKFLOW_BRAIN_DRAFT_TEMPLATES.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.title}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="flex items-end gap-2">
+          <button
+            className="inline-flex h-9 items-center gap-2 border border-white/10 px-2.5 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-200 transition hover:border-neutral-300/40 hover:text-neutral-100"
+            onClick={inferDraft}
+            type="button"
+          >
+            <BrainCircuit className="h-3.5 w-3.5" />
+            Local
+          </button>
+          <button
+            className="inline-flex h-9 items-center gap-2 border border-white/10 px-2.5 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-200 transition hover:border-neutral-300/40 hover:text-neutral-100 disabled:opacity-45"
+            disabled={brainThinking}
+            onClick={requestBrainDraft}
+            type="button"
+          >
+            <BrainCircuit className="h-3.5 w-3.5" />
+            {brainThinking ? "Thinking" : "Think"}
+          </button>
+          <button
+            className="inline-flex h-9 items-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2.5 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
+            disabled={readOnly || brainThinking}
+            onClick={appendDraft}
+            title={readOnly ? readOnlyMessage : "Append group"}
+            type="button"
+          >
+            <Play className="h-3.5 w-3.5" />
+            Append
+          </button>
+        </div>
+      </div>
+
+      <div className="border border-white/10 bg-white/[0.03] px-2 py-1.5 text-xs leading-5 text-neutral-400">
+        {selectedTemplate?.description}
+      </div>
+
+      <section className="grid gap-2 border border-white/10 bg-black/25 p-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+            Runtime Evidence
+          </div>
+          <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-600">
+            local snapshot
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="border border-white/10 bg-white/[0.03] p-2">
+            <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+              Runs
+            </div>
+            <div className="mt-1 font-mono text-lg text-neutral-100">
+              {runtimeEvidenceReport.runCount}
+            </div>
+          </div>
+          <div className="border border-white/10 bg-white/[0.03] p-2">
+            <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+              Latest
+            </div>
+            <div className="mt-1 truncate font-mono text-[11px] uppercase text-neutral-100">
+              {runtimeEvidenceReport.latestRun?.status ?? "none"}
+            </div>
+          </div>
+          <div className="border border-white/10 bg-white/[0.03] p-2">
+            <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+              Artifacts
+            </div>
+            <div className="mt-1 font-mono text-lg text-neutral-100">
+              {runtimeEvidenceReport.latestRun?.artifactCount ?? 0}
+            </div>
+          </div>
+        </div>
+        {runtimeEvidenceReport.latestRun ? (
+          <div className="border border-white/10 bg-white/[0.025] px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2 font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+              <span>{runtimeEvidenceReport.latestRun.runId}</span>
+              {runtimeEvidenceReport.latestRun.durationMs !== null ? (
+                <span>{runtimeEvidenceReport.latestRun.durationMs}ms</span>
+              ) : null}
+              <span>{runtimeEvidenceReport.timeline.length} node records</span>
+            </div>
+            <div className="mt-2 grid max-h-36 gap-1 overflow-y-auto pr-1">
+              {runtimeEvidenceReport.timeline.slice(0, 5).map((item) => (
+                <div
+                  className="grid gap-1 border border-white/10 bg-black/20 px-2 py-1.5"
+                  key={`${item.nodeId}-${item.startedAt ?? item.status}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-300">
+                      {item.nodeId}
+                    </span>
+                    <span className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-500">
+                      {item.status}
+                    </span>
+                  </div>
+                  <p className="line-clamp-2 text-[10px] leading-4 text-neutral-500">
+                    {item.error ?? item.outputPreview ?? item.inputPreview ?? "No preview"}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {runtimeEvidenceReport.warnings.length ? (
+          <div className="border border-amber-200/20 bg-amber-200/5 px-3 py-2 text-xs leading-5 text-amber-50/80">
+            {runtimeEvidenceReport.warnings[0]}
+          </div>
+        ) : null}
+      </section>
+
+      {brainThread.length || brainThinking ? (
+        <section className="grid gap-2 border border-white/10 bg-black/25 p-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+              Brain Thread
+            </div>
+            {brainThread.length ? (
+              <button
+                className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500 transition hover:text-neutral-200"
+                onClick={() => setBrainThread([])}
+                type="button"
+              >
+                Clear
+              </button>
+            ) : null}
+          </div>
+          <div className="grid max-h-52 gap-2 overflow-y-auto pr-1">
+            {brainThread.map((entry) => (
+              <article
+                className={cx(
+                  "border px-3 py-2",
+                  entry.status === "rejected"
+                    ? "border-red-300/25 bg-red-500/10"
+                    : "border-white/10 bg-white/[0.025]",
+                )}
+                key={entry.id}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                    {entry.title}
+                  </div>
+                  <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-600">
+                    {entry.role}
+                  </div>
+                </div>
+                <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-[11px] leading-5 text-neutral-300">
+                  {entry.content}
+                </p>
+              </article>
+            ))}
+            {brainThinking ? (
+              <article className="border border-white/10 bg-white/[0.025] px-3 py-2">
+                <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                  Thinking
+                </div>
+                <p className="mt-1 text-[11px] leading-5 text-neutral-300">
+                  Reading the current canvas and preparing an appendable workflow
+                  contract.
+                </p>
+              </article>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      {brainResult ? (
+        <div className="grid gap-2 border border-white/10 bg-black/25 p-2">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="border border-white/10 bg-white/[0.03] p-2">
+              <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                Understand
+              </div>
+              <div className="mt-1 font-mono text-lg text-neutral-100">
+                {brainResult.scoreTarget.brainUnderstanding}/10
+              </div>
+            </div>
+            <div className="border border-white/10 bg-white/[0.03] p-2">
+              <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                JSON
+              </div>
+              <div className="mt-1 font-mono text-lg text-neutral-100">
+                {brainResult.scoreTarget.appendableWorkflowJson}/10
+              </div>
+            </div>
+            <div className="border border-white/10 bg-white/[0.03] p-2">
+              <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                Screen
+              </div>
+              <div className="mt-1 font-mono text-lg text-neutral-100">
+                {brainResult.scoreTarget.screenTestReadiness}/10
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-2">
+            {brainResult.messages.map((message, index) => (
+              <article
+                className="border border-white/10 bg-white/[0.025] px-3 py-2"
+                key={`${message.role}-${index}`}
+              >
+                <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                  {message.title}
+                </div>
+                <p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-neutral-200">
+                  {message.content}
+                </p>
+              </article>
+            ))}
+          </div>
+          {brainResult.architect.missingCapabilities.length ? (
+            <div className="border border-amber-200/20 bg-amber-200/5 px-3 py-2">
+              <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-amber-100/80">
+                Missing capabilities
+              </div>
+              <p className="mt-1 text-xs leading-5 text-amber-50/80">
+                {brainResult.architect.missingCapabilities.join(", ")}
+              </p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {brainError ? (
+        <div className="border border-red-300/35 bg-red-500/10 px-3 py-2 text-xs leading-5 text-red-100">
+          {brainError}
+        </div>
+      ) : null}
+
+      <label className="grid gap-1.5">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+          JSON
+        </span>
+        <textarea
+          spellCheck={false}
+          className="h-56 resize-y border border-white/10 bg-black/45 px-3 py-2 font-mono text-[10px] leading-4 text-neutral-200 outline-none transition placeholder:text-neutral-700 focus:border-neutral-300/35"
+          onChange={(event) => {
+            setContractText(event.target.value);
+            setStatus(null);
+          }}
+          value={contractText}
+        />
+      </label>
+
+      {status ? (
+        <div
+          className={cx(
+            "border px-3 py-2 text-xs leading-5",
+            status.status === "accepted"
+              ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
+              : "border-red-300/35 bg-red-500/10 text-red-100",
+          )}
+        >
+          {status.detail}
+          {status.status === "accepted" && status.nodeCount !== undefined ? (
+            <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-500">
+              {status.nodeCount} nodes / {status.edgeCount ?? 0} edges
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+    </aside>
+  );
+}
+
+function isWorkflowBrainErrorPayload(
+  value: WorkflowGraphBrainPlannerResult | { error?: string },
+): value is { error?: string } {
+  return "error" in value;
 }
 
 function WorkflowGeneratedAssetMenu({

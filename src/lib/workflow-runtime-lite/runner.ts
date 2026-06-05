@@ -2,6 +2,7 @@ import type {
   ContextPacket,
   NodeExecution,
   WorkflowNodeInstance,
+  WorkflowRuntimeGroupRef,
   WorkflowRuntimeEdge,
   WorkflowRun,
   WorkflowRuntimeLiteState,
@@ -17,6 +18,7 @@ import {
   createContextPacket,
   createWorkflowRuntimeId,
 } from "./state";
+import { WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS } from "./constants";
 import { validateWorkflowRuntimeLiteTopology } from "./topology";
 
 export type WorkflowRuntimeNodePatch = Partial<
@@ -31,26 +33,31 @@ export type WorkflowRuntimeRunnerOptions = {
   callLlm: WorkflowRuntimeLlmCall;
   onNodePatch?: (nodeId: string, patch: WorkflowRuntimeNodePatch) => void;
   onRunUpdate?: (run: WorkflowRun) => void;
+  maxParallelNodes?: number;
   runId?: string;
   runtimeLite: WorkflowRuntimeLiteState;
   signal?: AbortSignal;
+  workflowGroup?: WorkflowRuntimeGroupRef;
   workflowId: string;
 };
 
 export async function runWorkflowRuntimeLite({
   callImage,
   callLlm,
+  maxParallelNodes = 1,
   onNodePatch,
   onRunUpdate,
   runId = createWorkflowRuntimeId("run"),
   runtimeLite,
   signal,
+  workflowGroup,
   workflowId,
 }: WorkflowRuntimeRunnerOptions): Promise<WorkflowRun> {
   const startedAt = new Date().toISOString();
   let run: WorkflowRun = {
     completedAt: null,
     error: null,
+    ...(workflowGroup ? { group: workflowGroup } : {}),
     nodeExecutions: [],
     runId,
     startedAt,
@@ -79,8 +86,10 @@ export async function runWorkflowRuntimeLite({
   const runtimeEdges = validation.edges;
   const incomingEdgesByTarget = groupIncomingEdges(runtimeEdges);
   const outputPacketsByNodeId = new Map<string, ContextPacket>();
+  const readyNodeBatchSize = normalizeMaxParallelNodes(maxParallelNodes);
+  const pendingNodeIds = new Set(validation.path.map((node) => node.id));
 
-  for (const node of validation.path) {
+  const executeReadyNode = async (node: WorkflowNodeInstance) => {
     let packet: ContextPacket | null = null;
 
     try {
@@ -130,12 +139,13 @@ export async function runWorkflowRuntimeLite({
       };
       onRunUpdate?.(run);
 
-      return run;
+      return false;
     }
 
+    const inputSnapshot = cloneContextPacketForRuntimeSnapshot(packet);
     const queuedExecution: NodeExecution = {
       error: null,
-      inputSnapshot: cloneContextPacket(packet),
+      inputSnapshot,
       latencyMs: null,
       nodeId: node.id,
       outputSnapshot: null,
@@ -146,7 +156,7 @@ export async function runWorkflowRuntimeLite({
     run = upsertNodeExecution(run, queuedExecution);
     onNodePatch?.(node.id, {
       error: null,
-      inputSnapshot: cloneContextPacket(packet),
+      inputSnapshot,
       outputSnapshot: null,
       status: "queued",
     });
@@ -162,7 +172,7 @@ export async function runWorkflowRuntimeLite({
 
     run = upsertNodeExecution(run, runningExecution);
     onNodePatch?.(node.id, {
-      inputSnapshot: cloneContextPacket(packet),
+      inputSnapshot,
       status: "running",
     });
     onRunUpdate?.(run);
@@ -176,7 +186,8 @@ export async function runWorkflowRuntimeLite({
         inputPacket: packet,
         node: node as never,
         onPartialOutput: (partialPacket) => {
-          const outputSnapshot = cloneContextPacket(partialPacket);
+          const outputSnapshot =
+            cloneContextPacketForRuntimeSnapshot(partialPacket);
 
           run = upsertNodeExecution(run, {
             ...runningExecution,
@@ -189,26 +200,26 @@ export async function runWorkflowRuntimeLite({
             outputSnapshot,
             status: "running",
           });
-          onRunUpdate?.(run);
         },
         runId,
         signal,
         workflowId,
       });
       const completedAt = new Date().toISOString();
+      const outputSnapshot = cloneContextPacketForRuntimeSnapshot(outputPacket);
       const successExecution: NodeExecution = {
         ...runningExecution,
         completedAt,
         latencyMs: Date.now() - latencyStart,
-        outputSnapshot: cloneContextPacket(outputPacket),
+        outputSnapshot,
         status: "success",
       };
 
       run = upsertNodeExecution(run, successExecution);
       onNodePatch?.(node.id, {
         error: null,
-        inputSnapshot: cloneContextPacket(packet),
-        outputSnapshot: cloneContextPacket(outputPacket),
+        inputSnapshot,
+        outputSnapshot,
         status: "success",
       });
       onRunUpdate?.(run);
@@ -228,7 +239,7 @@ export async function runWorkflowRuntimeLite({
       run = upsertNodeExecution(run, failedExecution);
       onNodePatch?.(node.id, {
         error: message,
-        inputSnapshot: cloneContextPacket(packet),
+        inputSnapshot,
         status: "failed",
       });
       run = markBlockedDownstreamNodes({
@@ -248,7 +259,51 @@ export async function runWorkflowRuntimeLite({
       };
       onRunUpdate?.(run);
 
+      return false;
+    }
+
+    return true;
+  };
+
+  while (pendingNodeIds.size) {
+    assertWorkflowRuntimeNotAborted(signal);
+
+    const readyNodes = validation.path.filter(
+      (node) =>
+        pendingNodeIds.has(node.id) &&
+        (incomingEdgesByTarget.get(node.id) ?? []).every((edge) =>
+          outputPacketsByNodeId.has(edge.source),
+        ),
+    );
+
+    if (!readyNodes.length) {
+      const completedAt = new Date().toISOString();
+
+      run = {
+        ...run,
+        completedAt,
+        error: "Workflow Runtime Lite could not find a ready node to execute.",
+        status: "failed",
+      };
+      onRunUpdate?.(run);
+
       return run;
+    }
+
+    for (const readyNodeBatch of chunkNodes(readyNodes, readyNodeBatchSize)) {
+      const results = await Promise.all(readyNodeBatch.map(executeReadyNode));
+
+      for (const [index, ok] of results.entries()) {
+        const node = readyNodeBatch[index];
+
+        if (ok && node) {
+          pendingNodeIds.delete(node.id);
+        }
+      }
+
+      if (results.some((ok) => !ok)) {
+        return run;
+      }
     }
   }
 
@@ -260,6 +315,50 @@ export async function runWorkflowRuntimeLite({
   onRunUpdate?.(run);
 
   return run;
+}
+
+function normalizeMaxParallelNodes(value: number) {
+  if (!Number.isFinite(value)) {
+    return 1;
+  }
+
+  return Math.max(1, Math.floor(value));
+}
+
+function chunkNodes<TNode>(nodes: TNode[], size: number) {
+  const chunks: TNode[][] = [];
+
+  for (let index = 0; index < nodes.length; index += size) {
+    chunks.push(nodes.slice(index, index + size));
+  }
+
+  return chunks;
+}
+
+function cloneContextPacketForRuntimeSnapshot(
+  packet: ContextPacket | null | undefined,
+) {
+  const snapshot = cloneContextPacket(packet);
+
+  if (!snapshot) {
+    return snapshot;
+  }
+
+  if (snapshot.rawText.length <= WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS) {
+    return snapshot;
+  }
+
+  return {
+    ...snapshot,
+    metadata: {
+      ...snapshot.metadata,
+      originalTokenEstimate: snapshot.tokenEstimate,
+      snapshotRawTextTruncated: true,
+    },
+    rawText:
+      snapshot.displayText ||
+      snapshot.rawText.slice(0, WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS),
+  };
 }
 
 function createWorkflowRuntimeAbortError() {

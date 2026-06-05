@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import type { PermissionDecision } from "../contracts/permission";
 import {
@@ -91,6 +93,12 @@ const ownerMembership: WorkspaceMembership = {
 const editorMembership: WorkspaceMembership = {
   role: "editor",
   userId: "00000000-0000-4000-8000-000000000002",
+  workspaceId: "workspace-a",
+};
+
+const adminMembership: WorkspaceMembership = {
+  role: "admin",
+  userId: "00000000-0000-4000-8000-000000000004",
   workspaceId: "workspace-a",
 };
 
@@ -215,6 +223,211 @@ describe("PermissionService", () => {
 
     expect(readDecision.decision).toBe("allow");
     expect(writeDecision.decision).toBe("deny");
+  });
+
+  it("matches the Workflow Pro account-matrix manifest for core runtime actions", async () => {
+    const manifestText = readFileSync(
+      resolve(
+        process.cwd(),
+        "docs/workflow-pro/account-matrix-preview-verification.manifest.json",
+      ),
+      "utf8",
+    );
+    const manifest = JSON.parse(manifestText) as {
+      actors: Array<{
+        id: string;
+        must: string[];
+        mustNot: string[];
+        requiredScreenBenchmarks: string[];
+      }>;
+      schema: string;
+    };
+    const liveAuditManifestText = readFileSync(
+      resolve(
+        process.cwd(),
+        "docs/workflow-pro/account-matrix-live-audit.manifest.json",
+      ),
+      "utf8",
+    );
+    const liveAuditManifest = JSON.parse(liveAuditManifestText) as {
+      advisorEvidence: {
+        security: {
+          blockingFindings: number;
+        };
+      };
+      forbiddenEvidence: string[];
+      localLiveAuthBoundaryProbe: {
+        blockingFindings: number;
+        credentialsSent: boolean;
+        destructivePayloads: boolean;
+        protectedSpoofOnly: number;
+      };
+      permissionAuditAggregate: {
+        denied: Array<{ reasonCode: string }>;
+      };
+      schema: string;
+      status: string;
+    };
+    const { service } = makePermissionService({
+      memberships: [
+        ownerMembership,
+        adminMembership,
+        editorMembership,
+        viewerMembership,
+      ],
+    });
+    const actors = new Map(manifest.actors.map((actor) => [actor.id, actor]));
+
+    expect(manifest.schema).toBe("nexus.workflowPro.accountMatrix.v1");
+    expect(liveAuditManifest.schema).toBe(
+      "nexus.workflowPro.accountMatrixLiveAudit.v1",
+    );
+    expect(liveAuditManifest.status).toBe(
+      "live-audited-screen-matrix-pending",
+    );
+    expect(liveAuditManifest.advisorEvidence.security.blockingFindings).toBe(0);
+    expect(liveAuditManifest.localLiveAuthBoundaryProbe).toMatchObject({
+      blockingFindings: 0,
+      credentialsSent: false,
+      destructivePayloads: false,
+    });
+    expect(
+      liveAuditManifest.localLiveAuthBoundaryProbe.protectedSpoofOnly,
+    ).toBeGreaterThanOrEqual(30);
+    expect(liveAuditManifest.permissionAuditAggregate.denied).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ reasonCode: "PERMISSION_DENIED" }),
+      ]),
+    );
+    expect(liveAuditManifest.forbiddenEvidence).toEqual(
+      expect.arrayContaining([
+        "accessTokens",
+        "apiKeys",
+        "refreshTokens",
+        "cookies",
+        "rawSecrets",
+        "rawActorUserIds",
+      ]),
+    );
+    expect([...actors.keys()]).toEqual([
+      "owner",
+      "admin",
+      "editor",
+      "viewer",
+      "new-authenticated-account",
+      "authenticated-non-member",
+      "spoof-only",
+      "unauthenticated",
+    ]);
+    expect(actors.get("owner")?.requiredScreenBenchmarks).toEqual([
+      "A",
+      "B",
+      "C",
+    ]);
+    expect(actors.get("editor")?.must).toContain("createGeneratedArtifact");
+    expect(actors.get("viewer")?.mustNot).toEqual(
+      expect.arrayContaining([
+        "runWorkflow",
+        "mutateGraph",
+        "saveWorkspaceState",
+        "createGeneratedArtifact",
+      ]),
+    );
+    expect(actors.get("new-authenticated-account")?.mustNot).toContain(
+      "bootstrapOwnershipOverAnotherUsersWorkspace",
+    );
+
+    const decisions = await Promise.all([
+      service.check({
+        action: "workflow_template.update",
+        resourceType: "workflow_template",
+        userId: ownerMembership.userId,
+        workspaceId: ownerMembership.workspaceId,
+      }),
+      service.check({
+        action: "artifact.create",
+        resourceType: "artifact",
+        userId: adminMembership.userId,
+        workspaceId: adminMembership.workspaceId,
+      }),
+      service.check({
+        action: "workflow_template.update",
+        resourceType: "workflow_template",
+        userId: editorMembership.userId,
+        workspaceId: editorMembership.workspaceId,
+      }),
+      service.check({
+        action: "artifact.list",
+        resourceType: "artifact",
+        userId: viewerMembership.userId,
+        workspaceId: viewerMembership.workspaceId,
+      }),
+      service.check({
+        action: "artifact.create",
+        resourceType: "artifact",
+        userId: viewerMembership.userId,
+        workspaceId: viewerMembership.workspaceId,
+      }),
+      service.check({
+        action: "workspace.save",
+        resourceType: "workspace",
+        userId: viewerMembership.userId,
+        workspaceId: viewerMembership.workspaceId,
+      }),
+      service.check({
+        action: "provider_settings.update",
+        resourceType: "provider_settings",
+        userId: editorMembership.userId,
+        workspaceId: editorMembership.workspaceId,
+      }),
+      service.check({
+        action: "membership.update",
+        resourceType: "membership",
+        userId: editorMembership.userId,
+        workspaceId: editorMembership.workspaceId,
+      }),
+      service.check({
+        action: "tool.run",
+        resourceType: "tool",
+        userId: editorMembership.userId,
+        workspaceId: editorMembership.workspaceId,
+      }),
+      service.check({
+        action: "workspace.delete",
+        resourceType: "workspace",
+        userId: adminMembership.userId,
+        workspaceId: adminMembership.workspaceId,
+      }),
+      service.check({
+        action: "workflow_template.update",
+        resourceType: "workflow_template",
+        userId: ownerMembership.userId,
+        workspaceId: "workspace-other",
+      }),
+      service.check({
+        action: "workflow_template.update",
+        resourceType: "workflow_template",
+        userId: "",
+        workspaceId: ownerMembership.workspaceId,
+      }),
+    ]);
+
+    expect(decisions.map((decision) => decision.decision)).toEqual([
+      "allow",
+      "allow",
+      "allow",
+      "allow",
+      "deny",
+      "deny",
+      "deny",
+      "deny",
+      "deny",
+      "deny",
+      "deny",
+      "deny",
+    ]);
+    expect(decisions[10]?.reasonCode).toBe("PERMISSION_DENIED");
+    expect(decisions[11]?.reasonCode).toBe("AUTH_UNAUTHENTICATED");
   });
 
   it("blocks high-risk allowed operations when audit logging fails", async () => {

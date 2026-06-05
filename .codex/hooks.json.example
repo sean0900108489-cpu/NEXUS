@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .codex/hooks/developer_audio_briefing.py",
+            "timeout": 300,
+            "statusMessage": "Generating developer audio briefing"
+          }
+        ]
+      }
+    ]
+  }
+}

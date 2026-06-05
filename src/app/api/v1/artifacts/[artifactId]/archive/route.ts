@@ -1,6 +1,6 @@
 import { apiHandler } from "@/lib/backend/api/api-handler";
 import { createRequestValidator } from "@/lib/backend/api/api-request-validator";
-import { createArtifactService } from "@/lib/backend/artifacts/artifact-service";
+import { createArtifactServiceForRequest } from "@/lib/backend/artifacts/artifact-route-service";
 import { createWorkspaceStatePermissionService } from "@/lib/backend/workspace/workspace-permission";
 import type {
   ArtifactArchiveRequest,
@@ -15,15 +15,12 @@ type RouteContext = {
   params: Promise<{ artifactId: string }>;
 };
 
-const artifactService = createArtifactService();
-const permissionService = createWorkspaceStatePermissionService();
-
 export async function POST(request: Request, context: RouteContext) {
   const { artifactId } = await context.params;
 
   return apiHandler<ArtifactArchiveRequest, ArtifactArchiveResponse>({
-    handler: ({ body, requestId, trace, traceId }) =>
-      artifactService.archiveArtifact(
+    handler: ({ body, request: routeRequest, requestId, trace, traceId }) =>
+      createArtifactServiceForRequest(routeRequest).archiveArtifact(
         artifactId,
         {
           workspaceId: body.workspaceId,
@@ -40,7 +37,8 @@ export async function POST(request: Request, context: RouteContext) {
     methods: ["POST"],
     permission: {
       action: "workspace.update",
-      permissionService,
+      permissionServiceFactory: ({ request: routeRequest }) =>
+        createWorkspaceStatePermissionService({ request: routeRequest }),
       resourceId: () => artifactId,
       resourceType: "artifact",
     },

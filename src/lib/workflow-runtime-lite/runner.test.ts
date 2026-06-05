@@ -46,6 +46,30 @@ describe("Workflow Runtime Spine Lite", () => {
     );
   });
 
+  it("preserves explicit workflow group metadata on runs", async () => {
+    const input = node("input.text", "input", { text: "Initial brief" });
+    const output = node("output.text", "output");
+    const runtime = runtimeLite([input, output], [edge(input, output)]);
+
+    const run = await runWorkflowRuntimeLite({
+      callLlm: vi.fn(),
+      runtimeLite: runtime,
+      workflowGroup: {
+        id: "workflow-explicit",
+        label: "Explicit Group",
+        source: "brain",
+      },
+      workflowId: "workspace-test",
+    });
+
+    expect(run.status).toBe("success");
+    expect(run.group).toMatchObject({
+      id: "workflow-explicit",
+      label: "Explicit Group",
+      source: "brain",
+    });
+  });
+
   it("passes LLM A output through Output A into LLM B and Output B", async () => {
     const input = node("input.text", "input", { text: "Alpha" });
     const llmA = node("model.llm", "llm-a", { prompt: "A" });
@@ -84,7 +108,7 @@ describe("Workflow Runtime Spine Lite", () => {
     );
   });
 
-  it("runs fan-out and fan-in workflows in topological order", async () => {
+  it("runs fan-out and fan-in workflows through ready-node batches", async () => {
     const input = node("input.text", "input");
     const llmA = node("model.llm", "llm-a");
     const llmB = node("model.llm", "llm-b");
@@ -116,12 +140,95 @@ describe("Workflow Runtime Spine Lite", () => {
     });
 
     expect(run.status).toBe("success");
-    expect(upstreamSeen[0]).toBe("llm-a:");
-    expect(upstreamSeen[1]).toBe("llm-b:");
-    expect(upstreamSeen[2]).toContain("merge:[Upstream 1]");
-    expect(upstreamSeen[2]).toContain("llm-a<-");
-    expect(upstreamSeen[2]).toContain("llm-b<-");
+    expect(upstreamSeen).toEqual(
+      expect.arrayContaining(["llm-a:", "llm-b:"]),
+    );
+    const mergeInput = upstreamSeen.find((entry) => entry.startsWith("merge:"));
+    expect(mergeInput).toContain("merge:[Upstream 1]");
+    expect(mergeInput).toContain("llm-a<-");
+    expect(mergeInput).toContain("llm-b<-");
     expect(state.get("output")?.outputSnapshot?.rawText).toContain("merge<-");
+  });
+
+  it("starts independent fan-out nodes before waiting for the slow sibling to complete", async () => {
+    const input = node("input.text", "input");
+    const llmA = node("model.llm", "llm-a");
+    const llmB = node("model.llm", "llm-b");
+    const merge = node("model.llm", "merge");
+    const output = node("output.text", "output");
+    const runtime = runtimeLite(
+      [input, llmA, llmB, merge, output],
+      [
+        edge(input, llmA),
+        edge(input, llmB),
+        edge(llmA, merge),
+        edge(llmB, merge),
+        edge(merge, output),
+      ],
+    );
+    const events: string[] = [];
+
+    const run = await runWorkflowRuntimeLite({
+      callLlm: vi.fn(async ({ node }) => {
+        if (node.id === "llm-a") {
+          events.push("a-start");
+          await new Promise((resolve) => setTimeout(resolve, 25));
+          events.push("a-end");
+
+          return { text: "A done" };
+        }
+
+        if (node.id === "llm-b") {
+          events.push("b-start");
+          events.push("b-end");
+
+          return { text: "B done" };
+        }
+
+        events.push(`${node.id}-start`);
+
+        return { text: "merged" };
+      }),
+      maxParallelNodes: 2,
+      runtimeLite: runtime,
+      workflowId: "workspace-test",
+    });
+
+    expect(run.status).toBe("success");
+    expect(events.indexOf("b-start")).toBeGreaterThan(-1);
+    expect(events.indexOf("b-start")).toBeLessThan(events.indexOf("a-end"));
+    expect(events.at(-1)).toBe("merge-start");
+  });
+
+  it("defaults to serial-safe ready-node batches for browser stability", async () => {
+    const input = node("input.text", "input");
+    const llmA = node("model.llm", "llm-a");
+    const llmB = node("model.llm", "llm-b");
+    const runtime = runtimeLite(
+      [input, llmA, llmB],
+      [edge(input, llmA), edge(input, llmB)],
+    );
+    const events: string[] = [];
+
+    const run = await runWorkflowRuntimeLite({
+      callLlm: vi.fn(async ({ node }) => {
+        events.push(`${node.id}-start`);
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        events.push(`${node.id}-end`);
+
+        return { text: node.id };
+      }),
+      runtimeLite: runtime,
+      workflowId: "workspace-test",
+    });
+
+    expect(run.status).toBe("success");
+    expect(events).toEqual([
+      "llm-a-start",
+      "llm-a-end",
+      "llm-b-start",
+      "llm-b-end",
+    ]);
   });
 
   it("streams partial LLM output into the running node", async () => {
@@ -159,6 +266,82 @@ describe("Workflow Runtime Spine Lite", () => {
     expect(livePatches).toContain("partial");
     expect(livePatches).toContain("partial final");
     expect(state.get("output")?.outputSnapshot?.rawText).toBe("partial final");
+  });
+
+  it("keeps partial LLM output out of run history updates", async () => {
+    const input = node("input.text", "input", { text: "Alpha" });
+    const llm = node("model.llm", "llm", { prompt: "A" });
+    const output = node("output.text", "output");
+    const runtime = runtimeLite(
+      [input, llm, output],
+      [edge(input, llm), edge(llm, output)],
+    );
+    const runUpdates: string[] = [];
+
+    const run = await runWorkflowRuntimeLite({
+      callLlm: vi.fn(async ({ onToken }) => {
+        onToken?.("partial", "partial");
+        onToken?.(" final", "partial final");
+
+        return {
+          text: "partial final",
+        };
+      }),
+      onRunUpdate: (nextRun) => {
+        for (const execution of nextRun.nodeExecutions) {
+          if (execution.outputSnapshot?.rawText) {
+            runUpdates.push(execution.outputSnapshot.rawText);
+          }
+        }
+      },
+      runtimeLite: runtime,
+      workflowId: "workspace-test",
+    });
+
+    expect(run.status).toBe("success");
+    expect(runUpdates).not.toContain("partial");
+    expect(runUpdates).toContain("partial final");
+  });
+
+  it("compacts long snapshots while preserving full upstream text for downstream execution", async () => {
+    const longText = "x".repeat(WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS + 1200);
+    const input = node("input.text", "input", { text: "Alpha" });
+    const llmA = node("model.llm", "llm-a", { prompt: "A" });
+    const llmB = node("model.llm", "llm-b", { prompt: "B" });
+    const runtime = runtimeLite(
+      [input, llmA, llmB],
+      [edge(input, llmA), edge(llmA, llmB)],
+    );
+    const state = patchableNodes(runtime.nodes);
+    const downstreamLengths: number[] = [];
+
+    const run = await runWorkflowRuntimeLite({
+      callLlm: vi.fn(async ({ node, upstream }) => {
+        if (node.id === "llm-b") {
+          downstreamLengths.push(upstream.rawText.length);
+        }
+
+        return {
+          text: node.id === "llm-a" ? longText : "received",
+        };
+      }),
+      onNodePatch: state.patch,
+      runtimeLite: runtime,
+      workflowId: "workspace-test",
+    });
+
+    expect(run.status).toBe("success");
+    expect(downstreamLengths).toEqual([longText.length]);
+    expect(state.get("llm-a")?.outputSnapshot?.rawText).toHaveLength(
+      WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS,
+    );
+    expect(state.get("llm-a")?.outputSnapshot?.metadata).toMatchObject({
+      snapshotRawTextTruncated: true,
+    });
+    expect(
+      run.nodeExecutions.find((execution) => execution.nodeId === "llm-a")
+        ?.outputSnapshot?.rawText,
+    ).toHaveLength(WORKFLOW_RUNTIME_MAX_PACKET_DISPLAY_CHARS);
   });
 
   it("runs Input -> Image Model and preserves generated media metadata", async () => {
@@ -497,6 +680,19 @@ describe("Workflow Runtime Spine Lite", () => {
       attachmentCompiler: {
         compilerId: "nexus-attachment-noop-compiler-v1",
         compilerVersion: "v1",
+        execution: {
+          attachmentCount: 1,
+          resultSummary: ["source.zip:archive:reference-only:artifact-raw"],
+          schema: "nexus.attachmentCompilerExecution.v1",
+          status: "processed",
+        },
+        lanes: [
+          expect.objectContaining({
+            id: "archive",
+            label: "Archive reference lane",
+            status: "reserved",
+          }),
+        ],
         mode: "noop",
       },
       attachments: [
@@ -507,6 +703,9 @@ describe("Workflow Runtime Spine Lite", () => {
       ],
       nodeType: "node.file",
     });
+    expect(fileExecution?.outputSnapshot?.displayText).toContain(
+      "archive/reference-only x1",
+    );
     expect(outputExecution?.outputSnapshot?.metadata.nodeType).toBe("node.file");
   });
 

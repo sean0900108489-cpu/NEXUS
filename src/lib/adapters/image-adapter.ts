@@ -1,4 +1,5 @@
 import { DEFAULT_BASE_URL } from "@/lib/nexus-defaults";
+import { NEXUS_RUNTIME_AUTHORIZATION_HEADER } from "@/lib/api/nexus-api-client";
 import type { AgentMediaArtifact, IToolExecutor, NexusAgent } from "@/lib/nexus-types";
 import type { WorkspaceComposerImageSettings } from "@/lib/composer/image-generation-settings";
 import { buildOpenAiCompatibleImageGenerationPayload } from "@/lib/media/image-generation-adapter-map";
@@ -17,6 +18,8 @@ export type ImageAdapterRequest = {
   imageSettings?: Partial<WorkspaceComposerImageSettings>;
   prompt: string;
   toolName: string;
+  userId?: string;
+  workspaceId?: string;
 };
 
 export type DalleImageAdapterRequest = ImageAdapterRequest & {
@@ -27,6 +30,16 @@ export type DalleImageAdapterRequest = ImageAdapterRequest & {
 
 export type ImageAdapterResult = {
   content: string;
+  generatedAsset?: {
+    assetId: string;
+    bucket?: string;
+    durable: boolean;
+    mimeType: string;
+    path?: string;
+    provider: "memory" | "supabase-storage";
+    sizeBytes: number;
+    url: string;
+  };
   media: AgentMediaArtifact;
   mode: ImageAdapterMode;
   revisedPrompt?: string;
@@ -228,13 +241,26 @@ export async function executeImageAdapterForAgent(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
+  const accessToken = await resolveBrowserAccessToken();
 
   if (apiKey) {
-    headers.Authorization = `Bearer ${apiKey}`;
+    headers[NEXUS_RUNTIME_AUTHORIZATION_HEADER] = `Bearer ${apiKey}`;
+  }
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
   }
 
   if (request.baseUrl?.trim()) {
     headers["x-openai-base-url"] = request.baseUrl.trim();
+  }
+
+  if (request.workspaceId?.trim()) {
+    headers["X-Workspace-Id"] = request.workspaceId.trim();
+  }
+
+  if (request.userId?.trim()) {
+    headers["X-User-Id"] = request.userId.trim();
   }
 
   const response = await fetch("/api/image-gen", {
@@ -250,6 +276,7 @@ export async function executeImageAdapterForAgent(
       model: request.agent.model || "dall-e-3",
       prompt: request.prompt,
       toolName: request.toolName,
+      workspaceId: request.workspaceId,
     }),
   });
 
@@ -259,4 +286,19 @@ export async function executeImageAdapterForAgent(
   }
 
   return (await response.json()) as ImageAdapterResult;
+}
+
+async function resolveBrowserAccessToken() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const { getNexusSupabaseClient } = await import("@/lib/supabase/client");
+    const { data } = await getNexusSupabaseClient().auth.getSession();
+
+    return data.session?.access_token ?? null;
+  } catch {
+    return null;
+  }
 }

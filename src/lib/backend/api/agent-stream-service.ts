@@ -4,10 +4,12 @@ import { buildMockReply } from "@/lib/mock-stream";
 import { getApiErrorDescriptor, type ApiErrorCode } from "./api-errors";
 import { resolveApiActor } from "./api-auth";
 import { getRuntimeBearerToken } from "./memory-compress-service";
+import { getBearerToken } from "../security/auth-session";
 import {
   createMessageHistoryService,
   type MessageHistoryService,
 } from "../history/message-history-service";
+import { createMessageRepository } from "../history/message-repository";
 import { createAgentRuntimeService } from "../runtime/agent-runtime-service";
 import {
   buildOpenAICompatibleChatBody,
@@ -15,6 +17,8 @@ import {
   OpenAICompatibleAdapter,
   getRuntimeString,
 } from "../runtime/provider-adapter";
+import { createWorkspaceStatePermissionService } from "../workspace/workspace-permission";
+import { createNexusSupabaseRequestClient } from "@/lib/supabase/request";
 
 export type AgentStreamEvent =
   | {
@@ -58,6 +62,10 @@ type LlmMessage = {
   content: string;
 };
 
+type MessageHistoryServiceFactoryInput = {
+  accessToken?: string | null;
+};
+
 export type AgentStreamResponseOptions = {
   agentId: string;
   eventShape: "v1" | "legacy";
@@ -69,7 +77,8 @@ export type AgentStreamResponseOptions = {
 
 const encoder = new TextEncoder();
 const SAFE_DEFAULT_CHAT_MODEL = "gpt-4o-mini";
-let messageHistoryServiceFactory = () => createMessageHistoryService();
+let messageHistoryServiceFactory = (input: MessageHistoryServiceFactoryInput = {}) =>
+  createRequestScopedMessageHistoryService(input.accessToken);
 
 export function createStreamId(prefix: string) {
   const random =
@@ -89,7 +98,7 @@ export async function createAgentStreamResponse({
   workspaceId,
 }: AgentStreamResponseOptions) {
   const payload = (await request.json()) as AgentStreamRequest;
-  const apiKey = getRuntimeBearerToken(request.headers);
+  const apiKey = resolveAgentStreamApiKey(request.headers);
   const rawBaseUrl =
     request.headers.get("x-nexus-base-url") ||
     request.headers.get("x-openai-base-url") ||
@@ -100,6 +109,7 @@ export async function createAgentStreamResponse({
     getRuntimeString(request.headers.get("x-nexus-provider-id")) || payload.agent.provider;
   const isWorkflowRuntimeLite =
     request.headers.get("X-Nexus-Workflow-Runtime")?.toLowerCase() === "lite";
+  const accessToken = getBearerToken(request.headers.get("authorization"));
 
   if (eventShape === "legacy") {
     return createLegacyAgentStreamResponse({
@@ -119,7 +129,11 @@ export async function createAgentStreamResponse({
   });
   const userId = actorUserId;
   const resolvedWorkspaceId = payload.workspaceId ?? workspaceId ?? "__global__";
-  const runtimeService = createAgentRuntimeService();
+  const runtimeService = createAgentRuntimeService({
+    accessToken,
+    forceInMemoryRepository: isWorkflowRuntimeLite,
+    request,
+  });
   const taskScope = await runtimeService.prepareStreamTask(
     {
       agentId,
@@ -138,6 +152,9 @@ export async function createAgentStreamResponse({
       requestId,
       traceId,
       userId,
+    },
+    {
+      skipPermissionCheck: isWorkflowRuntimeLite,
     },
   );
   const providerAdapter = new OpenAICompatibleAdapter();
@@ -254,17 +271,20 @@ export async function createAgentStreamResponse({
           });
         }
 
-        await persistTaskOutputMessage({
-          agentId,
-          content: assistantOutput,
-          model: providerStream.model,
-          provider: providerStream.provider,
-          requestId,
-          task: taskScope.task,
-          traceId,
-          userId,
-          workspaceId: resolvedWorkspaceId,
-        });
+        if (!isWorkflowRuntimeLite) {
+          await persistTaskOutputMessage({
+            agentId,
+            content: assistantOutput,
+            model: providerStream.model,
+            provider: providerStream.provider,
+            requestId,
+            task: taskScope.task,
+            traceId,
+            userId,
+            workspaceId: resolvedWorkspaceId,
+            accessToken,
+          });
+        }
 
         await runtimeService.completeTask(
           taskScope.task.id,
@@ -355,13 +375,31 @@ export async function createAgentStreamResponse({
 }
 
 export function setAgentStreamMessageHistoryServiceFactoryForTests(
-  factory: () => MessageHistoryService,
+  factory: (input?: MessageHistoryServiceFactoryInput) => MessageHistoryService,
 ) {
   messageHistoryServiceFactory = factory;
 }
 
 export function resetAgentStreamMessageHistoryServiceFactoryForTests() {
-  messageHistoryServiceFactory = () => createMessageHistoryService();
+  messageHistoryServiceFactory = (input: MessageHistoryServiceFactoryInput = {}) =>
+    createRequestScopedMessageHistoryService(input.accessToken);
+}
+
+export function resolveAgentStreamApiKey(headers: Headers) {
+  return getRuntimeBearerToken(headers) || getServerLlmApiKey();
+}
+
+function getServerLlmApiKey() {
+  return process.env.OPENAI_API_KEY?.replace(/[^\x20-\x7E]/g, "").trim() ?? "";
+}
+
+function createRequestScopedMessageHistoryService(accessToken?: string | null) {
+  const requestClient = createNexusSupabaseRequestClient(accessToken);
+
+  return createMessageHistoryService({
+    messages: createMessageRepository({ requestClient }),
+    permissionService: createWorkspaceStatePermissionService({ accessToken }),
+  });
 }
 
 async function persistTaskOutputMessage({
@@ -374,7 +412,9 @@ async function persistTaskOutputMessage({
   traceId,
   userId,
   workspaceId,
+  accessToken,
 }: {
+  accessToken?: string | null;
   agentId: string;
   content: string;
   model: string;
@@ -389,7 +429,7 @@ async function persistTaskOutputMessage({
   const durableContent = content.trim() ? content : "Stream completed without payload.";
   const outputMessageId = task.outputMessageId ?? `message_${task.id}`;
 
-  await messageHistoryServiceFactory().upsertMessage(
+  await messageHistoryServiceFactory({ accessToken }).upsertMessage(
     {
       agentId,
       content: durableContent,

@@ -5,6 +5,15 @@ export type GeneratedImageAsset = {
   mimeType: string;
 };
 
+export type GeneratedImageAssetBytesInput = {
+  bytes: Uint8Array;
+  mimeType: string;
+};
+
+export type CreatedGeneratedImageAsset = GeneratedImageAsset & {
+  url: string;
+};
+
 const GENERATED_IMAGE_ASSET_MAX_AGE_MS = 60 * 60 * 1000;
 const GENERATED_IMAGE_ASSET_MAX_COUNT = 40;
 const GENERATED_IMAGE_ASSET_MAX_TOTAL_BYTES = 160 * 1024 * 1024;
@@ -17,18 +26,49 @@ export function createGeneratedImageAssetUrlFromDataUrl(dataUrl: string) {
     return dataUrl;
   }
 
+  return createGeneratedImageAssetUrlFromBytes({
+    bytes: Uint8Array.from(Buffer.from(parsed.base64, "base64")),
+    mimeType: parsed.mimeType,
+  });
+}
+
+export function createGeneratedImageAssetUrlFromBytes(
+  input: GeneratedImageAssetBytesInput,
+) {
+  return createGeneratedImageAssetFromBytes(input).url;
+}
+
+export function createGeneratedImageAssetFromBytes(
+  input: GeneratedImageAssetBytesInput,
+): CreatedGeneratedImageAsset {
   const id = createGeneratedImageAssetId();
   const asset: GeneratedImageAsset = {
-    bytes: Uint8Array.from(Buffer.from(parsed.base64, "base64")),
+    bytes: input.bytes,
     createdAtMs: Date.now(),
     id,
-    mimeType: parsed.mimeType,
+    mimeType: input.mimeType,
   };
 
   generatedImageAssets.set(id, asset);
   pruneGeneratedImageAssetCache();
 
-  return `/api/image-gen/assets/${encodeURIComponent(id)}`;
+  return {
+    ...asset,
+    url: createGeneratedImageAssetUrl(id),
+  };
+}
+
+export function createGeneratedImageAssetUrl(
+  assetId: string,
+  workspaceId?: string | null,
+) {
+  const baseUrl = `/api/image-gen/assets/${encodeURIComponent(assetId)}`;
+
+  if (!workspaceId?.trim()) {
+    return baseUrl;
+  }
+
+  return `${baseUrl}?workspaceId=${encodeURIComponent(workspaceId.trim())}`;
 }
 
 export function getGeneratedImageAsset(id: string) {
@@ -41,7 +81,7 @@ export function clearGeneratedImageAssetCacheForTests() {
   generatedImageAssets.clear();
 }
 
-function parseBase64ImageDataUrl(dataUrl: string) {
+export function parseBase64ImageDataUrl(dataUrl: string) {
   const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)$/u.exec(
     dataUrl.trim(),
   );

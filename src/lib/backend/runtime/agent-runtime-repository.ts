@@ -12,6 +12,7 @@ import {
   getNexusSupabaseAdminClient,
   hasSupabaseServiceRoleConfig,
 } from "@/lib/supabase/admin";
+import type { NexusSupabaseRequestClient } from "@/lib/supabase/request";
 import type {
   AgentRuntimeEventInsert,
   AgentRuntimeSessionInsert,
@@ -316,10 +317,25 @@ export class SupabaseAgentRuntimeRepository implements AgentRuntimeRepository {
 
 const inMemoryAgentRuntimeRepository = new InMemoryAgentRuntimeRepository();
 
-export function createAgentRuntimeRepository(): AgentRuntimeRepository {
-  return hasSupabaseServiceRoleConfig()
-    ? new SupabaseAgentRuntimeRepository(getNexusSupabaseAdminClient())
-    : inMemoryAgentRuntimeRepository;
+export function createAgentRuntimeRepository(
+  input: {
+    forceInMemory?: boolean;
+    requestClient?: NexusSupabaseRequestClient | null;
+  } = {},
+): AgentRuntimeRepository {
+  if (input.forceInMemory) {
+    return inMemoryAgentRuntimeRepository;
+  }
+
+  if (hasSupabaseServiceRoleConfig()) {
+    return new SupabaseAgentRuntimeRepository(getNexusSupabaseAdminClient());
+  }
+
+  if (input.requestClient) {
+    return new SupabaseAgentRuntimeRepository(input.requestClient);
+  }
+
+  return inMemoryAgentRuntimeRepository;
 }
 
 function mapSession(row: Agent_Runtime_Sessions): AgentRuntimeSessionRecord {

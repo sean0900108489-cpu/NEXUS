@@ -10,6 +10,10 @@ const baseUrl = readBaseUrl();
 const timeoutMs = Number(process.env.AUTH_BOUNDARY_LIVE_TIMEOUT_MS ?? 5000);
 const expectLegacyProduction404 =
   process.env.AUTH_BOUNDARY_LIVE_EXPECT_LEGACY_404 !== "false";
+const vercelProtectionBypassSecret =
+  process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim() ?? "";
+const warnings = [];
+const cookieHeader = readCookieHeader();
 const publicGetRoutes = new Set([
   "GET /api/v1/health",
   "GET /api/v1/public-config",
@@ -25,6 +29,7 @@ const routeInventory = routeFiles.map((filePath) => {
     file: relativePath,
     hasApiHandler: source.includes("apiHandler("),
     hasAuthRequired: /auth\s*:\s*\{[\s\S]*?required\s*:\s*true/.test(source),
+    hasImageGenerationBoundary: source.includes("assertImageGenerationRouteAccess"),
     hasLegacyProductionBlock: source.includes("blockLegacyToolRouteInProduction"),
     hasPermission: /\bpermission\s*:/.test(source),
     hasStreamBoundary: source.includes("createAgentStreamResponse"),
@@ -47,7 +52,6 @@ const probes = routeInventory.flatMap((route) =>
 
 const results = [];
 const blockingFindings = [];
-const warnings = [];
 
 for (const probe of probes) {
   const result = await runProbe(probe);
@@ -127,17 +131,28 @@ const report = {
     credentialsSent: false,
     destructivePayloads: false,
     legacyProduction404Enforced: expectLegacyProduction404,
+    platformProtectionLikely: isPlatformProtectionLikely(results),
+    vercelProtectionBypass: vercelProtectionBypassSecret
+      ? "header-present"
+      : "not-configured",
+    cookieAccess: cookieHeader ? "header-present" : "not-configured",
     headers: [
       "X-User-Id",
       "X-Workspace-Id",
       "X-Request-Id",
       "X-Idempotency-Key",
+      ...(vercelProtectionBypassSecret ? ["x-vercel-protection-bypass"] : []),
+      ...(cookieHeader ? ["Cookie"] : []),
     ],
   },
   results,
   routeInventory: {
     protectedRoutes: routeInventory.filter(
-      (route) => route.hasAuthRequired || route.hasPermission || route.hasStreamBoundary,
+      (route) =>
+        route.hasAuthRequired ||
+        route.hasImageGenerationBoundary ||
+        route.hasPermission ||
+        route.hasStreamBoundary,
     ).length,
     routes: routeInventory.length,
   },
@@ -153,18 +168,27 @@ if (blockingFindings.length > 0) {
 async function runProbe(probe) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const headers = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    "X-Idempotency-Key": `live-boundary-${crypto.randomUUID()}`,
+    "X-Request-Id": `live-boundary-${crypto.randomUUID()}`,
+    "X-User-Id": "spoof-user-live-probe",
+    "X-Workspace-Id": "workspace-spoof-live-probe",
+  };
+
+  if (vercelProtectionBypassSecret) {
+    headers["x-vercel-protection-bypass"] = vercelProtectionBypassSecret;
+  }
+
+  if (cookieHeader) {
+    headers.Cookie = cookieHeader;
+  }
 
   try {
     const response = await fetch(new URL(probe.urlPath, baseUrl), {
       body: isMutationMethod(probe.method) ? JSON.stringify(safeMutationBody(probe.apiPath)) : undefined,
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "X-Idempotency-Key": `live-boundary-${crypto.randomUUID()}`,
-        "X-Request-Id": `live-boundary-${crypto.randomUUID()}`,
-        "X-User-Id": "spoof-user-live-probe",
-        "X-Workspace-Id": "workspace-spoof-live-probe",
-      },
+      headers,
       method: probe.method,
       redirect: "manual",
       signal: controller.signal,
@@ -204,11 +228,30 @@ function classifyExpectation(route, method) {
     return "legacyProduction404";
   }
 
-  if (route.hasAuthRequired || route.hasPermission || route.hasStreamBoundary) {
+  if (
+    route.hasAuthRequired ||
+    route.hasImageGenerationBoundary ||
+    route.hasPermission ||
+    route.hasStreamBoundary
+  ) {
     return "protectedRejectsSpoofOnly";
   }
 
   return "skip";
+}
+
+function isPlatformProtectionLikely(results) {
+  if (results.length === 0) {
+    return false;
+  }
+
+  const publicRoutes = results.filter((result) => result.expectation === "publicReachable");
+
+  return (
+    publicRoutes.length > 0 &&
+    publicRoutes.every((result) => result.status === 401) &&
+    results.filter((result) => result.status === 401).length / results.length >= 0.9
+  );
 }
 
 function readBaseUrl() {
@@ -226,6 +269,50 @@ function readBaseUrl() {
   }
 
   return new URL(raw);
+}
+
+function readCookieHeader() {
+  const rawCookie = process.env.AUTH_BOUNDARY_LIVE_COOKIE?.trim();
+
+  if (rawCookie) {
+    return rawCookie;
+  }
+
+  const cookieJarPath = process.env.AUTH_BOUNDARY_LIVE_COOKIE_JAR?.trim();
+
+  if (!cookieJarPath) {
+    return "";
+  }
+
+  try {
+    return readNetscapeCookieJar(cookieJarPath);
+  } catch (error) {
+    warnings.push({
+      code: "cookieJar.unreadable",
+      message: error instanceof Error ? error.message : "Unable to read cookie jar.",
+    });
+
+    return "";
+  }
+}
+
+function readNetscapeCookieJar(cookieJarPath) {
+  const source = readFileSync(cookieJarPath, "utf8");
+  const cookies = source
+    .split(/\r?\n/)
+    .map((line) => (line.startsWith("#HttpOnly_") ? line.replace(/^#HttpOnly_/, "") : line))
+    .filter((line) => line.trim() && !line.startsWith("#"))
+    .map((line) => line.split("\t"))
+    .filter((parts) => parts.length >= 7)
+    .map((parts) => {
+      const name = parts.at(-2)?.trim();
+      const value = parts.at(-1)?.trim();
+
+      return name && value ? `${name}=${value}` : "";
+    })
+    .filter(Boolean);
+
+  return cookies.join("; ");
 }
 
 function safeMutationBody(apiPath) {

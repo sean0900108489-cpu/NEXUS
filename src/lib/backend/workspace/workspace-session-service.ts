@@ -18,7 +18,9 @@ import type {
 } from "@/lib/nexus-types";
 
 const DEFAULT_WORKSPACE_NAME = "NEXUS // AI OPS";
+const READABLE_ROLES = new Set(["owner", "admin", "editor", "viewer"]);
 const WRITABLE_ROLES = new Set(["owner", "admin", "editor"]);
+type ReadableWorkspaceRole = "owner" | "admin" | "editor" | "viewer";
 type WritableWorkspaceRole = "owner" | "admin" | "editor";
 
 type WorkspaceSessionRecord = Pick<
@@ -71,7 +73,7 @@ export class WorkspaceSessionService {
         workspaceId: preferredWorkspaceId,
       });
 
-      if (preferredMembership && isWritableRole(preferredMembership.role)) {
+      if (preferredMembership && isReadableRole(preferredMembership.role)) {
         const workspace = await this.repository.findWorkspace(preferredWorkspaceId);
 
         return {
@@ -101,6 +103,25 @@ export class WorkspaceSessionService {
         reason: "existing_writable_workspace",
         role: writableMembership.role as WritableWorkspaceRole,
         workspaceId: writableMembership.workspace_id,
+        workspaceName: workspace?.name ?? preferredWorkspaceName,
+      };
+    }
+
+    const readableMembership = memberships.find((membership) =>
+      isReadableRole(membership.role),
+    );
+
+    if (readableMembership) {
+      const workspace = await this.repository.findWorkspace(
+        readableMembership.workspace_id,
+      );
+
+      return {
+        created: false,
+        preferredWorkspaceId,
+        reason: "existing_readable_workspace",
+        role: readableMembership.role as ReadableWorkspaceRole,
+        workspaceId: readableMembership.workspace_id,
         workspaceName: workspace?.name ?? preferredWorkspaceName,
       };
     }
@@ -285,6 +306,10 @@ export function createWorkspaceSessionService() {
   );
 
   return localWorkspaceSessionService;
+}
+
+function isReadableRole(role: string): role is ReadableWorkspaceRole {
+  return READABLE_ROLES.has(role);
 }
 
 function isWritableRole(role: string): role is WritableWorkspaceRole {

@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST as memoryCompressPost } from "@/app/api/v1/agents/memory-compress/route";
-import { POST as legacyImageGenPost } from "@/app/api/image-gen/route";
 import { POST as legacyMemoryCompressPost } from "@/app/api/memory-compress/route";
 import { POST as predictiveIntelPost } from "@/app/api/predictive-intel/route";
 import { POST as streamPost } from "@/app/api/v1/agents/[agentId]/stream/route";
@@ -20,6 +19,7 @@ import {
 } from "@/lib/backend/api/api-auth";
 import {
   resetAgentStreamMessageHistoryServiceFactoryForTests,
+  resolveAgentStreamApiKey,
   setAgentStreamMessageHistoryServiceFactoryForTests,
 } from "@/lib/backend/api/agent-stream-service";
 import { getRuntimeBearerToken } from "@/lib/backend/api/memory-compress-service";
@@ -330,6 +330,69 @@ describe("apiHandler envelope and validation", () => {
       expect.any(Object),
     );
   });
+
+  it("supports request-scoped permission services for protected routes", async () => {
+    useTestAuthSession("verified-owner");
+
+    const permissionCheck = vi.fn(async () => ({
+      decision: "allow",
+      reasonCode: "ALLOW",
+      requiredScopes: [],
+      riskLevel: "low",
+    }));
+    const permissionServiceFactory = vi.fn(({ request }) => {
+      expect(request.headers.get("authorization")).toBe("Bearer verified-session");
+
+      return {
+        check: permissionCheck,
+      } as unknown as PermissionService;
+    });
+    const handler = apiHandler({
+      handler: ({ trace }) => ({
+        traceUserId: trace.userId,
+      }),
+      methods: ["POST"],
+      permission: {
+        action: "workspace:update",
+        permissionServiceFactory,
+        resourceType: "artifact",
+      },
+      route: "/api/v1/test-request-scoped-permission",
+      workspaceId: () => "workspace-a",
+    });
+
+    const response = await handler(
+      makeJsonRequest(
+        "http://localhost/api/v1/test-request-scoped-permission",
+        {
+          ok: true,
+          workspaceId: "workspace-a",
+        },
+        {
+          Authorization: "Bearer verified-session",
+        },
+      ),
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(200);
+    expect(json).toMatchObject({
+      data: {
+        traceUserId: "verified-owner",
+      },
+      ok: true,
+    });
+    expect(permissionServiceFactory).toHaveBeenCalledTimes(1);
+    expect(permissionCheck).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "workspace:update",
+        resourceType: "artifact",
+        userId: "verified-owner",
+        workspaceId: "workspace-a",
+      }),
+      expect.any(Object),
+    );
+  });
 });
 
 describe("idempotency contract", () => {
@@ -422,9 +485,6 @@ describe("routing compatibility and health", () => {
     const legacyMemoryResponse = await legacyMemoryCompressPost(
       makeJsonRequest("http://localhost/api/memory-compress", {}),
     );
-    const legacyImageResponse = await legacyImageGenPost(
-      makeJsonRequest("http://localhost/api/image-gen", {}),
-    );
     const predictiveResponse = await predictiveIntelPost(
       makeJsonRequest("http://localhost/api/predictive-intel", {}),
     );
@@ -437,7 +497,6 @@ describe("routing compatibility and health", () => {
       webResponse,
       legacyStreamResponse,
       legacyMemoryResponse,
-      legacyImageResponse,
       predictiveResponse,
       providerVerifyResponse,
     ]) {
@@ -454,9 +513,31 @@ describe("routing compatibility and health", () => {
       Authorization: "Bearer supabase-session-token",
       "X-Nexus-Runtime-Authorization": "Bearer sk-runtime-test",
     });
+    const jsonRuntimeHeaders = new Headers({
+      Authorization: "Bearer supabase-session-token",
+      "X-Nexus-Runtime-Authorization":
+        'Bearer { "openai": { "apiKey": "sk-runtime-test" } }',
+    });
 
     expect(getRuntimeBearerToken(sessionOnlyHeaders)).toBe("");
     expect(getRuntimeBearerToken(runtimeHeaders)).toBe("sk-runtime-test");
+    expect(getRuntimeBearerToken(jsonRuntimeHeaders)).toBe(
+      '{ "openai": { "apiKey": "sk-runtime-test" } }',
+    );
+  });
+
+  it("lets v1 stream routes fall back to the server OpenAI key without treating Supabase auth as provider auth", () => {
+    vi.stubEnv("OPENAI_API_KEY", "sk-env-stream-test");
+    const sessionOnlyHeaders = new Headers({
+      Authorization: "Bearer supabase-session-token",
+    });
+    const runtimeHeaders = new Headers({
+      Authorization: "Bearer supabase-session-token",
+      "X-Nexus-Runtime-Authorization": "Bearer sk-runtime-test",
+    });
+
+    expect(resolveAgentStreamApiKey(sessionOnlyHeaders)).toBe("sk-env-stream-test");
+    expect(resolveAgentStreamApiKey(runtimeHeaders)).toBe("sk-runtime-test");
   });
 
   it("keeps v1 and legacy memory-compress routes available", async () => {
@@ -580,7 +661,7 @@ describe("streaming contract", () => {
     });
   });
 
-  it("does not let workflow-lite stream headers skip workspace permission", async () => {
+  it("lets authenticated workflow-lite stream tasks use the internal execution lane", async () => {
     useTestAuthSession("local-viewer");
 
     const response = await streamPost(
@@ -602,16 +683,55 @@ describe("streaming contract", () => {
       }),
       { params: Promise.resolve({ agentId: "agent-a" }) },
     );
-    const json = await readJson(response);
+    const events = await readSseEvents(response);
 
-    expect(response.status).toBe(403);
-    expect(json).toMatchObject({
-      error: {
-        code: "PERMISSION_DENIED",
-      },
-      type: "error",
+    expect(response.status).toBe(200);
+    expect(events[0]).toMatchObject({
+      agentId: "agent-a",
+      requestId: "req-stream-workflow-lite",
+      traceId: "trace-stream-workflow-lite",
+      type: "meta",
+      taskId: expect.any(String),
+      workspaceId: "workspace-a",
     });
-    expect(JSON.stringify(json)).not.toContain("supabase-session");
+    expect(JSON.stringify(events)).not.toContain("supabase-session");
+  });
+
+  it("does not fail workflow-lite streams when chat history persistence is unavailable", async () => {
+    useTestAuthSession("local-viewer");
+    setAgentStreamMessageHistoryServiceFactoryForTests(() =>
+      ({
+        upsertMessage: vi.fn(async () => {
+          throw new Error("history unavailable");
+        }),
+      }) as unknown as ReturnType<typeof createMessageHistoryService>,
+    );
+
+    const response = await streamPost(
+      new Request("http://localhost/api/v1/agents/agent-a/stream", {
+        body: JSON.stringify({
+          ...streamPayload,
+          workspaceId: "workspace-a",
+        }),
+        headers: {
+          Authorization: "Bearer supabase-session",
+          "Content-Type": "application/json",
+          "X-Nexus-Workflow-Runtime": "lite",
+          "X-Request-Id": "req-stream-workflow-lite-history",
+          "X-Trace-Id": "trace-stream-workflow-lite-history",
+          "X-User-Id": "local-viewer",
+          "X-Workspace-Id": "workspace-a",
+        },
+        method: "POST",
+      }),
+      { params: Promise.resolve({ agentId: "agent-a" }) },
+    );
+    const events = await readSseEvents(response);
+
+    expect(response.status).toBe(200);
+    expect(events.some((event) => event.type === "token")).toBe(true);
+    expect(events.at(-1)).toMatchObject({ type: "done" });
+    expect(JSON.stringify(events)).not.toContain("history unavailable");
   });
 
   it("keeps legacy stream route available through a shared wrapper", async () => {

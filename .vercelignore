@@ -1,1 +1,5 @@
 X/
+
+# Local Codex/operator artifacts. Keep deploy packages focused on the app.
+.codex/
+reports/

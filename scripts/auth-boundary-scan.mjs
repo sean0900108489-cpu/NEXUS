@@ -10,12 +10,27 @@ const blockingFindings = [];
 
 const legacyProductionBlockedRoutes = [
   "src/app/api/agent-stream/route.ts",
-  "src/app/api/image-gen/route.ts",
   "src/app/api/memory-compress/route.ts",
   "src/app/api/predictive-intel/route.ts",
   "src/app/api/tools/fs-scanner/route.ts",
   "src/app/api/tools/web-surfer/route.ts",
   "src/app/api/v1/providers/verify/route.ts",
+];
+
+const formalProductionImageRoutes = [
+  "src/app/api/image-gen/route.ts",
+];
+
+const requestScopedWorkspacePermissionRoutes = [
+  "src/app/api/image-gen/route.ts",
+  "src/app/api/v1/artifacts/route.ts",
+  "src/app/api/v1/artifacts/[artifactId]/route.ts",
+  "src/app/api/v1/artifacts/[artifactId]/archive/route.ts",
+  "src/app/api/v1/artifacts/[artifactId]/references/route.ts",
+  "src/app/api/v1/artifacts/[artifactId]/versions/route.ts",
+  "src/app/api/v1/sync/operations/route.ts",
+  "src/app/api/v1/sync/status/route.ts",
+  "src/app/api/v1/workspaces/[workspaceId]/state/route.ts",
 ];
 
 const protectedClientTables = [
@@ -50,6 +65,7 @@ const routeInventory = routeFiles.map((filePath) => {
     file: relativePath,
     hasApiHandler: source.includes("apiHandler("),
     hasAuthRequired: /auth\s*:\s*\{[\s\S]*?required\s*:\s*true/.test(source),
+    hasImageGenerationBoundary: source.includes("assertImageGenerationRouteAccess"),
     hasLegacyProductionBlock: source.includes("blockLegacyToolRouteInProduction"),
     hasPermission: /\bpermission\s*:/.test(source),
     hasStreamBoundary: source.includes("createAgentStreamResponse"),
@@ -67,6 +83,64 @@ for (const route of legacyProductionBlockedRoutes) {
       code: "legacyRoute.productionBlockMissing",
       file: route,
       message: "Legacy/provider egress route is missing the production block helper.",
+    });
+  }
+}
+
+for (const route of formalProductionImageRoutes) {
+  const source = readRequired(route);
+
+  if (!source.includes("assertImageGenerationRouteAccess")) {
+    blockingFindings.push({
+      code: "imageGeneration.productionAccessGuardMissing",
+      file: route,
+      message: "Production image generation must require authenticated writable workspace access.",
+    });
+  }
+
+  if (!source.includes("getRuntimeBearerToken(request.headers)")) {
+    blockingFindings.push({
+      code: "imageGeneration.runtimeAuthorizationHeaderMissing",
+      file: route,
+      message: "Provider credentials must use X-Nexus-Runtime-Authorization, not Supabase Authorization.",
+    });
+  }
+
+  const imageApiKeyExpression =
+    /const\s+apiKey\s*=\s*([\s\S]*?);/m.exec(source)?.[1] ?? "";
+
+  if (/request\.headers\.get\(["']authorization["']\)/i.test(imageApiKeyExpression)) {
+    blockingFindings.push({
+      code: "imageGeneration.supabaseAuthorizationMixedWithProviderKey",
+      file: route,
+      message: "Image generation must not read provider credentials from the Supabase Authorization header.",
+    });
+  }
+}
+
+for (const route of requestScopedWorkspacePermissionRoutes) {
+  const source = readRequired(route);
+  const usesRequestScopedFactory =
+    source.includes("permissionServiceFactory") &&
+    source.includes("createWorkspaceStatePermissionService({ request");
+  const usesModuleScopedWorkspacePermission =
+    /permissionService\s*:\s*createWorkspaceStatePermissionService\(\)/.test(source);
+
+  if (!usesRequestScopedFactory && !source.includes("assertImageGenerationRouteAccess")) {
+    blockingFindings.push({
+      code: "workspacePermission.requestScopedFactoryMissing",
+      file: route,
+      message:
+        "Workspace/session-sensitive routes must build their PermissionService from the incoming request.",
+    });
+  }
+
+  if (usesModuleScopedWorkspacePermission) {
+    blockingFindings.push({
+      code: "workspacePermission.moduleScopedService",
+      file: route,
+      message:
+        "Workspace/session-sensitive routes must not use module-scoped createWorkspaceStatePermissionService().",
     });
   }
 }
@@ -231,12 +305,39 @@ const report = {
       readRequired(route).includes("blockLegacyToolRouteInProduction"),
     ).length,
   },
+  productionImageGenerationGate: {
+    formalRoutes: formalProductionImageRoutes.length,
+    routesWithAccessGuard: formalProductionImageRoutes.filter((route) =>
+      readRequired(route).includes("assertImageGenerationRouteAccess"),
+    ).length,
+    routesWithRuntimeAuthorizationHeader: formalProductionImageRoutes.filter((route) =>
+      readRequired(route).includes("getRuntimeBearerToken(request.headers)"),
+    ).length,
+  },
+  requestScopedWorkspacePermissionGate: {
+    requiredRoutes: requestScopedWorkspacePermissionRoutes.length,
+    routesWithRequestScopedFactory: requestScopedWorkspacePermissionRoutes.filter((route) => {
+      const source = readRequired(route);
+
+      return (
+        source.includes("permissionServiceFactory") &&
+        source.includes("createWorkspaceStatePermissionService({ request")
+      );
+    }).length,
+    routesWithFormalImageAccessGuard: requestScopedWorkspacePermissionRoutes.filter((route) =>
+      readRequired(route).includes("assertImageGenerationRouteAccess"),
+    ).length,
+  },
   routeInventory: {
     apiHandlerRoutes: routeInventory.filter((route) => route.hasApiHandler).length,
     authRequiredRoutes: routeInventory.filter((route) => route.hasAuthRequired).length,
     permissionRoutes: routeInventory.filter((route) => route.hasPermission).length,
     protectedRoutes: routeInventory.filter(
-      (route) => route.hasAuthRequired || route.hasPermission || route.hasStreamBoundary,
+      (route) =>
+        route.hasAuthRequired ||
+        route.hasImageGenerationBoundary ||
+        route.hasPermission ||
+        route.hasStreamBoundary,
     ).length,
     routes: routeInventory,
     total: routeInventory.length,

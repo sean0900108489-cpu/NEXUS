@@ -95,8 +95,10 @@ import type {
   SystemEventListResponse,
   SystemEventRecord,
   WorkflowTemplateRecord,
+  WorkflowRuntimeLiteState,
   WorkspaceBranchingSettings,
   WorkspaceRecoveryListItem,
+  WorkspaceSessionEnsureResponse,
   WorkspaceSnapshot,
   WorkspaceThemeConfig,
   WorkspaceViewMode,
@@ -153,8 +155,7 @@ import {
 } from "@/lib/media/generated-image-artifact";
 import {
   createNoopAttachmentCompilerMetadata,
-  NEXUS_ATTACHMENT_NOOP_COMPILER,
-  NEXUS_ATTACHMENT_NOOP_TARGETS,
+  resolveAttachmentCompilerLane,
 } from "@/lib/attachments/attachment-compiler-registry";
 import { WORKSPACE_ATTACHMENT_INPUT_ACTIONS } from "@/lib/attachments/attachment-input-actions";
 import type {
@@ -182,8 +183,22 @@ import {
   createWorkflowProCapabilityInventory,
   summarizeWorkflowProRuntime,
 } from "@/lib/workflow-pro/capability-inventory";
+import {
+  createWorkflowProRuntimeEvidenceManifest,
+  createWorkflowProRuntimeEvidenceReport,
+  type WorkflowProRuntimeEvidenceReport,
+} from "@/lib/workflow-pro/runtime-evidence";
+import {
+  createWorkflowProRunHistoryGroupsReport,
+  type WorkflowProRunHistoryGroupsReport,
+} from "@/lib/workflow-pro/run-history-groups";
+import { createWorkflowProRunGroupInspectorReport } from "@/lib/workflow-pro/run-group-inspector";
+import { createWorkflowProDurableGroupRecordReport } from "@/lib/workflow-pro/durable-group-records";
+import { createWorkflowRuntimeTraceCorrelationReport } from "@/lib/workflow-pro/runtime-trace-correlation";
 import { createWorkflowBrainContextPack } from "@/lib/workflow-pro/brain-context";
 import { createWorkflowProFileNodeContract } from "@/lib/workflow-pro/file-node-contract";
+import { createWorkflowProHandoffPackage } from "@/lib/workflow-pro/handoff-package";
+import { createWorkflowProRuntimeBridge } from "@/lib/workflow-pro/runtime-bridge";
 import { createWorkflowProApplyPlan } from "@/lib/workflow-pro/workflow-contract-apply-plan";
 import {
   parseWorkflowProContractImportText,
@@ -228,6 +243,11 @@ const SANDBOX_MIN_SPLIT = 20;
 const SANDBOX_MAX_SPLIT = 80;
 
 type LegoThemeKey = keyof WorkspaceThemeConfig;
+type WorkspaceSessionRole = WorkspaceSessionEnsureResponse["role"];
+
+function isWorkspaceReadOnlyRole(role: WorkspaceSessionRole | null | undefined) {
+  return role === "viewer";
+}
 type AgentHistoricalPage = {
   error?: string;
   hasMore: boolean;
@@ -686,7 +706,43 @@ function getAgentModelGroups(agent: NexusAgent) {
     : [{ label: "Agent Supported Models", models }];
 }
 
-function resolveRuntimeCredentialForModel(authVault: IAuthVault, model: string, fallbackProvider?: string) {
+type ServerProviderStatus = {
+  ok?: boolean;
+  server?: {
+    openai?: {
+      apiKeyConfigured?: boolean;
+      baseUrlConfigured?: boolean;
+      defaultBaseUrl?: string;
+      imageModel?: string | null;
+      imageModelConfigured?: boolean;
+    };
+  };
+};
+
+function hasServerProviderCredential(
+  serverProviderStatus: ServerProviderStatus | null | undefined,
+  providerId?: string,
+) {
+  if (!serverProviderStatus?.server?.openai?.apiKeyConfigured) {
+    return false;
+  }
+
+  const normalizedProvider = providerId?.trim().toLowerCase();
+
+  return (
+    !normalizedProvider ||
+    normalizedProvider === "openai" ||
+    normalizedProvider === "openai-compatible" ||
+    normalizedProvider === "custom-openai-compatible"
+  );
+}
+
+function resolveRuntimeCredentialForModel(
+  authVault: IAuthVault,
+  model: string,
+  fallbackProvider?: string,
+  serverProviderStatus?: ServerProviderStatus | null,
+) {
   const providerId = getProviderIdForModel(model, fallbackProvider);
   const provider = getProviderOption(providerId);
   const providerCredential = authVault.providerCredentials?.[providerId];
@@ -699,12 +755,15 @@ function resolveRuntimeCredentialForModel(authVault: IAuthVault, model: string, 
     authVault.globalBaseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
     provider?.defaultBaseUrl ||
     DEFAULT_BASE_URL;
+  const serverCredentialConfigured =
+    !apiKey && hasServerProviderCredential(serverProviderStatus, providerId);
 
   return {
     apiKey,
     baseUrl,
     providerId,
     providerLabel: provider?.label ?? providerId,
+    serverCredentialConfigured,
     verificationStatus:
       providerCredential?.verificationStatus ?? provider?.verificationStatus ?? "untested",
     liveVerifiedAt: providerCredential?.liveVerifiedAt ?? null,
@@ -833,9 +892,13 @@ function IconButton({
   );
 }
 
-function resolveAgentsStreamMode(authVault: IAuthVault): StreamMode {
+function resolveAgentsStreamMode(
+  authVault: IAuthVault,
+  serverProviderStatus?: ServerProviderStatus | null,
+): StreamMode {
   return authVault.globalApiKey?.trim() ||
-    Object.values(authVault.providerCredentials ?? {}).some((entry) => entry.apiKey?.trim())
+    Object.values(authVault.providerCredentials ?? {}).some((entry) => entry.apiKey?.trim()) ||
+    hasServerProviderCredential(serverProviderStatus)
     ? "live"
     : "mock";
 }
@@ -1042,6 +1105,60 @@ function downloadTextPayload(text: string, fileName: string, mimeType?: string |
   }
 }
 
+async function downloadAuthenticatedUrlPayload(
+  url: string,
+  fileName: string,
+  options: {
+    userId?: string | null;
+    workspaceId?: string | null;
+  } = {},
+) {
+  const headers = new Headers();
+
+  if (options.workspaceId) {
+    headers.set("X-Workspace-Id", options.workspaceId);
+  }
+
+  if (options.userId) {
+    headers.set("X-User-Id", options.userId);
+  }
+
+  const accessToken = await resolveBrowserSupabaseAccessToken();
+
+  if (accessToken) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
+  }
+
+  const response = await fetch(url, {
+    headers,
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Download route returned ${response.status}.`);
+  }
+
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+
+  try {
+    downloadUrlPayload(objectUrl, fileName);
+  } finally {
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+  }
+}
+
+async function resolveBrowserSupabaseAccessToken() {
+  try {
+    const { getNexusSupabaseClient } = await import("@/lib/supabase/client");
+    const { data } = await getNexusSupabaseClient().auth.getSession();
+
+    return data.session?.access_token ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function downloadMediaArtifact(artifact: AgentMediaArtifact) {
   downloadUrlPayload(artifact.url, createMediaDownloadFilename(artifact));
 }
@@ -1059,6 +1176,10 @@ function isGeneratedArtifactRecord(artifact: ArtifactVaultRecord) {
     artifact.type.startsWith("generated-") &&
     !isMockGeneratedMediaUrl(artifact.contentUrl)
   );
+}
+
+function isTransientArtifactRecord(artifact: ArtifactVaultRecord) {
+  return artifact.id.startsWith("transient_");
 }
 
 function createWorkspaceAttachmentMessagePayload(
@@ -1171,6 +1292,11 @@ export function NexusOps() {
     WorkspaceRecoveryListItem[]
   >([]);
   const [workspaceRecoveryLoading, setWorkspaceRecoveryLoading] = useState(false);
+  const [workspaceSessionByWorkspaceId, setWorkspaceSessionByWorkspaceId] =
+    useState<Record<string, WorkspaceSessionEnsureResponse>>({});
+  const [serverProviderStatus, setServerProviderStatus] =
+    useState<ServerProviderStatus | null>(null);
+  const artifactAutoHydrationKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     const syncImportedWorkspaceStyleReview = () => {
@@ -1183,6 +1309,33 @@ export function NexusOps() {
     return subscribeImportedWorkspaceStyleReviewState(
       syncImportedWorkspaceStyleReview,
     );
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetch("/api/v1/providers/status", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Provider status unavailable.");
+        }
+
+        return (await response.json()) as ServerProviderStatus;
+      })
+      .then((payload) => {
+        if (!cancelled) {
+          setServerProviderStatus(payload);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setServerProviderStatus(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const activeWorkspaceId = useNexusStore((state) => state.activeWorkspaceId);
@@ -1284,6 +1437,9 @@ export function NexusOps() {
   const connectWorkflowRuntimeNodes = useNexusStore(
     (state) => state.connectWorkflowRuntimeNodes,
   );
+  const appendWorkflowRuntimeGroup = useNexusStore(
+    (state) => state.appendWorkflowRuntimeGroup,
+  );
   const removeWorkflowRuntimeNodes = useNexusStore(
     (state) => state.removeWorkflowRuntimeNodes,
   );
@@ -1299,6 +1455,9 @@ export function NexusOps() {
   const runWorkflowRuntimeLiteFlow = useNexusStore(
     (state) => state.runWorkflowRuntimeLiteFlow,
   );
+  const retryWorkflowRuntimeTraceSync = useNexusStore(
+    (state) => state.retryWorkflowRuntimeTraceSync,
+  );
   const runTool = useNexusStore((state) => state.runTool);
   const historicalMessages = useNexusStore((state) => state.historicalMessages);
 
@@ -1309,6 +1468,13 @@ export function NexusOps() {
   const branchingSettings = workspace?.settings.branchingSettings;
   const activeAgentId = workspace?.activeAgentId;
   const agents = workspace?.agents ?? EMPTY_AGENTS;
+  const activeWorkspaceSession = workspace
+    ? workspaceSessionByWorkspaceId[workspace.id]
+    : undefined;
+  const activeWorkspaceRole = activeWorkspaceSession?.role ?? null;
+  const activeWorkspaceReadOnly = isWorkspaceReadOnlyRole(activeWorkspaceRole);
+  const activeWorkspaceReadOnlyMessage =
+    "Viewer access is read-only. Create or switch to an editable workspace to run or change workflows.";
   const artifactVault = useMemo(
     () =>
       artifactVaultCache.ids
@@ -1317,9 +1483,14 @@ export function NexusOps() {
     [artifactVaultCache],
   );
   const effectiveStreamMode = useMemo(
-    () => resolveAgentsStreamMode(authVault),
-    [authVault],
+    () => resolveAgentsStreamMode(authVault, serverProviderStatus),
+    [authVault, serverProviderStatus],
   );
+  const serverOpenAiConfigured = Boolean(
+    serverProviderStatus?.server?.openai?.apiKeyConfigured,
+  );
+  const serverOpenAiImageModel =
+    serverProviderStatus?.server?.openai?.imageModel?.trim() || null;
 
   const visibleAgents = agents.filter((agent) => !agent.minimized);
   const minimizedAgents = agents.filter((agent) => agent.minimized);
@@ -1348,6 +1519,14 @@ export function NexusOps() {
   );
   const workflowProRuntimeSummary = useMemo(
     () => summarizeWorkflowProRuntime(workflowRuntimeLite),
+    [workflowRuntimeLite],
+  );
+  const workflowProRuntimeEvidence = useMemo(
+    () => createWorkflowProRuntimeEvidenceReport(workflowRuntimeLite),
+    [workflowRuntimeLite],
+  );
+  const workflowProRunHistoryGroups = useMemo(
+    () => createWorkflowProRunHistoryGroupsReport(workflowRuntimeLite),
     [workflowRuntimeLite],
   );
   const workflowProContractDraft = useMemo(
@@ -1398,17 +1577,34 @@ export function NexusOps() {
       return;
     }
 
+    const handoffPackage = createWorkflowProHandoffPackage({
+      brainContext: workflowBrainContext,
+      contract: workflowProActiveContract,
+      runtimeSummary: workflowProRuntimeSummary,
+      sourceKind:
+        workflowProImportReview?.status === "accepted"
+          ? "imported-contract"
+          : "current-runtime-draft",
+      sourceName: `nexus-workflow-pro-handoff-${activeWorkspaceId}.json`,
+    });
+
     downloadTextPayload(
-      JSON.stringify(workflowProActiveContract, null, 2),
-      `nexus-workflow-pro-${activeWorkspaceId}-${Date.now()}.json`,
+      JSON.stringify(handoffPackage, null, 2),
+      `nexus-workflow-pro-handoff-${activeWorkspaceId}-${Date.now()}.json`,
       "application/json;charset=utf-8",
     );
     setNotice(
       validation.warnings.length
         ? `Workflow Pro contract exported with ${validation.warnings.length} warnings`
-        : "Workflow Pro contract exported",
+        : "Workflow Pro handoff package exported",
     );
-  }, [activeWorkspaceId, workflowProActiveContract]);
+  }, [
+    activeWorkspaceId,
+    workflowBrainContext,
+    workflowProActiveContract,
+    workflowProImportReview,
+    workflowProRuntimeSummary,
+  ]);
   const handleWorkflowProContractImportText = useCallback(
     ({ sourceName, text }: { sourceName: string; text: string }) => {
       const review = parseWorkflowProContractImportText({
@@ -1505,7 +1701,33 @@ export function NexusOps() {
     syncing: 0,
   });
 
-  const recoverWorkspaceAfterLogin = useCallback((userId: string) => {
+  const rememberWorkspaceSession = useCallback(
+    (sessionWorkspace: WorkspaceSessionEnsureResponse) => {
+      const readOnly = isWorkspaceReadOnlyRole(sessionWorkspace.role);
+
+      void localSyncQueueAdapter.setWorkspaceReadOnly(
+        sessionWorkspace.workspaceId,
+        readOnly,
+      );
+      if (sessionWorkspace.preferredWorkspaceId) {
+        void localSyncQueueAdapter.setWorkspaceReadOnly(
+          sessionWorkspace.preferredWorkspaceId,
+          readOnly,
+        );
+      }
+
+      setWorkspaceSessionByWorkspaceId((current) => ({
+        ...current,
+        ...(sessionWorkspace.preferredWorkspaceId
+          ? { [sessionWorkspace.preferredWorkspaceId]: sessionWorkspace }
+          : {}),
+        [sessionWorkspace.workspaceId]: sessionWorkspace,
+      }));
+    },
+    [],
+  );
+
+  const recoverWorkspaceAfterLogin = useCallback((userId: string, accessToken?: string | null) => {
     const state = useNexusStore.getState();
     const localWorkspace =
       state.workspaces.find((candidate) => candidate.id === state.activeWorkspaceId) ??
@@ -1519,7 +1741,11 @@ export function NexusOps() {
           preferredWorkspaceId: localRecovery.localWorkspaceId,
           preferredWorkspaceName: localWorkspace?.name,
           userId,
-        });
+        }, accessToken);
+
+        if (sessionWorkspace) {
+          rememberWorkspaceSession(sessionWorkspace);
+        }
 
         if (
           sessionWorkspace &&
@@ -1573,7 +1799,7 @@ export function NexusOps() {
       .finally(() => {
         setWorkspaceRecoveryLoading(false);
       });
-  }, [applyWorkspaceRecoveryState]);
+  }, [applyWorkspaceRecoveryState, rememberWorkspaceSession]);
 
   const recoverSelectedWorkspace = useCallback((workspaceId: string) => {
     const userId = useNexusStore.getState().authVault.user?.id;
@@ -1614,21 +1840,67 @@ export function NexusOps() {
       });
   }, [applyWorkspaceRecoveryState]);
 
-  const handleSessionUser = useCallback((user: IAuthVault["user"]) => {
+  const handleSessionUser = useCallback((user: IAuthVault["user"], accessToken?: string | null) => {
     syncSupabaseSessionUser(user);
 
     if (!user) {
       recoveredLoginUserRef.current = null;
+      setWorkspaceSessionByWorkspaceId({});
       return;
     }
 
-    if (recoveredLoginUserRef.current === user.id) {
+    const hasAccessToken = Boolean(accessToken?.trim());
+    const tokenBackedRecoveryKey = `${user.id}:token`;
+
+    if (
+      recoveredLoginUserRef.current === tokenBackedRecoveryKey ||
+      (recoveredLoginUserRef.current === user.id && !hasAccessToken)
+    ) {
       return;
     }
 
-    recoveredLoginUserRef.current = user.id;
-    recoverWorkspaceAfterLogin(user.id);
+    recoveredLoginUserRef.current = hasAccessToken ? tokenBackedRecoveryKey : user.id;
+    recoverWorkspaceAfterLogin(user.id, accessToken);
   }, [recoverWorkspaceAfterLogin]);
+
+  useEffect(() => {
+    const userId = authVault.user?.id;
+
+    if (
+      !authChecked ||
+      !userId ||
+      !workspace?.id ||
+      activeWorkspaceSession?.workspaceId === workspace.id
+    ) {
+      return;
+    }
+
+    let mounted = true;
+
+    void supabaseStateSyncManager
+      .ensureWorkspaceSession({
+        preferredWorkspaceId: workspace.id,
+        preferredWorkspaceName: workspace.name,
+        userId,
+      })
+      .then((sessionWorkspace) => {
+        if (mounted && sessionWorkspace) {
+          rememberWorkspaceSession(sessionWorkspace);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      mounted = false;
+    };
+  }, [
+    activeWorkspaceSession?.workspaceId,
+    authChecked,
+    authVault.user?.id,
+    rememberWorkspaceSession,
+    workspace?.id,
+    workspace?.name,
+  ]);
 
   useEffect(() => {
     materializeDefaultWorkspace();
@@ -1638,7 +1910,7 @@ export function NexusOps() {
     let mounted = true;
 
     const refresh = () => {
-      void localSyncQueueAdapter.getStatus().then((status) => {
+      void localSyncQueueAdapter.getStatus({ workspaceId: activeWorkspaceId }).then((status) => {
         if (mounted) {
           setSyncQueueStatus(status);
         }
@@ -1651,7 +1923,7 @@ export function NexusOps() {
       mounted = false;
       window.clearInterval(intervalId);
     };
-  }, []);
+  }, [activeWorkspaceId]);
 
   useEffect(() => {
     let mounted = true;
@@ -1896,6 +2168,7 @@ export function NexusOps() {
       .getOperations()
       .then((operations) =>
         operations.find((operation) =>
+          operation.workspaceId === activeWorkspaceId &&
           ["failed", "conflicted"].includes(operation.status),
         ),
       )
@@ -1904,15 +2177,25 @@ export function NexusOps() {
           return undefined;
         }
 
-        return localSyncQueueAdapter.retry(operation.clientMutationId);
+        return localSyncQueueAdapter.recoverIssue(operation.clientMutationId);
       })
-      .then(() => {
+      .then((result) => {
+        if (result === "compacted") {
+          setNotice("Stale workspace snapshot issue compacted.");
+          return;
+        }
+
+        if (result === "missing") {
+          setNotice("No sync issue found.");
+          return;
+        }
+
         setNotice("Sync retry queued.");
       })
       .catch(() => {
         setNotice("Sync retry could not be queued.");
       });
-  }, []);
+  }, [activeWorkspaceId]);
 
   useEffect(() => {
     if (activeRightPanel !== "workflows") {
@@ -1925,7 +2208,7 @@ export function NexusOps() {
   }, [activeRightPanel, macroRefreshToken, refreshMacros]);
 
   useEffect(() => {
-    if (activeRightPanel !== "artifacts") {
+    if (activeRightPanel !== "artifacts" && activeRightPanel !== "generations") {
       return;
     }
 
@@ -1933,6 +2216,41 @@ export function NexusOps() {
       void refreshArtifacts();
     }, 0);
   }, [activeRightPanel, artifactRefreshToken, refreshArtifacts]);
+
+  useEffect(() => {
+    const userId = authVault.user?.id;
+    const workspaceId = workspace?.id;
+
+    if (
+      !authChecked ||
+      !userId ||
+      !workspaceId ||
+      activeWorkspaceSession?.workspaceId !== workspaceId
+    ) {
+      return;
+    }
+
+    const hydrationKey = `${userId}:${workspaceId}:${activeWorkspaceSession.role}`;
+
+    if (artifactAutoHydrationKeyRef.current === hydrationKey) {
+      return;
+    }
+
+    artifactAutoHydrationKeyRef.current = hydrationKey;
+
+    void fetchArtifactsFromCloud().catch(() => {
+      if (artifactAutoHydrationKeyRef.current === hydrationKey) {
+        artifactAutoHydrationKeyRef.current = null;
+      }
+    });
+  }, [
+    activeWorkspaceSession?.role,
+    activeWorkspaceSession?.workspaceId,
+    authChecked,
+    authVault.user?.id,
+    fetchArtifactsFromCloud,
+    workspace?.id,
+  ]);
 
   const handleExport = useCallback(() => {
     const downloadSnapshot = (snapshot: WorkspaceSnapshot) => {
@@ -2091,7 +2409,40 @@ export function NexusOps() {
 
   const handleDownloadArtifact = useCallback((artifact: ArtifactVaultRecord) => {
     void (async () => {
+      const localFileName = createArtifactDownloadFilename(artifact);
+
       try {
+        if (isGeneratedArtifactRecord(artifact) && isTransientArtifactRecord(artifact)) {
+          if (!artifact.contentUrl) {
+            throw new Error("Transient generated asset has no downloadable URL.");
+          }
+
+          downloadUrlPayload(artifact.contentUrl, localFileName);
+          setNotice("Generated asset download started");
+          return;
+        }
+
+        if (isGeneratedArtifactRecord(artifact)) {
+          try {
+            await downloadAuthenticatedUrlPayload(
+              `/api/v1/artifacts/${encodeURIComponent(artifact.id)}/asset?workspaceId=${encodeURIComponent(artifact.workspaceId)}`,
+              localFileName,
+              {
+                userId: artifactRequestUserId,
+                workspaceId: artifact.workspaceId,
+              },
+            );
+          } catch (error) {
+            if (!artifact.contentUrl) {
+              throw error;
+            }
+
+            downloadUrlPayload(artifact.contentUrl, localFileName);
+          }
+          setNotice("Generated asset download started");
+          return;
+        }
+
         const response = await nexusApiClient.get<ArtifactGetResponse>(
           `/api/v1/artifacts/${encodeURIComponent(artifact.id)}?workspaceId=${encodeURIComponent(artifact.workspaceId)}`,
           {
@@ -2151,9 +2502,13 @@ export function NexusOps() {
       state.authVault,
       model,
       agent?.provider ?? workspace?.settings.provider,
+      serverProviderStatus,
     );
     const safeKey = runtimeCredential.apiKey;
     const safeBaseUrl = runtimeCredential.baseUrl;
+    const liveProviderAvailable = Boolean(
+      safeKey || runtimeCredential.serverCredentialConfigured,
+    );
     const userId = state.authVault.user?.id;
 
     if (!agent || agent.status === "streaming" || agent.status === "thinking") {
@@ -2242,9 +2597,11 @@ export function NexusOps() {
     setNotice(
       safeKey
         ? `${agent.callsign} live stream opened via ${runtimeCredential.providerLabel}`
-        : `${agent.callsign} mock stream opened; ${runtimeCredential.providerLabel} key missing`,
+        : runtimeCredential.serverCredentialConfigured
+          ? `${agent.callsign} live stream opened via ${runtimeCredential.providerLabel} server key`
+          : `${agent.callsign} mock stream opened; ${runtimeCredential.providerLabel} key missing`,
     );
-    state.setStreamMode(safeKey ? "live" : "mock");
+    state.setStreamMode(liveProviderAvailable ? "live" : "mock");
 
     let received = "";
     let firstTokenReceived = false;
@@ -2276,7 +2633,9 @@ export function NexusOps() {
       if (safeKey) {
         headers.set(NEXUS_RUNTIME_AUTHORIZATION_HEADER, `Bearer ${safeKey}`);
       }
-      headers.set("x-nexus-base-url", safeBaseUrl);
+      if (safeKey || !runtimeCredential.serverCredentialConfigured) {
+        headers.set("x-nexus-base-url", safeBaseUrl);
+      }
       headers.set("x-nexus-provider-id", runtimeCredential.providerId);
 
       const response = await fetchWithBackoff(
@@ -2377,11 +2736,78 @@ export function NexusOps() {
         setNotice(`${agent.callsign} stream closed`);
       }
     }
-  }, []);
+  }, [serverProviderStatus]);
+
+  const blockReadOnlyWorkspaceMutation = useCallback((action: string) => {
+    if (!activeWorkspaceReadOnly) {
+      return false;
+    }
+
+    setNotice(`${action} blocked: ${activeWorkspaceReadOnlyMessage}`);
+    return true;
+  }, [activeWorkspaceReadOnly, activeWorkspaceReadOnlyMessage]);
+
+  const handleGraphBrainAppendWorkflowContractText = useCallback(
+    ({ sourceName, text }: { sourceName: string; text: string }) => {
+      if (blockReadOnlyWorkspaceMutation("Append Graph Brain workflow group")) {
+        return {
+          detail: activeWorkspaceReadOnlyMessage,
+          status: "rejected" as const,
+        };
+      }
+
+      const review = parseWorkflowProContractImportText({
+        sourceName,
+        text,
+      });
+
+      if (review.status !== "accepted" || !review.contract) {
+        const detail =
+          review.status === "rejected"
+            ? review.error
+            : "Workflow contract was not accepted.";
+
+        setNotice(`Graph Brain append rejected: ${detail}`);
+
+        return {
+          detail,
+          status: "rejected" as const,
+        };
+      }
+
+      const bridge = createWorkflowProRuntimeBridge(review.contract);
+      const appended = appendWorkflowRuntimeGroup(bridge.runtimeLite, {
+        groupLabel: review.contract.name,
+        groupSource: "brain",
+      });
+
+      setViewMode("graph");
+      setNotice(
+        `Graph Brain appended ${appended.nodeIds.length} nodes / ${appended.edgeIds.length} edges`,
+      );
+
+      return {
+        detail: `Appended ${review.contract.name}`,
+        edgeCount: appended.edgeIds.length,
+        nodeCount: appended.nodeIds.length,
+        status: "accepted" as const,
+      };
+    },
+    [
+      activeWorkspaceReadOnlyMessage,
+      appendWorkflowRuntimeGroup,
+      blockReadOnlyWorkspaceMutation,
+      setViewMode,
+    ],
+  );
 
   const handleRunWorkflowRuntimeLite = useCallback(async (
     options?: { startNodeId?: string },
   ) => {
+    if (blockReadOnlyWorkspaceMutation("Workflow Runtime Lite")) {
+      return;
+    }
+
     setNotice(
       options?.startNodeId
         ? "Workflow Runtime Lite input started"
@@ -2406,15 +2832,19 @@ export function NexusOps() {
       setNotice(
         error instanceof Error
           ? `Workflow Runtime Lite failed: ${error.message}`
-          : "Workflow Runtime Lite failed",
+        : "Workflow Runtime Lite failed",
       );
     }
-  }, [runWorkflowRuntimeLiteFlow]);
+  }, [blockReadOnlyWorkspaceMutation, runWorkflowRuntimeLiteFlow]);
 
   const handlePauseWorkflowRuntimeLite = useCallback(() => {
+    if (blockReadOnlyWorkspaceMutation("Workflow Runtime Lite pause")) {
+      return;
+    }
+
     pauseWorkflowRuntimeLiteFlow();
     setNotice("Workflow Runtime Lite pause requested");
-  }, [pauseWorkflowRuntimeLiteFlow]);
+  }, [blockReadOnlyWorkspaceMutation, pauseWorkflowRuntimeLiteFlow]);
 
   const handleCopyWorkflowInput = useCallback(async (nodeId: string) => {
     const runtimeNode = useNexusStore
@@ -2501,6 +2931,10 @@ export function NexusOps() {
     const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
     const capabilityType = agent ? getCapabilityType(agent) : "chat";
     const globalApiKey = state.authVault.globalApiKey?.trim() ?? "";
+    const imageProviderAvailable = Boolean(
+      capabilityType === "image" &&
+        (globalApiKey || hasServerProviderCredential(serverProviderStatus, "openai")),
+    );
 
     if (
       !agent ||
@@ -2524,7 +2958,7 @@ export function NexusOps() {
     state.addMessage(agentId, userMessage);
     state.setAgentStatus(agentId, "thinking");
     setNotice(
-      capabilityType === "image" && globalApiKey
+      imageProviderAvailable
         ? `${agent.callsign} DALL-E image generation queued`
         : `${agent.callsign} ${capabilityType} generation queued`,
     );
@@ -2549,7 +2983,7 @@ export function NexusOps() {
       await useNexusStore.getState().runTool(agentId, tool.id, { prompt });
       useNexusStore.getState().updateAgentTelemetry(agentId, prompt.length + 640);
       setNotice(
-        capabilityType === "image" && globalApiKey
+        imageProviderAvailable
           ? `${agent.callsign} DALL-E image generated`
           : `${agent.callsign} ${capabilityType} preview generated`,
       );
@@ -2565,7 +2999,7 @@ export function NexusOps() {
     } finally {
       useNexusStore.getState().setAgentStatus(agentId, "idle");
     }
-  }, []);
+  }, [serverProviderStatus]);
 
   const handleComposerImageGenerate = useCallback(
     async (
@@ -2611,6 +3045,7 @@ export function NexusOps() {
           state.authVault,
           imageSettings.modelId,
           "openai",
+          serverProviderStatus,
         );
         const result = await executeImageAdapterForAgent({
           agent: {
@@ -2619,10 +3054,15 @@ export function NexusOps() {
             model: imageSettings.modelId,
           },
           apiKey: runtimeCredential.apiKey,
-          baseUrl: runtimeCredential.baseUrl,
+          baseUrl:
+            runtimeCredential.serverCredentialConfigured && !runtimeCredential.apiKey
+              ? undefined
+              : runtimeCredential.baseUrl,
           imageSettings,
           prompt,
           toolName: "Composer Image Mode",
+          userId: state.authVault.user?.id,
+          workspaceId: workspace?.id ?? state.activeWorkspaceId,
         });
         const assistantMessageId = makeId("message");
         let artifactId: string | undefined;
@@ -2639,6 +3079,7 @@ export function NexusOps() {
               metadata: {
                 aspectRatio: imageSettings.aspectRatio,
                 composerMode: "image",
+                generatedAsset: result.generatedAsset ?? null,
                 imageGenerationMode: result.mode,
                 mediaUrlKind: getGeneratedImageUrlKind(result.media.url),
                 modelId: imageSettings.modelId,
@@ -2715,7 +3156,7 @@ export function NexusOps() {
         useNexusStore.getState().setAgentStatus(agentId, "idle");
       }
     },
-    [],
+    [serverProviderStatus],
   );
 
   useEffect(() => {
@@ -2825,6 +3266,11 @@ export function NexusOps() {
         detail: `${template.identity} / ${template.title}`,
         icon: <Plus className="h-4 w-4" />,
         run: () => {
+          if (blockReadOnlyWorkspaceMutation("Spawn agent")) {
+            setPaletteOpen(false);
+            return;
+          }
+
           spawnAgent(template.id);
           setPaletteOpen(false);
           setNotice(`${template.callsign} spawned`);
@@ -2836,6 +3282,11 @@ export function NexusOps() {
         detail: "Cascade visible agent windows",
         icon: <Layers3 className="h-4 w-4" />,
         run: () => {
+          if (blockReadOnlyWorkspaceMutation("Arrange workspace")) {
+            setPaletteOpen(false);
+            return;
+          }
+
           arrangeAgents(workspaceSize);
           setPaletteOpen(false);
           setNotice("Workspace arranged");
@@ -2847,6 +3298,11 @@ export function NexusOps() {
         detail: "Bring minimized agents back online",
         icon: <Fullscreen className="h-4 w-4" />,
         run: () => {
+          if (blockReadOnlyWorkspaceMutation("Restore workspace cards")) {
+            setPaletteOpen(false);
+            return;
+          }
+
           restoreAll();
           setPaletteOpen(false);
           setNotice("All workstations restored");
@@ -2858,6 +3314,11 @@ export function NexusOps() {
         detail: "Collapse every active workstation",
         icon: <Minimize2 className="h-4 w-4" />,
         run: () => {
+          if (blockReadOnlyWorkspaceMutation("Minimize workspace cards")) {
+            setPaletteOpen(false);
+            return;
+          }
+
           minimizeAll();
           setPaletteOpen(false);
           setNotice("All workstations minimized");
@@ -2869,6 +3330,11 @@ export function NexusOps() {
         detail: "Materialize the current workspace into local persistence",
         icon: <Save className="h-4 w-4" />,
         run: () => {
+          if (blockReadOnlyWorkspaceMutation("Save workspace snapshot")) {
+            setPaletteOpen(false);
+            return;
+          }
+
           saveWorkspaceSnapshot();
           setPaletteOpen(false);
           setNotice("Workspace snapshot saved");
@@ -2890,6 +3356,11 @@ export function NexusOps() {
         detail: "Load a NEXUS snapshot",
         icon: <Upload className="h-4 w-4" />,
         run: () => {
+          if (blockReadOnlyWorkspaceMutation("Import workspace")) {
+            setPaletteOpen(false);
+            return;
+          }
+
           fileInputRef.current?.click();
           setPaletteOpen(false);
         },
@@ -2900,6 +3371,11 @@ export function NexusOps() {
         detail: "Reload the default command field",
         icon: <RefreshCcw className="h-4 w-4" />,
         run: () => {
+          if (blockReadOnlyWorkspaceMutation("Reset workspace")) {
+            setPaletteOpen(false);
+            return;
+          }
+
           resetWorkspace();
           setPaletteOpen(false);
           setNotice("Workspace reset");
@@ -2908,6 +3384,7 @@ export function NexusOps() {
     ],
     [
       arrangeAgents,
+      blockReadOnlyWorkspaceMutation,
       handleExport,
       minimizeAll,
       resetWorkspace,
@@ -2919,7 +3396,7 @@ export function NexusOps() {
   );
 
   if (!authChecked || !authVault.user) {
-    return <AuthScreen checked={authChecked} />;
+    return <AuthScreen checked={authChecked} onAuthenticated={handleSessionUser} />;
   }
 
   return (
@@ -2929,6 +3406,11 @@ export function NexusOps() {
         accept="application/json"
         className="hidden"
         onChange={(event) => {
+          if (blockReadOnlyWorkspaceMutation("Import workspace")) {
+            event.currentTarget.value = "";
+            return;
+          }
+
           void handleImport(event.target.files?.[0]);
           event.currentTarget.value = "";
         }}
@@ -2947,9 +3429,19 @@ export function NexusOps() {
             setNotice(`Workspace ${nextWorkspace.name} created and synced to cloud.`);
           }}
           onExport={handleExport}
-          onImport={() => fileInputRef.current?.click()}
+          onImport={() => {
+            if (blockReadOnlyWorkspaceMutation("Import workspace")) {
+              return;
+            }
+
+            fileInputRef.current?.click();
+          }}
           onOpenPalette={() => setPaletteOpen(true)}
           onRenameWorkspace={(name) => {
+            if (blockReadOnlyWorkspaceMutation("Rename workspace")) {
+              return;
+            }
+
             renameWorkspace(name);
             setNotice("Workspace renamed");
           }}
@@ -2963,11 +3455,25 @@ export function NexusOps() {
             setActiveRightPanel((current) => (current ? null : "providers"))
           }
           onSave={() => {
+            if (blockReadOnlyWorkspaceMutation("Save workspace snapshot")) {
+              return;
+            }
+
             saveWorkspaceSnapshot();
             setNotice("Workspace snapshot saved");
           }}
-          onSaveMacro={openMacroComposer}
+          onSaveMacro={() => {
+            if (blockReadOnlyWorkspaceMutation("Pack workspace macro")) {
+              return;
+            }
+
+            openMacroComposer();
+          }}
           onSpawn={() => {
+            if (blockReadOnlyWorkspaceMutation("Spawn agent")) {
+              return;
+            }
+
             const id = spawnAgent();
             focusAgent(id);
             setNotice("Agent spawned");
@@ -2979,6 +3485,9 @@ export function NexusOps() {
           viewMode={viewMode}
           workspaceRecoveryItems={workspaceRecoveryItems}
           workspaceRecoveryLoading={workspaceRecoveryLoading}
+          workspaceReadOnly={activeWorkspaceReadOnly}
+          workspaceReadOnlyMessage={activeWorkspaceReadOnlyMessage}
+          workspaceRole={activeWorkspaceRole ?? undefined}
           onSetViewMode={setViewMode}
           workspaceName={workspaceName}
           workspaces={workspaces}
@@ -3075,11 +3584,28 @@ export function NexusOps() {
                 generatedArtifacts={artifactVault.filter(isGeneratedArtifactRecord)}
                 graph={workspace?.graph ?? EMPTY_GRAPH}
                 onAddWorkflowNode={(type, position) => {
+                  if (blockReadOnlyWorkspaceMutation("Add workflow node")) {
+                    return;
+                  }
+
                   addWorkflowRuntimeNode(type, position ? { position } : undefined);
                   setNotice(`${type} node added`);
                 }}
-                onConnectAgents={connectGraphAgents}
-                onConnectWorkflowNodes={connectWorkflowRuntimeNodes}
+                onAppendWorkflowContractText={handleGraphBrainAppendWorkflowContractText}
+                onConnectAgents={(edge) => {
+                  if (blockReadOnlyWorkspaceMutation("Connect agents")) {
+                    return;
+                  }
+
+                  connectGraphAgents(edge);
+                }}
+                onConnectWorkflowNodes={(edge) => {
+                  if (blockReadOnlyWorkspaceMutation("Connect workflow nodes")) {
+                    return;
+                  }
+
+                  connectWorkflowRuntimeNodes(edge);
+                }}
                 onCopyWorkflowInput={handleCopyWorkflowInput}
                 onCopyWorkflowOutput={handleCopyWorkflowOutput}
                 onDownloadArtifact={handleDownloadArtifact}
@@ -3088,10 +3614,34 @@ export function NexusOps() {
                   setViewMode("panels");
                   focusAgent(agentId);
                 }}
-                onRemoveAgent={removeAgent}
-                onRemoveEdges={removeGraphEdges}
-                onRemoveWorkflowEdges={removeWorkflowRuntimeEdges}
-                onRemoveWorkflowNodes={removeWorkflowRuntimeNodes}
+                onRemoveAgent={(agentId) => {
+                  if (blockReadOnlyWorkspaceMutation("Delete agent")) {
+                    return;
+                  }
+
+                  removeAgent(agentId);
+                }}
+                onRemoveEdges={(edgeIds) => {
+                  if (blockReadOnlyWorkspaceMutation("Delete graph edge")) {
+                    return;
+                  }
+
+                  removeGraphEdges(edgeIds);
+                }}
+                onRemoveWorkflowEdges={(edgeIds) => {
+                  if (blockReadOnlyWorkspaceMutation("Delete workflow edge")) {
+                    return;
+                  }
+
+                  removeWorkflowRuntimeEdges(edgeIds);
+                }}
+                onRemoveWorkflowNodes={(nodeIds) => {
+                  if (blockReadOnlyWorkspaceMutation("Delete workflow node")) {
+                    return;
+                  }
+
+                  removeWorkflowRuntimeNodes(nodeIds);
+                }}
                 onPauseWorkflow={handlePauseWorkflowRuntimeLite}
                 onRunWorkflowFromInput={(nodeId) => {
                   void handleRunWorkflowRuntimeLite({ startNodeId: nodeId });
@@ -3099,9 +3649,30 @@ export function NexusOps() {
                 onRunWorkflow={() => {
                   void handleRunWorkflowRuntimeLite();
                 }}
-                onUpdateWorkflowNodeData={updateWorkflowRuntimeNodeData}
-                onUpdateWorkflowNodePosition={updateWorkflowRuntimeNodePosition}
-                onUpdateNodePosition={updateGraphNodePosition}
+                onUpdateWorkflowNodeData={(nodeId, data) => {
+                  if (blockReadOnlyWorkspaceMutation("Edit workflow node")) {
+                    return;
+                  }
+
+                  updateWorkflowRuntimeNodeData(nodeId, data);
+                }}
+                onUpdateWorkflowNodePosition={(nodeId, position) => {
+                  if (blockReadOnlyWorkspaceMutation("Move workflow node")) {
+                    return;
+                  }
+
+                  updateWorkflowRuntimeNodePosition(nodeId, position);
+                }}
+                onUpdateNodePosition={(agentId, position) => {
+                  if (blockReadOnlyWorkspaceMutation("Move agent node")) {
+                    return;
+                  }
+
+                  updateGraphNodePosition(agentId, position);
+                }}
+                readOnly={activeWorkspaceReadOnly}
+                readOnlyMessage={activeWorkspaceReadOnlyMessage}
+                workspaceRole={activeWorkspaceRole ?? undefined}
                 workflowFeedback={workflowFeedback}
                 workflowRunning={workflowRunning}
               />
@@ -3221,10 +3792,15 @@ export function NexusOps() {
           agents={agents}
           agent={selectedAgent}
           authVault={authVault}
+          serverProviderStatus={serverProviderStatus}
           artifactError={artifactError}
           artifacts={artifactVault}
           artifactsLoading={artifactsLoading}
           workspaceId={workspace?.id ?? activeWorkspaceId}
+          workspaceName={workspace?.name}
+          workflowRunHistoryGroups={workflowProRunHistoryGroups}
+          workflowRuntimeLite={workflowRuntimeLite}
+          workflowRuntimeEvidence={workflowProRuntimeEvidence}
           macroError={macroError}
           macros={macros}
           macrosLoading={macrosLoading}
@@ -3246,6 +3822,25 @@ export function NexusOps() {
           onDownloadArtifact={handleDownloadArtifact}
           onRefreshArtifacts={refreshArtifacts}
           onRefreshMacros={refreshMacros}
+          onRetryWorkflowRuntimeTraceSync={async (runId) => {
+            if (blockReadOnlyWorkspaceMutation("Workflow trace resync")) {
+              return;
+            }
+
+            setNotice(`Workflow trace resync started: ${runId}`);
+            const run = await retryWorkflowRuntimeTraceSync(runId);
+
+            if (!run) {
+              setNotice(`Workflow trace resync failed: missing run ${runId}`);
+              return;
+            }
+
+            setNotice(
+              run.traceSync?.status === "synced"
+                ? `Workflow trace resynced: ${runId}`
+                : `Workflow trace resync ${run.traceSync?.status ?? "unknown"}: ${run.traceSync?.error ?? runId}`,
+            );
+          }}
           onSpawnMacro={handleSpawnMacro}
           onToggleNotebook={toggleNotebookOpen}
           onDeleteApiKey={deleteApiKey}
@@ -3487,6 +4082,9 @@ function TopBar({
   viewMode,
   workspaceRecoveryItems,
   workspaceRecoveryLoading,
+  workspaceReadOnly,
+  workspaceReadOnlyMessage,
+  workspaceRole,
   onSetViewMode,
 }: {
   activeWorkspaceId: string;
@@ -3511,6 +4109,9 @@ function TopBar({
   viewMode: WorkspaceViewMode;
   workspaceRecoveryItems: WorkspaceRecoveryListItem[];
   workspaceRecoveryLoading: boolean;
+  workspaceReadOnly: boolean;
+  workspaceReadOnlyMessage: string;
+  workspaceRole?: WorkspaceSessionRole;
   onSetViewMode: (mode: WorkspaceViewMode) => void;
 }) {
   const [renaming, setRenaming] = useState(false);
@@ -3603,6 +4204,19 @@ function TopBar({
                   >
                     STREAM: {streamMode}
                   </span>
+                  {workspaceRole ? (
+                    <span
+                      className={cx(
+                        "shrink-0 border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em]",
+                        workspaceReadOnly
+                          ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
+                          : "border-white/10 bg-white/[0.045] text-neutral-300",
+                      )}
+                      title={workspaceReadOnly ? workspaceReadOnlyMessage : "Workspace is editable"}
+                    >
+                      ROLE: {workspaceRole}
+                    </span>
+                  ) : null}
                 </div>
 
                 {renaming ? (
@@ -3638,7 +4252,8 @@ function TopBar({
                   </form>
                 ) : (
                   <button
-                    className="mt-3 inline-flex h-7 items-center gap-2 border bg-white/[0.035] px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-400 transition hover:bg-white/10 hover:text-neutral-100"
+                    className="mt-3 inline-flex h-7 items-center gap-2 border bg-white/[0.035] px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-400 transition hover:bg-white/10 hover:text-neutral-100 disabled:cursor-not-allowed disabled:opacity-45"
+                    disabled={workspaceReadOnly}
                     onClick={openRename}
                     style={{
                       borderColor:
@@ -3646,6 +4261,7 @@ function TopBar({
                       borderRadius:
                         "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
                     }}
+                    title={workspaceReadOnly ? workspaceReadOnlyMessage : "Rename workspace"}
                     type="button"
                   >
                     <Pencil className="h-3.5 w-3.5" />
@@ -3811,21 +4427,21 @@ function TopBar({
                   setMenuOpen(false);
                   onOpenPalette();
                 }} />
-                <TopMenuAction icon={<Plus className="h-3.5 w-3.5" />} label="Spawn" onClick={() => {
+                <TopMenuAction disabled={workspaceReadOnly} disabledReason={workspaceReadOnlyMessage} icon={<Plus className="h-3.5 w-3.5" />} label="Spawn" onClick={() => {
                   setMenuOpen(false);
                   onSpawn();
                 }} />
-                <TopMenuAction icon={<Save className="h-3.5 w-3.5" />} label="Save" onClick={() => {
+                <TopMenuAction disabled={workspaceReadOnly} disabledReason={workspaceReadOnlyMessage} icon={<Save className="h-3.5 w-3.5" />} label="Save" onClick={() => {
                   setMenuOpen(false);
                   onSave();
                 }} />
                 {viewMode === "graph" ? (
-                  <TopMenuAction icon={<Archive className="h-3.5 w-3.5" />} label="Pack" onClick={() => {
+                  <TopMenuAction disabled={workspaceReadOnly} disabledReason={workspaceReadOnlyMessage} icon={<Archive className="h-3.5 w-3.5" />} label="Pack" onClick={() => {
                     setMenuOpen(false);
                     onSaveMacro();
                   }} />
                 ) : null}
-                <TopMenuAction icon={<FileUp className="h-3.5 w-3.5" />} label="Import" onClick={() => {
+                <TopMenuAction disabled={workspaceReadOnly} disabledReason={workspaceReadOnlyMessage} icon={<FileUp className="h-3.5 w-3.5" />} label="Import" onClick={() => {
                   setMenuOpen(false);
                   onImport();
                 }} />
@@ -3891,11 +4507,15 @@ function SyncBadge({
 
 function TopMenuAction({
   active,
+  disabled,
+  disabledReason,
   icon,
   label,
   onClick,
 }: {
   active?: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
   icon: ReactNode;
   label: string;
   onClick: () => void;
@@ -3903,9 +4523,10 @@ function TopMenuAction({
   return (
     <button
       className={cx(
-        "inline-flex h-8 items-center justify-center gap-2 border px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-300 transition hover:bg-white/10 hover:text-neutral-100",
+        "inline-flex h-8 items-center justify-center gap-2 border px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-300 transition hover:bg-white/10 hover:text-neutral-100 disabled:cursor-not-allowed disabled:opacity-45",
         active ? "bg-white/[0.075]" : "bg-white/[0.035]",
       )}
+      disabled={disabled}
       onClick={onClick}
       style={{
         borderColor: active
@@ -3914,6 +4535,7 @@ function TopMenuAction({
         borderRadius:
           "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
       }}
+      title={disabled ? disabledReason : label}
       type="button"
     >
       {icon}
@@ -4295,10 +4917,15 @@ function AgentSettingsSidebar({
   agent,
   agents,
   authVault,
+  serverProviderStatus,
   artifactError,
   artifacts,
   artifactsLoading,
   workspaceId,
+  workspaceName,
+  workflowRunHistoryGroups,
+  workflowRuntimeLite,
+  workflowRuntimeEvidence,
   macroError,
   macros,
   macrosLoading,
@@ -4319,6 +4946,7 @@ function AgentSettingsSidebar({
   onLogout,
   onRefreshArtifacts,
   onRefreshMacros,
+  onRetryWorkflowRuntimeTraceSync,
   onRunTool,
   onSelectAgent,
   onSetGlobalApiKey,
@@ -4345,10 +4973,15 @@ function AgentSettingsSidebar({
   agent?: NexusAgent;
   agents: NexusAgent[];
   authVault: IAuthVault;
+  serverProviderStatus: ServerProviderStatus | null;
   artifactError?: string;
   artifacts: ArtifactVaultRecord[];
   artifactsLoading: boolean;
   workspaceId: string;
+  workspaceName?: string;
+  workflowRunHistoryGroups: WorkflowProRunHistoryGroupsReport;
+  workflowRuntimeLite?: WorkflowRuntimeLiteState;
+  workflowRuntimeEvidence: WorkflowProRuntimeEvidenceReport;
   macroError?: string;
   macros: WorkflowTemplateRecord[];
   macrosLoading: boolean;
@@ -4369,6 +5002,7 @@ function AgentSettingsSidebar({
   onLogout: () => void;
   onRefreshArtifacts: () => void;
   onRefreshMacros: () => void;
+  onRetryWorkflowRuntimeTraceSync: (runId: string) => Promise<void>;
   onRunTool: (agentId: string, toolId: string) => Promise<void>;
   onSelectAgent: (agentId: string) => void;
   onSetGlobalApiKey: (key: string) => void;
@@ -4408,10 +5042,105 @@ function AgentSettingsSidebar({
   const [traceEvents, setTraceEvents] = useState<SystemEventRecord[]>([]);
   const [traceEventsCursor, setTraceEventsCursor] = useState<string | null>(null);
   const [traceEventsHasMore, setTraceEventsHasMore] = useState(false);
+  const [traceEventsLoaded, setTraceEventsLoaded] = useState(false);
   const [traceEventsLoading, setTraceEventsLoading] = useState(false);
   const [traceEventsError, setTraceEventsError] = useState<string | undefined>();
+  const [runtimeTraceEvents, setRuntimeTraceEvents] = useState<SystemEventRecord[]>([]);
+  const [runtimeTraceEventsTraceId, setRuntimeTraceEventsTraceId] = useState<string | null>(null);
+  const [runtimeTraceEventsLoaded, setRuntimeTraceEventsLoaded] = useState(false);
+  const [runtimeTraceEventsLoading, setRuntimeTraceEventsLoading] = useState(false);
+  const [runtimeTraceEventsError, setRuntimeTraceEventsError] = useState<string | undefined>();
+  const [selectedRunGroupId, setSelectedRunGroupId] = useState<string | null>(null);
+  const [traceResyncingRunId, setTraceResyncingRunId] = useState<string | null>(null);
   const traceViewerUserId = authVault.user?.id ?? "local-owner";
+  const latestRuntimeTraceId = workflowRuntimeEvidence.latestRun?.traceSync?.traceId ?? null;
+  const serverOpenAiConfigured = Boolean(
+    serverProviderStatus?.server?.openai?.apiKeyConfigured,
+  );
+  const serverOpenAiImageModel =
+    serverProviderStatus?.server?.openai?.imageModel?.trim() || null;
+  const runtimeTraceCorrelation = useMemo(
+    () =>
+      createWorkflowRuntimeTraceCorrelationReport({
+        events: runtimeTraceEvents,
+        latestRun: workflowRuntimeEvidence.latestRun,
+        loaded:
+          Boolean(latestRuntimeTraceId) &&
+          runtimeTraceEventsLoaded &&
+          runtimeTraceEventsTraceId === latestRuntimeTraceId,
+      }),
+    [
+      latestRuntimeTraceId,
+      runtimeTraceEvents,
+      runtimeTraceEventsLoaded,
+      runtimeTraceEventsTraceId,
+      workflowRuntimeEvidence.latestRun,
+    ],
+  );
+  const selectedRunGroupIsAvailable = workflowRunHistoryGroups.groups.some(
+    (group) => group.groupId === selectedRunGroupId,
+  );
+  const effectiveRunGroupId =
+    selectedRunGroupIsAvailable
+      ? selectedRunGroupId
+      : workflowRunHistoryGroups.groups[0]?.groupId ?? null;
+  const workflowRunGroupInspector = useMemo(
+    () =>
+      createWorkflowProRunGroupInspectorReport({
+        events: runtimeTraceEvents,
+        eventsLoaded: runtimeTraceEventsLoaded,
+        eventsTraceId: runtimeTraceEventsTraceId,
+        groupId: effectiveRunGroupId,
+        runtimeLite: workflowRuntimeLite,
+      }),
+    [
+      effectiveRunGroupId,
+      runtimeTraceEvents,
+      runtimeTraceEventsLoaded,
+      runtimeTraceEventsTraceId,
+      workflowRuntimeLite,
+    ],
+  );
+  const durableGroupRecordReport = useMemo(
+    () =>
+      createWorkflowProDurableGroupRecordReport({
+        events: traceEvents,
+        groupId: effectiveRunGroupId,
+        loaded: traceEventsLoaded,
+      }),
+    [effectiveRunGroupId, traceEvents, traceEventsLoaded],
+  );
+  const runtimeTraceTargetTraceId =
+    workflowRunGroupInspector.latestRun?.traceSync?.traceId ?? latestRuntimeTraceId;
   const panelMeta = getRightDockPanelMeta(activePanel);
+  const handleRetrySelectedRunTraceSync = useCallback(async () => {
+    const runId = workflowRunGroupInspector.latestRun?.runId;
+
+    if (!runId) {
+      return;
+    }
+
+    setTraceResyncingRunId(runId);
+
+    try {
+      await onRetryWorkflowRuntimeTraceSync(runId);
+    } finally {
+      setTraceResyncingRunId(null);
+    }
+  }, [onRetryWorkflowRuntimeTraceSync, workflowRunGroupInspector.latestRun?.runId]);
+  const handleExportWorkflowRuntimeEvidence = useCallback(() => {
+    const manifest = createWorkflowProRuntimeEvidenceManifest({
+      evidence: workflowRuntimeEvidence,
+      workspaceId,
+      workspaceName,
+    });
+
+    downloadTextPayload(
+      JSON.stringify(manifest, null, 2),
+      `nexus-workflow-runtime-evidence-${sanitizeDownloadFileName(workspaceId)}-${Date.now()}.json`,
+      "application/json;charset=utf-8",
+    );
+  }, [workflowRuntimeEvidence, workspaceId, workspaceName]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -4461,7 +5190,9 @@ function AgentSettingsSidebar({
       );
       setTraceEventsCursor(response.nextCursor ?? null);
       setTraceEventsHasMore(response.hasMore);
+      setTraceEventsLoaded(true);
     } catch (error) {
+      setTraceEventsLoaded(true);
       setTraceEventsError(
         error instanceof Error ? error.message : "Trace events unavailable.",
       );
@@ -4469,6 +5200,67 @@ function AgentSettingsSidebar({
       setTraceEventsLoading(false);
     }
   }, [traceEventsCursor, traceViewerUserId, workspaceId]);
+  const loadRuntimeTraceEvents = useCallback(async (traceId: string) => {
+    setRuntimeTraceEventsLoading(true);
+    setRuntimeTraceEventsError(undefined);
+    setRuntimeTraceEventsTraceId(traceId);
+
+    try {
+      const params = new URLSearchParams({
+        limit: "10",
+        traceId,
+        workspaceId,
+      });
+      const response = await nexusApiClient.get<SystemEventListResponse>(
+        `/api/v1/observability/events?${params.toString()}`,
+        {
+          userId: traceViewerUserId,
+          workspaceId,
+        },
+      );
+
+      setRuntimeTraceEvents(response.events);
+      setRuntimeTraceEventsLoaded(true);
+    } catch (error) {
+      setRuntimeTraceEvents([]);
+      setRuntimeTraceEventsLoaded(true);
+      setRuntimeTraceEventsTraceId(traceId);
+      setRuntimeTraceEventsError(
+        error instanceof Error ? error.message : "Runtime trace events unavailable.",
+      );
+    } finally {
+      setRuntimeTraceEventsLoading(false);
+    }
+  }, [traceViewerUserId, workspaceId]);
+
+  useEffect(() => {
+    if (activePanel !== "trace") {
+      return;
+    }
+
+    const traceId = runtimeTraceTargetTraceId;
+
+    if (!traceId) {
+      const timeoutId = window.setTimeout(() => {
+        setRuntimeTraceEvents([]);
+        setRuntimeTraceEventsTraceId(null);
+        setRuntimeTraceEventsLoaded(false);
+        setRuntimeTraceEventsError(undefined);
+      }, 0);
+
+      return () => window.clearTimeout(timeoutId);
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      void loadRuntimeTraceEvents(traceId);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    activePanel,
+    loadRuntimeTraceEvents,
+    runtimeTraceTargetTraceId,
+  ]);
 
   return (
     <AnimatePresence>
@@ -4691,6 +5483,8 @@ function AgentSettingsSidebar({
                       ? authVault.isLocked
                         ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
                         : "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
+                      : serverOpenAiConfigured
+                        ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
                       : "border-neutral-300/35 bg-neutral-300/10 text-neutral-100",
                   )}
                 >
@@ -4698,9 +5492,17 @@ function AgentSettingsSidebar({
                     ? authVault.isLocked
                       ? "Locked"
                       : "Unlocked"
-                    : "Empty"}
+                    : serverOpenAiConfigured
+                      ? "Server"
+                      : "Empty"}
                 </span>
               </div>
+              {serverOpenAiConfigured ? (
+                <div className="mb-3 border border-white/10 bg-black/25 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-300">
+                  Server provider configured
+                  {serverOpenAiImageModel ? ` / ${serverOpenAiImageModel}` : ""}
+                </div>
+              ) : null}
 
               {authVault.globalApiKey && authVault.isLocked ? (
                 <div className="grid gap-3">
@@ -5194,14 +5996,23 @@ function AgentSettingsSidebar({
                     Latest workspace events
                   </div>
                 </div>
-                <button
-                  className="border border-neutral-300/35 bg-neutral-300/10 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
-                  disabled={traceEventsLoading}
-                  onClick={() => void loadTraceEvents("reset")}
-                  type="button"
-                >
-                  Refresh
-                </button>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <button
+                    className="border border-white/10 bg-white/[0.04] px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-300 transition hover:border-neutral-300/35 hover:text-neutral-100"
+                    onClick={handleExportWorkflowRuntimeEvidence}
+                    type="button"
+                  >
+                    Export Evidence
+                  </button>
+                  <button
+                    className="border border-neutral-300/35 bg-neutral-300/10 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
+                    disabled={traceEventsLoading}
+                    onClick={() => void loadTraceEvents("reset")}
+                    type="button"
+                  >
+                    Refresh
+                  </button>
+                </div>
               </div>
 
               {traceEventsError ? (
@@ -5210,7 +6021,374 @@ function AgentSettingsSidebar({
                 </div>
               ) : null}
 
-              <div className="grid gap-2">
+              <div className="mb-3 border border-white/10 bg-black/25 p-3">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-100">
+                    Durable Trace Match
+                  </div>
+                  <span className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-600">
+                    {runtimeTraceEventsLoading ? "loading" : runtimeTraceCorrelation.status}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="border border-white/10 bg-white/[0.03] p-2">
+                    <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                      Events
+                    </div>
+                    <div className="mt-1 font-mono text-lg text-neutral-100">
+                      {runtimeTraceCorrelation.eventCount}
+                    </div>
+                  </div>
+                  <div className="border border-white/10 bg-white/[0.03] p-2">
+                    <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                      Run
+                    </div>
+                    <div className="mt-1 truncate font-mono text-[10px] uppercase text-neutral-100">
+                      {runtimeTraceCorrelation.runId ?? "none"}
+                    </div>
+                  </div>
+                  <div className="border border-white/10 bg-white/[0.03] p-2">
+                    <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                      Trace
+                    </div>
+                    <div className="mt-1 truncate font-mono text-[10px] uppercase text-neutral-100">
+                      {runtimeTraceCorrelation.traceId ?? "none"}
+                    </div>
+                  </div>
+                </div>
+                <p className="mt-2 text-[11px] leading-5 text-neutral-500">
+                  {runtimeTraceEventsError ?? runtimeTraceCorrelation.recommendation}
+                </p>
+                {runtimeTraceCorrelation.latestEventType ? (
+                  <div className="mt-2 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-400">
+                    {runtimeTraceCorrelation.latestEventType}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="mb-3 border border-white/10 bg-black/25 p-3">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-100">
+                    Local Workflow Evidence
+                  </div>
+                  <span className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-600">
+                    {workflowRuntimeEvidence.persistence}
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="border border-white/10 bg-white/[0.03] p-2">
+                    <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                      Runs
+                    </div>
+                    <div className="mt-1 font-mono text-lg text-neutral-100">
+                      {workflowRuntimeEvidence.runCount}
+                    </div>
+                  </div>
+                  <div className="border border-white/10 bg-white/[0.03] p-2">
+                    <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                      Latest
+                    </div>
+                    <div className="mt-1 truncate font-mono text-[10px] uppercase text-neutral-100">
+                      {workflowRuntimeEvidence.latestRun?.status ?? "none"}
+                    </div>
+                  </div>
+                  <div className="border border-white/10 bg-white/[0.03] p-2">
+                    <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                      Artifacts
+                    </div>
+                    <div className="mt-1 font-mono text-lg text-neutral-100">
+                      {workflowRuntimeEvidence.latestRun?.artifactCount ?? 0}
+                    </div>
+                  </div>
+                  <div className="border border-white/10 bg-white/[0.03] p-2">
+                    <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                      Trace
+                    </div>
+                    <div className="mt-1 truncate font-mono text-[10px] uppercase text-neutral-100">
+                      {workflowRuntimeEvidence.latestRun?.traceSync?.status ?? "local"}
+                    </div>
+                  </div>
+                </div>
+                {workflowRuntimeEvidence.latestRun ? (
+                  <div className="mt-2 grid gap-1.5">
+                    <div className="flex flex-wrap items-center gap-2 font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-500">
+                      <span>{workflowRuntimeEvidence.latestRun.runId}</span>
+                      <span>{workflowRuntimeEvidence.latestRun.nodeCount} nodes</span>
+                      <span>
+                        durable{" "}
+                        {workflowRuntimeEvidence.latestRun.traceSync?.status ?? "local-only"}
+                      </span>
+                      {workflowRuntimeEvidence.latestRun.durationMs !== null ? (
+                        <span>{workflowRuntimeEvidence.latestRun.durationMs}ms</span>
+                      ) : null}
+                    </div>
+                    {workflowRuntimeEvidence.latestRun.traceSync?.status === "failed" ? (
+                      <div className="border border-neutral-300/25 bg-neutral-300/10 px-2.5 py-2 text-[11px] leading-5 text-neutral-100">
+                        {workflowRuntimeEvidence.latestRun.traceSync.error ??
+                          "Durable trace sync failed."}
+                      </div>
+                    ) : null}
+                    {workflowRuntimeEvidence.timeline.slice(0, 6).map((item) => (
+                      <article
+                        className="border border-white/10 bg-white/[0.025] px-2.5 py-2"
+                        key={`${item.nodeId}-${item.startedAt ?? item.status}`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-300">
+                            {item.nodeId}
+                          </span>
+                          <span className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-500">
+                            {item.status}
+                          </span>
+                        </div>
+                        <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-neutral-500">
+                          {item.error ?? item.outputPreview ?? item.inputPreview ?? "No preview"}
+                        </p>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-2 border border-white/10 bg-white/[0.025] px-3 py-2 text-xs leading-5 text-neutral-500">
+                    {workflowRuntimeEvidence.warnings[0] ??
+                      "No local workflow evidence is available yet."}
+                  </div>
+                )}
+              </div>
+
+              <div className="mb-3 border border-white/10 bg-black/25 p-3">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-100">
+                    Run Groups
+                  </div>
+                  <span className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-600">
+                    {workflowRunHistoryGroups.groups.length} groups /{" "}
+                    {workflowRunHistoryGroups.runCount} runs
+                  </span>
+                </div>
+	                <div className="grid gap-1.5">
+	                  {workflowRunHistoryGroups.groups.length ? (
+	                    workflowRunHistoryGroups.groups.slice(0, 6).map((group) => (
+	                      <button
+	                        className={cx(
+	                          "w-full border px-2.5 py-2 text-left transition",
+	                          group.groupId === workflowRunGroupInspector.group?.groupId
+	                            ? "border-neutral-300/45 bg-neutral-300/10"
+	                            : "border-white/10 bg-white/[0.025] hover:border-neutral-300/30 hover:bg-white/[0.045]",
+	                        )}
+	                        key={group.groupId}
+	                        onClick={() => setSelectedRunGroupId(group.groupId)}
+	                        type="button"
+	                      >
+	                        <div className="flex items-center justify-between gap-2">
+	                          <span className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-300">
+	                            {group.label}
+                          </span>
+                          <span className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-500">
+                            {group.latestRunStatus ?? "not run"}
+                          </span>
+                        </div>
+                        <div className="mt-1 grid grid-cols-4 gap-1 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-600">
+                          <span>{group.nodeCount} nodes</span>
+                          <span>{group.runCount} runs</span>
+	                          <span>{group.artifactCount} art</span>
+	                          <span>{group.statusCounts.failed} fail</span>
+	                        </div>
+	                      </button>
+	                    ))
+	                  ) : (
+	                    <div className="border border-white/10 bg-white/[0.025] px-3 py-2 text-xs leading-5 text-neutral-500">
+	                      No workflow groups are available in the current runtime graph.
+                    </div>
+	                  )}
+	                </div>
+	              </div>
+
+	              <div className="mb-3 border border-white/10 bg-black/25 p-3">
+	                <div className="mb-2 flex items-center justify-between gap-2">
+	                  <div className="min-w-0">
+	                    <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-100">
+	                      Group Inspector
+	                    </div>
+	                    <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
+	                      {workflowRunGroupInspector.group?.label ?? "No group selected"}
+	                    </div>
+	                  </div>
+		                  <div className="flex shrink-0 items-center gap-1.5">
+		                    <span className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-600">
+		                      {workflowRunGroupInspector.schema.replace("nexus.workflowPro.", "")}
+		                    </span>
+		                    <button
+		                      className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-300 transition hover:border-neutral-300/35 hover:text-neutral-100 disabled:opacity-40"
+		                      disabled={
+		                        !workflowRunGroupInspector.latestRun ||
+		                        traceResyncingRunId === workflowRunGroupInspector.latestRun.runId
+		                      }
+		                      onClick={() => void handleRetrySelectedRunTraceSync()}
+		                      type="button"
+		                    >
+		                      {traceResyncingRunId === workflowRunGroupInspector.latestRun?.runId
+		                        ? "Syncing"
+		                        : "Resync Trace"}
+		                    </button>
+		                  </div>
+		                </div>
+
+	                {workflowRunGroupInspector.group ? (
+	                  <>
+	                    <div className="grid grid-cols-4 gap-2">
+	                      <div className="border border-white/10 bg-white/[0.03] p-2">
+	                        <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+	                          Nodes
+	                        </div>
+	                        <div className="mt-1 font-mono text-lg text-neutral-100">
+	                          {workflowRunGroupInspector.group.nodeCount}
+	                        </div>
+	                      </div>
+	                      <div className="border border-white/10 bg-white/[0.03] p-2">
+	                        <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+	                          Runs
+	                        </div>
+	                        <div className="mt-1 font-mono text-lg text-neutral-100">
+	                          {workflowRunGroupInspector.group.runCount}
+	                        </div>
+	                      </div>
+	                      <div className="border border-white/10 bg-white/[0.03] p-2">
+	                        <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+	                          Artifacts
+	                        </div>
+	                        <div className="mt-1 font-mono text-lg text-neutral-100">
+	                          {workflowRunGroupInspector.artifactIds.length}
+	                        </div>
+	                      </div>
+	                      <div className="border border-white/10 bg-white/[0.03] p-2">
+	                        <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+	                          Trace
+	                        </div>
+	                        <div className="mt-1 truncate font-mono text-[10px] uppercase text-neutral-100">
+	                          {workflowRunGroupInspector.traceCorrelation.status}
+	                        </div>
+	                      </div>
+	                    </div>
+
+	                    <p className="mt-2 text-[11px] leading-5 text-neutral-500">
+	                      {workflowRunGroupInspector.recommendation}
+	                    </p>
+
+	                    <div className="mt-2 border border-white/10 bg-white/[0.025] px-2.5 py-2">
+	                      <div className="mb-2 flex items-center justify-between gap-2">
+	                        <span className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-400">
+	                          Durable Group Record
+	                        </span>
+	                        <span className="font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-600">
+	                          {durableGroupRecordReport.status}
+	                        </span>
+	                      </div>
+	                      <div className="grid grid-cols-3 gap-1.5">
+	                        <div className="border border-white/10 bg-black/25 p-1.5">
+	                          <div className="font-mono text-[7px] uppercase tracking-[0.1em] text-neutral-600">
+	                            Events
+	                          </div>
+	                          <div className="mt-1 font-mono text-sm text-neutral-100">
+	                            {durableGroupRecordReport.eventCount}
+	                          </div>
+	                        </div>
+	                        <div className="border border-white/10 bg-black/25 p-1.5">
+	                          <div className="font-mono text-[7px] uppercase tracking-[0.1em] text-neutral-600">
+	                            Nodes
+	                          </div>
+	                          <div className="mt-1 font-mono text-sm text-neutral-100">
+	                            {durableGroupRecordReport.nodeCount ?? "-"}
+	                          </div>
+	                        </div>
+	                        <div className="border border-white/10 bg-black/25 p-1.5">
+	                          <div className="font-mono text-[7px] uppercase tracking-[0.1em] text-neutral-600">
+	                            Edges
+	                          </div>
+	                          <div className="mt-1 font-mono text-sm text-neutral-100">
+	                            {durableGroupRecordReport.edgeCount ?? "-"}
+	                          </div>
+	                        </div>
+	                      </div>
+	                      <p className="mt-2 text-[11px] leading-5 text-neutral-500">
+	                        {durableGroupRecordReport.recommendation}
+	                      </p>
+	                      {durableGroupRecordReport.latestEventType ? (
+	                        <div className="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500">
+	                          {durableGroupRecordReport.latestEventType}
+	                        </div>
+	                      ) : null}
+	                    </div>
+
+	                    {workflowRunGroupInspector.latestRun ? (
+	                      <div className="mt-2 border border-white/10 bg-white/[0.025] px-2.5 py-2">
+	                        <div className="flex flex-wrap items-center gap-2 font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-500">
+	                          <span>{workflowRunGroupInspector.latestRun.runId}</span>
+	                          <span>{workflowRunGroupInspector.latestRun.status}</span>
+	                          <span>
+	                            durable{" "}
+	                            {workflowRunGroupInspector.latestRun.traceSync?.status ?? "local-only"}
+	                          </span>
+	                          {workflowRunGroupInspector.latestRun.durationMs !== null ? (
+	                            <span>{workflowRunGroupInspector.latestRun.durationMs}ms</span>
+	                          ) : null}
+	                        </div>
+
+	                        <div className="mt-2 grid gap-1.5">
+	                          {workflowRunGroupInspector.latestRun.executions.slice(0, 5).map(
+	                            (execution) => (
+	                              <div
+	                                className="border border-white/10 bg-black/25 px-2 py-1.5"
+	                                key={`${execution.nodeId}-${execution.startedAt ?? execution.status}`}
+	                              >
+	                                <div className="flex items-center justify-between gap-2">
+	                                  <span className="truncate font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-400">
+	                                    {execution.nodeId}
+	                                  </span>
+	                                  <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-600">
+	                                    {execution.status}
+	                                  </span>
+	                                </div>
+	                                <div className="mt-1 flex flex-wrap gap-2 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-600">
+	                                  <span>{execution.artifactIds.length} artifacts</span>
+	                                  {execution.latencyMs !== null ? (
+	                                    <span>{execution.latencyMs}ms</span>
+	                                  ) : null}
+	                                  {execution.error ? (
+	                                    <span className="text-neutral-300">{execution.error}</span>
+	                                  ) : null}
+	                                </div>
+	                              </div>
+	                            ),
+	                          )}
+	                        </div>
+	                      </div>
+	                    ) : (
+	                      <div className="mt-2 border border-white/10 bg-white/[0.025] px-3 py-2 text-xs leading-5 text-neutral-500">
+	                        This workflow group has no run evidence yet.
+	                      </div>
+	                    )}
+
+	                    {workflowRunGroupInspector.artifactIds.length ? (
+	                      <div className="mt-2 flex flex-wrap gap-1.5">
+	                        {workflowRunGroupInspector.artifactIds.slice(0, 6).map((artifactId) => (
+	                          <span
+	                            className="max-w-full truncate border border-white/10 bg-white/[0.03] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.1em] text-neutral-500"
+	                            key={artifactId}
+	                          >
+	                            {artifactId}
+	                          </span>
+	                        ))}
+	                      </div>
+	                    ) : null}
+	                  </>
+	                ) : (
+	                  <div className="border border-white/10 bg-white/[0.025] px-3 py-2 text-xs leading-5 text-neutral-500">
+	                    No workflow group is available in the current runtime graph.
+	                  </div>
+	                )}
+	              </div>
+
+	              <div className="grid gap-2">
                 {!traceEvents.length && !traceEventsLoading ? (
                   <div className="border border-white/10 bg-black/25 px-3 py-3 text-xs text-neutral-500">
                     No trace events loaded.
@@ -7491,9 +8669,10 @@ function WorkspaceChatComposerShell({
     const attachmentId = makeId("attachment");
     const mimeType = file.type || "text/plain";
     const contentKind = isTextLikeAttachmentFile(file) ? "text" : "binary";
+    const compilerLane = resolveAttachmentCompilerLane({ contentKind, mimeType });
     const optimisticAttachment: WorkspaceComposerAttachment = {
-      compilerId: NEXUS_ATTACHMENT_NOOP_COMPILER.id,
-      compilerVersion: NEXUS_ATTACHMENT_NOOP_COMPILER.version,
+      compilerId: compilerLane.defaultCompiler.id,
+      compilerVersion: compilerLane.defaultCompiler.version,
       contentKind,
       id: attachmentId,
       mimeType,
@@ -7501,7 +8680,7 @@ function WorkspaceChatComposerShell({
       previewText: "Recording attachment...",
       sizeBytes: file.size,
       status: "uploading",
-      targetCapabilities: [...NEXUS_ATTACHMENT_NOOP_TARGETS],
+      targetCapabilities: [...compilerLane.targetCapabilities],
     };
 
     setAttachments((current) => [...current, optimisticAttachment]);
@@ -7526,6 +8705,7 @@ function WorkspaceChatComposerShell({
             contentKind,
             fileName: file.name,
             lastModified: file.lastModified,
+            mimeType,
             sizeBytes: file.size,
             source: "workspace-composer",
           }),

@@ -12,17 +12,31 @@ import {
   ShieldCheck,
   Upload,
 } from "lucide-react";
-import { useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ReactNode,
+} from "react";
 import type {
   WorkflowProCapabilityInventory,
   WorkflowProRuntimeSummary,
 } from "@/lib/workflow-pro/capability-inventory";
 import type { WorkflowBrainContextPack } from "@/lib/workflow-pro/brain-context";
 import type { WorkflowProFileNodeContract } from "@/lib/workflow-pro/file-node-contract";
+import {
+  parseWorkflowProBrainReviewProposalText,
+  type WorkflowProBrainReviewProposalValidationResult,
+} from "@/lib/workflow-pro/brain-review-proposal";
 import type { WorkflowProApplyPlan } from "@/lib/workflow-pro/workflow-contract-apply-plan";
 import type { WorkflowProContractImportReview } from "@/lib/workflow-pro/workflow-contract-import";
 import type { WorkflowProContractDraft } from "@/lib/workflow-pro/workflow-contract";
-import { validateWorkflowProContractDraft } from "@/lib/workflow-pro/workflow-contract-validator";
+import {
+  validateWorkflowProContractDraft,
+  type WorkflowProContractValidationResult,
+} from "@/lib/workflow-pro/workflow-contract-validator";
 import type { WorkflowProProposalDiff } from "@/lib/workflow-pro/proposal-diff";
 import {
   createWorkflowProFoundationBenchmarkFixtures,
@@ -42,6 +56,7 @@ export type WorkflowProSurfaceProps = {
   generatedArtifactCount: number;
   contractDraft: WorkflowProContractDraft;
   fileNodeContract: WorkflowProFileNodeContract;
+  initialMode?: WorkflowProMode;
   importReview: WorkflowProContractImportReview | null;
   inventory: WorkflowProCapabilityInventory;
   proposalDiff: WorkflowProProposalDiff;
@@ -65,6 +80,16 @@ const workflowProModes = [
   "Files",
   "Settings",
 ] as const;
+export type WorkflowProMode = (typeof workflowProModes)[number];
+
+const workflowProModeDescriptions: Record<WorkflowProMode, string> = {
+  Design: "Import, validate, preview, and apply a canonical workflow contract.",
+  Brain: "Package the full workflow into a stable context that an LLM can understand before it proposes changes.",
+  Evidence: "Review runtime runs, node status, artifacts, and execution gaps before trusting a workflow.",
+  "Proposal Diff": "Compare the current graph with the imported or proposed contract before applying it.",
+  Files: "Inspect file-node attachment flow, compiler boundary, and downstream ContextPacket behavior.",
+  Settings: "See capability inventory, unavailable features, and guarded extension slots.",
+};
 
 export function WorkflowProSurface({
   agentCount,
@@ -72,6 +97,7 @@ export function WorkflowProSurface({
   brainContext,
   contractDraft,
   fileNodeContract,
+  initialMode = "Design",
   importReview,
   generatedArtifactCount,
   inventory,
@@ -88,10 +114,12 @@ export function WorkflowProSurface({
   onOpenPanels,
 }: WorkflowProSurfaceProps) {
   const importInputRef = useRef<HTMLInputElement | null>(null);
+  const importReviewPanelRef = useRef<HTMLDivElement | null>(null);
   const benchmarkFixtures = useMemo(
     () => createWorkflowProFoundationBenchmarkFixtures(),
     [],
   );
+  const [activeMode, setActiveMode] = useState<WorkflowProMode>(initialMode);
   const [importing, setImporting] = useState(false);
   const [pastedContractSourceName, setPastedContractSourceName] =
     useState("workflow-pro-pasted-contract.json");
@@ -107,6 +135,21 @@ export function WorkflowProSurface({
     { label: "runtime edges", value: runtimeEdgeCount },
     { label: "generated", value: generatedArtifactCount },
   ];
+
+  useEffect(() => {
+    if (!importReview) {
+      return;
+    }
+
+    const scrollTimer = window.setTimeout(() => {
+      importReviewPanelRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 0);
+
+    return () => window.clearTimeout(scrollTimer);
+  }, [importReview]);
 
   return (
     <section
@@ -224,8 +267,15 @@ export function WorkflowProSurface({
             {workflowProModes.map((mode, index) => (
               <button
                 key={mode}
-                aria-label={`${mode} view placeholder`}
-                className="flex min-h-10 items-center justify-between border border-white/10 bg-white/[0.035] px-3 text-left font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-300"
+                aria-label={`Open Workflow Pro ${mode} bay`}
+                aria-pressed={activeMode === mode}
+                className={[
+                  "flex min-h-10 items-center justify-between border px-3 text-left font-mono text-[10px] uppercase tracking-[0.14em] transition",
+                  activeMode === mode
+                    ? "border-neutral-300/45 bg-neutral-300/10 text-neutral-100"
+                    : "border-white/10 bg-white/[0.035] text-neutral-400 hover:bg-white/10 hover:text-neutral-100",
+                ].join(" ")}
+                onClick={() => setActiveMode(mode)}
                 type="button"
               >
                 <span>{mode}</span>
@@ -236,6 +286,21 @@ export function WorkflowProSurface({
         </aside>
 
         <div className="system-scroll min-h-0 overflow-auto border border-white/10 bg-white/[0.025] p-4">
+          <WorkflowProActiveModeBay
+            activeMode={activeMode}
+            applyPlan={applyPlan}
+            brainContext={brainContext}
+            contractDraft={contractDraft}
+            contractValidation={contractValidation}
+            fileNodeContract={fileNodeContract}
+            generatedArtifactCount={generatedArtifactCount}
+            importReview={importReview}
+            inventory={inventory}
+            onImportContractText={onImportContractText}
+            proposalDiff={proposalDiff}
+            runtimeSummary={runtimeSummary}
+          />
+
           <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-500">
             Canonical Contract
           </div>
@@ -324,6 +389,25 @@ export function WorkflowProSurface({
                 Clear Paste
               </button>
             </div>
+            {importReview ? (
+              <div
+                aria-label="Workflow Pro import status"
+                aria-live="polite"
+                className="mt-3 grid gap-2 border border-emerald-300/20 bg-emerald-400/[0.06] p-3 font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-100 sm:grid-cols-[minmax(0,1fr)_auto]"
+              >
+                <span>
+                  Import {importReview.status}
+                  <span className="ml-2 text-neutral-500">
+                    {importReview.sourceName}
+                  </span>
+                </span>
+                <span className="text-neutral-400">
+                  {importReview.status === "accepted"
+                    ? "Ready to apply preview"
+                    : "Review errors before apply"}
+                </span>
+              </div>
+            ) : null}
             <p className="mt-3 text-xs leading-6 text-neutral-500">
               This bay is the UI-only foundation gate: paste JSON, import review,
               apply preview, open Graph, then run the benchmark from the screen.
@@ -372,7 +456,10 @@ export function WorkflowProSurface({
             ) : null}
           </div>
           {importReview ? (
-            <div className="mt-4 border border-white/10 bg-black/20 p-3">
+            <div
+              ref={importReviewPanelRef}
+              className="mt-4 scroll-mt-24 border border-white/10 bg-black/20 p-3"
+            >
               <div className="flex items-center justify-between gap-3">
                 <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-500">
                   Import Review
@@ -646,6 +733,953 @@ export function WorkflowProSurface({
       sourceName,
       text: pastedContractText,
     });
+  }
+}
+
+function WorkflowProActiveModeBay({
+  activeMode,
+  applyPlan,
+  brainContext,
+  contractDraft,
+  contractValidation,
+  fileNodeContract,
+  generatedArtifactCount,
+  importReview,
+  inventory,
+  onImportContractText,
+  proposalDiff,
+  runtimeSummary,
+}: {
+  activeMode: WorkflowProMode;
+  applyPlan: WorkflowProApplyPlan;
+  brainContext: WorkflowBrainContextPack;
+  contractDraft: WorkflowProContractDraft;
+  contractValidation: WorkflowProContractValidationResult;
+  fileNodeContract: WorkflowProFileNodeContract;
+  generatedArtifactCount: number;
+  importReview: WorkflowProContractImportReview | null;
+  inventory: WorkflowProCapabilityInventory;
+  onImportContractText: (input: { sourceName: string; text: string }) => void;
+  proposalDiff: WorkflowProProposalDiff;
+  runtimeSummary: WorkflowProRuntimeSummary;
+}) {
+  const bayItems = getWorkflowProModeBayItems({
+    activeMode,
+    applyPlan,
+    brainContext,
+    contractDraft,
+    contractValidation,
+    fileNodeContract,
+    generatedArtifactCount,
+    importReview,
+    inventory,
+    proposalDiff,
+    runtimeSummary,
+  });
+
+  return (
+    <section className="mb-4 border border-neutral-300/20 bg-black/25 p-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-500">
+            Active Cockpit Bay
+          </div>
+          <h3 className="mt-2 font-mono text-lg uppercase tracking-[0.1em] text-neutral-100">
+            {activeMode}
+          </h3>
+        </div>
+        <span className="border border-neutral-300/25 bg-neutral-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-300">
+          {activeMode === "Design" ? "operator-gated" : "read-only"}
+        </span>
+      </div>
+      <p className="mt-3 max-w-3xl text-sm leading-7 text-neutral-400">
+        {workflowProModeDescriptions[activeMode]}
+      </p>
+      <div className="mt-3 grid gap-2 md:grid-cols-3">
+        {bayItems.map((item) => (
+          <WorkflowProRuntimeDatum
+            key={item.label}
+            label={item.label}
+            value={item.value}
+          />
+        ))}
+      </div>
+      <div className="mt-3 border border-white/10 bg-white/[0.025] p-3">
+        <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-600">
+          Next operator move
+        </div>
+        <p className="mt-2 text-xs leading-6 text-neutral-400">
+          {getWorkflowProModeNextMove({
+            activeMode,
+            applyPlan,
+            contractValidation,
+            importReview,
+            proposalDiff,
+            runtimeSummary,
+          })}
+        </p>
+      </div>
+      <WorkflowProActiveModeDetails
+        activeMode={activeMode}
+        applyPlan={applyPlan}
+        brainContext={brainContext}
+        contractDraft={contractDraft}
+        fileNodeContract={fileNodeContract}
+        generatedArtifactCount={generatedArtifactCount}
+        importReview={importReview}
+        inventory={inventory}
+        onImportContractText={onImportContractText}
+        proposalDiff={proposalDiff}
+        runtimeSummary={runtimeSummary}
+      />
+    </section>
+  );
+}
+
+function WorkflowProActiveModeDetails({
+  activeMode,
+  applyPlan,
+  brainContext,
+  contractDraft,
+  fileNodeContract,
+  generatedArtifactCount,
+  importReview,
+  inventory,
+  onImportContractText,
+  proposalDiff,
+  runtimeSummary,
+}: {
+  activeMode: WorkflowProMode;
+  applyPlan: WorkflowProApplyPlan;
+  brainContext: WorkflowBrainContextPack;
+  contractDraft: WorkflowProContractDraft;
+  fileNodeContract: WorkflowProFileNodeContract;
+  generatedArtifactCount: number;
+  importReview: WorkflowProContractImportReview | null;
+  inventory: WorkflowProCapabilityInventory;
+  onImportContractText: (input: { sourceName: string; text: string }) => void;
+  proposalDiff: WorkflowProProposalDiff;
+  runtimeSummary: WorkflowProRuntimeSummary;
+}) {
+  const [brainProposalSourceName, setBrainProposalSourceName] =
+    useState("workflow-brain-proposal.json");
+  const [brainProposalText, setBrainProposalText] = useState("");
+  const [brainProposalValidation, setBrainProposalValidation] =
+    useState<WorkflowProBrainReviewProposalValidationResult | null>(null);
+  const [brainProposalValidatedText, setBrainProposalValidatedText] =
+    useState<string | null>(null);
+  const brainProposalIsStale =
+    brainProposalValidation !== null &&
+    brainProposalText !== brainProposalValidatedText;
+
+  function handleValidateBrainProposal() {
+    const validation = parseWorkflowProBrainReviewProposalText({
+      text: brainProposalText,
+    });
+
+    setBrainProposalValidation(validation);
+    setBrainProposalValidatedText(brainProposalText);
+  }
+
+  function handleImportOptimizedBrainWorkflow() {
+    const optimizedWorkflow =
+      brainProposalValidation?.proposal?.optimizedWorkflow ?? null;
+
+    if (!optimizedWorkflow || brainProposalIsStale) {
+      return;
+    }
+
+    onImportContractText({
+      sourceName: brainProposalSourceName.trim() || "workflow-brain-proposal.json",
+      text: JSON.stringify(optimizedWorkflow, null, 2),
+    });
+  }
+
+  switch (activeMode) {
+    case "Design":
+      return (
+        <>
+          <WorkflowProDetailGrid
+            items={[
+              {
+                body: contractDraft.intent,
+                title: "Workflow intent",
+              },
+              {
+                body:
+                  importReview?.status === "accepted"
+                    ? `Imported from ${importReview.sourceName}; Graph still waits for explicit apply.`
+                    : "No imported contract is active; the draft is generated from the current Runtime Lite graph.",
+                title: "Import state",
+              },
+              {
+                body: `${applyPlan.operations.length} operation(s), explicit apply required, mutates now: ${applyPlan.safety.mutatesGraphNow ? "yes" : "no"}.`,
+                title: "Apply safety",
+              },
+            ]}
+          />
+          <WorkflowProDesignGate
+            applyPlan={applyPlan}
+            importReview={importReview}
+          />
+        </>
+      );
+    case "Brain":
+      return (
+        <WorkflowProDetailGrid
+          items={[
+            {
+              body: brainContext.systemBrief,
+              title: "System brief",
+            },
+            {
+              body: Object.entries(brainContext.requiredOutput)
+                .map(([key, value]) => `${key}: ${value}`)
+                .join("; "),
+              title: "Required output",
+            },
+            {
+              body: brainContext.missingCapabilities.slice(0, 6).join(", "),
+              title: "Missing capability signal",
+            },
+          ]}
+        />
+      );
+    case "Evidence":
+      return (
+        <>
+          <WorkflowProDetailGrid
+            items={[
+              {
+                body: `${runtimeSummary.runCount} recorded run(s); last run id: ${runtimeSummary.lastRunId ?? "none"}.`,
+                title: "Run ledger",
+              },
+              {
+                body: `success ${runtimeSummary.nodeStatusCounts.success}, running ${runtimeSummary.nodeStatusCounts.running}, failed ${runtimeSummary.nodeStatusCounts.failed + runtimeSummary.nodeStatusCounts.failed_interrupted}.`,
+                title: "Node status counts",
+              },
+              {
+                body: runtimeSummary.lastError ?? "No last runtime error is recorded.",
+                title: "Last error",
+              },
+            ]}
+          />
+          <WorkflowProEvidenceGateSummary
+            generatedArtifactCount={generatedArtifactCount}
+            runtimeSummary={runtimeSummary}
+          />
+        </>
+      );
+    case "Proposal Diff":
+      return (
+        <>
+          <WorkflowProDetailGrid
+            items={[
+              {
+                body: `${proposalDiff.summary.addedNodes} node(s) added, ${proposalDiff.summary.removedNodes} removed, ${proposalDiff.summary.changedNodes} changed.`,
+                title: "Node delta",
+              },
+              {
+                body: `${proposalDiff.summary.addedEdges} edge(s) added, ${proposalDiff.summary.removedEdges} removed.`,
+                title: "Edge delta",
+              },
+              {
+                body: proposalDiff.changes.length
+                  ? proposalDiff.changes
+                      .slice(0, 4)
+                      .map((change) => `${change.kind} ${change.type}: ${change.label}`)
+                      .join("; ")
+                  : "No proposal changes are pending against the current graph.",
+                title: "Review queue",
+              },
+            ]}
+          />
+          <WorkflowProProposalReviewQueue proposalDiff={proposalDiff} />
+          <WorkflowProBrainProposalIntake
+            brainProposalSourceName={brainProposalSourceName}
+            brainProposalIsStale={brainProposalIsStale}
+            brainProposalText={brainProposalText}
+            brainProposalValidation={brainProposalValidation}
+            onBrainProposalSourceNameChange={setBrainProposalSourceName}
+            onBrainProposalTextChange={setBrainProposalText}
+            onImportOptimizedWorkflow={handleImportOptimizedBrainWorkflow}
+            onValidateBrainProposal={handleValidateBrainProposal}
+          />
+        </>
+      );
+    case "Files":
+      return (
+        <>
+          <WorkflowProDetailGrid
+            items={[
+              {
+                body: "Raw file artifact enters the file node before any model sees it.",
+                title: "Raw artifact",
+              },
+              {
+                body: `${fileNodeContract.compiler.id}@${fileNodeContract.compiler.version} keeps a noop compiler boundary for files that do not need transformation.`,
+                title: "Compiler boundary",
+              },
+              {
+                body: fileNodeContract.packetAttachmentPolicy.rawTextBehavior,
+                title: "ContextPacket packaging",
+              },
+            ]}
+          />
+          <WorkflowProFilePipelinePath fileNodeContract={fileNodeContract} />
+        </>
+      );
+    case "Settings":
+      return (
+        <>
+          <WorkflowProDetailGrid
+            items={[
+              {
+                body: inventory.nodeTypes
+                  .map((nodeType) => `${nodeType.type}:${nodeType.state}`)
+                  .join(", "),
+                title: "Executable node registry",
+              },
+              {
+                body: inventory.compilers
+                  .map((compiler) => `${compiler.id}:${compiler.state}`)
+                  .join(", "),
+                title: "Compiler registry",
+              },
+              {
+                body: inventory.notAvailableYet.join(", "),
+                title: "Planned capability flags",
+              },
+            ]}
+          />
+          <WorkflowProCapabilityRegistry inventory={inventory} />
+        </>
+      );
+  }
+}
+
+function WorkflowProDetailGrid({
+  items,
+}: {
+  items: Array<{
+    body: string;
+    title: string;
+  }>;
+}) {
+  return (
+    <div className="mt-3 grid gap-2 lg:grid-cols-3">
+      {items.map((item) => (
+        <article
+          key={item.title}
+          className="min-h-28 border border-white/10 bg-black/20 p-3"
+        >
+          <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
+            {item.title}
+          </div>
+          <p className="mt-2 break-words text-xs leading-6 text-neutral-400">{item.body}</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function WorkflowProEvidenceGateSummary({
+  generatedArtifactCount,
+  runtimeSummary,
+}: {
+  generatedArtifactCount: number;
+  runtimeSummary: WorkflowProRuntimeSummary;
+}) {
+  const gates = [
+    {
+      body: "R83 screen operation passed A, B, and C through fixture load, import review, Apply Preview, Graph, and Start All.",
+      evidence: "docs/workflow-pro/foundation-benchmark-verification.manifest.json",
+      state: "passed",
+      title: "Foundation 30/30",
+    },
+    {
+      body: "Owner/admin/editor/viewer/new-account expectations are source-guarded; R92 deployed a clean protected preview and passed 49 strict live probes with 0 blocking findings. Screen matrix remains pending.",
+      evidence: "docs/workflow-pro/strict-preview-live-probe.manifest.json",
+      state: "preview green",
+      title: "Account matrix source guard",
+    },
+    {
+      body: "Generated image asset downloads are screen verified; R91 makes /api/image-gen a formal protected production route with Supabase session and runtime provider credentials separated.",
+      evidence: "docs/workflow-pro/image-generation-production-boundary.manifest.json",
+      state: "protected",
+      title: "Generated image route guard",
+    },
+    {
+      body: "R93 adds a 100-point owner/editor/viewer/new-account screen-run evidence manifest and validator. Current score is 0/100 pending until real browser operations fill the record.",
+      evidence: "docs/workflow-pro/account-matrix-screen-run.manifest.json",
+      state: "harness ready",
+      title: "Account matrix screen run",
+    },
+    {
+      body: "Still open: run owner/editor/viewer/new-account screen matrix on the strict-preview-green deployment, then verify non-owner generated media download before production promotion.",
+      evidence: `${runtimeSummary.runCount} runtime run(s), ${generatedArtifactCount} generated artifact(s) currently visible.`,
+      state: "open",
+      title: "Preview ready gaps",
+    },
+  ];
+
+  return (
+    <div className="mt-3 border border-neutral-300/20 bg-neutral-300/[0.035] p-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
+          Evidence gate summary
+        </div>
+        <span className="border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+          traceable
+        </span>
+      </div>
+      <div className="mt-3 grid gap-2 lg:grid-cols-2">
+        {gates.map((gate) => (
+          <article
+            key={gate.title}
+            className="border border-white/10 bg-black/20 p-3"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-300">
+                {gate.title}
+              </div>
+              <span
+                className={[
+                  "border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em]",
+                  gate.state === "open"
+                    ? "border-yellow-300/20 bg-yellow-300/10 text-yellow-100"
+                    : "border-emerald-300/20 bg-emerald-300/10 text-emerald-200",
+                ].join(" ")}
+              >
+                {gate.state}
+              </span>
+            </div>
+            <p className="mt-2 break-words text-xs leading-6 text-neutral-400">
+              {gate.body}
+            </p>
+            <div className="mt-2 break-words font-mono text-[9px] leading-5 text-neutral-600">
+              {gate.evidence}
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WorkflowProDesignGate({
+  applyPlan,
+  importReview,
+}: {
+  applyPlan: WorkflowProApplyPlan;
+  importReview: WorkflowProContractImportReview | null;
+}) {
+  const steps = [
+    {
+      body: "Load a foundation fixture or paste a nexus.workflow.v1 contract into the JSON bay.",
+      state: importReview ? "done" : "ready",
+      title: "01 Load contract",
+    },
+    {
+      body:
+        importReview?.status === "accepted"
+          ? `Accepted from ${importReview.sourceName}.`
+          : "Import review has not accepted an external contract yet.",
+      state: importReview?.status === "accepted" ? "done" : "waiting",
+      title: "02 Import review",
+    },
+    {
+      body:
+        applyPlan.status === "ready"
+          ? "Apply Preview is armed, but Graph mutates only when the operator clicks it."
+          : applyPlan.reasons[0] ?? "Apply Preview is not ready.",
+      state: applyPlan.status === "ready" ? "armed" : "blocked",
+      title: "03 Apply preview",
+    },
+  ];
+
+  return (
+    <div className="mt-3 border border-neutral-300/20 bg-neutral-300/[0.035] p-3">
+      <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
+        Foundation gate
+      </div>
+      <div className="mt-3 grid gap-2 md:grid-cols-3">
+        {steps.map((step) => (
+          <article
+            key={step.title}
+            className="border border-white/10 bg-black/20 p-3"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-300">
+                {step.title}
+              </div>
+              <span className="border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                {step.state}
+              </span>
+            </div>
+            <p className="mt-2 text-xs leading-6 text-neutral-400">{step.body}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WorkflowProProposalReviewQueue({
+  proposalDiff,
+}: {
+  proposalDiff: WorkflowProProposalDiff;
+}) {
+  const reviewItems = proposalDiff.changes.length
+    ? proposalDiff.changes.slice(0, 5).map((change) => ({
+        body: change.label,
+        id: `${change.kind}-${change.type}-${change.id}`,
+        state: change.type,
+        title: `${change.kind} ${change.id}`,
+      }))
+    : [
+        {
+          body: "Current contract and candidate graph do not expose pending structural changes.",
+          id: "proposal-diff-none",
+          state: "clean",
+          title: "No pending review",
+        },
+      ];
+
+  return (
+    <div className="mt-3 border border-neutral-300/20 bg-neutral-300/[0.035] p-3">
+      <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
+        Proposal review queue
+      </div>
+      <div className="mt-3 grid gap-2">
+        {reviewItems.map((item) => (
+          <article
+            key={item.id}
+            className="flex flex-wrap items-start justify-between gap-3 border border-white/10 bg-black/20 p-3"
+          >
+            <div className="min-w-0">
+              <div className="break-words font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-300">
+                {item.title}
+              </div>
+              <p className="mt-2 break-words text-xs leading-6 text-neutral-400">
+                {item.body}
+              </p>
+            </div>
+            <span className="shrink-0 border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+              {item.state}
+            </span>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WorkflowProBrainProposalIntake({
+  brainProposalSourceName,
+  brainProposalIsStale,
+  brainProposalText,
+  brainProposalValidation,
+  onBrainProposalSourceNameChange,
+  onBrainProposalTextChange,
+  onImportOptimizedWorkflow,
+  onValidateBrainProposal,
+}: {
+  brainProposalSourceName: string;
+  brainProposalIsStale: boolean;
+  brainProposalText: string;
+  brainProposalValidation: WorkflowProBrainReviewProposalValidationResult | null;
+  onBrainProposalSourceNameChange: (value: string) => void;
+  onBrainProposalTextChange: (value: string) => void;
+  onImportOptimizedWorkflow: () => void;
+  onValidateBrainProposal: () => void;
+}) {
+  const hasOptimizedWorkflow =
+    !brainProposalIsStale &&
+    Boolean(brainProposalValidation?.proposal?.optimizedWorkflow);
+  const validationStatus = brainProposalIsStale
+    ? "stale"
+    : brainProposalValidation
+    ? brainProposalValidation.ok
+      ? "accepted"
+      : "rejected"
+    : "waiting";
+  const analysisExcerpt =
+    brainProposalIsStale
+      ? "Proposal text changed after validation. Revalidate before importing the optimized workflow."
+      : brainProposalValidation?.proposal?.analysis ??
+    "Paste a nexus.workflowPro.brainReviewProposal.v1 object generated by the Workflow Brain.";
+  const issues = brainProposalValidation
+    ? [
+        ...brainProposalValidation.errors.map((issue) => ({
+          ...issue,
+          state: "error",
+        })),
+        ...brainProposalValidation.warnings.map((issue) => ({
+          ...issue,
+          state: "warning",
+        })),
+      ]
+    : [];
+
+  return (
+    <div className="mt-3 border border-neutral-300/20 bg-neutral-300/[0.035] p-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
+            Brain proposal intake
+          </div>
+          <p className="mt-2 max-w-2xl text-xs leading-6 text-neutral-400">
+            Validate the Workflow Brain response before it can become an operator-gated
+            Workflow Pro import preview. Editing after validation locks import until
+            the proposal is revalidated.
+          </p>
+        </div>
+        <span
+          className={[
+            "border px-2 py-1 font-mono text-[8px] uppercase tracking-[0.14em]",
+            validationStatus === "accepted"
+              ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-200"
+              : validationStatus === "rejected"
+                ? "border-red-300/20 bg-red-300/10 text-red-200"
+                : validationStatus === "stale"
+                  ? "border-yellow-300/20 bg-yellow-300/10 text-yellow-100"
+                : "border-white/10 bg-white/[0.04] text-neutral-500",
+          ].join(" ")}
+        >
+          {validationStatus}
+        </span>
+      </div>
+
+      <label className="mt-3 block font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
+        Source name
+        <input
+          aria-label="Workflow Brain proposal source name"
+          className="mt-1 min-h-9 w-full border border-white/10 bg-black/30 px-3 font-mono text-[11px] text-neutral-300 outline-none transition focus:border-neutral-300/50"
+          onChange={(event) =>
+            onBrainProposalSourceNameChange(event.currentTarget.value)
+          }
+          value={brainProposalSourceName}
+        />
+      </label>
+
+      <textarea
+        aria-label="Workflow Brain proposal JSON paste input"
+        className="mt-3 min-h-32 w-full resize-y border border-white/10 bg-black/30 p-3 font-mono text-[11px] leading-5 text-neutral-300 outline-none transition placeholder:text-neutral-700 focus:border-neutral-300/50"
+        onChange={(event) => onBrainProposalTextChange(event.currentTarget.value)}
+        placeholder="Paste nexus.workflowPro.brainReviewProposal.v1 JSON here"
+        spellCheck={false}
+        value={brainProposalText}
+      />
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          aria-label="Validate Workflow Brain proposal"
+          className="inline-flex min-h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.06] px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+          disabled={!brainProposalText.trim()}
+          onClick={onValidateBrainProposal}
+          type="button"
+        >
+          <ShieldCheck className="h-3.5 w-3.5" />
+          Validate Brain Proposal
+        </button>
+        <button
+          aria-label="Import optimized Workflow Brain proposal"
+          className="inline-flex min-h-9 items-center justify-center gap-2 border border-emerald-300/20 bg-emerald-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-emerald-100 transition hover:bg-emerald-300/15 disabled:cursor-not-allowed disabled:opacity-40"
+          disabled={!hasOptimizedWorkflow}
+          onClick={onImportOptimizedWorkflow}
+          type="button"
+        >
+          <ClipboardPaste className="h-3.5 w-3.5" />
+          Import optimized workflow
+        </button>
+      </div>
+
+      <div
+        aria-label="Workflow Brain proposal validation status"
+        className="mt-3 border border-white/10 bg-black/20 p-3"
+      >
+        <div className="grid gap-2 md:grid-cols-3">
+          <WorkflowProRuntimeDatum label="proposal" value={validationStatus} />
+          <WorkflowProRuntimeDatum
+            label="optimized workflow"
+            value={hasOptimizedWorkflow ? "ready" : "none"}
+          />
+          <WorkflowProRuntimeDatum
+            label="issues"
+            value={
+              brainProposalValidation
+                ? brainProposalValidation.errors.length +
+                  brainProposalValidation.warnings.length
+                : 0
+            }
+          />
+        </div>
+        <p className="mt-3 break-words text-xs leading-6 text-neutral-400">
+          {analysisExcerpt}
+        </p>
+        {issues.length > 0 ? (
+          <div className="mt-3 grid gap-2">
+            {issues.slice(0, 4).map((issue) => (
+              <div
+                key={`${issue.state}-${issue.path}-${issue.message}`}
+                className="border border-white/10 bg-white/[0.025] p-2"
+              >
+                <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+                  {issue.state} / {issue.path}
+                </div>
+                <p className="mt-1 break-words text-[11px] leading-5 text-neutral-400">
+                  {issue.message}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function WorkflowProFilePipelinePath({
+  fileNodeContract,
+}: {
+  fileNodeContract: WorkflowProFileNodeContract;
+}) {
+  const steps = [
+    {
+      body: "The original upload or generated file reference remains addressable.",
+      state: "required",
+      title: "Raw artifact",
+    },
+    {
+      body: `${fileNodeContract.compiler.id}@${fileNodeContract.compiler.version} (${fileNodeContract.compiler.mode}) keeps every file behind an explicit compiler boundary.`,
+      state: "available",
+      title: "Compiler boundary",
+    },
+    {
+      body: "A transformed artifact slot is reserved even when the current compiler is noop.",
+      state: "reserved",
+      title: "Compiled artifact",
+    },
+    {
+      body: "Downstream model nodes receive attachment references through ContextPacket packaging instead of ad hoc prompt text.",
+      state: "packet",
+      title: "ContextPacket attachments",
+    },
+  ];
+
+  return (
+    <div className="mt-3 border border-neutral-300/20 bg-neutral-300/[0.035] p-3">
+      <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
+        File pipeline path
+      </div>
+      <div className="mt-3 grid gap-2 md:grid-cols-4">
+        {steps.map((step) => (
+          <article
+            key={step.title}
+            className="border border-white/10 bg-black/20 p-3"
+          >
+            <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-300">
+              {step.title}
+            </div>
+            <span className="mt-2 inline-flex border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-500">
+              {step.state}
+            </span>
+            <p className="mt-2 break-words text-xs leading-6 text-neutral-400">
+              {step.body}
+            </p>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WorkflowProCapabilityRegistry({
+  inventory,
+}: {
+  inventory: WorkflowProCapabilityInventory;
+}) {
+  const groups = [
+    {
+      items: inventory.nodeTypes.map((nodeType) => ({
+        id: nodeType.type,
+        state: nodeType.state,
+        summary: nodeType.description,
+      })),
+      title: "Node capabilities",
+    },
+    {
+      items: inventory.compilers.map((compiler) => ({
+        id: compiler.id,
+        state: compiler.state,
+        summary: compiler.summary,
+      })),
+      title: "Compiler capabilities",
+    },
+    {
+      items: inventory.artifactPolicies.map((policy) => ({
+        id: policy.id,
+        state: policy.state,
+        summary: policy.summary,
+      })),
+      title: "Artifact policies",
+    },
+  ];
+
+  return (
+    <div className="mt-3 border border-neutral-300/20 bg-neutral-300/[0.035] p-3">
+      <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
+        Capability registry
+      </div>
+      <div className="mt-3 grid gap-2 lg:grid-cols-3">
+        {groups.map((group) => (
+          <section
+            key={group.title}
+            className="min-h-32 border border-white/10 bg-black/20 p-3"
+          >
+            <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-300">
+              {group.title}
+            </div>
+            <div className="mt-3 grid gap-2">
+              {group.items.map((item) => (
+                <div
+                  key={item.id}
+                  className="border border-white/10 bg-white/[0.025] p-2"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="break-words font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-300">
+                      {item.id}
+                    </span>
+                    <span
+                      className={[
+                        "border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em]",
+                        item.state === "available"
+                          ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-200"
+                          : "border-yellow-300/20 bg-yellow-300/10 text-yellow-100",
+                      ].join(" ")}
+                    >
+                      {item.state}
+                    </span>
+                  </div>
+                  <p className="mt-2 break-words text-[11px] leading-5 text-neutral-500">
+                    {item.summary}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function getWorkflowProModeBayItems({
+  activeMode,
+  applyPlan,
+  brainContext,
+  contractDraft,
+  contractValidation,
+  fileNodeContract,
+  generatedArtifactCount,
+  importReview,
+  inventory,
+  proposalDiff,
+  runtimeSummary,
+}: {
+  activeMode: WorkflowProMode;
+  applyPlan: WorkflowProApplyPlan;
+  brainContext: WorkflowBrainContextPack;
+  contractDraft: WorkflowProContractDraft;
+  contractValidation: WorkflowProContractValidationResult;
+  fileNodeContract: WorkflowProFileNodeContract;
+  generatedArtifactCount: number;
+  importReview: WorkflowProContractImportReview | null;
+  inventory: WorkflowProCapabilityInventory;
+  proposalDiff: WorkflowProProposalDiff;
+  runtimeSummary: WorkflowProRuntimeSummary;
+}): WorkflowProMetric[] {
+  switch (activeMode) {
+    case "Design":
+      return [
+        { label: "contract", value: contractValidation.ok ? "valid" : "blocked" },
+        { label: "nodes", value: contractDraft.nodes.length },
+        { label: "apply", value: applyPlan.status },
+      ];
+    case "Brain":
+      return [
+        { label: "schema", value: brainContext.schema },
+        { label: "missing", value: brainContext.missingCapabilities.length },
+        { label: "mutate graph", value: brainContext.guardrails.mayMutateGraph ? "yes" : "no" },
+      ];
+    case "Evidence":
+      return [
+        { label: "runs", value: runtimeSummary.runCount },
+        { label: "last run", value: runtimeSummary.lastRunStatus ?? "none" },
+        { label: "generated", value: generatedArtifactCount },
+      ];
+    case "Proposal Diff":
+      return [
+        { label: "status", value: proposalDiff.status },
+        { label: "changes", value: proposalDiff.changes.length },
+        { label: "import", value: importReview?.status ?? "none" },
+      ];
+    case "Files":
+      return [
+        { label: "node", value: fileNodeContract.type },
+        { label: "compiler", value: fileNodeContract.compiler.mode },
+        { label: "compiler id", value: fileNodeContract.compiler.id },
+      ];
+    case "Settings":
+      return [
+        { label: "nodes", value: inventory.nodeTypes.length },
+        { label: "compilers", value: inventory.compilers.length },
+        { label: "planned", value: inventory.notAvailableYet.length },
+      ];
+  }
+}
+
+function getWorkflowProModeNextMove({
+  activeMode,
+  applyPlan,
+  contractValidation,
+  importReview,
+  proposalDiff,
+  runtimeSummary,
+}: {
+  activeMode: WorkflowProMode;
+  applyPlan: WorkflowProApplyPlan;
+  contractValidation: WorkflowProContractValidationResult;
+  importReview: WorkflowProContractImportReview | null;
+  proposalDiff: WorkflowProProposalDiff;
+  runtimeSummary: WorkflowProRuntimeSummary;
+}) {
+  if (!contractValidation.ok) {
+    return `Fix ${contractValidation.errors[0]?.path ?? "contract"} before importing or applying this workflow.`;
+  }
+
+  switch (activeMode) {
+    case "Design":
+      return applyPlan.status === "ready"
+        ? "Use Apply Preview only after the imported JSON matches the intended graph. Graph will not mutate before this explicit operator action."
+        : applyPlan.reasons[0] ?? "Load a benchmark fixture or paste a workflow contract to produce an apply preview.";
+    case "Brain":
+      return "Send the contract, runtime summary, guardrails, and missing capabilities together so the Workflow Brain can explain the entire topology before proposing an optimized workflow.";
+    case "Evidence":
+      return runtimeSummary.runCount
+        ? "Read the last run status and node status counts before trusting this workflow as repeatable evidence."
+        : "Run a screen-level benchmark from Graph after applying a fixture so runtime evidence exists outside the code test harness.";
+    case "Proposal Diff":
+      return proposalDiff.changes.length
+        ? "Review added, removed, and changed nodes before applying. The imported contract is still reversible until Apply Preview is clicked."
+        : importReview
+          ? "The accepted import matches the current candidate closely; proceed to evidence or apply review."
+          : "Import a contract to generate a proposal diff against the current Runtime Lite graph.";
+    case "Files":
+      return "Keep raw file, noop compiler metadata, compiled artifact placeholder, and ContextPacket attachment references together so future zip/pdf/video compilers can plug in cleanly.";
+    case "Settings":
+      return "Treat planned capabilities as feature flags: expose them to the brain as limits, but do not let the UI pretend they are executable.";
   }
 }
 

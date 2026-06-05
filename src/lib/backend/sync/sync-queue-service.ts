@@ -21,6 +21,7 @@ import {
   isSyncOperationType,
   SYNC_OPERATION_DEFAULT_MAX_ATTEMPTS,
   SYNC_PAYLOAD_MAX_BYTES,
+  SYNC_WORKSPACE_SNAPSHOT_PAYLOAD_MAX_BYTES,
 } from "./sync-constants";
 import { SyncConflictResolver } from "./sync-conflict-resolver";
 import { createSyncPayloadHash, getPayloadSizeBytes } from "./sync-hash";
@@ -85,7 +86,7 @@ export class SyncQueueService {
       );
     }
 
-    this.assertPayloadSafe(input.payload);
+    this.assertPayloadSafe(input.payload, { entityType, operationType });
 
     const payloadHash = await createSyncPayloadHash(input.payload);
     const existing = await this.repository.findById(input.clientMutationId);
@@ -358,16 +359,20 @@ export class SyncQueueService {
     }
   }
 
-  private assertPayloadSafe(payload: unknown) {
+  private assertPayloadSafe(
+    payload: unknown,
+    operation: Pick<SyncOperationRequest, "entityType" | "operationType">,
+  ) {
     const payloadSizeBytes = getPayloadSizeBytes(payload);
+    const maxPayloadSizeBytes = getSyncOperationPayloadMaxBytes(operation);
 
-    if (payloadSizeBytes > SYNC_PAYLOAD_MAX_BYTES) {
+    if (payloadSizeBytes > maxPayloadSizeBytes) {
       throw new ApiError(
         "SYNC_PAYLOAD_TOO_LARGE",
         "Sync payload exceeds the allowed size.",
         413,
         {
-          maxPayloadSizeBytes: SYNC_PAYLOAD_MAX_BYTES,
+          maxPayloadSizeBytes,
           payloadSizeBytes,
         },
       );
@@ -434,6 +439,19 @@ export class SyncQueueService {
       // V4 emits only through the V0 minimal hook. Event failure must not enqueue work.
     }
   }
+}
+
+function getSyncOperationPayloadMaxBytes(
+  operation: Pick<SyncOperationRequest, "entityType" | "operationType">,
+) {
+  if (
+    operation.entityType === "workspace" &&
+    operation.operationType === "snapshot"
+  ) {
+    return SYNC_WORKSPACE_SNAPSHOT_PAYLOAD_MAX_BYTES;
+  }
+
+  return SYNC_PAYLOAD_MAX_BYTES;
 }
 
 export function createSyncQueueService(dependencies?: SyncQueueServiceDependencies) {

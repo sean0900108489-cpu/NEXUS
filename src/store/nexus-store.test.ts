@@ -7,6 +7,8 @@ import {
 } from "@/lib/backend/history/history-constants";
 import { serializeActiveUiStateSnapshot } from "@/lib/backend/workspace/workspace-snapshot-serializer";
 import { createDefaultWorkspace } from "@/lib/nexus-defaults";
+import { publishWorkflowRuntimeTrace } from "@/lib/workflow-runtime-lite/trace-client";
+import { publishWorkflowGroupRecord } from "@/lib/workflow-pro/group-record-client";
 import type {
   AgentMessage,
   AgentMemoryBlock,
@@ -29,6 +31,10 @@ import {
   prepareWorkspacesForLocalPersistence,
   useNexusStore,
 } from "./nexus-store";
+
+async function flushMicrotasks() {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
 
 vi.mock("@/lib/state-sync", () => {
   const synced = async () => ({
@@ -76,6 +82,40 @@ vi.mock("@/lib/state-sync", () => {
     },
   };
 });
+
+vi.mock("@/lib/workflow-runtime-lite/trace-client", () => ({
+  createWorkflowRuntimeTraceSyncError: (error: unknown) => ({
+    error: error instanceof Error ? error.message : "Workflow trace sync failed.",
+    retryable: true,
+  }),
+  publishWorkflowRuntimeTrace: vi.fn(async ({ run, workspaceId }) => ({
+    eventId: `event-${run.runId}`,
+    eventType: "workflow.runtime_lite.run.succeeded",
+    schema: "nexus.workflowRuntime.traceEvent.v1",
+    status: run.status,
+    traceId: `workflow-runtime:${run.runId}`,
+    workflowGroupId: run.group?.id ?? "workspace-root",
+    workflowRunId: run.runId,
+    workspaceId,
+  })),
+}));
+
+vi.mock("@/lib/workflow-pro/group-record-client", () => ({
+  publishWorkflowGroupRecord: vi.fn(async () => ({
+    data: {
+      edgeCount: 1,
+      eventId: "event-workflow-group",
+      eventType: "workflow.group_record.upserted",
+      nodeCount: 2,
+      schema: "nexus.workflowPro.groupRecord.v1",
+      traceId: "workflow-group-record:wf_group",
+      workflowGroupId: "wf_group",
+      workflowId: "wf_group",
+      workspaceId: "workspace-v15-test",
+    },
+    ok: true,
+  })),
+}));
 
 describe("prepareWorkspacesForLocalPersistence", () => {
   it("preserves active messages and memory while marking conservative retention policy", () => {
@@ -379,6 +419,107 @@ describe("prepareWorkspacesForLocalPersistence", () => {
     }
   });
 
+  it("appends a workflow runtime group without replacing the existing graph", () => {
+    const previousState = useNexusStore.getState();
+    const workspace = createDefaultWorkspace({
+      id: "workspace-runtime-append-test",
+      name: "Runtime Append Test",
+      timestamp: "2026-06-04T00:00:00.000Z",
+    });
+    const groupRuntimeLite: WorkflowRuntimeLiteState = {
+      edges: [
+        {
+          id: "edge-imported",
+          source: "imported-input",
+          sourceHandle: "output",
+          target: "imported-output",
+          targetHandle: "input",
+        },
+      ],
+      lastError: null,
+      lastRunId: null,
+      nodes: [
+        {
+          data: { label: "Imported Input", text: "Append" },
+          error: null,
+          id: "imported-input",
+          inputSnapshot: null,
+          outputSnapshot: null,
+          position: { x: 0, y: 0 },
+          status: "idle",
+          type: "input.text",
+        },
+        {
+          data: { label: "Imported Output", renderMode: "markdown" },
+          error: null,
+          id: "imported-output",
+          inputSnapshot: null,
+          outputSnapshot: null,
+          position: { x: 260, y: 0 },
+          status: "idle",
+          type: "output.text",
+        },
+      ],
+      runs: [],
+      version: 1,
+    };
+
+    try {
+      useNexusStore.setState({
+        activeWorkspaceId: workspace.id,
+        selectedAgentId: workspace.selectedAgentId,
+        workspaces: [workspace],
+      });
+
+      const existingNodeId = useNexusStore
+        .getState()
+        .addWorkflowRuntimeNode("model.llm", {
+          position: { x: 640, y: 360 },
+        });
+      const appendResult = useNexusStore
+        .getState()
+        .appendWorkflowRuntimeGroup(groupRuntimeLite, {
+          groupLabel: "Store Brain Append",
+          groupSource: "brain",
+        });
+      const runtimeLite = useNexusStore
+        .getState()
+        .workspaces.find((candidate) => candidate.id === workspace.id)
+        ?.graph.runtimeLite;
+
+      expect(runtimeLite?.nodes.some((node) => node.id === existingNodeId)).toBe(true);
+      expect(appendResult.nodeIds).toHaveLength(2);
+      expect(appendResult.edgeIds).toHaveLength(1);
+      expect(runtimeLite?.nodes).toHaveLength(3);
+      expect(runtimeLite?.edges).toHaveLength(1);
+      expect(runtimeLite?.nodes.map((node) => node.id)).not.toContain("imported-input");
+      expect(
+        runtimeLite?.nodes.find((node) => appendResult.nodeIds.includes(node.id))?.group,
+      ).toMatchObject({
+        label: "Store Brain Append",
+        source: "brain",
+      });
+      expect(
+        runtimeLite?.edges.every((edge) =>
+          appendResult.nodeIds.includes(edge.source) &&
+          appendResult.nodeIds.includes(edge.target),
+        ),
+      ).toBe(true);
+      expect(publishWorkflowGroupRecord).toHaveBeenCalledWith(
+        expect.objectContaining({
+          groupId: appendResult.groupId,
+          runtimeLite: expect.objectContaining({
+            version: 1,
+          }),
+          workspaceId: workspace.id,
+        }),
+      );
+    } finally {
+      useNexusStore.setState(previousState);
+      vi.mocked(publishWorkflowGroupRecord).mockClear();
+    }
+  });
+
   it("persists Workflow Pro as the active workspace view mode", () => {
     const previousState = useNexusStore.getState();
     const workspace = createDefaultWorkspace({
@@ -447,6 +588,234 @@ describe("prepareWorkspacesForLocalPersistence", () => {
       expect(run?.status).toBe("success");
       expect(nodeA?.outputSnapshot).toBeNull();
       expect(nodeB?.outputSnapshot?.rawText).toBe("Beta");
+    } finally {
+      useNexusStore.setState(previousState);
+    }
+  });
+
+  it("publishes completed workflow runtime runs to durable trace in the background", async () => {
+    const previousState = useNexusStore.getState();
+    const workspace = createDefaultWorkspace({
+      id: "workspace-runtime-trace-sync-test",
+      name: "Runtime Trace Sync Test",
+      timestamp: "2026-06-04T00:00:00.000Z",
+    });
+
+    vi.mocked(publishWorkflowRuntimeTrace).mockClear();
+
+    try {
+      useNexusStore.setState({
+        activeWorkspaceId: workspace.id,
+        authVault: {
+          ...previousState.authVault,
+          user: {
+            email: "trace@example.test",
+            id: "local-editor",
+          } as IAuthVault["user"],
+        },
+        selectedAgentId: workspace.selectedAgentId,
+        workspaces: [workspace],
+      });
+
+      const inputId = useNexusStore.getState().addWorkflowRuntimeNode("input.text");
+
+      useNexusStore.getState().updateWorkflowRuntimeNodeData(inputId, {
+        text: "Trace me",
+      });
+
+      const run = await useNexusStore.getState().runWorkflowRuntimeLiteFlow({
+        startNodeId: inputId,
+      });
+
+      expect(run?.status).toBe("success");
+      expect(publishWorkflowRuntimeTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          run: expect.objectContaining({
+            runId: run?.runId,
+          }),
+          userId: "local-editor",
+          workspaceId: workspace.id,
+        }),
+      );
+
+      await flushMicrotasks();
+
+      const storedRun = useNexusStore
+        .getState()
+        .workspaces.find((candidate) => candidate.id === workspace.id)
+        ?.graph.runtimeLite?.runs.find((candidate) => candidate.runId === run?.runId);
+
+      expect(storedRun?.traceSync).toMatchObject({
+        eventId: `event-${run?.runId}`,
+        status: "synced",
+        traceId: `workflow-runtime:${run?.runId}`,
+      });
+    } finally {
+      useNexusStore.setState(previousState);
+    }
+  });
+
+  it("retries failed workflow runtime trace sync by run id", async () => {
+    const previousState = useNexusStore.getState();
+    const workspace = createDefaultWorkspace({
+      id: "workspace-runtime-trace-retry-test",
+      name: "Runtime Trace Retry Test",
+      timestamp: "2026-06-04T00:00:00.000Z",
+    });
+    const run: WorkflowRun = {
+      completedAt: "2026-06-04T00:00:03.000Z",
+      error: null,
+      nodeExecutions: [],
+      runId: "run-retry-a",
+      startedAt: "2026-06-04T00:00:00.000Z",
+      status: "success",
+      traceSync: {
+        attemptedAt: "2026-06-04T00:00:04.000Z",
+        completedAt: "2026-06-04T00:00:05.000Z",
+        error: "Permission denied.",
+        retryable: true,
+        status: "failed",
+        traceId: "workflow-runtime:run-retry-a",
+      },
+      workflowId: workspace.id,
+    };
+
+    vi.mocked(publishWorkflowRuntimeTrace).mockClear();
+
+    try {
+      useNexusStore.setState({
+        activeWorkspaceId: workspace.id,
+        authVault: {
+          ...previousState.authVault,
+          user: {
+            email: "trace@example.test",
+            id: "local-editor",
+          } as IAuthVault["user"],
+        },
+        selectedAgentId: workspace.selectedAgentId,
+        workspaces: [
+          {
+            ...workspace,
+            graph: {
+              ...workspace.graph,
+              runtimeLite: {
+                edges: [],
+                lastError: null,
+                lastRunId: run.runId,
+                nodes: [],
+                runs: [run],
+                version: 1,
+              },
+            },
+          },
+        ],
+      });
+
+      const retried = await useNexusStore
+        .getState()
+        .retryWorkflowRuntimeTraceSync(run.runId);
+
+      expect(publishWorkflowRuntimeTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          run: expect.objectContaining({
+            runId: run.runId,
+          }),
+          userId: "local-editor",
+          workspaceId: workspace.id,
+        }),
+      );
+      expect(retried?.traceSync).toMatchObject({
+        eventId: `event-${run.runId}`,
+        status: "synced",
+        traceId: `workflow-runtime:${run.runId}`,
+      });
+
+      const storedRun = useNexusStore
+        .getState()
+        .workspaces.find((candidate) => candidate.id === workspace.id)
+        ?.graph.runtimeLite?.runs.find((candidate) => candidate.runId === run.runId);
+
+      expect(storedRun?.traceSync).toMatchObject({
+        eventId: `event-${run.runId}`,
+        status: "synced",
+      });
+    } finally {
+      useNexusStore.setState(previousState);
+    }
+  });
+
+  it("keeps retry failure evidence on the workflow run", async () => {
+    const previousState = useNexusStore.getState();
+    const workspace = createDefaultWorkspace({
+      id: "workspace-runtime-trace-retry-failure-test",
+      name: "Runtime Trace Retry Failure Test",
+      timestamp: "2026-06-04T00:00:00.000Z",
+    });
+    const run: WorkflowRun = {
+      completedAt: "2026-06-04T00:00:03.000Z",
+      error: null,
+      nodeExecutions: [],
+      runId: "run-retry-failure",
+      startedAt: "2026-06-04T00:00:00.000Z",
+      status: "success",
+      traceSync: {
+        attemptedAt: "2026-06-04T00:00:04.000Z",
+        completedAt: "2026-06-04T00:00:05.000Z",
+        error: "Permission denied.",
+        retryable: true,
+        status: "failed",
+        traceId: "workflow-runtime:run-retry-failure",
+      },
+      workflowId: workspace.id,
+    };
+
+    vi.mocked(publishWorkflowRuntimeTrace).mockRejectedValueOnce(
+      new Error("Permission denied."),
+    );
+
+    try {
+      useNexusStore.setState({
+        activeWorkspaceId: workspace.id,
+        selectedAgentId: workspace.selectedAgentId,
+        workspaces: [
+          {
+            ...workspace,
+            graph: {
+              ...workspace.graph,
+              runtimeLite: {
+                edges: [],
+                lastError: null,
+                lastRunId: run.runId,
+                nodes: [],
+                runs: [run],
+                version: 1,
+              },
+            },
+          },
+        ],
+      });
+
+      const retried = await useNexusStore
+        .getState()
+        .retryWorkflowRuntimeTraceSync(run.runId);
+
+      expect(retried?.traceSync).toMatchObject({
+        error: "Permission denied.",
+        retryable: true,
+        status: "failed",
+        traceId: "workflow-runtime:run-retry-failure",
+      });
+
+      const storedRun = useNexusStore
+        .getState()
+        .workspaces.find((candidate) => candidate.id === workspace.id)
+        ?.graph.runtimeLite?.runs.find((candidate) => candidate.runId === run.runId);
+
+      expect(storedRun?.traceSync).toMatchObject({
+        error: "Permission denied.",
+        retryable: true,
+        status: "failed",
+      });
     } finally {
       useNexusStore.setState(previousState);
     }
@@ -527,6 +896,67 @@ describe("prepareWorkspacesForLocalPersistence", () => {
       title: generatedArtifact.title,
       type: "generated-image",
     });
+  });
+
+  it("collects transient generated image records when artifact persistence fails", () => {
+    const run: WorkflowRun = {
+      completedAt: "2026-06-03T00:01:30.000Z",
+      error: null,
+      nodeExecutions: [
+        {
+          completedAt: "2026-06-03T00:01:25.000Z",
+          nodeId: "image-model",
+          outputSnapshot: {
+            createdAt: "2026-06-03T00:01:25.000Z",
+            displayText: "Image generated.",
+            id: "packet-image",
+            metadata: {
+              artifactId: null,
+              artifactPersistence: {
+                error: "Permission denied.",
+                status: "failed",
+              },
+              generatedAsset: {
+                assetId: "img_transient",
+                durable: false,
+                mimeType: "image/png",
+                provider: "memory",
+                sizeBytes: 1234,
+                url: "/api/image-gen/assets/img_transient",
+              },
+              imageUrl: "/api/image-gen/assets/img_transient",
+              prompt: "Y2K flying car",
+            },
+            rawText: "Image URL: /api/image-gen/assets/img_transient",
+            runId: "run-runtime",
+            sourceNodeId: "image-model",
+          },
+          runId: "run-runtime",
+          status: "success",
+        },
+      ],
+      runId: "run-runtime",
+      startedAt: "2026-06-03T00:01:00.000Z",
+      status: "success",
+      workflowId: "workspace-runtime-artifact-test",
+    };
+
+    const records = collectWorkflowGeneratedArtifactVaultRecords(run);
+
+    expect(records).toEqual([
+      expect.objectContaining({
+        contentSizeBytes: 1234,
+        contentUrl: "/api/image-gen/assets/img_transient",
+        id: "transient_img_transient",
+        mimeType: "image/png",
+        previewText: "Y2K flying car",
+        sourceMessageId: "run-runtime:image-model:image",
+        status: "saved",
+        title: "Workflow image - Y2K flying car",
+        type: "generated-image",
+        workspaceId: "workspace-runtime-artifact-test",
+      }),
+    ]);
   });
 
   it("strips raw provider secrets from locally persisted auth vaults", () => {

@@ -7,16 +7,21 @@ import {
   ensureNexusSupabaseClientConfigured,
   getNexusSupabaseClient,
 } from "@/lib/supabase/client";
+import type { IAuthVault } from "@/lib/nexus-types";
 import { useNexusStore } from "@/store/nexus-store";
 
 type AuthScreenProps = {
   checked: boolean;
+  onAuthenticated?: (
+    user: NonNullable<IAuthVault["user"]>,
+    accessToken?: string | null,
+  ) => void;
 };
 
 const AUTH_PROMPT_MESSAGE = "Authenticate to unlock NEXUS // AI OPS.";
 const CHECKING_SESSION_MESSAGE = "Checking session...";
 
-export function AuthScreen({ checked }: AuthScreenProps) {
+export function AuthScreen({ checked, onAuthenticated }: AuthScreenProps) {
   const login = useNexusStore((state) => state.login);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,13 +64,21 @@ export function AuthScreen({ checked }: AuthScreenProps) {
         return;
       }
 
-      if (result.data.user) {
-        login(result.data.user);
+      if (result.data.session?.user) {
+        login(result.data.session.user);
+        onAuthenticated?.(
+          result.data.session.user,
+          result.data.session.access_token ?? null,
+        );
         setMessage("Identity verified. Loading command center...");
         return;
       }
 
-      setMessage("Check your email to confirm this account.");
+      setMessage(
+        result.data.user
+          ? "Check your email to confirm this account before opening NEXUS."
+          : "Check your email to confirm this account.",
+      );
     } catch (error) {
       setMessage(
         error instanceof Error

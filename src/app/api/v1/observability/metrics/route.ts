@@ -12,6 +12,8 @@ export const runtime = "nodejs";
 export const GET = apiHandler<undefined, UsageMetricsResponse>({
   handler: async ({ request, trace, workspaceId }) => {
     await assertObservabilityAccess({
+      action: "workspace.metrics.read",
+      minRole: "editor",
       trace,
       workspaceId,
     });

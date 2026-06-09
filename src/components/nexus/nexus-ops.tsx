@@ -248,6 +248,25 @@ type WorkspaceSessionRole = WorkspaceSessionEnsureResponse["role"];
 function isWorkspaceReadOnlyRole(role: WorkspaceSessionRole | null | undefined) {
   return role === "viewer";
 }
+
+function resolveWorkspaceApiScope({
+  activeWorkspaceId,
+  sessionByWorkspaceId,
+  workspace,
+}: {
+  activeWorkspaceId: string;
+  sessionByWorkspaceId: Record<string, WorkspaceSessionEnsureResponse>;
+  workspace: NexusWorkspace | null | undefined;
+}) {
+  const localWorkspaceId = workspace?.id ?? activeWorkspaceId;
+  const session = sessionByWorkspaceId[localWorkspaceId];
+
+  return {
+    localWorkspaceId,
+    session: session ?? null,
+    workspaceId: session?.workspaceId ?? localWorkspaceId,
+  };
+}
 type AgentHistoricalPage = {
   error?: string;
   hasMore: boolean;
@@ -1886,6 +1905,20 @@ export function NexusOps() {
       .then((sessionWorkspace) => {
         if (mounted && sessionWorkspace) {
           rememberWorkspaceSession(sessionWorkspace);
+          if (
+            sessionWorkspace.workspaceId !== workspace.id &&
+            useNexusStore.getState().activeWorkspaceId === workspace.id
+          ) {
+            useNexusStore.getState().bindActiveWorkspaceToCloudSession({
+              workspaceId: sessionWorkspace.workspaceId,
+              workspaceName: sessionWorkspace.workspaceName,
+            });
+            setNotice(
+              sessionWorkspace.created
+                ? "Workspace cloud session created"
+                : "Workspace cloud session linked",
+            );
+          }
         }
       })
       .catch(() => undefined);
@@ -2493,6 +2526,11 @@ export function NexusOps() {
     const workspace =
       state.workspaces.find((candidate) => candidate.id === state.activeWorkspaceId) ??
       state.workspaces[0];
+    const apiWorkspaceId = resolveWorkspaceApiScope({
+      activeWorkspaceId: state.activeWorkspaceId,
+      sessionByWorkspaceId: workspaceSessionByWorkspaceId,
+      workspace,
+    }).workspaceId;
     const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
     const model =
       agent?.model?.trim() ||
@@ -2546,12 +2584,12 @@ export function NexusOps() {
           outputMessageId: assistantMessage.id,
           provider: runtimeCredential.providerId,
           taskType: "chat",
-          workspaceId: workspace.id,
+          workspaceId: apiWorkspaceId,
         },
         {
           idempotencyKey: `task_${userMessage.id}`,
           userId,
-          workspaceId: workspace.id,
+          workspaceId: apiWorkspaceId,
         },
       );
     } catch (error) {
@@ -2569,7 +2607,7 @@ export function NexusOps() {
       outputMessageId: assistantMessage.id,
       sessionId: taskResponse.session.id,
       taskId: taskResponse.task.id,
-      workspaceId: workspace.id,
+      workspaceId: apiWorkspaceId,
       agent: {
         identity: agent.identity,
         callsign: agent.callsign,
@@ -2611,13 +2649,13 @@ export function NexusOps() {
     abortControllersRef.current.set(agentId, {
       controller,
       taskId: taskResponse.task.id,
-      workspaceId: workspace.id,
+      workspaceId: apiWorkspaceId,
     });
 
     try {
       const headers = new Headers({
         "Content-Type": "application/json",
-        "X-Workspace-Id": workspace.id,
+        "X-Workspace-Id": apiWorkspaceId,
       });
 
       if (userId) {
@@ -2736,7 +2774,7 @@ export function NexusOps() {
         setNotice(`${agent.callsign} stream closed`);
       }
     }
-  }, [serverProviderStatus]);
+  }, [serverProviderStatus, workspaceSessionByWorkspaceId]);
 
   const blockReadOnlyWorkspaceMutation = useCallback((action: string) => {
     if (!activeWorkspaceReadOnly) {
@@ -3017,6 +3055,11 @@ export function NexusOps() {
       const workspace =
         state.workspaces.find((candidate) => candidate.id === state.activeWorkspaceId) ??
         state.workspaces[0];
+      const apiWorkspaceId = resolveWorkspaceApiScope({
+        activeWorkspaceId: state.activeWorkspaceId,
+        sessionByWorkspaceId: workspaceSessionByWorkspaceId,
+        workspace,
+      }).workspaceId;
       const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
 
       if (!agent || agent.status === "streaming" || agent.status === "thinking") {
@@ -3062,7 +3105,7 @@ export function NexusOps() {
           prompt,
           toolName: "Composer Image Mode",
           userId: state.authVault.user?.id,
-          workspaceId: workspace?.id ?? state.activeWorkspaceId,
+          workspaceId: apiWorkspaceId,
         });
         const assistantMessageId = makeId("message");
         let artifactId: string | undefined;
@@ -3093,12 +3136,12 @@ export function NexusOps() {
               sourceMessageId: assistantMessageId,
               title: `Generated image - ${prompt.slice(0, 48)}`,
               type: "generated-image",
-              workspaceId: workspace?.id ?? state.activeWorkspaceId,
+              workspaceId: apiWorkspaceId,
             },
             {
               idempotencyKey: `generated_image_${assistantMessageId}`,
               userId: state.authVault.user?.id,
-              workspaceId: workspace?.id ?? state.activeWorkspaceId,
+              workspaceId: apiWorkspaceId,
             },
           );
 
@@ -3156,7 +3199,7 @@ export function NexusOps() {
         useNexusStore.getState().setAgentStatus(agentId, "idle");
       }
     },
-    [serverProviderStatus],
+    [serverProviderStatus, workspaceSessionByWorkspaceId],
   );
 
   useEffect(() => {

@@ -1,0 +1,463 @@
+{
+  "round_id": "round-04-browser-visual-accessibility",
+  "generated_at": "2026-06-05T04:22:15.644Z",
+  "mode": "Chrome headless localhost visual + DOM snapshot",
+  "localhostOnly": true,
+  "productionSupabaseTouched": false,
+  "srcBusinessLogicModified": false,
+  "pages": [
+    {
+      "name": "home",
+      "route": "/",
+      "domBytes": 16738,
+      "screenshots": [
+        {
+          "path": "assets/screenshots/round-04/home-desktop.png",
+          "bytes": 152865
+        },
+        {
+          "path": "assets/screenshots/round-04/home-mobile.png",
+          "bytes": 38937
+        }
+      ],
+      "buttonCount": 2,
+      "unlabeledButtonCount": 0,
+      "inputCount": 2,
+      "unlabeledInputCount": 0,
+      "headings": [
+        {
+          "level": 1,
+          "text": "NEXUS // AI OPS"
+        }
+      ],
+      "links": [],
+      "buttons": [
+        {
+          "label": "Login",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Login",
+          "className": "mt-1 flex items-center justify-center gap-2 border border-neutral-300/40 bg-neutral-300/10 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-50",
+          "risk": "labeled"
+        },
+        {
+          "label": "Need Account",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Need Account",
+          "className": "shrink-0 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100 hover:text-white",
+          "risk": "labeled"
+        }
+      ],
+      "inputs": [
+        {
+          "type": "email",
+          "placeholder": "operator@nexus.local",
+          "ariaLabel": null,
+          "name": null,
+          "risk": "labeled"
+        },
+        {
+          "type": "password",
+          "placeholder": "••••••••••••",
+          "ariaLabel": null,
+          "name": null,
+          "risk": "labeled"
+        }
+      ],
+      "textHead": "NEXUS // AI OPS NEXUS // AI OPS Identity Gate / Global Vault Email Password Login Checking session... Need Account"
+    },
+    {
+      "name": "style",
+      "route": "/style-lab",
+      "domBytes": 214754,
+      "screenshots": [
+        {
+          "path": "assets/screenshots/round-04/style-desktop.png",
+          "bytes": 113299
+        },
+        {
+          "path": "assets/screenshots/round-04/style-mobile.png",
+          "bytes": 31312
+        }
+      ],
+      "buttonCount": 36,
+      "unlabeledButtonCount": 0,
+      "inputCount": 7,
+      "unlabeledInputCount": 1,
+      "headings": [
+        {
+          "level": 1,
+          "text": "NEXUS Style Lab"
+        }
+      ],
+      "links": [],
+      "buttons": [
+        {
+          "label": "Surface Shell",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Surface Shell",
+          "className": "h-8 border px-3 font-mono text-[10px] uppercase tracking-[0.12em] transition border-neutral-300/45 bg-neutral-300/15 text-neutral-100",
+          "risk": "labeled"
+        },
+        {
+          "label": "High Contrast",
+          "ariaLabel": null,
+          "title": null,
+          "text": "High Contrast",
+          "className": "h-8 border px-3 font-mono text-[10px] uppercase tracking-[0.12em] transition border-white/10 bg-white/[0.04] text-neutral-400 hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Preview",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Preview",
+          "className": "inline-flex h-9 items-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40",
+          "risk": "labeled"
+        },
+        {
+          "label": "Baseline",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Baseline",
+          "className": "inline-flex h-9 items-center gap-2 border border-white/10 bg-white/[0.04] px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Revert",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Revert",
+          "className": "inline-flex h-9 items-center gap-2 border border-white/10 bg-white/[0.04] px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Button",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Button",
+          "className": "h-10 min-w-0 border px-3 font-mono text-[10px] uppercase tracking-[0.14em]",
+          "risk": "labeled"
+        },
+        {
+          "label": "Default",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Default",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Swap L/R",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Swap L/R",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20",
+          "risk": "labeled"
+        },
+        {
+          "label": "Swap T/B",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Swap T/B",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20",
+          "risk": "labeled"
+        },
+        {
+          "label": "Settings",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Settings",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Invalid",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Invalid",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20",
+          "risk": "labeled"
+        },
+        {
+          "label": "Review Layout",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Review Layout",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40",
+          "risk": "labeled"
+        },
+        {
+          "label": "Preview Bridge",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Preview Bridge",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-sky-300/35 bg-sky-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-sky-100 transition hover:bg-sky-300/20 disabled:opacity-40",
+          "risk": "labeled"
+        },
+        {
+          "label": "Revert Bridge",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Revert Bridge",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10 disabled:opacity-40",
+          "risk": "labeled"
+        },
+        {
+          "label": "Use Surface Style",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Use Surface Style",
+          "className": "inline-flex h-8 min-w-0 items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20",
+          "risk": "labeled"
+        },
+        {
+          "label": "Apply Smoke Vars",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Apply Smoke Vars",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20",
+          "risk": "labeled"
+        },
+        {
+          "label": "Revert Smoke Vars",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Revert Smoke Vars",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Use Export",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Use Export",
+          "className": "inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-3 font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Load Draft",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Load Draft",
+          "className": "inline-flex h-9 items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40",
+          "risk": "labeled"
+        },
+        {
+          "label": "Prompt",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Prompt",
+          "className": "h-8 min-w-0 border px-2 font-mono text-[9px] uppercase tracking-[0.1em] transition border-neutral-300/45 bg-neutral-300/15 text-neutral-100",
+          "risk": "labeled"
+        },
+        {
+          "label": "Context",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Context",
+          "className": "h-8 min-w-0 border px-2 font-mono text-[9px] uppercase tracking-[0.1em] transition border-white/10 bg-white/[0.04] text-neutral-400 hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Minimal",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Minimal",
+          "className": "h-8 min-w-0 border px-2 font-mono text-[9px] uppercase tracking-[0.1em] transition border-white/10 bg-white/[0.04] text-neutral-400 hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Pixel",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Pixel",
+          "className": "h-8 min-w-0 border px-2 font-mono text-[9px] uppercase tracking-[0.1em] transition border-white/10 bg-white/[0.04] text-neutral-400 hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Use Minimal",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Use Minimal",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Use Pixel",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Use Pixel",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20",
+          "risk": "labeled"
+        },
+        {
+          "label": "Load Into Style Lab Review",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Load Into Style Lab Review",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40",
+          "risk": "labeled"
+        },
+        {
+          "label": "Valid",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Valid",
+          "className": "inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Pixel",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Pixel",
+          "className": "inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Invalid",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Invalid",
+          "className": "inline-flex h-9 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Review",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Review",
+          "className": "inline-flex h-9 items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40",
+          "risk": "labeled"
+        },
+        {
+          "label": "Preview Tokens",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Preview Tokens",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40",
+          "risk": "labeled"
+        },
+        {
+          "label": "Revert V2",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Revert V2",
+          "className": "inline-flex h-9 min-w-0 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-2 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10 disabled:opacity-40",
+          "risk": "labeled"
+        },
+        {
+          "label": "Draft Manifest",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Draft Manifest",
+          "className": "inline-flex h-9 w-full items-center justify-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40",
+          "risk": "labeled"
+        },
+        {
+          "label": "Package",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Package",
+          "className": "h-8 min-w-0 border px-2 font-mono text-[9px] uppercase tracking-[0.1em] transition border-neutral-300/45 bg-neutral-300/15 text-neutral-100",
+          "risk": "labeled"
+        },
+        {
+          "label": "Manifest",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Manifest",
+          "className": "h-8 min-w-0 border px-2 font-mono text-[9px] uppercase tracking-[0.1em] transition border-white/10 bg-white/[0.04] text-neutral-400 hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        },
+        {
+          "label": "Review",
+          "ariaLabel": null,
+          "title": null,
+          "text": "Review",
+          "className": "h-8 min-w-0 border px-2 font-mono text-[9px] uppercase tracking-[0.1em] transition border-white/10 bg-white/[0.04] text-neutral-400 hover:border-white/25 hover:bg-white/10",
+          "risk": "labeled"
+        }
+      ],
+      "inputs": [
+        {
+          "type": null,
+          "placeholder": null,
+          "ariaLabel": "Specimen input",
+          "name": null,
+          "risk": "labeled"
+        },
+        {
+          "type": null,
+          "placeholder": null,
+          "ariaLabel": "Workspace layout preset JSON",
+          "name": null,
+          "risk": "labeled"
+        },
+        {
+          "type": null,
+          "placeholder": "{}",
+          "ariaLabel": "Style import JSON",
+          "name": null,
+          "risk": "labeled"
+        },
+        {
+          "type": null,
+          "placeholder": null,
+          "ariaLabel": "V2 authoring context text",
+          "name": null,
+          "risk": "labeled"
+        },
+        {
+          "type": null,
+          "placeholder": "{}",
+          "ariaLabel": "V2 skin pack JSON",
+          "name": null,
+          "risk": "labeled"
+        },
+        {
+          "type": null,
+          "placeholder": "brief",
+          "ariaLabel": "Style brief text",
+          "name": null,
+          "risk": "labeled"
+        },
+        {
+          "type": null,
+          "placeholder": null,
+          "ariaLabel": null,
+          "name": null,
+          "risk": "missing-static-label"
+        }
+      ],
+      "textHead": "NEXUS // AI OPS NEXUS Style Lab baseline-surface-shell / warning Surface Shell High Contrast Preview Baseline Revert compatible_with_warnings idle Token Map --nexus-surface-app #101010 --nexus-surface-panel rgb(20 20 20 / 0.78) --nexus-text-primary #f5f5f5 --nexus-text-secondary #d0d0d0 --nexus-accent-primary #e5e5e5 --nexus-status-warning #eeeeee Preview Surface Baseline Surface Shell panel window dock Window Specimen Baseline Surface Shell agent tool log Datapad Shell Specimen Global Notes visual Local shell preview Ready Agent Chrome Specimen Operator Window run dock view stream tools state Modal Specimen Baseline Surface Shell Review Required Cancel Apply Prompt Vault Specimen Surface Preview visual Agent Brief Style Notes Review Log Selected Prompt view meta state Command Palette Specimen Search command Open Agent visual Toggle Dock visual Review Style visual Comparison --nexus-surface-app #101010 #101010 --nexus-surface-panel rgb(20 20 20 / 0.78) rgb(20 20 20 / 0.78) --nexus-text-primary #f5f5f5 #f5f5f5 --nexus-accent-primary #e5e5e5 #e5e5e5 --nexus-status-warning #eeeeee #eeeeee Primitive Specimen Panel Baseline Surface Shell Button Badge Layout Boundary layout boundary idle Status layout boundary idle Preset none Page Shell none Arrangement none Slots 0 Production production-layout-blocked { \"compatibility\": { \"contract\": \"workspace-layout-slot-boundary-v1\", \"result\": \"compatible\" }, \"fallback\": { \"fallbackPresetId\": \"default-workspace-layout\", \"onProtectedField\": \"reject-preset\", \"onUnsupportedArrangement\": \"use-default-workspace\", \"onUnsupportedSlot\": \"ignore-slot\" }, \"id\": \"default-workspace-layout\", \"intent\": { \"arrangement\": \"default-workspace\", \"description\": \"Style Lab-only layout boundary intent; production layout remains blocked.\", \"pageShell\": \"workspace\" }, \"kind\": \"nexus-workspace-layout-preset\", \"name\": \"Default Workspace Layout\", \"regions\": { \"bottom\": [ \"bottomBar\" ], \"floating\": [ \"floatingWindows\", \"commandPalette\" ], \"left\": [ \"leftSidebar\""
+    }
+  ],
+  "risks": [
+    {
+      "route": "/style-lab",
+      "type": "input",
+      "index": 0,
+      "evidence": {
+        "type": null,
+        "placeholder": null,
+        "ariaLabel": null,
+        "name": null,
+        "risk": "missing-static-label"
+      }
+    }
+  ],
+  "remaining": [
+    "No interactive click trace executed.",
+    "No Chrome DevTools Protocol console/network event capture; only Chrome CLI DOM/screenshot.",
+    "Optional read-only Supabase daily-data audit remains separate."
+  ],
+  "qualityDistance": {
+    "currentEstimate": "0.97",
+    "estimatedRoundsToQualityCeiling": 0,
+    "rationale": "For current-system mapping, static + symbol + isolated HTTP + headless visual/DOM coverage is complete enough. Optional live data audit is outside current-system static/runtime map."
+  }
+}

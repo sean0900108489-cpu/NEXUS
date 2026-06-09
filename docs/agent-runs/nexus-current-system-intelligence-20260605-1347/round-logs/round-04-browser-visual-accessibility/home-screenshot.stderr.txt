@@ -1,0 +1,3 @@
+Trying to load the allocator multiple times. This is *not* supported.
+[37179:3357061:0605/141933.806678:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+152865 bytes written to file /Users/sean/Documents/FreeChat/docs/agent-runs/nexus-current-system-intelligence-20260605-1347/assets/screenshots/round-04/home-desktop.png

@@ -393,7 +393,7 @@ export function WorkflowProSurface({
               <div
                 aria-label="Workflow Pro import status"
                 aria-live="polite"
-                className="mt-3 grid gap-2 border border-emerald-300/20 bg-emerald-400/[0.06] p-3 font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-100 sm:grid-cols-[minmax(0,1fr)_auto]"
+                className="mt-3 grid gap-2 border border-green-300/20 bg-green-400/[0.06] p-3 font-mono text-[10px] uppercase tracking-[0.12em] text-green-100 sm:grid-cols-[minmax(0,1fr)_auto]"
               >
                 <span>
                   Import {importReview.status}
@@ -599,7 +599,7 @@ export function WorkflowProSurface({
                     <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-200">
                       {nodeType.type}
                     </span>
-                    <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-300">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-green-300">
                       {nodeType.state}
                     </span>
                   </div>
@@ -1148,7 +1148,7 @@ function WorkflowProEvidenceGateSummary({
                   "border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em]",
                   gate.state === "open"
                     ? "border-yellow-300/20 bg-yellow-300/10 text-yellow-100"
-                    : "border-emerald-300/20 bg-emerald-300/10 text-emerald-200",
+                    : "border-green-300/20 bg-green-300/10 text-green-200",
                 ].join(" ")}
               >
                 {gate.state}
@@ -1339,7 +1339,7 @@ function WorkflowProBrainProposalIntake({
           className={[
             "border px-2 py-1 font-mono text-[8px] uppercase tracking-[0.14em]",
             validationStatus === "accepted"
-              ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-200"
+              ? "border-green-300/20 bg-green-300/10 text-green-200"
               : validationStatus === "rejected"
                 ? "border-red-300/20 bg-red-300/10 text-red-200"
                 : validationStatus === "stale"
@@ -1385,7 +1385,7 @@ function WorkflowProBrainProposalIntake({
         </button>
         <button
           aria-label="Import optimized Workflow Brain proposal"
-          className="inline-flex min-h-9 items-center justify-center gap-2 border border-emerald-300/20 bg-emerald-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-emerald-100 transition hover:bg-emerald-300/15 disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex min-h-9 items-center justify-center gap-2 border border-green-300/20 bg-green-300/10 px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-green-100 transition hover:bg-green-300/15 disabled:cursor-not-allowed disabled:opacity-40"
           disabled={!hasOptimizedWorkflow}
           onClick={onImportOptimizedWorkflow}
           type="button"
@@ -1555,7 +1555,7 @@ function WorkflowProCapabilityRegistry({
                       className={[
                         "border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em]",
                         item.state === "available"
-                          ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-200"
+                          ? "border-green-300/20 bg-green-300/10 text-green-200"
                           : "border-yellow-300/20 bg-yellow-300/10 text-yellow-100",
                       ].join(" ")}
                     >

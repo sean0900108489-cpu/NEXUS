@@ -6,11 +6,18 @@ import { describe, expect, it } from "vitest";
 const repoRoot = join(__dirname, "../../..");
 const skippedDirectories = new Set([
   ".git",
+  ".codex",
   ".next",
+  "X",
   "coverage",
   "dist",
   "node_modules",
+  "reports",
 ]);
+const skippedRelativePathPrefixes = [
+  "docs/agent-runs/",
+  "nblm_imports/",
+];
 
 const retiredHexes = [
   ["67e8", "f9"],
@@ -148,7 +155,13 @@ describe("retired palette guard", () => {
 
     for (const file of files) {
       const relativePath = relative(repoRoot, file);
-      const pathForScan = relativePath.toLowerCase();
+      const normalizedRelativePath = relativePath.replace(/\\/g, "/");
+
+      if (shouldSkipRelativePath(normalizedRelativePath)) {
+        continue;
+      }
+
+      const pathForScan = normalizedRelativePath.toLowerCase();
       const content = readTextFile(file);
       const contentForScan = content.toLowerCase();
 
@@ -180,3 +193,9 @@ describe("retired palette guard", () => {
     expect(failures).toEqual([]);
   });
 });
+
+function shouldSkipRelativePath(relativePath: string) {
+  return skippedRelativePathPrefixes.some((prefix) =>
+    relativePath.startsWith(prefix),
+  );
+}

@@ -108,6 +108,8 @@ export function validateWorkflowRuntimeLiteTopology({
   const runnableNodes = subgraph.nodes;
   const runnableEdges = subgraph.edges;
   const inputNodes = runnableNodes.filter((node) => node.type === "input.text");
+  const incoming = collectEdges(runnableEdges, "target");
+  const outgoing = collectEdges(runnableEdges, "source");
 
   if (!inputNodes.length) {
     return {
@@ -116,27 +118,17 @@ export function validateWorkflowRuntimeLiteTopology({
     };
   }
 
-  if (inputNodes.length > 1) {
-    return {
-      error: "目前 Lite Runner 尚未支援多個起始 input.text 節點。",
-      ok: false,
-    };
-  }
-
-  const incoming = collectEdges(runnableEdges, "target");
-  const outgoing = collectEdges(runnableEdges, "source");
-
-  const startNode = inputNodes[0];
-
-  if ((incoming.get(startNode.id)?.length ?? 0) > 0) {
-    return {
-      error: "input.text 不能有上游輸入。",
-      ok: false,
-    };
+  for (const inputNode of inputNodes) {
+    if ((incoming.get(inputNode.id)?.length ?? 0) > 0) {
+      return {
+        error: "input.text 不能有上游輸入。",
+        ok: false,
+      };
+    }
   }
 
   for (const node of runnableNodes) {
-    if (node.id === startNode.id) {
+    if (node.type === "input.text") {
       continue;
     }
 
@@ -148,7 +140,13 @@ export function validateWorkflowRuntimeLiteTopology({
     }
   }
 
-  const reachable = collectReachableNodeIds(startNode.id, outgoing);
+  const reachable = new Set<string>();
+
+  for (const inputNode of inputNodes) {
+    for (const nodeId of collectReachableNodeIds(inputNode.id, outgoing)) {
+      reachable.add(nodeId);
+    }
+  }
 
   if (reachable.size !== runnableNodes.length) {
     return {

@@ -320,6 +320,13 @@ export class LocalSyncQueueAdapter {
       return;
     }
 
+    const accessToken =
+      typeof window !== "undefined" ? await resolveLocalQueueAccessToken() : undefined;
+
+    if (typeof window !== "undefined" && !accessToken) {
+      return;
+    }
+
     await this.patchOperation(clientMutationId, {
       attemptCount: operation.attemptCount + 1,
       status: "syncing",
@@ -342,6 +349,7 @@ export class LocalSyncQueueAdapter {
           workspaceId: operation.workspaceId,
         },
         {
+          accessToken,
           idempotencyKey: operation.clientMutationId,
           userId: await resolveLocalQueueUserId(),
           workspaceId: operation.workspaceId,
@@ -627,6 +635,16 @@ async function resolveLocalQueueUserId() {
     return data.user?.id ?? "local-owner";
   } catch {
     return "local-owner";
+  }
+}
+
+async function resolveLocalQueueAccessToken() {
+  try {
+    const { data } = await getNexusSupabaseClient().auth.getSession();
+
+    return data.session?.access_token ?? null;
+  } catch {
+    return null;
   }
 }
 

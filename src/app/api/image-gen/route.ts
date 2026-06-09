@@ -88,7 +88,8 @@ export async function POST(request: Request) {
     return Response.json({ error: "Image prompt is required." }, { status: 400 });
   }
 
-  const apiKey = resolveImageGenerationApiKey(request.headers);
+  const runtimeProviderToken = getRuntimeBearerToken(request.headers);
+  const apiKey = resolveImageGenerationApiKey(runtimeProviderToken);
   const baseUrl = normalizeImageBaseUrl(
     request.headers.get("x-openai-base-url") ?? getServerImageBaseUrl(),
   );
@@ -136,12 +137,9 @@ export async function POST(request: Request) {
   }
 }
 
-export function resolveImageGenerationApiKey(headers: Headers) {
+export function resolveImageGenerationApiKey(runtimeProviderToken: string) {
   return (
-    normalizeImageApiKeyCandidate(
-      headers.get("X-Nexus-Runtime-Authorization"),
-    ) ??
-    normalizeImageApiKeyCandidate(getRuntimeBearerToken(headers)) ??
+    normalizeImageApiKeyCandidate(runtimeProviderToken) ??
     getServerImageApiKey()
   );
 }

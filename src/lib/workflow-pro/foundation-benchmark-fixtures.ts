@@ -196,7 +196,7 @@ function createImageReverseFanoutBenchmark(): WorkflowProFoundationBenchmarkFixt
     ),
     llmNode(
       "bench-c-llm-style-1",
-      "Cyber Y2K Stylist",
+      "Chrome Y2K Stylist",
       "Create branch 1: chrome, clubwear, wide pants, high contrast editorial styling.",
       { x: 1040, y: -40 },
       "medium",
@@ -215,10 +215,10 @@ function createImageReverseFanoutBenchmark(): WorkflowProFoundationBenchmarkFixt
       { x: 1040, y: 280 },
       "medium",
     ),
-    imageNode("bench-c-image-1", "Cyber Image", { x: 1300, y: -40 }),
+    imageNode("bench-c-image-1", "Chrome Image", { x: 1300, y: -40 }),
     imageNode("bench-c-image-2", "Pop Image", { x: 1300, y: 120 }),
     imageNode("bench-c-image-3", "Minimal Image", { x: 1300, y: 280 }),
-    outputNode("bench-c-output-1", "Cyber Output", { x: 1560, y: -40 }),
+    outputNode("bench-c-output-1", "Chrome Output", { x: 1560, y: -40 }),
     outputNode("bench-c-output-2", "Pop Output", { x: 1560, y: 120 }),
     outputNode("bench-c-output-3", "Minimal Output", { x: 1560, y: 280 }),
   ];

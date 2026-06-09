@@ -527,6 +527,39 @@ describe("Workflow Runtime Spine Lite", () => {
     );
   });
 
+  it("runs multiple populated input starts through Start All and merges downstream context", async () => {
+    const inputA = node("input.text", "input-a", { text: "Alpha" });
+    const inputB = node("input.text", "input-b", { text: "Beta" });
+    const output = node("output.text", "output");
+    const runtime = runtimeLite(
+      [inputA, inputB, output],
+      [edge(inputA, output), edge(inputB, output)],
+    );
+    const state = patchableNodes(runtime.nodes);
+
+    const validation = validateWorkflowRuntimeLiteTopology(runtime);
+    const run = await runWorkflowRuntimeLite({
+      callLlm: vi.fn(),
+      onNodePatch: state.patch,
+      runtimeLite: runtime,
+      workflowId: "workspace-test",
+    });
+
+    expect(validation.ok).toBe(true);
+    expect(run.status).toBe("success");
+    expect(state.get("input-a")?.outputSnapshot?.rawText).toBe("Alpha");
+    expect(state.get("input-b")?.outputSnapshot?.rawText).toBe("Beta");
+    expect(state.get("output")?.outputSnapshot?.rawText).toContain(
+      "[Upstream 1]",
+    );
+    expect(state.get("output")?.outputSnapshot?.rawText).toContain("Alpha");
+    expect(state.get("output")?.outputSnapshot?.rawText).toContain("Beta");
+    expect(state.get("output")?.outputSnapshot?.metadata).toMatchObject({
+      nodeType: "merge.context",
+      upstreamSourceNodeIds: ["input-a", "input-b"],
+    });
+  });
+
   it("rejects cycles before execution", () => {
     const input = node("input.text", "input");
     const llm = node("model.llm", "llm");

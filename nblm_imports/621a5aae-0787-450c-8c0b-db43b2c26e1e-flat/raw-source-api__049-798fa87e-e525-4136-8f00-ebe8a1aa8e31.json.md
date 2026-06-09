@@ -1,0 +1,22 @@
+# _raw-source-api/049-798fa87e-e525-4136-8f00-ebe8a1aa8e31.json
+
+Original path: `_raw-source-api/049-798fa87e-e525-4136-8f00-ebe8a1aa8e31.json`
+
+```json
+{
+  "sourceId": {
+    "id": "798fa87e-e525-4136-8f00-ebe8a1aa8e31"
+  },
+  "title": "round-logs__round-04-browser-visual-accessibility__home-dom.stderr.txt.md",
+  "metadata": {
+    "wordCount": 13,
+    "sourceAddedTimestamp": "2026-06-05T05:51:10.592725Z",
+    "tokenCount": 66
+  },
+  "settings": {
+    "status": "SOURCE_STATUS_COMPLETE"
+  },
+  "name": "projects/1022174375734/locations/global/notebooks/621a5aae-0787-450c-8c0b-db43b2c26e1e/sources/798fa87e-e525-4136-8f00-ebe8a1aa8e31"
+}
+
+```

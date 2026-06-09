@@ -1,0 +1,3040 @@
+[
+  {
+    "surfaceName": "NEXUS production shell",
+    "role": "primary app entry",
+    "file": "src/app/page.tsx",
+    "lineCount": 32,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [
+      "@/components/nexus/nexus-ops",
+      "@/components/nexus/nexus-production-page-shell-boundary",
+      "@/components/nexus/nexus-production-preview-controller",
+      "@/components/style-engine/nexus-style-runtime-provider"
+    ],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P3 static map only",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/app/page.tsx",
+        "line": 12,
+        "text": "export default async function Home({ searchParams }: HomeProps) {"
+      },
+      {
+        "file": "src/app/page.tsx",
+        "line": 13,
+        "text": "const params = await searchParams;"
+      },
+      {
+        "file": "src/app/page.tsx",
+        "line": 14,
+        "text": "const productionPreviewFirstCutEnabled ="
+      },
+      {
+        "file": "src/app/page.tsx",
+        "line": 29,
+        "text": "function getFirstSearchParamValue(value: string | string[] | undefined) {"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Style Lab route",
+    "role": "style workbench entry",
+    "file": "src/app/style-lab/page.tsx",
+    "lineCount": 11,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [
+      "@/components/style-engine/nexus-style-lab",
+      "@/components/style-engine/nexus-style-runtime-provider"
+    ],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P3 static map only",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/app/style-lab/page.tsx",
+        "line": 4,
+        "text": "export default function StyleLabPage() {"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Root layout",
+    "role": "shared app providers and global shell",
+    "file": "src/app/layout.tsx",
+    "lineCount": 39,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [
+      "@/components/theme-provider"
+    ],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P3 static map only",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/app/layout.tsx",
+        "line": 7,
+        "text": "const geistSans = Geist({"
+      },
+      {
+        "file": "src/app/layout.tsx",
+        "line": 12,
+        "text": "const geistMono = Geist_Mono({"
+      },
+      {
+        "file": "src/app/layout.tsx",
+        "line": 17,
+        "text": "export const metadata: Metadata = {"
+      },
+      {
+        "file": "src/app/layout.tsx",
+        "line": 22,
+        "text": "export default function RootLayout({"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Nexus Ops cockpit",
+    "role": "primary dense operator surface",
+    "file": "src/components/nexus/nexus-ops.tsx",
+    "lineCount": 9654,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 296,
+    "hiddenDependencies": [
+      "@/components/nexus/AgentBranchModal",
+      "@/components/nexus/DatapadWindow",
+      "@/components/nexus/PromptVaultManager",
+      "@/components/nexus/auth-screen",
+      "@/components/nexus/nexus-graph",
+      "@/components/nexus/nexus-ops-body-frame",
+      "@/components/nexus/nexus-ops-outer-shell-frame",
+      "@/components/nexus/nexus-ops-right-floating-dock-frame",
+      "@/components/nexus/nexus-ops-top-bar-frame",
+      "@/components/nexus/workflow-pro/workflow-pro-surface",
+      "@/lib/adapters/image-adapter",
+      "@/lib/api/nexus-api-client",
+      "@/lib/attachments/attachment-compiler-registry",
+      "@/lib/attachments/attachment-input-actions",
+      "@/lib/attachments/attachment-types",
+      "@/lib/composer/composer-actions",
+      "@/lib/composer/composer-mode-types",
+      "@/lib/composer/image-generation-settings",
+      "@/lib/embed-url",
+      "@/lib/media/generated-image-artifact",
+      "@/lib/nexus-defaults",
+      "@/lib/nexus-registry",
+      "@/lib/nexus-types",
+      "@/lib/state-sync",
+      "@/lib/stream-retry",
+      "@/lib/style-engine/v2-production-preview-transaction",
+      "@/lib/style-engine/v2-workspace-style-payload",
+      "@/lib/supabase/client",
+      "@/lib/sync/local-sync-queue-adapter",
+      "@/lib/tool-executors"
+    ],
+    "storeDependencies": [
+      "getState()",
+      "nexusApiClient",
+      "setState(",
+      "useNexusStore"
+    ],
+    "apiDependencies": [
+      "/api/v1/providers/status",
+      "/api/v1/providers/verify",
+      "nexusApiClient.get",
+      "nexusApiClient.post"
+    ],
+    "supabaseDependencies": [
+      "Supabase client boundary"
+    ],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 108,
+        "text": "nexusApiClient,"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 119,
+        "text": "createWorkspaceStylePayloadExportSnapshot,"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 128,
+        "text": "type WorkspaceStylePayloadExportStatus,"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 144,
+        "text": "import { supabaseStateSyncManager } from \"@/lib/state-sync\";"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 147,
+        "text": "ensureNexusSupabaseClientConfigured,"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 148,
+        "text": "getNexusSupabaseClient,"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 149,
+        "text": "} from \"@/lib/supabase/client\";"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 159,
+        "text": "} from \"@/lib/attachments/attachment-compiler-registry\";"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 211,
+        "text": "PROVIDER_REGISTRY,"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops.tsx",
+        "line": 217,
+        "text": "} from \"@/lib/nexus-registry\";"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Graph canvas",
+    "role": "workflow graph/canvas surface",
+    "file": "src/components/nexus/nexus-graph.tsx",
+    "lineCount": 2346,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 43,
+    "hiddenDependencies": [
+      "@/lib/composer/image-generation-settings",
+      "@/lib/nexus-defaults",
+      "@/lib/nexus-registry",
+      "@/lib/nexus-types",
+      "@/lib/workflow-pro/brain-draft-templates",
+      "@/lib/workflow-pro/graph-brain-planner",
+      "@/lib/workflow-pro/runtime-evidence",
+      "@/lib/workflow-runtime-lite/registry"
+    ],
+    "storeDependencies": [],
+    "apiDependencies": [
+      "/api/workflow-pro/brain-draft"
+    ],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 61,
+        "text": "} from \"@/lib/nexus-registry\";"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 86,
+        "text": "} from \"@/lib/workflow-runtime-lite/registry\";"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 139,
+        "text": "function cx(...classes: Array<string | false | null | undefined>) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 143,
+        "text": "function truncateText(value: string, maxLength: number) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 151,
+        "text": "function getModelLabel(modelId: string) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 155,
+        "text": "function getWorkflowPacketImageUrl(packet: ContextPacket | null | undefined) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 160,
+        "text": "const rawUrl = /^Image URL:\\s*(\\S+)/m.exec(packet.rawText)?.[1];"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 166,
+        "text": "const metadataUrl = packet.metadata.imageUrl;"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 171,
+        "text": "function getRuntimeNodeIcon(type: WorkflowRuntimeNodeType) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-graph.tsx",
+        "line": 191,
+        "text": "function AgentNode({ data, selected }: NodeProps<AgentFlowNode>) {"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Workflow Pro surface",
+    "role": "workflow construction and runtime operator surface",
+    "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+    "lineCount": 1722,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 34,
+    "hiddenDependencies": [
+      "@/lib/workflow-pro/brain-context",
+      "@/lib/workflow-pro/brain-review-proposal",
+      "@/lib/workflow-pro/capability-inventory",
+      "@/lib/workflow-pro/file-node-contract",
+      "@/lib/workflow-pro/foundation-benchmark-fixtures",
+      "@/lib/workflow-pro/proposal-diff",
+      "@/lib/workflow-pro/workflow-contract",
+      "@/lib/workflow-pro/workflow-contract-apply-plan",
+      "@/lib/workflow-pro/workflow-contract-import",
+      "@/lib/workflow-pro/workflow-contract-validator"
+    ],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 52,
+        "text": "export type WorkflowProSurfaceProps = {"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 69,
+        "text": "onExportContract: () => void;"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 75,
+        "text": "const workflowProModes = ["
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 83,
+        "text": "export type WorkflowProMode = (typeof workflowProModes)[number];"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 85,
+        "text": "const workflowProModeDescriptions: Record<WorkflowProMode, string> = {"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 94,
+        "text": "export function WorkflowProSurface({"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 111,
+        "text": "onExportContract,"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 116,
+        "text": "const importInputRef = useRef<HTMLInputElement | null>(null);"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 117,
+        "text": "const importReviewPanelRef = useRef<HTMLDivElement | null>(null);"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.tsx",
+        "line": 118,
+        "text": "const benchmarkFixtures = useMemo("
+      }
+    ]
+  },
+  {
+    "surfaceName": "Style system lab",
+    "role": "style/token/preview workbench",
+    "file": "src/components/style-engine/nexus-style-lab.tsx",
+    "lineCount": 5966,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 91,
+    "hiddenDependencies": [
+      "@/components/style-engine/nexus-style-runtime-provider",
+      "@/lib/style-engine",
+      "@/lib/style-engine/v2-style-runtime-budget",
+      "@/lib/style-engine/v2-workspace-style-payload"
+    ],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 33,
+        "text": "createNexusStyleExportPackageV1,"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 114,
+        "text": "type ExportView = \"manifest\" | \"package\" | \"review\";"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 128,
+        "text": "const maxVisibleImportIssues = 3;"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 129,
+        "text": "const maxVisibleSkinPackIssues = 5;"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 130,
+        "text": "const maxVisibleLayoutBoundaryIssues = 5;"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 131,
+        "text": "const maxVisibleSpecimenFallbacks = 4;"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 132,
+        "text": "const maxVisibleBridgeVariables = 10;"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 133,
+        "text": "const maxVisibleBridgePreserveVariables = 8;"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 134,
+        "text": "const maxVisibleBridgeUnsupportedVariables = 6;"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab.tsx",
+        "line": 135,
+        "text": "const maxVisibleSurfaceStyleCoverageFamilies = 10;"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Nexus global store",
+    "role": "state layer, not visible UI",
+    "file": "src/store/nexus-store.ts",
+    "lineCount": 4815,
+    "visiblePurpose": "Non-visual support layer used by visible surfaces.",
+    "userFacingControlSignals": 6,
+    "hiddenDependencies": [
+      "@/lib/adapters/memory-compression-adapter",
+      "@/lib/api/nexus-api-client",
+      "@/lib/backend/history/historical-data-fetcher",
+      "@/lib/backend/history/history-constants",
+      "@/lib/nexus-defaults",
+      "@/lib/nexus-registry",
+      "@/lib/nexus-types",
+      "@/lib/state-sync",
+      "@/lib/supabase/client",
+      "@/lib/tool-executors",
+      "@/lib/workflow-pro/group-record-client",
+      "@/lib/workflow-runtime-lite/group-append",
+      "@/lib/workflow-runtime-lite/image-client",
+      "@/lib/workflow-runtime-lite/llm-client",
+      "@/lib/workflow-runtime-lite/runner",
+      "@/lib/workflow-runtime-lite/state",
+      "@/lib/workflow-runtime-lite/topology",
+      "@/lib/workflow-runtime-lite/trace-client",
+      "@/lib/workspace-kernel"
+    ],
+    "storeDependencies": [
+      "getState()",
+      "nexusApiClient",
+      "useNexusStore"
+    ],
+    "apiDependencies": [
+      "nexusApiClient.post"
+    ],
+    "supabaseDependencies": [
+      "Supabase client boundary"
+    ],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 26,
+        "text": "nexusApiClient,"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 34,
+        "text": "import { supabaseStateSyncManager } from \"@/lib/state-sync\";"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 35,
+        "text": "import { getNexusSupabaseClient } from \"@/lib/supabase/client\";"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 48,
+        "text": "} from \"@/lib/nexus-registry\";"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 153,
+        "text": "const PERSIST_STORAGE_NAME = \"nexus-ai-ops-workspace\";"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 154,
+        "text": "const LEGACY_LOCAL_STORAGE_KEYS = [\"nexus-workspace-storage\", PERSIST_STORAGE_NAME] as const;"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 155,
+        "text": "const indexedDbStore ="
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 161,
+        "text": "const HISTORY_FETCH_DEBOUNCE_MS = 350;"
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 162,
+        "text": "const OMITTED_IMAGE_DATA_URL_FOR_LOCAL_PERSISTENCE ="
+      },
+      {
+        "file": "src/store/nexus-store.ts",
+        "line": 164,
+        "text": "const historicalDataFetcher = new HistoricalDataFetcher();"
+      }
+    ]
+  },
+  {
+    "surfaceName": "State sync bridge",
+    "role": "local/cloud sync layer, not visible UI",
+    "file": "src/lib/state-sync.ts",
+    "lineCount": 1355,
+    "visiblePurpose": "Non-visual support layer used by visible surfaces.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [
+      "@/lib/api/nexus-api-client",
+      "@/lib/backend/workspace/workspace-snapshot-serializer",
+      "@/lib/nexus-types",
+      "@/lib/supabase/client",
+      "@/lib/supabase/database.types",
+      "@/lib/sync/local-sync-queue-adapter"
+    ],
+    "storeDependencies": [
+      "nexusApiClient"
+    ],
+    "apiDependencies": [
+      "nexusApiClient.get",
+      "nexusApiClient.post"
+    ],
+    "supabaseDependencies": [
+      "Supabase client boundary",
+      "prompt_revisions",
+      "workflow_templates"
+    ],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 30,
+        "text": "import { nexusApiClient, NexusApiError } from \"@/lib/api/nexus-api-client\";"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 40,
+        "text": "import { getNexusSupabaseClient } from \"@/lib/supabase/client\";"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 45,
+        "text": "} from \"@/lib/supabase/database.types\";"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 53,
+        "text": "function emptyPage<T>(): HistoricalDataPage<T> {"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 60,
+        "text": "function synced(): StateSyncResult {"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 67,
+        "text": "function failed(error: unknown): StateSyncResult {"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 75,
+        "text": "function emptyArtifactList(workspaceId: string): ArtifactListResponse {"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 84,
+        "text": "function mapWorkflowTemplate(row: Workflow_Templates): WorkflowTemplateRecord {"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 94,
+        "text": "function logSupabaseSyncError(error: unknown) {"
+      },
+      {
+        "file": "src/lib/state-sync.ts",
+        "line": 95,
+        "text": "console.error(\"[Supabase Sync Error]:\", formatSyncError(error));"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-registry",
+    "role": "supporting surface or logic module",
+    "file": "src/lib/nexus-registry.ts",
+    "lineCount": 818,
+    "visiblePurpose": "Non-visual support layer used by visible surfaces.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [
+      "@/lib/nexus-types",
+      "@/lib/tools/fs-scanner-executor",
+      "@/lib/tools/web-surfer-executor"
+    ],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P3 static map only",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/lib/nexus-registry.ts",
+        "line": 19,
+        "text": "export type RegistryImplementationState ="
+      },
+      {
+        "file": "src/lib/nexus-registry.ts",
+        "line": 25,
+        "text": "export type CapabilityRegistryEntry = {"
+      },
+      {
+        "file": "src/lib/nexus-registry.ts",
+        "line": 27,
+        "text": "state: RegistryImplementationState;"
+      },
+      {
+        "file": "src/lib/nexus-registry.ts",
+        "line": 34,
+        "text": "export type GraphNodeRegistryEntry = {"
+      },
+      {
+        "file": "src/lib/nexus-registry.ts",
+        "line": 36,
+        "text": "state: RegistryImplementationState;"
+      },
+      {
+        "file": "src/lib/nexus-registry.ts",
+        "line": 41,
+        "text": "export type ToolSlotRegistryEntry = {"
+      },
+      {
+        "file": "src/lib/nexus-registry.ts",
+        "line": 43,
+        "text": "state: RegistryImplementationState;"
+      },
+      {
+        "file": "src/lib/nexus-registry.ts",
+        "line": 50,
+        "text": "export interface NexusModelOption {"
+      },
+      {
+        "file": "src/lib/nexus-registry.ts",
+        "line": 61,
+        "text": "export type ProviderAdapterKind = \"openai-compatible\" | \"local-preview\";"
+      },
+      {
+        "file": "src/lib/nexus-registry.ts",
+        "line": 62,
+        "text": "export type ProviderVerificationStatus = \"untested\" | \"verified\" | \"failed\";"
+      }
+    ]
+  },
+  {
+    "surfaceName": "registry",
+    "role": "supporting surface or logic module",
+    "file": "src/lib/workflow-runtime-lite/registry.ts",
+    "lineCount": 146,
+    "visiblePurpose": "Non-visual support layer used by visible surfaces.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [
+      "@/lib/attachments/attachment-compiler-registry",
+      "@/lib/composer/image-generation-settings",
+      "@/lib/nexus-registry",
+      "@/lib/nexus-types"
+    ],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P3 static map only",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/lib/workflow-runtime-lite/registry.ts",
+        "line": 4,
+        "text": "} from \"@/lib/nexus-registry\";"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/registry.ts",
+        "line": 8,
+        "text": "import { NEXUS_ATTACHMENT_NOOP_COMPILER } from \"@/lib/attachments/attachment-compiler-registry\";"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/registry.ts",
+        "line": 19,
+        "text": "export type WorkflowRuntimeHandle = {"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/registry.ts",
+        "line": 25,
+        "text": "export type WorkflowRuntimeNodeDefinition<"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/registry.ts",
+        "line": 35,
+        "text": "const defaultModel = DEFAULT_CHAT_MODEL_IDS.includes(\"gpt-4o-mini\")"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/registry.ts",
+        "line": 39,
+        "text": "export const WORKFLOW_RUNTIME_NODE_DEFINITIONS = {"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/registry.ts",
+        "line": 115,
+        "text": "} as const satisfies {"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/registry.ts",
+        "line": 119,
+        "text": "export const WORKFLOW_RUNTIME_NODE_TYPES = Object.keys("
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/registry.ts",
+        "line": 123,
+        "text": "export function isWorkflowRuntimeNodeType("
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/registry.ts",
+        "line": 132,
+        "text": "export function getWorkflowRuntimeNodeDefinition<TType extends WorkflowRuntimeNodeType>("
+      }
+    ]
+  },
+  {
+    "surfaceName": "runner",
+    "role": "supporting surface or logic module",
+    "file": "src/lib/workflow-runtime-lite/runner.ts",
+    "lineCount": 552,
+    "visiblePurpose": "Non-visual support layer used by visible surfaces.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [
+      "@/lib/nexus-types"
+    ],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/lib/workflow-runtime-lite/runner.ts",
+        "line": 24,
+        "text": "export type WorkflowRuntimeNodePatch = Partial<"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/runner.ts",
+        "line": 31,
+        "text": "export type WorkflowRuntimeRunnerOptions = {"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/runner.ts",
+        "line": 44,
+        "text": "export async function runWorkflowRuntimeLite({"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/runner.ts",
+        "line": 56,
+        "text": "const startedAt = new Date().toISOString();"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/runner.ts",
+        "line": 67,
+        "text": "const validation = validateWorkflowRuntimeLiteTopology({"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/runner.ts",
+        "line": 86,
+        "text": "const runtimeEdges = validation.edges;"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/runner.ts",
+        "line": 87,
+        "text": "const incomingEdgesByTarget = groupIncomingEdges(runtimeEdges);"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/runner.ts",
+        "line": 88,
+        "text": "const outputPacketsByNodeId = new Map<string, ContextPacket>();"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/runner.ts",
+        "line": 89,
+        "text": "const readyNodeBatchSize = normalizeMaxParallelNodes(maxParallelNodes);"
+      },
+      {
+        "file": "src/lib/workflow-runtime-lite/runner.ts",
+        "line": 90,
+        "text": "const pendingNodeIds = new Set(validation.path.map((node) => node.id));"
+      }
+    ]
+  },
+  {
+    "surfaceName": "AgentBranchModal",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/AgentBranchModal.tsx",
+    "lineCount": 490,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 19,
+    "hiddenDependencies": [
+      "@/lib/nexus-registry",
+      "@/lib/nexus-types",
+      "@/store/nexus-store"
+    ],
+    "storeDependencies": [
+      "useNexusStore"
+    ],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 14,
+        "text": "MEMORY_COMPRESSION_PROFILE_REGISTRY,"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 16,
+        "text": "} from \"@/lib/nexus-registry\";"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 17,
+        "text": "import { useNexusStore } from \"@/store/nexus-store\";"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 26,
+        "text": "const DEFAULT_PROFILE = MEMORY_COMPRESSION_PROFILE_REGISTRY[\"default-context-compressor\"];"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 28,
+        "text": "function clampRetentionRatio(value: unknown) {"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 34,
+        "text": "function clampAdvancedWeight(value: unknown) {"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 40,
+        "text": "export function AgentBranchModal({"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 51,
+        "text": "const branchAgent = useNexusStore((state) => state.branchAgent);"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 52,
+        "text": "const branchingStatus = useNexusStore((state) => state.branchingStatus);"
+      },
+      {
+        "file": "src/components/nexus/AgentBranchModal.tsx",
+        "line": 62,
+        "text": "const compressorModels = useMemo("
+      }
+    ]
+  },
+  {
+    "surfaceName": "DatapadWindow",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/DatapadWindow.tsx",
+    "lineCount": 157,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 6,
+    "hiddenDependencies": [
+      "@/store/nexus-store"
+    ],
+    "storeDependencies": [
+      "useNexusStore"
+    ],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 7,
+        "text": "import { useNexusStore } from \"@/store/nexus-store\";"
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 9,
+        "text": "function cx(...classes: Array<string | false | null | undefined>) {"
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 13,
+        "text": "export function DatapadWindow({ notebookId }: { notebookId: string }) {"
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 14,
+        "text": "const notebook = useNexusStore((state) =>"
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 17,
+        "text": "const notebookDraft = useNexusStore((state) => state.notebookDrafts[notebookId]);"
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 18,
+        "text": "const openNotebookIds = useNexusStore((state) => state.openNotebookIds);"
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 19,
+        "text": "const zIndex = useNexusStore("
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 22,
+        "text": "const toggleNotebookOpen = useNexusStore((state) => state.toggleNotebookOpen);"
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 23,
+        "text": "const focusNotebookWindow = useNexusStore((state) => state.focusNotebookWindow);"
+      },
+      {
+        "file": "src/components/nexus/DatapadWindow.tsx",
+        "line": 24,
+        "text": "const saveNotebookDraft = useNexusStore((state) => state.saveNotebookDraft);"
+      }
+    ]
+  },
+  {
+    "surfaceName": "PromptVaultManager",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/PromptVaultManager.tsx",
+    "lineCount": 323,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 14,
+    "hiddenDependencies": [
+      "@/lib/nexus-types",
+      "@/store/nexus-store"
+    ],
+    "storeDependencies": [
+      "useNexusStore"
+    ],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 8,
+        "text": "import { useNexusStore } from \"@/store/nexus-store\";"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 10,
+        "text": "function cx(...classes: Array<string | false | null | undefined>) {"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 14,
+        "text": "function formatPromptDate(value: string) {"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 15,
+        "text": "const date = new Date(value);"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 27,
+        "text": "function getPromptPreview(prompt: PromptRecord) {"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 31,
+        "text": "export function PromptVaultManager() {"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 32,
+        "text": "const activeWorkspaceId = useNexusStore((state) => state.activeWorkspaceId);"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 33,
+        "text": "const promptsCache = useNexusStore((state) => state.promptsCache);"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 34,
+        "text": "const closeVaultManager = useNexusStore((state) => state.closeVaultManager);"
+      },
+      {
+        "file": "src/components/nexus/PromptVaultManager.tsx",
+        "line": 35,
+        "text": "const deletePrompt = useNexusStore((state) => state.deletePrompt);"
+      }
+    ]
+  },
+  {
+    "surfaceName": "auth-screen",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/auth-screen.tsx",
+    "lineCount": 171,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 4,
+    "hiddenDependencies": [
+      "@/lib/nexus-types",
+      "@/lib/supabase/client",
+      "@/store/nexus-store"
+    ],
+    "storeDependencies": [
+      "useNexusStore"
+    ],
+    "apiDependencies": [],
+    "supabaseDependencies": [
+      "Supabase client boundary"
+    ],
+    "risk": "P2 integration review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 7,
+        "text": "ensureNexusSupabaseClientConfigured,"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 8,
+        "text": "getNexusSupabaseClient,"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 9,
+        "text": "} from \"@/lib/supabase/client\";"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 11,
+        "text": "import { useNexusStore } from \"@/store/nexus-store\";"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 21,
+        "text": "const AUTH_PROMPT_MESSAGE = \"Authenticate to unlock NEXUS // AI OPS.\";"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 22,
+        "text": "const CHECKING_SESSION_MESSAGE = \"Checking session...\";"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 24,
+        "text": "export function AuthScreen({ checked, onAuthenticated }: AuthScreenProps) {"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 25,
+        "text": "const login = useNexusStore((state) => state.login);"
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 33,
+        "text": "const displayMessage ="
+      },
+      {
+        "file": "src/components/nexus/auth-screen.tsx",
+        "line": 36,
+        "text": "const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {"
+      }
+    ]
+  },
+  {
+    "surfaceName": "dynamic-icon",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/dynamic-icon.tsx",
+    "lineCount": 42,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P3 static map only",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/dynamic-icon.tsx",
+        "line": 10,
+        "text": "function toPascalIconName(name: string) {"
+      },
+      {
+        "file": "src/components/nexus/dynamic-icon.tsx",
+        "line": 19,
+        "text": "function isRenderableIcon(candidate: unknown): candidate is ComponentType<LucideProps> {"
+      },
+      {
+        "file": "src/components/nexus/dynamic-icon.tsx",
+        "line": 26,
+        "text": "export function DynamicIcon({"
+      },
+      {
+        "file": "src/components/nexus/dynamic-icon.tsx",
+        "line": 31,
+        "text": "const icons = LucideIcons as unknown as Record<string, unknown>;"
+      },
+      {
+        "file": "src/components/nexus/dynamic-icon.tsx",
+        "line": 32,
+        "text": "const candidate = icons[toPascalIconName(name)] ?? icons[name];"
+      },
+      {
+        "file": "src/components/nexus/dynamic-icon.tsx",
+        "line": 33,
+        "text": "const fallback = icons[toPascalIconName(fallbackName)] ?? icons[fallbackName];"
+      },
+      {
+        "file": "src/components/nexus/dynamic-icon.tsx",
+        "line": 34,
+        "text": "const Icon = isRenderableIcon(candidate)"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-agent-branch-modal-shell-selector.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+    "lineCount": 95,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 12,
+    "hiddenDependencies": [],
+    "storeDependencies": [
+      "useNexusStore"
+    ],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P2 integration review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 7,
+        "text": "const source = readAgentBranchModalSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 9,
+        "text": "expect(source).toContain(\"export function AgentBranchModal({\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 24,
+        "text": "const source = readAgentBranchModalSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 28,
+        "text": "expect(source).toContain(\"const branchAgent = useNexusStore((state) => state.branchAgent);\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 29,
+        "text": "expect(source).toContain(\"const executeBranchConfiguration = async\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 35,
+        "text": "expect(source).toContain(\"onClick={onClose}\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 43,
+        "text": "const source = readAgentBranchModalSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 44,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 67,
+        "text": "const source = readAgentBranchModalSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts",
+        "line": 68,
+        "text": "const forbiddenImports = ["
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-agent-window-chrome-primitive.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+    "lineCount": 119,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P2 integration review",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 7,
+        "text": "const source = readAgentWindowSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 22,
+        "text": "const source = readAgentWindowSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 24,
+        "text": "expect(source).toContain(\"const agentWindowBackground = isSandboxAgent\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 25,
+        "text": "expect(source).toContain(\"const agentWindowBorderColor = isSandboxAgent\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 26,
+        "text": "expect(source).toContain(\"const agentWindowShadow = isSandboxAgent\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 52,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 79,
+        "text": "const css = readAgentWindowCssBlock();"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 80,
+        "text": "const forbiddenPatterns = ["
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 95,
+        "text": "for (const pattern of forbiddenPatterns) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-agent-window-chrome-primitive.test.ts",
+        "line": 103,
+        "text": "function readAgentWindowSource() {"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-command-palette-shell-selector.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+    "lineCount": 125,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 1,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P3 static map only",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 7,
+        "text": "const source = readCommandPaletteSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 9,
+        "text": "expect(source).toContain(\"function CommandPalette({\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 23,
+        "text": "const source = readCommandPaletteSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 26,
+        "text": "expect(source).toContain(\"const inputRef = useRef<HTMLInputElement | null>(null);\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 30,
+        "text": "expect(source).toContain(\"const close = () => {\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 36,
+        "text": "expect(source).toContain(\"onClick={command.run}\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 41,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 42,
+        "text": "const block = readCommandPaletteCssBlock();"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 68,
+        "text": "const source = readCommandPaletteSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-command-palette-shell-selector.test.ts",
+        "line": 69,
+        "text": "const block = readCommandPaletteCssBlock();"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-control-primitive-selector.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+    "lineCount": 57,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 3,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P3 static map only",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 7,
+        "text": "const source = readNexusOpsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 8,
+        "text": "const toolbarIconButton = extractFunctionSource(source, \"ToolbarIconButton\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 13,
+        "text": "expect(toolbarIconButton).toContain(\"onClick={onClick}\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 19,
+        "text": "const source = readNexusOpsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 20,
+        "text": "const toolbarIconButton = extractFunctionSource(source, \"ToolbarIconButton\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 30,
+        "text": "const globals = readGlobalsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 40,
+        "text": "function extractFunctionSource(source: string, functionName: string) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 41,
+        "text": "const start = source.indexOf(`function ${functionName}`);"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 45,
+        "text": "const nextFunction = source.indexOf(\"\\nfunction \", start + 1);"
+      },
+      {
+        "file": "src/components/nexus/nexus-control-primitive-selector.test.ts",
+        "line": 50,
+        "text": "function readNexusOpsSource() {"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-datapad-shell-selector.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+    "lineCount": 94,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 3,
+    "hiddenDependencies": [
+      "@/store/nexus-store"
+    ],
+    "storeDependencies": [
+      "useNexusStore"
+    ],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 7,
+        "text": "const source = readDatapadWindowSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 9,
+        "text": "expect(source).toContain(\"export function DatapadWindow({ notebookId }\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 21,
+        "text": "const source = readDatapadWindowSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 24,
+        "text": "expect(source).toContain('import { useNexusStore } from \"@/store/nexus-store\";');"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 25,
+        "text": "expect(source).toContain(\"const zIndex = useNexusStore(\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 26,
+        "text": "expect(source).toContain(\"const focusNotebookWindow = useNexusStore\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 27,
+        "text": "expect(source).toContain(\"const saveNotebookDraft = useNexusStore\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 28,
+        "text": "expect(source).toContain(\"const updateNotebook = useNexusStore\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 29,
+        "text": "expect(source).toContain(\"const deleteNotebook = useNexusStore\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-datapad-shell-selector.test.ts",
+        "line": 30,
+        "text": "expect(source).toContain(\"const bringToFront = () => focusNotebookWindow(notebook.id);\");"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-generated-history-hydration.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-generated-history-hydration.test.ts",
+    "lineCount": 15,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 2,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P2 integration review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-generated-history-hydration.test.ts",
+        "line": 5,
+        "text": "const opsSource = readFileSync(new URL(\"./nexus-ops.tsx\", import.meta.url), \"utf8\");"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-message-bubble-primitive.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+    "lineCount": 97,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P2 integration review",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 7,
+        "text": "const source = readMessageBubbleSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 20,
+        "text": "const source = readMessageBubbleSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 33,
+        "text": "const source = readMessageBubbleSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 34,
+        "text": "const forbiddenPatterns = ["
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 51,
+        "text": "for (const pattern of forbiddenPatterns) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 59,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 88,
+        "text": "function readMessageBubbleSource() {"
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 89,
+        "text": "const source = readFileSync(new URL(\"nexus-ops.tsx\", import.meta.url), \"utf8\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 91,
+        "text": "return source.match(/function MessageBubble\\([\\s\\S]*?\\n}\\n\\nfunction WorkspaceChatComposerShell/)?.[0] ?? \"\";"
+      },
+      {
+        "file": "src/components/nexus/nexus-message-bubble-primitive.test.ts",
+        "line": 94,
+        "text": "function readGlobalsCssSource() {"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Nexus Ops cockpit",
+    "role": "primary dense operator surface",
+    "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+    "lineCount": 110,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P2 integration review",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 13,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 28,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 42,
+        "text": "const source = readBodyFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 43,
+        "text": "const propsBlock = source.match("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 44,
+        "text": "/export type NexusOpsBodyFrameProps = \\{[\\s\\S]*?\\};/,"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 53,
+        "text": "const validProps: NexusOpsBodyFrameProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 61,
+        "text": "const source = readBodyFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 62,
+        "text": "const forbiddenPatterns = ["
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 74,
+        "text": "for (const pattern of forbiddenPatterns) {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.test.tsx",
+        "line": 82,
+        "text": "const source = readBodyFrameSource();"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Nexus Ops cockpit",
+    "role": "primary dense operator surface",
+    "file": "src/components/nexus/nexus-ops-body-frame.tsx",
+    "lineCount": 19,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P3 static map only",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.tsx",
+        "line": 3,
+        "text": "export type NexusOpsBodyFrameProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-body-frame.tsx",
+        "line": 7,
+        "text": "export function NexusOpsBodyFrame({ children }: NexusOpsBodyFrameProps) {"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Nexus Ops cockpit",
+    "role": "primary dense operator surface",
+    "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+    "lineCount": 135,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 2,
+    "hiddenDependencies": [
+      "@/components/nexus/nexus-graph",
+      "@/components/nexus/nexus-ops-body-frame",
+      "@/components/nexus/nexus-ops-outer-shell-frame",
+      "@/components/nexus/nexus-ops-right-floating-dock-frame",
+      "@/components/nexus/nexus-ops-top-bar-frame",
+      "@/store/nexus-store"
+    ],
+    "storeDependencies": [
+      "useNexusStore"
+    ],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 7,
+        "text": "const source = readNexusOpsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 17,
+        "text": "it(\"keeps store, sync, Supabase, streaming, and tool execution markers visible\", () => {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 18,
+        "text": "const source = readNexusOpsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 20,
+        "text": "expect(source).toContain('import { useNexusStore } from \"@/store/nexus-store\";');"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 21,
+        "text": "expect(source).toContain(\"supabaseStateSyncManager\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 30,
+        "text": "const source = readNexusOpsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 45,
+        "text": "const source = readNexusOpsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 46,
+        "text": "const bodyFrameSource = readBodyFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 47,
+        "text": "const outerShellFrameSource = readOuterShellFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-extraction-map.test.ts",
+        "line": 48,
+        "text": "const rightFloatingDockFrameSource = readRightFloatingDockFrameSource();"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Nexus Ops cockpit",
+    "role": "primary dense operator surface",
+    "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+    "lineCount": 131,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P2 integration review",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 13,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 26,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 38,
+        "text": "const source = readOuterShellFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 44,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 58,
+        "text": "const source = readOuterShellFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 59,
+        "text": "const propsBlock = source.match("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 60,
+        "text": "/export type NexusOpsOuterShellFrameProps = \\{[\\s\\S]*?\\};/,"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 69,
+        "text": "const validProps: NexusOpsOuterShellFrameProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 77,
+        "text": "const source = readOuterShellFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.test.tsx",
+        "line": 78,
+        "text": "const forbiddenPatterns = ["
+      }
+    ]
+  },
+  {
+    "surfaceName": "Nexus Ops cockpit",
+    "role": "primary dense operator surface",
+    "file": "src/components/nexus/nexus-ops-outer-shell-frame.tsx",
+    "lineCount": 16,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P3 static map only",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.tsx",
+        "line": 3,
+        "text": "export type NexusOpsOuterShellFrameProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-outer-shell-frame.tsx",
+        "line": 7,
+        "text": "export function NexusOpsOuterShellFrame({"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Nexus Ops cockpit",
+    "role": "primary dense operator surface",
+    "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+    "lineCount": 147,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 4,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P2 integration review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 13,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 27,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 45,
+        "text": "const source = readRightFloatingDockFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 51,
+        "text": "const source = readRightFloatingDockFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 52,
+        "text": "const propsBlock = source.match("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 53,
+        "text": "/export type NexusOpsRightFloatingDockFrameProps = \\{[\\s\\S]*?\\};/,"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 62,
+        "text": "const validProps: NexusOpsRightFloatingDockFrameProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 70,
+        "text": "const source = readRightFloatingDockFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 71,
+        "text": "const forbiddenPatterns = ["
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx",
+        "line": 84,
+        "text": "for (const pattern of forbiddenPatterns) {"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Nexus Ops cockpit",
+    "role": "primary dense operator surface",
+    "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.tsx",
+    "lineCount": 21,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P3 static map only",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.tsx",
+        "line": 3,
+        "text": "export type NexusOpsRightFloatingDockFrameProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-right-floating-dock-frame.tsx",
+        "line": 7,
+        "text": "export function NexusOpsRightFloatingDockFrame({"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Nexus Ops cockpit",
+    "role": "primary dense operator surface",
+    "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+    "lineCount": 146,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 3,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P2 integration review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 13,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 26,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 42,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 52,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 74,
+        "text": "const source = readTopBarFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 75,
+        "text": "const propsBlock = source.match("
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 76,
+        "text": "/export type NexusOpsTopBarFrameProps = \\{[\\s\\S]*?\\};/,"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 85,
+        "text": "const validProps: NexusOpsTopBarFrameProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 93,
+        "text": "const source = readTopBarFrameSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.test.tsx",
+        "line": 94,
+        "text": "const forbiddenPatterns = ["
+      }
+    ]
+  },
+  {
+    "surfaceName": "Nexus Ops cockpit",
+    "role": "primary dense operator surface",
+    "file": "src/components/nexus/nexus-ops-top-bar-frame.tsx",
+    "lineCount": 26,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P3 static map only",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.tsx",
+        "line": 3,
+        "text": "export type NexusOpsTopBarFrameProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-ops-top-bar-frame.tsx",
+        "line": 7,
+        "text": "export function NexusOpsTopBarFrame({ children }: NexusOpsTopBarFrameProps) {"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-production-page-shell-boundary.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+    "lineCount": 105,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P2 integration review",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 14,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 26,
+        "text": "const html = renderToStaticMarkup("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 41,
+        "text": "const validProps: NexusProductionPageShellBoundaryProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 48,
+        "text": "const invalidProps: NexusProductionPageShellBoundaryProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 58,
+        "text": "const source = readBoundarySource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 59,
+        "text": "const propsBlock = source.match("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 60,
+        "text": "/export type NexusProductionPageShellBoundaryProps = \\{[\\s\\S]*?\\};/,"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 72,
+        "text": "const source = readBoundarySource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 74,
+        "text": "const forbiddenPatterns = ["
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.test.tsx",
+        "line": 78,
+        "text": "/from\\s+[\"']@\\/lib\\/supabase\\//,"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-production-page-shell-boundary",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-production-page-shell-boundary.tsx",
+    "lineCount": 32,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P3 static map only",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.tsx",
+        "line": 3,
+        "text": "export const NEXUS_PRODUCTION_PAGE_SHELL_BOUNDARY_VERSION_V1 = \"v1\" as const;"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.tsx",
+        "line": 5,
+        "text": "export const NEXUS_PRODUCTION_PAGE_SHELL_IDS_V1 = [\"workspace\"] as const;"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.tsx",
+        "line": 7,
+        "text": "export type NexusProductionPageShellIdV1 ="
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.tsx",
+        "line": 10,
+        "text": "export type NexusProductionPageShellBoundaryProps = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-page-shell-boundary.tsx",
+        "line": 15,
+        "text": "export function NexusProductionPageShellBoundary({"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-production-preview-controller.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-production-preview-controller.test.ts",
+    "lineCount": 76,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.test.ts",
+        "line": 6,
+        "text": "const source = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.test.ts",
+        "line": 10,
+        "text": "const pageSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.test.ts",
+        "line": 37,
+        "text": "const forbiddenPatterns = ["
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.test.ts",
+        "line": 41,
+        "text": "/from\\s+[\"']@\\/lib\\/supabase\\//,"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.test.ts",
+        "line": 51,
+        "text": "for (const pattern of forbiddenPatterns) {"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-production-preview-controller",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+    "lineCount": 460,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 4,
+    "hiddenDependencies": [
+      "@/lib/style-engine/v2-fixtures",
+      "@/lib/style-engine/v2-production-alias-coverage",
+      "@/lib/style-engine/v2-production-preview-preflight",
+      "@/lib/style-engine/v2-production-preview-transaction",
+      "@/lib/style-engine/v2-production-token-bridge",
+      "@/lib/style-engine/v2-render-plan",
+      "@/lib/style-engine/v2-style-runtime-budget"
+    ],
+    "storeDependencies": [
+      "setState("
+    ],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 74,
+        "text": "const productionPreviewNetworkBaselineWindowId ="
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 77,
+        "text": "const productionPreviewControllerStyle: CSSProperties = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 94,
+        "text": "const productionPreviewButtonStyle: CSSProperties = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 101,
+        "text": "const initialControllerState: NexusProductionPreviewControllerState = {"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 118,
+        "text": "export function NexusProductionPreviewController({"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 121,
+        "text": "const readiness = useMemo("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 131,
+        "text": "const activeTransactionRef = useRef<ProductionPreviewApplyTransaction | null>("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 137,
+        "text": "function handleApplyPreview() {"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 143,
+        "text": "const targets = getProductionPreviewTargets();"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-preview-controller.tsx",
+        "line": 144,
+        "text": "const target = targets[0] ?? null;"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-production-style-layer-contract.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+    "lineCount": 149,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 35,
+    "hiddenDependencies": [],
+    "storeDependencies": [
+      "nexusApiClient"
+    ],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 6,
+        "text": "const nexusOpsSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 10,
+        "text": "const workspaceStylePayloadSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 14,
+        "text": "const previewTransactionSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 18,
+        "text": "const controlsPanelSource = extractFunctionSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 23,
+        "text": "const stylePreviewMapperSource = extractFunctionSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 28,
+        "text": "const getPreviewTargetsSource = extractFunctionSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 33,
+        "text": "const saveHandlerSource = extractCallbackSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 57,
+        "text": "'export const NEXUS_PRODUCTION_PREVIEW_FIRST_CUT_TARGET_SELECTOR =\\n \"main.nexus-shell.nexus-outer-shell-frame\" as const;',"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 70,
+        "text": "expect(controlsPanelSource).toContain(\"const panelMaterialStyle\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-production-style-layer-contract.test.ts",
+        "line": 71,
+        "text": "expect(controlsPanelSource).toContain(\"const panelMutedMaterialStyle\");"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-theme-panel-live-style-controls.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+    "lineCount": 333,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 85,
+    "hiddenDependencies": [],
+    "storeDependencies": [
+      "nexusApiClient"
+    ],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 6,
+        "text": "const source = readFileSync(new URL(\"nexus-ops.tsx\", import.meta.url), \"utf8\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 7,
+        "text": "const bodyFrameSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 11,
+        "text": "const graphSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 15,
+        "text": "const controlsPanelSource = extractFunctionSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 20,
+        "text": "const presetDefinitionsSource = extractConstSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 23,
+        "text": "\"function WorkspaceStyleControlsPanel\","
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 25,
+        "text": "const topBarSource = extractFunctionSource(source, \"TopBar\", \"SyncBadge\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 26,
+        "text": "const topMenuActionSource = extractFunctionSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 31,
+        "text": "const saveHandlerSource = extractCallbackSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-theme-panel-live-style-controls.test.ts",
+        "line": 35,
+        "text": "const bootControlsSource = extractFunctionSource("
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-workspace-chat-composer-shell.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+    "lineCount": 231,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 1,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 6,
+        "text": "const source = readFileSync(new URL(\"nexus-ops.tsx\", import.meta.url), \"utf8\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 7,
+        "text": "const composerSource = extractFunctionSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 12,
+        "text": "const agentWindowSource = extractFunctionSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 17,
+        "text": "const attachmentActionsSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 21,
+        "text": "const attachmentCompilerSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 22,
+        "text": "new URL(\"../../lib/attachments/attachment-compiler-registry.ts\", import.meta.url),"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 25,
+        "text": "const composerActionsSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 29,
+        "text": "const stateSyncSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 61,
+        "text": "const threadCardIndex = composerSource.indexOf("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-chat-composer-shell.test.ts",
+        "line": 64,
+        "text": "const formIndex = composerSource.indexOf("
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-workspace-primitive.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+    "lineCount": 75,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P2 integration review",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 7,
+        "text": "const source = readNexusOpsSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 8,
+        "text": "const graphSource = readNexusGraphSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 24,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 38,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 52,
+        "text": "const css = readGlobalsCssSource();"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 53,
+        "text": "const workspaceChromeRule = css.match("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 64,
+        "text": "function readNexusOpsSource() {"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 68,
+        "text": "function readNexusGraphSource() {"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-primitive.test.ts",
+        "line": 72,
+        "text": "function readGlobalsCssSource() {"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-workspace-readonly-gate.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-workspace-readonly-gate.test.ts",
+    "lineCount": 33,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-workspace-readonly-gate.test.ts",
+        "line": 5,
+        "text": "const opsSource = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-readonly-gate.test.ts",
+        "line": 9,
+        "text": "const graphSource = readFileSync("
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-workspace-style-payload-export-import.test",
+    "role": "supporting surface or logic module",
+    "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+    "lineCount": 88,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P2 integration review",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 5,
+        "text": "describe(\"Nexus workspace style payload export/import wiring\", () => {"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 6,
+        "text": "const source = readFileSync("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 11,
+        "text": "it(\"routes existing workspace export/import through the style payload adapter\", () => {"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 12,
+        "text": "expect(source).toContain(\"createWorkspaceStylePayloadExportSnapshot\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 17,
+        "text": "\"Workspace snapshot exported with reviewed stylePack\","
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 31,
+        "text": "const handleImportSource = extractCallbackSource(source, \"handleImport\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 48,
+        "text": "it(\"saves theme controls into accepted review state before workspace export\", () => {"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 49,
+        "text": "const handleSaveSource = extractCallbackSource("
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 53,
+        "text": "const handleExportSource = extractCallbackSource(source, \"handleExport\");"
+      },
+      {
+        "file": "src/components/nexus/nexus-workspace-style-payload-export-import.test.ts",
+        "line": 55,
+        "text": "expect(source).toContain(\"createWorkspaceThemeStylePayloadForExport\");"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Workflow Pro surface",
+    "role": "workflow construction and runtime operator surface",
+    "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+    "lineCount": 237,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 3,
+    "hiddenDependencies": [
+      "@/lib/workflow-pro/brain-context",
+      "@/lib/workflow-pro/capability-inventory",
+      "@/lib/workflow-pro/file-node-contract",
+      "@/lib/workflow-pro/proposal-diff",
+      "@/lib/workflow-pro/workflow-contract",
+      "@/lib/workflow-pro/workflow-contract-apply-plan",
+      "@/lib/workflow-pro/workflow-contract-import"
+    ],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P3 static map only",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 20,
+        "text": "const inventory = createWorkflowProCapabilityInventory();"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 21,
+        "text": "const runtimeSummary = summarizeWorkflowProRuntime(undefined);"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 22,
+        "text": "const contractDraft = createWorkflowProContractDraftFromRuntimeLite({"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 29,
+        "text": "const brainContext = createWorkflowBrainContextPack({"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 33,
+        "text": "const applyPlan = createWorkflowProApplyPlan({"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 37,
+        "text": "const proposalDiff = createWorkflowProProposalDiff({"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 41,
+        "text": "const fileNodeContract = createWorkflowProFileNodeContract();"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 42,
+        "text": "const importReview = parseWorkflowProContractImportText({"
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 47,
+        "text": "function renderWorkflowProSurface("
+      },
+      {
+        "file": "src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx",
+        "line": 62,
+        "text": "onExportContract={vi.fn()}"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Style system lab",
+    "role": "style/token/preview workbench",
+    "file": "src/components/style-engine/nexus-style-lab-imported-workspace-style.test.ts",
+    "lineCount": 133,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 9,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/style-engine/nexus-style-lab-imported-workspace-style.test.ts",
+        "line": 6,
+        "text": "const source = readFileSync("
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-imported-workspace-style.test.ts",
+        "line": 10,
+        "text": "const nexusOpsSource = readFileSync("
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-imported-workspace-style.test.ts",
+        "line": 27,
+        "text": "expect(source).toContain(\"Export Retention\");"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-imported-workspace-style.test.ts",
+        "line": 48,
+        "text": "it(\"shows export retention only for accepted style packs\", () => {"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-imported-workspace-style.test.ts",
+        "line": 50,
+        "text": "\"accepted stylePack will be included in next workspace export\","
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-imported-workspace-style.test.ts",
+        "line": 53,
+        "text": "\"rejected style section will not be exported as valid stylePack\","
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-imported-workspace-style.test.ts",
+        "line": 56,
+        "text": "\"unsupported style section will not be exported as valid stylePack\","
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-imported-workspace-style.test.ts",
+        "line": 58,
+        "text": "expect(source).toContain(\"no stylePack will be added to workspace export\");"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-imported-workspace-style.test.ts",
+        "line": 85,
+        "text": "const handleImportSource = extractCallbackSource("
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-imported-workspace-style.test.ts",
+        "line": 89,
+        "text": "const importedPanelSource = extractSectionSource("
+      }
+    ]
+  },
+  {
+    "surfaceName": "Style system lab",
+    "role": "style/token/preview workbench",
+    "file": "src/components/style-engine/nexus-style-lab-production-chrome-smoke.test.ts",
+    "lineCount": 108,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [],
+    "storeDependencies": [
+      "useNexusStore"
+    ],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/style-engine/nexus-style-lab-production-chrome-smoke.test.ts",
+        "line": 7,
+        "text": "const source = readStyleLabSource();"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-production-chrome-smoke.test.ts",
+        "line": 38,
+        "text": "const source = readStyleLabSource();"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-production-chrome-smoke.test.ts",
+        "line": 53,
+        "text": "const source = readStyleLabSource();"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-production-chrome-smoke.test.ts",
+        "line": 54,
+        "text": "const forbiddenImports = ["
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-production-chrome-smoke.test.ts",
+        "line": 59,
+        "text": "/from\\s+[\"']@\\/lib\\/supabase\\//,"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-production-chrome-smoke.test.ts",
+        "line": 63,
+        "text": "/\\buseNexusStore\\b/,"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-production-chrome-smoke.test.ts",
+        "line": 65,
+        "text": "/\\bsupabase\\b/i,"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-production-chrome-smoke.test.ts",
+        "line": 97,
+        "text": "for (const pattern of forbiddenImports) {"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-production-chrome-smoke.test.ts",
+        "line": 105,
+        "text": "function readStyleLabSource() {"
+      }
+    ]
+  },
+  {
+    "surfaceName": "Style system lab",
+    "role": "style/token/preview workbench",
+    "file": "src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts",
+    "lineCount": 325,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 1,
+    "hiddenDependencies": [],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Runtime visibility and exact screen position need localhost/browser trace."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts",
+        "line": 7,
+        "text": "const source = readStyleLabSource();"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts",
+        "line": 22,
+        "text": "const source = readStyleLabSource();"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts",
+        "line": 46,
+        "text": "const source = readStyleLabSource();"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts",
+        "line": 79,
+        "text": "const source = readStyleLabSource();"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts",
+        "line": 113,
+        "text": "const source = readStyleLabSource();"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts",
+        "line": 133,
+        "text": "const source = readStyleLabSource();"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts",
+        "line": 161,
+        "text": "const source = readStyleLabSource();"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts",
+        "line": 181,
+        "text": "const source = readStyleLabSource();"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts",
+        "line": 209,
+        "text": "const source = readStyleLabSource();"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts",
+        "line": 247,
+        "text": "const source = readStyleLabSource();"
+      }
+    ]
+  },
+  {
+    "surfaceName": "nexus-style-runtime-provider",
+    "role": "supporting surface or logic module",
+    "file": "src/components/style-engine/nexus-style-runtime-provider.tsx",
+    "lineCount": 148,
+    "visiblePurpose": "Visible or conditionally visible UI surface from component source.",
+    "userFacingControlSignals": 0,
+    "hiddenDependencies": [
+      "@/lib/style-engine"
+    ],
+    "storeDependencies": [],
+    "apiDependencies": [],
+    "supabaseDependencies": [],
+    "risk": "P1 write/privilege review",
+    "unknowns": [
+      "Static-only responsibility classification needs symbol-level review."
+    ],
+    "evidence": [
+      {
+        "file": "src/components/style-engine/nexus-style-runtime-provider.tsx",
+        "line": 36,
+        "text": "const NexusStyleRuntimeContext ="
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-runtime-provider.tsx",
+        "line": 39,
+        "text": "export function NexusStyleRuntimeProvider({"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-runtime-provider.tsx",
+        "line": 44,
+        "text": "const targetRef = useRef<HTMLDivElement | null>(null);"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-runtime-provider.tsx",
+        "line": 45,
+        "text": "const controllerRef = useRef<ReturnType<"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-runtime-provider.tsx",
+        "line": 51,
+        "text": "const getController = useCallback(() => {"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-runtime-provider.tsx",
+        "line": 63,
+        "text": "const previewPatch = useCallback("
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-runtime-provider.tsx",
+        "line": 65,
+        "text": "const controller = getController();"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-runtime-provider.tsx",
+        "line": 74,
+        "text": "const session = controller.preview(patch);"
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-runtime-provider.tsx",
+        "line": 86,
+        "text": "const revertPreview = useCallback("
+      },
+      {
+        "file": "src/components/style-engine/nexus-style-runtime-provider.tsx",
+        "line": 88,
+        "text": "const controller = getController();"
+      }
+    ]
+  }
+]

@@ -165,6 +165,8 @@ if (/headers\.get\(["']authorization["']\)/i.test(runtimeAuthFunction)) {
 }
 
 const storeSource = readRequired("src/store/nexus-store.ts");
+const browserStoragePersistenceVersion =
+  readBrowserStoragePersistenceVersion(storeSource);
 
 if (!storeSource.includes("authVault: prepareAuthVaultForLocalPersistence(state.authVault)")) {
   blockingFindings.push({
@@ -297,7 +299,7 @@ const report = {
     authVaultScrubbedBeforePersist: storeSource.includes(
       "authVault: prepareAuthVaultForLocalPersistence(state.authVault)",
     ),
-    persistenceVersion: Number(/version\s*:\s*(\d+)/.exec(storeSource)?.[1] ?? 0),
+    persistenceVersion: browserStoragePersistenceVersion,
   },
   legacyProductionGate: {
     requiredRoutes: legacyProductionBlockedRoutes.length,
@@ -372,6 +374,18 @@ function readFiles(directory) {
 
     return [path];
   });
+}
+
+function readBrowserStoragePersistenceVersion(source) {
+  const persistConfigIndex = source.indexOf("name: PERSIST_STORAGE_NAME");
+
+  if (persistConfigIndex === -1) {
+    return 0;
+  }
+
+  const persistConfigSource = source.slice(persistConfigIndex, persistConfigIndex + 600);
+
+  return Number(/version\s*:\s*(\d+)/.exec(persistConfigSource)?.[1] ?? 0);
 }
 
 function readRequired(relativePath) {

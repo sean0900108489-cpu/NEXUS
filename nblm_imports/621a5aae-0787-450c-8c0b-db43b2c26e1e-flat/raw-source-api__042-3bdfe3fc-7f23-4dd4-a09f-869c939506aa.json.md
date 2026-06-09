@@ -1,0 +1,22 @@
+# _raw-source-api/042-3bdfe3fc-7f23-4dd4-a09f-869c939506aa.json
+
+Original path: `_raw-source-api/042-3bdfe3fc-7f23-4dd4-a09f-869c939506aa.json`
+
+```json
+{
+  "sourceId": {
+    "id": "3bdfe3fc-7f23-4dd4-a09f-869c939506aa"
+  },
+  "title": "reports__supabase__supabase-current-touchpoints.json.md",
+  "metadata": {
+    "wordCount": 13,
+    "sourceAddedTimestamp": "2026-06-05T05:50:58.862290Z",
+    "tokenCount": 46
+  },
+  "settings": {
+    "status": "SOURCE_STATUS_COMPLETE"
+  },
+  "name": "projects/1022174375734/locations/global/notebooks/621a5aae-0787-450c-8c0b-db43b2c26e1e/sources/3bdfe3fc-7f23-4dd4-a09f-869c939506aa"
+}
+
+```

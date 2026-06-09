@@ -1,0 +1,260 @@
+# Source 022 - maps__03-button-and-interaction-map.md
+
+## NotebookLM Source Metadata
+
+- notebook_id: 621a5aae-0787-450c-8c0b-db43b2c26e1e
+- project: 1022174375734
+- source_id: c8f72f3e-3a95-4341-a273-5ed5e87ff666
+- title: maps__03-button-and-interaction-map.md
+- status: SOURCE_STATUS_COMPLETE
+- word_count: 4566
+- token_count: 8606
+- source_name: projects/1022174375734/locations/global/notebooks/621a5aae-0787-450c-8c0b-db43b2c26e1e/sources/c8f72f3e-3a95-4341-a273-5ed5e87ff666
+- source_added_timestamp: 2026-06-05T05:51:01.645132Z
+
+## Source-Level Read Result
+
+- api_full_text: DATA_GAP
+- api_note: NotebookLM source API returned metadata only; no full source text was present in the API response.
+- local_mirror_status: FOUND
+- local_mirror_path: /Users/sean/Documents/FreeChat/docs/agent-runs/nexus-current-system-intelligence-20260605-1347/maps/03-button-and-interaction-map.md
+- local_mirror_estimated_word_count: 6583
+
+## Local Mirror Content
+
+```md
+# 03 Button and Interaction Map
+
+Static scan found `619` control/interaction signals. The full JSON inventory is `reports/ui-runtime/interaction-inventory.json`.
+
+| Priority | Surface | Event | Label / handler | Mutates likely | Needs confirm | Source |
+| --- | --- | --- | --- | --- | --- | --- |
+| P3 | Agent Context | onClick | Close branch agent interface | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:136) |
+| P3 | Agent Context | onClick | Close branch agent interface | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:137) |
+| P3 | Agent Context | onClick | Close branch agent interface | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:140) |
+| P3 | Agent Context | onClick | () | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:162) |
+| P3 | Agent Context | onClick | () | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:164) |
+| P3 | Agent Context | onClick | [ Retry Compression ]  | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:172) |
+| P3 | Agent Context | onClick | () | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:174) |
+| P3 | Agent Context | onClick | [ Force Full Branch ]  | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:182) |
+| P1 | Agent Context | onClick | [ Cancel ]  | not proven | yes/static signal | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:184) |
+| P3 | Agent Context | button | Branch Mode </div> <div className="grid gap-2 sm:grid-cols-2"> <button className={`border  | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:216) |
+| P3 | Agent Context | onClick | () | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:223) |
+| P3 | Agent Context | button | Preserve the source agent memory footprint for future cloning. </span> </button> <button c | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:233) |
+| P3 | Agent Context | onClick | () | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:240) |
+| P1 | LLM Node | onChange | (  | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:267) |
+| P3 | Agent Context | onChange | (event) | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:287) |
+| P2 | Agent Context | onChange | (event) | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:307) |
+| P3 | Agent Context | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:334) |
+| P3 | Agent Context | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:367) |
+| P3 | Agent Context | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:400) |
+| P3 | Workflow Orchestration | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:433) |
+| P3 | Agent Context | onClick | onClose | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:462) |
+| P1 | Agent Context | onClick | Cancel  | not proven | yes/static signal | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:465) |
+| P1 | Agent Context | onClick | Cancel  | not proven | yes/static signal | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:470) |
+| P3 | Agent Context | onClick | () | not proven | not indicated | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx:473) |
+| P3 | Visual / UI Layer | onDragStart | bringToFront | not proven | not indicated | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx:92) |
+| P3 | Visual / UI Layer | onDragStart | bringToFront | not proven | not indicated | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx:93) |
+| P2 | Input / Ingestion | onChange | Datapad title | yes/static signal | not indicated | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx:100) |
+| P2 | Input / Ingestion | onChange | Datapad title | yes/static signal | not indicated | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx:102) |
+| P3 | Agent Context | onClick | Close datapad | not proven | not indicated | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx:106) |
+| P3 | Agent Context | onClick | Close datapad | not proven | not indicated | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx:107) |
+| P3 | Agent Context | onClick | Close datapad | not proven | not indicated | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx:109) |
+| P3 | Agent Context | onChange | Datapad content | not proven | not indicated | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx:117) |
+| P3 | Agent Context | onChange | Datapad content | not proven | not indicated | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx:119) |
+| P2 | Agent Context | onClick | saveNotebook | yes/static signal | not indicated | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx:135) |
+| P2 | Agent Context | onClick | saveNotebook | yes/static signal | not indicated | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx:137) |
+| P1 | Agent Context | onClick | Delete datapad | yes/static signal | yes/static signal | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx:143) |
+| P1 | Agent Context | onClick | Delete datapad | yes/static signal | yes/static signal | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx:145) |
+| P1 | Agent Context | onClick | Delete datapad | yes/static signal | yes/static signal | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx:146) |
+| P3 | Input / Ingestion | onClick | Close Prompt Vault Manager | not proven | not indicated | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:150) |
+| P3 | Input / Ingestion | onClick | Close Prompt Vault Manager | not proven | not indicated | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:151) |
+| P3 | Input / Ingestion | onClick | Close Prompt Vault Manager | not proven | not indicated | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:153) |
+| P1 | Input / Ingestion | button | const active = prompt.id === selectedPrompt?.id; return ( <button key={prompt.id} classNam | not proven | not indicated | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:168) |
+| P2 | Input / Ingestion | onClick | () | yes/static signal | not indicated | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:176) |
+| P3 | Input / Ingestion | onClick | startEdit | not proven | not indicated | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:227) |
+| P3 | Input / Ingestion | onClick | startEdit | not proven | not indicated | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:229) |
+| P3 | Input / Ingestion | onClick | copySelectedPrompt | not proven | not indicated | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:236) |
+| P3 | Input / Ingestion | onClick | copySelectedPrompt | not proven | not indicated | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:238) |
+| P3 | Input / Ingestion | onClick | removeSelectedPrompt | not proven | not indicated | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:248) |
+| P1 | Input / Ingestion | onClick | removeSelectedPrompt | yes/static signal | yes/static signal | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:250) |
+| P2 | Input / Ingestion | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:269) |
+| P3 | Input / Ingestion | onChange | (event) | not proven | not indicated | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:279) |
+| P1 | Input / Ingestion | onClick | cancelEdit | not proven | yes/static signal | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:284) |
+| P1 | Input / Ingestion | onClick | Cancel  | not proven | yes/static signal | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:286) |
+| P1 | Input / Ingestion | onClick | Cancel  | yes/static signal | yes/static signal | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:291) |
+| P2 | Input / Ingestion | onClick | Save  | yes/static signal | not indicated | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx:293) |
+| P3 | Visual / UI Layer | onSubmit | handleSubmit | yes/static signal | not indicated | [src/components/nexus/auth-screen.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/auth-screen.tsx:111) |
+| P2 | Input / Ingestion | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/auth-screen.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/auth-screen.tsx:120) |
+| P2 | Input / Ingestion | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/auth-screen.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/auth-screen.tsx:135) |
+| P3 | Visual / UI Layer | button | /> </label> <button className="mt-1 flex items-center justify-center gap-2 border border-n | yes/static signal | not indicated | [src/components/nexus/auth-screen.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/auth-screen.tsx:142) |
+| P3 | Agent Context | onClick | () | not proven | not indicated | [src/components/nexus/auth-screen.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/auth-screen.tsx:154) |
+| P3 | Input / Ingestion | onClick | () | not proven | not indicated | [src/components/nexus/auth-screen.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/auth-screen.tsx:156) |
+| P3 | LLM Node | onClick | Close branch agent interface | not proven | not indicated | [src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts:34) |
+| P3 | LLM Node | onClick | Close branch agent interface | not proven | not indicated | [src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts:35) |
+| P3 | LLM Node | onClick | Close branch agent interface | not proven | not indicated | [src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts:36) |
+| P3 | LLM Node | onClick | Close branch agent interface | not proven | not indicated | [src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts:37) |
+| P3 | LLM Node | onClick | onClose | not proven | not indicated | [src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts:38) |
+| P3 | Agent Context | control-signal | onDragStop | not proven | not indicated | [src/components/nexus/nexus-agent-window-chrome-primitive.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-agent-window-chrome-primitive.test.ts:11) |
+| P3 | Visual / UI Layer | control-signal |  describe("Nexus command palette shell selector", () => { it("adds the stable selector to  | not proven | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:7) |
+| P3 | Visual / UI Layer | control-signal | it("adds the stable selector to the existing visual shell", () => { const source = readCom | not proven | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:9) |
+| P3 | Debug / Diagnostics | onMouseDown | close | not proven | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:16) |
+| P2 | Input / Ingestion | onMouseDown | close | yes/static signal | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:18) |
+| P2 | Input / Ingestion | control-signal | }); it("keeps focus, input state, close, and command execution ownership in place", () =>  | yes/static signal | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:23) |
+| P2 | Debug / Diagnostics | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:34) |
+| P2 | Visual / UI Layer | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:36) |
+| P3 | Visual / UI Layer | control-signal |  it("routes visual chrome through dedicated aliases with panel fallbacks", () => { const c | not proven | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:42) |
+| P2 | Input / Ingestion | control-signal | }); it("keeps CSS aliasing out of behavior, layout, input, and command item states", () => | yes/static signal | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:68) |
+| P2 | Input / Ingestion | control-signal |  it("keeps CSS aliasing out of behavior, layout, input, and command item states", () => {  | yes/static signal | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:69) |
+| P2 | Supabase Persistence | control-signal | /\bbutton\b/, ]; expect(source).not.toContain("CommandPaletteShellFrame"); expect( existsS | yes/static signal | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:90) |
+| P3 | Unknown | control-signal | ).toBe(false); for (const pattern of forbiddenCssPatterns) { expect(block, `Command palett | not proven | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:96) |
+| P2 | Supabase Persistence | control-signal | return readFileSync(new URL("nexus-ops.tsx", import.meta.url), "utf8"); } function readCom | yes/static signal | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:107) |
+| P3 | Unknown | control-signal |  function readCommandPaletteSource() { const source = readNexusOpsSource(); const start =  | not proven | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:109) |
+| P2 | Agent Context | control-signal | return readFileSync(new URL("../../app/globals.css", import.meta.url), "utf8"); } function | yes/static signal | not indicated | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts:118) |
+| P3 | Visual / UI Layer | onClick | extractFunctionSource(source, | not proven | not indicated | [src/components/nexus/nexus-control-primitive-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-control-primitive-selector.test.ts:11) |
+| P3 | Visual / UI Layer | onClick | onClick | not proven | not indicated | [src/components/nexus/nexus-control-primitive-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-control-primitive-selector.test.ts:13) |
+| P3 | Visual / UI Layer | onClick | onClick | not proven | not indicated | [src/components/nexus/nexus-control-primitive-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-control-primitive-selector.test.ts:14) |
+| P1 | Agent Context | onDragStart | () | yes/static signal | yes/static signal | [src/components/nexus/nexus-datapad-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-datapad-shell-selector.test.ts:31) |
+| P1 | Agent Context | onDragStart | () | yes/static signal | yes/static signal | [src/components/nexus/nexus-datapad-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-datapad-shell-selector.test.ts:32) |
+| P1 | Agent Context | onMouseDown | bringToFront | yes/static signal | yes/static signal | [src/components/nexus/nexus-datapad-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-datapad-shell-selector.test.ts:35) |
+| P1 | Agent Context | onClick | bringToFront | yes/static signal | yes/static signal | [src/components/nexus/nexus-datapad-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-datapad-shell-selector.test.ts:36) |
+| P1 | Agent Context | onClick | () | yes/static signal | yes/static signal | [src/components/nexus/nexus-datapad-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-datapad-shell-selector.test.ts:37) |
+| P1 | Agent Context | onClick | () | yes/static signal | yes/static signal | [src/components/nexus/nexus-datapad-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-datapad-shell-selector.test.ts:38) |
+| P1 | Agent Context | onChange | (event) | yes/static signal | yes/static signal | [src/components/nexus/nexus-datapad-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-datapad-shell-selector.test.ts:39) |
+| P3 | Graph / Canvas | onClick | (event) | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:266) |
+| P3 | Graph / Canvas | onClick | (event) | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:267) |
+| P3 | Graph / Canvas | onClick | (event) | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:269) |
+| P3 | Graph / Canvas | control-signal | Open agent | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:273) |
+| P1 | Graph / Canvas | onClick | (event) | yes/static signal | yes/static signal | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:283) |
+| P1 | Graph / Canvas | onClick | (event) | yes/static signal | yes/static signal | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:284) |
+| P1 | Graph / Canvas | onClick | (event) | yes/static signal | yes/static signal | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:287) |
+| P1 | Graph / Canvas | control-signal | } onRemoveAgent(agent.id); }} title={readOnly ? readOnlyMessage : `Delete ${agent.callsign | yes/static signal | yes/static signal | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:294) |
+| P1 | Graph / Canvas | onClick | (event) | yes/static signal | yes/static signal | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:356) |
+| P1 | Graph / Canvas | onClick | (event) | yes/static signal | yes/static signal | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:357) |
+| P1 | Graph / Canvas | onClick | (event) | yes/static signal | yes/static signal | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:360) |
+| P1 | Graph / Canvas | control-signal | } onRemoveNode(node.id); }} title={readOnly ? readOnlyMessage : `Delete ${definition.label | yes/static signal | yes/static signal | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:367) |
+| P2 | Graph / Canvas | onClick | Copy output | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:422) |
+| P2 | Graph / Canvas | onClick | Copy output | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:423) |
+| P2 | Graph / Canvas | onClick | Copy output | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:426) |
+| P2 | Graph / Canvas | onClick | Copy output | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:427) |
+| P2 | Input / Ingestion | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:511) |
+| P2 | Input / Ingestion | control-signal | } placeholder="Write the workflow input..." spellCheck={false} title={readOnly ? readOnlyM | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:516) |
+| P2 | Input / Ingestion | onClick | () | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:521) |
+| P2 | Input / Ingestion | onClick | () | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:524) |
+| P2 | Input / Ingestion | onClick | () | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:525) |
+| P2 | Workflow Orchestration | onClick | Start  | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:531) |
+| P2 | Workflow Orchestration | onClick | onPauseWorkflow | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:534) |
+| P2 | Workflow Orchestration | onClick | onPauseWorkflow | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:535) |
+| P2 | Input / Ingestion | onClick | Pause  | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:541) |
+| P2 | Input / Ingestion | onClick | () | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:544) |
+| P3 | Input / Ingestion | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:594) |
+| P3 | Input / Ingestion | control-signal | } placeholder="Tell this LLM node what to do..." spellCheck={false} title={readOnly ? read | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:599) |
+| P3 | LLM Node | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:610) |
+| P1 | LLM Node | control-signal | (  | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:621) |
+| P3 | LLM Node | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:641) |
+| P1 | LLM Node | control-signal | (  | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:650) |
+| P3 | LLM Node | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:669) |
+| P1 | LLM Node | control-signal | (  | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:678) |
+| P3 | Graph / Canvas | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:744) |
+| P3 | Graph / Canvas | control-signal | } placeholder="Optional instructions for the file compiler lane..." spellCheck={false} tit | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:749) |
+| P3 | Input / Ingestion | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:811) |
+| P3 | Input / Ingestion | control-signal | } placeholder="Optional style or production notes..." spellCheck={false} title={readOnly ? | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:816) |
+| P3 | LLM Node | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:828) |
+| P1 | LLM Node | onChange | (  | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:831) |
+| P3 | Graph / Canvas | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:848) |
+| P1 | Graph / Canvas | control-signal | (  | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:853) |
+| P3 | Graph / Canvas | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:870) |
+| P1 | Graph / Canvas | control-signal | (  | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:875) |
+| P3 | Graph / Canvas | onClick | selectEdge | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:966) |
+| P3 | Graph / Canvas | onClick | selectEdge | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:967) |
+| P1 | Graph / Canvas | onClick | Delete edge | yes/static signal | yes/static signal | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1003) |
+| P1 | Graph / Canvas | onClick | Delete edge | yes/static signal | yes/static signal | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1005) |
+| P1 | Graph / Canvas | onKeyDown | (event) | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1009) |
+| P3 | Workflow Orchestration | onDrop | handleWorkflowNodeDragOver | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1483) |
+| P3 | Workflow Orchestration | onDrop | handleWorkflowNodeDragOver | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1484) |
+| P3 | Graph / Canvas | control-signal | {readOnly ? ( <div className="pointer-events-auto inline-flex h-8 items-center gap-2 borde | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1541) |
+| P2 | Input / Ingestion | onClick | () | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1552) |
+| P3 | LLM Node | onClick | () | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1560) |
+| P3 | Workflow Orchestration | onClick | () | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1568) |
+| P3 | LLM Node | onClick | () | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1576) |
+| P2 | Workflow Orchestration | onClick | () | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1584) |
+| P2 | Workflow Orchestration | onClick | onRunWorkflow | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1591) |
+| P3 | LLM Node | onClick | () | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1602) |
+| P3 | Graph / Canvas | onClick | () | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1650) |
+| P3 | Graph / Canvas | onClick | () | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1654) |
+| P3 | Graph / Canvas | onClick | (event) | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1661) |
+| P3 | Workflow Orchestration | control-signal | event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("application/x-nexus | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1669) |
+| P3 | LLM Node | onClick | Close Graph Brain | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1925) |
+| P3 | LLM Node | onClick | Close Graph Brain | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1926) |
+| P3 | LLM Node | onClick | Close Graph Brain | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1928) |
+| P3 | Graph / Canvas | onChange | (event) | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1941) |
+| P3 | LLM Node | onChange | (event) | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1953) |
+| P3 | Graph / Canvas | onClick | inferDraft | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1966) |
+| P3 | LLM Node | onClick | inferDraft | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1968) |
+| P3 | LLM Node | onClick | Local  | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1974) |
+| P3 | LLM Node | onClick | requestBrainDraft | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1977) |
+| P3 | LLM Node | onClick | appendDraft | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1983) |
+| P3 | LLM Node | onClick | appendDraft | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1986) |
+| P3 | LLM Node | onClick | appendDraft | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:1987) |
+| P3 | LLM Node | onClick | () | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:2080) |
+| P3 | LLM Node | onClick | Clear  | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:2082) |
+| P3 | Graph / Canvas | onChange | (event) | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:2197) |
+| P3 | Graph / Canvas | onClick | () | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:2244) |
+| P2 | Graph / Canvas | onClick | Generated | yes/static signal | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:2246) |
+| P3 | Graph / Canvas | onClick | () | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:2283) |
+| P3 | Graph / Canvas | onClick | () | not proven | not indicated | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx:2285) |
+| P2 | Agent Context | control-signal | import("react-rnd")'); expect(source).toContain(" | yes/static signal | not indicated | [src/components/nexus/nexus-ops-extraction-map.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-extraction-map.test.ts:34) |
+| P3 | Supabase Persistence | control-signal | Right workspace tools | not proven | not indicated | [src/components/nexus/nexus-ops-extraction-map.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-extraction-map.test.ts:83) |
+| P3 | Agent Context | control-signal | expect(source).toContain("<LeftDock"); expect(source).toContain("<RightFloatingDock"); exp | not proven | not indicated | [src/components/nexus/nexus-ops-extraction-map.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-extraction-map.test.ts:103) |
+| P3 | Extension / Plugin Layer | button | Intel | not proven | not indicated | [src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx:15) |
+| P3 | Extension / Plugin Layer | button | Intel | not proven | not indicated | [src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx:16) |
+| P3 | Supabase Persistence | button | Right workspace tools | not proven | not indicated | [src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx:21) |
+| P3 | Supabase Persistence | button | Right workspace tools | not proven | not indicated | [src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx:22) |
+| P3 | Supabase Persistence | button | Right workspace tools | not proven | not indicated | [src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx:23) |
+| P3 | Supabase Persistence | control-signal | Right workspace tools | not proven | not indicated | [src/components/nexus/nexus-ops-right-floating-dock-frame.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-right-floating-dock-frame.tsx:12) |
+| P3 | Supabase Persistence | button | Workspace menu | not proven | not indicated | [src/components/nexus/nexus-ops-top-bar-frame.test.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-top-bar-frame.test.tsx:15) |
+| P3 | Supabase Persistence | button | Workspace menu | not proven | not indicated | [src/components/nexus/nexus-ops-top-bar-frame.test.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-top-bar-frame.test.tsx:21) |
+| P3 | Graph / Canvas | button | Workspace menu | not proven | not indicated | [src/components/nexus/nexus-ops-top-bar-frame.test.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-top-bar-frame.test.tsx:44) |
+| P3 | Supabase Persistence | control-signal | ChevronDown, ChevronLeft, ChevronRight, Command, Copy, Database, Download, ExternalLink, | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:12) |
+| P3 | Graph / Canvas | control-signal | \| { type: "reasoning"; delta?: string } \| { type: "done" }; type PaletteCommand = { id: st | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:383) |
+| P3 | Visual / UI Layer | button | disabled?: boolean; }) { return ( <button aria-label={label} className={cx( "grid h-9 w-9  | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:878) |
+| P3 | Visual / UI Layer | button | }) { return ( <button aria-label={label} className={cx( "grid h-9 w-9 place-items-center b | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:879) |
+| P3 | Visual / UI Layer | onClick | onClick | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:886) |
+| P3 | Visual / UI Layer | onClick | onClick | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:887) |
+| P3 | Agent Context | control-signal | workspace, ]); const commands = useMemo<PaletteCommand[]>( () => [ ...agentTemplates.map(( | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:3261) |
+| P2 | Input / Ingestion | onChange | (event) | yes/static signal | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:3408) |
+| P3 | Visual / UI Layer | onClick | () | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:3505) |
+| P3 | Unknown | control-signal | () | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:3753) |
+| P1 | Unknown | control-signal | () | yes/static signal | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:3764) |
+| P3 | Visual / UI Layer | button | : ChevronRight; return ( <button aria-label={label} className={cx( "absolute top-3 z-[70]  | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:3899) |
+| P3 | Visual / UI Layer | button |  return ( <button aria-label={label} className={cx( "absolute top-3 z-[70] grid h-8 w-8 pl | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:3900) |
+| P3 | Visual / UI Layer | onClick | onClick | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:3905) |
+| P3 | Visual / UI Layer | control-signal | boxShadow: "var(--nexus-layout-panel-shadow, var(--nexus-panel-shadow, 0 0 24px rgba(34,21 | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:3915) |
+| P1 | Visual / UI Layer | button | (  | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4041) |
+| P1 | Visual / UI Layer | button | (  | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4043) |
+| P3 | Visual / UI Layer | onClick | () | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4051) |
+| P3 | Visual / UI Layer | onClick | () | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4052) |
+| P3 | Supabase Persistence | onClick | Workspace menu | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4145) |
+| P3 | Supabase Persistence | onClick | Workspace menu | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4147) |
+| P3 | Supabase Persistence | onClick | Workspace menu | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4149) |
+| P3 | Agent Context | control-signal | ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100" : "border-white/10 bg-white/[ | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4215) |
+| P2 | Input / Ingestion | onSubmit | Workspace name | yes/static signal | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4223) |
+| P1 | Input / Ingestion | onSubmit | Workspace name | yes/static signal | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4225) |
+| P1 | Supabase Persistence | onChange | Workspace name | not proven | yes/static signal | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4228) |
+| P1 | Debug / Diagnostics | onChange | (event) | not proven | yes/static signal | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4229) |
+| P3 | Supabase Persistence | button | Apply workspace name | yes/static signal | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4237) |
+| P3 | Supabase Persistence | button | Apply workspace name | yes/static signal | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4238) |
+| P1 | Supabase Persistence | onClick | Cancel workspace rename | not proven | yes/static signal | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4244) |
+| P1 | Supabase Persistence | onClick | Cancel workspace rename | not proven | yes/static signal | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4245) |
+| P1 | Supabase Persistence | onClick | Cancel workspace rename | not proven | yes/static signal | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4247) |
+| P3 | Supabase Persistence | onClick | ) : (  | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4254) |
+| P3 | Supabase Persistence | onClick | openRename | not proven | not indicated | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx:4257) |
+
+## Static Limits
+
+Exact screen position, post-click DOM changes, network traffic, and console behavior require a safe localhost runtime pass.
+```
+
+## Raw API Shape
+
+The raw source API JSON is saved under `_raw-source-api/` for audit. It is metadata-only for this notebook source in the current API response.

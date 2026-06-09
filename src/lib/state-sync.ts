@@ -1280,10 +1280,17 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     }
 
     try {
+      const accessToken = await resolveStateSyncAccessToken();
+
+      if (!accessToken) {
+        return null;
+      }
+
       const userId = await resolveStateSyncUserId();
       const response = await nexusApiClient.get<WorkspaceStateGetResponse>(
         `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/state`,
         {
+          accessToken,
           userId,
           workspaceId,
         },
@@ -1293,7 +1300,12 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
     } catch (error) {
       if (
         error instanceof NexusApiError &&
-        ["WORKSPACE_STATE_NOT_FOUND", "PERMISSION_DENIED", "WORKSPACE_ACCESS_DENIED"].includes(error.code)
+        [
+          "AUTH_REQUIRED",
+          "WORKSPACE_STATE_NOT_FOUND",
+          "PERMISSION_DENIED",
+          "WORKSPACE_ACCESS_DENIED",
+        ].includes(error.code)
       ) {
         return null;
       }

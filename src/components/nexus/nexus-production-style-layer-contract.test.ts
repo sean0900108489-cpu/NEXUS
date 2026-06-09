@@ -83,17 +83,13 @@ describe("Nexus production style layer contract", () => {
 
   it("keeps Layer 4 accent as control chrome without exposing a color wheel", () => {
     expect(controlsPanelSource).toContain("style={{ accentColor: activeAccent }}");
-    expect(controlsPanelSource).toContain("borderColor: `${activeAccent}66`");
+    expect(controlsPanelSource).toContain("borderColor: isActivePreset");
+    expect(controlsPanelSource).toContain("? `${activeAccent}99`");
     expect(controlsPanelSource).toContain("borderColor: `${activeAccent}59`");
     expect(controlsPanelSource).toContain("borderColor: `${activeAccent}40`");
     expect(controlsPanelSource).not.toContain('type="color"');
     expect(controlsPanelSource).not.toContain("Color wheel");
     expect(controlsPanelSource).not.toContain("Workspace Body Surface");
-    expect(controlsPanelSource).not.toContain("text-neutral-100");
-    expect(controlsPanelSource).not.toContain("text-neutral-100");
-    expect(controlsPanelSource).not.toContain("text-neutral-100");
-    expect(controlsPanelSource).not.toContain("text-neutral-100");
-    expect(controlsPanelSource).not.toContain("text-neutral-100");
   });
 
   it("keeps workspace style presets as Layer 4 control shortcuts, not a second apply path", () => {
@@ -105,8 +101,8 @@ describe("Nexus production style layer contract", () => {
     expect(controlsPanelSource).toContain(
       "createWorkspaceStylePresetControls(baseThemeControls, preset)",
     );
-    expect(controlsPanelSource).toContain("workspace-style-current-preset-status");
-    expect(controlsPanelSource).toContain("workspace-style-baseline-status");
+    expect(controlsPanelSource).not.toContain("workspace-style-current-preset-status");
+    expect(controlsPanelSource).not.toContain("workspace-style-baseline-status");
     expect(controlsPanelSource).not.toContain("querySelectorAll");
     expect(controlsPanelSource).not.toContain("document.documentElement");
     expect(controlsPanelSource).not.toContain("document.body");

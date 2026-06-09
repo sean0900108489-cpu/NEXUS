@@ -280,6 +280,75 @@ describe("V8 artifact API and migration contract", () => {
     });
   });
 
+  it("rejects invalid artifact provenance ids at the route boundary", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "");
+
+    const response = await createArtifactPost(
+      makeArtifactRequest({
+        contentText: "route artifact content",
+        sourceTaskId: "task-local-not-a-uuid",
+        sourceToolRunId: "tool-run-not-a-uuid",
+        type: "note",
+        workspaceId: "workspace-artifacts",
+      }),
+    );
+    const json = await readJson<ApiEnvelope<unknown>>(response);
+
+    expect(response.status).toBe(400);
+    expect(json).toMatchObject({
+      error: {
+        code: "VALIDATION_FAILED",
+        details: {
+          issues: [
+            {
+              code: "invalid_uuid",
+              path: ["sourceTaskId"],
+            },
+            {
+              code: "invalid_uuid",
+              path: ["sourceToolRunId"],
+            },
+          ],
+        },
+      },
+      ok: false,
+    });
+  });
+
+  it("normalizes optional artifact provenance ids before persistence", async () => {
+    installMockApiAuthSessionVerifierForTests("local-editor");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "");
+    const sourceTaskId = crypto.randomUUID();
+
+    const response = await createArtifactPost(
+      makeArtifactRequest({
+        contentText: "route artifact content",
+        sourceTaskId: ` ${sourceTaskId} `,
+        sourceToolRunId: "   ",
+        type: "note",
+        workspaceId: "workspace-artifacts",
+      }),
+    );
+    const json = await readJson<
+      ApiEnvelope<{ artifact: { sourceTaskId: string; sourceToolRunId: string | null } }>
+    >(response);
+
+    expect(response.status).toBe(200);
+    expect(json).toMatchObject({
+      data: {
+        artifact: {
+          sourceTaskId,
+          sourceToolRunId: null,
+        },
+      },
+      ok: true,
+    });
+  });
+
   it("lets viewers inspect generated history but blocks generated artifact creation", async () => {
     installMockApiAuthSessionVerifierForTests("local-editor");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "");

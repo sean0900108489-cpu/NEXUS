@@ -2064,7 +2064,7 @@ function WorkflowGraphBrainPanel({
           </div>
         ) : null}
         {runtimeEvidenceReport.warnings.length ? (
-          <div className="border border-amber-200/20 bg-amber-200/5 px-3 py-2 text-xs leading-5 text-amber-50/80">
+          <div className="border border-yellow-200/20 bg-yellow-200/5 px-3 py-2 text-xs leading-5 text-yellow-50/80">
             {runtimeEvidenceReport.warnings[0]}
           </div>
         ) : null}
@@ -2169,11 +2169,11 @@ function WorkflowGraphBrainPanel({
             ))}
           </div>
           {brainResult.architect.missingCapabilities.length ? (
-            <div className="border border-amber-200/20 bg-amber-200/5 px-3 py-2">
-              <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-amber-100/80">
+            <div className="border border-yellow-200/20 bg-yellow-200/5 px-3 py-2">
+              <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-yellow-100/80">
                 Missing capabilities
               </div>
-              <p className="mt-1 text-xs leading-5 text-amber-50/80">
+              <p className="mt-1 text-xs leading-5 text-yellow-50/80">
                 {brainResult.architect.missingCapabilities.join(", ")}
               </p>
             </div>

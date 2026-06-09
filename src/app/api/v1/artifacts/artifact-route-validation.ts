@@ -40,8 +40,6 @@ export function validateCreateArtifactRequest(value: unknown) {
     "mimeType",
     "sourceMessageId",
     "sourceAgentId",
-    "sourceTaskId",
-    "sourceToolRunId",
   ] as const) {
     if (
       value[key] !== undefined &&
@@ -52,13 +50,19 @@ export function validateCreateArtifactRequest(value: unknown) {
     }
   }
 
+  pushNullableUuidIssue(value, "sourceTaskId", issues);
+  pushNullableUuidIssue(value, "sourceToolRunId", issues);
+
   if (value.metadata !== undefined && !isRecord(value.metadata)) {
     issues.push(validationIssue(["metadata"], "invalid_type", "metadata must be an object."));
   }
 
   return issues.length
     ? { issues, ok: false as const }
-    : { data: value as CreateArtifactRequest, ok: true as const };
+    : {
+        data: normalizeCreateArtifactRequest(value),
+        ok: true as const,
+      };
 }
 
 export function validateArtifactVersionRequest(value: unknown) {
@@ -126,6 +130,61 @@ function pushWorkspaceIssue(value: Record<string, unknown>, issues: ApiValidatio
   if (typeof value.workspaceId !== "string" || !value.workspaceId.trim()) {
     issues.push(validationIssue(["workspaceId"], "required", "workspaceId is required."));
   }
+}
+
+function pushNullableUuidIssue(
+  value: Record<string, unknown>,
+  key: "sourceTaskId" | "sourceToolRunId",
+  issues: ApiValidationIssue[],
+) {
+  const raw = value[key];
+
+  if (raw === undefined || raw === null) {
+    return;
+  }
+
+  if (typeof raw !== "string") {
+    issues.push(validationIssue([key], "invalid_type", `${key} must be a string.`));
+
+    return;
+  }
+
+  const normalized = raw.trim();
+
+  if (normalized && !isUuid(normalized)) {
+    issues.push(validationIssue([key], "invalid_uuid", `${key} must be a UUID.`));
+  }
+}
+
+function normalizeCreateArtifactRequest(value: Record<string, unknown>) {
+  const request = { ...value } as CreateArtifactRequest;
+
+  request.sourceTaskId = normalizeNullableUuid(value.sourceTaskId);
+  request.sourceToolRunId = normalizeNullableUuid(value.sourceToolRunId);
+
+  return request;
+}
+
+function normalizeNullableUuid(value: unknown) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === null) {
+    return null;
+  }
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim();
+
+  return normalized || null;
+}
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

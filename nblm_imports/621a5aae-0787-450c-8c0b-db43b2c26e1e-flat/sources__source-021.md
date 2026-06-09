@@ -1,0 +1,102 @@
+# Source 021 - maps__02-ui-surface-map.md
+
+## NotebookLM Source Metadata
+
+- notebook_id: 621a5aae-0787-450c-8c0b-db43b2c26e1e
+- project: 1022174375734
+- source_id: 0f93bf19-a274-4eb2-814b-d7463cdbd96c
+- title: maps__02-ui-surface-map.md
+- status: SOURCE_STATUS_COMPLETE
+- word_count: 1638
+- token_count: 3431
+- source_name: projects/1022174375734/locations/global/notebooks/621a5aae-0787-450c-8c0b-db43b2c26e1e/sources/0f93bf19-a274-4eb2-814b-d7463cdbd96c
+- source_added_timestamp: 2026-06-05T05:50:43.457321Z
+
+## Source-Level Read Result
+
+- api_full_text: DATA_GAP
+- api_note: NotebookLM source API returned metadata only; no full source text was present in the API response.
+- local_mirror_status: FOUND
+- local_mirror_path: /Users/sean/Documents/FreeChat/docs/agent-runs/nexus-current-system-intelligence-20260605-1347/maps/02-ui-surface-map.md
+- local_mirror_estimated_word_count: 2372
+
+## Local Mirror Content
+
+```md
+# 02 UI Surface Map
+
+| Surface | Role | Controls | Store deps | API deps | Supabase deps | Risk | Source |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| NEXUS production shell | primary app entry | 0 | - | - | - | P3 static map only | [src/app/page.tsx](/Users/sean/Documents/FreeChat/src/app/page.tsx) |
+| Style Lab route | style workbench entry | 0 | - | - | - | P3 static map only | [src/app/style-lab/page.tsx](/Users/sean/Documents/FreeChat/src/app/style-lab/page.tsx) |
+| Root layout | shared app providers and global shell | 0 | - | - | - | P3 static map only | [src/app/layout.tsx](/Users/sean/Documents/FreeChat/src/app/layout.tsx) |
+| Nexus Ops cockpit | primary dense operator surface | 296 | getState(), nexusApiClient, setState(, useNexusStore | /api/v1/providers/status, /api/v1/providers/verify, nexusApiClient.get, nexusApiClient.post | Supabase client boundary | P1 write/privilege review | [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx) |
+| Graph canvas | workflow graph/canvas surface | 43 | - | /api/workflow-pro/brain-draft | - | P1 write/privilege review | [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx) |
+| Workflow Pro surface | workflow construction and runtime operator surface | 34 | - | - | - | P1 write/privilege review | [src/components/nexus/workflow-pro/workflow-pro-surface.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/workflow-pro/workflow-pro-surface.tsx) |
+| Style system lab | style/token/preview workbench | 91 | - | - | - | P1 write/privilege review | [src/components/style-engine/nexus-style-lab.tsx](/Users/sean/Documents/FreeChat/src/components/style-engine/nexus-style-lab.tsx) |
+| Nexus global store | state layer, not visible UI | 6 | getState(), nexusApiClient, useNexusStore | nexusApiClient.post | Supabase client boundary | P1 write/privilege review | [src/store/nexus-store.ts](/Users/sean/Documents/FreeChat/src/store/nexus-store.ts) |
+| State sync bridge | local/cloud sync layer, not visible UI | 0 | nexusApiClient | nexusApiClient.get, nexusApiClient.post | Supabase client boundary, prompt_revisions, workflow_templates | P1 write/privilege review | [src/lib/state-sync.ts](/Users/sean/Documents/FreeChat/src/lib/state-sync.ts) |
+| nexus-registry | supporting surface or logic module | 0 | - | - | - | P3 static map only | [src/lib/nexus-registry.ts](/Users/sean/Documents/FreeChat/src/lib/nexus-registry.ts) |
+| registry | supporting surface or logic module | 0 | - | - | - | P3 static map only | [src/lib/workflow-runtime-lite/registry.ts](/Users/sean/Documents/FreeChat/src/lib/workflow-runtime-lite/registry.ts) |
+| runner | supporting surface or logic module | 0 | - | - | - | P1 write/privilege review | [src/lib/workflow-runtime-lite/runner.ts](/Users/sean/Documents/FreeChat/src/lib/workflow-runtime-lite/runner.ts) |
+| AgentBranchModal | supporting surface or logic module | 19 | useNexusStore | - | - | P1 write/privilege review | [src/components/nexus/AgentBranchModal.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/AgentBranchModal.tsx) |
+| DatapadWindow | supporting surface or logic module | 6 | useNexusStore | - | - | P1 write/privilege review | [src/components/nexus/DatapadWindow.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/DatapadWindow.tsx) |
+| PromptVaultManager | supporting surface or logic module | 14 | useNexusStore | - | - | P1 write/privilege review | [src/components/nexus/PromptVaultManager.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/PromptVaultManager.tsx) |
+| auth-screen | supporting surface or logic module | 4 | useNexusStore | - | Supabase client boundary | P2 integration review | [src/components/nexus/auth-screen.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/auth-screen.tsx) |
+| dynamic-icon | supporting surface or logic module | 0 | - | - | - | P3 static map only | [src/components/nexus/dynamic-icon.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/dynamic-icon.tsx) |
+| nexus-agent-branch-modal-shell-selector.test | supporting surface or logic module | 12 | useNexusStore | - | - | P2 integration review | [src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-agent-branch-modal-shell-selector.test.ts) |
+| nexus-agent-window-chrome-primitive.test | supporting surface or logic module | 0 | - | - | - | P2 integration review | [src/components/nexus/nexus-agent-window-chrome-primitive.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-agent-window-chrome-primitive.test.ts) |
+| nexus-command-palette-shell-selector.test | supporting surface or logic module | 1 | - | - | - | P3 static map only | [src/components/nexus/nexus-command-palette-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-command-palette-shell-selector.test.ts) |
+| nexus-control-primitive-selector.test | supporting surface or logic module | 3 | - | - | - | P3 static map only | [src/components/nexus/nexus-control-primitive-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-control-primitive-selector.test.ts) |
+| nexus-datapad-shell-selector.test | supporting surface or logic module | 3 | useNexusStore | - | - | P1 write/privilege review | [src/components/nexus/nexus-datapad-shell-selector.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-datapad-shell-selector.test.ts) |
+| nexus-generated-history-hydration.test | supporting surface or logic module | 2 | - | - | - | P2 integration review | [src/components/nexus/nexus-generated-history-hydration.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-generated-history-hydration.test.ts) |
+| nexus-message-bubble-primitive.test | supporting surface or logic module | 0 | - | - | - | P2 integration review | [src/components/nexus/nexus-message-bubble-primitive.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-message-bubble-primitive.test.ts) |
+| Nexus Ops cockpit | primary dense operator surface | 0 | - | - | - | P2 integration review | [src/components/nexus/nexus-ops-body-frame.test.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-body-frame.test.tsx) |
+| Nexus Ops cockpit | primary dense operator surface | 0 | - | - | - | P3 static map only | [src/components/nexus/nexus-ops-body-frame.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-body-frame.tsx) |
+| Nexus Ops cockpit | primary dense operator surface | 2 | useNexusStore | - | - | P1 write/privilege review | [src/components/nexus/nexus-ops-extraction-map.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-extraction-map.test.ts) |
+| Nexus Ops cockpit | primary dense operator surface | 0 | - | - | - | P2 integration review | [src/components/nexus/nexus-ops-outer-shell-frame.test.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-outer-shell-frame.test.tsx) |
+| Nexus Ops cockpit | primary dense operator surface | 0 | - | - | - | P3 static map only | [src/components/nexus/nexus-ops-outer-shell-frame.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-outer-shell-frame.tsx) |
+| Nexus Ops cockpit | primary dense operator surface | 4 | - | - | - | P2 integration review | [src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-right-floating-dock-frame.test.tsx) |
+| Nexus Ops cockpit | primary dense operator surface | 0 | - | - | - | P3 static map only | [src/components/nexus/nexus-ops-right-floating-dock-frame.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-right-floating-dock-frame.tsx) |
+| Nexus Ops cockpit | primary dense operator surface | 3 | - | - | - | P2 integration review | [src/components/nexus/nexus-ops-top-bar-frame.test.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-top-bar-frame.test.tsx) |
+| Nexus Ops cockpit | primary dense operator surface | 0 | - | - | - | P3 static map only | [src/components/nexus/nexus-ops-top-bar-frame.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops-top-bar-frame.tsx) |
+| nexus-production-page-shell-boundary.test | supporting surface or logic module | 0 | - | - | - | P2 integration review | [src/components/nexus/nexus-production-page-shell-boundary.test.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-production-page-shell-boundary.test.tsx) |
+| nexus-production-page-shell-boundary | supporting surface or logic module | 0 | - | - | - | P3 static map only | [src/components/nexus/nexus-production-page-shell-boundary.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-production-page-shell-boundary.tsx) |
+| nexus-production-preview-controller.test | supporting surface or logic module | 0 | - | - | - | P1 write/privilege review | [src/components/nexus/nexus-production-preview-controller.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-production-preview-controller.test.ts) |
+| nexus-production-preview-controller | supporting surface or logic module | 4 | setState( | - | - | P1 write/privilege review | [src/components/nexus/nexus-production-preview-controller.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-production-preview-controller.tsx) |
+| nexus-production-style-layer-contract.test | supporting surface or logic module | 35 | nexusApiClient | - | - | P1 write/privilege review | [src/components/nexus/nexus-production-style-layer-contract.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-production-style-layer-contract.test.ts) |
+| nexus-theme-panel-live-style-controls.test | supporting surface or logic module | 85 | nexusApiClient | - | - | P1 write/privilege review | [src/components/nexus/nexus-theme-panel-live-style-controls.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-theme-panel-live-style-controls.test.ts) |
+| nexus-workspace-chat-composer-shell.test | supporting surface or logic module | 1 | - | - | - | P1 write/privilege review | [src/components/nexus/nexus-workspace-chat-composer-shell.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-workspace-chat-composer-shell.test.ts) |
+| nexus-workspace-primitive.test | supporting surface or logic module | 0 | - | - | - | P2 integration review | [src/components/nexus/nexus-workspace-primitive.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-workspace-primitive.test.ts) |
+| nexus-workspace-readonly-gate.test | supporting surface or logic module | 0 | - | - | - | P1 write/privilege review | [src/components/nexus/nexus-workspace-readonly-gate.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-workspace-readonly-gate.test.ts) |
+| nexus-workspace-style-payload-export-import.test | supporting surface or logic module | 0 | - | - | - | P2 integration review | [src/components/nexus/nexus-workspace-style-payload-export-import.test.ts](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-workspace-style-payload-export-import.test.ts) |
+| Workflow Pro surface | workflow construction and runtime operator surface | 3 | - | - | - | P3 static map only | [src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/workflow-pro/workflow-pro-surface.test.tsx) |
+| Style system lab | style/token/preview workbench | 9 | - | - | - | P1 write/privilege review | [src/components/style-engine/nexus-style-lab-imported-workspace-style.test.ts](/Users/sean/Documents/FreeChat/src/components/style-engine/nexus-style-lab-imported-workspace-style.test.ts) |
+| Style system lab | style/token/preview workbench | 0 | useNexusStore | - | - | P1 write/privilege review | [src/components/style-engine/nexus-style-lab-production-chrome-smoke.test.ts](/Users/sean/Documents/FreeChat/src/components/style-engine/nexus-style-lab-production-chrome-smoke.test.ts) |
+| Style system lab | style/token/preview workbench | 1 | - | - | - | P1 write/privilege review | [src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts](/Users/sean/Documents/FreeChat/src/components/style-engine/nexus-style-lab-surface-style-coverage.test.ts) |
+| nexus-style-runtime-provider | supporting surface or logic module | 0 | - | - | - | P1 write/privilege review | [src/components/style-engine/nexus-style-runtime-provider.tsx](/Users/sean/Documents/FreeChat/src/components/style-engine/nexus-style-runtime-provider.tsx) |
+
+## Responsibility Inventory For Large Surfaces
+
+| File | Lines | Inventory | Migration map | Responsibilities |
+| --- | --- | --- | --- | --- |
+| [src/app/layout.tsx](/Users/sean/Documents/FreeChat/src/app/layout.tsx) | 39 | no | no | Visual / UI Layer; agent/chat/composer orchestration; false; graph/canvas operations; provider/model configuration; style/runtime preview controls |
+| [src/app/page.tsx](/Users/sean/Documents/FreeChat/src/app/page.tsx) | 32 | no | no | Unknown; cloud sync/workspace/artifact persistence; false; provider/model configuration; style/runtime preview controls; workflow/runtime/Brain contract operations |
+| [src/app/style-lab/page.tsx](/Users/sean/Documents/FreeChat/src/app/style-lab/page.tsx) | 11 | no | no | Visual / UI Layer; false; provider/model configuration; style/runtime preview controls; workflow/runtime/Brain contract operations |
+| [src/components/nexus/nexus-graph.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-graph.tsx) | 2346 | yes | no | Graph / Canvas; agent/chat/composer orchestration; cloud sync/workspace/artifact persistence; false; graph/canvas operations; provider/model configuration; style/runtime preview controls; workflow/runtime/Brain contract operations |
+| [src/components/nexus/nexus-ops.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/nexus-ops.tsx) | 9654 | yes | yes | Unknown; agent/chat/composer orchestration; cloud sync/workspace/artifact persistence; global state mutation/persistence; graph/canvas operations; provider/model configuration; style/runtime preview controls; workflow/runtime/Brain contract operations |
+| [src/components/nexus/workflow-pro/workflow-pro-surface.tsx](/Users/sean/Documents/FreeChat/src/components/nexus/workflow-pro/workflow-pro-surface.tsx) | 1722 | yes | no | Workflow Orchestration; agent/chat/composer orchestration; cloud sync/workspace/artifact persistence; false; graph/canvas operations; provider/model configuration; style/runtime preview controls; workflow/runtime/Brain contract operations |
+| [src/components/style-engine/nexus-style-lab.tsx](/Users/sean/Documents/FreeChat/src/components/style-engine/nexus-style-lab.tsx) | 5966 | yes | yes | Visual / UI Layer; agent/chat/composer orchestration; cloud sync/workspace/artifact persistence; global state mutation/persistence; graph/canvas operations; provider/model configuration; style/runtime preview controls; workflow/runtime/Brain contract operations |
+| [src/lib/nexus-registry.ts](/Users/sean/Documents/FreeChat/src/lib/nexus-registry.ts) | 818 | no | no | Extension / Plugin Layer; agent/chat/composer orchestration; cloud sync/workspace/artifact persistence; global state mutation/persistence; graph/canvas operations; provider/model configuration; style/runtime preview controls; workflow/runtime/Brain contract operations |
+| [src/lib/nexus-types.ts](/Users/sean/Documents/FreeChat/src/lib/nexus-types.ts) | 1855 | yes | no | Unknown; agent/chat/composer orchestration; cloud sync/workspace/artifact persistence; global state mutation/persistence; graph/canvas operations; provider/model configuration; style/runtime preview controls; workflow/runtime/Brain contract operations |
+| [src/lib/state-sync.ts](/Users/sean/Documents/FreeChat/src/lib/state-sync.ts) | 1355 | yes | no | Supabase Persistence; agent/chat/composer orchestration; cloud sync/workspace/artifact persistence; false; global state mutation/persistence; style/runtime preview controls; workflow/runtime/Brain contract operations |
+| [src/lib/style-engine/v2-validators.ts](/Users/sean/Documents/FreeChat/src/lib/style-engine/v2-validators.ts) | 1864 | yes | no | Visual / UI Layer; agent/chat/composer orchestration; cloud sync/workspace/artifact persistence; false; global state mutation/persistence; graph/canvas operations; style/runtime preview controls; workflow/runtime/Brain contract operations |
+| [src/lib/workflow-pro/graph-brain-planner.ts](/Users/sean/Documents/FreeChat/src/lib/workflow-pro/graph-brain-planner.ts) | 1073 | yes | no | LLM Node; agent/chat/composer orchestration; cloud sync/workspace/artifact persistence; false; graph/canvas operations; provider/model configuration; workflow/runtime/Brain contract operations |
+| [src/lib/workflow-runtime-lite/registry.ts](/Users/sean/Documents/FreeChat/src/lib/workflow-runtime-lite/registry.ts) | 146 | no | no | Workflow Orchestration; agent/chat/composer orchestration; cloud sync/workspace/artifact persistence; false; graph/canvas operations; provider/model configuration; workflow/runtime/Brain contract operations |
+| [src/lib/workflow-runtime-lite/runner.ts](/Users/sean/Documents/FreeChat/src/lib/workflow-runtime-lite/runner.ts) | 552 | no | no | Workflow Orchestration; agent/chat/composer orchestration; cloud sync/workspace/artifact persistence; false; graph/canvas operations; style/runtime preview controls; workflow/runtime/Brain contract operations |
+| [src/store/nexus-store.ts](/Users/sean/Documents/FreeChat/src/store/nexus-store.ts) | 4815 | yes | yes | Unknown; agent/chat/composer orchestration; cloud sync/workspace/artifact persistence; global state mutation/persistence; graph/canvas operations; provider/model configuration; style/runtime preview controls; workflow/runtime/Brain contract operations |
+```
+
+## Raw API Shape
+
+The raw source API JSON is saved under `_raw-source-api/` for audit. It is metadata-only for this notebook source in the current API response.

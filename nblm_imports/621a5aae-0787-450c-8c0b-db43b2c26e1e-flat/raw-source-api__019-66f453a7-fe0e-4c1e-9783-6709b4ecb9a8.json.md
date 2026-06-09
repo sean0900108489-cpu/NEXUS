@@ -1,0 +1,22 @@
+# _raw-source-api/019-66f453a7-fe0e-4c1e-9783-6709b4ecb9a8.json
+
+Original path: `_raw-source-api/019-66f453a7-fe0e-4c1e-9783-6709b4ecb9a8.json`
+
+```json
+{
+  "sourceId": {
+    "id": "66f453a7-fe0e-4c1e-9783-6709b4ecb9a8"
+  },
+  "title": "machine-manifest.json.md",
+  "metadata": {
+    "wordCount": 13,
+    "sourceAddedTimestamp": "2026-06-05T05:51:25.864356Z",
+    "tokenCount": 34
+  },
+  "settings": {
+    "status": "SOURCE_STATUS_COMPLETE"
+  },
+  "name": "projects/1022174375734/locations/global/notebooks/621a5aae-0787-450c-8c0b-db43b2c26e1e/sources/66f453a7-fe0e-4c1e-9783-6709b4ecb9a8"
+}
+
+```

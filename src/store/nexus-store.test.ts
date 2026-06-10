@@ -173,6 +173,41 @@ describe("prepareWorkspacesForLocalPersistence", () => {
     expect(persisted?.settings.viewMode).toBe(workspace.settings.viewMode);
   });
 
+  it("keeps model selection scoped to the individual operator", () => {
+    const workspace = createDefaultWorkspace({
+      id: "workspace-per-operator-models",
+      name: "Per Operator Models",
+      timestamp: "2026-06-09T00:00:00.000Z",
+    });
+    const firstAgent = workspace.agents[0];
+    const secondAgent = workspace.agents[1];
+
+    if (!firstAgent || !secondAgent) {
+      throw new Error("Default workspace must include at least two operators.");
+    }
+
+    useNexusStore.setState({
+      activeWorkspaceId: workspace.id,
+      selectedAgentId: secondAgent.id,
+      workspaces: [workspace],
+    });
+
+    useNexusStore.getState().updateAgentModel(secondAgent.id, "deepseek-v4-flash");
+
+    const updatedWorkspace = useNexusStore
+      .getState()
+      .workspaces.find((candidate) => candidate.id === workspace.id);
+    const updatedFirstAgent = updatedWorkspace?.agents.find(
+      (agent) => agent.id === firstAgent.id,
+    );
+    const updatedSecondAgent = updatedWorkspace?.agents.find(
+      (agent) => agent.id === secondAgent.id,
+    );
+
+    expect(updatedFirstAgent?.model).toBe(firstAgent.model);
+    expect(updatedSecondAgent?.model).toBe("deepseek-v4-flash");
+  });
+
   it("omits inline image data URLs from persisted workflow runtime snapshots", () => {
     const workspace = createDefaultWorkspace({
       id: "workspace-runtime-data-url-sanitize",
@@ -982,16 +1017,9 @@ describe("prepareWorkspacesForLocalPersistence", () => {
 
     expect(persisted.user?.id).toBe("user-secret-test");
     expect(persisted.globalApiKey).toBeNull();
-    expect(persisted.globalBaseUrl).toBe("https://api.example.test/v1");
+    expect(persisted.globalBaseUrl).toBeNull();
     expect(persisted.isLocked).toBe(true);
-    expect(persisted.providerCredentials?.deepseek).toEqual({
-      apiKey: null,
-      baseUrl: "https://deepseek.example.test/v1",
-      isLocked: true,
-      liveVerifiedAt: null,
-      verificationError: null,
-      verificationStatus: "untested",
-    });
+    expect(persisted.providerCredentials).toEqual({});
     expect(JSON.stringify(persisted)).not.toContain("sk-global-secret");
     expect(JSON.stringify(persisted)).not.toContain("sk-provider-secret");
   });
@@ -1025,7 +1053,7 @@ describe("prepareWorkspacesForLocalPersistence", () => {
     expect(persistedWrites).not.toContain("sk-local-global-secret");
     expect(persistedWrites).not.toContain("sk-local-provider-secret");
     expect(persistedWrites).toContain('"globalApiKey":null');
-    expect(persistedWrites).toContain('"apiKey":null');
+    expect(persistedWrites).toContain('"providerCredentials":{}');
   });
 
   it("rehydrates v13 persisted workspaces into v15 metadata without losing active data", async () => {
@@ -1213,17 +1241,10 @@ describe("prepareWorkspacesForLocalPersistence", () => {
 
     expect(authVault.user?.id).toBe("user-v14-secret");
     expect(authVault.globalApiKey).toBeNull();
-    expect(authVault.globalBaseUrl).toBe("https://api.example.test/v1");
+    expect(authVault.globalBaseUrl).toBeNull();
     expect(authVault.isLocked).toBe(true);
-    expect(authVault.providerCredentials?.deepseek).toEqual({
-      apiKey: null,
-      baseUrl: "https://deepseek.example.test/v1",
-      isLocked: true,
-      liveVerifiedAt: null,
-      verificationError: null,
-      verificationStatus: "untested",
-    });
-    expect(useNexusStore.getState().streamMode).toBe("mock");
+    expect(authVault.providerCredentials).toEqual({});
+    expect(useNexusStore.getState().streamMode).toBe("live");
     expect(persistedWrites).not.toContain("sk-legacy-global-secret");
     expect(persistedWrites).not.toContain("sk-legacy-provider-secret");
   });

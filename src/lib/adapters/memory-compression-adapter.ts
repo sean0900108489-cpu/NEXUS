@@ -3,10 +3,7 @@ import type {
   ICompressedMemoryResult,
   IMemoryCompressionConfig,
 } from "@/lib/nexus-types";
-import {
-  NEXUS_RUNTIME_AUTHORIZATION_HEADER,
-  nexusApiClient,
-} from "@/lib/api/nexus-api-client";
+import { nexusApiClient } from "@/lib/api/nexus-api-client";
 
 export interface MemoryCompressionPayload {
   payload: unknown;
@@ -16,10 +13,6 @@ export interface MemoryCompressionPayload {
 
 const DEFAULT_MOCK_SUMMARY =
   "Mock compression preserved architecture, task continuity, UI/UX intent, constraints, and unresolved implementation notes for a safe branch handoff.";
-
-function sanitizeHeaderValue(value: string | null | undefined) {
-  return value?.replace(/[^\x20-\x7E]/g, "").trim() ?? "";
-}
 
 function createContextNote({
   content,
@@ -168,21 +161,9 @@ export class LlmMemoryCompressor {
   ): Promise<ICompressedMemoryResult> {
     try {
       const { useNexusStore } = await import("@/store/nexus-store");
-      const authVault = useNexusStore.getState().authVault;
-      const apiKey = sanitizeHeaderValue(authVault.globalApiKey);
-      const baseUrl = sanitizeHeaderValue(authVault.globalBaseUrl);
-
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
-
-      if (apiKey) {
-        headers[NEXUS_RUNTIME_AUTHORIZATION_HEADER] = `Bearer ${apiKey}`;
-      }
-
-      if (baseUrl) {
-        headers["x-openai-base-url"] = baseUrl;
-      }
 
       const activeWorkspaceId = useNexusStore.getState().activeWorkspaceId;
       const userId = useNexusStore.getState().authVault.user?.id;

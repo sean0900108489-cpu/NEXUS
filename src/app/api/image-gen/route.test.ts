@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import sharp from "sharp";
 
 import {
@@ -6,6 +6,12 @@ import {
   getGeneratedImageAsset,
 } from "@/lib/backend/image-generation/generated-image-asset-cache";
 import { setGeneratedImageStorageGatewayForTests } from "@/lib/backend/image-generation/generated-image-asset-storage";
+import { getInMemoryUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
+import { encryptNewApiToken } from "@/lib/backend/new-api-token/token-crypto";
+import {
+  resetUserNewApiTokenRepositoryForTests,
+  setUserNewApiTokenRepositoryForTests,
+} from "@/lib/backend/new-api-token/user-new-api-token-service";
 import type { PermissionDecision } from "@/lib/backend/contracts/permission";
 
 import { GET as GET_GENERATED_IMAGE_ASSET } from "./assets/[assetId]/route";
@@ -19,12 +25,33 @@ const ORIGINAL_OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const ORIGINAL_OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL;
 
 describe("/api/image-gen", () => {
+  beforeEach(() => {
+    const secret = "image-route-token-secret";
+
+    vi.stubEnv("NEW_API_TOKEN_ENCRYPTION_SECRET", secret);
+    setUserNewApiTokenRepositoryForTests({
+      findByUserId: async (userId) => ({
+        enabled: true,
+        encryptedNewApiToken: encryptNewApiToken(`sk-image-token-${userId}`, {
+          secret,
+        }),
+        group: "image-test",
+        plan: "basic",
+        tokenId: `image-token-${userId}`,
+        tokenName: "Image Test",
+        userId,
+      }),
+    });
+  });
+
   afterEach(() => {
     process.env.OPENAI_API_KEY = ORIGINAL_OPENAI_API_KEY;
     process.env.OPENAI_IMAGE_MODEL = ORIGINAL_OPENAI_IMAGE_MODEL;
     clearGeneratedImageAssetCacheForTests();
+    getInMemoryUsageLedgerRepository().clear();
     setGeneratedImageStorageGatewayForTests(null);
     resetImageGenerationRouteDependenciesForTests();
+    resetUserNewApiTokenRepositoryForTests();
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
   });
@@ -143,9 +170,11 @@ describe("/api/image-gen", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("uses runtime provider authorization after production workspace access passes", async () => {
+  it("uses the authenticated user's mapped New API token after production workspace access passes", async () => {
     vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXUS_DEFAULT_PLAN", "Basic");
     process.env.OPENAI_API_KEY = "sk-env-test";
+    const ledger = getInMemoryUsageLedgerRepository();
     setImageGenerationRouteDependenciesForTests({
       authVerifier: {
         verifyRequest: async () => ({
@@ -185,12 +214,15 @@ describe("/api/image-gen", () => {
             quality: "standard",
           },
           model: "img2",
+          conversationId: "conversation-image-success",
+          operatorId: "agent-image",
           prompt: "production image route smoke",
           workspaceId: "workspace-image",
         }),
         headers: {
           Authorization: "Bearer supabase-session",
           "Content-Type": "application/json",
+          "X-Nexus-Test-Plan": "Basic",
           "X-Nexus-Runtime-Authorization": "Bearer sk-browser-test",
           "X-User-Id": "user-owner",
           "X-Workspace-Id": "workspace-image",
@@ -204,13 +236,178 @@ describe("/api/image-gen", () => {
     const [, init] = fetchCalls[0] ?? [];
 
     expect(init?.headers).toMatchObject({
-      Authorization: "Bearer sk-browser-test",
+      Authorization: "Bearer sk-image-token-user-owner",
       "Content-Type": "application/json",
+    });
+    expect(ledger.all().at(-1)).toMatchObject({
+      chargedPoints: 1_000,
+      conversationId: "conversation-image-success",
+      errorCode: null,
+      modelId: "img2",
+      newApiModel: "gpt-image-2",
+      operatorId: "agent-image",
+      providerFamily: "OpenAI",
+      status: "succeeded",
+      userId: "user-owner",
     });
   });
 
-  it("extracts runtime image keys from JSON-shaped provider settings before calling OpenAI", async () => {
+  it("rejects image generation models outside the user plan before calling the provider", async () => {
     vi.stubEnv("NODE_ENV", "production");
+    process.env.OPENAI_API_KEY = "sk-env-test";
+    const ledger = getInMemoryUsageLedgerRepository();
+    setImageGenerationRouteDependenciesForTests({
+      authVerifier: {
+        verifyRequest: async () => ({
+          id: "free-image-user",
+        }),
+      },
+      permission: {
+        check: async (): Promise<PermissionDecision> => ({
+          decision: "allow",
+          reasonCode: "PERMISSION_ALLOWED",
+          requiredScopes: ["workspace:update"],
+          riskLevel: "high",
+        }),
+      },
+    });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await POST(
+      new Request("http://localhost/api/image-gen", {
+        body: JSON.stringify({
+          imageSettings: {
+            aspectRatio: "16:9",
+            modelId: "img2",
+            quality: "standard",
+          },
+          model: "img2",
+          conversationId: "workflow-image-run",
+          operatorId: "agent-image",
+          prompt: "free user should not generate image",
+          workspaceId: "workspace-image",
+        }),
+        headers: {
+          Authorization: "Bearer supabase-session",
+          "Content-Type": "application/json",
+          "X-Nexus-Test-Plan": "Free",
+          "X-Request-Id": "req-image-plan",
+          "X-User-Id": "free-image-user",
+          "X-Workspace-Id": "workspace-image",
+        },
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      error: {
+        code: "PERMISSION_DENIED",
+      },
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(ledger.all().at(-1)).toMatchObject({
+      conversationId: "workflow-image-run",
+      errorCode: "PERMISSION_DENIED",
+      modelId: "img2",
+      operatorId: "agent-image",
+      requestId: "req-image-plan",
+      sourceType: "image_workflow",
+      status: "failed",
+      userId: "free-image-user",
+    });
+  });
+
+  it("rejects image generation when fixed MVP points would exceed monthly quota", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXUS_DEFAULT_PLAN", "Basic");
+    process.env.OPENAI_API_KEY = "sk-env-test";
+    const ledger = getInMemoryUsageLedgerRepository();
+    const currentMonth = new Date();
+    currentMonth.setUTCDate(2);
+    await ledger.insert({
+      chargedPoints: 1_000_000,
+      conversationId: "conversation-image-quota-used",
+      createdAt: currentMonth.toISOString(),
+      errorCode: null,
+      inputTokens: 0,
+      modelId: "img2",
+      newApiModel: "gpt-image-2",
+      operatorId: "agent-image",
+      outputTokens: 0,
+      providerFamily: "OpenAI",
+      requestId: "req-image-used",
+      sourceType: "image_workflow",
+      status: "succeeded",
+      totalTokens: 0,
+      userId: "quota-image-user",
+    });
+    setImageGenerationRouteDependenciesForTests({
+      authVerifier: {
+        verifyRequest: async () => ({
+          id: "quota-image-user",
+        }),
+      },
+      permission: {
+        check: async (): Promise<PermissionDecision> => ({
+          decision: "allow",
+          reasonCode: "PERMISSION_ALLOWED",
+          requiredScopes: ["workspace:update"],
+          riskLevel: "high",
+        }),
+      },
+    });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await POST(
+      new Request("http://localhost/api/image-gen", {
+        body: JSON.stringify({
+          imageSettings: {
+            aspectRatio: "16:9",
+            modelId: "img2",
+            quality: "standard",
+          },
+          conversationId: "workflow-image-quota",
+          model: "img2",
+          operatorId: "agent-image",
+          prompt: "quota should stop this image",
+          workspaceId: "workspace-image",
+        }),
+        headers: {
+          Authorization: "Bearer supabase-session",
+          "Content-Type": "application/json",
+          "X-Request-Id": "req-image-quota",
+          "X-User-Id": "quota-image-user",
+          "X-Workspace-Id": "workspace-image",
+        },
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(402);
+    await expect(response.json()).resolves.toMatchObject({
+      error: {
+        code: "QUOTA_EXCEEDED",
+      },
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(ledger.all().at(-1)).toMatchObject({
+      conversationId: "workflow-image-quota",
+      errorCode: "QUOTA_EXCEEDED",
+      modelId: "img2",
+      operatorId: "agent-image",
+      requestId: "req-image-quota",
+      sourceType: "image_workflow",
+      status: "failed",
+      userId: "quota-image-user",
+    });
+  });
+
+  it("ignores JSON-shaped runtime provider settings before calling New API", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXUS_DEFAULT_PLAN", "Basic");
     process.env.OPENAI_API_KEY = "sk-env-test";
     setImageGenerationRouteDependenciesForTests({
       authVerifier: {
@@ -257,6 +454,7 @@ describe("/api/image-gen", () => {
         headers: {
           Authorization: "Bearer supabase-session",
           "Content-Type": "application/json",
+          "X-Nexus-Test-Plan": "Basic",
           "X-Nexus-Runtime-Authorization":
             'Bearer { "openai": { "apiKey": "sk-json-runtime-test" } }',
           "X-User-Id": "user-owner",
@@ -271,13 +469,14 @@ describe("/api/image-gen", () => {
     const [, init] = fetchCalls[0] ?? [];
 
     expect(init?.headers).toMatchObject({
-      Authorization: "Bearer sk-json-runtime-test",
+      Authorization: "Bearer sk-image-token-user-owner",
       "Content-Type": "application/json",
     });
   });
 
   it("uses request-scoped workspace permission for production image generation", async () => {
     vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXUS_DEFAULT_PLAN", "Basic");
     process.env.OPENAI_API_KEY = "sk-env-test";
     const permissionChecks: Array<{
       accessToken: string | null;
@@ -332,6 +531,7 @@ describe("/api/image-gen", () => {
         headers: {
           Authorization: "Bearer supabase-session",
           "Content-Type": "application/json",
+          "X-Nexus-Test-Plan": "Basic",
           "X-User-Id": "user-owner",
           "X-Workspace-Id": "workspace-image",
         },
@@ -351,6 +551,7 @@ describe("/api/image-gen", () => {
 
   it("persists generated image bytes to durable storage when workspace session credentials are present", async () => {
     vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXUS_DEFAULT_PLAN", "Basic");
     process.env.OPENAI_API_KEY = "sk-env-test";
     setImageGenerationRouteDependenciesForTests({
       authVerifier: {
@@ -420,6 +621,7 @@ describe("/api/image-gen", () => {
         headers: {
           Authorization: "Bearer supabase-session",
           "Content-Type": "application/json",
+          "X-Nexus-Test-Plan": "Basic",
           "X-User-Id": "user-owner",
           "X-Workspace-Id": "workspace-image",
         },

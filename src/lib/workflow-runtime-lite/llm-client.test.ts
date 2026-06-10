@@ -1,12 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type {
-  IAuthVault,
   NexusAgent,
   NexusWorkspace,
   WorkflowNodeInstance,
 } from "@/lib/nexus-types";
-import { NEXUS_RUNTIME_AUTHORIZATION_HEADER } from "@/lib/api/nexus-api-client";
 
 import { executeWorkflowRuntimeLlm } from "./llm-client";
 import { createWorkflowRuntimeNode } from "./state";
@@ -38,7 +36,6 @@ describe("workflow runtime LLM client", () => {
 
     await expect(
       executeWorkflowRuntimeLlm({
-        authVault: makeAuthVault(),
         executionAgent: makeAgent(),
         node: makeLlmNode(),
         prompt: "Summarize",
@@ -65,8 +62,8 @@ describe("workflow runtime LLM client", () => {
 
     expect(headers.get("X-User-Id")).toBeNull();
     expect(headers.get("X-Nexus-Workflow-Runtime")).toBe("lite");
-    expect(headers.get(NEXUS_RUNTIME_AUTHORIZATION_HEADER)).toBe("Bearer sk-test");
     expect(headers.get("Authorization")).toBeNull();
+    expect([...headers.keys()]).not.toContain("x-nexus-runtime-authorization");
   });
 
   it("retries when the workflow stream body aborts before tokens arrive", async () => {
@@ -89,7 +86,6 @@ describe("workflow runtime LLM client", () => {
     vi.stubGlobal("fetch", fetcher);
 
     const result = await executeWorkflowRuntimeLlm({
-      authVault: makeAuthVault(),
       executionAgent: makeAgent(),
       node: makeLlmNode(),
       prompt: "Summarize",
@@ -129,7 +125,6 @@ describe("workflow runtime LLM client", () => {
     vi.stubGlobal("fetch", fetcher);
 
     const result = await executeWorkflowRuntimeLlm({
-      authVault: makeAuthVault(),
       executionAgent: makeAgent(),
       node: makeLlmNode(),
       prompt: "Summarize",
@@ -169,15 +164,6 @@ function makePacket() {
     rawText: "Hello",
     runId: "run-test",
     sourceNodeId: "input",
-  };
-}
-
-function makeAuthVault(): IAuthVault {
-  return {
-    globalApiKey: "sk-test",
-    globalBaseUrl: "https://api.openai.com/v1",
-    isLocked: true,
-    user: null,
   };
 }
 

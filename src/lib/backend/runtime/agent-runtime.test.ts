@@ -10,6 +10,11 @@ import {
   resetApiAuthSessionVerifierForTests,
   setApiAuthSessionVerifierForTests,
 } from "@/lib/backend/api/api-auth";
+import { encryptNewApiToken } from "@/lib/backend/new-api-token/token-crypto";
+import {
+  resetUserNewApiTokenRepositoryForTests,
+  setUserNewApiTokenRepositoryForTests,
+} from "@/lib/backend/new-api-token/user-new-api-token-service";
 import {
   resetAgentStreamMessageHistoryServiceFactoryForTests,
   setAgentStreamMessageHistoryServiceFactoryForTests,
@@ -63,7 +68,23 @@ async function readSseEvents(response: Response) {
 }
 
 beforeEach(() => {
+  const secret = "runtime-test-token-secret";
+
   getInMemoryMessageRepository().clear();
+  vi.stubEnv("NEW_API_TOKEN_ENCRYPTION_SECRET", secret);
+  setUserNewApiTokenRepositoryForTests({
+    findByUserId: async (userId) => ({
+      enabled: true,
+      encryptedNewApiToken: encryptNewApiToken(`sk-runtime-token-${userId}`, {
+        secret,
+      }),
+      group: "runtime-test",
+      plan: "basic",
+      tokenId: `runtime-token-${userId}`,
+      tokenName: "Runtime Test",
+      userId,
+    }),
+  });
   setApiAuthSessionVerifierForTests({
     verifyRequest: vi.fn(async (request) => ({
       email: null,
@@ -79,8 +100,11 @@ beforeEach(() => {
 
 afterEach(() => {
   resetApiAuthSessionVerifierForTests();
+  resetUserNewApiTokenRepositoryForTests();
   resetAgentStreamMessageHistoryServiceFactoryForTests();
   getInMemoryMessageRepository().clear();
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
 });
 
 describe("AgentRuntimeService", () => {
@@ -297,6 +321,51 @@ describe("AgentRuntimeService", () => {
 });
 
 describe("ProviderAdapter fallback boundary", () => {
+  it("uses the provided server-side user token even when a shared env key exists", async () => {
+    vi.stubEnv("NEW_API_KEY", "shared-env-token");
+    vi.stubEnv("NEW_API_BASE_URL", "https://new-api.example.test/v1");
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
+        controller.close();
+      },
+    });
+    const fetcher = vi.fn(async () => new Response(body, { status: 200 }));
+    const adapter = new OpenAICompatibleAdapter({
+      fetcher,
+    });
+
+    await adapter.createChatStream({
+      apiKey: "sk-user-stream-token",
+      baseUrl: "https://new-api.example.test/v1",
+      model: "gpt-4o-mini",
+      payload: {
+        agent: {
+          callsign: "TEST",
+          contextNotes: [],
+          identity: "test",
+          memory: [],
+          mission: "test",
+          executionPrompt: "",
+          model: "gpt-4o-mini",
+          provider: "openai-compatible",
+          title: "Test",
+        },
+        messages: [{ content: "hello", role: "user" }],
+      },
+      signal: new AbortController().signal,
+      workspaceId: "workspace-runtime",
+    });
+
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    const [, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit];
+
+    expect(init.headers).toMatchObject({
+      Authorization: "Bearer sk-user-stream-token",
+    });
+    expect(JSON.stringify(fetcher.mock.calls[0])).not.toContain("shared-env-token");
+  });
+
   it("does not silently fall back to mock in production live mode without the V5 flag", async () => {
     const adapter = new OpenAICompatibleAdapter({
       environmentValidator: new EnvironmentValidator({

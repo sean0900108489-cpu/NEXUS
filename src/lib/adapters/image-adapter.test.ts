@@ -57,7 +57,7 @@ describe("executeImageAdapterForAgent", () => {
     });
   });
 
-  it("passes a browser API key through the runtime authorization header when one is available", async () => {
+  it("does not pass browser provider credentials through image route headers", async () => {
     const fetchCalls: Array<[RequestInfo | URL, RequestInit | undefined]> = [];
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       fetchCalls.push([input, init]);
@@ -92,10 +92,8 @@ describe("executeImageAdapterForAgent", () => {
     const [, init] = fetchCalls[0] ?? [];
     expect(init?.headers).toEqual({
       "Content-Type": "application/json",
-      "X-Nexus-Runtime-Authorization": "Bearer sk-browser-test",
       "X-User-Id": "user-image",
       "X-Workspace-Id": "workspace-image",
-      "x-openai-base-url": "https://api.openai.com/v1",
     });
     expect(JSON.parse(String(init?.body))).toMatchObject({
       workspaceId: "workspace-image",

@@ -1,5 +1,4 @@
 import { DEFAULT_BASE_URL } from "@/lib/nexus-defaults";
-import { NEXUS_RUNTIME_AUTHORIZATION_HEADER } from "@/lib/api/nexus-api-client";
 import type { AgentMediaArtifact, IToolExecutor, NexusAgent } from "@/lib/nexus-types";
 import type { WorkspaceComposerImageSettings } from "@/lib/composer/image-generation-settings";
 import { buildOpenAiCompatibleImageGenerationPayload } from "@/lib/media/image-generation-adapter-map";
@@ -16,6 +15,8 @@ export type ImageAdapterRequest = {
   apiKey?: string;
   baseUrl?: string;
   imageSettings?: Partial<WorkspaceComposerImageSettings>;
+  conversationId?: string;
+  operatorId?: string;
   prompt: string;
   toolName: string;
   userId?: string;
@@ -237,22 +238,13 @@ export async function executeImageAdapterForAgent(
   request: ImageAdapterRequest,
   options: { signal?: AbortSignal } = {},
 ): Promise<ImageAdapterResult> {
-  const apiKey = request.apiKey?.trim();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
   const accessToken = await resolveBrowserAccessToken();
 
-  if (apiKey) {
-    headers[NEXUS_RUNTIME_AUTHORIZATION_HEADER] = `Bearer ${apiKey}`;
-  }
-
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
-  }
-
-  if (request.baseUrl?.trim()) {
-    headers["x-openai-base-url"] = request.baseUrl.trim();
   }
 
   if (request.workspaceId?.trim()) {
@@ -274,6 +266,8 @@ export async function executeImageAdapterForAgent(
       },
       imageSettings: request.imageSettings,
       model: request.agent.model || "dall-e-3",
+      conversationId: request.conversationId,
+      operatorId: request.operatorId,
       prompt: request.prompt,
       toolName: request.toolName,
       workspaceId: request.workspaceId,

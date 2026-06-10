@@ -1,6 +1,5 @@
 import {
   executeMemoryCompression,
-  getBearerToken,
   getCompatibleBaseUrl,
   type MemoryCompressRequest,
 } from "@/lib/backend/api/memory-compress-service";
@@ -25,9 +24,12 @@ export async function POST(request: Request) {
   }
 
   const result = await executeMemoryCompression({
-    apiKey: getBearerToken(request.headers.get("authorization")),
+    apiKey:
+      process.env.NEW_API_KEY?.replace(/[^\x20-\x7E]/g, "").trim() ||
+      process.env.OPENAI_API_KEY?.replace(/[^\x20-\x7E]/g, "").trim() ||
+      "",
     baseUrl: getCompatibleBaseUrl(
-      request.headers.get("x-openai-base-url") || process.env.OPENAI_BASE_URL,
+      process.env.NEW_API_BASE_URL || process.env.OPENAI_BASE_URL,
     ),
     requestPayload,
   });

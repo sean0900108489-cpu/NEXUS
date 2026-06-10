@@ -4,7 +4,7 @@ import {
   normalizeImageBaseUrl,
   type ImageAdapterResult,
 } from "@/lib/adapters/image-adapter";
-import { getRuntimeBearerToken } from "@/lib/backend/api/memory-compress-service";
+import { ApiError, getApiErrorDescriptor, toApiError } from "@/lib/backend/api/api-errors";
 import {
   createGeneratedImageAssetFromBytes,
   createGeneratedImageAssetUrl,
@@ -18,6 +18,19 @@ import {
   getSupabaseRequestAccessToken,
   type AuthSessionVerifier,
 } from "@/lib/backend/security/auth-session";
+import {
+  assertModelAllowedForPlan,
+  getCatalogModel,
+  type ProductModelCatalogEntry,
+} from "@/lib/backend/models/model-catalog";
+import {
+  estimateImageGenerationPoints,
+  getUserPlan,
+  isModelAllowedByPlan,
+} from "@/lib/backend/models/plan-config";
+import { assertMonthlyQuotaAvailable } from "@/lib/backend/models/quota-gate";
+import { createUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
+import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 import type { PermissionService } from "@/lib/backend/security/permission-service";
 import { createWorkspaceStatePermissionService } from "@/lib/backend/workspace/workspace-permission";
 import { normalizeWorkspaceComposerImageSettings } from "@/lib/composer/image-generation-settings";
@@ -30,11 +43,18 @@ type ImageGenerationPayload = {
     accent?: unknown;
     callsign?: unknown;
   };
+  conversationId?: unknown;
   imageSettings?: unknown;
   model?: unknown;
+  operatorId?: unknown;
   prompt?: unknown;
   toolName?: unknown;
   workspaceId?: unknown;
+};
+type ImageGenerationRouteAccess = {
+  accessToken: string | null;
+  userId: string;
+  workspaceId: string;
 };
 type ImagePermissionService = Pick<PermissionService, "check">;
 type ImagePermissionServiceFactoryInput = {
@@ -56,11 +76,16 @@ function getString(value: unknown, fallback: string) {
 }
 
 function getServerImageApiKey() {
-  return normalizeImageApiKeyCandidate(process.env.OPENAI_API_KEY) ?? "";
+  return (
+    normalizeImageApiKeyCandidate(process.env.NEW_API_KEY) ??
+    normalizeImageApiKeyCandidate(process.env.OPENAI_API_KEY) ??
+    ""
+  );
 }
 
 function getServerImageBaseUrl() {
   return (
+    process.env.NEW_API_BASE_URL?.trim() ||
     process.env.OPENAI_IMAGE_BASE_URL?.trim() ||
     process.env.OPENAI_BASE_URL?.trim() ||
     undefined
@@ -76,10 +101,10 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid image generation payload." }, { status: 400 });
   }
 
-  const accessFailure = await assertImageGenerationRouteAccess(request, payload);
+  const routeAccess = await assertImageGenerationRouteAccess(request, payload);
 
-  if (accessFailure) {
-    return accessFailure;
+  if (routeAccess instanceof Response) {
+    return routeAccess;
   }
 
   const prompt = getString(payload.prompt, "");
@@ -88,11 +113,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Image prompt is required." }, { status: 400 });
   }
 
-  const runtimeProviderToken = getRuntimeBearerToken(request.headers);
-  const apiKey = resolveImageGenerationApiKey(runtimeProviderToken);
-  const baseUrl = normalizeImageBaseUrl(
-    request.headers.get("x-openai-base-url") ?? getServerImageBaseUrl(),
-  );
+  const baseUrl = normalizeImageBaseUrl(getServerImageBaseUrl());
   const agent = {
     accent: getString(payload.agent?.accent, "#a78bfa"),
     callsign: getString(payload.agent?.callsign, "IMAGE"),
@@ -101,6 +122,37 @@ export async function POST(request: Request) {
   const imageSettings = normalizeWorkspaceComposerImageSettings(
     isRecord(payload.imageSettings) ? payload.imageSettings : undefined,
   );
+  const productUserId =
+    routeAccess?.userId ?? getString(request.headers.get("x-user-id"), "");
+  const productGate = productUserId
+    ? await assertImageGenerationProductGate({
+        imageSettings,
+        modelId: agent.model,
+        payload,
+        request,
+        userId: productUserId,
+      }).catch((error) => toImageGenerationErrorResponse(error))
+    : null;
+
+  if (productGate instanceof Response) {
+    return productGate;
+  }
+
+  const apiKey = productGate
+    ? await getImageGenerationNewApiToken({
+        model: productGate.model,
+        payload,
+        request,
+        userId: productUserId,
+      })
+        .then((token) => token.token)
+        .catch((error) => toImageGenerationErrorResponse(error))
+    : resolveImageGenerationApiKey();
+
+  if (apiKey instanceof Response) {
+    return apiKey;
+  }
+
   const toolName = getString(payload.toolName, "Image Adapter");
 
   try {
@@ -121,27 +173,77 @@ export async function POST(request: Request) {
           toolName,
     });
     const result = await adapter.execute();
+    const materialized = await materializeImageResultForBrowser(result, imageSettings, {
+      accessToken: getSupabaseRequestAccessToken(request),
+      workspaceId:
+        getString(payload.workspaceId, "") ||
+        getString(request.headers.get("x-workspace-id"), ""),
+    });
 
-    return Response.json(
-      await materializeImageResultForBrowser(result, imageSettings, {
-        accessToken: getSupabaseRequestAccessToken(request),
-        workspaceId:
-          getString(payload.workspaceId, "") ||
-          getString(request.headers.get("x-workspace-id"), ""),
-      }),
-    );
+    if (productGate) {
+      await recordImageGenerationUsage({
+        chargedPoints: productGate.estimatedPoints,
+        errorCode: null,
+        model: productGate.model,
+        payload,
+        request,
+        status: "succeeded",
+        userId: productUserId,
+      }).catch(() => undefined);
+    }
+
+    return Response.json(materialized);
   } catch (error) {
     const detail = error instanceof Error ? error.message : "Image generation failed.";
+
+    if (productGate) {
+      await recordImageGenerationUsage({
+        chargedPoints: 0,
+        errorCode: "PROVIDER_TIMEOUT",
+        model: productGate.model,
+        payload,
+        request,
+        status: "failed",
+        userId: productUserId,
+      }).catch(() => undefined);
+    }
 
     return Response.json({ error: detail }, { status: 502 });
   }
 }
 
-export function resolveImageGenerationApiKey(runtimeProviderToken: string) {
-  return (
-    normalizeImageApiKeyCandidate(runtimeProviderToken) ??
-    getServerImageApiKey()
-  );
+async function getImageGenerationNewApiToken({
+  model,
+  payload,
+  request,
+  userId,
+}: {
+  model: ProductModelCatalogEntry;
+  payload: ImageGenerationPayload;
+  request: Request;
+  userId: string;
+}) {
+  try {
+    return await getUserNewApiToken({ userId });
+  } catch (error) {
+    const apiError = toApiError(error);
+
+    await recordImageGenerationUsage({
+      chargedPoints: 0,
+      errorCode: apiError.code,
+      model,
+      payload,
+      request,
+      status: "failed",
+      userId,
+    }).catch(() => undefined);
+
+    throw apiError;
+  }
+}
+
+export function resolveImageGenerationApiKey() {
+  return getServerImageApiKey();
 }
 
 export function setImageGenerationRouteDependenciesForTests(dependencies: {
@@ -171,7 +273,7 @@ export function resetImageGenerationRouteDependenciesForTests() {
 async function assertImageGenerationRouteAccess(
   request: Request,
   payload: ImageGenerationPayload,
-) {
+): Promise<ImageGenerationRouteAccess | Response | null> {
   if (!isProductionRuntime()) {
     return null;
   }
@@ -223,11 +325,138 @@ async function assertImageGenerationRouteAccess(
         { status: 403 },
       );
     }
+
+    return {
+      accessToken,
+      userId: sessionUser.id,
+      workspaceId,
+    };
   } catch {
     return Response.json({ error: "Authentication is required." }, { status: 401 });
   }
+}
 
-  return null;
+async function assertImageGenerationProductGate({
+  imageSettings,
+  modelId,
+  payload,
+  request,
+  userId,
+}: {
+  imageSettings: ReturnType<typeof normalizeWorkspaceComposerImageSettings>;
+  modelId: string;
+  payload: ImageGenerationPayload;
+  request: Request;
+  userId: string;
+}) {
+  try {
+    const plan = getUserPlan({ request, userId });
+    const model = assertModelAllowedForPlan(modelId, plan);
+
+    if (model.modality !== "image") {
+      throw new ApiError(
+        "VALIDATION_FAILED",
+        "Requested model is not available for image generation.",
+        400,
+        { modelId },
+      );
+    }
+
+    if (!isModelAllowedByPlan(model.id, plan)) {
+      throw new ApiError(
+        "PERMISSION_DENIED",
+        "Requested model is not allowed for this plan.",
+        403,
+        { modelId: model.id, plan },
+      );
+    }
+
+    const estimatedPoints = estimateImageGenerationPoints({
+      modelId: model.id,
+      quality: imageSettings.quality,
+    });
+
+    await assertMonthlyQuotaAvailable({
+      estimatedPoints,
+      ledger: createUsageLedgerRepository(),
+      plan,
+      userId,
+    });
+
+    return {
+      estimatedPoints,
+      model,
+    };
+  } catch (error) {
+    const apiError = toApiError(error);
+    const model = getCatalogModel(modelId);
+
+    await recordImageGenerationUsage({
+      chargedPoints: 0,
+      errorCode: apiError.code,
+      model,
+      modelId,
+      payload,
+      request,
+      status: "failed",
+      userId,
+    }).catch(() => undefined);
+
+    throw apiError;
+  }
+}
+
+function toImageGenerationErrorResponse(error: unknown) {
+  const apiError = toApiError(error);
+  const descriptor = getApiErrorDescriptor(apiError.code);
+
+  return Response.json(
+    {
+      error: {
+        code: apiError.code,
+        message: apiError.message || descriptor.message,
+        retryable: descriptor.retryable,
+      },
+    },
+    { status: apiError.statusCode },
+  );
+}
+
+async function recordImageGenerationUsage({
+  chargedPoints,
+  errorCode,
+  model,
+  modelId,
+  payload,
+  request,
+  status,
+  userId,
+}: {
+  chargedPoints: number;
+  errorCode: string | null;
+  model?: ProductModelCatalogEntry;
+  modelId?: string;
+  payload: ImageGenerationPayload;
+  request: Request;
+  status: "failed" | "succeeded";
+  userId: string;
+}) {
+  await createUsageLedgerRepository().insert({
+    chargedPoints,
+    conversationId: getString(payload.conversationId, "") || null,
+    errorCode,
+    inputTokens: 0,
+    modelId: model?.id ?? modelId ?? "unknown-image-model",
+    newApiModel: model?.new_api_model ?? modelId ?? "unknown-image-model",
+    operatorId: getString(payload.operatorId, "image-workflow"),
+    outputTokens: 0,
+    providerFamily: model?.provider_family ?? "unknown",
+    requestId: getString(request.headers.get("x-request-id"), crypto.randomUUID()),
+    sourceType: "image_workflow",
+    status,
+    totalTokens: 0,
+    userId,
+  });
 }
 
 function createRequestScopedImagePermissionService({

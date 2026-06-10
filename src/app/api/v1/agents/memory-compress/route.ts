@@ -1,11 +1,25 @@
 import { apiHandler } from "@/lib/backend/api/api-handler";
+import { ApiError, toApiError } from "@/lib/backend/api/api-errors";
 import {
   executeMemoryCompression,
-  getRuntimeBearerToken,
   getCompatibleBaseUrl,
+  normalizeConfig,
   validateMemoryCompressRequest,
 } from "@/lib/backend/api/memory-compress-service";
 import { createAgentRuntimeService } from "@/lib/backend/runtime/agent-runtime-service";
+import {
+  assertModelAllowedForPlan,
+  getCatalogModel,
+  type ProductModelCatalogEntry,
+} from "@/lib/backend/models/model-catalog";
+import {
+  estimateModelPoints,
+  getUserPlan,
+  isModelAllowedByPlan,
+} from "@/lib/backend/models/plan-config";
+import { assertMonthlyQuotaAvailable } from "@/lib/backend/models/quota-gate";
+import { createUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
+import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -14,6 +28,13 @@ const runtimeService = createAgentRuntimeService();
 
 export const POST = apiHandler({
   handler: async ({ body, request, requestId, trace, traceId, workspaceId }) => {
+    const productGate = await assertMemoryCompressionProductGate({
+      body,
+      request,
+      requestId,
+      userId: trace.userId,
+    });
+
     await maybeCreateMemoryCompressTask({
       body,
       requestId,
@@ -22,13 +43,34 @@ export const POST = apiHandler({
       workspaceId,
     });
 
-    return executeMemoryCompression({
-      apiKey: getRuntimeBearerToken(request.headers),
+    const userNewApiToken = await getMemoryCompressionNewApiToken({
+      productGate,
+      requestId,
+    });
+    const result = await executeMemoryCompression({
+      apiKey: userNewApiToken.token,
       baseUrl: getCompatibleBaseUrl(
-        request.headers.get("x-openai-base-url") || process.env.OPENAI_BASE_URL,
+        process.env.NEW_API_BASE_URL || process.env.OPENAI_BASE_URL,
       ),
       requestPayload: body,
     });
+
+    await recordMemoryCompressionUsage({
+      chargedPoints:
+        result && typeof result === "object" && "mockFallback" in result
+          ? 0
+          : productGate.estimatedPoints,
+      errorCode: null,
+      modelId: productGate.model.id,
+      newApiModel: productGate.model.new_api_model,
+      operatorId: productGate.operatorId,
+      providerFamily: productGate.model.provider_family,
+      requestId,
+      status: "succeeded",
+      userId: productGate.userId,
+    }).catch(() => undefined);
+
+    return result;
   },
   idempotency: {
     enabled: true,
@@ -44,6 +86,176 @@ export const POST = apiHandler({
       ? (body as { workspaceId?: string }).workspaceId
       : undefined,
 });
+
+async function assertMemoryCompressionProductGate({
+  body,
+  request,
+  requestId,
+  userId,
+}: {
+  body: unknown;
+  request: Request;
+  requestId: string;
+  userId?: string;
+}) {
+  const record = isRecord(body) ? body : {};
+  const config = normalizeConfig(record.config);
+  const modelId = config.compressorModelId;
+  const operatorId = getMemoryOperatorId(record);
+
+  try {
+    if (!userId) {
+      throw new ApiError("AUTH_REQUIRED", "Authentication is required.", 401);
+    }
+
+    const plan = getUserPlan({ request, userId });
+    const model = assertModelAllowedForPlan(modelId, plan);
+
+    if (model.modality !== "chat") {
+      throw new ApiError(
+        "VALIDATION_FAILED",
+        "Memory compression requires a chat model.",
+        400,
+        { modelId },
+      );
+    }
+
+    if (!isModelAllowedByPlan(model.id, plan)) {
+      throw new ApiError(
+        "PERMISSION_DENIED",
+        "Requested model is not allowed for this plan.",
+        403,
+        { modelId: model.id, plan },
+      );
+    }
+
+    const estimatedPoints = estimateModelPoints(
+      model.id,
+      estimateMemoryCompressionTokens(record),
+    );
+
+    await assertMonthlyQuotaAvailable({
+      estimatedPoints,
+      ledger: createUsageLedgerRepository(),
+      plan,
+      userId,
+    });
+
+    return {
+      estimatedPoints,
+      model,
+      operatorId,
+      userId,
+    };
+  } catch (error) {
+    const apiError = toApiError(error);
+    const model = getCatalogModel(modelId);
+
+    if (userId) {
+      await recordMemoryCompressionUsage({
+        chargedPoints: 0,
+        errorCode: apiError.code,
+        modelId,
+        newApiModel: model?.new_api_model ?? modelId,
+        operatorId,
+        providerFamily: model?.provider_family ?? "unknown",
+        requestId,
+        status: "failed",
+        userId,
+      }).catch(() => undefined);
+    }
+
+    throw apiError;
+  }
+}
+
+async function getMemoryCompressionNewApiToken({
+  productGate,
+  requestId,
+}: {
+  productGate: {
+    estimatedPoints: number;
+    model: ProductModelCatalogEntry;
+    operatorId: string;
+    userId: string;
+  };
+  requestId: string;
+}) {
+  try {
+    return await getUserNewApiToken({ userId: productGate.userId });
+  } catch (error) {
+    const apiError = toApiError(error);
+
+    await recordMemoryCompressionUsage({
+      chargedPoints: 0,
+      errorCode: apiError.code,
+      modelId: productGate.model.id,
+      newApiModel: productGate.model.new_api_model,
+      operatorId: productGate.operatorId,
+      providerFamily: productGate.model.provider_family,
+      requestId,
+      status: "failed",
+      userId: productGate.userId,
+    }).catch(() => undefined);
+
+    throw apiError;
+  }
+}
+
+async function recordMemoryCompressionUsage({
+  chargedPoints,
+  errorCode,
+  modelId,
+  newApiModel,
+  operatorId,
+  providerFamily,
+  requestId,
+  status,
+  userId,
+}: {
+  chargedPoints: number;
+  errorCode: string | null;
+  modelId: string;
+  newApiModel: string;
+  operatorId: string;
+  providerFamily: string;
+  requestId: string;
+  status: "failed" | "succeeded";
+  userId: string;
+}) {
+  await createUsageLedgerRepository().insert({
+    chargedPoints,
+    conversationId: null,
+    errorCode,
+    inputTokens: 0,
+    modelId,
+    newApiModel,
+    operatorId,
+    outputTokens: 0,
+    providerFamily,
+    requestId,
+    sourceType: "memory_compress",
+    status,
+    totalTokens: 0,
+    userId,
+  });
+}
+
+function getMemoryOperatorId(record: Record<string, unknown>) {
+  const payload = isRecord(record.payload) ? record.payload : {};
+
+  return typeof record.agentId === "string" && record.agentId.trim()
+    ? record.agentId.trim()
+    : typeof payload.agentId === "string" && payload.agentId.trim()
+      ? payload.agentId.trim()
+      : "memory-compressor";
+}
+
+function estimateMemoryCompressionTokens(record: Record<string, unknown>) {
+  const serialized = JSON.stringify(record.payload ?? record);
+
+  return Math.max(1, Math.ceil(serialized.length / 4));
+}
 
 async function maybeCreateMemoryCompressTask({
   body,

@@ -8,7 +8,6 @@ import { temporal } from "zundo";
 import {
   ACTIVE_WORKSPACE_ID,
   DEFAULT_CHAT_SUPPORTED_MODELS,
-  DEFAULT_BASE_URL,
   DEFAULT_WORKSPACE_BRANCHING_SETTINGS,
   agentTemplates,
   applyAgentTemplateProfile,
@@ -21,7 +20,6 @@ import {
   resolveAgentTemplateProfile,
 } from "@/lib/nexus-defaults";
 import {
-  NEXUS_RUNTIME_AUTHORIZATION_HEADER,
   NexusApiError,
   nexusApiClient,
 } from "@/lib/api/nexus-api-client";
@@ -43,7 +41,6 @@ import type { ToolExecutorInput } from "@/lib/tool-executors";
 import { LlmMemoryCompressor } from "@/lib/adapters/memory-compression-adapter";
 import {
   getModelOption,
-  getProviderOption,
   normalizeAgentModelSettings,
 } from "@/lib/nexus-registry";
 import {
@@ -174,7 +171,7 @@ const workflowRuntimeAbortControllers = new Map<string, AbortController>();
 const DEFAULT_AUTH_VAULT: IAuthVault = {
   user: null,
   globalApiKey: null,
-  globalBaseUrl: DEFAULT_BASE_URL,
+  globalBaseUrl: null,
   isLocked: true,
   providerCredentials: {},
 };
@@ -189,45 +186,10 @@ function normalizeAuthVault(value: unknown): IAuthVault {
   return {
     user: vault.user ?? null,
     globalApiKey: null,
-    globalBaseUrl:
-      typeof vault.globalBaseUrl === "string" && vault.globalBaseUrl.trim()
-        ? vault.globalBaseUrl.trim()
-        : DEFAULT_BASE_URL,
+    globalBaseUrl: null,
     isLocked: true,
-    providerCredentials: normalizeProviderCredentials(vault.providerCredentials),
+    providerCredentials: {},
   };
-}
-
-function normalizeProviderCredentials(value: unknown): IAuthVault["providerCredentials"] {
-  if (!value || typeof value !== "object") {
-    return {};
-  }
-
-  return Object.entries(value as Record<string, unknown>).reduce<
-    NonNullable<IAuthVault["providerCredentials"]>
-  >((credentials, [providerId, entry]) => {
-    if (!entry || typeof entry !== "object") {
-      return credentials;
-    }
-
-    const record = entry as NonNullable<IAuthVault["providerCredentials"]>[string];
-    const provider = getProviderOption(providerId);
-    const baseUrl =
-      typeof record.baseUrl === "string" && record.baseUrl.trim()
-        ? record.baseUrl.trim()
-        : provider?.defaultBaseUrl ?? null;
-
-    credentials[providerId] = {
-      apiKey: null,
-      baseUrl,
-      isLocked: true,
-      liveVerifiedAt: null,
-      verificationStatus: "untested",
-      verificationError: null,
-    };
-
-    return credentials;
-  }, {});
 }
 
 export function prepareAuthVaultForLocalPersistence(authVault: IAuthVault): IAuthVault {
@@ -1398,11 +1360,10 @@ function markWorkflowRunTraceSync(
   );
 }
 
-function resolveStreamMode(_workspace: NexusWorkspace | undefined, authVault?: IAuthVault): StreamMode {
-  return authVault?.globalApiKey?.trim() ||
-    Object.values(authVault?.providerCredentials ?? {}).some((entry) => entry.apiKey?.trim())
-    ? "live"
-    : "mock";
+function resolveStreamMode(_workspace: NexusWorkspace | undefined, _authVault?: IAuthVault): StreamMode {
+  void _workspace;
+  void _authVault;
+  return "live";
 }
 
 function getDefaultChatModelForAgent() {
@@ -2861,114 +2822,66 @@ export const useNexusStore = create<NexusStore>()(
         }));
       },
 
-      setGlobalApiKey: (key) => {
-        const sanitizedKey = key.replace(/[^\x20-\x7E]/g, "").trim();
-        const globalApiKey = sanitizedKey || null;
-
-        set((state) => {
-          return {
-            authVault: {
-              ...state.authVault,
-              globalApiKey,
-              isLocked: Boolean(globalApiKey),
-            },
-            streamMode:
-              globalApiKey ||
-              Object.values(state.authVault.providerCredentials ?? {}).some((entry) =>
-                entry.apiKey?.trim(),
-              )
-                ? "live"
-                : "mock",
-          };
-        });
-      },
-
-      setGlobalBaseUrl: (baseUrl) => {
-        const sanitizedBaseUrl = baseUrl.replace(/[^\x20-\x7E]/g, "").trim();
-        const globalBaseUrl = sanitizedBaseUrl || DEFAULT_BASE_URL;
-
+      setGlobalApiKey: () => {
         set((state) => ({
           authVault: {
             ...state.authVault,
-            globalBaseUrl,
+            globalApiKey: null,
+            isLocked: false,
+          },
+          streamMode: "live",
+        }));
+      },
+
+      setGlobalBaseUrl: () => {
+        set((state) => ({
+          authVault: {
+            ...state.authVault,
+            globalBaseUrl: null,
           },
         }));
       },
 
-      setProviderApiKey: (providerId, key) => {
-        const sanitizedKey = key.replace(/[^\x20-\x7E]/g, "").trim();
-        const provider = getProviderOption(providerId);
-
+      setProviderApiKey: (providerId) => {
         set((state) => {
-          const current = state.authVault.providerCredentials?.[providerId];
+          const nextCredentials = { ...(state.authVault.providerCredentials ?? {}) };
+          delete nextCredentials[providerId];
 
           return {
             authVault: {
               ...state.authVault,
-              providerCredentials: {
-                ...(state.authVault.providerCredentials ?? {}),
-                [providerId]: {
-                  apiKey: sanitizedKey || null,
-                  baseUrl: current?.baseUrl ?? provider?.defaultBaseUrl ?? null,
-                  isLocked: Boolean(sanitizedKey),
-                  liveVerifiedAt: sanitizedKey ? current?.liveVerifiedAt ?? null : null,
-                  verificationError: null,
-                  verificationStatus: sanitizedKey
-                    ? current?.verificationStatus ?? "untested"
-                    : "untested",
-                },
-              },
+              providerCredentials: nextCredentials,
             },
-            streamMode: sanitizedKey || state.authVault.globalApiKey ? "live" : "mock",
+            streamMode: "live",
           };
         });
       },
 
-      setProviderBaseUrl: (providerId, baseUrl) => {
-        const sanitizedBaseUrl = baseUrl.replace(/[^\x20-\x7E]/g, "").trim();
-        const provider = getProviderOption(providerId);
-
+      setProviderBaseUrl: (providerId) => {
         set((state) => {
-          const current = state.authVault.providerCredentials?.[providerId];
+          const nextCredentials = { ...(state.authVault.providerCredentials ?? {}) };
+          delete nextCredentials[providerId];
 
           return {
             authVault: {
               ...state.authVault,
-              providerCredentials: {
-                ...(state.authVault.providerCredentials ?? {}),
-                [providerId]: {
-                  apiKey: current?.apiKey ?? null,
-                  baseUrl: sanitizedBaseUrl || provider?.defaultBaseUrl || null,
-                  isLocked: current?.isLocked ?? Boolean(current?.apiKey),
-                  liveVerifiedAt: null,
-                  verificationError: null,
-                  verificationStatus: "untested",
-                },
-              },
+              providerCredentials: nextCredentials,
             },
           };
         });
       },
 
       setProviderVerificationStatus: (providerId, status, error) => {
+        void status;
+        void error;
         set((state) => {
-          const provider = getProviderOption(providerId);
-          const current = state.authVault.providerCredentials?.[providerId];
+          const nextCredentials = { ...(state.authVault.providerCredentials ?? {}) };
+          delete nextCredentials[providerId];
 
           return {
             authVault: {
               ...state.authVault,
-              providerCredentials: {
-                ...(state.authVault.providerCredentials ?? {}),
-                [providerId]: {
-                  apiKey: current?.apiKey ?? null,
-                  baseUrl: current?.baseUrl ?? provider?.defaultBaseUrl ?? null,
-                  isLocked: current?.isLocked ?? Boolean(current?.apiKey),
-                  liveVerifiedAt: status === "verified" ? new Date().toISOString() : null,
-                  verificationError: status === "failed" ? error ?? "Verification failed." : null,
-                  verificationStatus: status,
-                },
-              },
+              providerCredentials: nextCredentials,
             },
           };
         });
@@ -2976,23 +2889,13 @@ export const useNexusStore = create<NexusStore>()(
 
       lockProviderCredential: (providerId) => {
         set((state) => {
-          const provider = getProviderOption(providerId);
-          const current = state.authVault.providerCredentials?.[providerId];
+          const nextCredentials = { ...(state.authVault.providerCredentials ?? {}) };
+          delete nextCredentials[providerId];
 
           return {
             authVault: {
               ...state.authVault,
-              providerCredentials: {
-                ...(state.authVault.providerCredentials ?? {}),
-                [providerId]: {
-                  apiKey: current?.apiKey ?? null,
-                  baseUrl: current?.baseUrl ?? provider?.defaultBaseUrl ?? null,
-                  isLocked: true,
-                  liveVerifiedAt: current?.liveVerifiedAt ?? null,
-                  verificationError: current?.verificationError ?? null,
-                  verificationStatus: current?.verificationStatus ?? "untested",
-                },
-              },
+              providerCredentials: nextCredentials,
             },
           };
         });
@@ -3000,23 +2903,13 @@ export const useNexusStore = create<NexusStore>()(
 
       unlockProviderCredential: (providerId) => {
         set((state) => {
-          const provider = getProviderOption(providerId);
-          const current = state.authVault.providerCredentials?.[providerId];
+          const nextCredentials = { ...(state.authVault.providerCredentials ?? {}) };
+          delete nextCredentials[providerId];
 
           return {
             authVault: {
               ...state.authVault,
-              providerCredentials: {
-                ...(state.authVault.providerCredentials ?? {}),
-                [providerId]: {
-                  apiKey: current?.apiKey ?? null,
-                  baseUrl: current?.baseUrl ?? provider?.defaultBaseUrl ?? null,
-                  isLocked: false,
-                  liveVerifiedAt: current?.liveVerifiedAt ?? null,
-                  verificationError: current?.verificationError ?? null,
-                  verificationStatus: current?.verificationStatus ?? "untested",
-                },
-              },
+              providerCredentials: nextCredentials,
             },
           };
         });
@@ -3032,10 +2925,7 @@ export const useNexusStore = create<NexusStore>()(
               ...state.authVault,
               providerCredentials: nextCredentials,
             },
-            streamMode:
-              state.authVault.globalApiKey || Object.values(nextCredentials).some((entry) => entry.apiKey)
-                ? "live"
-                : "mock",
+            streamMode: "live",
           };
         });
       },
@@ -3065,11 +2955,7 @@ export const useNexusStore = create<NexusStore>()(
             globalApiKey: null,
             isLocked: false,
           },
-          streamMode: Object.values(state.authVault.providerCredentials ?? {}).some((entry) =>
-            entry.apiKey?.trim(),
-          )
-            ? "live"
-            : "mock",
+          streamMode: "live",
         }));
       },
 
@@ -4433,9 +4319,6 @@ export const useNexusStore = create<NexusStore>()(
         }));
 
         try {
-          const safeApiKey =
-            state.authVault.globalApiKey?.replace(/[^\x20-\x7E]/g, "").trim() ||
-            undefined;
           const request: ToolRunRequest = {
             agentId,
             input: input ? sanitizeToolInput(input) : undefined,
@@ -4445,11 +4328,6 @@ export const useNexusStore = create<NexusStore>()(
             `/api/v1/tools/${encodeURIComponent(tool.executorId)}/run`,
             request,
             {
-              headers: safeApiKey
-                ? {
-                    [NEXUS_RUNTIME_AUTHORIZATION_HEADER]: `Bearer ${safeApiKey}`,
-                  }
-                : undefined,
               idempotencyKey: makeId("tool_mutation"),
               userId: state.authVault.user?.id ?? "local-owner",
               workspaceId: workspace.id,
@@ -4458,7 +4336,6 @@ export const useNexusStore = create<NexusStore>()(
           const finalResponse =
             response.confirmationRequired && response.toolRun.status === "awaiting_confirmation"
               ? await resolveToolConfirmation({
-                  apiKey: safeApiKey,
                   toolName: tool.name,
                   toolRunId: response.toolRun.id,
                   userId: state.authVault.user?.id ?? "local-owner",
@@ -4690,13 +4567,11 @@ export const useNexusStore = create<NexusStore>()(
 );
 
 async function resolveToolConfirmation({
-  apiKey,
   toolName,
   toolRunId,
   userId,
   workspaceId,
 }: {
-  apiKey?: string;
   toolName: string;
   toolRunId: string;
   userId: string;
@@ -4705,11 +4580,6 @@ async function resolveToolConfirmation({
   const shouldConfirm =
     typeof window !== "undefined" &&
     window.confirm(`Confirm high-risk tool execution: ${toolName}?`);
-  const headers = apiKey
-    ? {
-        [NEXUS_RUNTIME_AUTHORIZATION_HEADER]: `Bearer ${apiKey}`,
-      }
-    : undefined;
 
   if (!shouldConfirm) {
     const cancelled = await nexusApiClient.post<
@@ -4740,7 +4610,6 @@ async function resolveToolConfirmation({
       workspaceId,
     },
     {
-      headers,
       idempotencyKey: makeId("tool_confirm"),
       userId,
       workspaceId,

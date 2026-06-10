@@ -11,9 +11,6 @@ type NexusApiRequestOptions = {
   workspaceId?: string;
 };
 
-export const NEXUS_RUNTIME_AUTHORIZATION_HEADER =
-  "X-Nexus-Runtime-Authorization";
-
 export class NexusApiError extends Error {
   readonly code: string;
   readonly details?: Record<string, unknown>;

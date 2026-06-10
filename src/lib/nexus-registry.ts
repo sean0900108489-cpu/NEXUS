@@ -168,6 +168,22 @@ export const PROVIDER_REGISTRY: Record<string, ProviderRegistryEntry> = {
     verificationStatus: "untested",
     description: "DeepSeek OpenAI-compatible chat completions provider.",
   },
+  claude: {
+    id: "claude",
+    label: "Claude",
+    adapter: "openai-compatible",
+    defaultBaseUrl: "https://api.anthropic.com/v1",
+    verificationStatus: "untested",
+    description: "Claude models routed through the server-side New API gateway.",
+  },
+  gemini: {
+    id: "gemini",
+    label: "Gemini",
+    adapter: "openai-compatible",
+    defaultBaseUrl: "https://generativelanguage.googleapis.com/v1beta",
+    verificationStatus: "untested",
+    description: "Gemini models routed through the server-side New API gateway.",
+  },
   openai: {
     id: "openai",
     label: "OpenAI",
@@ -323,6 +339,54 @@ const DEEPSEEK_V4_THINKING_PROFILE: ModelCapabilityProfile = {
  * display-only. Do not create parallel model maps elsewhere.
  */
 export const NEXUS_MODEL_CATALOG: NexusModelOption[] = [
+  {
+    id: "deepseek-chat",
+    label: "DeepSeek Chat",
+    provider: "deepseek",
+    capability: "chat",
+    tier: "standard",
+    description: "DeepSeek Chat routed through the server-side New API gateway.",
+  },
+  {
+    id: "claude-sonnet-4-20250514",
+    label: "Claude Sonnet 4",
+    provider: "claude",
+    capability: "chat",
+    tier: "pro",
+    description: "Claude Sonnet 4 routed through the server-side New API gateway.",
+    capabilityProfile: {
+      ...DEFAULT_OPENAI_COMPATIBLE_CHAT_PROFILE,
+      providerId: "claude",
+      supportsTemperature: true,
+      thinking: {
+        supported: true,
+        defaultEnabled: true,
+        defaultReasoningEffort: "medium",
+        supportedReasoningEfforts: ["low", "medium", "high"],
+        disabledRequestParams: [],
+      },
+    },
+  },
+  {
+    id: "gemini-2.5-pro",
+    label: "Gemini 2.5 Pro",
+    provider: "gemini",
+    capability: "chat",
+    tier: "pro",
+    description: "Gemini 2.5 Pro routed through the server-side New API gateway.",
+    capabilityProfile: {
+      ...DEFAULT_OPENAI_COMPATIBLE_CHAT_PROFILE,
+      providerId: "gemini",
+      supportsTemperature: true,
+      thinking: {
+        supported: true,
+        defaultEnabled: true,
+        defaultReasoningEffort: "medium",
+        supportedReasoningEfforts: ["low", "medium", "high"],
+        disabledRequestParams: [],
+      },
+    },
+  },
   {
     id: "deepseek-v4-pro",
     label: "DeepSeek V4 Pro",

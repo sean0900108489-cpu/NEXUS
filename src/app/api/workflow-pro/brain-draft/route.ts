@@ -10,6 +10,7 @@ import {
 import type { WorkflowBrainDraftTemplateId } from "@/lib/workflow-pro/brain-draft-templates";
 import type { WorkflowRuntimeLiteState } from "@/lib/nexus-types";
 import type { WorkflowProBrainReviewProposal } from "@/lib/workflow-pro/brain-review-proposal";
+import { blockLegacyToolRouteInProduction } from "@/lib/backend/security/legacy-tool-route-boundary";
 
 export const runtime = "nodejs";
 
@@ -39,6 +40,14 @@ export async function POST(request: Request) {
       { error: "operatorRequest is required." },
       { status: 400 },
     );
+  }
+
+  if (payload.useModel !== false) {
+    const blocked = blockLegacyToolRouteInProduction();
+
+    if (blocked) {
+      return blocked;
+    }
   }
 
   try {
@@ -500,12 +509,6 @@ function normalizeVerbosity(
 
 function getString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
-}
-
-function getStringArray(value: unknown) {
-  return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string")
-    : [];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

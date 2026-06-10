@@ -23,7 +23,7 @@ describe("workflow runtime image credentials", () => {
     vi.unstubAllGlobals();
   });
 
-  it("uses the OpenAI-compatible provider credential for img2", () => {
+  it("ignores frontend provider credentials and uses the server-managed image gateway", () => {
     const credential = resolveWorkflowRuntimeImageCredential({
       authVault: createAuthVault({
         globalApiKey: "sk-global",
@@ -39,51 +39,26 @@ describe("workflow runtime image credentials", () => {
     });
 
     expect(credential).toMatchObject({
-      apiKey: "sk-image-provider",
-      baseUrl: "https://image.example/v1",
-      providerId: "openai-compatible",
+      apiKey: "",
+      baseUrl: undefined,
+      providerId: "server-new-api",
     });
-  });
-
-  it("falls back to the global key and default OpenAI-compatible image base URL", () => {
-    const credential = resolveWorkflowRuntimeImageCredential({
-      authVault: createAuthVault({
-        globalApiKey: "sk-global",
-      }),
-      modelId: "img2",
-    });
-
-    expect(credential).toMatchObject({
-      apiKey: "sk-global",
-      baseUrl: "https://api.openai.com/v1",
-      providerId: "openai-compatible",
-    });
-  });
-
-  it("extracts an apiKey from a JSON-shaped global credential instead of sending the object text", () => {
-    const credential = resolveWorkflowRuntimeImageCredential({
-      authVault: createAuthVault({
-        globalApiKey: JSON.stringify({
-          openai: {
-            apiKey: "sk-json-openai",
-          },
-        }),
-      }),
-      modelId: "img2",
-    });
-
-    expect(credential.apiKey).toBe("sk-json-openai");
-    expect(credential.apiKey?.startsWith("{")).toBe(false);
   });
 
   it("keeps the generated image when artifact persistence is denied", async () => {
-    const fetchCalls: string[] = [];
+    const fetchCalls: Array<{
+      body?: unknown;
+      path: string;
+    }> = [];
 
     vi.stubGlobal(
       "fetch",
-      vi.fn(async (input: RequestInfo | URL) => {
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
         const path = String(input);
-        fetchCalls.push(path);
+        fetchCalls.push({
+          body: init?.body ? JSON.parse(String(init.body)) : undefined,
+          path,
+        });
 
         if (path === "/api/image-gen") {
           return Response.json({
@@ -148,7 +123,15 @@ describe("workflow runtime image credentials", () => {
       workflowId: "workflow-runtime",
     });
 
-    expect(fetchCalls).toEqual(["/api/image-gen", "/api/v1/artifacts"]);
+    expect(fetchCalls.map((call) => call.path)).toEqual([
+      "/api/image-gen",
+      "/api/v1/artifacts",
+    ]);
+    expect(fetchCalls[0]?.body).toMatchObject({
+      conversationId: "run-runtime",
+      operatorId: "agent-runtime",
+      workspaceId: "workspace-runtime",
+    });
     expect(result.media).toMatchObject({
       type: "image",
       url: "/api/image-gen/assets/img_runtime",

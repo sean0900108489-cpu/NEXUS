@@ -8,10 +8,6 @@ import {
   getGeneratedImageMimeType,
   getGeneratedImageUrlKind,
 } from "@/lib/media/generated-image-artifact";
-import {
-  normalizeCredentialText,
-  normalizeImageApiKeyCandidate,
-} from "@/lib/media/image-api-credential";
 import type {
   ArtifactCreateResponse,
   CreateArtifactRequest,
@@ -19,11 +15,6 @@ import type {
   NexusAgent,
   NexusWorkspace,
 } from "@/lib/nexus-types";
-import {
-  getProviderIdForModel,
-  getProviderOption,
-} from "@/lib/nexus-registry";
-import { DEFAULT_BASE_URL } from "@/lib/nexus-defaults";
 
 import type { WorkflowRuntimeImageCall } from "./executors";
 
@@ -42,10 +33,7 @@ export function createWorkflowRuntimeImageCall({
       modelId: node.data.modelId,
       quality: node.data.quality,
     });
-    const credential = resolveWorkflowRuntimeImageCredential({
-      authVault,
-      modelId: imageSettings.modelId,
-    });
+    const credential = resolveWorkflowRuntimeImageCredential();
     const result = await executeImageAdapterForAgent({
       agent: {
         accent: executionAgent.accent,
@@ -54,7 +42,9 @@ export function createWorkflowRuntimeImageCall({
       },
       apiKey: credential.apiKey,
       baseUrl: credential.baseUrl,
+      conversationId: runId,
       imageSettings,
+      operatorId: executionAgent.id,
       prompt,
       toolName: "Workflow Image Model",
       userId: authVault.user?.id,
@@ -165,11 +155,9 @@ async function persistWorkflowImageArtifact({
         workspaceId,
       },
     );
-    const {
-      contentText: _contentText,
-      metadata: _artifactMetadata,
-      ...artifactVaultRecord
-    } = artifactResponse.artifact;
+    const artifactVaultRecord = { ...artifactResponse.artifact };
+    delete (artifactVaultRecord as { contentText?: unknown }).contentText;
+    delete (artifactVaultRecord as { metadata?: unknown }).metadata;
 
     return {
       artifactId: artifactResponse.artifact.id,
@@ -185,56 +173,13 @@ async function persistWorkflowImageArtifact({
 }
 
 export function resolveWorkflowRuntimeImageCredential({
-  authVault,
-  modelId,
 }: {
-  authVault: IAuthVault;
-  modelId: string;
-}) {
-  const providerIds = uniqueStrings([
-    getProviderIdForModel(modelId, "openai-compatible"),
-    "openai",
-    "openai-compatible",
-    "custom-openai-compatible",
-  ]);
-  const providerIdWithKey = providerIds.find((providerId) =>
-    normalizeSecretValue(authVault.providerCredentials?.[providerId]?.apiKey),
-  );
-  const providerId = providerIdWithKey ?? providerIds[0] ?? "openai-compatible";
-  const providerOption = getProviderOption(providerId);
-  const providerCredential = authVault.providerCredentials?.[providerId];
-  const apiKey =
-    normalizeSecretValue(providerCredential?.apiKey) ??
-    normalizeSecretValue(authVault.globalApiKey);
-  const baseUrl =
-    normalizeHeaderValue(providerCredential?.baseUrl) ??
-    normalizeHeaderValue(authVault.globalBaseUrl) ??
-    providerOption?.defaultBaseUrl ??
-    DEFAULT_BASE_URL;
-
+  authVault?: IAuthVault;
+  modelId?: string;
+} = {}) {
   return {
-    apiKey,
-    baseUrl,
-    providerId,
+    apiKey: "",
+    baseUrl: undefined,
+    providerId: "server-new-api",
   };
-}
-
-function uniqueStrings(values: Array<string | undefined>) {
-  return values.reduce<string[]>((items, value) => {
-    const normalized = normalizeCredentialText(value);
-
-    if (normalized && !items.includes(normalized)) {
-      items.push(normalized);
-    }
-
-    return items;
-  }, []);
-}
-
-function normalizeHeaderValue(value: unknown) {
-  return normalizeCredentialText(value);
-}
-
-function normalizeSecretValue(value: unknown): string | undefined {
-  return normalizeImageApiKeyCandidate(value);
 }

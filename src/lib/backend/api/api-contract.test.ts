@@ -17,6 +17,11 @@ import {
   resetApiAuthSessionVerifierForTests,
   setApiAuthSessionVerifierForTests,
 } from "@/lib/backend/api/api-auth";
+import { encryptNewApiToken } from "@/lib/backend/new-api-token/token-crypto";
+import {
+  resetUserNewApiTokenRepositoryForTests,
+  setUserNewApiTokenRepositoryForTests,
+} from "@/lib/backend/new-api-token/user-new-api-token-service";
 import {
   resetAgentStreamMessageHistoryServiceFactoryForTests,
   resolveAgentStreamApiKey,
@@ -28,6 +33,7 @@ import { InMemoryIdempotencyRepository } from "@/lib/backend/api/idempotency-rep
 import { createRequestHash } from "@/lib/backend/api/request-hash";
 import { createMessageHistoryService } from "@/lib/backend/history/message-history-service";
 import { getInMemoryMessageRepository } from "@/lib/backend/history/message-repository";
+import { getInMemoryUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
 import type { PermissionService } from "@/lib/backend/security/permission-service";
 import type { AgentStreamRequest } from "@/lib/nexus-types";
 
@@ -62,7 +68,24 @@ function useTestAuthSession(userId = "local-owner") {
 }
 
 beforeEach(() => {
+  const secret = "api-contract-token-secret";
+
   getInMemoryMessageRepository().clear();
+  getInMemoryUsageLedgerRepository().clear();
+  vi.stubEnv("NEW_API_TOKEN_ENCRYPTION_SECRET", secret);
+  setUserNewApiTokenRepositoryForTests({
+    findByUserId: async (userId) => ({
+      enabled: true,
+      encryptedNewApiToken: encryptNewApiToken(`sk-contract-token-${userId}`, {
+        secret,
+      }),
+      group: "contract-test",
+      plan: "basic",
+      tokenId: `contract-token-${userId}`,
+      tokenName: "Contract Test",
+      userId,
+    }),
+  });
   setAgentStreamMessageHistoryServiceFactoryForTests(() =>
     createMessageHistoryService({
       messages: getInMemoryMessageRepository(),
@@ -72,9 +95,12 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
   resetApiAuthSessionVerifierForTests();
+  resetUserNewApiTokenRepositoryForTests();
   resetAgentStreamMessageHistoryServiceFactoryForTests();
   getInMemoryMessageRepository().clear();
+  getInMemoryUsageLedgerRepository().clear();
 });
 
 describe("apiHandler envelope and validation", () => {
@@ -562,6 +588,248 @@ describe("routing compatibility and health", () => {
     expect(await legacy.json()).toMatchObject({ mockFallback: true });
   });
 
+  it("uses the authenticated user's mapped New API token for memory compression", async () => {
+    useTestAuthSession("memory-token-user");
+    const fetchMock = vi.fn(async () =>
+      Response.json({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                compressionSummary: "compressed",
+                contextNotes: [{ title: "Note", value: "compressed context" }],
+                retainedRatio: 30,
+              }),
+            },
+          },
+        ],
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await memoryCompressPost(
+      makeJsonRequest("http://localhost/api/v1/agents/memory-compress", {
+        agentId: "agent-memory-token",
+        config: {
+          compressorModelId: "gpt-4o-mini",
+        },
+        payload: { message: "compress this" },
+        workspaceId: "workspace-memory",
+      }, {
+        Authorization: "Bearer memory-session",
+        "X-Nexus-Test-Plan": "Free",
+        "X-Request-Id": "req-memory-token",
+        "X-User-Id": "memory-token-user",
+        "X-Workspace-Id": "workspace-memory",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, memoryInit] = fetchMock.mock.calls[0] as unknown as [
+      RequestInfo | URL,
+      RequestInit,
+    ];
+
+    expect(memoryInit.headers).toMatchObject({
+      Authorization: "Bearer sk-contract-token-memory-token-user",
+    });
+    expect(JSON.stringify(await readJson(response))).not.toContain(
+      "sk-contract-token-memory-token-user",
+    );
+  });
+
+  it("rejects memory compression models outside the user plan before compression runs", async () => {
+    useTestAuthSession("memory-free-user");
+    const ledger = getInMemoryUsageLedgerRepository();
+
+    const response = await memoryCompressPost(
+      makeJsonRequest("http://localhost/api/v1/agents/memory-compress", {
+        agentId: "agent-memory",
+        config: {
+          compressorModelId: "claude-sonnet-4-20250514",
+        },
+        payload: { message: "compress this" },
+        workspaceId: "workspace-memory",
+      }, {
+        Authorization: "Bearer memory-session",
+        "X-Nexus-Test-Plan": "Free",
+        "X-Request-Id": "req-memory-plan",
+        "X-User-Id": "memory-free-user",
+        "X-Workspace-Id": "workspace-memory",
+      }),
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(403);
+    expect(json).toMatchObject({
+      error: {
+        code: "PERMISSION_DENIED",
+      },
+      ok: false,
+    });
+    expect(ledger.all().at(-1)).toMatchObject({
+      conversationId: null,
+      errorCode: "PERMISSION_DENIED",
+      modelId: "claude-sonnet-4-20250514",
+      operatorId: "agent-memory",
+      requestId: "req-memory-plan",
+      sourceType: "memory_compress",
+      status: "failed",
+      userId: "memory-free-user",
+    });
+  });
+
+  it("uses the authenticated user's mapped New API token for predictive intel", async () => {
+    useTestAuthSession("predictive-token-user");
+    vi.stubEnv("NEW_API_KEY", "shared-predictive-env-token");
+    const fetchMock = vi.fn(async () =>
+      Response.json({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify(["A", "B", "C"]),
+            },
+          },
+        ],
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await predictiveIntelPost(
+      makeJsonRequest("http://localhost/api/predictive-intel", {
+        lastMessage: "What next?",
+        model: "gpt-4o-mini",
+      }, {
+        Authorization: "Bearer predictive-session",
+        "X-Nexus-Test-Plan": "Free",
+        "X-Request-Id": "req-predictive-token",
+        "X-User-Id": "predictive-token-user",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, predictiveInit] = fetchMock.mock.calls[0] as unknown as [
+      RequestInfo | URL,
+      RequestInit,
+    ];
+
+    expect(predictiveInit.headers).toMatchObject({
+      Authorization: "Bearer sk-contract-token-predictive-token-user",
+    });
+    expect(JSON.stringify(await readJson(response))).not.toContain(
+      "sk-contract-token-predictive-token-user",
+    );
+  });
+
+  it("rejects predictive intel models outside the user plan before provider fetch", async () => {
+    useTestAuthSession("predictive-free-user");
+    vi.stubEnv("OPENAI_API_KEY", "sk-predictive-test");
+    const ledger = getInMemoryUsageLedgerRepository();
+    const fetchMock = vi.fn(async () =>
+      Response.json({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify(["A", "B", "C"]),
+            },
+          },
+        ],
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await predictiveIntelPost(
+      makeJsonRequest("http://localhost/api/predictive-intel", {
+        lastMessage: "What next?",
+        model: "claude-sonnet-4-20250514",
+      }, {
+        Authorization: "Bearer predictive-session",
+        "X-Nexus-Test-Plan": "Free",
+        "X-Request-Id": "req-predictive-plan",
+        "X-User-Id": "predictive-free-user",
+      }),
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(403);
+    expect(json).toMatchObject({
+      error: {
+        code: "PERMISSION_DENIED",
+      },
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(ledger.all().at(-1)).toMatchObject({
+      errorCode: "PERMISSION_DENIED",
+      modelId: "claude-sonnet-4-20250514",
+      operatorId: "predictive-intel",
+      requestId: "req-predictive-plan",
+      sourceType: "predictive_intel",
+      status: "failed",
+      userId: "predictive-free-user",
+    });
+  });
+
+  it("rejects over-limit memory compression before provider compression", async () => {
+    useTestAuthSession("memory-quota-user");
+    const ledger = getInMemoryUsageLedgerRepository();
+    const currentMonth = new Date();
+    currentMonth.setUTCDate(2);
+    await ledger.insert({
+      chargedPoints: 100_000,
+      conversationId: null,
+      createdAt: currentMonth.toISOString(),
+      errorCode: null,
+      inputTokens: 0,
+      modelId: "gpt-4o-mini",
+      newApiModel: "gpt-4o-mini",
+      operatorId: "agent-memory",
+      outputTokens: 0,
+      providerFamily: "OpenAI",
+      requestId: "req-memory-used",
+      sourceType: "memory_compress",
+      status: "succeeded",
+      totalTokens: 0,
+      userId: "memory-quota-user",
+    });
+
+    const response = await memoryCompressPost(
+      makeJsonRequest("http://localhost/api/v1/agents/memory-compress", {
+        agentId: "agent-memory",
+        config: {
+          compressorModelId: "gpt-4o-mini",
+        },
+        payload: { message: "compress this" },
+        workspaceId: "workspace-memory",
+      }, {
+        Authorization: "Bearer memory-session",
+        "X-Nexus-Test-Plan": "Free",
+        "X-Request-Id": "req-memory-quota",
+        "X-User-Id": "memory-quota-user",
+        "X-Workspace-Id": "workspace-memory",
+      }),
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(402);
+    expect(json).toMatchObject({
+      error: {
+        code: "QUOTA_EXCEEDED",
+      },
+      ok: false,
+    });
+    expect(ledger.all().at(-1)).toMatchObject({
+      errorCode: "QUOTA_EXCEEDED",
+      modelId: "gpt-4o-mini",
+      operatorId: "agent-memory",
+      requestId: "req-memory-quota",
+      sourceType: "memory_compress",
+      status: "failed",
+      userId: "memory-quota-user",
+    });
+  });
+
   it("health route returns light V5 health booleans", async () => {
     const response = await healthGet(new Request("http://localhost/api/v1/health"));
     const json = await readJson(response);
@@ -661,13 +929,76 @@ describe("streaming contract", () => {
     });
   });
 
-  it("lets authenticated workflow-lite stream tasks use the internal execution lane", async () => {
-    useTestAuthSession("local-viewer");
+  it("rejects over-limit stream requests before opening a provider stream", async () => {
+    useTestAuthSession("stream-quota-user");
+    const ledger = getInMemoryUsageLedgerRepository();
+    const currentMonth = new Date();
+    currentMonth.setUTCDate(2);
+    await ledger.insert({
+      chargedPoints: 100_000,
+      conversationId: "conversation-stream-quota",
+      createdAt: currentMonth.toISOString(),
+      errorCode: null,
+      inputTokens: 100,
+      modelId: "gpt-4o-mini",
+      newApiModel: "gpt-4o-mini",
+      operatorId: "agent-a",
+      outputTokens: 100,
+      providerFamily: "OpenAI",
+      requestId: "request-stream-used",
+      sourceType: "agent_stream",
+      status: "succeeded",
+      totalTokens: 200,
+      userId: "stream-quota-user",
+    });
 
     const response = await streamPost(
       new Request("http://localhost/api/v1/agents/agent-a/stream", {
         body: JSON.stringify({
           ...streamPayload,
+          workspaceId: "workspace-a",
+        }),
+        headers: {
+          Authorization: "Bearer stream-session",
+          "Content-Type": "application/json",
+          "X-Nexus-Test-Plan": "Free",
+          "X-Request-Id": "req-stream-quota",
+          "X-Trace-Id": "trace-stream-quota",
+          "X-User-Id": "stream-quota-user",
+          "X-Workspace-Id": "workspace-a",
+        },
+        method: "POST",
+      }),
+      { params: Promise.resolve({ agentId: "agent-a" }) },
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(402);
+    expect(json).toMatchObject({
+      error: {
+        code: "QUOTA_EXCEEDED",
+      },
+      type: "error",
+    });
+    expect(ledger.all().filter((record) => record.status === "failed")).toHaveLength(1);
+    expect(ledger.all().at(-1)).toMatchObject({
+      errorCode: "QUOTA_EXCEEDED",
+      modelId: "gpt-4o-mini",
+      operatorId: "agent-a",
+      requestId: "req-stream-quota",
+    });
+  });
+
+  it("lets authenticated workflow-lite stream tasks use the internal execution lane", async () => {
+    useTestAuthSession("local-viewer");
+    const ledger = getInMemoryUsageLedgerRepository();
+
+    const response = await streamPost(
+      new Request("http://localhost/api/v1/agents/agent-a/stream", {
+        body: JSON.stringify({
+          ...streamPayload,
+          model: "deepseek-chat",
+          sessionId: "conversation-workflow-lite",
           workspaceId: "workspace-a",
         }),
         headers: {
@@ -695,6 +1026,69 @@ describe("streaming contract", () => {
       workspaceId: "workspace-a",
     });
     expect(JSON.stringify(events)).not.toContain("supabase-session");
+    expect(ledger.all().at(-1)).toMatchObject({
+      conversationId: "conversation-workflow-lite",
+      errorCode: null,
+      modelId: "deepseek-chat",
+      newApiModel: "deepseek-chat",
+      operatorId: "agent-a",
+      providerFamily: "DeepSeek",
+      requestId: "req-stream-workflow-lite",
+      sourceType: "agent_stream",
+      status: "succeeded",
+      userId: "local-viewer",
+    });
+  });
+
+  it("rejects workflow-lite stream requests for models outside the user plan", async () => {
+    useTestAuthSession("workflow-free-user");
+    const ledger = getInMemoryUsageLedgerRepository();
+
+    const response = await streamPost(
+      new Request("http://localhost/api/v1/agents/agent-a/stream", {
+        body: JSON.stringify({
+          ...streamPayload,
+          agent: {
+            ...streamPayload.agent,
+            model: "claude-sonnet-4-20250514",
+          },
+          model: "claude-sonnet-4-20250514",
+          sessionId: "conversation-workflow-plan",
+          workspaceId: "workspace-a",
+        }),
+        headers: {
+          Authorization: "Bearer supabase-session",
+          "Content-Type": "application/json",
+          "X-Nexus-Test-Plan": "Free",
+          "X-Nexus-Workflow-Runtime": "lite",
+          "X-Request-Id": "req-stream-workflow-plan",
+          "X-Trace-Id": "trace-stream-workflow-plan",
+          "X-User-Id": "workflow-free-user",
+          "X-Workspace-Id": "workspace-a",
+        },
+        method: "POST",
+      }),
+      { params: Promise.resolve({ agentId: "agent-a" }) },
+    );
+    const json = await readJson(response);
+
+    expect(response.status).toBe(403);
+    expect(json).toMatchObject({
+      error: {
+        code: "PERMISSION_DENIED",
+      },
+      type: "error",
+    });
+    expect(ledger.all().at(-1)).toMatchObject({
+      conversationId: "conversation-workflow-plan",
+      errorCode: "PERMISSION_DENIED",
+      modelId: "claude-sonnet-4-20250514",
+      operatorId: "agent-a",
+      requestId: "req-stream-workflow-plan",
+      sourceType: "agent_stream",
+      status: "failed",
+      userId: "workflow-free-user",
+    });
   });
 
   it("does not fail workflow-lite streams when chat history persistence is unavailable", async () => {
@@ -745,7 +1139,7 @@ describe("streaming contract", () => {
     const events = await readSseEvents(response);
 
     expect(events[0]).toMatchObject({
-      mode: "mock",
+      mode: "openai",
       type: "meta",
     });
   });

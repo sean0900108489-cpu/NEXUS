@@ -1,16 +1,12 @@
 import type {
   AgentStreamRequest,
   ContextPacket,
-  IAuthVault,
   NexusAgent,
   NexusWorkspace,
   WorkflowNodeInstance,
 } from "@/lib/nexus-types";
-import { NEXUS_RUNTIME_AUTHORIZATION_HEADER } from "@/lib/api/nexus-api-client";
-import { DEFAULT_BASE_URL } from "@/lib/nexus-defaults";
 import {
   getProviderIdForModel,
-  getProviderOption,
   normalizeAgentModelSettings,
 } from "@/lib/nexus-registry";
 import {
@@ -70,17 +66,15 @@ export function resolveWorkflowRuntimeExecutionAgent(
 }
 
 export function createWorkflowRuntimeLlmCall({
-  authVault,
   executionAgent,
   workspace,
 }: {
-  authVault: IAuthVault;
+  authVault: unknown;
   executionAgent: NexusAgent;
   workspace: NexusWorkspace;
 }): WorkflowRuntimeLlmCall {
   return async ({ node, onToken, prompt, runId, signal, upstream }) =>
     executeWorkflowRuntimeLlm({
-      authVault,
       executionAgent,
       node,
       onToken,
@@ -93,7 +87,6 @@ export function createWorkflowRuntimeLlmCall({
 }
 
 export async function executeWorkflowRuntimeLlm({
-  authVault,
   executionAgent,
   node,
   onToken,
@@ -103,7 +96,6 @@ export async function executeWorkflowRuntimeLlm({
   upstream,
   workspace,
 }: {
-  authVault: IAuthVault;
   executionAgent: NexusAgent;
   node: WorkflowNodeInstance<"model.llm">;
   onToken?: (delta: string, text: string) => void;
@@ -120,17 +112,6 @@ export async function executeWorkflowRuntimeLlm({
     node.data.modelSettings ?? executionAgent.modelSettings,
   );
   const providerId = getProviderIdForModel(model, provider);
-  const providerOption = getProviderOption(providerId);
-  const providerCredential = authVault.providerCredentials?.[providerId];
-  const apiKey =
-    providerCredential?.apiKey?.replace(/[^\x20-\x7E]/g, "").trim() ||
-    authVault.globalApiKey?.replace(/[^\x20-\x7E]/g, "").trim() ||
-    "";
-  const baseUrl =
-    providerCredential?.baseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
-    authVault.globalBaseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
-    providerOption?.defaultBaseUrl ||
-    DEFAULT_BASE_URL;
   const outputMessageId = `${runId}:${node.id}:output`;
   const request: AgentStreamRequest = {
     model,
@@ -164,11 +145,6 @@ export async function executeWorkflowRuntimeLlm({
     "Content-Type": "application/json",
     "X-Workspace-Id": workspace.id,
   });
-  const userId = authVault.user?.id?.trim();
-
-  if (userId) {
-    headers.set("X-User-Id", userId);
-  }
   headers.set("X-Nexus-Workflow-Runtime", "lite");
 
   const accessToken = await resolveBrowserAccessToken();
@@ -177,11 +153,7 @@ export async function executeWorkflowRuntimeLlm({
     headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
-  if (apiKey) {
-    headers.set(NEXUS_RUNTIME_AUTHORIZATION_HEADER, `Bearer ${apiKey}`);
-  }
-
-  headers.set("x-nexus-base-url", baseUrl);
+  headers.set("x-nexus-model-id", model);
   headers.set("x-nexus-provider-id", providerId);
 
   let stream: Awaited<ReturnType<typeof readWorkflowStream>> | undefined;

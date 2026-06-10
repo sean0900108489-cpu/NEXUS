@@ -1,7 +1,12 @@
 import type { AgentStreamRequest, AgentTaskRecord } from "@/lib/nexus-types";
 import { buildMockReply } from "@/lib/mock-stream";
 
-import { getApiErrorDescriptor, type ApiErrorCode } from "./api-errors";
+import {
+  ApiError,
+  getApiErrorDescriptor,
+  toApiError,
+  type ApiErrorCode,
+} from "./api-errors";
 import { resolveApiActor } from "./api-auth";
 import { getRuntimeBearerToken } from "./memory-compress-service";
 import { getBearerToken } from "../security/auth-session";
@@ -19,6 +24,18 @@ import {
 } from "../runtime/provider-adapter";
 import { createWorkspaceStatePermissionService } from "../workspace/workspace-permission";
 import { createNexusSupabaseRequestClient } from "@/lib/supabase/request";
+import {
+  assertModelAllowedForPlan,
+  getCatalogModel,
+} from "@/lib/backend/models/model-catalog";
+import {
+  estimateModelPoints,
+  getUserPlan,
+  isModelAllowedByPlan,
+} from "@/lib/backend/models/plan-config";
+import { assertMonthlyQuotaAvailable } from "@/lib/backend/models/quota-gate";
+import { createUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
+import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 
 export type AgentStreamEvent =
   | {
@@ -98,10 +115,8 @@ export async function createAgentStreamResponse({
   workspaceId,
 }: AgentStreamResponseOptions) {
   const payload = (await request.json()) as AgentStreamRequest;
-  const apiKey = resolveAgentStreamApiKey(request.headers);
   const rawBaseUrl =
-    request.headers.get("x-nexus-base-url") ||
-    request.headers.get("x-openai-base-url") ||
+    process.env.NEW_API_BASE_URL ||
     process.env.OPENAI_BASE_URL ||
     undefined;
   const legacyBaseUrl = getCompatibleBaseUrl(rawBaseUrl);
@@ -113,7 +128,10 @@ export async function createAgentStreamResponse({
 
   if (eventShape === "legacy") {
     return createLegacyAgentStreamResponse({
-      apiKey,
+      apiKey:
+        process.env.NEW_API_KEY?.replace(/[^\x20-\x7E]/g, "").trim() ||
+        process.env.OPENAI_API_KEY?.replace(/[^\x20-\x7E]/g, "").trim() ||
+        "",
       baseUrl: legacyBaseUrl,
       eventShape,
       payload,
@@ -127,8 +145,17 @@ export async function createAgentStreamResponse({
     declaredUserId: request.headers.get("X-User-Id"),
     required: true,
   });
-  const userId = actorUserId;
+  const userId = requireResolvedUserId(actorUserId);
   const resolvedWorkspaceId = payload.workspaceId ?? workspaceId ?? "__global__";
+  const streamModel = payload.model?.trim() || payload.agent.model;
+  const productGate = await assertAgentStreamProductGate({
+    agentId,
+    modelId: streamModel,
+    payload,
+    request,
+    requestId,
+    userId,
+  });
   const runtimeService = createAgentRuntimeService({
     accessToken,
     forceInMemoryRepository: isWorkflowRuntimeLite,
@@ -141,7 +168,7 @@ export async function createAgentStreamResponse({
         messageCount: payload.messages.length,
         workflowRuntime: isWorkflowRuntimeLite ? "lite" : undefined,
       },
-      model: payload.model?.trim() || payload.agent.model,
+      model: streamModel,
       outputMessageId: payload.outputMessageId,
       provider: payload.agent.provider,
       sessionId: payload.sessionId,
@@ -159,11 +186,12 @@ export async function createAgentStreamResponse({
   );
   const providerAdapter = new OpenAICompatibleAdapter();
   let providerStream;
-  const streamModel = payload.model?.trim() || payload.agent.model;
 
   try {
+    const userNewApiToken = await getUserNewApiToken({ userId });
+
     providerStream = await providerAdapter.createChatStream({
-      apiKey,
+      apiKey: userNewApiToken.token,
       baseUrl: rawBaseUrl,
       model: streamModel,
       payload,
@@ -194,6 +222,16 @@ export async function createAgentStreamResponse({
         retryable: descriptor.retryable,
       },
     );
+    await recordAgentStreamFailureUsage({
+      agentId,
+      errorCode: descriptor.code,
+      modelId: productGate.model.id,
+      newApiModel: productGate.model.new_api_model,
+      providerFamily: productGate.model.provider_family,
+      requestId,
+      userId,
+      conversationId: payload.sessionId ?? null,
+    }).catch(() => undefined);
 
     return createImmediateV1StreamErrorResponse({
       agentId,
@@ -299,6 +337,16 @@ export async function createAgentStreamResponse({
             provider: providerStream.provider,
           },
         );
+        await recordAgentStreamUsage({
+          agentId,
+          assistantOutput,
+          modelId: productGate.model.id,
+          payload,
+          providerFamily: productGate.model.provider_family,
+          requestId,
+          userId,
+          newApiModel: productGate.model.new_api_model,
+        });
         emit({ type: "done" });
       } catch (error) {
         if (
@@ -383,6 +431,152 @@ export function setAgentStreamMessageHistoryServiceFactoryForTests(
 export function resetAgentStreamMessageHistoryServiceFactoryForTests() {
   messageHistoryServiceFactory = (input: MessageHistoryServiceFactoryInput = {}) =>
     createRequestScopedMessageHistoryService(input.accessToken);
+}
+
+async function assertAgentStreamProductGate({
+  agentId,
+  modelId,
+  payload,
+  request,
+  requestId,
+  userId,
+}: {
+  agentId: string;
+  modelId: string;
+  payload: AgentStreamRequest;
+  request: Request;
+  requestId: string;
+  userId: string;
+}) {
+  const ledger = createUsageLedgerRepository();
+
+  try {
+    const plan = getUserPlan({ request, userId });
+    const model = assertModelAllowedForPlan(modelId, plan);
+
+    if (!isModelAllowedByPlan(model.id, plan)) {
+      throw new ApiError(
+        "PERMISSION_DENIED",
+        "Requested model is not allowed for this plan.",
+        403,
+        {
+          modelId: model.id,
+          plan,
+        },
+      );
+    }
+
+    await assertMonthlyQuotaAvailable({
+      estimatedPoints: estimateModelPoints(model.id, estimateStreamInputTokens(payload)),
+      ledger,
+      plan,
+      userId,
+    });
+
+    return {
+      model,
+    };
+  } catch (error) {
+    const apiError = toApiError(error);
+    const model = getCatalogModel(modelId);
+
+    await ledger.insert({
+      chargedPoints: 0,
+      conversationId: payload.sessionId ?? null,
+      errorCode: apiError.code,
+      inputTokens: 0,
+      modelId,
+      newApiModel: model?.new_api_model ?? modelId,
+      operatorId: agentId,
+      outputTokens: 0,
+      providerFamily: model?.provider_family ?? "unknown",
+      requestId,
+      sourceType: "agent_stream",
+      status: "failed",
+      totalTokens: 0,
+      userId,
+    }).catch(() => undefined);
+
+    throw apiError;
+  }
+}
+
+async function recordAgentStreamUsage({
+  agentId,
+  assistantOutput,
+  modelId,
+  newApiModel,
+  payload,
+  providerFamily,
+  requestId,
+  userId,
+}: {
+  agentId: string;
+  assistantOutput: string;
+  modelId: string;
+  newApiModel: string;
+  payload: AgentStreamRequest;
+  providerFamily: string;
+  requestId: string;
+  userId: string;
+}) {
+  const inputTokens = estimateStreamInputTokens(payload);
+  const outputTokens = estimateTextTokens(assistantOutput);
+  const totalTokens = inputTokens + outputTokens;
+
+  await createUsageLedgerRepository().insert({
+    chargedPoints: estimateModelPoints(modelId, totalTokens),
+    conversationId: payload.sessionId ?? null,
+    errorCode: null,
+    inputTokens,
+    modelId,
+    newApiModel,
+    operatorId: agentId,
+    outputTokens,
+    providerFamily,
+    requestId,
+    sourceType: "agent_stream",
+    status: "succeeded",
+    totalTokens,
+    userId,
+  });
+}
+
+async function recordAgentStreamFailureUsage({
+  agentId,
+  conversationId,
+  errorCode,
+  modelId,
+  newApiModel,
+  providerFamily,
+  requestId,
+  userId,
+}: {
+  agentId: string;
+  conversationId: string | null;
+  errorCode: string;
+  modelId: string;
+  newApiModel: string;
+  providerFamily: string;
+  requestId: string;
+  userId: string;
+}) {
+  await createUsageLedgerRepository().insert({
+    chargedPoints: 0,
+    conversationId,
+    errorCode,
+    inputTokens: 0,
+    modelId,
+    newApiModel,
+    operatorId: agentId,
+    outputTokens: 0,
+    providerFamily,
+    requestId,
+    sourceType: "agent_stream",
+    status: "failed",
+    totalTokens: 0,
+    userId,
+  });
 }
 
 export function resolveAgentStreamApiKey(headers: Headers) {
@@ -682,7 +876,7 @@ async function streamMock(
     controller,
     eventShape,
     "mock",
-    "Mock stream active. Global API Vault key is missing or locked.",
+    "Mock stream active. Server model gateway is unavailable.",
   );
 
   for (const token of buildMockReply(payload).split(/(\s+)/)) {
@@ -865,4 +1059,31 @@ function isDefaultOpenAIBaseUrl(baseUrl: string) {
   } catch {
     return true;
   }
+}
+
+function requireResolvedUserId(value: string | undefined) {
+  if (!value?.trim()) {
+    throw new ApiError("AUTH_REQUIRED", "Authentication is required.", 401);
+  }
+
+  return value.trim();
+}
+
+function estimateStreamInputTokens(payload: AgentStreamRequest) {
+  const agentText = [
+    payload.agent.identity,
+    payload.agent.mission,
+    payload.agent.executionPrompt,
+    ...(payload.agent.contextNotes ?? []).map((note) => `${note.title} ${note.value}`),
+    ...(payload.agent.memory ?? []).map((memory) => JSON.stringify(memory)),
+  ].join("\n");
+  const messageText = payload.messages
+    .map((message) => `${message.role}: ${message.content}`)
+    .join("\n");
+
+  return estimateTextTokens(`${agentText}\n${messageText}`);
+}
+
+function estimateTextTokens(value: string) {
+  return Math.max(1, Math.ceil(value.length / 4));
 }

@@ -62,13 +62,13 @@ describe("V20 auth boundary gate", () => {
       report.productionImageGenerationGate.formalRoutes,
     );
     expect(report.productionImageGenerationGate.routesWithRuntimeAuthorizationHeader).toBe(
-      report.productionImageGenerationGate.formalRoutes,
+      0,
     );
     expect(
       report.requestScopedWorkspacePermissionGate.routesWithRequestScopedFactory +
         report.requestScopedWorkspacePermissionGate.routesWithFormalImageAccessGuard,
     ).toBe(report.requestScopedWorkspacePermissionGate.requiredRoutes);
-    expect(report.runtimeAuthGate.usesRuntimeAuthorizationHeader).toBe(true);
+    expect(report.runtimeAuthGate.usesRuntimeAuthorizationHeader).toBe(false);
     expect(report.runtimeAuthGate.usesSupabaseAuthorizationFallback).toBe(false);
     expect(report.browserStorageGate.authVaultScrubbedBeforePersist).toBe(true);
     expect(report.browserStorageGate.persistenceVersion).toBeGreaterThanOrEqual(15);

@@ -1,12 +1,14 @@
 import type { AgentStreamRequest } from "@/lib/nexus-types";
 import { buildMockReply } from "@/lib/mock-stream";
 import {
-  NEXUS_MODEL_CATALOG,
   getModelCapabilityProfile,
-  getProviderOption,
   mapReasoningDetailForModel,
   mapReasoningEffortForModel,
 } from "@/lib/nexus-registry";
+import {
+  SERVER_MODEL_CATALOG,
+  getCatalogModel,
+} from "@/lib/backend/models/model-catalog";
 
 import { ApiError } from "../api/api-errors";
 import { FeatureFlagService } from "../deployment/feature-flag-service";
@@ -53,10 +55,9 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 
   async createChatStream(input: ProviderStreamInput): Promise<ProviderStreamResult> {
     const model = normalizeModel(input.model);
-    const capability = getModelCapabilityProfile(model);
-    const provider = capability?.providerId || input.provider || "openai-compatible";
-    const providerOption = getProviderOption(provider);
-    const baseUrl = getCompatibleBaseUrl(input.baseUrl, providerOption?.defaultBaseUrl);
+    const catalogModel = getCatalogModel(model);
+    const provider = catalogModel?.provider_family ?? input.provider ?? "OpenAI";
+    const baseUrl = getCompatibleBaseUrl(process.env.NEW_API_BASE_URL, DEFAULT_BASE_URL);
     const environmentValidator =
       this.dependencies.environmentValidator ?? new EnvironmentValidator();
     const environment = environmentValidator.getEnvironment();
@@ -72,11 +73,13 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
           workspaceId: input.workspaceId,
         })));
 
-    if (!input.apiKey) {
+    const apiKey = input.apiKey?.replace(/[^\x20-\x7E]/g, "").trim() ?? "";
+
+    if (!apiKey) {
       if (!fallbackEnabled) {
         throw new ApiError(
           "PROVIDER_NOT_CONFIGURED",
-          "Provider credentials are not configured for live runtime.",
+          "New API token is not configured for live runtime.",
           503,
         );
       }
@@ -93,8 +96,9 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
     try {
       const response = await this.openOpenAIResponse({
         ...input,
+        apiKey,
         baseUrl,
-        model,
+        model: catalogModel?.new_api_model ?? model,
       });
 
       return {
@@ -214,14 +218,14 @@ export function getRuntimeString(value: unknown) {
 
 function normalizeModel(model: string) {
   const candidate = model.trim() || SAFE_DEFAULT_CHAT_MODEL;
-  const known = NEXUS_MODEL_CATALOG.some((entry) => entry.id === candidate);
+  const known = SERVER_MODEL_CATALOG.some((entry) => entry.id === candidate);
 
   if (!known) {
-    throw new ApiError("VALIDATION_FAILED", "Model is not registered in NEXUS_MODEL_CATALOG.", 400, {
+    throw new ApiError("VALIDATION_FAILED", "Model is not registered in the server-side model catalog.", 400, {
       issues: [
         {
           code: "invalid_model",
-          message: "Model is not registered in NEXUS_MODEL_CATALOG.",
+          message: "Model is not registered in the server-side model catalog.",
           path: ["model"],
         },
       ],

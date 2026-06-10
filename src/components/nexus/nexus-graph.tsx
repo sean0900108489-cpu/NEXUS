@@ -56,7 +56,6 @@ import { createWorkflowProRuntimeEvidenceReport } from "@/lib/workflow-pro/runti
 import {
   getModelCapabilityProfile,
   getModelOption,
-  getModelOptionsForCapability,
   normalizeAgentModelSettings,
 } from "@/lib/nexus-registry";
 import {
@@ -80,6 +79,7 @@ import type {
   WorkspaceGraph,
   WorkspaceGraphEdge,
 } from "@/lib/nexus-types";
+import type { PublicModelCatalogEntry } from "@/lib/models/model-catalog-types";
 import {
   getWorkflowRuntimeNodeDefinition,
   isWorkflowRuntimeNodeType,
@@ -93,6 +93,7 @@ type AgentNodeData = {
   readOnlyMessage?: string;
 };
 type RuntimeNodeData = {
+  modelCatalog: PublicModelCatalogEntry[];
   node: WorkflowNodeInstance;
   onCopyInput: (nodeId: string) => void;
   onCopyOutput: (nodeId: string) => void;
@@ -310,6 +311,7 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
     onRemoveNode,
     onRunFromInput,
     onUpdateNodeData,
+    modelCatalog,
     readOnly,
     readOnlyMessage,
     workflowRunning,
@@ -387,6 +389,7 @@ function RuntimeNode({ data, selected }: NodeProps<RuntimeFlowNode>) {
 
       {node.type === "model.llm" ? (
         <ModelRuntimeEditor
+          modelCatalog={modelCatalog}
           node={node as WorkflowNodeInstance<"model.llm">}
           onUpdateNodeData={onUpdateNodeData}
           readOnly={readOnly}
@@ -553,11 +556,13 @@ function InputTextRuntimeEditor({
 }
 
 function ModelRuntimeEditor({
+  modelCatalog,
   node,
   onUpdateNodeData,
   readOnly,
   readOnlyMessage,
 }: {
+  modelCatalog: PublicModelCatalogEntry[];
   node: WorkflowNodeInstance<"model.llm">;
   onUpdateNodeData: (
     nodeId: string,
@@ -581,6 +586,14 @@ function ModelRuntimeEditor({
     capability?.thinking.supportedReasoningEfforts ?? [];
   const reasoningDetailOptions =
     capability?.reasoningDetail.supportedDetails ?? [];
+  const selectableModels = modelCatalog.length
+    ? modelCatalog
+    : [
+        {
+          id: node.data.model,
+          label: getModelLabel(node.data.model),
+        } as PublicModelCatalogEntry,
+      ];
 
   return (
     <div className="grid gap-2">
@@ -621,9 +634,9 @@ function ModelRuntimeEditor({
           title={readOnly ? readOnlyMessage : "LLM node model"}
           value={node.data.model}
         >
-          {getModelOptionsForCapability("chat").map((model) => (
+          {selectableModels.map((model) => (
             <option key={model.id} value={model.id}>
-              {getModelLabel(model.id)}
+              {model.label}
             </option>
           ))}
         </select>
@@ -1041,6 +1054,7 @@ const edgeTypes = {
 export function NexusGraph({
   agents,
   graph,
+  modelCatalog,
   onAddWorkflowNode,
   onAppendWorkflowContractText,
   onConnectAgents,
@@ -1070,6 +1084,7 @@ export function NexusGraph({
   agents: NexusAgent[];
   generatedArtifacts?: ArtifactVaultRecord[];
   graph: WorkspaceGraph;
+  modelCatalog: PublicModelCatalogEntry[];
   onAddWorkflowNode: (
     type: WorkflowRuntimeNodeType,
     position?: { x: number; y: number },
@@ -1156,6 +1171,7 @@ export function NexusGraph({
           type: node.type,
           position: node.position,
           data: {
+            modelCatalog,
             node,
             onCopyInput: onCopyWorkflowInput,
             onCopyOutput: onCopyWorkflowOutput,
@@ -1175,6 +1191,7 @@ export function NexusGraph({
     [
       agents,
       graphNodeByAgentId,
+      modelCatalog,
       onCopyWorkflowInput,
       onCopyWorkflowOutput,
       onOpenAgent,

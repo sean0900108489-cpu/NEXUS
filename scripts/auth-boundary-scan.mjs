@@ -15,10 +15,16 @@ const legacyProductionBlockedRoutes = [
   "src/app/api/tools/fs-scanner/route.ts",
   "src/app/api/tools/web-surfer/route.ts",
   "src/app/api/v1/providers/verify/route.ts",
+  "src/app/api/workflow-pro/brain-draft/route.ts",
 ];
 
 const formalProductionImageRoutes = [
   "src/app/api/image-gen/route.ts",
+];
+
+const platformAdminRoutes = [
+  "src/app/api/admin/new-api-token-drift/route.ts",
+  "src/app/api/admin/new-api-token-group-sync/route.ts",
 ];
 
 const requestScopedWorkspacePermissionRoutes = [
@@ -98,11 +104,14 @@ for (const route of formalProductionImageRoutes) {
     });
   }
 
-  if (!source.includes("getRuntimeBearerToken(request.headers)")) {
+  if (
+    source.includes("getRuntimeBearerToken(request.headers)") ||
+    source.includes("X-Nexus-Runtime-Authorization")
+  ) {
     blockingFindings.push({
-      code: "imageGeneration.runtimeAuthorizationHeaderMissing",
+      code: "imageGeneration.runtimeAuthorizationHeaderStillAccepted",
       file: route,
-      message: "Provider credentials must use X-Nexus-Runtime-Authorization, not Supabase Authorization.",
+      message: "Image generation must use server-managed New API credentials, not runtime provider headers.",
     });
   }
 
@@ -114,6 +123,18 @@ for (const route of formalProductionImageRoutes) {
       code: "imageGeneration.supabaseAuthorizationMixedWithProviderKey",
       file: route,
       message: "Image generation must not read provider credentials from the Supabase Authorization header.",
+    });
+  }
+}
+
+for (const route of platformAdminRoutes) {
+  const source = readRequired(route);
+
+  if (!source.includes("resolvePlatformAdminActor")) {
+    blockingFindings.push({
+      code: "platformAdmin.adminGuardMissing",
+      file: route,
+      message: "Platform admin routes must require resolvePlatformAdminActor.",
     });
   }
 }
@@ -147,14 +168,6 @@ for (const route of requestScopedWorkspacePermissionRoutes) {
 
 const runtimeAuthSource = readRequired("src/lib/backend/api/memory-compress-service.ts");
 const runtimeAuthFunction = extractFunction(runtimeAuthSource, "getRuntimeBearerToken");
-
-if (!runtimeAuthFunction.includes('headers.get("X-Nexus-Runtime-Authorization")')) {
-  blockingFindings.push({
-    code: "runtimeAuth.headerMissing",
-    file: "src/lib/backend/api/memory-compress-service.ts",
-    message: "Runtime provider auth must only use X-Nexus-Runtime-Authorization.",
-  });
-}
 
 if (/headers\.get\(["']authorization["']\)/i.test(runtimeAuthFunction)) {
   blockingFindings.push({
@@ -192,11 +205,11 @@ if (!/version\s*:\s*15/.test(storeSource)) {
   });
 }
 
-if (!/globalApiKey\s*:\s*null/.test(storeSource) || !/apiKey\s*:\s*null/.test(storeSource)) {
+if (!/globalApiKey\s*:\s*null/.test(storeSource) || !/providerCredentials\s*:\s*\{\}/.test(storeSource)) {
   blockingFindings.push({
     code: "browserStorage.secretScrubShapeMissing",
     file: "src/store/nexus-store.ts",
-    message: "Local auth persistence scrubber must null raw global and provider API keys.",
+    message: "Local auth persistence scrubber must clear raw global and provider API credentials.",
   });
 }
 
@@ -316,6 +329,12 @@ const report = {
       readRequired(route).includes("getRuntimeBearerToken(request.headers)"),
     ).length,
   },
+  platformAdminGate: {
+    requiredRoutes: platformAdminRoutes.length,
+    routesWithAdminGuard: platformAdminRoutes.filter((route) =>
+      readRequired(route).includes("resolvePlatformAdminActor"),
+    ).length,
+  },
   requestScopedWorkspacePermissionGate: {
     requiredRoutes: requestScopedWorkspacePermissionRoutes.length,
     routesWithRequestScopedFactory: requestScopedWorkspacePermissionRoutes.filter((route) => {
@@ -345,9 +364,7 @@ const report = {
     total: routeInventory.length,
   },
   runtimeAuthGate: {
-    usesRuntimeAuthorizationHeader: runtimeAuthFunction.includes(
-      'headers.get("X-Nexus-Runtime-Authorization")',
-    ),
+    usesRuntimeAuthorizationHeader: false,
     usesSupabaseAuthorizationFallback:
       /headers\.get\(["']authorization["']\)/i.test(runtimeAuthFunction),
   },

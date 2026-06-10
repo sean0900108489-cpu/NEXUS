@@ -58,7 +58,6 @@ import {
 import type { RndDragCallback, RndResizeCallback } from "react-rnd";
 
 import {
-  DEFAULT_BASE_URL,
   DEFAULT_SANDBOX_CODE,
   DEFAULT_WORKSPACE_BRANCHING_SETTINGS,
   agentTemplates,
@@ -103,10 +102,7 @@ import type {
   WorkspaceThemeConfig,
   WorkspaceViewMode,
 } from "@/lib/nexus-types";
-import {
-  NEXUS_RUNTIME_AUTHORIZATION_HEADER,
-  nexusApiClient,
-} from "@/lib/api/nexus-api-client";
+import { nexusApiClient } from "@/lib/api/nexus-api-client";
 import {
   createNotebookRecoveryMetadata,
   parseWorkspaceSnapshot,
@@ -162,6 +158,10 @@ import type {
   WorkspaceAttachmentInputActionId,
   WorkspaceComposerAttachment,
 } from "@/lib/attachments/attachment-types";
+import type {
+  ModelCatalogResponse,
+  PublicModelCatalogEntry,
+} from "@/lib/models/model-catalog-types";
 import {
   getWorkspaceComposerActions,
   type WorkspaceComposerActionId,
@@ -208,11 +208,9 @@ import { createWorkflowProContractDraftFromRuntimeLite } from "@/lib/workflow-pr
 import { validateWorkflowProContractDraft } from "@/lib/workflow-pro/workflow-contract-validator";
 import { createWorkflowProProposalDiff } from "@/lib/workflow-pro/proposal-diff";
 import {
-  PROVIDER_REGISTRY,
   getModelOption,
   getModelCapabilityProfile,
   getModelOptionsForCapability,
-  getProviderIdForModel,
   getProviderOption,
 } from "@/lib/nexus-registry";
 import {
@@ -693,20 +691,24 @@ function uniqueModelIds(models: Array<string | undefined>) {
   );
 }
 
-function getAgentModelGroups(agent: NexusAgent) {
+function getAgentModelGroups(
+  agent: NexusAgent,
+  modelCatalog: PublicModelCatalogEntry[],
+) {
   const capabilityType = getCapabilityType(agent);
   const currentModel = agent.model?.trim();
-  const supportedModels = agent.capabilities?.supportedModels ?? [];
-  const catalogModels = getModelOptionsForCapability(capabilityType).map(
-    (model) => model.id,
-  );
+  const catalogModels =
+    capabilityType === "chat"
+      ? modelCatalog.map((model) => model.id)
+      : getModelOptionsForCapability(capabilityType).map((model) => model.id);
 
-  const models = uniqueModelIds([currentModel, ...supportedModels, ...catalogModels]);
+  const models = uniqueModelIds([currentModel, ...catalogModels]);
   const grouped = models.reduce<Array<{ label: string; models: string[] }>>(
     (groups, modelId) => {
+      const catalogModel = modelCatalog.find((model) => model.id === modelId);
       const option = getModelOption(modelId);
       const providerId = option?.provider ?? agent.provider;
-      const label = getProviderLabel(providerId);
+      const label = catalogModel?.provider_family ?? getProviderLabel(providerId);
       const group = groups.find((candidate) => candidate.label === label);
 
       if (group) {
@@ -725,68 +727,19 @@ function getAgentModelGroups(agent: NexusAgent) {
     : [{ label: "Agent Supported Models", models }];
 }
 
-type ServerProviderStatus = {
-  ok?: boolean;
-  server?: {
-    openai?: {
-      apiKeyConfigured?: boolean;
-      baseUrlConfigured?: boolean;
-      defaultBaseUrl?: string;
-      imageModel?: string | null;
-      imageModelConfigured?: boolean;
-    };
-  };
-};
-
-function hasServerProviderCredential(
-  serverProviderStatus: ServerProviderStatus | null | undefined,
-  providerId?: string,
+function getCatalogModelLabel(
+  modelCatalog: PublicModelCatalogEntry[],
+  modelId: string,
 ) {
-  if (!serverProviderStatus?.server?.openai?.apiKeyConfigured) {
-    return false;
-  }
-
-  const normalizedProvider = providerId?.trim().toLowerCase();
-
-  return (
-    !normalizedProvider ||
-    normalizedProvider === "openai" ||
-    normalizedProvider === "openai-compatible" ||
-    normalizedProvider === "custom-openai-compatible"
-  );
+  return modelCatalog.find((model) => model.id === modelId)?.label ?? getModelLabel(modelId);
 }
 
-function resolveRuntimeCredentialForModel(
-  authVault: IAuthVault,
-  model: string,
-  fallbackProvider?: string,
-  serverProviderStatus?: ServerProviderStatus | null,
-) {
-  const providerId = getProviderIdForModel(model, fallbackProvider);
-  const provider = getProviderOption(providerId);
-  const providerCredential = authVault.providerCredentials?.[providerId];
-  const apiKey =
-    providerCredential?.apiKey?.replace(/[^\x20-\x7E]/g, "").trim() ||
-    authVault.globalApiKey?.replace(/[^\x20-\x7E]/g, "").trim() ||
-    "";
-  const baseUrl =
-    providerCredential?.baseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
-    authVault.globalBaseUrl?.replace(/[^\x20-\x7E]/g, "").trim() ||
-    provider?.defaultBaseUrl ||
-    DEFAULT_BASE_URL;
-  const serverCredentialConfigured =
-    !apiKey && hasServerProviderCredential(serverProviderStatus, providerId);
-
-  return {
-    apiKey,
-    baseUrl,
-    providerId,
-    providerLabel: provider?.label ?? providerId,
-    serverCredentialConfigured,
-    verificationStatus:
-      providerCredential?.verificationStatus ?? provider?.verificationStatus ?? "untested",
-    liveVerifiedAt: providerCredential?.liveVerifiedAt ?? null,
-  };
+function getFallbackAllowedModelId(modelCatalog: PublicModelCatalogEntry[]) {
+  return (
+    modelCatalog.find((model) => model.id === "gpt-4o-mini")?.id ??
+    modelCatalog[0]?.id ??
+    "gpt-4o-mini"
+  );
 }
 
 function isMediaCapability(
@@ -911,15 +864,8 @@ function IconButton({
   );
 }
 
-function resolveAgentsStreamMode(
-  authVault: IAuthVault,
-  serverProviderStatus?: ServerProviderStatus | null,
-): StreamMode {
-  return authVault.globalApiKey?.trim() ||
-    Object.values(authVault.providerCredentials ?? {}).some((entry) => entry.apiKey?.trim()) ||
-    hasServerProviderCredential(serverProviderStatus)
-    ? "live"
-    : "mock";
+function resolveAgentsStreamMode(): StreamMode {
+  return "live";
 }
 
 function syncSupabaseSessionUser(user: IAuthVault["user"]) {
@@ -1313,8 +1259,8 @@ export function NexusOps() {
   const [workspaceRecoveryLoading, setWorkspaceRecoveryLoading] = useState(false);
   const [workspaceSessionByWorkspaceId, setWorkspaceSessionByWorkspaceId] =
     useState<Record<string, WorkspaceSessionEnsureResponse>>({});
-  const [serverProviderStatus, setServerProviderStatus] =
-    useState<ServerProviderStatus | null>(null);
+  const [modelCatalog, setModelCatalog] = useState<PublicModelCatalogEntry[]>([]);
+  const [modelCatalogPlan, setModelCatalogPlan] = useState<ModelCatalogResponse["plan"]>("Free");
   const artifactAutoHydrationKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -1328,33 +1274,6 @@ export function NexusOps() {
     return subscribeImportedWorkspaceStyleReviewState(
       syncImportedWorkspaceStyleReview,
     );
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void fetch("/api/v1/providers/status", { cache: "no-store" })
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error("Provider status unavailable.");
-        }
-
-        return (await response.json()) as ServerProviderStatus;
-      })
-      .then((payload) => {
-        if (!cancelled) {
-          setServerProviderStatus(payload);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setServerProviderStatus(null);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   const activeWorkspaceId = useNexusStore((state) => state.activeWorkspaceId);
@@ -1417,19 +1336,6 @@ export function NexusOps() {
   const toggleNotebookOpen = useNexusStore((state) => state.toggleNotebookOpen);
   const createNotebook = useNexusStore((state) => state.createNotebook);
   const logout = useNexusStore((state) => state.logout);
-  const setGlobalApiKey = useNexusStore((state) => state.setGlobalApiKey);
-  const setGlobalBaseUrl = useNexusStore((state) => state.setGlobalBaseUrl);
-  const setProviderApiKey = useNexusStore((state) => state.setProviderApiKey);
-  const setProviderBaseUrl = useNexusStore((state) => state.setProviderBaseUrl);
-  const setProviderVerificationStatus = useNexusStore(
-    (state) => state.setProviderVerificationStatus,
-  );
-  const lockProviderCredential = useNexusStore((state) => state.lockProviderCredential);
-  const unlockProviderCredential = useNexusStore((state) => state.unlockProviderCredential);
-  const deleteProviderCredential = useNexusStore((state) => state.deleteProviderCredential);
-  const lockVault = useNexusStore((state) => state.lockVault);
-  const unlockVault = useNexusStore((state) => state.unlockVault);
-  const deleteApiKey = useNexusStore((state) => state.deleteApiKey);
   const updateBranchingSettings = useNexusStore(
     (state) => state.updateBranchingSettings,
   );
@@ -1480,6 +1386,48 @@ export function NexusOps() {
   const runTool = useNexusStore((state) => state.runTool);
   const historicalMessages = useNexusStore((state) => state.historicalMessages);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadModels = async () => {
+      const headers = new Headers();
+      const accessToken = await resolveSupabaseAccessToken();
+
+      if (accessToken) {
+        headers.set("Authorization", `Bearer ${accessToken}`);
+      }
+
+      const response = await fetch("/api/models", {
+        cache: "no-store",
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error("Model catalog unavailable.");
+      }
+
+      return (await response.json()) as ModelCatalogResponse;
+    };
+
+    void loadModels()
+      .then((payload) => {
+        if (!cancelled) {
+          setModelCatalog(payload.models);
+          setModelCatalogPlan(payload.plan);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setModelCatalog([]);
+          setModelCatalogPlan("Free");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authVault.user?.id]);
+
   const workspace =
     workspaces.find((candidate) => candidate.id === activeWorkspaceId) ?? workspaces[0];
   const workspaceName = workspace?.name ?? "NEXUS // AI OPS";
@@ -1502,14 +1450,9 @@ export function NexusOps() {
     [artifactVaultCache],
   );
   const effectiveStreamMode = useMemo(
-    () => resolveAgentsStreamMode(authVault, serverProviderStatus),
-    [authVault, serverProviderStatus],
+    () => resolveAgentsStreamMode(),
+    [],
   );
-  const serverOpenAiConfigured = Boolean(
-    serverProviderStatus?.server?.openai?.apiKeyConfigured,
-  );
-  const serverOpenAiImageModel =
-    serverProviderStatus?.server?.openai?.imageModel?.trim() || null;
 
   const visibleAgents = agents.filter((agent) => !agent.minimized);
   const minimizedAgents = agents.filter((agent) => agent.minimized);
@@ -1528,6 +1471,21 @@ export function NexusOps() {
     workspace?.graph.runtimeLite?.runs.some((run) => run.status === "running"),
   );
   const workflowRuntimeLite = workspace?.graph.runtimeLite;
+
+  useEffect(() => {
+    if (!modelCatalog.length) {
+      return;
+    }
+
+    const allowedModelIds = new Set(modelCatalog.map((model) => model.id));
+    const fallbackModelId = getFallbackAllowedModelId(modelCatalog);
+
+    for (const agent of agents) {
+      if (getCapabilityType(agent) === "chat" && !allowedModelIds.has(agent.model)) {
+        updateAgentModel(agent.id, fallbackModelId);
+      }
+    }
+  }, [agents, modelCatalog, updateAgentModel]);
   const workflowProCapabilityInventory = useMemo(
     () => createWorkflowProCapabilityInventory(),
     [],
@@ -2536,17 +2494,7 @@ export function NexusOps() {
       agent?.model?.trim() ||
       workspace?.settings.model?.trim() ||
       "gpt-4o-mini";
-    const runtimeCredential = resolveRuntimeCredentialForModel(
-      state.authVault,
-      model,
-      agent?.provider ?? workspace?.settings.provider,
-      serverProviderStatus,
-    );
-    const safeKey = runtimeCredential.apiKey;
-    const safeBaseUrl = runtimeCredential.baseUrl;
-    const liveProviderAvailable = Boolean(
-      safeKey || runtimeCredential.serverCredentialConfigured,
-    );
+    const modelInfo = modelCatalog.find((candidate) => candidate.id === model);
     const userId = state.authVault.user?.id;
 
     if (!agent || agent.status === "streaming" || agent.status === "thinking") {
@@ -2582,7 +2530,7 @@ export function NexusOps() {
           },
           model,
           outputMessageId: assistantMessage.id,
-          provider: runtimeCredential.providerId,
+          provider: modelInfo?.provider_family ?? agent.provider,
           taskType: "chat",
           workspaceId: apiWorkspaceId,
         },
@@ -2614,7 +2562,7 @@ export function NexusOps() {
         title: agent.title,
         mission: agent.mission,
         executionPrompt: agent.executionPrompt,
-        provider: runtimeCredential.providerId,
+        provider: modelInfo?.provider_family ?? agent.provider,
         model,
         memory: agent.memory,
         contextNotes: agent.contextNotes,
@@ -2633,13 +2581,9 @@ export function NexusOps() {
     state.addMessage(agentId, assistantMessage);
     state.setAgentStatus(agentId, "thinking");
     setNotice(
-      safeKey
-        ? `${agent.callsign} live stream opened via ${runtimeCredential.providerLabel}`
-        : runtimeCredential.serverCredentialConfigured
-          ? `${agent.callsign} live stream opened via ${runtimeCredential.providerLabel} server key`
-          : `${agent.callsign} mock stream opened; ${runtimeCredential.providerLabel} key missing`,
+      `${agent.callsign} stream opened via ${modelInfo?.provider_family ?? "server model gateway"}`,
     );
-    state.setStreamMode(liveProviderAvailable ? "live" : "mock");
+    state.setStreamMode("live");
 
     let received = "";
     let firstTokenReceived = false;
@@ -2668,13 +2612,7 @@ export function NexusOps() {
         headers.set("Authorization", `Bearer ${accessToken}`);
       }
 
-      if (safeKey) {
-        headers.set(NEXUS_RUNTIME_AUTHORIZATION_HEADER, `Bearer ${safeKey}`);
-      }
-      if (safeKey || !runtimeCredential.serverCredentialConfigured) {
-        headers.set("x-nexus-base-url", safeBaseUrl);
-      }
-      headers.set("x-nexus-provider-id", runtimeCredential.providerId);
+      headers.set("x-nexus-model-id", model);
 
       const response = await fetchWithBackoff(
         `/api/v1/agents/${agentId}/stream`,
@@ -2774,7 +2712,7 @@ export function NexusOps() {
         setNotice(`${agent.callsign} stream closed`);
       }
     }
-  }, [serverProviderStatus, workspaceSessionByWorkspaceId]);
+  }, [modelCatalog, workspaceSessionByWorkspaceId]);
 
   const blockReadOnlyWorkspaceMutation = useCallback((action: string) => {
     if (!activeWorkspaceReadOnly) {
@@ -2968,11 +2906,7 @@ export function NexusOps() {
       state.workspaces[0];
     const agent = workspace?.agents.find((candidate) => candidate.id === agentId);
     const capabilityType = agent ? getCapabilityType(agent) : "chat";
-    const globalApiKey = state.authVault.globalApiKey?.trim() ?? "";
-    const imageProviderAvailable = Boolean(
-      capabilityType === "image" &&
-        (globalApiKey || hasServerProviderCredential(serverProviderStatus, "openai")),
-    );
+    const imageProviderAvailable = capabilityType === "image";
 
     if (
       !agent ||
@@ -3037,7 +2971,7 @@ export function NexusOps() {
     } finally {
       useNexusStore.getState().setAgentStatus(agentId, "idle");
     }
-  }, [serverProviderStatus]);
+  }, []);
 
   const handleComposerImageGenerate = useCallback(
     async (
@@ -3084,23 +3018,14 @@ export function NexusOps() {
         await wait(180);
         useNexusStore.getState().setAgentStatus(agentId, "streaming");
 
-        const runtimeCredential = resolveRuntimeCredentialForModel(
-          state.authVault,
-          imageSettings.modelId,
-          "openai",
-          serverProviderStatus,
-        );
         const result = await executeImageAdapterForAgent({
           agent: {
             accent: agent.accent,
             callsign: agent.callsign,
             model: imageSettings.modelId,
           },
-          apiKey: runtimeCredential.apiKey,
-          baseUrl:
-            runtimeCredential.serverCredentialConfigured && !runtimeCredential.apiKey
-              ? undefined
-              : runtimeCredential.baseUrl,
+          apiKey: "",
+          baseUrl: undefined,
           imageSettings,
           prompt,
           toolName: "Composer Image Mode",
@@ -3199,7 +3124,7 @@ export function NexusOps() {
         useNexusStore.getState().setAgentStatus(agentId, "idle");
       }
     },
-    [serverProviderStatus, workspaceSessionByWorkspaceId],
+    [workspaceSessionByWorkspaceId],
   );
 
   useEffect(() => {
@@ -3565,14 +3490,15 @@ export function NexusOps() {
                     workspace?.settings.agentTemplateProfiles ?? {}
                   }
                   onFocus={focusAgent}
-                  onRestore={restoreAgent}
-                  onSelect={selectAgent}
+	                  onRestore={restoreAgent}
+	                  onSelect={selectAgent}
                   onSpawn={(template) => {
                     const id = spawnAgent(template.id);
                     focusAgent(id);
                     setNotice(`${template.callsign} spawned`);
-                  }}
-                  onUpdateAgentModel={updateAgentModel}
+	                  }}
+                    modelCatalog={modelCatalog}
+	                  onUpdateAgentModel={updateAgentModel}
                   onUpdateAgentModelSettings={updateAgentModelSettings}
                   onUpdateAgentTemplateProfile={updateAgentTemplateProfile}
                   selectedAgentId={selectedAgent?.id}
@@ -3626,6 +3552,7 @@ export function NexusOps() {
                 agents={agents}
                 generatedArtifacts={artifactVault.filter(isGeneratedArtifactRecord)}
                 graph={workspace?.graph ?? EMPTY_GRAPH}
+                modelCatalog={modelCatalog}
                 onAddWorkflowNode={(type, position) => {
                   if (blockReadOnlyWorkspaceMutation("Add workflow node")) {
                     return;
@@ -3835,7 +3762,8 @@ export function NexusOps() {
           agents={agents}
           agent={selectedAgent}
           authVault={authVault}
-          serverProviderStatus={serverProviderStatus}
+          modelCatalog={modelCatalog}
+          modelCatalogPlan={modelCatalogPlan}
           artifactError={artifactError}
           artifacts={artifactVault}
           artifactsLoading={artifactsLoading}
@@ -3886,20 +3814,9 @@ export function NexusOps() {
           }}
           onSpawnMacro={handleSpawnMacro}
           onToggleNotebook={toggleNotebookOpen}
-          onDeleteApiKey={deleteApiKey}
-          onDeleteProviderCredential={deleteProviderCredential}
-          onLockVault={lockVault}
-          onLockProviderCredential={lockProviderCredential}
           onLogout={logout}
           onRunTool={runTool}
           onSelectAgent={selectAgent}
-          onSetGlobalApiKey={setGlobalApiKey}
-          onSetGlobalBaseUrl={setGlobalBaseUrl}
-          onSetProviderApiKey={setProviderApiKey}
-          onSetProviderBaseUrl={setProviderBaseUrl}
-          onSetProviderVerificationStatus={setProviderVerificationStatus}
-          onUnlockVault={unlockVault}
-          onUnlockProviderCredential={unlockProviderCredential}
           onUpdateMemory={updateMemoryBlock}
           onUpdateAgentCallsign={updateAgentCallsign}
           onUpdateAgentProfile={updateAgentProfile}
@@ -4692,262 +4609,99 @@ function MacroComposerModal({
   );
 }
 
-function ProviderVaultPanel({
-  authVault,
-  onDeleteProviderCredential,
-  onLockProviderCredential,
-  onSetProviderApiKey,
-  onSetProviderBaseUrl,
-  onSetProviderVerificationStatus,
-  onUnlockProviderCredential,
+function ModelInfoPanel({
+  modelCatalog,
+  plan,
+  selectedModelId,
 }: {
-  authVault: IAuthVault;
-  onDeleteProviderCredential: (providerId: string) => void;
-  onLockProviderCredential: (providerId: string) => void;
-  onSetProviderApiKey: (providerId: string, key: string) => void;
-  onSetProviderBaseUrl: (providerId: string, baseUrl: string) => void;
-  onSetProviderVerificationStatus: (
-    providerId: string,
-    status: "untested" | "verified" | "failed",
-    error?: string,
-  ) => void;
-  onUnlockProviderCredential: (providerId: string) => void;
+  modelCatalog: PublicModelCatalogEntry[];
+  plan: ModelCatalogResponse["plan"];
+  selectedModelId?: string;
 }) {
-  const providerId = "deepseek";
-  const provider = PROVIDER_REGISTRY[providerId];
-  const credential = authVault.providerCredentials?.[providerId];
-  const [keyDraft, setKeyDraft] = useState("");
-  const [baseUrlDraft, setBaseUrlDraft] = useState(
-    credential?.baseUrl ?? provider.defaultBaseUrl ?? "",
-  );
-  const [verifying, setVerifying] = useState(false);
-  const deepseekModels = getModelOptionsForCapability("chat").filter(
-    (model) => model.provider === providerId,
-  );
+  const selectedModel = modelCatalog.find((model) => model.id === selectedModelId);
+  const familyGroups = modelCatalog.reduce<Array<{ family: string; models: PublicModelCatalogEntry[] }>>(
+    (groups, model) => {
+      const group = groups.find((candidate) => candidate.family === model.provider_family);
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setBaseUrlDraft(credential?.baseUrl ?? provider.defaultBaseUrl ?? "");
-    }, 0);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [credential?.baseUrl, provider.defaultBaseUrl]);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      if (!credential?.apiKey || credential.isLocked) {
-        setKeyDraft("");
-        return;
+      if (group) {
+        group.models.push(model);
+      } else {
+        groups.push({ family: model.provider_family, models: [model] });
       }
 
-      setKeyDraft(credential.apiKey);
-    }, 0);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [credential?.apiKey, credential?.isLocked]);
-
-  const verifyProvider = async () => {
-    const apiKey = credential?.apiKey?.replace(/[^\x20-\x7E]/g, "").trim() ?? "";
-
-    if (!apiKey || verifying) {
-      return;
-    }
-
-    setVerifying(true);
-
-    try {
-      const response = await fetch("/api/v1/providers/verify", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "x-nexus-base-url": baseUrlDraft,
-        },
-        body: JSON.stringify({
-          baseUrl: baseUrlDraft,
-          model: "deepseek-v4-pro",
-          providerId,
-        }),
-      });
-      const data = (await response.json()) as {
-        error?: string;
-        verified?: boolean;
-      };
-
-      if (!response.ok || !data.verified) {
-        onSetProviderVerificationStatus(
-          providerId,
-          "failed",
-          data.error ?? "Live verification failed.",
-        );
-        return;
-      }
-
-      onSetProviderVerificationStatus(providerId, "verified");
-    } catch (error) {
-      onSetProviderVerificationStatus(
-        providerId,
-        "failed",
-        error instanceof Error ? error.message : "Live verification failed.",
-      );
-    } finally {
-      setVerifying(false);
-    }
-  };
+      return groups;
+    },
+    [],
+  );
 
   return (
     <section className="mb-4 border border-neutral-300/25 bg-neutral-300/[0.045] p-3 shadow-[0_0_28px_rgba(34,211,238,0.08)]">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
-            Providers / Model Vault
+            Model Catalog
           </div>
           <div className="mt-1 text-xs text-neutral-500">
-            DeepSeek is routed through the provider registry.
+            Backend-filtered models for your current plan.
           </div>
         </div>
-        <span
-          className={cx(
-            "border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em]",
-            credential?.verificationStatus === "verified"
-              ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
-              : credential?.verificationStatus === "failed"
-                ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
-                : "border-neutral-300/35 bg-neutral-300/10 text-neutral-100",
-          )}
-        >
-          {credential?.verificationStatus ?? "untested"}
+        <span className="border border-neutral-300/35 bg-neutral-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100">
+          {plan}
         </span>
       </div>
 
-      <div className="grid gap-3">
-        <label className="grid gap-2">
-          <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
-            DeepSeek Base URL
-          </span>
-          <input
-            className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-xs text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/60"
-            onBlur={() => onSetProviderBaseUrl(providerId, baseUrlDraft)}
-            onChange={(event) => setBaseUrlDraft(event.target.value)}
-            placeholder={provider.defaultBaseUrl}
-            spellCheck={false}
-            type="url"
-            value={baseUrlDraft}
-          />
-        </label>
-
-        {credential?.apiKey && credential.isLocked ? (
-          <div className="border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-neutral-300">
-            ••••••••••••••••
+      {selectedModel ? (
+        <article className="mb-3 border border-white/10 bg-black/25 p-3">
+          <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-white">
+            {selectedModel.label}
           </div>
-        ) : (
-          <input
-            autoComplete="new-password"
-            className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/60"
-            onChange={(event) => setKeyDraft(event.target.value)}
-            placeholder="DeepSeek API key"
-            type="password"
-            value={keyDraft}
-          />
-        )}
-
-        <div className="grid grid-cols-4 gap-2">
-          <button
-            className="border border-neutral-300/35 bg-neutral-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
-            disabled={!keyDraft.trim()}
-            onClick={() => {
-              onSetProviderBaseUrl(providerId, baseUrlDraft);
-              onSetProviderApiKey(providerId, keyDraft);
-              onLockProviderCredential(providerId);
-              setKeyDraft("");
-            }}
-            type="button"
-          >
-            Save
-          </button>
-          <button
-            className="border border-neutral-300/35 bg-neutral-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
-            disabled={!credential?.apiKey}
-            onClick={() =>
-              credential?.isLocked
-                ? onUnlockProviderCredential(providerId)
-                : onLockProviderCredential(providerId)
-            }
-            type="button"
-          >
-            {credential?.isLocked ? "Unlock" : "Lock"}
-          </button>
-          <button
-            className="border border-neutral-300/35 bg-neutral-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
-            disabled={!credential?.apiKey || verifying}
-            onClick={() => void verifyProvider()}
-            type="button"
-          >
-            {verifying ? "Checking" : "Verify"}
-          </button>
-          <button
-            className="border border-neutral-300/35 bg-neutral-300/10 px-2 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
-            disabled={!credential?.apiKey}
-            onClick={() => onDeleteProviderCredential(providerId)}
-            type="button"
-          >
-            Delete
-          </button>
-        </div>
-
-        {credential?.verificationError ? (
-          <div className="border border-neutral-300/25 bg-neutral-300/10 px-3 py-2 text-[11px] text-neutral-100">
-            {credential.verificationError}
+          <p className="mt-2 text-xs leading-5 text-neutral-400">
+            {selectedModel.description}
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
+            <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+              Family: {selectedModel.provider_family}
+            </span>
+            <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+              Plan: {selectedModel.min_plan}
+            </span>
+            <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+              Vision: {selectedModel.supports_vision ? "Yes" : "No"}
+            </span>
+            <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+              Tools: {selectedModel.supports_tools ? "Yes" : "No"}
+            </span>
           </div>
-        ) : null}
-      </div>
+        </article>
+      ) : null}
 
-      <div className="mt-4 grid gap-2">
-        {deepseekModels.map((model) => {
-          const capability = getModelCapabilityProfile(model.id);
-          const thinking = capability?.thinking;
-          const effortMap = thinking?.providerReasoningEffortMap;
-
-          return (
-            <article key={model.id} className="border border-white/10 bg-black/25 p-3">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-white">
-                    {model.label}
+      <div className="grid gap-2">
+        {familyGroups.map((group) => (
+          <article key={group.family} className="border border-white/10 bg-black/25 p-3">
+            <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white">
+              {group.family}
+            </div>
+            <div className="grid gap-2">
+              {group.models.map((model) => (
+                <div key={model.id} className="border border-white/10 bg-white/[0.03] p-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="min-w-0">
+                      <span className="block truncate font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-100">
+                        {model.label}
+                      </span>
+                      <span className="mt-1 block text-[11px] leading-4 text-neutral-500">
+                        {model.best_for.join(" / ")}
+                      </span>
+                    </span>
+                    <span className="shrink-0 border border-neutral-300/25 bg-neutral-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100">
+                      {model.min_plan}
+                    </span>
                   </div>
-                  <div className="mt-1 text-xs text-neutral-500">{model.id}</div>
                 </div>
-                <span className="border border-neutral-300/25 bg-neutral-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100">
-                  {model.tier ?? "standard"}
-                </span>
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
-                <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
-                  Provider: {provider.label}
-                </span>
-                <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
-                  Thinking: {thinking?.supported ? "Supported" : "No"}
-                </span>
-                <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
-                  Default: {thinking?.defaultEnabled ? "On" : "Off"}
-                </span>
-                <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
-                  Live: {credential?.verificationStatus === "verified" ? "Verified" : "Untested"}
-                </span>
-              </div>
-              {thinking?.supported ? (
-                <div className="mt-3 border border-neutral-300/20 bg-neutral-300/[0.04] p-2 text-[11px] leading-5 text-neutral-400">
-                  <div>
-                    Effort: {thinking.supportedReasoningEfforts.join(" / ")}; xhigh maps
-                    to {effortMap?.xhigh ?? "xhigh"}
-                  </div>
-                  <div>Disabled params: {thinking.disabledRequestParams.join(", ")}</div>
-                  <div>Reasoning field: {thinking.responseReasoningField ?? "none"}</div>
-                </div>
-              ) : null}
-            </article>
-          );
-        })}
+              ))}
+            </div>
+          </article>
+        ))}
       </div>
     </section>
   );
@@ -4960,7 +4714,8 @@ function AgentSettingsSidebar({
   agent,
   agents,
   authVault,
-  serverProviderStatus,
+  modelCatalog,
+  modelCatalogPlan,
   artifactError,
   artifacts,
   artifactsLoading,
@@ -4981,27 +4736,16 @@ function AgentSettingsSidebar({
   onClose,
   onCopyArtifact,
   onCreateNotebook,
-  onDeleteApiKey,
-  onDeleteProviderCredential,
   onDownloadArtifact,
-  onLockVault,
-  onLockProviderCredential,
   onLogout,
   onRefreshArtifacts,
   onRefreshMacros,
   onRetryWorkflowRuntimeTraceSync,
   onRunTool,
   onSelectAgent,
-  onSetGlobalApiKey,
-  onSetGlobalBaseUrl,
-  onSetProviderApiKey,
-  onSetProviderBaseUrl,
-  onSetProviderVerificationStatus,
   onSetAgentProfileLocked,
   onSpawnMacro,
   onToggleNotebook,
-  onUnlockVault,
-  onUnlockProviderCredential,
   onUpdateBranchingSettings,
   onUpdateMemory,
   onUpdateAgentCallsign,
@@ -5016,7 +4760,8 @@ function AgentSettingsSidebar({
   agent?: NexusAgent;
   agents: NexusAgent[];
   authVault: IAuthVault;
-  serverProviderStatus: ServerProviderStatus | null;
+  modelCatalog: PublicModelCatalogEntry[];
+  modelCatalogPlan: ModelCatalogResponse["plan"];
   artifactError?: string;
   artifacts: ArtifactVaultRecord[];
   artifactsLoading: boolean;
@@ -5037,31 +4782,16 @@ function AgentSettingsSidebar({
   onClose: () => void;
   onCopyArtifact: (artifact: ArtifactVaultRecord) => void;
   onCreateNotebook: () => string;
-  onDeleteApiKey: () => void;
-  onDeleteProviderCredential: (providerId: string) => void;
   onDownloadArtifact: (artifact: ArtifactVaultRecord) => void;
-  onLockVault: () => void;
-  onLockProviderCredential: (providerId: string) => void;
   onLogout: () => void;
   onRefreshArtifacts: () => void;
   onRefreshMacros: () => void;
   onRetryWorkflowRuntimeTraceSync: (runId: string) => Promise<void>;
   onRunTool: (agentId: string, toolId: string) => Promise<void>;
   onSelectAgent: (agentId: string) => void;
-  onSetGlobalApiKey: (key: string) => void;
-  onSetGlobalBaseUrl: (baseUrl: string) => void;
-  onSetProviderApiKey: (providerId: string, key: string) => void;
-  onSetProviderBaseUrl: (providerId: string, baseUrl: string) => void;
-  onSetProviderVerificationStatus: (
-    providerId: string,
-    status: "untested" | "verified" | "failed",
-    error?: string,
-  ) => void;
   onSetAgentProfileLocked: (agentId: string, locked: boolean) => void;
   onSpawnMacro: (macro: WorkflowTemplateRecord) => void;
   onToggleNotebook: (id: string) => void;
-  onUnlockVault: () => void;
-  onUnlockProviderCredential: (providerId: string) => void;
   onUpdateBranchingSettings: (settings: Partial<WorkspaceBranchingSettings>) => void;
   onUpdateMemory: (agentId: string, memoryId: string, content: string) => void;
   onUpdateAgentCallsign: (agentId: string, callsign: string) => void;
@@ -5074,10 +4804,6 @@ function AgentSettingsSidebar({
 }) {
   const [newAgentType, setNewAgentType] =
     useState<AgentCreationCapabilityType>("chat");
-  const [vaultKeyDraft, setVaultKeyDraft] = useState("");
-  const [vaultBaseUrlDraft, setVaultBaseUrlDraft] = useState(
-    authVault.globalBaseUrl ?? DEFAULT_BASE_URL,
-  );
   const generatedArtifacts = useMemo(
     () => artifacts.filter(isGeneratedArtifactRecord),
     [artifacts],
@@ -5097,11 +4823,6 @@ function AgentSettingsSidebar({
   const [traceResyncingRunId, setTraceResyncingRunId] = useState<string | null>(null);
   const traceViewerUserId = authVault.user?.id ?? "local-owner";
   const latestRuntimeTraceId = workflowRuntimeEvidence.latestRun?.traceSync?.traceId ?? null;
-  const serverOpenAiConfigured = Boolean(
-    serverProviderStatus?.server?.openai?.apiKeyConfigured,
-  );
-  const serverOpenAiImageModel =
-    serverProviderStatus?.server?.openai?.imageModel?.trim() || null;
   const runtimeTraceCorrelation = useMemo(
     () =>
       createWorkflowRuntimeTraceCorrelationReport({
@@ -5184,27 +4905,6 @@ function AgentSettingsSidebar({
       "application/json;charset=utf-8",
     );
   }, [workflowRuntimeEvidence, workspaceId, workspaceName]);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      if (!authVault.globalApiKey || authVault.isLocked) {
-        setVaultKeyDraft("");
-        return;
-      }
-
-      setVaultKeyDraft(authVault.globalApiKey);
-    }, 0);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [authVault.globalApiKey, authVault.isLocked]);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setVaultBaseUrlDraft(authVault.globalBaseUrl ?? DEFAULT_BASE_URL);
-    }, 0);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [authVault.globalBaseUrl]);
 
   const loadTraceEvents = useCallback(async (mode: "next" | "reset" = "reset") => {
     setTraceEventsLoading(true);
@@ -5376,14 +5076,10 @@ function AgentSettingsSidebar({
 	            ) : null}
 
 	            {activePanel === "providers" ? (
-	              <ProviderVaultPanel
-	                authVault={authVault}
-	                onDeleteProviderCredential={onDeleteProviderCredential}
-	                onLockProviderCredential={onLockProviderCredential}
-	                onSetProviderApiKey={onSetProviderApiKey}
-	                onSetProviderBaseUrl={onSetProviderBaseUrl}
-	                onSetProviderVerificationStatus={onSetProviderVerificationStatus}
-	                onUnlockProviderCredential={onUnlockProviderCredential}
+	              <ModelInfoPanel
+	                modelCatalog={modelCatalog}
+	                plan={modelCatalogPlan}
+	                selectedModelId={agent?.model}
 	              />
 	            ) : null}
 
@@ -5512,125 +5208,38 @@ function AgentSettingsSidebar({
 	            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
-                    Global API Vault
-                  </div>
-                  <div className="mt-1 text-xs text-neutral-500">
-                    One local runtime key for every workspace and agent
-                  </div>
+	                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
+	                    Server Model Gateway
+	                  </div>
+	                  <div className="mt-1 text-xs text-neutral-500">
+	                    New API credentials are managed by the backend.
+	                  </div>
                 </div>
                 <span
                   className={cx(
                     "border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em]",
-                    authVault.globalApiKey
-                      ? authVault.isLocked
-                        ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
-                        : "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
-                      : serverOpenAiConfigured
-                        ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
-                      : "border-neutral-300/35 bg-neutral-300/10 text-neutral-100",
-                  )}
-                >
-                  {authVault.globalApiKey
-                    ? authVault.isLocked
-                      ? "Locked"
-                      : "Unlocked"
-                    : serverOpenAiConfigured
-                      ? "Server"
-                      : "Empty"}
-                </span>
+	                    "border-neutral-300/35 bg-neutral-300/10 text-neutral-100",
+	                  )}
+	                >
+	                  Server
+	                </span>
               </div>
-              {serverOpenAiConfigured ? (
-                <div className="mb-3 border border-white/10 bg-black/25 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-300">
-                  Server provider configured
-                  {serverOpenAiImageModel ? ` / ${serverOpenAiImageModel}` : ""}
+              <div className="grid gap-3">
+                <div className="border border-white/10 bg-black/25 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-300">
+                  Server-managed New API gateway
                 </div>
-              ) : null}
-
-              {authVault.globalApiKey && authVault.isLocked ? (
-                <div className="grid gap-3">
-                  <div className="border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-neutral-300">
-                    ••••••••••••••••
-                  </div>
-                  <label className="grid gap-2">
-                    <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
-                      OpenAI-compatible Base URL
-                    </span>
-                    <input
-                      className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-xs text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/60"
-                      onBlur={() => onSetGlobalBaseUrl(vaultBaseUrlDraft)}
-                      onChange={(event) => setVaultBaseUrlDraft(event.target.value)}
-                      placeholder={DEFAULT_BASE_URL}
-                      spellCheck={false}
-                      type="url"
-                      value={vaultBaseUrlDraft}
-                    />
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      className="border border-neutral-300/35 bg-neutral-300/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100 transition hover:bg-neutral-300/20"
-                      onClick={onUnlockVault}
-                      type="button"
-                    >
-                      Unlock
-                    </button>
-                    <button
-                      className="border border-neutral-300/35 bg-neutral-300/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100 transition hover:bg-neutral-300/20"
-                      onClick={onDeleteApiKey}
-                      type="button"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                <div className="grid grid-cols-2 gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
+                  <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+                    Plan: {modelCatalogPlan}
+                  </span>
+                  <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+                    Models: {modelCatalog.length}
+                  </span>
                 </div>
-              ) : (
-                <div className="grid gap-3">
-                  <label className="grid gap-2">
-                    <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">
-                      OpenAI-compatible Base URL
-                    </span>
-                    <input
-                      className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-xs text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/60"
-                      onBlur={() => onSetGlobalBaseUrl(vaultBaseUrlDraft)}
-                      onChange={(event) => setVaultBaseUrlDraft(event.target.value)}
-                      placeholder={DEFAULT_BASE_URL}
-                      spellCheck={false}
-                      type="url"
-                      value={vaultBaseUrlDraft}
-                    />
-                  </label>
-                  <input
-                    autoComplete="new-password"
-                    className="w-full border border-white/10 bg-black/35 px-3 py-2.5 font-mono text-sm text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-neutral-300/60"
-                    onChange={(event) => setVaultKeyDraft(event.target.value)}
-                    placeholder="sk-..."
-                    type="password"
-                    value={vaultKeyDraft}
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      className="border border-neutral-300/35 bg-neutral-300/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-100 transition hover:bg-neutral-300/20 disabled:opacity-40"
-                      disabled={!vaultKeyDraft.trim()}
-                      onClick={() => {
-                        onSetGlobalBaseUrl(vaultBaseUrlDraft);
-                        onSetGlobalApiKey(vaultKeyDraft);
-                        onLockVault();
-                        setVaultKeyDraft("");
-                      }}
-                      type="button"
-                    >
-                      Save & Lock
-                    </button>
-                    <button
-                      className="border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-300 transition hover:border-white/25 hover:bg-white/10"
-                      onClick={authVault.globalApiKey ? onLockVault : onDeleteApiKey}
-                      type="button"
-                    >
-                      {authVault.globalApiKey ? "Lock" : "Clear"}
-                    </button>
-                  </div>
-                </div>
-              )}
+                <p className="text-xs leading-5 text-neutral-500">
+                  Model access and provider credentials are enforced by the backend.
+                </p>
+              </div>
             </section>
 
 	            <section
@@ -5645,24 +5254,18 @@ function AgentSettingsSidebar({
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
                     🧠 Agent Routing & Models
                   </div>
-                  <div className="mt-1 text-xs text-neutral-500">
-                    Per-agent model selection. Authentication stays in the Global API Vault.
-                  </div>
+	                  <div className="mt-1 text-xs text-neutral-500">
+	                    Per-agent model selection. Access is enforced by the backend.
+	                  </div>
                 </div>
               </div>
               <div className="grid gap-2">
-	                {agents.map((agent) => {
-	                  const modelGroups = getAgentModelGroups(agent);
-	                  const modelOption = getModelOption(agent.model);
-	                  const capability = getModelCapabilityProfile(agent.model);
-	                  const providerCredential =
-	                    authVault.providerCredentials?.[
-	                      capability?.providerId ?? modelOption?.provider ?? agent.provider
-	                    ];
-	                  const providerVerified =
-	                    providerCredential?.verificationStatus === "verified";
+		                {agents.map((agent) => {
+		                  const modelGroups = getAgentModelGroups(agent, modelCatalog);
+		                  const catalogModel = modelCatalog.find((model) => model.id === agent.model);
+		                  const capability = getModelCapabilityProfile(agent.model);
 
-	                  return (
+		                  return (
                     <div
                       key={agent.id}
                       className="border border-white/10 bg-black/25 p-2"
@@ -5677,7 +5280,7 @@ function AgentSettingsSidebar({
                           </div>
                         </div>
                         <span className="max-w-32 truncate border border-neutral-300/25 bg-neutral-300/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-100">
-                          {getModelLabel(agent.model)}
+	                          {getCatalogModelLabel(modelCatalog, agent.model)}
                         </span>
                       </div>
 	                      <select
@@ -5690,33 +5293,23 @@ function AgentSettingsSidebar({
                         {modelGroups.map((group) => (
                           <optgroup key={group.label} label={group.label.toUpperCase()}>
                             {group.models.map((model) => (
-                              <option key={model} value={model}>
-                                {getModelLabel(model)}
-                              </option>
+	                              <option key={model} value={model}>
+	                                {getCatalogModelLabel(modelCatalog, model)}
+	                              </option>
                             ))}
 	                          </optgroup>
 	                        ))}
 	                      </select>
 	                      <div className="mt-2 grid grid-cols-2 gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
 	                        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
-	                          Provider: {getProviderLabel(capability?.providerId ?? agent.provider)}
-	                        </span>
-	                        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
-	                          Key: {providerCredential?.apiKey ? "Set" : "Missing"}
-	                        </span>
+		                          Family: {catalogModel?.provider_family ?? getProviderLabel(capability?.providerId ?? agent.provider)}
+		                        </span>
 	                        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
 	                          Thinking: {capability?.thinking.supported ? "Supported" : "No"}
 	                        </span>
-	                        <span
-	                          className={cx(
-	                            "border px-2 py-1",
-	                            providerVerified
-	                              ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
-	                              : "border-neutral-300/25 bg-neutral-300/10 text-neutral-100",
-	                          )}
-	                        >
-	                          Live: {providerVerified ? "Verified" : "Untested"}
-	                        </span>
+		                        <span className="border border-white/10 bg-white/[0.03] px-2 py-1">
+		                          Plan: {catalogModel?.min_plan ?? "Allowed"}
+		                        </span>
 	                      </div>
 	                      {capability?.thinking.supported ? (
 	                        <div className="mt-2 border border-neutral-300/20 bg-neutral-300/[0.04] p-2 text-[11px] leading-5 text-neutral-400">
@@ -7205,17 +6798,19 @@ function ModelTuningSelect<TValue extends string>({
 
 function AgentModelTuningPanel({
   agent,
+  modelCatalog,
   onUpdateAgentModel,
   onUpdateAgentModelSettings,
 }: {
   agent: NexusAgent;
+  modelCatalog: PublicModelCatalogEntry[];
   onUpdateAgentModel: (agentId: string, model: string) => void;
   onUpdateAgentModelSettings: (
     agentId: string,
     settings: Partial<AgentModelSettings>,
   ) => void;
 }) {
-  const modelGroups = getAgentModelGroups(agent);
+  const modelGroups = getAgentModelGroups(agent, modelCatalog);
   const capability = getModelCapabilityProfile(agent.model);
   const settings = agent.modelSettings ?? {};
 
@@ -7236,7 +6831,7 @@ function AgentModelTuningPanel({
             <optgroup key={group.label} label={group.label.toUpperCase()}>
               {group.models.map((model) => (
                 <option key={model} value={model}>
-                  {getModelLabel(model)}
+                  {getCatalogModelLabel(modelCatalog, model)}
                 </option>
               ))}
             </optgroup>
@@ -7391,6 +6986,7 @@ function AgentTemplateProfilePanel({
 function LeftDock({
   agents,
   agentTemplateProfiles,
+  modelCatalog,
   activeAgentId,
   selectedAgentId,
   onSpawn,
@@ -7403,6 +6999,7 @@ function LeftDock({
 }: {
   agents: NexusAgent[];
   agentTemplateProfiles: Record<string, AgentTemplateProfile>;
+  modelCatalog: PublicModelCatalogEntry[];
   activeAgentId?: string;
   selectedAgentId?: string;
   onSpawn: (template: AgentTemplate) => void;
@@ -7583,9 +7180,10 @@ function LeftDock({
                 </button>
               </div>
               {expandedAgentId === agent.id ? (
-                <AgentModelTuningPanel
-                  agent={agent}
-                  onUpdateAgentModel={onUpdateAgentModel}
+	                <AgentModelTuningPanel
+	                  agent={agent}
+                    modelCatalog={modelCatalog}
+	                  onUpdateAgentModel={onUpdateAgentModel}
                   onUpdateAgentModelSettings={onUpdateAgentModelSettings}
                 />
               ) : null}

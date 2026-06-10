@@ -14,6 +14,10 @@ export type ApiErrorCode =
   | "IDEMPOTENCY_EXPIRED"
   | "PROVIDER_TIMEOUT"
   | "PROVIDER_RATE_LIMITED"
+  | "QUOTA_EXCEEDED"
+  | "USER_NEW_API_TOKEN_DECRYPT_FAILED"
+  | "USER_NEW_API_TOKEN_DISABLED"
+  | "USER_NEW_API_TOKEN_NOT_CONFIGURED"
   | "INTERNAL_ERROR"
   | BackendErrorCode;
 
@@ -145,6 +149,30 @@ const descriptors: Record<string, ApiErrorDescriptor> = {
     message: "Provider rate limit reached.",
     retryable: true,
     statusCode: 429,
+  },
+  QUOTA_EXCEEDED: {
+    code: "QUOTA_EXCEEDED",
+    message: "Monthly AI usage quota has been reached for this plan.",
+    retryable: false,
+    statusCode: 402,
+  },
+  USER_NEW_API_TOKEN_DECRYPT_FAILED: {
+    code: "USER_NEW_API_TOKEN_DECRYPT_FAILED",
+    message: "Stored New API token could not be decrypted.",
+    retryable: false,
+    statusCode: 500,
+  },
+  USER_NEW_API_TOKEN_DISABLED: {
+    code: "USER_NEW_API_TOKEN_DISABLED",
+    message: "New API token is disabled for this user.",
+    retryable: false,
+    statusCode: 403,
+  },
+  USER_NEW_API_TOKEN_NOT_CONFIGURED: {
+    code: "USER_NEW_API_TOKEN_NOT_CONFIGURED",
+    message: "New API token is not configured for this user.",
+    retryable: false,
+    statusCode: 403,
   },
   AGENT_TASK_NOT_FOUND: {
     code: "AGENT_TASK_NOT_FOUND",

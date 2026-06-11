@@ -1743,6 +1743,7 @@ function WorkflowGraphBrainPanel({
   const [templateId, setTemplateId] = useState<WorkflowBrainDraftTemplateId>(
     "image-file-two-llm-answer",
   );
+  const [brainModel, setBrainModel] = useState("deepseek-v4-pro");
   const [contractText, setContractText] = useState(() =>
     serializeWorkflowBrainDraftTemplate({
       description:
@@ -1797,7 +1798,7 @@ function WorkflowGraphBrainPanel({
             title: entry.title,
           })),
           modelSettings: {
-            modelId: "gpt-5.5",
+            modelId: brainModel,
             reasoningDetail: "high",
             reasoningEffort: "xhigh",
             verbosity: "high",
@@ -1918,7 +1919,7 @@ function WorkflowGraphBrainPanel({
           </div>
           <div className="mt-1 flex flex-wrap gap-1.5 font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-500">
             <span className="border border-white/10 bg-white/[0.03] px-1.5 py-0.5">
-              gpt-5.5
+              {brainModel}
             </span>
             <span className="border border-white/10 bg-white/[0.03] px-1.5 py-0.5">
               effort xhigh
@@ -1978,6 +1979,20 @@ function WorkflowGraphBrainPanel({
               </option>
             ))}
           </select>
+      <label className="grid gap-1.5">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+          Model
+        </span>
+        <select
+          className="h-9 border border-white/10 bg-black/35 px-2 font-mono text-[10px] uppercase tracking-[0.1em] text-neutral-100 outline-none focus:border-neutral-300/35"
+          onChange={(event) => setBrainModel(event.target.value)}
+          value={brainModel}
+        >
+          <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
+          <option value="deepseek-v4-flash">DeepSeek V4 Flash</option>
+          <option value="gpt-5.5">GPT-5.5</option>
+        </select>
+      </label>
         </label>
         <div className="flex items-end gap-2">
           <button

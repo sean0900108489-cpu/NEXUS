@@ -1628,6 +1628,7 @@ export function NexusGraph({
             readOnly={readOnly}
             readOnlyMessage={readOnlyMessage}
             runtimeLite={runtimeLite}
+            modelCatalog={modelCatalog}
           />
         ) : null}
         <Background
@@ -1722,6 +1723,7 @@ function WorkflowGraphBrainPanel({
   readOnly,
   readOnlyMessage,
   runtimeLite,
+  modelCatalog,
 }: {
   onAppendWorkflowContractText: (input: {
     sourceName: string;
@@ -1731,6 +1733,7 @@ function WorkflowGraphBrainPanel({
   readOnly?: boolean;
   readOnlyMessage?: string;
   runtimeLite?: WorkspaceGraph["runtimeLite"];
+  modelCatalog?: PublicModelCatalogEntry[];
 }) {
   const [brainThread, setBrainThread] = useState<
     WorkflowGraphBrainThreadEntry[]
@@ -1983,34 +1986,6 @@ function WorkflowGraphBrainPanel({
               </option>
             ))}
           </select>
-      <label className="grid gap-1.5">
-        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
-          Model
-        </span>
-        <select
-          className="h-9 border border-white/10 bg-black/35 px-2 font-mono text-[10px] uppercase tracking-[0.1em] text-neutral-100 outline-none focus:border-neutral-300/35"
-          onChange={(event) => setBrainModel(event.target.value)}
-          value={brainModel}
-        >
-          <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
-          <option value="deepseek-v4-flash">DeepSeek V4 Flash</option>
-          <option value="gpt-5.5">GPT-5.5</option>
-        </select>
-      </label>
-      <label className="grid gap-1.5">
-        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
-          Model
-        </span>
-        <select
-          className="h-9 border border-white/10 bg-black/35 px-2 font-mono text-[10px] uppercase tracking-[0.1em] text-neutral-100 outline-none focus:border-neutral-300/35"
-          onChange={(event) => setBrainModel(event.target.value)}
-          value={brainModel}
-        >
-          <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
-          <option value="deepseek-v4-flash">DeepSeek V4 Flash</option>
-          <option value="gpt-5.5">GPT-5.5</option>
-        </select>
-      </label>
         </label>
         <div className="flex items-end gap-2">
           <button

@@ -8,9 +8,9 @@ import type { FormEvent, ReactNode } from "react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Archive, Check, ChevronDown, Command, Database, Download,
+  Archive, BrainCircuit, Check, ChevronDown, Command, Database, Download, Home,
   FileUp, GitBranch, Lock, Menu, PanelRight, Pencil,
-  PackageCheck, Plus, ShieldCheck, SlidersHorizontal, Save,
+  PackageCheck, Plus, RadioTower, Save, ShieldCheck, SlidersHorizontal,
   Settings, Unlock, Workflow, X,
 } from "lucide-react";
 
@@ -28,18 +28,69 @@ type RightDockPanelId = "intel" | "providers" | "models" | "theme" | "memory" | 
 const rightDockPanels: Array<{
   id: RightDockPanelId;
   label: string;
+  detail: string;
   icon: ReactNode;
 }> = [
-  { id: "intel", label: "Intel", icon: null as any },
-  { id: "providers", label: "Providers", icon: null as any },
-  { id: "models", label: "Models", icon: null as any },
-  { id: "theme", label: "Theme", icon: null as any },
-  { id: "memory", label: "Memory", icon: null as any },
-  { id: "artifacts", label: "Artifacts", icon: null as any },
-  { id: "generations", label: "生成紀錄", icon: null as any },
-  { id: "workflows", label: "Workflows", icon: null as any },
-  { id: "trace", label: "Trace", icon: null as any },
-  { id: "account", label: "Account", icon: null as any },
+  {
+    id: "intel",
+    label: "Intel",
+    detail: "Selected agent mission, memory, tools, and telemetry",
+    icon: <PanelRight className="h-4 w-4" />,
+  },
+  {
+    id: "providers",
+    label: "Providers",
+    detail: "Provider credentials, base URLs, and live verification",
+    icon: <Lock className="h-4 w-4" />,
+  },
+  {
+    id: "models",
+    label: "Models",
+    detail: "Per-agent model routing and capability recognition",
+    icon: <BrainCircuit className="h-4 w-4" />,
+  },
+  {
+    id: "theme",
+    label: "Theme",
+    detail: "Workspace style controls",
+    icon: <Settings className="h-4 w-4" />,
+  },
+  {
+    id: "memory",
+    label: "Memory",
+    detail: "Branching defaults and workspace datapads",
+    icon: <Database className="h-4 w-4" />,
+  },
+  {
+    id: "artifacts",
+    label: "Artifacts",
+    detail: "Artifact vault references",
+    icon: <Archive className="h-4 w-4" />,
+  },
+  {
+    id: "generations",
+    label: "生成紀錄",
+    detail: "Generated file asset records",
+    icon: <PackageCheck className="h-4 w-4" />,
+  },
+  {
+    id: "workflows",
+    label: "Workflows",
+    detail: "Macro blueprint vault",
+    icon: <Workflow className="h-4 w-4" />,
+  },
+  {
+    id: "trace",
+    label: "Trace",
+    detail: "Sync status and observability events",
+    icon: <RadioTower className="h-4 w-4" />,
+  },
+  {
+    id: "account",
+    label: "Account",
+    detail: "Operator identity and logout",
+    icon: <Home className="h-4 w-4" />,
+  },
 ];
 export function RightFloatingDock({
   activePanel,

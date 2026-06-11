@@ -1388,6 +1388,7 @@ export function NexusOps() {
 
   useEffect(() => {
     let cancelled = false;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
     const loadModels = async () => {
       const headers = new Headers();
@@ -1409,22 +1410,28 @@ export function NexusOps() {
       return (await response.json()) as ModelCatalogResponse;
     };
 
-    void loadModels()
-      .then((payload) => {
-        if (!cancelled) {
-          setModelCatalog(payload.models);
-          setModelCatalogPlan(payload.plan);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setModelCatalog([]);
-          setModelCatalogPlan("Free");
-        }
-      });
+    const fetchModels = () => {
+      void loadModels()
+        .then((payload) => {
+          if (!cancelled) {
+            setModelCatalog(payload.models);
+            setModelCatalogPlan(payload.plan);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setModelCatalog([]);
+            setModelCatalogPlan("Free");
+            retryTimer = setTimeout(fetchModels, 3000);
+          }
+        });
+    };
+
+    fetchModels();
 
     return () => {
       cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
     };
   }, [authVault.user?.id]);
 

@@ -58,6 +58,7 @@ import {
   getModelOption,
   normalizeAgentModelSettings,
 } from "@/lib/nexus-registry";
+import { getNexusSupabaseClient } from "@/lib/supabase/client";
 import {
   WORKSPACE_COMPOSER_IMAGE_ASPECT_RATIO_OPTIONS,
   WORKSPACE_COMPOSER_IMAGE_MODEL_OPTIONS,
@@ -1790,6 +1791,8 @@ function WorkflowGraphBrainPanel({
     setStatus(null);
 
     try {
+      const { data: { session } } = await getNexusSupabaseClient().auth.getSession();
+      const accessToken = session?.access_token;
       const response = await fetch("/api/workflow-pro/brain-draft", {
         body: JSON.stringify({
           conversation: brainThread.slice(-8).map((entry) => ({
@@ -1808,6 +1811,7 @@ function WorkflowGraphBrainPanel({
           templateHint: "auto",
         }),
         headers: {
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           "Content-Type": "application/json",
         },
         method: "POST",
@@ -1979,6 +1983,20 @@ function WorkflowGraphBrainPanel({
               </option>
             ))}
           </select>
+      <label className="grid gap-1.5">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
+          Model
+        </span>
+        <select
+          className="h-9 border border-white/10 bg-black/35 px-2 font-mono text-[10px] uppercase tracking-[0.1em] text-neutral-100 outline-none focus:border-neutral-300/35"
+          onChange={(event) => setBrainModel(event.target.value)}
+          value={brainModel}
+        >
+          <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
+          <option value="deepseek-v4-flash">DeepSeek V4 Flash</option>
+          <option value="gpt-5.5">GPT-5.5</option>
+        </select>
+      </label>
       <label className="grid gap-1.5">
         <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
           Model

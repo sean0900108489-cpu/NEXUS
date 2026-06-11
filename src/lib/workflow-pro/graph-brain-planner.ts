@@ -86,7 +86,7 @@ export type WorkflowGraphBrainPlannerResult = {
 };
 
 const DEFAULT_MODEL_SETTINGS: WorkflowGraphBrainModelSettings = {
-  modelId: "gpt-5.5",
+  modelId: "deepseek-v4-pro",
   reasoningDetail: "high",
   reasoningEffort: "xhigh",
   verbosity: "high",

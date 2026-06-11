@@ -231,6 +231,28 @@ import { NexusOpsTopBarFrame } from "@/components/nexus/nexus-ops-top-bar-frame"
 import { PromptVaultManager } from "@/components/nexus/PromptVaultManager";
 import { WorkflowProSurface } from "@/components/nexus/workflow-pro/workflow-pro-surface";
 
+import {
+  artifactPreview,
+  clampNumber,
+  cx,
+  formatFileSize,
+  formatTime,
+  getCatalogModelLabel,
+  getFileExtension,
+  getModelLabel,
+  getProviderLabel,
+  GraphNode,
+  IconButton,
+  isGeneratedArtifactRecord,
+  isTextLikeAttachmentFile,
+  isTransientArtifactRecord,
+  streamModeTone,
+  SyncBadge,
+  ToolbarIconButton,
+  TopMenuAction,
+  traceSeverityClass,
+} from "@/components/nexus/nexus-utils";
+
 const Rnd = dynamic(() => import("react-rnd").then((module) => module.Rnd), {
   ssr: false,
 });
@@ -349,24 +371,6 @@ const workspaceThemeLivePreviewNetworkBaselineWindowId =
   "theme-panel-live-preview-local-scope";
 const WORKSPACE_ATTACHMENT_BINARY_INLINE_MAX_BYTES = 4 * 1024 * 1024;
 const WORKSPACE_ATTACHMENT_CONTEXT_MAX_CHARS = 12_000;
-const WORKSPACE_ATTACHMENT_TEXT_EXTENSIONS = new Set([
-  ".css",
-  ".csv",
-  ".html",
-  ".js",
-  ".json",
-  ".jsx",
-  ".md",
-  ".text",
-  ".ts",
-  ".tsx",
-  ".tsv",
-  ".txt",
-  ".xml",
-  ".yaml",
-  ".yml",
-]);
-
 type RightDockPanelId =
   | "intel"
   | "providers"
@@ -415,14 +419,6 @@ const capabilityOptions: Array<{
   { type: "video", label: "Video", detail: "Sora / Runway preview canvas" },
   { type: "sandbox", label: "Sandbox", detail: "Live HTML/CSS preview" },
 ];
-
-function cx(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(" ");
-}
-
-function clampNumber(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
 
 function createWorkspaceStylePayloadImportNotice(
   status: WorkspaceStylePayloadImportStatus,
@@ -658,27 +654,12 @@ function compareWorkspaceThemeControls(
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
-function formatTime(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
-
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function getCapabilityType(agent: NexusAgent): AgentCapabilityType {
   return agent.capabilities?.type ?? "chat";
-}
-
-function getModelLabel(modelId: string) {
-  return getModelOption(modelId)?.label ?? modelId;
-}
-
-function getProviderLabel(providerId: string | undefined) {
-  return getProviderOption(providerId)?.label ?? providerId ?? "Unknown";
 }
 
 function uniqueModelIds(models: Array<string | undefined>) {
@@ -725,13 +706,6 @@ function getAgentModelGroups(
   return grouped.length
     ? grouped
     : [{ label: "Agent Supported Models", models }];
-}
-
-function getCatalogModelLabel(
-  modelCatalog: PublicModelCatalogEntry[],
-  modelId: string,
-) {
-  return modelCatalog.find((model) => model.id === modelId)?.label ?? getModelLabel(modelId);
 }
 
 function getFallbackAllowedModelId(modelCatalog: PublicModelCatalogEntry[]) {
@@ -833,37 +807,6 @@ async function readStreamEvents(
   }
 }
 
-function IconButton({
-  label,
-  children,
-  onClick,
-  active,
-  disabled,
-}: {
-  label: string;
-  children: ReactNode;
-  onClick?: () => void;
-  active?: boolean;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      aria-label={label}
-      className={cx(
-        "grid h-9 w-9 place-items-center border border-white/10 bg-white/[0.045] text-neutral-300 transition hover:border-neutral-300/50 hover:bg-neutral-300/10 hover:text-neutral-100",
-        active && "border-neutral-300/60 bg-neutral-300/15 text-neutral-100",
-        disabled && "pointer-events-none opacity-40",
-      )}
-      disabled={disabled}
-      onClick={onClick}
-      title={label}
-      type="button"
-    >
-      {children}
-    </button>
-  );
-}
-
 function resolveAgentsStreamMode(): StreamMode {
   return "live";
 }
@@ -897,55 +840,6 @@ async function resolveSupabaseAccessToken() {
   } catch {
     return null;
   }
-}
-
-function streamModeTone(streamMode: StreamMode) {
-  if (streamMode === "live") {
-    return "border-neutral-300/40 bg-neutral-300/10 text-neutral-100";
-  }
-
-  if (streamMode === "mixed") {
-    return "border-neutral-300/40 bg-neutral-300/10 text-neutral-100";
-  }
-
-  return "border-neutral-300/40 bg-neutral-300/10 text-neutral-100";
-}
-
-function artifactPreview(value: string) {
-  const compact = value.replace(/\s+/g, " ").trim();
-
-  if (compact.length <= 120) {
-    return compact || "Empty artifact payload";
-  }
-
-  return `${compact.slice(0, 117)}...`;
-}
-
-function formatFileSize(bytes: number) {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  }
-
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function getFileExtension(fileName: string) {
-  const dotIndex = fileName.lastIndexOf(".");
-
-  return dotIndex >= 0 ? fileName.slice(dotIndex).toLowerCase() : "";
-}
-
-function isTextLikeAttachmentFile(file: File) {
-  return (
-    file.type.startsWith("text/") ||
-    file.type === "application/json" ||
-    file.type === "application/xml" ||
-    WORKSPACE_ATTACHMENT_TEXT_EXTENSIONS.has(getFileExtension(file.name))
-  );
 }
 
 function readFileAsDataUrl(file: File) {
@@ -1136,17 +1030,6 @@ function isMockGeneratedMediaUrl(url: string | null | undefined) {
   );
 }
 
-function isGeneratedArtifactRecord(artifact: ArtifactVaultRecord) {
-  return (
-    artifact.type.startsWith("generated-") &&
-    !isMockGeneratedMediaUrl(artifact.contentUrl)
-  );
-}
-
-function isTransientArtifactRecord(artifact: ArtifactVaultRecord) {
-  return artifact.id.startsWith("transient_");
-}
-
 function createWorkspaceAttachmentMessagePayload(
   content: string,
   attachments: WorkspaceComposerAttachment[],
@@ -1191,22 +1074,6 @@ function createWorkspaceAttachmentMessagePayload(
     .join("\n\n");
 
   return [trimmed, "[workspace attachments]", attachmentBlock].filter(Boolean).join("\n\n");
-}
-
-function traceSeverityClass(severity: SystemEventRecord["severity"]) {
-  if (severity === "critical" || severity === "error") {
-    return "text-neutral-200";
-  }
-
-  if (severity === "warn") {
-    return "text-neutral-200";
-  }
-
-  if (severity === "debug") {
-    return "text-neutral-500";
-  }
-
-  return "text-neutral-100";
 }
 
 export function NexusOps() {
@@ -4437,80 +4304,6 @@ function TopBar({
   );
 }
 
-function SyncBadge({
-  onRetry,
-  status,
-}: {
-  onRetry: () => void;
-  status: QueueStatusProjection;
-}) {
-  const hasIssue = status.failed > 0 || status.conflicted > 0;
-  const active = status.pending > 0 || status.syncing > 0;
-  const label = hasIssue
-    ? `${status.failed + status.conflicted} sync issue`
-    : active
-      ? `${status.pending + status.syncing} syncing`
-      : "Synced";
-
-  return (
-    <button
-      aria-label={hasIssue ? "Retry failed sync operation" : "Sync status"}
-      className={cx(
-        "inline-flex h-8 items-center gap-2 border px-2 font-mono text-[9px] uppercase tracking-[0.14em] transition",
-        hasIssue
-          ? "border-neutral-300/45 bg-neutral-300/12 text-neutral-100 hover:bg-neutral-300/20"
-          : active
-            ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
-            : "border-neutral-300/25 bg-neutral-300/[0.06] text-neutral-100",
-      )}
-      onClick={hasIssue ? onRetry : undefined}
-      type="button"
-    >
-      {hasIssue ? <RefreshCcw className="h-3.5 w-3.5" /> : <RadioTower className="h-3.5 w-3.5" />}
-      <span className="hidden sm:inline">{label}</span>
-    </button>
-  );
-}
-
-function TopMenuAction({
-  active,
-  disabled,
-  disabledReason,
-  icon,
-  label,
-  onClick,
-}: {
-  active?: boolean;
-  disabled?: boolean;
-  disabledReason?: string;
-  icon: ReactNode;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      className={cx(
-        "inline-flex h-8 items-center justify-center gap-2 border px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-300 transition hover:bg-white/10 hover:text-neutral-100 disabled:cursor-not-allowed disabled:opacity-45",
-        active ? "bg-white/[0.075]" : "bg-white/[0.035]",
-      )}
-      disabled={disabled}
-      onClick={onClick}
-      style={{
-        borderColor: active
-          ? "color-mix(in srgb, var(--theme-primary, #e5e5e5) 55%, transparent)"
-          : "color-mix(in srgb, var(--theme-primary, #e5e5e5) 22%, transparent)",
-        borderRadius:
-          "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
-      }}
-      title={disabled ? disabledReason : label}
-      type="button"
-    >
-      {icon}
-      {label}
-    </button>
-  );
-}
-
 function MacroComposerModal({
   description,
   name,
@@ -4562,7 +4355,7 @@ function MacroComposerModal({
                   into a reusable cloud blueprint.
                 </p>
               </div>
-              <IconButton label="Close macro composer" onClick={onClose}>
+              <IconButton aria-label="Close macro composer" onClick={onClose}>
                 <X className="h-4 w-4" />
               </IconButton>
             </div>
@@ -5045,7 +4838,7 @@ function AgentSettingsSidebar({
 	              </div>
 	              <div className="mt-1 text-xs text-neutral-500">{panelMeta.detail}</div>
 	            </div>
-	            <IconButton label="Close panel" onClick={onClose}>
+	            <IconButton aria-label="Close panel" onClick={onClose}>
 	              <X className="h-4 w-4" />
 	            </IconButton>
 	          </header>
@@ -7897,44 +7690,6 @@ function AgentActionToolbar({
   );
 }
 
-function ToolbarIconButton({
-  active,
-  children,
-  disabled,
-  label,
-  onClick,
-  tone = "default",
-}: {
-  active?: boolean;
-  children: ReactNode;
-  disabled?: boolean;
-  label: string;
-  onClick: () => void;
-  tone?: "default" | "danger";
-}) {
-  return (
-    <button
-      aria-label={label}
-      className={cx(
-        "nexus-control-icon-button-shell grid h-7 w-7 place-items-center border text-neutral-400 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35",
-        active && "border-neutral-300/50 bg-neutral-300/12 text-neutral-100",
-        !active &&
-          tone === "default" &&
-          "border-white/10 bg-black/35 hover:border-neutral-300/35 hover:text-neutral-100",
-        !active &&
-          tone === "danger" &&
-          "border-neutral-300/20 bg-neutral-300/5 text-neutral-100 hover:border-neutral-300/45",
-      )}
-      disabled={disabled}
-      onClick={onClick}
-      title={label}
-      type="button"
-    >
-      {children}
-    </button>
-  );
-}
-
 function MediaCanvas({ agent }: { agent: NexusAgent }) {
   const capabilityType = getCapabilityType(agent);
   const artifact = getLatestMediaArtifact(agent);
@@ -9165,32 +8920,6 @@ function RightIntel({
         )}
       </div>
     </aside>
-  );
-}
-
-function GraphNode({
-  label,
-  accent,
-  x,
-  y,
-}: {
-  label: string;
-  accent: string;
-  x: string;
-  y: string;
-}) {
-  return (
-    <div
-      className="absolute grid h-14 w-24 place-items-center border bg-black/68 px-2 text-center font-mono text-[10px] uppercase tracking-[0.14em]"
-      style={{
-        borderColor: `${accent}80`,
-        color: accent,
-        left: x,
-        top: y,
-      }}
-    >
-      {label}
-    </div>
   );
 }
 

@@ -11,6 +11,8 @@ import type { WorkflowBrainDraftTemplateId } from "@/lib/workflow-pro/brain-draf
 import type { WorkflowRuntimeLiteState } from "@/lib/nexus-types";
 import type { WorkflowProBrainReviewProposal } from "@/lib/workflow-pro/brain-review-proposal";
 import { blockLegacyToolRouteInProduction } from "@/lib/backend/security/legacy-tool-route-boundary";
+import { resolveApiActor } from "@/lib/backend/api/api-auth";
+import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 
 export const runtime = "nodejs";
 
@@ -68,6 +70,7 @@ export async function POST(request: Request) {
       conversation: normalizeConversation(payload.conversation),
       fallback: deterministic,
       operatorRequest,
+      request,
     });
 
     return Response.json(modelResult);
@@ -88,18 +91,22 @@ async function createOpenAiWorkflowPlannerResult({
   conversation,
   fallback,
   operatorRequest,
+  request,
 }: {
   conversation: WorkflowGraphBrainPlannerMessage[];
   fallback: WorkflowGraphBrainPlannerResult;
   operatorRequest: string;
+  request: Request;
 }): Promise<WorkflowGraphBrainPlannerResult> {
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  const actor = await resolveApiActor(request, { required: true });
 
-  if (!apiKey) {
+  if (!actor.actorUserId) {
     throw new Error(
-      "OPENAI_API_KEY is required for Graph Brain THINK. Use LOCAL for deterministic drafts.",
+      "Authentication is required for Graph Brain THINK.",
     );
   }
+
+  const userToken = await getUserNewApiToken({ userId: actor.actorUserId });
 
   const model =
     process.env.WORKFLOW_BRAIN_MODEL?.trim() ||
@@ -182,7 +189,7 @@ async function createOpenAiWorkflowPlannerResult({
       },
     }),
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${userToken.token}`,
       "Content-Type": "application/json",
     },
     method: "POST",

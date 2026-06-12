@@ -13,6 +13,7 @@ import type { WorkflowProBrainReviewProposal } from "@/lib/workflow-pro/brain-re
 import { blockLegacyToolRouteInProduction } from "@/lib/backend/security/legacy-tool-route-boundary";
 import { resolveApiActor } from "@/lib/backend/api/api-auth";
 import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
+import { normalizeNewApiBaseUrl } from "@/lib/backend/models/new-api-chat-service";
 
 export const runtime = "nodejs";
 
@@ -114,9 +115,10 @@ async function createOpenAiWorkflowPlannerResult({
     fallback.modelSettings.modelId;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), getModelTimeoutMs());
-  const response = await fetch("https://api.openai.com/v1/responses", {
+  const baseUrl = normalizeNewApiBaseUrl(process.env.NEW_API_BASE_URL);
+  const response = await fetch(`${baseUrl}/chat/completions`, {
     body: JSON.stringify({
-      input: [
+      messages: [
         {
           content: createWorkflowPlannerSystemPrompt(),
           role: "system",
@@ -171,22 +173,9 @@ async function createOpenAiWorkflowPlannerResult({
           role: "user",
         },
       ],
-      max_output_tokens: getModelMaxOutputTokens(),
+      max_tokens: getModelMaxOutputTokens(),
       model,
-      reasoning: {
-        effort: normalizeOpenAiReasoningEffort(
-          process.env.WORKFLOW_BRAIN_REASONING_EFFORT?.trim() ||
-            fallback.modelSettings.reasoningEffort,
-        ),
-      },
-      text: {
-        format: {
-          type: "json_object",
-        },
-        verbosity:
-          process.env.WORKFLOW_BRAIN_VERBOSITY?.trim() ||
-          fallback.modelSettings.verbosity,
-      },
+      response_format: { type: "json_object" },
     }),
     headers: {
       Authorization: `Bearer ${userToken.token}`,
@@ -334,6 +323,15 @@ async function readResponseError(response: Response) {
 
 function extractResponseText(body: unknown): string {
   if (isRecord(body) && typeof body.output_text === "string") {
+  // chat/completions format (New API, DeepSeek, etc.)
+  if (isRecord(body) && Array.isArray((body as any).choices)) {
+    const firstChoice = (body as any).choices[0];
+    if (firstChoice?.message?.content) {
+      return String(firstChoice.message.content);
+    }
+  }
+
+  // OpenAI responses API format (legacy)
     return body.output_text;
   }
 

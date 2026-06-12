@@ -62,8 +62,8 @@ export const WORKFLOW_BRAIN_DRAFT_TEMPLATES: WorkflowBrainDraftTemplate[] = [
 
 const CREATED_AT = "2026-06-04T00:00:00.000Z";
 const WORKSPACE_ID = "workspace-graph-brain-draft";
-const DEFAULT_LLM_MODEL = "gpt-5.5";
-const DEFAULT_PROVIDER = "openai";
+const DEFAULT_LLM_MODEL = "deepseek-v4-pro";
+const DEFAULT_PROVIDER = "deepseek";
 const DEFAULT_IMAGE_MODEL = "img2";
 
 export function serializeWorkflowBrainDraftTemplate({

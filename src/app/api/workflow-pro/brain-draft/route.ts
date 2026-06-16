@@ -334,10 +334,13 @@ async function readResponseError(response: Response) {
 
 function extractResponseText(body: unknown): string {
   // chat/completions format (New API, DeepSeek, etc.) — check FIRST
-  if (isRecord(body) && Array.isArray((body as any).choices)) {
-    const firstChoice = (body as any).choices[0];
-    if (firstChoice?.message?.content) {
-      return String(firstChoice.message.content);
+  if (isRecord(body) && Array.isArray(body.choices)) {
+    const firstChoice = body.choices[0];
+    if (isRecord(firstChoice) && isRecord(firstChoice.message)) {
+      const content = firstChoice.message.content;
+      if (content) {
+        return String(content);
+      }
     }
   }
 

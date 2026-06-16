@@ -675,7 +675,7 @@ export function LeftDock({
 
 
 
-function getCapabilityType(agent: any): any {
+function getCapabilityType(agent: NexusAgent): AgentCapabilityType {
   return agent.capabilities?.type ?? "chat";
 }
 // Local helpers from nexus-ops.tsx
@@ -732,4 +732,3 @@ function getFallbackAllowedModelId(modelCatalog: PublicModelCatalogEntry[]) {
     "gpt-4o-mini"
   );
 }
-

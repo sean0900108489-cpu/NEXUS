@@ -25,7 +25,11 @@ describe("Workflow Brain draft templates", () => {
 
       expect(review.status, template.id).toBe("accepted");
       expect(review.contract?.schema, template.id).toBe("nexus.workflow.v1");
-      expect(review.contract?.nodes.length, template.id).toBeGreaterThan(0);
+      if (template.id === "none") {
+        expect(review.contract?.nodes.length, template.id).toBe(0);
+      } else {
+        expect(review.contract?.nodes.length, template.id).toBeGreaterThan(0);
+      }
     }
   });
 

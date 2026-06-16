@@ -237,21 +237,26 @@ import { PromptVaultManager } from "@/components/nexus/PromptVaultManager";
 import { WorkflowProSurface } from "@/components/nexus/workflow-pro/workflow-pro-surface";
 
 
-const rightDockPanels: Array<{ id: string; label: string; detail: string; icon: any }> = [
-  { id: "intel", label: "Intel", detail: "Selected agent mission, memory, tools, and telemetry", icon: null },
-  { id: "providers", label: "Providers", detail: "API provider status and verification", icon: null },
-  { id: "models", label: "Models", detail: "Model catalog and capability profiles", icon: null },
-  { id: "theme", label: "Theme", detail: "Workspace visual theme controls", icon: null },
-  { id: "memory", label: "Memory", detail: "Agent memory records", icon: null },
-  { id: "artifacts", label: "Artifacts", detail: "Generated artifacts and media", icon: null },
-  { id: "generations", label: "Generations", detail: "Generation history", icon: null },
-  { id: "workflows", label: "Workflows", detail: "Workflow templates and macros", icon: null },
-  { id: "trace", label: "Trace", detail: "Runtime trace and diagnostics", icon: null },
-  { id: "account", label: "Account", detail: "Account settings", icon: null },
+const rightDockPanels: Array<{
+  id: RightDockPanelId;
+  label: string;
+  detail: string;
+  icon: ReactNode;
+}> = [
+  { id: "intel", label: "Intel", detail: "Selected agent mission, memory, tools, and telemetry", icon: <PanelRight className="h-4 w-4" /> },
+  { id: "providers", label: "Providers", detail: "API provider status and verification", icon: <Lock className="h-4 w-4" /> },
+  { id: "models", label: "Models", detail: "Model catalog and capability profiles", icon: <BrainCircuit className="h-4 w-4" /> },
+  { id: "theme", label: "Theme", detail: "Workspace visual theme controls", icon: <Settings className="h-4 w-4" /> },
+  { id: "memory", label: "Memory", detail: "Agent memory records", icon: <Database className="h-4 w-4" /> },
+  { id: "artifacts", label: "Artifacts", detail: "Generated artifacts and media", icon: <Archive className="h-4 w-4" /> },
+  { id: "generations", label: "Generations", detail: "Generation history", icon: <PackageCheck className="h-4 w-4" /> },
+  { id: "workflows", label: "Workflows", detail: "Workflow templates and macros", icon: <Workflow className="h-4 w-4" /> },
+  { id: "trace", label: "Trace", detail: "Runtime trace and diagnostics", icon: <RadioTower className="h-4 w-4" /> },
+  { id: "account", label: "Account", detail: "Account settings", icon: <Home className="h-4 w-4" /> },
 ];
 
 const capabilityOptions: Array<{
-  type: string;
+  type: AgentCreationCapabilityType;
   label: string;
   detail: string;
 }> = [
@@ -1078,7 +1083,7 @@ export function AgentSettingsSidebar({
                         ? "border-neutral-300/45 bg-neutral-300/10 text-neutral-100"
                         : "border-white/10 bg-black/20 text-neutral-400 hover:border-white/25",
                     )}
-                    onClick={() => setNewAgentType(option.type as any)}
+                    onClick={() => setNewAgentType(option.type)}
                     type="button"
                   >
                     <span className="block font-mono text-[10px] uppercase tracking-[0.16em]">
@@ -1897,4 +1902,3 @@ function downloadUrlPayload(url: string, fileName: string) {
   link.click();
   link.remove();
 }
-

@@ -42,6 +42,10 @@ type AgentHistoricalPage = {
   loading?: boolean;
   nextCursor?: string;
 };
+type AgentMessageRuntimeMeta = AgentMessage & {
+  model?: string;
+  reasoning?: string;
+};
 const Rnd = dynamic(() => import("react-rnd").then((module) => module.Rnd), {
   ssr: false,
 });
@@ -98,7 +102,8 @@ function MessageBubble({
 }) {
   const isUser = message.role === "user";
   const isTool = message.role === "tool";
-  const hasReasoning = Boolean((message as any).reasoning);
+  const runtimeMessage = message as AgentMessageRuntimeMeta;
+  const hasReasoning = Boolean(runtimeMessage.reasoning);
 
   return (
     <div
@@ -109,7 +114,7 @@ function MessageBubble({
     >
       <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.12em] text-neutral-500">
         <span>{message.role}</span>
-        {(message as any).model ? <span>{(message as any).model}</span> : null}
+        {runtimeMessage.model ? <span>{runtimeMessage.model}</span> : null}
       </div>
       {hasReasoning ? (
         <details className="w-full">
@@ -117,7 +122,7 @@ function MessageBubble({
             Reasoning
           </summary>
           <div className="mt-1 whitespace-pre-wrap border border-white/10 bg-black/30 px-3 py-2 text-xs leading-5 text-neutral-300">
-            {(message as any).reasoning}
+            {runtimeMessage.reasoning}
           </div>
         </details>
       ) : null}

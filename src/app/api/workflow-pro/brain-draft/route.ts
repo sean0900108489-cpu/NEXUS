@@ -13,6 +13,7 @@ import type { WorkflowProBrainReviewProposal } from "@/lib/workflow-pro/brain-re
 import { blockLegacyToolRouteInProduction } from "@/lib/backend/security/legacy-tool-route-boundary";
 import { resolveApiActor } from "@/lib/backend/api/api-auth";
 import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
+import { getCatalogModel } from "@/lib/backend/models/model-catalog";
 import { normalizeNewApiBaseUrl } from "@/lib/backend/models/new-api-chat-service";
 
 export const runtime = "nodejs";
@@ -109,10 +110,12 @@ async function createOpenAiWorkflowPlannerResult({
 
   const userToken = await getUserNewApiToken({ userId: actor.actorUserId });
 
-  const model =
+  const rawModel =
     process.env.WORKFLOW_BRAIN_MODEL?.trim() ||
     process.env.REPORT_MODEL?.trim() ||
     fallback.modelSettings.modelId;
+  const catalogModel = getCatalogModel(rawModel);
+  const model = catalogModel?.new_api_model ?? rawModel;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), getModelTimeoutMs());
   const baseUrl = normalizeNewApiBaseUrl(process.env.NEW_API_BASE_URL);
@@ -270,6 +273,8 @@ function createWorkflowPlannerSystemPrompt() {
     "- Keep prompts short and specific. One node = one clear job.",
     "- Write analysis in Traditional Chinese. Keep technical identifiers in English.",
     "- Do not use markdown fences around the JSON.",
+    "ALWAYS include analysis (Traditional Chinese, 1-3 sentences) and questionsForSean (1-3 questions about the workflow) in your response.",
+    "ALWAYS include missingCapabilities as an array of strings (can be empty if nothing is missing).",
   ].join(" ");
 }
 

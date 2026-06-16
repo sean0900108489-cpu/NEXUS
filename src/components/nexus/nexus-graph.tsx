@@ -1947,6 +1947,25 @@ function WorkflowGraphBrainPanel({
             ) : null}
           </div>
         </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <label className="grid gap-1">
+            <select
+              className="min-w-0 border border-white/10 bg-black/35 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 disabled:cursor-not-allowed disabled:opacity-65"
+              disabled={readOnly || brainThinking}
+              onChange={(event) => setBrainModel(event.target.value)}
+              title={readOnly ? readOnlyMessage : "Graph Brain model"}
+              value={brainModel}
+            >
+              {(modelCatalog?.length
+                ? modelCatalog
+                : [{ id: brainModel, label: brainModel } as PublicModelCatalogEntry]
+              ).map((model) => (
+                <option key={model.id} value={model.id}>
+                  {model.label}
+                </option>
+              ))}
+            </select>
+          </label>
         <button
           aria-label="Close Graph Brain"
           className="inline-flex h-7 w-7 items-center justify-center border border-white/10 text-neutral-400 transition hover:border-neutral-300/35 hover:text-neutral-100"
@@ -1955,6 +1974,7 @@ function WorkflowGraphBrainPanel({
         >
           <X className="h-3.5 w-3.5" />
         </button>
+        </div>
       </header>
       <div className="mt-3 grid grid-cols-[1fr_1fr] gap-4 min-h-0 flex-1 overflow-hidden">
         <div className="flex flex-col gap-3 min-h-0 overflow-y-auto pr-1">

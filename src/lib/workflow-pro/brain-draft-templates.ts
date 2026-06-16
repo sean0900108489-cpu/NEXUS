@@ -23,7 +23,8 @@ import {
 export type WorkflowBrainDraftTemplateId =
   | WorkflowProFoundationBenchmarkId
   | "image-file-two-llm-answer"
-  | "audio-prompt-image-reverse-fanout";
+  | "audio-prompt-image-reverse-fanout"
+  | "none";
 
 export type WorkflowBrainDraftTemplate = {
   description: string;
@@ -32,6 +33,11 @@ export type WorkflowBrainDraftTemplate = {
 };
 
 export const WORKFLOW_BRAIN_DRAFT_TEMPLATES: WorkflowBrainDraftTemplate[] = [
+  {
+    description: "空白格式 — 完整 workflow 合約由 LLM 根據需求自行產生。",
+    id: "none",
+    title: "None / LLM Freeform",
+  },
   {
     description: "圖或檔案進入 input，通過兩個已設定提示詞的 LLM，最後輸出答案。",
     id: "image-file-two-llm-answer",
@@ -79,6 +85,10 @@ export function serializeWorkflowBrainDraftTemplate({
     templateId === "image-reverse-fanout"
   ) {
     return serializeWorkflowProFoundationBenchmarkFixture(templateId);
+  }
+
+  if (templateId === "none") {
+    return JSON.stringify(createNoneTemplateDraft(description), null, 2);
   }
 
   const contract =
@@ -600,5 +610,78 @@ function generatedImageArtifactPolicy(): NonNullable<
     historyScope: "workspace",
     persist: true,
     type: "generated-image",
+  };
+}
+
+function createNoneTemplateDraft(description?: string) {
+  const CREATED_AT = new Date().toISOString();
+  const WORKSPACE_ID = "workspace-graph-brain-draft";
+
+  return {
+    schema: "nexus.workflow.v1",
+    id: `workflow-brain-none-${Date.now().toString(36)}`,
+    name: "Brain Draft / LLM Freeform",
+    intent: description ?? "Graph Brain will design a workflow based on the operator request.",
+    metadata: {
+      createdAt: CREATED_AT,
+      description:
+        "Empty shell — all nodes, edges, prompts, and model settings are left for the LLM to fill.",
+      source: "runtimeLite",
+      workspaceId: WORKSPACE_ID,
+    },
+    brain: {
+      canPropose: [
+        "append workflow group",
+        "prompt rewrite",
+        "node insertion",
+        "model setting changes",
+        "missing feature requirements",
+        "full optimized workflow",
+      ],
+      enabled: true,
+      mustUnderstand: [
+        "canvas can contain multiple workflow groups",
+        "append group does not replace existing graph",
+        "nodes",
+        "edges",
+        "execution.parallelGroups",
+        "capabilityInventory",
+        "limits",
+      ],
+      outputFormat: {
+        analysis: "markdown",
+        missingCapabilities: "array",
+        optimizedWorkflow: "nexus.workflow.v1",
+      },
+      readBeforeRun: true,
+      runtimeEvidence: [
+        "runs",
+        "artifacts",
+        "errors",
+        "contextPackets",
+      ],
+    },
+    capabilityInventory: {
+      schema: "nexus.workflowPro.capabilityInventory.v1",
+      nodeTypes: [],
+      artifactPolicies: [],
+      compilers: [],
+      notAvailableYet: [],
+    },
+    nodes: [],
+    edges: [],
+    outputs: [],
+    execution: {
+      mode: "topological",
+      notes: [
+        "LLM must design the complete workflow topology from scratch.",
+      ],
+      parallelGroups: [],
+    },
+    successCriteria: {
+      minOutputLength: 10,
+      requireJsonShape: true,
+      timeoutMs: 300000,
+    },
   };
 }

@@ -420,7 +420,8 @@ function normalizeTemplateHint(
     value === "audio-prompt-image-reverse-fanout" ||
     value === "baseline-linear" ||
     value === "llm-to-image" ||
-    value === "image-reverse-fanout"
+    value === "image-reverse-fanout" ||
+    value === "none"
   ) {
     return value;
   }

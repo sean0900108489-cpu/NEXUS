@@ -4685,7 +4685,7 @@ function WorkspaceChatComposerShell({
 
   return (
     <section
-      className="nexus-workspace-chat-composer-shell flex shrink-0 items-center justify-center border px-3 py-2"
+      className="nexus-workspace-chat-composer-shell nexus-workspace-floating-composer fixed bottom-3 left-1/2 z-[130] w-[min(720px,calc(100vw-24px))] -translate-x-1/2 border px-2 py-1.5"
       data-testid="workspace-chat-composer-shell"
       style={{
         ...workspaceBodyMaterialStyle,
@@ -4693,7 +4693,7 @@ function WorkspaceChatComposerShell({
           "var(--nexus-workspace-radius, var(--nexus-panel-radius, var(--surface-radius)))",
       }}
     >
-      <div className="w-full max-w-[720px]">
+      <div className="w-full">
         <form aria-label="Workspace message composer" onSubmit={submit}>
           <input
             ref={fileInputRef}

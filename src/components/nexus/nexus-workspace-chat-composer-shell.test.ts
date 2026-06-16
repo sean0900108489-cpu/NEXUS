@@ -39,12 +39,18 @@ describe("Nexus workspace chat composer shell", () => {
     "utf8",
   );
 
-  it("keeps the composer as a visual sibling below the workspace stage", () => {
+  it("floats the composer as a viewport-pinned layer below the workspace stage", () => {
     expect(source).toContain("nexus-workspace-stage-stack");
     expect(source).toContain("<WorkspaceChatComposerShell");
     expect(source).toContain('data-testid="workspace-chat-composer-shell"');
     expect(source).toContain('data-testid="nexus-workspace-primary-page"');
     expect(composerSource).toContain("Ask for follow-up changes");
+    expect(composerSource).toContain("nexus-workspace-floating-composer");
+    expect(composerSource).toContain("fixed bottom-3 left-1/2");
+    expect(composerSource).toContain("z-[130]");
+    expect(composerSource).toContain("w-[min(720px,calc(100vw-24px))]");
+    expect(composerSource).toContain("-translate-x-1/2");
+    expect(composerSource).not.toContain("flex shrink-0");
     expect(composerSource).not.toContain("Latest thread");
     expect(composerSource).not.toContain("latestMessagePreview");
     expect(composerSource).not.toContain("targetLabel");

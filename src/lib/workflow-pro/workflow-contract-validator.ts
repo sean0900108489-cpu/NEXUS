@@ -179,9 +179,7 @@ function validateEdges(
       issue("error", `${path}.target`, "Workflow edge target must reference an existing node.");
     }
 
-    if (!isRecord(edge.packetContract)) {
-      issue("warning", `${path}.packetContract`, "Workflow edge packetContract is required.");
-    }
+    // packetContract is optional — validator skips it (reserved for future runtime media enforcement)
   });
 }
 

@@ -1747,7 +1747,7 @@ function WorkflowGraphBrainPanel({
   const [templateId, setTemplateId] = useState<WorkflowBrainDraftTemplateId>(
     "image-file-two-llm-answer",
   );
-  const [brainModel, setBrainModel] = useState("deepseek-v4-pro");
+  const [brainModel, setBrainModel] = useState("deepseek-chat");
   const [contractText, setContractText] = useState(() =>
     serializeWorkflowBrainDraftTemplate({
       description:

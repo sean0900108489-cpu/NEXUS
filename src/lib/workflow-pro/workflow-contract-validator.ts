@@ -180,7 +180,7 @@ function validateEdges(
     }
 
     if (!isRecord(edge.packetContract)) {
-      issue("error", `${path}.packetContract`, "Workflow edge packetContract is required.");
+      issue("warning", `${path}.packetContract`, "Workflow edge packetContract is required.");
     }
   });
 }

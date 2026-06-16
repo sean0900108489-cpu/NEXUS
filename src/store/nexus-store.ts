@@ -1367,9 +1367,7 @@ function resolveStreamMode(_workspace: NexusWorkspace | undefined, _authVault?: 
 }
 
 function getDefaultChatModelForAgent() {
-  return DEFAULT_CHAT_SUPPORTED_MODELS.includes("gpt-5.5")
-    ? "gpt-5.5"
-    : DEFAULT_CHAT_SUPPORTED_MODELS[0] ?? "gpt-4o-mini";
+  return DEFAULT_CHAT_SUPPORTED_MODELS[0];
 }
 
 function normalizeAgentModelCatalog(agent: NexusAgent): NexusAgent {

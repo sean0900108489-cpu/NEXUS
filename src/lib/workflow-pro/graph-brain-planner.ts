@@ -86,10 +86,10 @@ export type WorkflowGraphBrainPlannerResult = {
 };
 
 const DEFAULT_MODEL_SETTINGS: WorkflowGraphBrainModelSettings = {
-  modelId: "gpt-5.5",
-  reasoningDetail: "high",
-  reasoningEffort: "xhigh",
-  verbosity: "high",
+  modelId: "gpt-4o-mini",
+  reasoningDetail: "low",
+  reasoningEffort: "none",
+  verbosity: "medium",
 };
 
 export function createWorkflowGraphBrainPlannerResult({

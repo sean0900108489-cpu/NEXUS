@@ -12,21 +12,33 @@ describe("Nexus production Theme panel live style controls", () => {
     new URL("nexus-graph.tsx", import.meta.url),
     "utf8",
   );
+  const panelsSource = readFileSync(
+    new URL("nexus-panels.tsx", import.meta.url),
+    "utf8",
+  );
+  const utilsSource = readFileSync(
+    new URL("nexus-utils.tsx", import.meta.url),
+    "utf8",
+  );
+  const settingsSidebarSource = readFileSync(
+    new URL("nexus-agent-settings-sidebar.tsx", import.meta.url),
+    "utf8",
+  );
   const controlsPanelSource = extractFunctionSource(
     source,
     "WorkspaceStyleControlsPanel",
-    "ModelTuningSelect",
+    "getReasoningPreview",
   );
   const presetDefinitionsSource = extractConstSource(
     source,
     "workspaceStylePresetDefinitions",
     "function WorkspaceStyleControlsPanel",
   );
-  const topBarSource = extractFunctionSource(source, "TopBar", "SyncBadge");
+  const topBarSource = extractFunctionSource(panelsSource, "TopBar", "MacroComposerModal");
   const topMenuActionSource = extractFunctionSource(
-    source,
+    utilsSource,
     "TopMenuAction",
-    "MacroComposerModal",
+    "",
   );
   const saveHandlerSource = extractCallbackSource(
     source,
@@ -253,7 +265,7 @@ describe("Nexus production Theme panel live style controls", () => {
   });
 
   it("lets the Theme panel and workspace menu chrome follow radius controls", () => {
-    expect(source).toContain(
+    expect(settingsSidebarSource).toContain(
       "var(--nexus-right-dock-radius, var(--nexus-panel-radius, var(--surface-radius)))",
     );
     expect(topBarSource).toContain(
@@ -265,12 +277,12 @@ describe("Nexus production Theme panel live style controls", () => {
   });
 
   it("layers Theme panel fills through shared material variables instead of local accent fills", () => {
-    expect(source).toContain("color-mix(in srgb, var(--theme-primary, #e5e5e5) 13%");
-    expect(source).toContain("color-mix(in srgb, var(--theme-primary, #e5e5e5) 12%");
-    expect(source).toContain("color-mix(in srgb, var(--theme-primary, #e5e5e5) 4%");
-    expect(source).toContain("var(--nexus-layout-panel-bg");
-    expect(source).toContain("var(--nexus-layout-panel-muted-bg");
-    expect(source).toContain("var(--nexus-layout-panel-border");
+    expect(settingsSidebarSource).toContain("color-mix(in srgb, var(--theme-primary, #e5e5e5) 13%");
+    expect(settingsSidebarSource).toContain("color-mix(in srgb, var(--theme-primary, #e5e5e5) 12%");
+    expect(settingsSidebarSource).toContain("color-mix(in srgb, var(--theme-primary, #e5e5e5) 4%");
+    expect(settingsSidebarSource).toContain("var(--nexus-layout-panel-bg");
+    expect(settingsSidebarSource).toContain("var(--nexus-layout-panel-muted-bg");
+    expect(settingsSidebarSource).toContain("var(--nexus-layout-panel-border");
     expect(controlsPanelSource).toContain("...panelMaterialStyle");
     expect(controlsPanelSource).toContain("...panelMutedMaterialStyle");
     expect(controlsPanelSource).not.toContain("linear-gradient(180deg, ${activeAccent}18, ${activeAccent}0b)");
@@ -300,7 +312,9 @@ function extractFunctionSource(
   nextFunctionName: string,
 ) {
   const start = source.indexOf(`function ${functionName}`);
-  const end = source.indexOf(`function ${nextFunctionName}`, start + 1);
+  const end = nextFunctionName
+    ? source.indexOf(`function ${nextFunctionName}`, start + 1)
+    : source.length;
 
   expect(start).toBeGreaterThanOrEqual(0);
   expect(end).toBeGreaterThan(start);

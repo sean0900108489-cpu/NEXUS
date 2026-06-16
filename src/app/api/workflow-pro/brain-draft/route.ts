@@ -11,6 +11,10 @@ import type { WorkflowBrainDraftTemplateId } from "@/lib/workflow-pro/brain-draf
 import type { WorkflowRuntimeLiteState } from "@/lib/nexus-types";
 import type { WorkflowProBrainReviewProposal } from "@/lib/workflow-pro/brain-review-proposal";
 import { blockLegacyToolRouteInProduction } from "@/lib/backend/security/legacy-tool-route-boundary";
+import { resolveApiActor } from "@/lib/backend/api/api-auth";
+import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
+import { getCatalogModel } from "@/lib/backend/models/model-catalog";
+import { normalizeNewApiBaseUrl } from "@/lib/backend/models/new-api-chat-service";
 
 export const runtime = "nodejs";
 
@@ -68,6 +72,7 @@ export async function POST(request: Request) {
       conversation: normalizeConversation(payload.conversation),
       fallback: deterministic,
       operatorRequest,
+      request,
     });
 
     return Response.json(modelResult);
@@ -88,28 +93,35 @@ async function createOpenAiWorkflowPlannerResult({
   conversation,
   fallback,
   operatorRequest,
+  request,
 }: {
   conversation: WorkflowGraphBrainPlannerMessage[];
   fallback: WorkflowGraphBrainPlannerResult;
   operatorRequest: string;
+  request: Request;
 }): Promise<WorkflowGraphBrainPlannerResult> {
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  const actor = await resolveApiActor(request, { required: true });
 
-  if (!apiKey) {
+  if (!actor.actorUserId) {
     throw new Error(
-      "OPENAI_API_KEY is required for Graph Brain THINK. Use LOCAL for deterministic drafts.",
+      "Authentication is required for Graph Brain THINK.",
     );
   }
 
-  const model =
+  const userToken = await getUserNewApiToken({ userId: actor.actorUserId });
+
+  const rawModel =
     process.env.WORKFLOW_BRAIN_MODEL?.trim() ||
     process.env.REPORT_MODEL?.trim() ||
     fallback.modelSettings.modelId;
+  const catalogModel = getCatalogModel(rawModel);
+  const model = catalogModel?.new_api_model ?? rawModel;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), getModelTimeoutMs());
-  const response = await fetch("https://api.openai.com/v1/responses", {
+  const baseUrl = normalizeNewApiBaseUrl(process.env.NEW_API_BASE_URL);
+  const response = await fetch(`${baseUrl}/chat/completions`, {
     body: JSON.stringify({
-      input: [
+      messages: [
         {
           content: createWorkflowPlannerSystemPrompt(),
           role: "system",
@@ -164,25 +176,12 @@ async function createOpenAiWorkflowPlannerResult({
           role: "user",
         },
       ],
-      max_output_tokens: getModelMaxOutputTokens(),
+      max_tokens: getModelMaxOutputTokens(),
       model,
-      reasoning: {
-        effort: normalizeOpenAiReasoningEffort(
-          process.env.WORKFLOW_BRAIN_REASONING_EFFORT?.trim() ||
-            fallback.modelSettings.reasoningEffort,
-        ),
-      },
-      text: {
-        format: {
-          type: "json_object",
-        },
-        verbosity:
-          process.env.WORKFLOW_BRAIN_VERBOSITY?.trim() ||
-          fallback.modelSettings.verbosity,
-      },
+      response_format: { type: "json_object" },
     }),
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${userToken.token}`,
       "Content-Type": "application/json",
     },
     method: "POST",
@@ -256,18 +255,26 @@ function createCompactRuntimeContext(fallback: WorkflowGraphBrainPlannerResult) 
 
 function createWorkflowPlannerSystemPrompt() {
   return [
-    "You are the NEXUS Workflow Brain, a senior workflow architect and JSON contract compiler.",
-    "Return only one compact JSON object. Do not use markdown fences.",
-    "The JSON must match schema nexus.workflowPro.brainReviewProposal.v1.",
-    "optimizedWorkflow must be a complete nexus.workflow.v1 object, not prose and not a partial patch.",
-    "Use only supported node types and edge contracts found in the fallbackWorkflowJson/capabilityInventory.",
-    "A file node is the compiler boundary for future image, zip, audio, video, or document transforms.",
-    "The canvas can contain multiple workflow groups; this answer must create one new independent appendable workflow group.",
-    "If a requested capability is not available, still design the best valid workflow with current nodes and list the missing capability explicitly.",
-    "Write analysis, node rationale, and questions in Traditional Chinese. Keep technical identifiers in English.",
-    "Keep the response complete and compact: analysis <= 900 Traditional Chinese characters, each node prompt <= 500 characters, each node rationale <= 180 characters, and questions <= 3 items.",
-    "Do not include long reports, tutorials, transcripts, or repeated schema commentary inside the JSON.",
-    "Do not claim screen execution, API success, image generation, or future compiler support that is not present in the provided runtime evidence.",
+    "You are the NEXUS Workflow Brain. Your job is simple: read the user\'s request, understand what tools are available, design the smallest possible workflow, and output valid JSON.",
+    "Return a single JSON object matching schema nexus.workflowPro.brainReviewProposal.v1.",
+    "ALWAYS include an optimizedWorkflow that is a complete nexus.workflow.v1 object — NOT prose, NOT a partial patch.",
+    "Step 1 — Understand the request: What does the user want to accomplish?",
+    "Step 2 — Check available tools: Only use node types from the capabilityInventory. Do not invent node types.",
+    "Step 3 — Design the MVP: Use the FEWEST nodes possible to satisfy the request. Start simple, not complex.",
+    "Step 4 — Fill in details: Each node needs type, id, position (x,y), label, purpose, data. Each edge needs source, target, sourceHandle, targetHandle.",
+    "Step 5 — Output the JSON: optimizedWorkflow must have schema, id, name, intent, metadata, capabilityInventory, nodes, edges, execution, successCriteria.",
+    "Rules:",
+    "- Every model.llm node MUST have data.prompt (the instruction for that LLM).",
+    "- Every model.llm node MUST have data.model set from the available model catalog.",
+    "- Every model.llm node SHOULD have data.modelSettings with reasoningEffort and verbosity.",
+    "- Use output.text as terminal display nodes.",
+    "- Every edge must connect real node ids with sourceHandle 'output' and targetHandle 'input'.",
+    "- If the request needs a capability that does not exist, list it in missingCapabilities and build the closest possible workflow.",
+    "- Keep prompts short and specific. One node = one clear job.",
+    "- Write analysis in Traditional Chinese. Keep technical identifiers in English.",
+    "- Do not use markdown fences around the JSON.",
+    "ALWAYS include analysis (Traditional Chinese, 1-3 sentences) and questionsForSean (1-3 questions about the workflow) in your response.",
+    "ALWAYS include missingCapabilities as an array of strings (can be empty if nothing is missing).",
   ].join(" ");
 }
 
@@ -326,40 +333,51 @@ async function readResponseError(response: Response) {
 }
 
 function extractResponseText(body: unknown): string {
+  // chat/completions format (New API, DeepSeek, etc.) — check FIRST
+  if (isRecord(body) && Array.isArray(body.choices)) {
+    const firstChoice = body.choices[0];
+    if (isRecord(firstChoice) && isRecord(firstChoice.message)) {
+      const content = firstChoice.message.content;
+      if (content) {
+        return String(content);
+      }
+    }
+  }
+
+  // OpenAI responses API format (legacy)
   if (isRecord(body) && typeof body.output_text === "string") {
     return body.output_text;
   }
 
-  if (!isRecord(body) || !Array.isArray(body.output)) {
-    return "";
+  if (isRecord(body) && Array.isArray(body.output)) {
+    return body.output
+      .flatMap((item) => {
+        if (!isRecord(item) || !Array.isArray(item.content)) {
+          return [];
+        }
+
+        return item.content.map((content) => {
+          if (!isRecord(content)) {
+            return "";
+          }
+
+          if (typeof content.text === "string") {
+            return content.text;
+          }
+
+          if (typeof content.output_text === "string") {
+            return content.output_text;
+          }
+
+          return "";
+        });
+      })
+      .join("\n")
+      .trim();
   }
 
-  return body.output
-    .flatMap((item) => {
-      if (!isRecord(item) || !Array.isArray(item.content)) {
-        return [];
-      }
-
-      return item.content.map((content) => {
-        if (!isRecord(content)) {
-          return "";
-        }
-
-        if (typeof content.text === "string") {
-          return content.text;
-        }
-
-        if (typeof content.output_text === "string") {
-          return content.output_text;
-        }
-
-        return "";
-      });
-    })
-    .join("\n")
-    .trim();
+  return "";
 }
-
 function parseBrainReviewProposal(text: string): WorkflowProBrainReviewProposal {
   if (!text.trim()) {
     throw new Error("Graph Brain LLM returned an empty response.");
@@ -415,7 +433,8 @@ function normalizeTemplateHint(
     value === "audio-prompt-image-reverse-fanout" ||
     value === "baseline-linear" ||
     value === "llm-to-image" ||
-    value === "image-reverse-fanout"
+    value === "image-reverse-fanout" ||
+    value === "none"
   ) {
     return value;
   }

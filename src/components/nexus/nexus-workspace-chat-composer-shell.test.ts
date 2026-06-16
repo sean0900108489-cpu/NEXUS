@@ -4,15 +4,23 @@ import { describe, expect, it } from "vitest";
 
 describe("Nexus workspace chat composer shell", () => {
   const source = readFileSync(new URL("nexus-ops.tsx", import.meta.url), "utf8");
+  const agentWindowFileSource = readFileSync(
+    new URL("nexus-agent-window.tsx", import.meta.url),
+    "utf8",
+  );
+  const settingsSidebarSource = readFileSync(
+    new URL("nexus-agent-settings-sidebar.tsx", import.meta.url),
+    "utf8",
+  );
   const composerSource = extractFunctionSource(
     source,
     "WorkspaceChatComposerShell",
-    "MinimizedRail",
+    "",
   );
   const agentWindowSource = extractFunctionSource(
-    source,
+    agentWindowFileSource,
     "AgentWindow",
-    "SandboxCanvas",
+    "",
   );
   const attachmentActionsSource = readFileSync(
     new URL("../../lib/attachments/attachment-input-actions.ts", import.meta.url),
@@ -31,19 +39,37 @@ describe("Nexus workspace chat composer shell", () => {
     "utf8",
   );
 
-  it("keeps the composer as a visual sibling below the workspace stage", () => {
+  it("floats the composer as a viewport-pinned layer below the workspace stage", () => {
     expect(source).toContain("nexus-workspace-stage-stack");
     expect(source).toContain("<WorkspaceChatComposerShell");
     expect(source).toContain('data-testid="workspace-chat-composer-shell"');
     expect(source).toContain('data-testid="nexus-workspace-primary-page"');
-    expect(composerSource).toContain("Latest thread");
     expect(composerSource).toContain("Ask for follow-up changes");
-    expect(composerSource).toContain('data-testid="workspace-chat-thread-card"');
+    expect(composerSource).toContain("nexus-workspace-floating-composer");
+    expect(composerSource).toContain("fixed bottom-3 left-1/2");
+    expect(composerSource).toContain("z-[130]");
+    expect(composerSource).toContain("w-[min(720px,calc(100vw-24px))]");
+    expect(composerSource).toContain("-translate-x-1/2");
+    expect(composerSource).not.toContain("flex shrink-0");
+    expect(composerSource).not.toContain("Latest thread");
+    expect(composerSource).not.toContain("latestMessagePreview");
+    expect(composerSource).not.toContain("targetLabel");
+    expect(composerSource).not.toContain('data-testid="workspace-chat-thread-card"');
+    expect(composerSource).not.toContain("min-h-[118px]");
     expect(composerSource).toContain('data-testid="workspace-chat-input-card"');
     expect(composerSource).toContain('data-testid="workspace-chat-composer-input"');
     expect(composerSource).toContain('data-testid="workspace-chat-composer-action"');
     expect(composerSource).toContain('data-testid="workspace-composer-mode-control"');
     expect(composerSource).toContain('data-testid="workspace-chat-reasoning-select"');
+  });
+
+  it("extends only the workspace stage for desktop-first breathing room", () => {
+    expect(source).toContain("nexus-workspace-extended-scroll-stage");
+    expect(source).toContain("min-h-[120dvh]");
+    expect(source).toContain("lg:min-h-[180dvh]");
+    expect(source).toContain("2xl:min-h-[200dvh]");
+    expect(source).not.toContain('data-testid="nexus-workspace-primary-page"\\n        className="min-h-[200dvh]');
+    expect(source).not.toContain('<body className="min-h-[200dvh]');
   });
 
   it("places the attachment trigger on the left before the text input", () => {
@@ -58,13 +84,9 @@ describe("Nexus workspace chat composer shell", () => {
   });
 
   it("does not render extra decorative arrows inside the chat composer controls", () => {
-    const threadCardIndex = composerSource.indexOf(
-      'data-testid="workspace-chat-thread-card"',
-    );
     const formIndex = composerSource.indexOf(
       '<form aria-label="Workspace message composer"',
     );
-    const threadCardSource = composerSource.slice(threadCardIndex, formIndex);
     const reasoningSelectIndex = composerSource.indexOf(
       'data-testid="workspace-chat-reasoning-select"',
     );
@@ -76,9 +98,7 @@ describe("Nexus workspace chat composer shell", () => {
       sendButtonIndex,
     );
 
-    expect(threadCardIndex).toBeGreaterThan(-1);
-    expect(formIndex).toBeGreaterThan(threadCardIndex);
-    expect(threadCardSource).not.toContain("ChevronRight");
+    expect(formIndex).toBeGreaterThan(-1);
     expect(reasoningSelectIndex).toBeGreaterThan(-1);
     expect(sendButtonIndex).toBeGreaterThan(reasoningSelectIndex);
     expect(reasoningControlSource).not.toContain("ChevronDown");
@@ -189,10 +209,10 @@ describe("Nexus workspace chat composer shell", () => {
     expect(source).toContain("Generated asset download started");
     expect(source).toContain('/api/v1/artifacts/${encodeURIComponent(artifact.id)}/asset');
     expect(source).toContain("downloadMediaArtifact");
-    expect(source).toContain('aria-label={`Download ${artifact.type} preview`}');
+    expect(settingsSidebarSource).toContain("onClick={() => onDownloadArtifact(artifact)}");
+    expect(settingsSidebarSource).toContain('<Download className="h-3 w-3" />');
+    expect(settingsSidebarSource).toContain("Download");
     expect(source).toContain("isMockGeneratedMediaUrl");
-    expect(source).toContain("!isMockGeneratedMediaUrl(artifact.contentUrl)");
-    expect(source).toContain("!isMockGeneratedMediaUrl(message.media?.url)");
   });
 
   it("binds authenticated recovery to the server-approved workspace session", () => {
@@ -221,7 +241,9 @@ function extractFunctionSource(
   nextFunctionName: string,
 ) {
   const start = source.indexOf(`function ${functionName}`);
-  const end = source.indexOf(`function ${nextFunctionName}`, start + 1);
+  const end = nextFunctionName
+    ? source.indexOf(`function ${nextFunctionName}`, start + 1)
+    : source.length;
 
   expect(start).toBeGreaterThanOrEqual(0);
   expect(end).toBeGreaterThan(start);

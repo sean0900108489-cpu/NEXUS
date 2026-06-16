@@ -51,18 +51,18 @@ describe("Workflow Graph Brain planner", () => {
     expect(summary).toContainEqual({ count: 4, type: "model.image" });
   });
 
-  it("keeps the Brain model defaults at gpt-5.5 xhigh high high", () => {
+  it("keeps the Brain model defaults at gpt-4o-mini", () => {
     const result = createWorkflowGraphBrainPlannerResult({
       operatorRequest: "Input -> LLM -> Output",
     });
 
     expect(result.modelSettings).toEqual({
-      modelId: "gpt-5.5",
-      reasoningDetail: "high",
-      reasoningEffort: "xhigh",
-      verbosity: "high",
+      modelId: "gpt-4o-mini",
+      reasoningDetail: "low",
+      reasoningEffort: "none",
+      verbosity: "medium",
     });
-    expect(result.proposal.source?.model).toBe("gpt-5.5/xhigh/high/high");
+    expect(result.proposal.source?.model).toBe("gpt-4o-mini/none/low/medium");
   });
 
   it("includes RuntimeLite execution policy in the architect handoff", () => {

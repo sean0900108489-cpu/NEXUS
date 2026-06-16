@@ -58,6 +58,7 @@ import {
   getModelOption,
   normalizeAgentModelSettings,
 } from "@/lib/nexus-registry";
+import { getNexusSupabaseClient } from "@/lib/supabase/client";
 import {
   WORKSPACE_COMPOSER_IMAGE_ASPECT_RATIO_OPTIONS,
   WORKSPACE_COMPOSER_IMAGE_MODEL_OPTIONS,
@@ -1551,7 +1552,7 @@ export function NexusGraph({
         onInit={setFlowInstance}
         proOptions={{ hideAttribution: true }}
       >
-        <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-24px)] flex-wrap items-start gap-2">
+        <div className="nexus-graph-quiet-toolbar group pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-24px)] flex-wrap items-start gap-2">
           {readOnly ? (
             <div
               className="pointer-events-auto inline-flex h-8 items-center gap-2 border border-neutral-300/35 bg-neutral-300/10 px-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md"
@@ -1560,56 +1561,16 @@ export function NexusGraph({
               <span>{workspaceRole ?? "viewer"} read only</span>
             </div>
           ) : null}
-          <WorkflowGraphAction
-            disabled={readOnly}
-            disabledReason={readOnlyMessage}
-            icon={<Type className="h-3.5 w-3.5" />}
-            label="Add Input"
-            nodeType="input.text"
-            onClick={() => addWorkflowNodeAtCenter("input.text")}
-          />
-          <WorkflowGraphAction
-            disabled={readOnly}
-            disabledReason={readOnlyMessage}
-            icon={<BrainCircuit className="h-3.5 w-3.5" />}
-            label="Add LLM"
-            nodeType="model.llm"
-            onClick={() => addWorkflowNodeAtCenter("model.llm")}
-          />
-          <WorkflowGraphAction
-            disabled={readOnly}
-            disabledReason={readOnlyMessage}
-            icon={<Paperclip className="h-3.5 w-3.5" />}
-            label="Add File"
-            nodeType="node.file"
-            onClick={() => addWorkflowNodeAtCenter("node.file")}
-          />
-          <WorkflowGraphAction
-            disabled={readOnly}
-            disabledReason={readOnlyMessage}
-            icon={<ImageIcon className="h-3.5 w-3.5" />}
-            label="Add Image"
-            nodeType="model.image"
-            onClick={() => addWorkflowNodeAtCenter("model.image")}
-          />
-          <WorkflowGraphAction
-            disabled={readOnly}
-            disabledReason={readOnlyMessage}
-            icon={<FileText className="h-3.5 w-3.5" />}
-            label="Add Output"
-            nodeType="output.text"
-            onClick={() => addWorkflowNodeAtCenter("output.text")}
-          />
+          <div className="pointer-events-auto inline-flex h-8 items-center gap-2 border border-white/10 bg-black/35 px-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-500 shadow-[0_10px_30px_rgba(0,0,0,0.22)] backdrop-blur-md transition group-hover:border-neutral-300/30 group-hover:text-neutral-200 group-focus-within:border-neutral-300/30 group-focus-within:text-neutral-200">
+            <ChevronDown className="h-3.5 w-3.5" />
+            Tools
+          </div>
           <WorkflowGraphAction
             disabled={readOnly || workflowRunning}
             disabledReason={readOnly ? readOnlyMessage : undefined}
             icon={<Play className="h-3.5 w-3.5" />}
             label={workflowRunning ? "Running" : "Start All"}
             onClick={onRunWorkflow}
-          />
-          <WorkflowGeneratedAssetMenu
-            artifacts={generatedArtifacts ?? []}
-            onDownloadArtifact={onDownloadArtifact}
           />
           <WorkflowGraphAction
             disabled={readOnly}
@@ -1619,6 +1580,52 @@ export function NexusGraph({
             onClick={() => setWorkflowBrainOpen((current) => !current)}
           />
           <WorkflowGraphStatus feedback={workflowFeedback} />
+          <div className="nexus-graph-secondary-tools pointer-events-none flex flex-wrap items-start gap-2 opacity-0 transition duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+            <WorkflowGraphAction
+              disabled={readOnly}
+              disabledReason={readOnlyMessage}
+              icon={<Type className="h-3.5 w-3.5" />}
+              label="Add Input"
+              nodeType="input.text"
+              onClick={() => addWorkflowNodeAtCenter("input.text")}
+            />
+            <WorkflowGraphAction
+              disabled={readOnly}
+              disabledReason={readOnlyMessage}
+              icon={<BrainCircuit className="h-3.5 w-3.5" />}
+              label="Add LLM"
+              nodeType="model.llm"
+              onClick={() => addWorkflowNodeAtCenter("model.llm")}
+            />
+            <WorkflowGraphAction
+              disabled={readOnly}
+              disabledReason={readOnlyMessage}
+              icon={<Paperclip className="h-3.5 w-3.5" />}
+              label="Add File"
+              nodeType="node.file"
+              onClick={() => addWorkflowNodeAtCenter("node.file")}
+            />
+            <WorkflowGraphAction
+              disabled={readOnly}
+              disabledReason={readOnlyMessage}
+              icon={<ImageIcon className="h-3.5 w-3.5" />}
+              label="Add Image"
+              nodeType="model.image"
+              onClick={() => addWorkflowNodeAtCenter("model.image")}
+            />
+            <WorkflowGraphAction
+              disabled={readOnly}
+              disabledReason={readOnlyMessage}
+              icon={<FileText className="h-3.5 w-3.5" />}
+              label="Add Output"
+              nodeType="output.text"
+              onClick={() => addWorkflowNodeAtCenter("output.text")}
+            />
+            <WorkflowGeneratedAssetMenu
+              artifacts={generatedArtifacts ?? []}
+              onDownloadArtifact={onDownloadArtifact}
+            />
+          </div>
         </div>
         {workflowBrainOpen ? (
           <WorkflowGraphBrainPanel
@@ -1627,6 +1634,7 @@ export function NexusGraph({
             readOnly={readOnly}
             readOnlyMessage={readOnlyMessage}
             runtimeLite={runtimeLite}
+            modelCatalog={modelCatalog}
           />
         ) : null}
         <Background
@@ -1721,6 +1729,7 @@ function WorkflowGraphBrainPanel({
   readOnly,
   readOnlyMessage,
   runtimeLite,
+  modelCatalog,
 }: {
   onAppendWorkflowContractText: (input: {
     sourceName: string;
@@ -1730,6 +1739,7 @@ function WorkflowGraphBrainPanel({
   readOnly?: boolean;
   readOnlyMessage?: string;
   runtimeLite?: WorkspaceGraph["runtimeLite"];
+  modelCatalog?: PublicModelCatalogEntry[];
 }) {
   const [brainThread, setBrainThread] = useState<
     WorkflowGraphBrainThreadEntry[]
@@ -1743,6 +1753,7 @@ function WorkflowGraphBrainPanel({
   const [templateId, setTemplateId] = useState<WorkflowBrainDraftTemplateId>(
     "image-file-two-llm-answer",
   );
+  const [brainModel, setBrainModel] = useState("deepseek-chat");
   const [contractText, setContractText] = useState(() =>
     serializeWorkflowBrainDraftTemplate({
       description:
@@ -1789,6 +1800,8 @@ function WorkflowGraphBrainPanel({
     setStatus(null);
 
     try {
+      const { data: { session } } = await getNexusSupabaseClient().auth.getSession();
+      const accessToken = session?.access_token;
       const response = await fetch("/api/workflow-pro/brain-draft", {
         body: JSON.stringify({
           conversation: brainThread.slice(-8).map((entry) => ({
@@ -1797,7 +1810,7 @@ function WorkflowGraphBrainPanel({
             title: entry.title,
           })),
           modelSettings: {
-            modelId: "gpt-5.5",
+            modelId: brainModel,
             reasoningDetail: "high",
             reasoningEffort: "xhigh",
             verbosity: "high",
@@ -1807,6 +1820,7 @@ function WorkflowGraphBrainPanel({
           templateHint: "auto",
         }),
         headers: {
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           "Content-Type": "application/json",
         },
         method: "POST",
@@ -1884,7 +1898,7 @@ function WorkflowGraphBrainPanel({
     } finally {
       setBrainThinking(false);
     }
-  }, [brainThread, description, runtimeLite]);
+  }, [brainModel, brainThread, description, runtimeLite]);
 
   const appendDraft = useCallback(() => {
     if (readOnly) {
@@ -1909,7 +1923,7 @@ function WorkflowGraphBrainPanel({
   ]);
 
   return (
-    <aside className="pointer-events-auto absolute right-4 top-16 z-20 grid max-h-[calc(100vh-96px)] w-[min(520px,calc(100vw-32px))] gap-3 overflow-y-auto border border-white/10 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.48)] backdrop-blur-xl [background:var(--nexus-layout-panel-bg,rgba(2,6,23,0.94))]">
+    <aside className="pointer-events-auto absolute right-4 top-16 z-20 grid max-h-[calc(100vh-96px)] w-[calc(100vw-64px)] gap-3 overflow-y-auto border border-white/10 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.48)] backdrop-blur-xl [background:var(--nexus-layout-panel-bg,rgba(2,6,23,0.94))]">
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-100">
@@ -1918,7 +1932,7 @@ function WorkflowGraphBrainPanel({
           </div>
           <div className="mt-1 flex flex-wrap gap-1.5 font-mono text-[8px] uppercase tracking-[0.12em] text-neutral-500">
             <span className="border border-white/10 bg-white/[0.03] px-1.5 py-0.5">
-              gpt-5.5
+              {brainModel}
             </span>
             <span className="border border-white/10 bg-white/[0.03] px-1.5 py-0.5">
               effort xhigh
@@ -1939,6 +1953,25 @@ function WorkflowGraphBrainPanel({
             ) : null}
           </div>
         </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <label className="grid gap-1">
+            <select
+              className="min-w-0 border border-white/10 bg-black/35 px-2 py-2 font-mono text-[10px] text-neutral-100 outline-none transition focus:border-neutral-300/55 disabled:cursor-not-allowed disabled:opacity-65"
+              disabled={readOnly || brainThinking}
+              onChange={(event) => setBrainModel(event.target.value)}
+              title={readOnly ? readOnlyMessage : "Graph Brain model"}
+              value={brainModel}
+            >
+              {(modelCatalog?.length
+                ? modelCatalog
+                : [{ id: brainModel, label: brainModel } as PublicModelCatalogEntry]
+              ).map((model) => (
+                <option key={model.id} value={model.id}>
+                  {model.label}
+                </option>
+              ))}
+            </select>
+          </label>
         <button
           aria-label="Close Graph Brain"
           className="inline-flex h-7 w-7 items-center justify-center border border-white/10 text-neutral-400 transition hover:border-neutral-300/35 hover:text-neutral-100"
@@ -1947,7 +1980,10 @@ function WorkflowGraphBrainPanel({
         >
           <X className="h-3.5 w-3.5" />
         </button>
+        </div>
       </header>
+      <div className="mt-3 grid grid-cols-[1fr_1fr] gap-4 min-h-0 flex-1 overflow-hidden">
+        <div className="flex flex-col gap-3 min-h-0 overflow-y-auto pr-1">
 
       <label className="grid gap-1.5">
         <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
@@ -2014,6 +2050,11 @@ function WorkflowGraphBrainPanel({
         {selectedTemplate?.description}
       </div>
 
+      <details className="nexus-graph-brain-diagnostics grid gap-2 border border-white/10 bg-black/20 p-2">
+        <summary className="cursor-pointer font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-400 transition hover:text-neutral-100">
+          Advanced / Diagnostics
+        </summary>
+        <div className="mt-2 grid gap-2">
       <section className="grid gap-2 border border-white/10 bg-black/25 p-2">
         <div className="flex items-center justify-between gap-2">
           <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
@@ -2197,6 +2238,8 @@ function WorkflowGraphBrainPanel({
           ) : null}
         </div>
       ) : null}
+        </div>
+      </details>
 
       {brainError ? (
         <div className="border border-red-300/35 bg-red-500/10 px-3 py-2 text-xs leading-5 text-red-100">
@@ -2204,6 +2247,8 @@ function WorkflowGraphBrainPanel({
         </div>
       ) : null}
 
+        </div>
+        <div className="flex flex-col gap-3 min-h-0 overflow-y-auto pl-1">
       <label className="grid gap-1.5">
         <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
           JSON
@@ -2236,6 +2281,8 @@ function WorkflowGraphBrainPanel({
           ) : null}
         </div>
       ) : null}
+        </div>
+      </div>
     </aside>
   );
 }

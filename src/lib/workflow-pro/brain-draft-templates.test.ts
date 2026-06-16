@@ -65,18 +65,12 @@ describe("Workflow Brain draft templates", () => {
     );
 
     expect(llmNodes).toHaveLength(2);
-    expect(llmNodes.every((node) => node.data.model === "gpt-5.5")).toBe(true);
+    expect(llmNodes.every((node) => node.data.model === "gpt-4o-mini")).toBe(true);
+    // Draft templates no longer hardcode model-specific settings.
+    // Operators adjust model and settings on the canvas after append.
     expect(llmNodes.map((node) => node.data.modelSettings)).toEqual([
-      {
-        reasoningDetail: "high",
-        reasoningEffort: "xhigh",
-        verbosity: "high",
-      },
-      {
-        reasoningDetail: "high",
-        reasoningEffort: "xhigh",
-        verbosity: "high",
-      },
+      { temperature: 0.65 },
+      { temperature: 0.65 },
     ]);
   });
 });

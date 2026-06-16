@@ -1917,7 +1917,7 @@ function WorkflowGraphBrainPanel({
   ]);
 
   return (
-    <aside className="pointer-events-auto absolute right-4 top-16 z-20 grid max-h-[calc(100vh-96px)] w-[min(520px,calc(100vw-32px))] gap-3 overflow-y-auto border border-white/10 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.48)] backdrop-blur-xl [background:var(--nexus-layout-panel-bg,rgba(2,6,23,0.94))]">
+    <aside className="pointer-events-auto absolute right-4 top-16 z-20 grid max-h-[calc(100vh-96px)] w-[calc(100vw-64px)] gap-3 overflow-y-auto border border-white/10 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.48)] backdrop-blur-xl [background:var(--nexus-layout-panel-bg,rgba(2,6,23,0.94))]">
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-100">
@@ -1956,6 +1956,8 @@ function WorkflowGraphBrainPanel({
           <X className="h-3.5 w-3.5" />
         </button>
       </header>
+      <div className="mt-3 grid grid-cols-[1fr_1fr] gap-4 min-h-0 flex-1 overflow-hidden">
+        <div className="flex flex-col gap-3 min-h-0 overflow-y-auto pr-1">
 
       <label className="grid gap-1.5">
         <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
@@ -2212,6 +2214,8 @@ function WorkflowGraphBrainPanel({
         </div>
       ) : null}
 
+        </div>
+        <div className="flex flex-col gap-3 min-h-0 overflow-y-auto pl-1">
       <label className="grid gap-1.5">
         <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-500">
           JSON
@@ -2244,6 +2248,8 @@ function WorkflowGraphBrainPanel({
           ) : null}
         </div>
       ) : null}
+        </div>
+      </div>
     </aside>
   );
 }

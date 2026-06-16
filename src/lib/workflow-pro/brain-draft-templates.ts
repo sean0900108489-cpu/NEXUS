@@ -62,8 +62,8 @@ export const WORKFLOW_BRAIN_DRAFT_TEMPLATES: WorkflowBrainDraftTemplate[] = [
 
 const CREATED_AT = "2026-06-04T00:00:00.000Z";
 const WORKSPACE_ID = "workspace-graph-brain-draft";
-const DEFAULT_LLM_MODEL = "deepseek-v4-pro";
-const DEFAULT_PROVIDER = "deepseek";
+const DEFAULT_LLM_MODEL = "gpt-4o-mini";
+const DEFAULT_PROVIDER = "openai";
 const DEFAULT_IMAGE_MODEL = "img2";
 
 export function serializeWorkflowBrainDraftTemplate({
@@ -467,13 +467,13 @@ function llmNode(
   label: string,
   prompt: string,
   position: WorkflowRuntimePosition,
-  reasoningEffort: NonNullable<ModelLlmNodeData["modelSettings"]>["reasoningEffort"],
+  _reasoningEffort?: string,
 ): WorkflowProContractNode {
-  const modelSettings = {
-    reasoningDetail: "high",
-    reasoningEffort,
-    verbosity: "high",
-  } satisfies NonNullable<ModelLlmNodeData["modelSettings"]>;
+  // Draft templates use the default model, which does not require
+  // per-node reasoning/verbosity/detail settings.  Operators can
+  // adjust model and settings on the canvas after the group is
+  // appended.
+  const modelSettings = {};
 
   return node({
     data: {

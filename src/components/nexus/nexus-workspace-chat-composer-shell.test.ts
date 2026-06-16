@@ -63,6 +63,15 @@ describe("Nexus workspace chat composer shell", () => {
     expect(composerSource).toContain('data-testid="workspace-chat-reasoning-select"');
   });
 
+  it("extends only the workspace stage for desktop-first breathing room", () => {
+    expect(source).toContain("nexus-workspace-extended-scroll-stage");
+    expect(source).toContain("min-h-[120dvh]");
+    expect(source).toContain("lg:min-h-[180dvh]");
+    expect(source).toContain("2xl:min-h-[200dvh]");
+    expect(source).not.toContain('data-testid="nexus-workspace-primary-page"\\n        className="min-h-[200dvh]');
+    expect(source).not.toContain('<body className="min-h-[200dvh]');
+  });
+
   it("places the attachment trigger on the left before the text input", () => {
     expect(composerSource).toContain('data-testid="workspace-attachment-menu-trigger"');
     expect(

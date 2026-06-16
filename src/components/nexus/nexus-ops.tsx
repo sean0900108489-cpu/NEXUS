@@ -3369,7 +3369,7 @@ export function NexusOps() {
           </AnimatePresence>
         </motion.aside>
 
-        <div className="nexus-workspace-stage-stack flex min-h-0 min-w-0 flex-1 flex-col gap-2">
+        <div className="nexus-workspace-stage-stack nexus-workspace-extended-scroll-stage flex min-h-[120dvh] min-w-0 flex-1 flex-col gap-2 lg:min-h-[180dvh] 2xl:min-h-[200dvh]">
           <section
             ref={workspaceRef}
             className="nexus-workspace nexus-scanline relative z-0 isolate min-h-0 min-w-0 flex-1 overflow-hidden border"

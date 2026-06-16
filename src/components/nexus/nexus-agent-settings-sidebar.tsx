@@ -34,7 +34,6 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
-  RadioTower,
   RefreshCcw,
   Search,
   SendHorizontal,
@@ -251,7 +250,6 @@ const rightDockPanels: Array<{
   { id: "artifacts", label: "Artifacts", detail: "Generated artifacts and media", icon: <Archive className="h-4 w-4" /> },
   { id: "generations", label: "Generations", detail: "Generation history", icon: <PackageCheck className="h-4 w-4" /> },
   { id: "workflows", label: "Workflows", detail: "Workflow templates and macros", icon: <Workflow className="h-4 w-4" /> },
-  { id: "trace", label: "Trace", detail: "Runtime trace and diagnostics", icon: <RadioTower className="h-4 w-4" /> },
   { id: "account", label: "Account", detail: "Account settings", icon: <Home className="h-4 w-4" /> },
 ];
 
@@ -1096,30 +1094,31 @@ export function AgentSettingsSidebar({
 
 	            <section
 	              className={cx(
-	                "mb-4 border border-neutral-300/30 bg-neutral-300/[0.045] p-3 shadow-[0_0_28px_rgba(16,185,129,0.09)]",
+	                "nexus-datapad-warehouse mb-4 border border-neutral-300/30 bg-neutral-300/[0.045] p-3 shadow-[0_0_28px_rgba(16,185,129,0.09)]",
 	                activePanel !== "memory" && "hidden",
 	              )}
 	            >
               <div className="mb-3 flex items-center justify-between gap-3">
-                <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
-                    📓 Global Datapads
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-100">
+                    <Database className="h-3.5 w-3.5" />
+                    <span>Global Datapads</span>
                   </div>
-                  <div className="mt-1 text-xs text-neutral-500">
-                    Cross-workspace notebooks for durable operator context
+                  <div className="mt-1 text-xs leading-5 text-neutral-400">
+                    Shared notes that stay available across workspaces.
                   </div>
                 </div>
                 <button
-                  className="border border-neutral-300/40 bg-neutral-300/10 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100 transition hover:bg-neutral-300/20"
+                  className="shrink-0 border border-neutral-300/45 bg-neutral-300/12 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-100 shadow-[0_0_22px_rgba(16,185,129,0.1)] transition hover:bg-neutral-300/20"
                   onClick={onCreateNotebook}
                   type="button"
                 >
-                  ➕ New Datapad
+                  New Datapad
                 </button>
               </div>
 
               {notebooks.length ? (
-                <div className="mt-2 grid grid-cols-2 gap-2">
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
                   {notebooks.map((notebook) => {
                     const active = openNotebookIds.includes(notebook.id);
 
@@ -1127,18 +1126,30 @@ export function AgentSettingsSidebar({
                       <button
                         key={notebook.id}
                         className={cx(
-                          "min-h-20 border p-2 text-left transition",
+                          "min-h-24 border p-3 text-left transition",
                           active
-                            ? "border-neutral-300/60 bg-neutral-300/12 shadow-[0_0_22px_rgba(16,185,129,0.14)]"
+                            ? "border-neutral-300/60 bg-neutral-300/12 shadow-[0_0_24px_rgba(16,185,129,0.16)]"
                             : "border-white/10 bg-black/25 hover:border-neutral-300/35 hover:bg-neutral-300/10",
                         )}
                         onClick={() => onToggleNotebook(notebook.id)}
                         type="button"
                       >
-                        <span className="block line-clamp-2 font-mono text-[10px] uppercase tracking-[0.13em] text-neutral-50">
-                          {notebook.title || "Untitled Datapad"}
+                        <span className="flex items-center justify-between gap-2">
+                          <span className="block min-w-0 line-clamp-2 font-mono text-[10px] uppercase tracking-[0.13em] text-neutral-50">
+                            {notebook.title || "Untitled Datapad"}
+                          </span>
+                          <span
+                            className={cx(
+                              "shrink-0 border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.12em]",
+                              active
+                                ? "border-neutral-300/50 text-neutral-100"
+                                : "border-white/10 text-neutral-600",
+                            )}
+                          >
+                            {active ? "open" : "note"}
+                          </span>
                         </span>
-                        <span className="mt-2 block line-clamp-2 text-[11px] leading-4 text-neutral-500">
+                        <span className="mt-3 block line-clamp-3 text-[11px] leading-5 text-neutral-400">
                           {notebook.content.trim() || "Empty global notebook"}
                         </span>
                       </button>
@@ -1146,9 +1157,8 @@ export function AgentSettingsSidebar({
                   })}
                 </div>
               ) : (
-                <div className="border border-dashed border-neutral-300/20 bg-black/20 px-3 py-4 text-xs leading-5 text-neutral-500">
-                  No global datapads yet. Create one to keep notes available across
-                  every workspace.
+                <div className="border border-dashed border-neutral-300/25 bg-black/25 px-3 py-5 text-xs leading-6 text-neutral-400">
+                  Create a datapad for prompts, decisions, fragments, or anything you want nearby.
                 </div>
               )}
             </section>

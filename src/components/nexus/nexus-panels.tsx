@@ -10,7 +10,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Archive, BrainCircuit, Check, ChevronDown, Command, Database, Download, Home,
   FileUp, GitBranch, Lock, Menu, PanelRight, Pencil,
-  PackageCheck, Plus, RadioTower, Save, ShieldCheck, SlidersHorizontal,
+  PackageCheck, Plus, Save, ShieldCheck, SlidersHorizontal,
   Settings, Unlock, Workflow, X,
 } from "lucide-react";
 
@@ -22,7 +22,7 @@ import type { QueueStatusProjection } from "@/lib/sync/local-sync-queue-adapter"
 
 import { hasToolExecutor } from "@/lib/tool-executors";
 type WorkspaceSessionRole = string;
-type RightDockPanelId = "intel" | "providers" | "models" | "theme" | "memory" | "artifacts" | "generations" | "workflows" | "trace" | "account";
+type RightDockPanelId = "intel" | "providers" | "models" | "theme" | "memory" | "artifacts" | "generations" | "workflows" | "account";
 
 
 const rightDockPanels: Array<{
@@ -78,12 +78,6 @@ const rightDockPanels: Array<{
     label: "Workflows",
     detail: "Macro blueprint vault",
     icon: <Workflow className="h-4 w-4" />,
-  },
-  {
-    id: "trace",
-    label: "Trace",
-    detail: "Sync status and observability events",
-    icon: <RadioTower className="h-4 w-4" />,
   },
   {
     id: "account",
@@ -204,6 +198,11 @@ export function TopBar({
     setRenaming(false);
   }
 
+  const visibleWorkspaceModes: Array<Exclude<WorkspaceViewMode, "workflow-pro">> = [
+    "panels",
+    "graph",
+  ];
+
   return (
     <NexusOpsTopBarFrame>
       <div className="relative">
@@ -235,18 +234,18 @@ export function TopBar({
           {menuOpen && (
             <motion.div
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              className="absolute left-0 top-[calc(100%+8px)] z-[90] w-[min(420px,calc(100vw-24px))] border bg-neutral-950/96 p-2 shadow-[0_22px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+              className="nexus-workspace-menu-panel absolute left-0 top-[calc(100%+8px)] z-[90] w-[min(420px,calc(100vw-24px))] border bg-neutral-950/98 p-2 shadow-[0_24px_90px_rgba(0,0,0,0.62)] backdrop-blur-xl"
               exit={{ opacity: 0, y: -6, scale: 0.98 }}
               initial={{ opacity: 0, y: -6, scale: 0.98 }}
               style={{
                 background:
-                  "var(--nexus-layout-panel-bg, var(--nexus-panel-bg, rgb(16 16 16 / 0.96)))",
+                  "var(--nexus-workspace-menu-bg, rgb(10 10 10 / 0.98))",
                 borderColor:
-                  "var(--nexus-layout-panel-border, color-mix(in srgb, var(--theme-primary, #e5e5e5) 34%, transparent))",
+                  "var(--nexus-workspace-menu-border, color-mix(in srgb, var(--theme-primary, #e5e5e5) 42%, rgb(255 255 255 / 0.12)))",
                 borderRadius:
                   "var(--nexus-top-bar-radius, var(--nexus-panel-radius, var(--surface-radius)))",
                 boxShadow:
-                  "var(--nexus-layout-panel-shadow, 0 22px 80px rgba(0,0,0,0.55), 0 0 36px color-mix(in srgb, var(--theme-primary, #e5e5e5) 14%, transparent))",
+                  "var(--nexus-workspace-menu-shadow, 0 24px 90px rgba(0,0,0,0.62), 0 0 42px color-mix(in srgb, var(--theme-primary, #e5e5e5) 16%, transparent))",
               }}
               transition={{ duration: 0.14 }}
             >
@@ -336,8 +335,8 @@ export function TopBar({
               </div>
 
               <div className="grid gap-2 border-b border-white/10 p-2">
-                <div className="grid grid-cols-3 gap-1">
-                  {(["panels", "graph", "workflow-pro"] as const).map((mode) => (
+                <div className="grid grid-cols-2 gap-1">
+                  {visibleWorkspaceModes.map((mode) => (
                     <button
                       key={mode}
                       className={cx(
@@ -364,7 +363,7 @@ export function TopBar({
                       }}
                       type="button"
                     >
-                      {mode === "workflow-pro" ? "workflow pro" : mode}
+                      {mode}
                     </button>
                   ))}
                 </div>
@@ -962,5 +961,3 @@ export function RightIntel({
     </aside>
   );
 }
-
-

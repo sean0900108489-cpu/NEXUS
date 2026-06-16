@@ -29,7 +29,6 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
-  RadioTower,
   RefreshCcw,
   Search,
   SendHorizontal,
@@ -385,7 +384,6 @@ type RightDockPanelId =
   | "artifacts"
   | "generations"
   | "workflows"
-  | "trace"
   | "account";
 
 type WorkspaceSize = {
@@ -1233,6 +1231,12 @@ export function NexusOps() {
   );
   const runTool = useNexusStore((state) => state.runTool);
   const historicalMessages = useNexusStore((state) => state.historicalMessages);
+
+  useEffect(() => {
+    if (viewMode === "workflow-pro") {
+      setViewMode("graph");
+    }
+  }, [setViewMode, viewMode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -3753,12 +3757,6 @@ const rightDockPanels: Array<{
     icon: <Workflow className="h-4 w-4" />,
   },
   {
-    id: "trace",
-    label: "Trace",
-    detail: "Sync status and observability events",
-    icon: <RadioTower className="h-4 w-4" />,
-  },
-  {
     id: "account",
     label: "Account",
     detail: "Operator identity and logout",
@@ -4470,17 +4468,6 @@ function WorkspaceChatComposerShell({
     isSandboxAgent ||
     hasPendingAttachments ||
     (!draft.trim() && !hasReadyAttachments);
-  const latestMessage = agent?.messages.at(-1);
-  const targetLabel = agent
-    ? `${agent.callsign} / ${capabilityType}`
-    : "No agent selected";
-  const latestMessagePreview = latestMessage?.content.trim()
-    ? latestMessage.content.trim().replace(/\s+/g, " ").slice(0, 88)
-    : latestMessage?.streaming
-      ? "Streaming response..."
-      : agent
-        ? `${agent.callsign} ready for workspace input.`
-        : "Select an agent to start.";
   const reasoningDisabled = !agent || reasoningOptions.length === 0;
 
   const handleComposerAction = (actionId: WorkspaceComposerActionId) => {
@@ -4698,7 +4685,7 @@ function WorkspaceChatComposerShell({
 
   return (
     <section
-      className="nexus-workspace-chat-composer-shell flex min-h-[118px] shrink-0 items-center justify-center border px-3 py-3"
+      className="nexus-workspace-chat-composer-shell flex shrink-0 items-center justify-center border px-3 py-2"
       data-testid="workspace-chat-composer-shell"
       style={{
         ...workspaceBodyMaterialStyle,
@@ -4706,26 +4693,7 @@ function WorkspaceChatComposerShell({
           "var(--nexus-workspace-radius, var(--nexus-panel-radius, var(--surface-radius)))",
       }}
     >
-      <div className="grid w-full max-w-[720px] gap-2">
-        <button
-          className="flex h-8 w-full items-center justify-between gap-3 overflow-hidden border pl-5 pr-4 text-left font-mono text-[9px] tracking-[0.04em] text-neutral-400 transition hover:text-neutral-200 disabled:opacity-50"
-          data-testid="workspace-chat-thread-card"
-          disabled={!agent}
-          style={{
-            background:
-              "var(--nexus-layout-panel-muted-bg, var(--nexus-panel-bg, rgb(255 255 255 / 0.035)))",
-            borderColor:
-              "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.1)))",
-            borderRadius:
-              "var(--nexus-panel-radius, var(--surface-radius))",
-          }}
-          type="button"
-        >
-          <span className="min-w-0 flex-1 truncate">
-            Latest thread - {targetLabel}: {latestMessagePreview}
-          </span>
-        </button>
-
+      <div className="w-full max-w-[720px]">
         <form aria-label="Workspace message composer" onSubmit={submit}>
           <input
             ref={fileInputRef}
@@ -5036,4 +5004,3 @@ function WorkspaceChatComposerShell({
     </section>
   );
 }
-

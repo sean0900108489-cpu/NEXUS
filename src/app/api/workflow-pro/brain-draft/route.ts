@@ -252,18 +252,24 @@ function createCompactRuntimeContext(fallback: WorkflowGraphBrainPlannerResult) 
 
 function createWorkflowPlannerSystemPrompt() {
   return [
-    "You are the NEXUS Workflow Brain, a senior workflow architect and JSON contract compiler.",
-    "Return only one compact JSON object. Do not use markdown fences.",
-    "The JSON must match schema nexus.workflowPro.brainReviewProposal.v1.",
-    "optimizedWorkflow must be a complete nexus.workflow.v1 object, not prose and not a partial patch.",
-    "Use only supported node types and edge contracts found in the fallbackWorkflowJson/capabilityInventory.",
-    "A file node is the compiler boundary for future image, zip, audio, video, or document transforms.",
-    "The canvas can contain multiple workflow groups; this answer must create one new independent appendable workflow group.",
-    "If a requested capability is not available, still design the best valid workflow with current nodes and list the missing capability explicitly.",
-    "Write analysis, node rationale, and questions in Traditional Chinese. Keep technical identifiers in English.",
-    "Keep the response complete and compact: analysis <= 900 Traditional Chinese characters, each node prompt <= 500 characters, each node rationale <= 180 characters, and questions <= 3 items.",
-    "Do not include long reports, tutorials, transcripts, or repeated schema commentary inside the JSON.",
-    "Do not claim screen execution, API success, image generation, or future compiler support that is not present in the provided runtime evidence.",
+    "You are the NEXUS Workflow Brain. Your job is simple: read the user\'s request, understand what tools are available, design the smallest possible workflow, and output valid JSON.",
+    "Return a single JSON object matching schema nexus.workflowPro.brainReviewProposal.v1.",
+    "ALWAYS include an optimizedWorkflow that is a complete nexus.workflow.v1 object — NOT prose, NOT a partial patch.",
+    "Step 1 — Understand the request: What does the user want to accomplish?",
+    "Step 2 — Check available tools: Only use node types from the capabilityInventory. Do not invent node types.",
+    "Step 3 — Design the MVP: Use the FEWEST nodes possible to satisfy the request. Start simple, not complex.",
+    "Step 4 — Fill in details: Each node needs type, id, position (x,y), label, purpose, data. Each edge needs source, target, sourceHandle, targetHandle.",
+    "Step 5 — Output the JSON: optimizedWorkflow must have schema, id, name, intent, metadata, capabilityInventory, nodes, edges, execution, successCriteria.",
+    "Rules:",
+    "- Every model.llm node MUST have data.prompt (the instruction for that LLM).",
+    "- Every model.llm node MUST have data.model set from the available model catalog.",
+    "- Every model.llm node SHOULD have data.modelSettings with reasoningEffort and verbosity.",
+    "- Use output.text as terminal display nodes.",
+    "- Every edge must connect real node ids with sourceHandle 'output' and targetHandle 'input'.",
+    "- If the request needs a capability that does not exist, list it in missingCapabilities and build the closest possible workflow.",
+    "- Keep prompts short and specific. One node = one clear job.",
+    "- Write analysis in Traditional Chinese. Keep technical identifiers in English.",
+    "- Do not use markdown fences around the JSON.",
   ].join(" ");
 }
 
@@ -322,8 +328,7 @@ async function readResponseError(response: Response) {
 }
 
 function extractResponseText(body: unknown): string {
-  if (isRecord(body) && typeof body.output_text === "string") {
-  // chat/completions format (New API, DeepSeek, etc.)
+  // chat/completions format (New API, DeepSeek, etc.) — check FIRST
   if (isRecord(body) && Array.isArray((body as any).choices)) {
     const firstChoice = (body as any).choices[0];
     if (firstChoice?.message?.content) {
@@ -332,39 +337,39 @@ function extractResponseText(body: unknown): string {
   }
 
   // OpenAI responses API format (legacy)
+  if (isRecord(body) && typeof body.output_text === "string") {
     return body.output_text;
   }
 
-  if (!isRecord(body) || !Array.isArray(body.output)) {
-    return "";
+  if (isRecord(body) && Array.isArray(body.output)) {
+    return body.output
+      .flatMap((item) => {
+        if (!isRecord(item) || !Array.isArray(item.content)) {
+          return [];
+        }
+
+        return item.content.map((content) => {
+          if (!isRecord(content)) {
+            return "";
+          }
+
+          if (typeof content.text === "string") {
+            return content.text;
+          }
+
+          if (typeof content.output_text === "string") {
+            return content.output_text;
+          }
+
+          return "";
+        });
+      })
+      .join("\n")
+      .trim();
   }
 
-  return body.output
-    .flatMap((item) => {
-      if (!isRecord(item) || !Array.isArray(item.content)) {
-        return [];
-      }
-
-      return item.content.map((content) => {
-        if (!isRecord(content)) {
-          return "";
-        }
-
-        if (typeof content.text === "string") {
-          return content.text;
-        }
-
-        if (typeof content.output_text === "string") {
-          return content.output_text;
-        }
-
-        return "";
-      });
-    })
-    .join("\n")
-    .trim();
+  return "";
 }
-
 function parseBrainReviewProposal(text: string): WorkflowProBrainReviewProposal {
   if (!text.trim()) {
     throw new Error("Graph Brain LLM returned an empty response.");

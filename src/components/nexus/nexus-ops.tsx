@@ -375,6 +375,7 @@ const workspaceThemeLivePreviewNetworkBaselineWindowId =
   "theme-panel-live-preview-local-scope";
 const WORKSPACE_ATTACHMENT_BINARY_INLINE_MAX_BYTES = 4 * 1024 * 1024;
 const WORKSPACE_ATTACHMENT_CONTEXT_MAX_CHARS = 12_000;
+const WORKSPACE_SIZE_REMEASURE_INTERVAL_MS = 800;
 type RightDockPanelId =
   | "intel"
   | "providers"
@@ -1896,14 +1897,34 @@ export function NexusOps() {
 
     const updateSize = () => {
       const rect = node.getBoundingClientRect();
-      setWorkspaceSize({ width: rect.width, height: rect.height });
+      setWorkspaceSize((current) => {
+        const nextSize = { width: rect.width, height: rect.height };
+
+        if (
+          Math.abs(current.width - nextSize.width) < 0.5 &&
+          Math.abs(current.height - nextSize.height) < 0.5
+        ) {
+          return current;
+        }
+
+        return nextSize;
+      });
     };
 
     updateSize();
     const observer = new ResizeObserver(updateSize);
     observer.observe(node);
+    window.addEventListener("resize", updateSize);
+    const workspaceSizeInterval = window.setInterval(
+      updateSize,
+      WORKSPACE_SIZE_REMEASURE_INTERVAL_MS,
+    );
 
-    return () => observer.disconnect();
+    return () => {
+      window.removeEventListener("resize", updateSize);
+      window.clearInterval(workspaceSizeInterval);
+      observer.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -3396,6 +3417,7 @@ export function NexusOps() {
                       onUpdateSandboxCode={updateSandboxCode}
                       onUpdateSandboxUrl={updateSandboxUrl}
                       onUpdateLayout={updateLayout}
+                      workspaceBounds={workspaceSize}
                       historicalPage={
                         historicalMessages[`${activeWorkspaceId}::${agent.id}`]
                       }

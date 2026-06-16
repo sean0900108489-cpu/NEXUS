@@ -28,6 +28,7 @@ import { cx } from "@/components/nexus/nexus-utils";
 import { DEFAULT_SANDBOX_CODE } from "@/lib/nexus-defaults";
 import type {
   AgentCapabilityType,
+  AgentLayout,
   AgentMediaArtifact,
   AgentMessage,
   AgentModelSettings,
@@ -51,6 +52,22 @@ const Rnd = dynamic(() => import("react-rnd").then((module) => module.Rnd), {
 });
 import type { RndDragCallback, RndResizeCallback } from "react-rnd";
 
+const AGENT_WINDOW_MIN_WIDTH = 390;
+const AGENT_WINDOW_MIN_HEIGHT = 360;
+const AGENT_WINDOW_COMPACT_MIN_WIDTH = 320;
+const AGENT_WINDOW_COMPACT_MIN_HEIGHT = 300;
+const AGENT_WINDOW_BOUNDS_MARGIN = 12;
+const AGENT_WINDOW_BOUNDS_REMEASURE_INTERVAL_MS = 800;
+
+type AgentWindowWorkspaceBounds = {
+  width: number;
+  height: number;
+};
+
+const FALLBACK_AGENT_WINDOW_WORKSPACE_BOUNDS: AgentWindowWorkspaceBounds = {
+  width: 0,
+  height: 0,
+};
 
 // ---------------------------------------------------------------------------
 // 工具函數
@@ -87,6 +104,97 @@ function isMediaCapability(capabilityType: AgentCapabilityType): boolean {
 
 function isSandboxCapability(capabilityType: AgentCapabilityType): boolean {
   return capabilityType === "sandbox";
+}
+
+function getAgentWindowEffectiveMinWidth(bounds: AgentWindowWorkspaceBounds | undefined) {
+  if (!bounds || !Number.isFinite(bounds.width) || bounds.width <= 0) {
+    return AGENT_WINDOW_MIN_WIDTH;
+  }
+
+  const availableWidth = Math.max(1, bounds.width - AGENT_WINDOW_BOUNDS_MARGIN * 2);
+
+  return Math.min(
+    AGENT_WINDOW_MIN_WIDTH,
+    Math.min(
+      availableWidth,
+      Math.max(AGENT_WINDOW_COMPACT_MIN_WIDTH, availableWidth),
+    ),
+  );
+}
+
+function getAgentWindowEffectiveMinHeight(bounds: AgentWindowWorkspaceBounds | undefined) {
+  if (!bounds || !Number.isFinite(bounds.height) || bounds.height <= 0) {
+    return AGENT_WINDOW_MIN_HEIGHT;
+  }
+
+  const availableHeight = Math.max(1, bounds.height - AGENT_WINDOW_BOUNDS_MARGIN * 2);
+
+  return Math.min(
+    AGENT_WINDOW_MIN_HEIGHT,
+    Math.min(
+      availableHeight,
+      Math.max(AGENT_WINDOW_COMPACT_MIN_HEIGHT, availableHeight),
+    ),
+  );
+}
+
+function areAgentWindowBoundsEqual(
+  current: AgentWindowWorkspaceBounds,
+  next: AgentWindowWorkspaceBounds,
+) {
+  return (
+    Math.abs(current.width - next.width) < 0.5 &&
+    Math.abs(current.height - next.height) < 0.5
+  );
+}
+
+export function clampAgentWindowLayoutToBounds(
+  layout: AgentLayout,
+  bounds: AgentWindowWorkspaceBounds | undefined,
+): AgentLayout {
+  if (
+    !bounds ||
+    !Number.isFinite(bounds.width) ||
+    !Number.isFinite(bounds.height) ||
+    bounds.width <= 0 ||
+    bounds.height <= 0
+  ) {
+    return layout;
+  }
+
+  const availableWidth = Math.max(1, bounds.width - AGENT_WINDOW_BOUNDS_MARGIN * 2);
+  const availableHeight = Math.max(1, bounds.height - AGENT_WINDOW_BOUNDS_MARGIN * 2);
+  const effectiveMinWidth = getAgentWindowEffectiveMinWidth(bounds);
+  const effectiveMinHeight = getAgentWindowEffectiveMinHeight(bounds);
+  const layoutRight = Math.max(layout.width, layout.x + layout.width);
+  const layoutBottom = Math.max(layout.height, layout.y + layout.height);
+  const widthScale = layoutRight > availableWidth ? availableWidth / layoutRight : 1;
+  const heightScale = layoutBottom > availableHeight ? availableHeight / layoutBottom : 1;
+  const scale = Math.min(1, widthScale, heightScale);
+  const width = Math.min(
+    Math.max(layout.width * scale, effectiveMinWidth),
+    availableWidth,
+  );
+  const height = Math.min(
+    Math.max(layout.height * scale, effectiveMinHeight),
+    availableHeight,
+  );
+  const maxX = Math.max(
+    AGENT_WINDOW_BOUNDS_MARGIN,
+    bounds.width - width - AGENT_WINDOW_BOUNDS_MARGIN,
+  );
+  const maxY = Math.max(
+    AGENT_WINDOW_BOUNDS_MARGIN,
+    bounds.height - height - AGENT_WINDOW_BOUNDS_MARGIN,
+  );
+
+  return {
+    ...layout,
+    width,
+    height,
+    x: Math.max(AGENT_WINDOW_BOUNDS_MARGIN, Math.min(layout.x * scale, maxX)),
+    y: Math.max(AGENT_WINDOW_BOUNDS_MARGIN, Math.min(layout.y * scale, maxY)),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -333,6 +441,7 @@ export function AgentWindow({
   onStop,
   onUpdateSandboxCode,
   onUpdateSandboxUrl,
+  workspaceBounds = FALLBACK_AGENT_WINDOW_WORKSPACE_BOUNDS,
 }: {
   agent: NexusAgent;
   selected: boolean;
@@ -358,9 +467,13 @@ export function AgentWindow({
   onStop: (agentId: string) => void;
   onUpdateSandboxCode: (agentId: string, sandboxCode: string) => void;
   onUpdateSandboxUrl: (agentId: string, sandboxUrl: string) => void;
+  workspaceBounds: AgentWindowWorkspaceBounds;
 }) {
   const [sandboxEditorCollapsed, setSandboxEditorCollapsed] = useState(false);
   const [sandboxInteractionLocked, setSandboxInteractionLocked] = useState(false);
+  const [measuredWorkspaceBounds, setMeasuredWorkspaceBounds] =
+    useState<AgentWindowWorkspaceBounds>(workspaceBounds);
+  const windowRef = useRef<HTMLElement | null>(null);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const capabilityType = getCapabilityType(agent);
   const isMediaAgent = isMediaCapability(capabilityType);
@@ -384,6 +497,56 @@ export function AgentWindow({
       behavior: "smooth",
     });
   }, [agent.messages.length]);
+
+  useEffect(() => {
+    const getWorkspaceNode = () =>
+      windowRef.current?.closest(".nexus-workspace") ?? null;
+
+    const updateMeasuredWorkspaceBounds = () => {
+      const node = getWorkspaceNode();
+
+      if (!node) {
+        return;
+      }
+
+      const rect = node.getBoundingClientRect();
+      const nextBounds = { width: rect.width, height: rect.height };
+      setMeasuredWorkspaceBounds((current) =>
+        areAgentWindowBoundsEqual(current, nextBounds) ? current : nextBounds,
+      );
+    };
+
+    updateMeasuredWorkspaceBounds();
+    const workspaceNode = getWorkspaceNode();
+    const observer = workspaceNode
+      ? new ResizeObserver(updateMeasuredWorkspaceBounds)
+      : null;
+    if (workspaceNode) {
+      observer?.observe(workspaceNode);
+    }
+    window.addEventListener("resize", updateMeasuredWorkspaceBounds);
+    const boundsInterval = window.setInterval(
+      updateMeasuredWorkspaceBounds,
+      AGENT_WINDOW_BOUNDS_REMEASURE_INTERVAL_MS,
+    );
+
+    return () => {
+      window.removeEventListener("resize", updateMeasuredWorkspaceBounds);
+      window.clearInterval(boundsInterval);
+      observer?.disconnect();
+    };
+  }, []);
+
+  const effectiveWorkspaceBounds =
+    measuredWorkspaceBounds.width > 0 && measuredWorkspaceBounds.height > 0
+      ? measuredWorkspaceBounds
+      : workspaceBounds;
+  const effectiveLayout = useMemo(
+    () => clampAgentWindowLayoutToBounds(agent.layout, effectiveWorkspaceBounds),
+    [agent.layout, effectiveWorkspaceBounds],
+  );
+  const effectiveMinWidth = getAgentWindowEffectiveMinWidth(effectiveWorkspaceBounds);
+  const effectiveMinHeight = getAgentWindowEffectiveMinHeight(effectiveWorkspaceBounds);
 
   const onDragStop: RndDragCallback = useCallback(
     (_event, data) => {
@@ -426,8 +589,8 @@ export function AgentWindow({
       disableDragging={agent.maximized || windowInteractionLocked}
       dragHandleClassName="nexus-drag-handle"
       enableResizing={!agent.maximized && !windowInteractionLocked}
-      minHeight={360}
-      minWidth={390}
+      minHeight={effectiveMinHeight}
+      minWidth={effectiveMinWidth}
       onDragStart={() => {
         if (!windowInteractionLocked) onFocus(agent.id);
       }}
@@ -439,11 +602,12 @@ export function AgentWindow({
         if (!windowInteractionLocked) onFocus(agent.id);
       }}
       onResizeStop={onResizeStop}
-      position={{ x: agent.layout.x, y: agent.layout.y }}
-      size={{ width: agent.layout.width, height: agent.layout.height }}
+      position={{ x: effectiveLayout.x, y: effectiveLayout.y }}
+      size={{ width: effectiveLayout.width, height: effectiveLayout.height }}
       style={{ zIndex: agent.layout.zIndex }}
     >
       <motion.section
+        ref={windowRef}
         animate={{ opacity: 1, scale: 1 }}
         className={cx(
           "nexus-agent-window relative flex h-full min-h-0 flex-col overflow-visible bg-neutral-950/88 shadow-[0_22px_70px_rgba(0,0,0,0.45)]",

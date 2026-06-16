@@ -101,9 +101,12 @@ describe("Nexus agent window chrome production primitive", () => {
 });
 
 function readAgentWindowSource() {
-  const source = readFileSync(new URL("nexus-ops.tsx", import.meta.url), "utf8");
+  const source = readFileSync(
+    new URL("nexus-agent-window.tsx", import.meta.url),
+    "utf8",
+  );
 
-  return source.match(/function AgentWindow\([\s\S]*?\n}\n\nfunction SandboxCanvas/)?.[0] ?? "";
+  return source.match(/export function AgentWindow\([\s\S]*$/)?.[0] ?? "";
 }
 
 function readGlobalsCssSource() {

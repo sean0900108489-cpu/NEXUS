@@ -211,7 +211,7 @@ function MessageBubble({
   const isUser = message.role === "user";
   const isTool = message.role === "tool";
   const runtimeMessage = message as AgentMessageRuntimeMeta;
-  const hasReasoning = Boolean(runtimeMessage.reasoning);
+  const hasReasoning = Boolean(runtimeMessage.reasoning || runtimeMessage.reasoningContent);
 
   return (
     <div
@@ -230,7 +230,7 @@ function MessageBubble({
             Reasoning
           </summary>
           <div className="mt-1 whitespace-pre-wrap border border-white/10 bg-black/30 px-3 py-2 text-xs leading-5 text-neutral-300">
-            {runtimeMessage.reasoning}
+            {runtimeMessage.reasoning || runtimeMessage.reasoningContent}
           </div>
         </details>
       ) : null}

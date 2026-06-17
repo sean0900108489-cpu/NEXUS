@@ -2517,8 +2517,24 @@ export function NexusOps() {
         throw new Error(`Stream failed with ${response.status}.`);
       }
 
+      let reasoningBuffer = "";
+      let reasoningFlushTimer: ReturnType<typeof setTimeout> | null = null;
+
+      const flushReasoning = () => {
+        if (!reasoningBuffer) return;
+        const chunk = reasoningBuffer;
+        reasoningBuffer = "";
+        useNexusStore
+          .getState()
+          .appendReasoningToMessage(agentId, assistantMessage.id, chunk);
+      };
+
       await readStreamEvents(response, (event) => {
         if (event.type === "token") {
+          // Flush any pending reasoning before content tokens
+          flushReasoning();
+          if (reasoningFlushTimer) { clearTimeout(reasoningFlushTimer); reasoningFlushTimer = null; }
+
           const delta = event.delta ?? event.token ?? "";
 
           if (!delta) {
@@ -2543,9 +2559,15 @@ export function NexusOps() {
             return;
           }
 
-          useNexusStore
-            .getState()
-            .appendReasoningToMessage(agentId, assistantMessage.id, delta);
+          reasoningBuffer += delta;
+
+          // Batch reasoning updates every 50ms to avoid mass re-renders
+          if (!reasoningFlushTimer) {
+            reasoningFlushTimer = setTimeout(() => {
+              flushReasoning();
+              reasoningFlushTimer = null;
+            }, 50);
+          }
         }
 
         if (event.type === "meta") {
@@ -2555,6 +2577,10 @@ export function NexusOps() {
           }
         }
       });
+
+      // Flush remaining reasoning
+      if (reasoningFlushTimer) { clearTimeout(reasoningFlushTimer); }
+      flushReasoning();
     } catch (error) {
       const detail = error instanceof Error ? error.message : "Unknown stream fault.";
       const interrupted =

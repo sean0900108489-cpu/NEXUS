@@ -170,3 +170,18 @@
 | Supabase service role | Vercel env `SUPABASE_SERVICE_ROLE_KEY` |
 | Token encryption secret | Vercel env `NEW_API_TOKEN_ENCRYPTION_SECRET` |
 | DeepSeek API key | New API channel (VPS SQLite `channels` table) |
+
+---
+
+## 九、New API 運維指南
+
+詳細的 New API 操作教學請見：**`docs/NEW_API_OPS_GUIDE.md`**
+
+內容包含：
+- Production VPS 和 Local Mac 兩個 instance 的連線資訊
+- 管理員帳號密碼
+- Docker 操作指令
+- Channel 設定方式
+- ModelRatio 價格設定
+- Token Provisioning 微服務
+- NEXUS 如何連接 New API 的資料流

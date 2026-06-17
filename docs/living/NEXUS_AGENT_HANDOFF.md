@@ -1,7 +1,8 @@
-# NEXUS Agent Handoff (V30)
+# NEXUS Agent Handoff
 
 > 給接手這個專案的 agent / 新上下文
-> 最後更新：2026-06-17
+> 最後更新：2026-06-18 AEST
+> 版本：V31 (all fixes merged, latest `e7d41c1`)
 
 ---
 
@@ -11,8 +12,9 @@
 1. `docs/living/NEXUS_CURRENT_STATE.md` ← 最新狀態
 2. `docs/living/NEXUS_TECH_DEBT_LEDGER.md` ← 技術債清單
 3. `docs/living/NEXUS_SMOKE_TESTS.md` ← 煙測試記錄
-4. `docs/V29_HANDOFF.md` ← V29 交接（歷史參考）
-5. `docs/V29_TECH_DEBT_CROSS_REFERENCE.md` ← V29 修復對照
+4. `docs/NEW_API_OPS_GUIDE.md` ← New API 運維
+5. `docs/V29_HANDOFF.md` ← V29 交接（歷史參考）
+6. `docs/V29_TECH_DEBT_CROSS_REFERENCE.md` ← V29 修復對照
 
 ## 關鍵事實速查
 
@@ -25,8 +27,8 @@
 | ModelRatio 價格 | 全部 0（MVP 階段 intentional） |
 | Token 怎麼 provision | `POST /api/model-gateway/provision` |
 | 哪些 route 被 legacy block | fs-scanner, web-surfer, memory-compress, predictive-intel, providers/verify |
-| V30 分支 | `codex/v30` (current), 基於 main `fa0a294` |
-| V30 主要修復 | idempotency lock takeover, stream abort orphan, sync counter terminal, maximize/branch mapping, graph delete confirm |
+| 最新 commit | `e7d41c1` on `main` |
+| 主要修復 (V30-V31) | idempotency lock, stream abort, sync counter, graph delete, ResizeObserver, artifact queue, image gen catalog |
 
 ## Scope Rules
 
@@ -38,10 +40,13 @@
 - 不要新增大功能
 - 不要印 secrets
 
-## 本次迭代優先級
+## Remaining P2 Debt
 
-1. P1: ResizeObserver N+1
-2. P1: Artifact sync durability
-3. P1: Duplicate agent names UX
-4. P1: Composer reasoning mode drift
-5. P1: Image gen catalog mismatch
+- SSE handler in NexusOps root (#18)
+- Zundo undo stack bloat (#19)
+- reasoningContent persist (#20)
+- Macro save no local queue (#28)
+- NexusOps god object (#33)
+- /api/models contract drift (#23)
+- Duplicate agent names UX (#11)
+- Export wording/placeholders (#14-16)

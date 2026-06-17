@@ -47,7 +47,7 @@ export async function POST(request: Request) {
   }
 
   if (payload.useModel !== false) {
-    const blocked = blockLegacyToolRouteInProduction();
+    const blocked = blockLegacyToolRouteInProduction("brain-draft");
 
     if (blocked) {
       return blocked;
@@ -108,15 +108,39 @@ async function createOpenAiWorkflowPlannerResult({
     );
   }
 
-  const userToken = await getUserNewApiToken({ userId: actor.actorUserId });
-
   const rawModel =
     process.env.WORKFLOW_BRAIN_MODEL?.trim() ||
     process.env.REPORT_MODEL?.trim() ||
     fallback.modelSettings.modelId;
+
+  // --- Product gate: plan + catalog ---
+  const { assertModelAllowedForPlan } = await import(
+    "@/lib/backend/models/model-catalog"
+  );
+  const { getUserPlan, isModelAllowedByPlan } = await import(
+    "@/lib/backend/models/plan-config"
+  );
+  const { createUsageLedgerRepository } = await import(
+    "@/lib/backend/models/usage-ledger"
+  );
+
+  const plan = getUserPlan({ request, userId: actor.actorUserId });
   const catalogModel = getCatalogModel(rawModel);
+  const resolvedModelId = catalogModel?.id ?? rawModel;
   const model = catalogModel?.new_api_model ?? rawModel;
+
+  // Validate model is allowed for this plan
+  const validModel = assertModelAllowedForPlan(resolvedModelId, plan);
+  if (!isModelAllowedByPlan(validModel.id, plan)) {
+    throw new Error(
+      `Model ${validModel.id} is not available on your ${plan} plan.`,
+    );
+  }
+
+  const userToken = await getUserNewApiToken({ userId: actor.actorUserId });
+
   const controller = new AbortController();
+  const startTime = Date.now();
   const timeout = setTimeout(() => controller.abort(), getModelTimeoutMs());
   const baseUrl = normalizeNewApiBaseUrl(process.env.NEW_API_BASE_URL);
   const response = await fetch(`${baseUrl}/chat/completions`, {
@@ -188,8 +212,29 @@ async function createOpenAiWorkflowPlannerResult({
     signal: controller.signal,
   }).finally(() => clearTimeout(timeout));
 
+  const elapsedMs = Date.now() - startTime;
+
   if (!response.ok) {
     const detail = await readResponseError(response);
+
+    // Record failure in usage ledger
+    const ledger = createUsageLedgerRepository();
+    ledger.insert({
+      chargedPoints: 0,
+      errorCode: response.status === 429 ? "PROVIDER_RATE_LIMITED" : "PROVIDER_TIMEOUT",
+      inputTokens: 0,
+      modelId: validModel.id,
+      newApiModel: model,
+      operatorId: "brain-draft",
+      outputTokens: 0,
+      providerFamily: validModel.provider_family,
+      requestId: response.headers.get("x-request-id") ?? "brain-draft",
+      sourceType: "brain_draft",
+      status: "failed",
+      totalTokens: 0,
+      userId: actor.actorUserId,
+    }).catch(() => {});
+
     throw new Error(
       detail
         ? `Graph Brain LLM request failed: ${detail}`
@@ -200,6 +245,29 @@ async function createOpenAiWorkflowPlannerResult({
   const body = (await response.json()) as unknown;
   const text = extractResponseText(body);
   const proposal = parseBrainReviewProposal(text);
+
+  // Record success in usage ledger
+  const rawUsage = (body as { usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } }).usage;
+  const inpTokens = rawUsage?.prompt_tokens ?? 0;
+  const outTokens = rawUsage?.completion_tokens ?? 0;
+  const totTokens = rawUsage?.total_tokens ?? inpTokens + outTokens;
+
+  const ledgerRepo = createUsageLedgerRepository();
+  ledgerRepo.insert({
+    chargedPoints: 1,
+    errorCode: null,
+    inputTokens: inpTokens,
+    modelId: validModel.id,
+    newApiModel: model,
+    operatorId: "brain-draft",
+    outputTokens: outTokens,
+    providerFamily: validModel.provider_family,
+    requestId: "brain-draft",
+    sourceType: "brain_draft",
+    status: "succeeded",
+    totalTokens: totTokens,
+    userId: actor.actorUserId,
+  }).catch(() => {});
 
   return createWorkflowGraphBrainPlannerResultFromModelProposal({
     fallback,
@@ -405,7 +473,58 @@ function parseBrainReviewProposal(text: string): WorkflowProBrainReviewProposal 
     throw new Error("Parsed Graph Brain response is not an object.");
   }
 
-  return parsed as WorkflowProBrainReviewProposal;
+  // Repair: ensure schema fields are present
+  const repaired = repairBrainReviewProposal(parsed as Record<string, unknown>);
+
+  return repaired as WorkflowProBrainReviewProposal;
+}
+
+function repairBrainReviewProposal(
+  parsed: Record<string, unknown>,
+): Record<string, unknown> {
+  const repaired = { ...parsed };
+
+  // Fix schema if missing or wrong
+  if (!repaired.schema || repaired.schema !== "nexus.workflowPro.brainReviewProposal.v1") {
+    repaired.schema = "nexus.workflowPro.brainReviewProposal.v1";
+  }
+
+  // Fix workflow schema
+  const wf = repaired.optimizedWorkflow as Record<string, unknown> | null | undefined;
+  if (wf && typeof wf === "object" && !Array.isArray(wf)) {
+    if (!wf.schema || wf.schema !== "nexus.workflow.v1") {
+      wf.schema = "nexus.workflow.v1";
+    }
+    // Ensure outputs have ids
+    const outputs = wf.outputs as Array<Record<string, unknown>> | undefined;
+    if (Array.isArray(outputs)) {
+      for (let i = 0; i < outputs.length; i++) {
+        if (!outputs[i].id) {
+          outputs[i].id = `output-${i + 1}`;
+        }
+      }
+    }
+    // Ensure nodes have ids
+    const nodes = wf.nodes as Array<Record<string, unknown>> | undefined;
+    if (Array.isArray(nodes)) {
+      for (let i = 0; i < nodes.length; i++) {
+        if (!nodes[i].id) {
+          nodes[i].id = `node-${i + 1}`;
+        }
+      }
+    }
+    // Ensure edges have source/target
+    const edges = wf.edges as Array<Record<string, unknown>> | undefined;
+    if (Array.isArray(edges)) {
+      for (let i = 0; i < edges.length; i++) {
+        if (!edges[i].id) {
+          edges[i].id = `edge-${i + 1}`;
+        }
+      }
+    }
+  }
+
+  return repaired;
 }
 
 function extractJsonObject(text: string) {

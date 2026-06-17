@@ -2517,35 +2517,68 @@ export function NexusOps() {
         throw new Error(`Stream failed with ${response.status}.`);
       }
 
+      let reasoningBuffer = "";
+      let reasoningFlushTimer: ReturnType<typeof setTimeout> | null = null;
+      let contentBuffer = "";
+      let contentFlushTimer: ReturnType<typeof setTimeout> | null = null;
+
+      const flushReasoning = () => {
+        if (!reasoningBuffer) return;
+        const chunk = reasoningBuffer;
+        reasoningBuffer = "";
+        useNexusStore
+          .getState()
+          .appendReasoningToMessage(agentId, assistantMessage.id, chunk);
+      };
+
+      const flushContent = () => {
+        if (!contentBuffer) return;
+        const chunk = contentBuffer;
+        contentBuffer = "";
+        if (!firstTokenReceived) {
+          firstTokenReceived = true;
+          useNexusStore.getState().setAgentStatus(agentId, "streaming");
+        }
+        received += chunk;
+        useNexusStore
+          .getState()
+          .appendToMessage(agentId, assistantMessage.id, chunk);
+      };
+
       await readStreamEvents(response, (event) => {
         if (event.type === "token") {
+          flushReasoning();
+          if (reasoningFlushTimer) { clearTimeout(reasoningFlushTimer); reasoningFlushTimer = null; }
+
           const delta = event.delta ?? event.token ?? "";
+          if (!delta) return;
 
-          if (!delta) {
-            return;
+          contentBuffer += delta;
+
+          // Batch content tokens every 30ms
+          if (!contentFlushTimer) {
+            contentFlushTimer = setTimeout(() => {
+              flushContent();
+              contentFlushTimer = null;
+            }, 30);
           }
-
-          if (!firstTokenReceived) {
-            firstTokenReceived = true;
-            useNexusStore.getState().setAgentStatus(agentId, "streaming");
-          }
-
-          received += delta;
-          useNexusStore
-            .getState()
-            .appendToMessage(agentId, assistantMessage.id, delta);
         }
 
         if (event.type === "reasoning") {
+          flushContent();
+          if (contentFlushTimer) { clearTimeout(contentFlushTimer); contentFlushTimer = null; }
+
           const delta = event.delta ?? "";
+          if (!delta) return;
 
-          if (!delta) {
-            return;
+          reasoningBuffer += delta;
+
+          if (!reasoningFlushTimer) {
+            reasoningFlushTimer = setTimeout(() => {
+              flushReasoning();
+              reasoningFlushTimer = null;
+            }, 50);
           }
-
-          useNexusStore
-            .getState()
-            .appendReasoningToMessage(agentId, assistantMessage.id, delta);
         }
 
         if (event.type === "meta") {
@@ -2555,6 +2588,12 @@ export function NexusOps() {
           }
         }
       });
+
+      // Flush remaining
+      if (reasoningFlushTimer) { clearTimeout(reasoningFlushTimer); }
+      if (contentFlushTimer) { clearTimeout(contentFlushTimer); }
+      flushReasoning();
+      flushContent();
     } catch (error) {
       const detail = error instanceof Error ? error.message : "Unknown stream fault.";
       const interrupted =

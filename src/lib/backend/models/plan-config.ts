@@ -16,6 +16,7 @@ export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
     allowedModelIds: [
       "gpt-4o-mini",
       "deepseek-chat",
+      "deepseek-v4-flash",
       "gpt-4o",
       "gemini-2.5-flash",
       "img2",
@@ -26,6 +27,8 @@ export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
     allowedModelIds: [
       "gpt-4o-mini",
       "deepseek-chat",
+      "deepseek-v4-flash",
+      "deepseek-v4-pro",
       "gpt-4o",
       "gemini-2.5-flash",
       "gemini-2.5-pro",
@@ -38,6 +41,8 @@ export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
     allowedModelIds: [
       "gpt-4o-mini",
       "deepseek-chat",
+      "deepseek-v4-flash",
+      "deepseek-v4-pro",
       "gpt-4o",
       "gemini-2.5-flash",
       "gemini-2.5-pro",
@@ -51,6 +56,8 @@ export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
 const MODEL_POINT_MULTIPLIERS: Record<string, number> = {
   "claude-sonnet-4-20250514": 8,
   "deepseek-chat": 1,
+  "deepseek-v4-flash": 1,
+  "deepseek-v4-pro": 3,
   "gemini-2.5-flash": 1,
   "gemini-2.5-pro": 6,
   "gpt-4o": 5,

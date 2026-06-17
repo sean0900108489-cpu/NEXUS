@@ -308,6 +308,62 @@ function getFallbackAllowedModelId(modelCatalog: PublicModelCatalogEntry[]) {
   );
 }
 
+function GatewayProvisionButton({
+  label,
+  onProvisioned,
+}: {
+  label: string;
+  onProvisioned: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const provision = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const resp = await fetch("/api/model-gateway/provision", {
+        method: "POST",
+      });
+      const body = (await resp.json()) as {
+        status?: string;
+        code?: string;
+        message?: string;
+      };
+      if (resp.ok && body.status === "connected") {
+        onProvisioned();
+      } else {
+        setError(body.message ?? "Gateway provision failed.");
+      }
+    } catch {
+      setError("Network error. Is the gateway reachable?");
+    } finally {
+      setLoading(false);
+    }
+  }, [onProvisioned]);
+
+  return (
+    <div className="grid gap-2">
+      <button
+        className={cx(
+          "w-full border px-3 py-2 font-mono text-[9px] uppercase tracking-[0.16em] transition",
+          loading
+            ? "border-neutral-300/10 bg-neutral-300/5 text-neutral-600"
+            : "border-neutral-300/25 bg-neutral-300/10 text-neutral-100 hover:bg-neutral-300/20",
+        )}
+        disabled={loading}
+        onClick={() => void provision()}
+        type="button"
+      >
+        {loading ? "Working..." : label}
+      </button>
+      {error ? (
+        <p className="text-xs leading-5 text-red-400">{error}</p>
+      ) : null}
+    </div>
+  );
+}
+
 function uniqueModelIds(models: Array<string | undefined>) {
   return Array.from(
     new Set(
@@ -950,9 +1006,26 @@ export function AgentSettingsSidebar({
                     Models: {modelCatalog.length}
                   </span>
                 </div>
-                <p className="text-xs leading-5 text-neutral-500">
-                  Model access and provider credentials are enforced by the backend.
-                </p>
+                {modelCatalog.length === 0 ? (
+                  <GatewayProvisionButton
+                    label="Initialize Model Gateway"
+                    onProvisioned={() => {
+                      window.location.reload();
+                    }}
+                  />
+                ) : (
+                  <>
+                    <p className="text-xs leading-5 text-neutral-500">
+                      Gateway connected. {modelCatalog.length} models available.
+                    </p>
+                    <GatewayProvisionButton
+                      label="Repair Gateway"
+                      onProvisioned={() => {
+                        window.location.reload();
+                      }}
+                    />
+                  </>
+                )}
               </div>
             </section>
 

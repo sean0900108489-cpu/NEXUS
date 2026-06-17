@@ -1,58 +1,79 @@
 # NEXUS Current State
 
-> 最後更新：2026-06-18
-> 版本：V31 (branch `codex/v30`)
+Last updated: 2026-06-17 12:11 UTC / 22:11 Australia/Sydney
+Updated by: ChatGPT Atlas handoff session
 
----
+## Product stance
 
-## Production
+NEXUS is Sean's AI Ops / multi-agent workflow product. It is not a generic chat app and it is not BYOK.
 
-| 項目 | 值 |
-|---|---|
-| URL | `https://nexus-swart-ten.vercel.app` |
-| GitHub | `sean0900108489-cpu/NEXUS` |
-| Branch | `main` (production), `codex/v30` (dev, PR #6 open) |
-| Deploy | Vercel (auto from main) |
-| Latest deploy commit | `fa0a294` |
-| Deploy status | ✅ READY (6/6 post-deploy smoke PASS) |
+The MVP productization path remains:
 
-## Backend
+Supabase Auth -> Plan Gate -> Server Model Catalog -> Quota Gate -> user_new_api_tokens -> New API -> model_usage_ledger -> durable output.
 
-| 服務 | 狀態 |
-|---|---|
-| `/api/chat` | ✅ Live |
-| `/api/v1/agents/[agentId]/stream` SSE | ✅ Live |
-| `/api/workflow-pro/brain-draft` Graph Brain | ✅ Live |
-| `/api/model-gateway/provision` | ✅ Live |
-| `model_usage_ledger` | ✅ Recording |
-| `agent_tasks` | ✅ Completed tasks visible |
-| `messages` | ✅ Assistant output correct |
+Provider keys must stay inside New API channels. End users must not paste New API tokens into the NEXUS UI. The frontend should show connected gateway, plan, available models, and usage only.
 
-## V31 P1 Fixes (on codex/v30, not yet deployed)
+## Production and deploy status
 
-| # | 修復 | 檔案 |
-|---|---|---|
-| P1-1 | ResizeObserver N+1 去重 → single root observer | `nexus-agent-window.tsx` |
-| P1-2 | Artifact + historicalArtifact → offline queue | `state-sync.ts` |
-| P1-3 | Composer reasoning mode source-of-truth documented | N/A |
-| P1-4 | Image gen catalog → img2/gpt-image-2 only | `image-generation-settings.ts`, `plan-config.ts` |
+Production alias: https://nexus-swart-ten.vercel.app
 
-## Image Gen
+Latest verified code commit before this docs update:
 
-| 項目 | 值 |
-|---|---|
-| Composer models | img2, gpt-image-2 (was img2, gpt-image-1, DALL-E 3, Nano Banana) |
-| Plan gate | img2 in Free+; gpt-image-2 in Basic/Pro/Team |
-| Default | img2 |
+- `fa0a294e194f8e371e6ca4649269ae9dcffceddc`
+- Commit message: `fix: P0 reliability — idempotency lock takeover + stream abort orphan tasks`
+- GitHub commit timestamp observed: 2026-06-17 21:49:37 Australia/Sydney / 2026-06-17 11:49:37 UTC
+- Vercel commit status check observed as `success`
+- Production root served the NEXUS Identity Gate page during verification
 
-## Known Issues
+Note: this docs commit may itself trigger a later Vercel deployment, but it does not touch gateway/runtime code.
 
-See `NEXUS_TECH_DEBT_LEDGER.md` for full list.
+## P0 route code presence
 
-Active P2:
-- SSE handler in NexusOps root
-- Zundo undo stack bloat
-- reasoningContent persist
-- NexusOps god object
-- Duplicate agent names (UX)
-- Export wording/placeholders/names
+The following routes were verified on `main`:
+
+- `/api/chat` -> `src/app/api/chat/route.ts`
+- `/api/v1/agents/[agentId]/stream` -> `src/app/api/v1/agents/[agentId]/stream/route.ts`
+- `/api/workflow-pro/brain-draft` -> `src/app/api/workflow-pro/brain-draft/route.ts`
+
+Important route facts from code review:
+
+- `/api/chat` delegates to `executeAiGatewayChatRequest`, resolves Supabase actor, gates plan/catalog/quota, resolves `user_new_api_tokens`, calls New API, and writes `model_usage_ledger`.
+- `/api/v1/agents/[agentId]/stream` delegates to `createAgentStreamResponse` with `eventShape: "v1"`. This is the current agent streaming route; do not treat legacy `/api/agent-stream` as the future route.
+- `/api/workflow-pro/brain-draft` requires authenticated actor when `useModel !== false`, resolves catalog/plan/token, calls New API, repairs planner output through Graph Brain logic, and writes `brain_draft` ledger success/failure rows.
+
+## Post-commit evidence after fa0a294
+
+Using `fa0a294` timestamp as the deployment boundary (`2026-06-17 11:49:37 UTC`), Supabase production evidence showed:
+
+- `model_usage_ledger`: one post-commit `agent_stream` success at `2026-06-17 11:59:50 UTC`, `status = succeeded`, `error_code = null`, model `gpt-4o-mini`, total tokens `335`, charged points `1`.
+- `agent_tasks`: one post-commit `chat` task completed at `2026-06-17 11:59:49 UTC`, `error_code = null`, with an output message id.
+- `messages`: one post-commit assistant message persisted at `2026-06-17 11:59:48 UTC`, token count `94`.
+
+This confirms the deployed production path has at least one post-commit successful agent stream + durable task/message persistence.
+
+## Latest known P0 ledger health
+
+Recent ledger rows also showed successful entries for:
+
+- `operator_chat` using `deepseek-chat`, latest observed success `2026-06-17 11:42:12 UTC`
+- `brain_draft` using `deepseek-chat`, latest observed success `2026-06-17 10:25:22 UTC`
+- multiple `agent_stream` rows, latest observed success `2026-06-17 11:59:50 UTC`
+
+Important limitation: `operator_chat` and `brain_draft` latest observed successes were before the `fa0a294` timestamp, so they should be treated as latest known passes, not as fresh post-deploy replays.
+
+## Current decision
+
+Do not keep changing the gateway unless a fresh authenticated replay proves a blocker. The next useful work should be either:
+
+1. Run an authenticated production replay for `/api/chat` and `/api/workflow-pro/brain-draft` from a logged-in NEXUS session, then update this doc; or
+2. If those pass, move to P1 product reliability / UX items.
+
+## Keep out of scope for MVP unless it becomes a real P0 leak/bypass/data-loss issue
+
+- Domain / HTTPS / Cloudflare Tunnel
+- IP allowlist / port hardening
+- full RLS hardening rewrite
+- audit log SECURITY DEFINER work
+- full NexusOps rewrite
+- Nova / CortexBrain runtime migration
+- schema-live / blackbox CI gates

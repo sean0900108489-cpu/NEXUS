@@ -3586,7 +3586,7 @@ export const useNexusStore = create<NexusStore>()(
           workspaces: withActiveWorkspace(state, (workspace) =>
             withAgent(workspace, agentId, (agent) => ({
               ...agent,
-              messages: [...agent.messages, message],
+              messages: [...agent.messages, message].slice(-ACTIVE_WINDOW_DEFAULT_LIMIT),
             })),
           ),
         }));
@@ -3624,7 +3624,8 @@ export const useNexusStore = create<NexusStore>()(
                 message.id === messageId
                   ? {
                       ...message,
-                      reasoningContent: `${message.reasoningContent ?? ""}${token}`,
+                      reasoningContent:
+                        ((message.reasoningContent ?? "") + token).slice(-8192),
                     }
                   : message,
               ),

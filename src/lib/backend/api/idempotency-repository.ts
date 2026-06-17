@@ -271,7 +271,11 @@ function resolveExistingRecord(
     return { type: "pending" };
   }
 
-  return { type: "pending" };
+  // Pending lock expired: takeover the record (reuse existing record id)
+  return {
+    recordId: record.id,
+    type: "miss",
+  };
 }
 
 function createPendingRecord(input: IdempotencyLookupInput): Api_Idempotency_Keys {

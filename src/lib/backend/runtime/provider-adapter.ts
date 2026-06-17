@@ -105,7 +105,7 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
         fallbackUsed: false,
         model,
         provider,
-        stream: decodeOpenAIStream(response),
+        stream: decodeOpenAIStream(response, input.signal),
       };
     } catch (error) {
       if (!fallbackEnabled) {
@@ -249,7 +249,10 @@ async function* createMockTokenStream(
   }
 }
 
-async function* decodeOpenAIStream(response: Response): AsyncIterable<ProviderStreamDelta> {
+async function* decodeOpenAIStream(
+  response: Response,
+  signal?: AbortSignal,
+): AsyncIterable<ProviderStreamDelta> {
   if (!response.body) {
     throw new ApiError("PROVIDER_TIMEOUT", "Provider returned an empty stream.", 504);
   }
@@ -258,53 +261,62 @@ async function* decodeOpenAIStream(response: Response): AsyncIterable<ProviderSt
   const decoder = new TextDecoder();
   let buffer = "";
 
-  for (;;) {
-    const { value, done } = await reader.read();
+  try {
+    for (;;) {
+      if (signal?.aborted) {
+        reader.cancel("aborted").catch(() => {});
+        return;
+      }
 
-    if (done) {
-      break;
+      const { value, done } = await reader.read();
+
+      if (done) {
+        break;
+      }
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+
+        if (!trimmed.startsWith("data:")) {
+          continue;
+        }
+
+        const raw = trimmed.slice(5).trim();
+
+        if (!raw || raw === "[DONE]") {
+          continue;
+        }
+
+        const chunk = JSON.parse(raw) as {
+          choices?: { delta?: { content?: string; reasoning_content?: string } }[];
+          delta?: string;
+          type?: string;
+        };
+        const eventType = chunk.type;
+        const reasoning =
+          chunk.choices?.[0]?.delta?.reasoning_content ||
+          (eventType === "response.reasoning_summary_text.delta" ||
+          eventType === "response.reasoning_text.delta"
+            ? chunk.delta
+            : undefined);
+        const token =
+          chunk.choices?.[0]?.delta?.content ||
+          (eventType === "response.output_text.delta" ? chunk.delta : undefined);
+
+        if (reasoning) {
+          yield { type: "reasoning", delta: reasoning };
+        }
+        if (token) {
+          yield { type: "content", delta: token };
+        }
+      }
     }
-
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-
-      if (!trimmed.startsWith("data:")) {
-        continue;
-      }
-
-      const raw = trimmed.slice(5).trim();
-
-      if (!raw || raw === "[DONE]") {
-        continue;
-      }
-
-      const chunk = JSON.parse(raw) as {
-        choices?: { delta?: { content?: string; reasoning_content?: string } }[];
-        delta?: string;
-        type?: string;
-      };
-      const eventType = chunk.type;
-      const reasoning =
-        chunk.choices?.[0]?.delta?.reasoning_content ||
-        (eventType === "response.reasoning_summary_text.delta" ||
-        eventType === "response.reasoning_text.delta"
-          ? chunk.delta
-          : undefined);
-      const token =
-        chunk.choices?.[0]?.delta?.content ||
-        (eventType === "response.output_text.delta" ? chunk.delta : undefined);
-
-      if (reasoning) {
-        yield { type: "reasoning", delta: reasoning };
-      }
-      if (token) {
-        yield { type: "content", delta: token };
-      }
-    }
+  } finally {
+    reader.releaseLock();
   }
 }
 

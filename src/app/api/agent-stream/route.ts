@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 export async function POST(request: Request) {
-  const blocked = blockLegacyToolRouteInProduction();
+  const blocked = blockLegacyToolRouteInProduction("agent-stream");
 
   if (blocked) {
     return blocked;

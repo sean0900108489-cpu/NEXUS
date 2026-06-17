@@ -47,7 +47,7 @@ export async function POST(request: Request) {
   }
 
   if (payload.useModel !== false) {
-    const blocked = blockLegacyToolRouteInProduction();
+    const blocked = blockLegacyToolRouteInProduction("brain-draft");
 
     if (blocked) {
       return blocked;

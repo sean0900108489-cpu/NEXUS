@@ -108,15 +108,39 @@ async function createOpenAiWorkflowPlannerResult({
     );
   }
 
-  const userToken = await getUserNewApiToken({ userId: actor.actorUserId });
-
   const rawModel =
     process.env.WORKFLOW_BRAIN_MODEL?.trim() ||
     process.env.REPORT_MODEL?.trim() ||
     fallback.modelSettings.modelId;
+
+  // --- Product gate: plan + catalog ---
+  const { assertModelAllowedForPlan } = await import(
+    "@/lib/backend/models/model-catalog"
+  );
+  const { getUserPlan, isModelAllowedByPlan } = await import(
+    "@/lib/backend/models/plan-config"
+  );
+  const { createUsageLedgerRepository } = await import(
+    "@/lib/backend/models/usage-ledger"
+  );
+
+  const plan = getUserPlan({ request, userId: actor.actorUserId });
   const catalogModel = getCatalogModel(rawModel);
+  const resolvedModelId = catalogModel?.id ?? rawModel;
   const model = catalogModel?.new_api_model ?? rawModel;
+
+  // Validate model is allowed for this plan
+  const validModel = assertModelAllowedForPlan(resolvedModelId, plan);
+  if (!isModelAllowedByPlan(validModel.id, plan)) {
+    throw new Error(
+      `Model ${validModel.id} is not available on your ${plan} plan.`,
+    );
+  }
+
+  const userToken = await getUserNewApiToken({ userId: actor.actorUserId });
+
   const controller = new AbortController();
+  const startTime = Date.now();
   const timeout = setTimeout(() => controller.abort(), getModelTimeoutMs());
   const baseUrl = normalizeNewApiBaseUrl(process.env.NEW_API_BASE_URL);
   const response = await fetch(`${baseUrl}/chat/completions`, {
@@ -188,8 +212,29 @@ async function createOpenAiWorkflowPlannerResult({
     signal: controller.signal,
   }).finally(() => clearTimeout(timeout));
 
+  const elapsedMs = Date.now() - startTime;
+
   if (!response.ok) {
     const detail = await readResponseError(response);
+
+    // Record failure in usage ledger
+    const ledger = createUsageLedgerRepository();
+    ledger.insert({
+      chargedPoints: 0,
+      errorCode: response.status === 429 ? "PROVIDER_RATE_LIMITED" : "PROVIDER_TIMEOUT",
+      inputTokens: 0,
+      modelId: validModel.id,
+      newApiModel: model,
+      operatorId: "brain-draft",
+      outputTokens: 0,
+      providerFamily: validModel.provider_family,
+      requestId: response.headers.get("x-request-id") ?? "brain-draft",
+      sourceType: "brain_draft",
+      status: "failed",
+      totalTokens: 0,
+      userId: actor.actorUserId,
+    }).catch(() => {});
+
     throw new Error(
       detail
         ? `Graph Brain LLM request failed: ${detail}`
@@ -200,6 +245,29 @@ async function createOpenAiWorkflowPlannerResult({
   const body = (await response.json()) as unknown;
   const text = extractResponseText(body);
   const proposal = parseBrainReviewProposal(text);
+
+  // Record success in usage ledger
+  const rawUsage = (body as { usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } }).usage;
+  const inpTokens = rawUsage?.prompt_tokens ?? 0;
+  const outTokens = rawUsage?.completion_tokens ?? 0;
+  const totTokens = rawUsage?.total_tokens ?? inpTokens + outTokens;
+
+  const ledgerRepo = createUsageLedgerRepository();
+  ledgerRepo.insert({
+    chargedPoints: 1,
+    errorCode: null,
+    inputTokens: inpTokens,
+    modelId: validModel.id,
+    newApiModel: model,
+    operatorId: "brain-draft",
+    outputTokens: outTokens,
+    providerFamily: validModel.provider_family,
+    requestId: "brain-draft",
+    sourceType: "brain_draft",
+    status: "succeeded",
+    totalTokens: totTokens,
+    userId: actor.actorUserId,
+  }).catch(() => {});
 
   return createWorkflowGraphBrainPlannerResultFromModelProposal({
     fallback,

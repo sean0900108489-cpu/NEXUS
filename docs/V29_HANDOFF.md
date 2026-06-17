@@ -121,3 +121,52 @@
 3. P1 效能: ResizeObserver 去重 + undo stack 減肥
 4. P1 耐久性: artifact sync no-op
 5. P2 架構: NexusOps 拆分
+
+---
+
+## 八、New API 報告與 Obsidian 文件路徑
+
+### GitHub (docs/)
+| 文件 | 路徑 |
+|---|---|
+| 交接文件 | `docs/V29_HANDOFF.md` |
+| 技術債交叉對照 | `docs/V29_TECH_DEBT_CROSS_REFERENCE.md` |
+| Frontend Workbench 報告 | `docs/tech-debt-reports/01 - Frontend Workbench 子代理報告.md` |
+| Store Runtime 報告 | `docs/tech-debt-reports/02 - Store Runtime 子代理報告.md` |
+| Backend API 報告 | `docs/tech-debt-reports/03 - Backend API 子代理報告.md` |
+| Database RLS Security 報告 | `docs/tech-debt-reports/04 - Database RLS Security 子代理報告.md` |
+| Sync Durability 報告 | `docs/tech-debt-reports/05 - Sync Durability Offline 子代理報告.md` |
+| CI Tests Quality Gate 報告 | `docs/tech-debt-reports/06 - CI Tests Quality Gate Docs Drift 子代理報告.md` |
+
+### Obsidian Vault
+| 文件 | 路徑 |
+|---|---|
+| NEXUS New API VPS 部署狀況 | `Codex/FreeChat/NEXUS New API VPS 部署狀況.md` |
+| 技術債子代理報告 (01-06) | `Nexus技術債子代理報告/` |
+| FreeChat 專案資料夾 | `Codex/FreeChat/` |
+
+### VPS New API 相關
+| 資源 | 位置 |
+|---|---|
+| Docker Compose | `/opt/new-api/docker-compose.yml` |
+| SQLite DB | `/opt/new-api/data/one-api.db` |
+| Admin key file | `/opt/new-api/.admin_key` (chmod 600) |
+| Provision Python server | `/opt/new-api/token-provision-server.py` |
+| Systemd service | `new-api-token-provision.service` |
+| Caddy config | `/etc/caddy/Caddyfile` |
+| Logs | `/opt/new-api/logs/` |
+
+### MCP Servers 參考
+| 文件 | 路徑 |
+|---|---|
+| MCP Servers 總覽 | `/Users/sean/Documents/skill庫/new-api/MCP_SERVERS.md` |
+| New API Agent 指南 | `/Users/sean/Documents/skill庫/new-api/AGENTS.md` |
+| NEXUS Handoff | `/Users/sean/Documents/skill庫/HANDOFF_NEXUS.md` |
+
+### 關鍵帳號與認證（不印出明文）
+| 用途 | 位置 |
+|---|---|
+| VPS admin key | `/opt/new-api/.admin_key` (VPS), Vercel env `NEW_API_ADMIN_TOKEN` |
+| Supabase service role | Vercel env `SUPABASE_SERVICE_ROLE_KEY` |
+| Token encryption secret | Vercel env `NEW_API_TOKEN_ENCRYPTION_SECRET` |
+| DeepSeek API key | New API channel (VPS SQLite `channels` table) |

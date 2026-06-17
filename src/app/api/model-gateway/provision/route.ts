@@ -135,7 +135,7 @@ export async function POST(request: Request) {
             encrypted_new_api_token: encrypted,
             new_api_token_name: `nexus-user-${username}`,
             new_api_group: "default",
-            plan,
+            plan: plan.toLowerCase(),
             enabled: true,
           },
           { onConflict: "user_id" },

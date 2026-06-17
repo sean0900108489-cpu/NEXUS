@@ -50,16 +50,8 @@ export const WORKSPACE_COMPOSER_IMAGE_MODEL_OPTIONS = [
     value: "img2",
   },
   {
-    label: "gpt-image-1",
-    value: "gpt-image-1",
-  },
-  {
-    label: "DALL-E 3",
-    value: "dall-e-3",
-  },
-  {
-    label: "Nano Banana",
-    value: "nano-banana",
+    label: "gpt-image-2",
+    value: "gpt-image-2",
   },
 ] as const satisfies ReadonlyArray<{
   label: string;

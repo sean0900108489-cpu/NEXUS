@@ -57,7 +57,6 @@ const AGENT_WINDOW_MIN_HEIGHT = 360;
 const AGENT_WINDOW_COMPACT_MIN_WIDTH = 320;
 const AGENT_WINDOW_COMPACT_MIN_HEIGHT = 300;
 const AGENT_WINDOW_BOUNDS_MARGIN = 12;
-const AGENT_WINDOW_BOUNDS_REMEASURE_INTERVAL_MS = 800;
 
 type AgentWindowWorkspaceBounds = {
   width: number;
@@ -135,16 +134,6 @@ function getAgentWindowEffectiveMinHeight(bounds: AgentWindowWorkspaceBounds | u
       availableHeight,
       Math.max(AGENT_WINDOW_COMPACT_MIN_HEIGHT, availableHeight),
     ),
-  );
-}
-
-function areAgentWindowBoundsEqual(
-  current: AgentWindowWorkspaceBounds,
-  next: AgentWindowWorkspaceBounds,
-) {
-  return (
-    Math.abs(current.width - next.width) < 0.5 &&
-    Math.abs(current.height - next.height) < 0.5
   );
 }
 
@@ -471,8 +460,6 @@ export function AgentWindow({
 }) {
   const [sandboxEditorCollapsed, setSandboxEditorCollapsed] = useState(false);
   const [sandboxInteractionLocked, setSandboxInteractionLocked] = useState(false);
-  const [measuredWorkspaceBounds, setMeasuredWorkspaceBounds] =
-    useState<AgentWindowWorkspaceBounds>(workspaceBounds);
   const windowRef = useRef<HTMLElement | null>(null);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const capabilityType = getCapabilityType(agent);
@@ -498,49 +485,13 @@ export function AgentWindow({
     });
   }, [agent.messages.length]);
 
-  useEffect(() => {
-    const getWorkspaceNode = () =>
-      windowRef.current?.closest(".nexus-workspace") ?? null;
-
-    const updateMeasuredWorkspaceBounds = () => {
-      const node = getWorkspaceNode();
-
-      if (!node) {
-        return;
-      }
-
-      const rect = node.getBoundingClientRect();
-      const nextBounds = { width: rect.width, height: rect.height };
-      setMeasuredWorkspaceBounds((current) =>
-        areAgentWindowBoundsEqual(current, nextBounds) ? current : nextBounds,
-      );
-    };
-
-    updateMeasuredWorkspaceBounds();
-    const workspaceNode = getWorkspaceNode();
-    const observer = workspaceNode
-      ? new ResizeObserver(updateMeasuredWorkspaceBounds)
-      : null;
-    if (workspaceNode) {
-      observer?.observe(workspaceNode);
-    }
-    window.addEventListener("resize", updateMeasuredWorkspaceBounds);
-    const boundsInterval = window.setInterval(
-      updateMeasuredWorkspaceBounds,
-      AGENT_WINDOW_BOUNDS_REMEASURE_INTERVAL_MS,
-    );
-
-    return () => {
-      window.removeEventListener("resize", updateMeasuredWorkspaceBounds);
-      window.clearInterval(boundsInterval);
-      observer?.disconnect();
-    };
-  }, []);
-
+  // Workspace bounds are provided by the parent NexusOps via workspaceBounds prop.
+  // NexusOps owns a single ResizeObserver + 800ms interval, avoiding N+1 polling
+  // where every AgentWindow independently measured the same .nexus-workspace node.
   const effectiveWorkspaceBounds =
-    measuredWorkspaceBounds.width > 0 && measuredWorkspaceBounds.height > 0
-      ? measuredWorkspaceBounds
-      : workspaceBounds;
+    workspaceBounds.width > 0 && workspaceBounds.height > 0
+      ? workspaceBounds
+      : FALLBACK_AGENT_WINDOW_WORKSPACE_BOUNDS;
   const effectiveLayout = useMemo(
     () => clampAgentWindowLayoutToBounds(agent.layout, effectiveWorkspaceBounds),
     [agent.layout, effectiveWorkspaceBounds],

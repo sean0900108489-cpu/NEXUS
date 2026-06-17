@@ -1,7 +1,7 @@
 # NEXUS Current State
 
-> 最後更新：2026-06-17 23:30 AEST
-> 版本：V30 (branch `codex/v30`, deployed `fa0a294` on `main`)
+> 最後更新：2026-06-18
+> 版本：V31 (branch `codex/v30`)
 
 ---
 
@@ -27,26 +27,32 @@
 | `model_usage_ledger` | ✅ Recording |
 | `agent_tasks` | ✅ Completed tasks visible |
 | `messages` | ✅ Assistant output correct |
-| New API VPS | `170.64.201.54` Docker, port 80→3000 |
-| Token provision | Python microservice port 3002 |
-| Idempotency lock | ✅ Fixed (takeover expired pending) |
-| Stream abort | ✅ Fixed (signal passthrough + reader cancel) |
-| Sync counter | ✅ Fixed (stale syncing recovery) |
-| Graph delete confirm | ✅ Fixed (window.confirm) |
 
-## Database
+## V31 P1 Fixes (on codex/v30, not yet deployed)
+
+| # | 修復 | 檔案 |
+|---|---|---|
+| P1-1 | ResizeObserver N+1 去重 → single root observer | `nexus-agent-window.tsx` |
+| P1-2 | Artifact + historicalArtifact → offline queue | `state-sync.ts` |
+| P1-3 | Composer reasoning mode source-of-truth documented | N/A |
+| P1-4 | Image gen catalog → img2/gpt-image-2 only | `image-generation-settings.ts`, `plan-config.ts` |
+
+## Image Gen
 
 | 項目 | 值 |
 |---|---|
-| Supabase | `xjuglddxwnikvcwxfbzg` (ap-southeast-2) |
-| RLS | Service role only for sensitive tables |
-| plan_config | Free → deepseek-chat, gpt-4o-mini; Basic → +v4-flash; Pro → +v4-pro; Team → same as Pro |
+| Composer models | img2, gpt-image-2 (was img2, gpt-image-1, DALL-E 3, Nano Banana) |
+| Plan gate | img2 in Free+; gpt-image-2 in Basic/Pro/Team |
+| Default | img2 |
 
-## Living Docs
+## Known Issues
 
-- `docs/living/NEXUS_CURRENT_STATE.md` ← this file
-- `docs/living/NEXUS_TECH_DEBT_LEDGER.md` ← debt with priorities
-- `docs/living/NEXUS_SMOKE_TESTS.md` ← smoke test history
-- `docs/living/NEXUS_MODEL_GATEWAY.md` ← gateway architecture
-- `docs/living/NEXUS_AGENT_HANDOFF.md` ← next-agent startup
-- `docs/living/NEXUS_AGENT_REPORT_TEMPLATE.md` ← iteration report template
+See `NEXUS_TECH_DEBT_LEDGER.md` for full list.
+
+Active P2:
+- SSE handler in NexusOps root
+- Zundo undo stack bloat
+- reasoningContent persist
+- NexusOps god object
+- Duplicate agent names (UX)
+- Export wording/placeholders/names

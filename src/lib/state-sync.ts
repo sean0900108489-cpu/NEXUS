@@ -688,41 +688,38 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
       userId?: string;
     },
   ): Promise<StateSyncResult> {
-    this.status = "syncing";
+    this.status = "queued";
 
     try {
-      const request: CreateArtifactRequest = {
-        contentText: content,
-        mimeType: type === "sandbox" ? "text/html" : "text/plain",
-        sourceAgentId: options?.sourceAgentId ?? null,
-        sourceMessageId,
-        title: options?.title,
-        type,
-        workspaceId,
-      };
-
-      await nexusApiClient.post<ArtifactCreateResponse, CreateArtifactRequest>(
-        "/api/v1/artifacts",
-        request,
-        {
-          idempotencyKey: createClientMutationId(),
-          userId: options?.userId,
+      await localSyncQueueAdapter.enqueue({
+        compactKey: `artifact:${workspaceId}:${sourceMessageId ?? "unknown"}:${type}`,
+        entityId: sourceMessageId ?? `artifact-${Date.now()}`,
+        entityType: "artifact",
+        operationType: "create",
+        payload: {
+          contentText: content,
+          mimeType: type === "sandbox" ? "text/html" : "text/plain",
+          sourceAgentId: options?.sourceAgentId ?? null,
+          sourceMessageId,
+          title: options?.title,
+          type,
           workspaceId,
         },
-      );
+        workspaceId,
+      });
       this.status = "idle";
 
       return this.finalizeTransaction(
-        "artifact.create",
-        `Artifact ${type} saved for workspace ${workspaceId}.`,
+        "artifact.queue",
+        `Artifact ${type} queued for durable sync in workspace ${workspaceId}.`,
         synced(),
       );
     } catch (error) {
       this.status = "idle";
 
       return this.finalizeTransaction(
-        "artifact.create",
-        `Artifact ${type} save failed for workspace ${workspaceId}.`,
+        "artifact.queue",
+        `Artifact ${type} queue failed for workspace ${workspaceId}.`,
         failed(error),
       );
     }
@@ -1247,9 +1244,38 @@ export class SupabaseStateSyncManager implements IStateSyncManager {
   async syncHistoricalArtifact(
     record: HistoricalArtifactRecord,
   ): Promise<StateSyncResult> {
-    void record;
+    this.status = "queued";
 
-    return synced();
+    try {
+      await localSyncQueueAdapter.enqueue({
+        compactKey: `artifact:${record.workspaceId}:${record.id}:historical`,
+        entityId: record.id,
+        entityType: "artifact",
+        operationType: "upsert",
+        payload: {
+          artifact: record.artifact,
+          id: record.id,
+          sourceMessageId: record.sourceMessageId,
+          workspaceId: record.workspaceId,
+        },
+        workspaceId: record.workspaceId,
+      });
+      this.status = "idle";
+
+      return this.finalizeTransaction(
+        "sync.queue.historical_artifact",
+        `Historical artifact ${record.id} queued for durable sync.`,
+        synced(),
+      );
+    } catch (error) {
+      this.status = "idle";
+
+      return this.finalizeTransaction(
+        "sync.queue.historical_artifact",
+        `Historical artifact ${record.id} queue failed.`,
+        failed(error),
+      );
+    }
   }
 
   async flush(): Promise<StateSyncResult> {

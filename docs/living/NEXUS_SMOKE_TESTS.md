@@ -1,7 +1,20 @@
 # NEXUS Smoke Tests
 
-> 最後更新：2026-06-17
-> 版本：V30 Atlas
+> 最後更新：2026-06-17 23:30 AEST
+> 版本：V30 post-deploy (fa0a294)
+
+---
+
+## Post-Deploy Verification (Production)
+
+| # | Endpoint | Status | Details |
+|---|---|---|---|
+| 1 | `POST /api/chat` | ✅ PASS | deepseek-chat → "POST_DEPLOY_OK" |
+| 2 | `POST /api/v1/agents/[agentId]/stream` (SSE) | ✅ PASS | meta→token→done, 無 error |
+| 3 | `POST /api/workflow-pro/brain-draft` (Graph Brain) | ✅ PASS | 3 nodes, 2 edges, 1 output, all ids present |
+| 4 | `model_usage_ledger` latest | ✅ PASS | operator_chat, agent_stream, brain_draft 全部 succeeded |
+| 5 | `agent_tasks` latest | ✅ PASS | latest task completed |
+| 6 | `messages` latest assistant | ✅ PASS | content = "STREAM_POST_DEPLOY_OK" |
 
 ---
 
@@ -23,9 +36,9 @@
 
 | # | Issue | V30 Status | Details |
 |---|---|---|---|
-| 8 | Sync stuck at "1 syncing" | FIXED | See sync-counter fix |
-| 9 | Maximize triggers Branch UI | FIXED | See action mapping fix |
-| 10 | Graph Delete no confirm | FIXED | Added window.confirm guard |
+| 8 | Sync stuck at "1 syncing" | FIXED | forceCleanStaleSyncing() recovers stale syncing records after 2min |
+| 9 | Maximize triggers Branch UI | Verified | Explicit callbacks, no code path overlap; CSS/z-index visual only |
+| 10 | Graph Delete no confirm | FIXED | window.confirm() on agent/edge/node remove |
 | 11 | Duplicate agent names | P1 UX | Agents use id-based keys; name collision is cosmetic |
 | 12 | Composer reasoning mode changes | P1 | Mode source-of-truth: composer mode state x agent modelSettings |
 | 13 | Image gen model id not in catalog | P1 | Need to converge to img2/gpt-image-2 or disable mock |
@@ -37,7 +50,7 @@
 
 ## Test Methodology
 
-- Backend: direct curl/Node.js fetch against production `https://nexus-swart-ten.vercel.app`
+- Backend: direct Node.js fetch against production `https://nexus-swart-ten.vercel.app`
 - Auth: Supabase session token from user `sean00000@gmail.com`
 - UI: Atlas browser-based smoke test
-- All tests run at 2026-06-17
+- Post-deploy: fresh session token, production endpoint, 2026-06-17 23:27 AEST

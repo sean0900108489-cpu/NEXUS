@@ -473,7 +473,58 @@ function parseBrainReviewProposal(text: string): WorkflowProBrainReviewProposal 
     throw new Error("Parsed Graph Brain response is not an object.");
   }
 
-  return parsed as WorkflowProBrainReviewProposal;
+  // Repair: ensure schema fields are present
+  const repaired = repairBrainReviewProposal(parsed as Record<string, unknown>);
+
+  return repaired as WorkflowProBrainReviewProposal;
+}
+
+function repairBrainReviewProposal(
+  parsed: Record<string, unknown>,
+): Record<string, unknown> {
+  const repaired = { ...parsed };
+
+  // Fix schema if missing or wrong
+  if (!repaired.schema || repaired.schema !== "nexus.workflowPro.brainReviewProposal.v1") {
+    repaired.schema = "nexus.workflowPro.brainReviewProposal.v1";
+  }
+
+  // Fix workflow schema
+  const wf = repaired.optimizedWorkflow as Record<string, unknown> | null | undefined;
+  if (wf && typeof wf === "object" && !Array.isArray(wf)) {
+    if (!wf.schema || wf.schema !== "nexus.workflow.v1") {
+      wf.schema = "nexus.workflow.v1";
+    }
+    // Ensure outputs have ids
+    const outputs = wf.outputs as Array<Record<string, unknown>> | undefined;
+    if (Array.isArray(outputs)) {
+      for (let i = 0; i < outputs.length; i++) {
+        if (!outputs[i].id) {
+          outputs[i].id = `output-${i + 1}`;
+        }
+      }
+    }
+    // Ensure nodes have ids
+    const nodes = wf.nodes as Array<Record<string, unknown>> | undefined;
+    if (Array.isArray(nodes)) {
+      for (let i = 0; i < nodes.length; i++) {
+        if (!nodes[i].id) {
+          nodes[i].id = `node-${i + 1}`;
+        }
+      }
+    }
+    // Ensure edges have source/target
+    const edges = wf.edges as Array<Record<string, unknown>> | undefined;
+    if (Array.isArray(edges)) {
+      for (let i = 0; i < edges.length; i++) {
+        if (!edges[i].id) {
+          edges[i].id = `edge-${i + 1}`;
+        }
+      }
+    }
+  }
+
+  return repaired;
 }
 
 function extractJsonObject(text: string) {

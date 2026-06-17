@@ -3,7 +3,7 @@
 
 import { cx, getCatalogModelLabel, getProviderLabel, isGeneratedArtifactRecord, IconButton, streamModeTone, formatTime, artifactPreview, traceSeverityClass } from "@/components/nexus/nexus-utils";
 type RightDockPanelId = "intel" | "providers" | "models" | "theme" | "memory" | "artifacts" | "generations" | "workflows" | "trace" | "account";
-import { WorkspaceStyleControlsPanel } from "@/components/nexus/nexus-ops";
+import { WorkspaceStyleControlsPanel } from "@/components/nexus/workspace-style-controls-panel";
 import { RightIntel } from "@/components/nexus/nexus-panels";
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";

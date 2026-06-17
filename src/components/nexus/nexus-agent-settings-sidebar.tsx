@@ -309,8 +309,10 @@ function getFallbackAllowedModelId(modelCatalog: PublicModelCatalogEntry[]) {
 }
 
 function GatewayProvisionButton({
+  label,
   onProvisioned,
 }: {
+  label: string;
   onProvisioned: () => void;
 }) {
   const [loading, setLoading] = useState(false);
@@ -353,7 +355,7 @@ function GatewayProvisionButton({
         onClick={() => void provision()}
         type="button"
       >
-        {loading ? "Initializing..." : "Initialize Model Gateway"}
+        {loading ? "Working..." : label}
       </button>
       {error ? (
         <p className="text-xs leading-5 text-red-400">{error}</p>
@@ -1006,15 +1008,23 @@ export function AgentSettingsSidebar({
                 </div>
                 {modelCatalog.length === 0 ? (
                   <GatewayProvisionButton
+                    label="Initialize Model Gateway"
                     onProvisioned={() => {
-                      // Re-fetch triggered externally
-                      window.dispatchEvent(new CustomEvent("nexus:gateway-provisioned"));
+                      window.location.reload();
                     }}
                   />
                 ) : (
-                  <p className="text-xs leading-5 text-neutral-500">
-                    Model access and provider credentials are enforced by the backend.
-                  </p>
+                  <>
+                    <p className="text-xs leading-5 text-neutral-500">
+                      Gateway connected. {modelCatalog.length} models available.
+                    </p>
+                    <GatewayProvisionButton
+                      label="Repair Gateway"
+                      onProvisioned={() => {
+                        window.location.reload();
+                      }}
+                    />
+                  </>
                 )}
               </div>
             </section>

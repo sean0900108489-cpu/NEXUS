@@ -43,10 +43,7 @@ export async function POST(request: Request) {
     }
 
     const newApiBaseUrl = normalizeNewApiBaseUrl(process.env.NEW_API_BASE_URL);
-    const provisionBaseUrl = newApiBaseUrl
-      .replace(/\/v1$/, "")
-      .replace(/:80$/, "")
-      .replace(/\/$/, "");
+    const provisionUrl = `${newApiBaseUrl.replace(/\/v1$/, "").replace(/:80$/, "").replace(/\/$/, "")}:3002/provision`;
 
     // --- Check existing token ---
     const adminClient = getNexusSupabaseAdminClient();
@@ -98,7 +95,7 @@ export async function POST(request: Request) {
 
       const username = sanitizeUsername(userEmail?.email ?? userId);
       const provisionResp = await fetch(
-        `${provisionBaseUrl}:3002/provision`,
+        `${provisionUrl}`,
         {
           method: "POST",
           headers: {

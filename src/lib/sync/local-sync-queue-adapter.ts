@@ -179,6 +179,9 @@ export class LocalSyncQueueAdapter {
       return this.drainPromise;
     }
 
+    // Clean up stale syncing records before draining
+    await this.forceCleanStaleSyncing();
+
     this.drainPromise = this.drain().finally(() => {
       this.drainPromise = undefined;
     });
@@ -269,6 +272,36 @@ export class LocalSyncQueueAdapter {
       ).length,
       syncing: queue.filter((operation) => operation.status === "syncing").length,
     };
+  }
+
+  async forceCleanStaleSyncing(maxAgeMs: number = 120_000) {
+    const queue = await this.readQueue();
+    const now = Date.now();
+    let changed = false;
+
+    const cleaned = queue.map((operation) => {
+      if (
+        operation.status === "syncing" &&
+        operation.updatedAt &&
+        now - new Date(operation.updatedAt).getTime() > maxAgeMs
+      ) {
+        changed = true;
+        return {
+          ...operation,
+          lastErrorCode: "SYNC_STALE_LOCK_RECOVERED",
+          lastErrorMessage: "Sync operation was stuck in syncing state and has been recovered.",
+          status: "failed" as const,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return operation;
+    });
+
+    if (changed) {
+      await this.writeQueue(cleaned);
+    }
+
+    return changed;
   }
 
   private scheduleFlush(delayMs = this.flushDelayMs) {

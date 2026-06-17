@@ -3509,10 +3509,18 @@ export function NexusOps() {
                     return;
                   }
 
+                  if (!window.confirm("Delete this agent and all its messages?")) {
+                    return;
+                  }
+
                   removeAgent(agentId);
                 }}
                 onRemoveEdges={(edgeIds) => {
                   if (blockReadOnlyWorkspaceMutation("Delete graph edge")) {
+                    return;
+                  }
+
+                  if (!window.confirm(`Delete ${edgeIds.length} graph edge(s)?`)) {
                     return;
                   }
 
@@ -3523,10 +3531,18 @@ export function NexusOps() {
                     return;
                   }
 
+                  if (!window.confirm(`Delete ${edgeIds.length} workflow edge(s)?`)) {
+                    return;
+                  }
+
                   removeWorkflowRuntimeEdges(edgeIds);
                 }}
                 onRemoveWorkflowNodes={(nodeIds) => {
                   if (blockReadOnlyWorkspaceMutation("Delete workflow node")) {
+                    return;
+                  }
+
+                  if (!window.confirm(`Delete ${nodeIds.length} workflow node(s)?`)) {
                     return;
                   }
 

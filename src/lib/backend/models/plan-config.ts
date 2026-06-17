@@ -20,7 +20,6 @@ export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
       "gpt-4o",
       "gemini-2.5-flash",
       "img2",
-      "gpt-image-2",
     ],
     monthlyPoints: 1_000_000,
   },
@@ -35,7 +34,6 @@ export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
       "gemini-2.5-pro",
       "claude-sonnet-4-20250514",
       "img2",
-      "gpt-image-2",
     ],
     monthlyPoints: 5_000_000,
   },
@@ -50,7 +48,6 @@ export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
       "gemini-2.5-pro",
       "claude-sonnet-4-20250514",
       "img2",
-      "gpt-image-2",
     ],
     monthlyPoints: 20_000_000,
   },
@@ -65,7 +62,6 @@ const MODEL_POINT_MULTIPLIERS: Record<string, number> = {
   "gemini-2.5-pro": 6,
   "gpt-4o": 5,
   "gpt-4o-mini": 1,
-  "gpt-image-2": 1,
   img2: 1,
 };
 

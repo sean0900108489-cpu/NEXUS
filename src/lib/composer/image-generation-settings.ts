@@ -46,12 +46,8 @@ export const WORKSPACE_COMPOSER_IMAGE_ASPECT_RATIO_OPTIONS = [
 
 export const WORKSPACE_COMPOSER_IMAGE_MODEL_OPTIONS = [
   {
-    label: "img2",
+    label: "GPT Image 2",
     value: "img2",
-  },
-  {
-    label: "gpt-image-2",
-    value: "gpt-image-2",
   },
 ] as const satisfies ReadonlyArray<{
   label: string;

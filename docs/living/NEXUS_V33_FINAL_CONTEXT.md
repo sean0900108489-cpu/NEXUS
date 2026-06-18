@@ -13,7 +13,13 @@ docs/NEW_API_OPS_GUIDE.md ← New API 運維操作手冊
 問	答
 Production URL	https://nexus-swart-ten.vercel.app
 GitHub	sean0900108489-cpu/NEXUS
-Branch	main = V33 Release Hardening 完成 (232a69e)
+Branch	main = V33 Release Hardening 完成 (8903032)
+V33 分支	codex/v33 (P0 修復完成), codex/v33p3 (P1 + 技術債 + deploy)
+V32 baseline	95f152e
+V33 total commits	16（from 54ba52b to 8903032）
+V33 total Δ	13 files, +365/-102 lines vs V32 baseline
+Last tsc	npx tsc --noEmit: PASS (zero errors)
+Last deploy	2026-06-18, Vercel auto-deploy from main
 New API 在哪	VPS 170.64.201.54, Docker, port 80→3000
 SSH 到 VPS	ssh -i ~/.ssh/id_ed25519_codex_vps root@170.64.201.54
 New API 管理後台	http://170.64.201.54（root / Nexus2026Secure!）

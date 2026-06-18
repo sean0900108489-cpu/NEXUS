@@ -51,6 +51,7 @@
 | 20 | reasoningContent persist bloat | 未處理 |
 | 28 | Macro save no local queue | 未處理 |
 | 33 | NexusOps god object | 未處理（connector hooks + read-model extracted in Phase 2B） |
+| 40 | Model catalog retry loop 無上限重試（nexus-ops.tsx:1278, setTimeout 3s forever） | 未處理 — 從 ledger 被移除但從未修復，V33 審計重新發現 |
 | 42 | Sync queue polling 2s | 未處理 |
 | 23 | /api/models contract drift | 未處理 |
 | 11 | Duplicate agent names (cosmetic UX) | 未處理 |
@@ -59,7 +60,7 @@
 
 | # | 問題 | 狀態 |
 |---|---|---|
-| — | Composer quality UI (standard/high/ultra) shown for all models regardless of support | 未處理 — riverflow ignores quality, only aspect_ratio matters |
+| — | Composer quality UI (standard/high/ultra) shown for all models regardless of support | ✅ Fixed (V33p3 R5) — quality select hidden when model doesn't support it |
 | — | Image adapter routes hardcoded per prefix — no model-capability metadata | 未處理 — should derive from catalog |
 
 ### Out of Scope (MVP)

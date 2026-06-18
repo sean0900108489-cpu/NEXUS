@@ -102,14 +102,14 @@
 
 ---
 
-## Supabase DB Baseline（2026-06-18）
+## Supabase DB Baseline（2026-06-18, after V33p3 cleanup）
 
 | 表 | 狀態 | 修復狀態 |
 |---|---|---|
-| sync_operations | 418 synced, **44 conflicted** (→ V33 client compacted, server 端待手動 SQL) | ✅ Client fixed (R2), ⬜ Server: `UPDATE sync_operations SET status='compacted' WHERE status='conflicted'` |
-| agent_tasks | 141 completed, 20 failed, **3 queued + 1 created (stuck)** | ⬜ 未處理 (P1-4) |
-| artifacts | 45 total, **9 inline base64 (max 4.4MB)** | ✅ 新資料不再進 base64 (R1+R6), ⬜ 舊 9 筆 toVaultRecord 已過濾不顯示但 DB 仍存 |
-| model_usage_ledger | agent_stream=138, operator_chat=21, image_workflow=16, brain_draft=14, NULL=5 | ⬜ 未處理 (P1-5) |
+| sync_operations | 418 synced, **44 conflicted → 0 (compacted via REST PATCH)** | ✅ Fixed |
+| agent_tasks | 141 completed, 20 failed, 3 queued + 1 created → **1 stale cleaned (memory_compress from 5/30), 3 remaining queued/created from 6/17** | ✅ 1 stale cleaned, ⬜ 3 recent stuck tasks |
+| artifacts | 45 total, **9 inline base64 (max 4.4MB)** — new records use Supabase Storage | ✅ New records fixed (R1+R6), ⬜ Old 9 records filtered from UI but still in DB |
+| model_usage_ledger | agent_stream=138, operator_chat=21, image_workflow=16, brain_draft=14, **NULL=5 (from 6/10, deepseek-chat + gpt-4o + gpt-4o-mini)** | ⬜ 需調查哪個 code path 沒設 source_type |
 | user_new_api_tokens | 4 enabled, 2 disabled | ✅ 正常 |
 | messages | 正常 | ✅ 正常 |
 

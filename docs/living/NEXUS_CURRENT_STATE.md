@@ -53,7 +53,7 @@
 |---|---|
 | Composer model | `img2` only (label: "GPT Image 2") |
 | Catalog mapping | `img2` → `new_api_model: "gpt-image-2"` |
-| Plan gate | img2 in Free+ |
+| Plan gate | img2 in Basic+ |
 | Default | img2 |
 
 ## Database

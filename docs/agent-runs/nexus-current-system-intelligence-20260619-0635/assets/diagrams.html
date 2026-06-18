@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NEXUS Current System Map</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; padding: 20px; }
+  h1 { color: #58a6ff; text-align: center; }
+  .diagram { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin: 20px auto; max-width: 1000px; }
+  .diagram h2 { color: #f0883e; margin-top: 0; }
+  .mermaid { display: flex; justify-content: center; }
+</style>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({ 
+  startOnLoad: true, 
+  theme: 'dark',
+  themeVariables: {
+    primaryColor: '#1f6feb',
+    primaryTextColor: '#c9d1d9',
+    primaryBorderColor: '#30363d',
+    lineColor: '#58a6ff',
+    secondaryColor: '#238636',
+    tertiaryColor: '#8957e5'
+  }
+});
+</script>
+</head>
+<body>
+<h1>NEXUS Current System Map — 2026-06-19</h1>
+
+<div class="diagram">
+<h2>1. System Architecture Overview</h2>
+<div class="mermaid">
+graph TB
+    subgraph Client["Browser Client"]
+        NOps["NexusOps 3,684 lines"]
+        NStore["NexusStore 4,679 lines"]
+        IDB["IndexedDB Local Persistence"]
+        NOps --> NStore
+        NStore --> IDB
+    end
+    subgraph Server["Next.js Server"]
+        API["57 API Routes src/app/api/"]
+        BE["111 Backend Services src/lib/backend/"]
+        NReg["Nexus Registry 881 lines"]
+        NTypes["Nexus Types 1,854 lines"]
+        API --> BE
+        BE --> NReg
+        BE --> NTypes
+    end
+    subgraph Supabase["Supabase PostgreSQL"]
+        DB["26 Tables"]
+        MIG["28 Migrations"]
+        STOR["1 Storage Bucket"]
+    end
+    NStore -- fetch --> API
+    BE --> DB
+    BE --> STOR
+</div>
+</div>
+
+<div class="diagram">
+<h2>2. L1-L4 Capability Layers</h2>
+<div class="mermaid">
+graph TB
+    subgraph L1["L1: Agent Capabilities"]
+        CHAT["Chat"]
+        IMG["Image"]
+        VD["Video mock"]
+        SB["Sandbox"]
+        AUDIO["Audio not-impl"]
+        SRCH["Search"]
+        DA["Data Analysis not-impl"]
+    end
+    subgraph L2["L2: Handoff - EMPTY"]
+        HR["Handoff Registry"]
+    end
+    subgraph L3["L3: Workspace Graph & Runtime"]
+        GRAPH["React Flow Graph"]
+        WFR["Workflow Runtime Lite"]
+        OPS["NexusOps Surface"]
+    end
+    subgraph L4["L4: System Operations"]
+        OBS["Observability"]
+        DEP["Deployment"]
+        SYNC["Sync"]
+        ADMIN["Admin"]
+    end
+    L1 --> L2 --> L3 --> L4
+</div>
+</div>
+
+<div class="diagram">
+<h2>3. Supabase Table Map</h2>
+<div class="mermaid">
+graph TB
+    subgraph Core["Core"]
+        WS["workspaces"]
+        WSM["workspace_memberships"]
+        WSS["workspace_snapshots"]
+        WSE["workspace_state_entities"]
+    end
+    subgraph Agent["Agent Runtime"]
+        ARS["agent_runtime_sessions"]
+        AT["agent_tasks"]
+        ARE["agent_runtime_events"]
+        AMR["agent_memory_records"]
+    end
+    subgraph Content["Content"]
+        MSG["messages"]
+        ART["artifacts"]
+        ARR["artifact_references"]
+        NB["notebooks"]
+        PRM["prompt_revisions"]
+    end
+    subgraph Ops["Operations"]
+        SO["sync_operations"]
+        TR["tool_runs"]
+        IK["api_idempotency_keys"]
+        MUL["model_usage_ledger"]
+        UNAT["user_new_api_tokens"]
+    end
+    subgraph System["System"]
+        SE["system_events"]
+        UM["usage_metrics"]
+        DC["deployment_checks"]
+        FF["feature_flags"]
+        WF["workflow_templates"]
+        PAL["permission_audit_logs"]
+    end
+</div>
+</div>
+
+<div class="diagram">
+<h2>4. Frontend-Backend Coupling</h2>
+<div class="mermaid">
+graph LR
+    P1["Home Page /"]
+    P2["Style Lab /style-lab"]
+    S1["nexus-store.ts"]
+    A1["/api/v1/agents/*"]
+    A2["/api/v1/artifacts/*"]
+    A3["/api/v1/workspaces/*"]
+    A4["/api/v1/sync/*"]
+    A5["/api/v1/observability/*"]
+    A6["/api/chat"]
+    A7["/api/image-gen"]
+    B1["agent-stream-service"]
+    B2["artifact-service"]
+    B3["workspace-session-service"]
+    B4["sync-queue-service"]
+    B5["observability-service"]
+    D1["Supabase 26 Tables"]
+    P1 --> S1
+    P2 --> S1
+    S1 --> A1 & A2 & A3 & A4 & A5 & A6 & A7
+    A1 --> B1
+    A2 --> B2
+    A3 --> B3
+    A4 --> B4
+    A5 --> B5
+    B1 & B2 & B3 & B4 & B5 --> D1
+</div>
+</div>
+
+<div class="diagram">
+<h2>5. Big File Risks</h2>
+<div class="mermaid">
+pie title Files >3000 Lines
+    "nexus-style-lab.tsx (5,965)" : 5965
+    "nexus-store.ts (4,679)" : 4679
+    "nexus-ops.tsx (3,684)" : 3684
+</div>
+</div>
+
+</body>
+</html>

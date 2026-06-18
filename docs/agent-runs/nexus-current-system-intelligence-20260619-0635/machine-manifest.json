@@ -1,0 +1,89 @@
+{
+  "manifest_version": "1.0.0",
+  "report_id": "nexus-current-system-intelligence-20260619-0635",
+  "generated_at": "2026-06-19T06:35:00+10:00",
+  "branch": "agent/nexus-current-system-intelligence-20260619",
+  "head_commit": "b806dd4",
+  "project": "NEXUS // AI OPS",
+  "framework": "Next.js App Router",
+  "database": "Supabase (PostgreSQL)",
+  "state_management": "Zustand + Zundo temporal",
+  "counts": {
+    "routes_total": 60,
+    "api_routes": 57,
+    "pages": 2,
+    "layouts": 1,
+    "nexus_components": 23,
+    "style_engine_components": 2,
+    "backend_files": 111,
+    "supabase_client_files": 5,
+    "database_tables": 26,
+    "migrations": 28,
+    "store_state_fields": 40,
+    "store_actions": 100,
+    "files_over_1000_lines": 16,
+    "files_over_3000_lines": 3,
+    "total_source_lines": 119000,
+    "implemented_capabilities": 81,
+    "mock_capabilities": 2,
+    "not_implemented_capabilities": 5,
+    "supabase_touchpoints": 80,
+    "interactions": 634
+  },
+  "maps": [
+    "00-executive-summary.md",
+    "01-route-and-page-map.md",
+    "02-ui-surface-map.md",
+    "03-button-and-interaction-map.md",
+    "04-component-inventory.md",
+    "05-state-and-store-map.md",
+    "06-frontend-backend-coupling-map.md",
+    "07-supabase-touchpoint-map.md",
+    "08-extension-layer-map.md",
+    "09-runtime-trace-map.md",
+    "10-feature-capability-map.md",
+    "11-current-system-logic-map.md",
+    "12-unknowns-and-questions.md"
+  ],
+  "top_risks": [
+    {
+      "severity": "P1",
+      "file": "src/components/style-engine/nexus-style-lab.tsx",
+      "lines": 5965,
+      "recommendation": "~8-way split"
+    },
+    {
+      "severity": "P1",
+      "file": "src/store/nexus-store.ts",
+      "lines": 4679,
+      "recommendation": "zustand slice migration"
+    },
+    {
+      "severity": "P1",
+      "file": "src/components/nexus/nexus-ops.tsx",
+      "lines": 3684,
+      "recommendation": "~6-way split"
+    },
+    {
+      "severity": "P2",
+      "file": "L2 Handoff Rule Registry",
+      "lines": 0,
+      "recommendation": "registry is empty, agent routing is emergent"
+    },
+    {
+      "severity": "P2",
+      "file": "Audio/Data Analysis capabilities",
+      "lines": "N/A",
+      "recommendation": "not implemented"
+    }
+  ],
+  "unknowns": [
+    "Runtime visibility: which static UI controls are actually visible for a given auth/workspace/session state?",
+    "IndexedDB usage depth and schema details",
+    "Zundo temporal undo/redo depth",
+    "Live Supabase behavior vs migration expectations",
+    "Daily log/history coverage in observability tables",
+    "Icon-only control accessible names at runtime",
+    "Store read/write ownership precision without AST symbol graph"
+  ]
+}

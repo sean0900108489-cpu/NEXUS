@@ -1999,35 +1999,16 @@ export function NexusOps() {
 
   const retryFailedSyncOperation = useCallback(() => {
     void localSyncQueueAdapter
-      .getOperations()
-      .then((operations) =>
-        operations.find((operation) =>
-          operation.workspaceId === activeWorkspaceId &&
-          ["failed", "conflicted"].includes(operation.status),
-        ),
-      )
-      .then((operation) => {
-        if (!operation) {
-          return undefined;
+      .compactAllConflictedOperations(activeWorkspaceId)
+      .then((count) => {
+        if (count > 0) {
+          setNotice(`${count} conflicted sync operation${count !== 1 ? "s" : ""} compacted.`);
+        } else {
+          setNotice("No conflicted sync operations found.");
         }
-
-        return localSyncQueueAdapter.recoverIssue(operation.clientMutationId);
-      })
-      .then((result) => {
-        if (result === "compacted") {
-          setNotice("Stale workspace snapshot issue compacted.");
-          return;
-        }
-
-        if (result === "missing") {
-          setNotice("No sync issue found.");
-          return;
-        }
-
-        setNotice("Sync retry queued.");
       })
       .catch(() => {
-        setNotice("Sync retry could not be queued.");
+        setNotice("Sync compact could not be queued.");
       });
   }, [activeWorkspaceId]);
 

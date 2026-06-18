@@ -256,6 +256,36 @@ export class LocalSyncQueueAdapter {
     );
   }
 
+  async compactAllConflictedOperations(workspaceId: string): Promise<number> {
+    const queue = await this.readQueue();
+    const now = new Date().toISOString();
+    let count = 0;
+
+    const cleaned = queue.map((operation) => {
+      if (
+        operation.workspaceId === workspaceId &&
+        operation.status === "conflicted"
+      ) {
+        count += 1;
+        return {
+          ...operation,
+          lastErrorCode: "SYNC_CONFLICT_COMPACTED",
+          lastErrorMessage:
+            "Sync operation was compacted because the workspace snapshot checksum was out of date.",
+          status: "compacted" as const,
+          updatedAt: now,
+        };
+      }
+      return operation;
+    });
+
+    if (count > 0) {
+      await this.writeQueue(cleaned);
+    }
+
+    return count;
+  }
+
   async getStatus(input: QueueStatusInput = {}): Promise<QueueStatusProjection> {
     const queue = filterQueueByWorkspace(await this.readQueue(), input.workspaceId);
 

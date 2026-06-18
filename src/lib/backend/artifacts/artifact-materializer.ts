@@ -1,7 +1,9 @@
 import type { CreateArtifactRequest } from "@/lib/nexus-types";
 
+import { createNexusSupabaseRequestClient } from "@/lib/supabase/request";
 import { ApiError } from "../api/api-errors";
 import { stableStringify } from "../api/request-hash";
+import { GENERATED_IMAGE_STORAGE_BUCKET } from "../image-generation/generated-image-asset-storage";
 import { SecretBoundaryService } from "../security/secret-boundary-service";
 
 import {
@@ -22,6 +24,63 @@ export type MaterializedArtifactContent = {
 
 export class ArtifactMaterializer {
   constructor(private readonly secretBoundaryService = new SecretBoundaryService()) {}
+
+  /**
+   * If contentUrl is a base64 data URL, upload the decoded bytes to Supabase
+   * Storage and return the public bucket path. Otherwise return it unchanged.
+   * Best-effort: falls back to the original URL on any upload failure.
+   */
+  async uploadBase64ContentUrl(
+    contentUrl: string,
+    artifactId: string,
+    workspaceId: string,
+    accessToken?: string | null,
+  ): Promise<string> {
+    if (!contentUrl.startsWith("data:")) {
+      return contentUrl;
+    }
+
+    const mimeMatch = contentUrl.match(/^data:([^;]*);base64,([\s\S]+)$/);
+
+    if (!mimeMatch) {
+      return contentUrl;
+    }
+
+    const mimeType = mimeMatch[1] || "image/png";
+    const base64Body = mimeMatch[2];
+
+    try {
+      const binaryString = atob(base64Body);
+      const bytes = new Uint8Array(binaryString.length);
+
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      const client = createNexusSupabaseRequestClient(accessToken);
+
+      if (!client) {
+        return contentUrl;
+      }
+
+      const path = `${workspaceId}/artifacts/${artifactId}`;
+      const { error } = await client.storage
+        .from(GENERATED_IMAGE_STORAGE_BUCKET)
+        .upload(path, Buffer.from(bytes), {
+          cacheControl: "31536000",
+          contentType: mimeType,
+          upsert: true,
+        });
+
+      if (error) {
+        return contentUrl;
+      }
+
+      return `${GENERATED_IMAGE_STORAGE_BUCKET}/${path}`;
+    } catch {
+      return contentUrl;
+    }
+  }
 
   async materialize(input: CreateArtifactRequest): Promise<MaterializedArtifactContent> {
     const contentText = normalizeText(input.contentText);

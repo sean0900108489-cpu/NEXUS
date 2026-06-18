@@ -375,10 +375,16 @@ export function createArtifactRepository(
 }
 
 export function toVaultRecord(artifact: ArtifactRecord): ArtifactVaultRecord {
+  // P0-3: Never return base64 data URLs in list responses.
+  const contentUrl =
+    artifact.contentUrl && artifact.contentUrl.startsWith("data:")
+      ? null
+      : artifact.contentUrl;
+
   return {
     contentHash: artifact.contentHash,
     contentSizeBytes: artifact.contentSizeBytes,
-    contentUrl: artifact.contentUrl,
+    contentUrl,
     createdAt: artifact.createdAt,
     id: artifact.id,
     mimeType: artifact.mimeType,

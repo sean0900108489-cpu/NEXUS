@@ -55,6 +55,17 @@ export class ArtifactService {
     context: ArtifactServiceContext = {},
   ): Promise<ArtifactCreateResponse> {
     const id = makeUuid();
+
+    // P0-3: Upload base64 contentUrl to Supabase Storage before materialize
+    if (input.contentUrl) {
+      input.contentUrl = await this.materializer.uploadBase64ContentUrl(
+        input.contentUrl,
+        id,
+        input.workspaceId,
+        // accessToken is passed through context by artifact-route-service
+      );
+    }
+
     const materialized = await this.materializer.materialize(input);
     const artifact = await this.repository.insertArtifact({
       contentHash: materialized.contentHash,
@@ -128,6 +139,18 @@ export class ArtifactService {
     context: ArtifactServiceContext = {},
   ): Promise<ArtifactVersionCreateResponse> {
     const parent = await this.requireArtifact(artifactId, input.workspaceId);
+
+    // P0-3: Upload base64 contentUrl to Supabase Storage before materialize
+    const versionId = makeUuid();
+
+    if (input.contentUrl) {
+      input.contentUrl = await this.materializer.uploadBase64ContentUrl(
+        input.contentUrl,
+        versionId,
+        input.workspaceId,
+      );
+    }
+
     const materialized = await this.materializer.materialize(input);
     const rootArtifactId = parent.rootArtifactId ?? parent.id;
     const artifact = await this.repository.insertArtifact({
@@ -136,7 +159,7 @@ export class ArtifactService {
       contentText: materialized.contentText,
       contentUrl: materialized.contentUrl,
       createdBy: context.userId ?? null,
-      id: makeUuid(),
+      id: versionId,
       metadata: materialized.metadata,
       mimeType: materialized.mimeType,
       parentArtifactId: parent.id,

@@ -124,9 +124,10 @@
 **影響：** 資料不會損壞（conflict 表示操作被拒絕，未寫入 data table），但 cloud 端 44 個版本落後。User 點 sync retry 只會 compact（丟棄）這些操作。Sync counter UI 沒有顯示 conflict 數量。
 
 **修復位置：**
-1. `src/lib/sync/local-sync-queue-adapter.ts:361-363` — flushOperation silent return on null accessToken → 應設 AUTH_REQUIRED 錯誤
-2. `src/lib/backend/sync/sync-queue-service.ts:340-344` — conflicted 後應自動排程重試（帶 fresh checksum）
-3. `src/components/nexus/nexus-ops.tsx` — retryFailedSyncOperation 只處理第一個，應處理全部 conflicted
+1. `src/lib/sync/local-sync-queue-adapter.ts:258-292` — 新增 `compactAllConflictedOperations()` 方法，一次 compact 全部 conflicted（不限 snapshot type）
+2. `src/components/nexus/nexus-ops.tsx:2000-2015` — `retryFailedSyncOperation` 改用 `compactAllConflictedOperations` 取代原有的 find-first + recoverIssue 模式
+
+**修復狀態：** ✅ **Fixed (V33, 72149a1)** — 44 筆 conflicted 在 client IndexedDB 一次 compact；server Supabase 端需手動執行 `UPDATE sync_operations SET status='compacted' WHERE status='conflicted'`
 
 ### P0-2：Sync Retry / Identity Gate 斷層
 
@@ -273,7 +274,7 @@ Riverflow 不理會 quality 參數，但 composer 仍顯示 standard/high/ultra 
 ### Phase 2: P0 修復（核心，逐個來）
 ```
 R1 ✅ P0-3 artifact base64 — DONE (afa19cb)
-R2 ⬜ P0-1 sync conflict cleanup — compact 44 conflicted
+R2 ✅ P0-1 sync conflict cleanup — DONE (72149a1)
 R3 ⬜ P0-2 sync retry auth gate — add CustomEvent bridge
 ```
 

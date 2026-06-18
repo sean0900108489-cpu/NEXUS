@@ -24,6 +24,7 @@ import {
 import { ArtifactReferenceResolver } from "./artifact-reference-resolver";
 
 export type ArtifactServiceContext = {
+  accessToken?: string | null;
   requestId?: string;
   traceId?: string;
   userId?: string;
@@ -62,7 +63,7 @@ export class ArtifactService {
         input.contentUrl,
         id,
         input.workspaceId,
-        // accessToken is passed through context by artifact-route-service
+        context.accessToken,
       );
     }
 
@@ -148,6 +149,7 @@ export class ArtifactService {
         input.contentUrl,
         versionId,
         input.workspaceId,
+        context.accessToken,
       );
     }
 

@@ -1,6 +1,7 @@
 import { apiHandler } from "@/lib/backend/api/api-handler";
 import { createRequestValidator } from "@/lib/backend/api/api-request-validator";
 import { createArtifactServiceForRequest } from "@/lib/backend/artifacts/artifact-route-service";
+import { getSupabaseRequestAccessToken } from "@/lib/backend/security/auth-session";
 import { createWorkspaceStatePermissionService } from "@/lib/backend/workspace/workspace-permission";
 import type {
   ArtifactVersionCreateRequest,
@@ -21,6 +22,7 @@ export async function POST(request: Request, context: RouteContext) {
   return apiHandler<ArtifactVersionCreateRequest, ArtifactVersionCreateResponse>({
     handler: ({ body, request: routeRequest, requestId, trace, traceId }) =>
       createArtifactServiceForRequest(routeRequest).createVersion(artifactId, body, {
+        accessToken: getSupabaseRequestAccessToken(routeRequest),
         requestId,
         traceId,
         userId: trace.userId,

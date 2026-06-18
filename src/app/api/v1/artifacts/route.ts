@@ -1,6 +1,7 @@
 import { apiHandler } from "@/lib/backend/api/api-handler";
 import { createRequestValidator } from "@/lib/backend/api/api-request-validator";
 import { createArtifactServiceForRequest } from "@/lib/backend/artifacts/artifact-route-service";
+import { getSupabaseRequestAccessToken } from "@/lib/backend/security/auth-session";
 import { createWorkspaceStatePermissionService } from "@/lib/backend/workspace/workspace-permission";
 import type {
   ArtifactCreateResponse,
@@ -42,6 +43,7 @@ export const GET = apiHandler<undefined, ArtifactListResponse>({
 export const POST = apiHandler<CreateArtifactRequest, ArtifactCreateResponse>({
   handler: ({ body, request, requestId, trace, traceId }) =>
     createArtifactServiceForRequest(request).createArtifact(body, {
+      accessToken: getSupabaseRequestAccessToken(request),
       requestId,
       traceId,
       userId: trace.userId,

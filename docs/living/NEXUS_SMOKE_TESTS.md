@@ -1,7 +1,7 @@
 # NEXUS Smoke Tests
 
 > 最後更新：2026-06-18 AEST
-> 版本：V32 (Phase 2A complete, commit `fbfbd48`)
+> 版本：V32 (Phase 2B complete, commit `59eb863`)
 
 ---
 
@@ -26,9 +26,22 @@
 | 2 | Agent stream SSE | ✅ PASS |
 | 3 | Graph Brain | ✅ PASS |
 | 4 | Usage ledger | ✅ PASS |
-| 5 | deepseek-v4-flash/pro routing | ✅ OK (plan gate blocks Free correctly; VPS channel OK) |
+| 5 | deepseek-v4-flash/pro routing | ✅ OK |
 | 6 | Idempotency lock takeover | ✅ FIXED |
 | 7 | Stream abort → orphan tasks | ✅ FIXED |
+
+---
+
+## Image Generation
+
+| # | Model | Status | Details |
+|---|---|---|---|
+| 1 | img2 (GPT Image 2) | ✅ Live | /v1/images/generations, DALL-E path |
+| 2 | riverflow-v2.5-fast (Riverflow v2.5 Fast) | ✅ Live | /v1/chat/completions, sourceful/* adapter, no modalities |
+| 3 | Composer options | ✅ | GPT Image 2 / img2 + Riverflow v2.5 Fast / riverflow-v2.5-fast |
+| 4 | gpt-image-2 not exposed | ✅ | Only used as new_api_model, never as composer value |
+| 5 | VPS OpenRouter channel | ✅ | ch3: sourceful/riverflow-v2.5-fast, base_url + key configured |
+| 6 | VPS ModelRatio | ✅ | sourceful/riverflow-v2.5-fast = 0.0 |
 
 ---
 
@@ -41,13 +54,29 @@
 | 10 | Graph Delete no confirm | ✅ FIXED | window.confirm() guard |
 | 17 | ResizeObserver N+1 | ✅ FIXED | Single root observer |
 | 29-30 | Artifact sync durability | ✅ FIXED | Offline queue + historical queue |
-| 13 | Image gen catalog | ✅ FIXED | img2 only, label "GPT Image 2" |
+| 13 | Image gen catalog | ✅ FIXED | img2 only → now img2 + riverflow-v2.5-fast |
+
+---
+
+## Phase 2A / 2B Regression
+
+| # | Check | Status |
+|---|---|---|
+| 1 | Zundo limit = 20 | ✅ |
+| 2 | artifactVault not in IndexedDB persist | ✅ |
+| 3 | notebooksCache not in IndexedDB persist | ✅ |
+| 4 | connector hooks (TopBar, RightDock, AgentSettingsSidebar) | ✅ |
+| 5 | Workflow Pro read-model extraction | ✅ |
+| 6 | handleSend not moved | ✅ |
+| 7 | SSE contract unchanged | ✅ |
+| 8 | P0 routes untouched | ✅ |
 
 ---
 
 ## Test Methodology
 
 - Backend: direct Node.js fetch against production `https://nexus-swart-ten.vercel.app`
+- DB: Supabase REST API with service role key
 - Auth: Supabase session token from user `sean00000@gmail.com`
-- UI: Atlas browser-based smoke test
-- Post-deploy: fresh session token, 2026-06-17 23:27 AEST
+- UI: Atlas / Hermes browser-based smoke test
+- VPS: direct curl against New API on `170.64.201.54`

@@ -138,8 +138,10 @@
 **影響：** User 可能點 sync retry，看到 "Sync retry queued." 通知，但操作永遠不會 flush（token 已過期）。Identity Gate 只在 page reload 時出現。User 體驗：點 sync → 沒反應 → refresh → 被踢回登入 → 以為 sync 把他登出了。
 
 **修復位置：**
-1. `src/lib/sync/local-sync-queue-adapter.ts:361-363` — 設 AUTH_REQUIRED 錯誤並發 CustomEvent
-2. `src/components/nexus/nexus-ops.tsx` — sync counter 應顯示 conflict/error 數量，不只一個 Synced badge
+1. `src/lib/sync/local-sync-queue-adapter.ts:389-402` — flushOperation 在 accessToken 為 null 時 patch 操作為 failed (AUTH_REQUIRED) 並 dispatch `nexus:sync-auth-required` CustomEvent
+2. `src/components/nexus/nexus-ops.tsx:1852-1877` — 監聽 `nexus:sync-auth-required` 事件，觸發 Supabase session re-check → 如 session 為空則呼叫 handleSessionUser(null) → 自然觸發 Identity Gate
+
+**修復狀態：** ✅ **Fixed (V33, de1519b)** — sync queue auth failure 不再 silent；session 過期時會觸發 Identity Gate 而非無聲 return
 
 ### P0-3：Artifact Vault — 9 筆 inline base64（最大 4.4MB）
 
@@ -275,7 +277,7 @@ Riverflow 不理會 quality 參數，但 composer 仍顯示 standard/high/ultra 
 ```
 R1 ✅ P0-3 artifact base64 — DONE (afa19cb)
 R2 ✅ P0-1 sync conflict cleanup — DONE (72149a1)
-R3 ⬜ P0-2 sync retry auth gate — add CustomEvent bridge
+R3 ✅ P0-2 sync retry auth gate — DONE (de1519b)
 ```
 
 每輪流程：plan → 實作 → `npx tsc` → commit → deploy → 驗證

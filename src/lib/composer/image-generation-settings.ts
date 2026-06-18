@@ -47,14 +47,17 @@ export const WORKSPACE_COMPOSER_IMAGE_ASPECT_RATIO_OPTIONS = [
 export const WORKSPACE_COMPOSER_IMAGE_MODEL_OPTIONS = [
   {
     label: "GPT Image 2",
+    supportsQuality: true,
     value: "img2",
   },
   {
     label: "Riverflow v2.5 Fast",
+    supportsQuality: false,
     value: "riverflow-v2.5-fast",
   },
 ] as const satisfies ReadonlyArray<{
   label: string;
+  supportsQuality: boolean;
   value: string;
 }>;
 

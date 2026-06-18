@@ -603,29 +603,33 @@ export function WorkspaceChatComposerShell({
                         </option>
                       ))}
                     </select>
-                    <select
-                      aria-label="Image quality"
-                      className="max-w-[76px] bg-transparent uppercase outline-none"
-                      data-testid="workspace-image-quality-select"
-                      onChange={(event) => {
-                        if (!agent) {
-                          return;
-                        }
+                    {WORKSPACE_COMPOSER_IMAGE_MODEL_OPTIONS.find(
+                      (option) => option.value === imageSettings.modelId,
+                    )?.supportsQuality !== false ? (
+                      <select
+                        aria-label="Image quality"
+                        className="max-w-[76px] bg-transparent uppercase outline-none"
+                        data-testid="workspace-image-quality-select"
+                        onChange={(event) => {
+                          if (!agent) {
+                            return;
+                          }
 
-                        onImageSettingsChange(agent.id, {
-                          ...imageSettings,
-                          quality: event.currentTarget
-                            .value as WorkspaceComposerImageSettings["quality"],
-                        });
-                      }}
-                      value={imageSettings.quality}
-                    >
-                      {WORKSPACE_COMPOSER_IMAGE_QUALITY_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                          onImageSettingsChange(agent.id, {
+                            ...imageSettings,
+                            quality: event.currentTarget
+                              .value as WorkspaceComposerImageSettings["quality"],
+                          });
+                        }}
+                        value={imageSettings.quality}
+                      >
+                        {WORKSPACE_COMPOSER_IMAGE_QUALITY_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : null}
                     <select
                       aria-label="Image aspect ratio"
                       className="max-w-[62px] bg-transparent uppercase outline-none"

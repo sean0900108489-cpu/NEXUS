@@ -1847,6 +1847,33 @@ export function NexusOps() {
     };
   }, [handleSessionUser]);
 
+  // P0-2: Listen for sync queue auth failure and trigger session re-check.
+  // When the sync queue detects an expired token, it dispatches
+  // nexus:sync-auth-required. We re-check the Supabase session here so
+  // onAuthStateChange fires SIGNED_OUT if the session is genuinely gone,
+  // which triggers the natural Identity Gate flow.
+  useEffect(() => {
+    let mounted = true;
+
+    const handleSyncAuthRequired = () => {
+      void ensureNexusSupabaseClientConfigured()
+        .then(() => getNexusSupabaseClient().auth.getSession())
+        .then(({ data }) => {
+          if (mounted && !data.session) {
+            handleSessionUser(null);
+          }
+        })
+        .catch(() => undefined);
+    };
+
+    window.addEventListener("nexus:sync-auth-required", handleSyncAuthRequired);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener("nexus:sync-auth-required", handleSyncAuthRequired);
+    };
+  }, [handleSessionUser]);
+
   useEffect(() => {
     setStreamMode(effectiveStreamMode);
   }, [effectiveStreamMode, setStreamMode]);

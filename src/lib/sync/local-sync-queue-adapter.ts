@@ -387,6 +387,17 @@ export class LocalSyncQueueAdapter {
       typeof window !== "undefined" ? await resolveLocalQueueAccessToken() : undefined;
 
     if (typeof window !== "undefined" && !accessToken) {
+      await this.patchOperation(clientMutationId, {
+        lastErrorCode: "AUTH_REQUIRED",
+        lastErrorMessage:
+          "Sync flush was blocked because the session token is unavailable. Please sign in again.",
+        status: "failed",
+      });
+      window.dispatchEvent(
+        new CustomEvent("nexus:sync-auth-required", {
+          detail: { clientMutationId, reason: "accessToken_expired" },
+        }),
+      );
       return;
     }
 

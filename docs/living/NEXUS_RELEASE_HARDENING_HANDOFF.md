@@ -172,16 +172,20 @@
 STREAM: live、ROLE: owner 等 badge 直接顯示在 workspace dropdown 和 agent settings sidebar。沒有任何 debug gate。
 
 **修復位置：**
-1. `src/components/nexus/nexus-panels.tsx:263-282` — 從 workspace menu 移除 STREAM/ROLE badge
+1. `src/components/nexus/nexus-panels.tsx:255-258` — 從 workspace menu 移除 STREAM/ROLE badge（同時清理 dead props: streamMode, workspaceRole）
 2. `src/components/nexus/nexus-agent-settings-sidebar.tsx:822-829` — sidebar 保留（診斷用途）
+
+**修復狀態：** ✅ **Fixed (V33p3, 5ec7192)**
 
 ### P1-3：Composer Quality 對所有模型顯示
 
 Riverflow 不理會 quality 參數，但 composer 仍顯示 standard/high/ultra 選項。
 
 **修復位置：**
-1. `src/lib/composer/image-generation-settings.ts` — 為 riverflow 標記 `supportsQuality: false`
-2. `src/components/nexus/workspace-chat-composer-shell.tsx:607-625` — 隱藏不支援 quality 的模型
+1. `src/lib/composer/image-generation-settings.ts:49-62` — WORKSPACE_COMPOSER_IMAGE_MODEL_OPTIONS 加入 `supportsQuality` 欄位（img2=true, riverflow=false）
+2. `src/components/nexus/workspace-chat-composer-shell.tsx:606-633` — quality select 以 `supportsQuality !== false` 條件渲染
+
+**修復狀態：** ✅ **Fixed (V33p3, 00d98d6)**
 
 ### P1-4：4 個 stuck agent_tasks
 
@@ -284,8 +288,8 @@ R3 ✅ P0-2 sync retry auth gate — DONE (de1519b)
 
 ### Phase 3: P1 UX 修復（可以合併）
 ```
-R4 ⬜ P1-1 workspace menu STREAM/ROLE cleanup
-R5 ⬜ P1-2 composer quality hide for riverflow
+R4 ✅ P1-1 workspace menu STREAM/ROLE cleanup — DONE (5ec7192)
+R5 ✅ P1-2 composer quality hide for riverflow — DONE (00d98d6)
 ```
 
 ### Phase 4: 技術債收斂（回歸前）

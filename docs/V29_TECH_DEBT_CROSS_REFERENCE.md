@@ -1,4 +1,18 @@
-# V29 迭代技術債交叉對照
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  DEPRECATED — 2026-06-18 (V33)                              ║
+  ║                                                              ║
+  ║  This file is a historical snapshot from V29. Many issues    ║
+  ║  marked "尚未處理" have since been fixed in V30-V33.         ║
+  ║                                                              ║
+  ║  AUTHORITY SOURCE for current tech debt status:              ║
+  ║  → docs/living/NEXUS_TECH_DEBT_LEDGER.md                    ║
+  ║                                                              ║
+  ║  Do not use this file for planning or auditing.              ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
+
+# V29 迭代技術債交叉對照 (DEPRECATED)
 
 > 生成時間：2026-06-17  
 > 來源：6 份技術債子代理報告 × V29 實際修復  

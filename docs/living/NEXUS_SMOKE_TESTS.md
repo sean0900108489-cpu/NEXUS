@@ -73,6 +73,22 @@
 
 ---
 
+## V33 Release Hardening Regression (2026-06-18)
+
+| # | Check | Status | Round |
+|---|---|---|---|
+| 1 | `npx tsc --noEmit` | ✅ PASS | R9 |
+| 2 | P0 boundaries zero diff (chat, agent-stream, brain-draft, image-gen, model-catalog, plan-config, image-adapter) | ✅ PASS | R9 |
+| 3 | Core file sizes: nexus-ops 3,684 (+8), nexus-store 4,679 (0), image-adapter 401 (0) | ✅ PASS | R9 |
+| 4 | Artifact `uploadBase64ContentUrl` accessToken chain complete (service → route → context) | ✅ PASS | R9 |
+| 5 | `toVaultRecord` base64 contentUrl guard | ✅ PASS | R9 |
+| 6 | `compactAllConflictedOperations` exported + wired in `retryFailedSyncOperation` | ✅ PASS | R9 |
+| 7 | `nexus:sync-auth-required` CustomEvent pair (dispatch + listener) | ✅ PASS | R9 |
+| 8 | TopBar no longer receives `streamMode` / `workspaceRole` props | ✅ PASS | R9 |
+| 9 | Composer quality select conditional on `supportsQuality` | ✅ PASS | R9 |
+
+---
+
 ## Test Methodology
 
 - Backend: direct Node.js fetch against production `https://nexus-swart-ten.vercel.app`

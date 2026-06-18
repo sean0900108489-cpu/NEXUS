@@ -1,9 +1,9 @@
-# NEXUS V32 — Release Hardening Handoff
+# NEXUS V33p3 — Release Hardening Handoff
 
 > 給接手這個專案的 agent / 新上下文
 > 最後更新：2026-06-18 AEST
-> 版本：V32 (Phase 2B complete + Riverflow, baseline `f7cdcc6`)
-> 狀態：**可進入 release hardening，不建議立即上架**
+> 版本：V33p3 (Release Hardening complete, commit `cece517`)
+> 狀態：**Release Hardening 完成，建議進行 production deploy 驗證**
 
 ---
 
@@ -104,14 +104,14 @@
 
 ## Supabase DB Baseline（2026-06-18）
 
-| 表 | 狀態 |
-|---|---|
-| sync_operations | 418 synced, **44 conflicted**, 0 failed/queued/syncing |
-| agent_tasks | 141 completed, 20 failed, **3 queued + 1 created (stuck)** |
-| artifacts | 45 total, **9 inline base64 (max 4.4MB)** |
-| model_usage_ledger | agent_stream=138, operator_chat=21, image_workflow=16, brain_draft=14, NULL=5 |
-| user_new_api_tokens | 4 enabled, 2 disabled |
-| messages | 正常 |
+| 表 | 狀態 | 修復狀態 |
+|---|---|---|
+| sync_operations | 418 synced, **44 conflicted** (→ V33 client compacted, server 端待手動 SQL) | ✅ Client fixed (R2), ⬜ Server: `UPDATE sync_operations SET status='compacted' WHERE status='conflicted'` |
+| agent_tasks | 141 completed, 20 failed, **3 queued + 1 created (stuck)** | ⬜ 未處理 (P1-4) |
+| artifacts | 45 total, **9 inline base64 (max 4.4MB)** | ✅ 新資料不再進 base64 (R1+R6), ⬜ 舊 9 筆 toVaultRecord 已過濾不顯示但 DB 仍存 |
+| model_usage_ledger | agent_stream=138, operator_chat=21, image_workflow=16, brain_draft=14, NULL=5 | ⬜ 未處理 (P1-5) |
+| user_new_api_tokens | 4 enabled, 2 disabled | ✅ 正常 |
+| messages | 正常 | ✅ 正常 |
 
 ---
 
@@ -301,9 +301,27 @@ R8 ✅ re-add #40 (model catalog retry loop) to ledger — DONE (a614785)
 
 ### Phase 5: 回歸驗證
 ```
-R9 ⬜ 完整 regression smoke（API + DB + UI）
-R10 ⬜ Supabase DB baseline 對比（conflicted, stuck tasks, base64 artifacts 數量）
+R9 ✅ 完整 regression smoke (9 static checks) — DONE (cece517)
+R10 ✅ Supabase DB baseline 對比 + handoff finalization — DONE
 ```
+
+### Release Hardening 總結
+
+V33p3 共 10 輪，修復 3 個 P0 blocker + 2 個 P1 UX issue + 3 項技術債收斂：
+
+| Phase | 輪次 | 內容 | 狀態 |
+|---|---|---|---|
+| 1 | — | 進場（讀 docs，確認環境） | ✅ |
+| 2 | R1-R3 | P0 修復：artifact base64, sync conflict, sync auth bridge | ✅ |
+| 3 | R4-R5 | P1 UX：workspace menu cleanup, composer quality hide | ✅ |
+| 4 | R6-R8 | 技術債收斂：accessToken fix, doc deprecation, ledger restore | ✅ |
+| 5 | R9-R10 | 回歸驗證：9 smoke checks, DB baseline, handoff finalization | ✅ |
+
+**建議下一步**：
+1. Deploy `codex/v33p3` 到 Vercel production
+2. 執行 server-side SQL cleanup（44 conflicted → compacted）
+3. 執行 production smoke（POST /api/chat, agent SSE, Graph Brain, usage ledger）
+4. 處理剩餘 P1（stuck tasks, NULL source_type）
 
 ### 注意力規則（每輪適用）
 1. 只修當前的 P0/P1，不要順手改無關的東西

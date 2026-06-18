@@ -147,9 +147,11 @@
 **影響：** 效能（list API payload 可達 20MB+）、UI（base64 亂碼顯示在 artifact list）、DB 肥大。
 
 **修復位置：**
-1. `src/lib/backend/artifacts/artifact-repository.ts:297-319` — toVaultRecord() 從 list response 移除 contentUrl
-2. `src/components/nexus/nexus-agent-settings-sidebar.tsx:1301,1385` — fallback chain 移除 contentUrl
-3. `src/lib/backend/artifacts/artifact-materializer.ts:23-60` — 檢測 base64，upload 到 Supabase Storage
+1. `src/lib/backend/artifacts/artifact-materializer.ts:27-83` — 新增 `uploadBase64ContentUrl()` 方法，在 materialize 之前 decode base64 + upload 到 Supabase Storage
+2. `src/lib/backend/artifacts/artifact-service.ts:58-66,144-152` — `createArtifact()` 和 `createVersion()` 在 materialize 前呼叫 uploadBase64ContentUrl
+3. `src/lib/backend/artifacts/artifact-repository.ts:380-383` — `toVaultRecord()` 從 list response 移除 base64 contentUrl（belt-and-suspenders）
+
+**修復狀態：** ✅ **Fixed (V33, 54ba52b)** — base64 data URL 在寫入 DB 前自動 upload 到 Supabase Storage；現有 9 筆 base64 records 已透過 toVaultRecord 隱藏
 
 ### P1-1：Duplicate Agent 誤報 — 實際上 code 正確
 

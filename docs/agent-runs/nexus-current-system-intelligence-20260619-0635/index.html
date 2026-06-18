@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS // Current System Intelligence — 2026-06-19</title>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface2: #1a1a26;
+  --border: #2a2a3a;
+  --text: #e0e0e8;
+  --text2: #9090a0;
+  --accent: #6366f1;
+  --accent2: #818cf8;
+  --green: #22c55e;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --cyan: #06b6d4;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 48px 0 32px;
+  position: sticky; top:0; z-index:100;
+  backdrop-filter: blur(20px);
+}
+header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; }
+header h1 span { color: var(--accent2); }
+header p { color: var(--text2); margin-top: 4px; font-size: 0.9rem; }
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 28px 0 0;
+}
+.metric-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+.metric-card .value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent2);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.metric-card .label {
+  font-size: 0.75rem;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 6px;
+}
+section { padding: 48px 0; }
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title .dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot-green { background: var(--green); }
+.dot-amber { background: var(--amber); }
+.dot-red { background: var(--red); }
+.dot-cyan { background: var(--cyan); }
+.arch-diagram {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.8rem;
+  line-height: 1.8;
+  overflow-x: auto;
+  white-space: pre;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+th {
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+tr:hover td { background: rgba(99,102,241,0.04); }
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.tag-green { background: rgba(34,197,94,0.15); color: var(--green); }
+.tag-amber { background: rgba(245,158,11,0.15); color: var(--amber); }
+.tag-red { background: rgba(239,68,68,0.15); color: var(--red); }
+.tag-cyan { background: rgba(6,182,212,0.15); color: var(--cyan); }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; }
+.card p, .card ul { color: var(--text2); font-size: 0.82rem; }
+.card ul { padding-left: 18px; }
+.card ul li { margin-bottom: 4px; }
+.risk-bar {
+  height: 6px;
+  border-radius: 3px;
+  margin-top: 8px;
+  background: var(--border);
+  overflow: hidden;
+}
+.risk-fill { height: 100%; border-radius: 3px; }
+.risk-high { background: var(--red); width: 85%; }
+.risk-mid { background: var(--amber); width: 55%; }
+.risk-low { background: var(--green); width: 25%; }
+footer {
+  border-top: 1px solid var(--border);
+  padding: 24px 0;
+  color: var(--text2);
+  font-size: 0.75rem;
+  text-align: center;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+}
+.badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+.badge-green::before { background: var(--green); }
+.badge-red::before { background: var(--red); }
+.badge-amber::before { background: var(--amber); }
+
+// Responsive
+@media (max-width: 768px) {
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .card-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>NEXUS <span>// AI OPS</span></h1>
+    <p>Current System Intelligence Report · 2026-06-19 · AEST</p>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="value">119K</div>
+        <div class="label">总代码行数</div>
+      </div>
+      <div class="metric-card">
+        <div class="value">60</div>
+        <div class="label">路由/页面</div>
+      </div>
+      <div class="metric-card">
+        <div class="value">23</div>
+        <div class="label">NEXUS 组件</div>
+      </div>
+      <div class="metric-card">
+        <div class="value">111</div>
+        <div class="label">后端服务</div>
+      </div>
+      <div class="metric-card">
+        <div class="value">26</div>
+        <div class="label">数据库表</div>
+      </div>
+      <div class="metric-card">
+        <div class="value">28</div>
+        <div class="label">迁移文件</div>
+      </div>
+      <div class="metric-card">
+        <div class="value">81+</div>
+        <div class="label">已实现功能</div>
+      </div>
+      <div class="metric-card">
+        <div class="value">16</div>
+        <div class="label">超大文件(>1K行)</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+<!-- Architecture -->
+<section>
+  <div class="section-title"><span class="dot dot-cyan"></span> 系统架构 / System Architecture</div>
+  <div class="arch-diagram">
+┌─────────────────────────────────────────────────────────┐
+│                   BROWSER (CLIENT)                       │
+│                                                         │
+│  React UI ──▶ Zustand Store ──▶ NexusApiClient          │
+│  (NexusOps)    (4679 行)        (Fetch 封装)            │
+│                     │                                   │
+│              ┌──────▼──────┐                            │
+│              │  IndexedDB   │  本地离线持久化             │
+│              │  (idb-keyval)│                            │
+│              └─────────────┘                            │
+│                                                         │
+└──────────────────────┬──────────────────────────────────┘
+                       │ HTTP
+┌──────────────────────▼──────────────────────────────────┐
+│                NEXT.JS SERVER                            │
+│                                                         │
+│  57 个 API Routes ──▶ 111 个后端服务模块                  │
+│                                                         │
+│  /api/chat ──▶ NewApiChatService ──▶ 外部 AI Provider    │
+│  /api/v1/agents/* ──▶ MessageHistoryService             │
+│  /api/v1/sync/* ──▶ SyncQueueService                    │
+│  /api/v1/workspaces/* ──▶ WorkspaceSessionService        │
+│  /api/v1/tools/* ──▶ ToolExecutionService               │
+│  /api/v1/observability/* ──▶ ObservabilityService        │
+│  (全部 57 个路由)                                        │
+│                                                         │
+└──────────────────────┬──────────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────────┐
+│            SUPABASE (PostgreSQL)                         │
+│                                                         │
+│  26 张数据库表 · 1 个存储桶 · 3 个 RPC 函数               │
+│                                                         │
+│  身份 │ 状态 │ 消息 │ 运行时 │ 工具 │ 内容                │
+│  同步 │ 部署 │ 可观测 │ 计费 │ 审计                        │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+  </div>
+</section>
+
+<!-- Capability Status -->
+<section>
+  <div class="section-title"><span class="dot dot-green"></span> 能力状态 / Capability Status</div>
+  <table>
+    <thead>
+      <tr><th>能力域 / Capability</th><th>层级</th><th>状态</th><th>已实现功能</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Chat</strong> 智能对话</td><td>L1</td><td><span class="tag tag-green">IMPLEMENTED</span></td><td>多模型支持、流式响应、推理控制、Verbosity、温度调节、智能体分支、上下文压缩、历史分页、记忆块</td></tr>
+      <tr><td><strong>Image</strong> 图像生成</td><td>L1</td><td><span class="tag tag-amber">MOCK</span></td><td>DALL-E 适配器、Mock 回退、生成资产存储、多图像模型</td></tr>
+      <tr><td><strong>Video</strong> 视频生成</td><td>L1</td><td><span class="tag tag-amber">MOCK</span></td><td>视频模型目录（Sora, Runway, Veo），真实适配器未实现</td></tr>
+      <tr><td><strong>Sandbox</strong> 沙箱</td><td>L3</td><td><span class="tag tag-green">IMPLEMENTED</span></td><td>HTML/CSS/JS 实时预览、代码编辑、本地渲染</td></tr>
+      <tr><td><strong>Search</strong> 搜索</td><td>L4</td><td><span class="tag tag-green">IMPLEMENTED</span></td><td>文件系统扫描器、Web Surfer（Jina.ai）</td></tr>
+      <tr><td><strong>Audio</strong> 音频</td><td>L4</td><td><span class="tag tag-red">NOT IMPLEMENTED</span></td><td>保留位：TTS、转录</td></tr>
+      <tr><td><strong>Data Analysis</strong> 数据分析</td><td>L4</td><td><span class="tag tag-red">NOT IMPLEMENTED</span></td><td>保留位：表格分析、图表、数据库查询</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Large Files Risk -->
+<section>
+  <div class="section-title"><span class="dot dot-red"></span> 超大文件风险 / Oversized Files</div>
+  <table>
+    <thead>
+      <tr><th>文件</th><th>行数</th><th>风险等级</th><th>建议拆分</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>src/components/style-engine/nexus-style-lab.tsx</code></td>
+        <td><strong>5,965</strong></td>
+        <td><span class="tag tag-red">HIGH</span></td>
+        <td>拆分为 ~8 个子组件：SkinPack, AssetPack, LayoutPreset, Preview, Import/Export, Recipe, Budget</td>
+      </tr>
+      <tr>
+        <td><code>src/store/nexus-store.ts</code></td>
+        <td><strong>4,679</strong></td>
+        <td><span class="tag tag-red">HIGH</span></td>
+        <td>按 Zustand Slice 模式拆分为 ~8 个切片：agent, workspace, sync, auth, notebook, prompt, workflow, style</td>
+      </tr>
+      <tr>
+        <td><code>src/components/nexus/nexus-ops.tsx</code></td>
+        <td><strong>3,684</strong></td>
+        <td><span class="tag tag-red">HIGH</span></td>
+        <td>拆分为 ~6 个子模块：LayoutManager, ViewRouter, StyleApplicator, AgentManager, SnapshotManager</td>
+      </tr>
+      <tr><td><code>src/components/nexus/nexus-graph.tsx</code></td><td>2,409</td><td><span class="tag tag-amber">MEDIUM</span></td><td>Node/Edge/Macro 分离</td></tr>
+      <tr><td><code>src/components/nexus/nexus-agent-settings-sidebar.tsx</code></td><td>1,987</td><td><span class="tag tag-amber">MEDIUM</span></td><td>Model/Memory/Tool/Profile 分区</td></tr>
+      <tr><td><code>src/lib/style-engine/v2-validators.ts</code></td><td>1,863</td><td><span class="tag tag-amber">MEDIUM</span></td><td>按验证目标拆分</td></tr>
+      <tr><td><code>src/lib/nexus-types.ts</code></td><td>1,854</td><td><span class="tag tag-amber">MEDIUM</span></td><td>按领域拆分类型定义</td></tr>
+      <tr><td><code>src/components/nexus/workflow-pro/workflow-pro-surface.tsx</code></td><td>1,721</td><td><span class="tag tag-amber">MEDIUM</span></td><td>Node/Canvas/Debug 分离</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Database Tables -->
+<section>
+  <div class="section-title"><span class="dot dot-cyan"></span> 数据库表清单 / Database Tables (26)</div>
+  <div class="card-grid">
+    <div class="card">
+      <h3>🔐 身份与权限 / Identity & Auth</h3>
+      <ul>
+        <li>workspaces — 工作区</li>
+        <li>workspace_memberships — 成员角色</li>
+        <li>workspace_agents — 智能体分配</li>
+        <li>agent_profiles — 智能体模板</li>
+        <li>permission_audit_logs — 权限审计</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>💬 消息与历史 / Messaging</h3>
+      <ul>
+        <li>messages — 聊天消息（分页）</li>
+        <li>agent_memory_records — 智能体记忆</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>⚡ 运行时 / Runtime</h3>
+      <ul>
+        <li>agent_runtime_sessions — 运行时会话</li>
+        <li>agent_tasks — 智能体任务</li>
+        <li>agent_runtime_events — 运行时事件</li>
+        <li>tool_runs — 工具运行控制</li>
+        <li>tool_permissions — 工具权限</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>📦 内容与资产 / Content</h3>
+      <ul>
+        <li>artifacts — 生成资产</li>
+        <li>artifact_references — 资产引用图</li>
+        <li>notebooks — 数据板（墓碑支持）</li>
+        <li>prompts — 提示词库（墓碑支持）</li>
+        <li>prompt_revisions — 提示词修订历史</li>
+        <li>workflow_templates — 工作流蓝图</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>🔄 同步与运维 / Sync & Ops</h3>
+      <ul>
+        <li>workspace_snapshots — 云端快照</li>
+        <li>workspace_state_entities — 投影缓存</li>
+        <li>sync_operations — 同步操作队列</li>
+        <li>api_idempotency_keys — API 幂等性</li>
+        <li>feature_flags — 功能标志</li>
+        <li>deployment_checks — 部署检查</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>📊 可观测与计费 / O11y & Billing</h3>
+      <ul>
+        <li>system_events — 系统事件</li>
+        <li>usage_metrics — 使用量指标</li>
+        <li>model_usage_ledger — 模型用量账本</li>
+        <li>user_new_api_tokens — 用户 API Token</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Extension Layer -->
+<section>
+  <div class="section-title"><span class="dot dot-green"></span> 扩展层 / Extension Layer</div>
+  <table>
+    <thead>
+      <tr><th>注册表 / Registry</th><th>条目数</th><th>位置</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Provider Registry</strong> 提供商注册表</td><td>8</td><td><code>src/lib/nexus-registry.ts</code> · PROVIDER_REGISTRY</td></tr>
+      <tr><td><strong>Model Catalog</strong> 模型目录</td><td>22</td><td><code>src/lib/nexus-registry.ts</code> · NEXUS_MODEL_CATALOG</td></tr>
+      <tr><td><strong>Capability Registry</strong> 能力注册表</td><td>7</td><td><code>src/lib/nexus-registry.ts</code> · CAPABILITY_REGISTRY</td></tr>
+      <tr><td><strong>Graph Node Registry</strong> 图节点注册表</td><td>8</td><td><code>src/lib/nexus-registry.ts</code> · GRAPH_NODE_REGISTRY</td></tr>
+      <tr><td><strong>Tool Slot Registry</strong> 工具槽注册表</td><td>6</td><td><code>src/lib/nexus-registry.ts</code> · TOOL_SLOT_REGISTRY</td></tr>
+      <tr><td><strong>Tool Executor Registry</strong> 执行器注册表</td><td>3</td><td><code>src/lib/nexus-registry.ts</code> · TOOL_EXECUTOR_REGISTRY</td></tr>
+      <tr><td><strong>Memory Compression Profiles</strong> 压缩配置</td><td>1</td><td><code>src/lib/nexus-registry.ts</code></td></tr>
+      <tr><td><strong>Handoff Rule Registry</strong> 切换规则</td><td>0 (空)</td><td><code>src/lib/nexus-registry.ts</code> · HANDOFF_RULE_REGISTRY</td></tr>
+      <tr><td><strong>Workflow Runtime Lite Registry</strong></td><td>—</td><td><code>src/lib/workflow-runtime-lite/registry.ts</code></td></tr>
+      <tr><td><strong>Attachment Compiler Registry</strong></td><td>—</td><td><code>src/lib/attachments/attachment-compiler-registry.ts</code></td></tr>
+      <tr><td><strong>Style Engine Recipe Registry</strong></td><td>—</td><td><code>src/lib/style-engine/</code></td></tr>
+      <tr><td><strong>Feature Flags</strong> 功能标志</td><td>DB-backed</td><td><code>src/lib/backend/deployment/feature-flag-service.ts</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Migration Timeline -->
+<section>
+  <div class="section-title"><span class="dot dot-cyan"></span> 迁移时间线 / Migration Timeline (28 files)</div>
+  <table>
+    <thead>
+      <tr><th>日期</th><th>迁移</th><th>主要内容</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>2026-05-25</td><td>00000</td><td>workflow_templates 表</td></tr>
+      <tr><td>2026-05-27</td><td>00000 - 13000</td><td>安全边界 RLS 基础、API 幂等性、工作区云状态、持久同步队列、部署安全门、智能体运行时、工具执行控制、资产层、可观测事件脊柱、历史数据分页、数据板/提示词墓碑、消息历史基表、提示词修订</td></tr>
+      <tr><td>2026-05-29</td><td>01000</td><td>Artifacts + Tool Runs 线上一致性修复</td></tr>
+      <tr><td>2026-06-01</td><td>01000 - 04000</td><td>V20 认证边界 RLS 加固、客户端授权加固、线上模式一致性修复、授权收紧</td></tr>
+      <tr><td>2026-06-03</td><td>01000 - 02000</td><td>V22 RLS 策略性能加固、工作区会话 RPC</td></tr>
+      <tr><td>2026-06-04</td><td>081500 - 102000</td><td>V22 工作区会话查看者可读修复、生成图像存储、权限审计 RPC</td></tr>
+      <tr><td>2026-06-09</td><td>001000</td><td>model_usage_ledger 模型用量账本</td></tr>
+      <tr><td>2026-06-10</td><td>002000, 043000</td><td>user_new_api_tokens 用户 Token、用量账本源类型与可空 Token</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- API Route Summary -->
+<section>
+  <div class="section-title"><span class="dot dot-green"></span> API 路由分组 / API Route Groups (57 routes)</div>
+  <div class="card-grid">
+    <div class="card"><h3>Agent (8)</h3><ul><li>memory, messages, archive, stream, tasks CRUD, cancel, memory-compress</li></ul></div>
+    <div class="card"><h3>Artifact (6)</h3><ul><li>CRUD, archive, asset, references, versions</li></ul></div>
+    <div class="card"><h3>Workspace (4)</h3><ul><li>session, state, recovery (by-id, latest)</li></ul></div>
+    <div class="card"><h3>Sync (4)</h3><ul><li>operations, retry, cancel, status</li></ul></div>
+    <div class="card"><h3>Tool Run (4)</h3><ul><li>CRUD, cancel, confirm</li></ul></div>
+    <div class="card"><h3>Observability (3)</h3><ul><li>events, metrics, traces</li></ul></div>
+    <div class="card"><h3>Deployment (2)</h3><ul><li>checks, feature flags</li></ul></div>
+    <div class="card"><h3>Other (26)</h3><ul><li>chat, agent-stream, image-gen, memory-compress, model-gateway, models, predictive-intel, system-status, tools(2), workflow-pro, providers(2), admin(2), health, public-config, notebooks, prompts, workflows(2)</li></ul></div>
+  </div>
+</section>
+
+<!-- Store Actions Summary -->
+<section>
+  <div class="section-title"><span class="dot dot-green"></span> Store 操作概要 / Store Actions (~100)</div>
+  <div class="card-grid">
+    <div class="card"><h3>工作区生命周期 (9)</h3><ul><li>materializeDefaultWorkspace, saveWorkspaceSnapshot, createWorkspace, switchWorkspace, bindActiveWorkspaceToCloudSession, renameWorkspace, exportActiveWorkspace, importWorkspace, applyWorkspaceRecoveryState</li></ul></div>
+    <div class="card"><h3>智能体生命周期 (12)</h3><ul><li>spawnAgent, branchAgent, duplicateAgent, removeAgent, focusAgent, selectAgent, minimizeAgent, restoreAgent, toggleMaximizeAgent, minimizeAll, restoreAll, arrangeAgents, updateLayout</li></ul></div>
+    <div class="card"><h3>智能体配置 (7)</h3><ul><li>updateAgentProfile, updateAgentCallsign, setAgentProfileLocked, updateAgentMission, updateAgentModel, updateAgentModelSettings, updateAgentTemplateProfile</li></ul></div>
+    <div class="card"><h3>消息流 (5)</h3><ul><li>addMessage, appendToMessage, appendReasoningToMessage, finishMessage, setAgentStatus</li></ul></div>
+    <div class="card"><h3>认证与凭据 (13)</h3><ul><li>login, logout, setGlobalApiKey, setGlobalBaseUrl, setProviderApiKey, setProviderBaseUrl, setProviderVerificationStatus, lockProviderCredential, unlockProviderCredential, deleteProviderCredential, lockVault, unlockVault, deleteApiKey</li></ul></div>
+    <div class="card"><h3>数据与缓存 (15+)</h3><ul><li>artifacts, historicalMessages, prompts CRUD, notebooks CRUD, sandbox code/url, memory blocks, checkpoints, transactions, canvas macros</li></ul></div>
+  </div>
+</section>
+
+<!-- Unknowns -->
+<section>
+  <div class="section-title"><span class="dot dot-red"></span> 未知项 / Key Unknowns</div>
+  <table>
+    <thead><tr><th>#</th><th>未知项</th><th>影响</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>L2 Handoff 行为</strong> — HANDOFF_RULE_REGISTRY 为空</td><td>智能体间路由行为未定义</td></tr>
+      <tr><td>2</td><td><strong>Audio 和 Data Analysis 未实现</strong></td><td>两个完整能力域待开发</td></tr>
+      <tr><td>3</td><td><strong>数据库类型手动维护</strong> — 非 Supabase CLI 自动生成</td><td>可能偏离实际模式</td></tr>
+      <tr><td>4</td><td><strong>撤销深度未限制</strong> — zundo 未配置边界</td><td>长期会话内存风险</td></tr>
+      <tr><td>5</td><td><strong>离线体验完整性</strong> — 离线时功能边界不明</td><td>用户体验不确定性</td></tr>
+      <tr><td>6</td><td><strong>Workflow Pro vs Runtime Lite 关系</strong></td><td>两个并行工作流系统</td></tr>
+      <tr><td>7</td><td><strong>实时协作基础设施</strong> — 未发现 WebSocket</td><td>多用户场景不支持</td></tr>
+      <tr><td>8</td><td><strong>安全威胁模型</strong> — RLS 策略存在但模型不明确</td><td>安全审计不完整</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <p>NEXUS Current System Intelligence · Generated 2026-06-19 06:35 AEST · Branch: agent/nexus-current-system-intelligence-20260619</p>
+    <p style="margin-top:4px">Evidence from static file analysis only · No production Supabase connected · 12 maps + context pack + HTML report</p>
+  </div>
+</footer>
+
+</body>
+</html>

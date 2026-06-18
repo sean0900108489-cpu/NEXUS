@@ -248,6 +248,11 @@ import { AgentTemplateProfilePanel, LeftDock, ModelTuningSelect, AgentModelTunin
 import { AgentSettingsSidebar, ModelInfoPanel } from "@/components/nexus/nexus-agent-settings-sidebar";
 import { WorkspaceStyleControlsPanel } from "@/components/nexus/workspace-style-controls-panel";
 import { WorkspaceChatComposerShell } from "@/components/nexus/workspace-chat-composer-shell";
+import {
+  useAgentSettingsSidebarProps,
+  useRightDockProps,
+  useTopBarProps,
+} from "@/components/nexus/use-nexus-connector-props";
 
 const Rnd = dynamic(() => import("react-rnd").then((module) => module.Rnd), {
   ssr: false,
@@ -3274,6 +3279,94 @@ export function NexusOps() {
     ],
   );
 
+  const topBarProps = useTopBarProps({
+    activeRightPanel,
+    activeWorkspaceId,
+    activeWorkspaceReadOnly,
+    activeWorkspaceReadOnlyMessage,
+    activeWorkspaceRole,
+    effectiveStreamMode,
+    fileInputRef,
+    notice,
+    setNotice,
+    setPaletteOpen,
+    setActiveRightPanel,
+    syncQueueStatus,
+    viewMode,
+    workspaceName,
+    workspaceRecoveryItems,
+    workspaceRecoveryLoading,
+    workspaces,
+    blockReadOnlyWorkspaceMutation,
+    createWorkspace,
+    handleExport,
+    openMacroComposer,
+    recoverSelectedWorkspace,
+    renameWorkspace,
+    retryFailedSyncOperation,
+    saveWorkspaceSnapshot,
+    setViewMode,
+    spawnAgent,
+    switchWorkspace,
+    focusAgent,
+  });
+
+  const rightDockProps = useRightDockProps(
+    activeRightPanel,
+    setActiveRightPanel,
+  );
+
+  const agentSettingsSidebarProps = useAgentSettingsSidebarProps({
+    activeAgent,
+    activeRightPanel,
+    activeWorkspaceId,
+    agents,
+    artifactError,
+    artifactVault,
+    artifactsLoading,
+    authVault,
+    branchingSettings,
+    effectiveStreamMode,
+    macroError,
+    macros,
+    macrosLoading,
+    modelCatalog,
+    modelCatalogPlan,
+    notebooksCache,
+    openNotebookIds,
+    selectedAgent,
+    workspace,
+    workspaceName,
+    workspaceStylePayloadReview,
+    workflowProRunHistoryGroups,
+    workflowProRuntimeEvidence,
+    workflowRuntimeLite,
+    blockReadOnlyWorkspaceMutation,
+    createNotebook,
+    focusAgent,
+    handleCopyArtifact,
+    handleDownloadArtifact,
+    handleSaveWorkspaceThemeStyleControls,
+    handleSpawnMacro,
+    logout,
+    refreshArtifacts,
+    refreshMacros,
+    retryWorkflowRuntimeTraceSync,
+    runTool,
+    selectAgent,
+    setActiveRightPanel,
+    setAgentProfileLocked,
+    setNotice,
+    spawnAgent,
+    toggleNotebookOpen,
+    updateAgentCallsign,
+    updateAgentMission,
+    updateAgentModel,
+    updateAgentProfile,
+    updateBranchingSettings,
+    updateMemoryBlock,
+  });
+
   if (!authChecked || !authVault.user) {
     return <AuthScreen checked={authChecked} onAuthenticated={handleSessionUser} />;
   }
@@ -3300,77 +3393,7 @@ export function NexusOps() {
         className="flex min-h-dvh min-w-0 shrink-0 flex-col"
         data-testid="nexus-workspace-primary-page"
       >
-        <TopBar
-          activeWorkspaceId={activeWorkspaceId}
-          notice={notice}
-          onCreateWorkspace={() => {
-            const nextWorkspace = createWorkspace();
-            setNotice(`Workspace ${nextWorkspace.name} created and synced to cloud.`);
-          }}
-          onExport={handleExport}
-          onImport={() => {
-            if (blockReadOnlyWorkspaceMutation("Import workspace")) {
-              return;
-            }
-
-            fileInputRef.current?.click();
-          }}
-          onOpenPalette={() => setPaletteOpen(true)}
-          onRenameWorkspace={(name) => {
-            if (blockReadOnlyWorkspaceMutation("Rename workspace")) {
-              return;
-            }
-
-            renameWorkspace(name);
-            setNotice("Workspace renamed");
-          }}
-          onRecoverWorkspace={recoverSelectedWorkspace}
-          onSwitchWorkspace={(workspaceId) => {
-            const target = workspaces.find((candidate) => candidate.id === workspaceId);
-            switchWorkspace(workspaceId);
-            setNotice(`${target?.name ?? "Workspace"} active`);
-          }}
-          onToggleSettings={() =>
-            setActiveRightPanel((current) => (current ? null : "providers"))
-          }
-          onSave={() => {
-            if (blockReadOnlyWorkspaceMutation("Save workspace snapshot")) {
-              return;
-            }
-
-            saveWorkspaceSnapshot();
-            setNotice("Workspace snapshot saved");
-          }}
-          onSaveMacro={() => {
-            if (blockReadOnlyWorkspaceMutation("Pack workspace macro")) {
-              return;
-            }
-
-            openMacroComposer();
-          }}
-          onSpawn={() => {
-            if (blockReadOnlyWorkspaceMutation("Spawn agent")) {
-              return;
-            }
-
-            const id = spawnAgent();
-            focusAgent(id);
-            setNotice("Agent spawned");
-          }}
-          onSyncRetry={retryFailedSyncOperation}
-          settingsOpen={Boolean(activeRightPanel)}
-          streamMode={effectiveStreamMode}
-          syncStatus={syncQueueStatus}
-          viewMode={viewMode}
-          workspaceRecoveryItems={workspaceRecoveryItems}
-          workspaceRecoveryLoading={workspaceRecoveryLoading}
-          workspaceReadOnly={activeWorkspaceReadOnly}
-          workspaceReadOnlyMessage={activeWorkspaceReadOnlyMessage}
-          workspaceRole={activeWorkspaceRole ?? undefined}
-          onSetViewMode={setViewMode}
-          workspaceName={workspaceName}
-          workspaces={workspaces}
-        />
+        <TopBar {...topBarProps} />
 
         <NexusOpsBodyFrame>
         <motion.aside
@@ -3641,12 +3664,7 @@ export function NexusOps() {
 
         </NexusOpsBodyFrame>
 
-        <RightFloatingDock
-          activePanel={activeRightPanel}
-          onTogglePanel={(panel) =>
-            setActiveRightPanel((current) => (current === panel ? null : panel))
-          }
-        />
+        <RightFloatingDock {...rightDockProps} />
 
         <CommandPalette
           commands={commands}
@@ -3684,79 +3702,7 @@ export function NexusOps() {
           ) : null}
         </AnimatePresence>
 
-        <AgentSettingsSidebar
-          activeAgent={activeAgent}
-          activePanel={activeRightPanel ?? "providers"}
-          agents={agents}
-          agent={selectedAgent}
-          authVault={authVault}
-          modelCatalog={modelCatalog}
-          modelCatalogPlan={modelCatalogPlan}
-          artifactError={artifactError}
-          artifacts={artifactVault}
-          artifactsLoading={artifactsLoading}
-          workspaceId={workspace?.id ?? activeWorkspaceId}
-          workspaceName={workspace?.name}
-          workflowRunHistoryGroups={workflowProRunHistoryGroups}
-          workflowRuntimeLite={workflowRuntimeLite}
-          workflowRuntimeEvidence={workflowProRuntimeEvidence}
-          macroError={macroError}
-          macros={macros}
-          macrosLoading={macrosLoading}
-          notebooks={notebooksCache}
-          openNotebookIds={openNotebookIds}
-          branchingSettings={branchingSettings}
-          onAddAgent={(type) => {
-            const id = spawnAgent(undefined, type);
-            focusAgent(id);
-            setNotice(`${type.toUpperCase()} agent spawned`);
-          }}
-          onClose={() => setActiveRightPanel(null)}
-          onCopyArtifact={handleCopyArtifact}
-          onCreateNotebook={() => {
-            const id = createNotebook();
-            setNotice("Global datapad created");
-            return id;
-          }}
-          onDownloadArtifact={handleDownloadArtifact}
-          onRefreshArtifacts={refreshArtifacts}
-          onRefreshMacros={refreshMacros}
-          onRetryWorkflowRuntimeTraceSync={async (runId) => {
-            if (blockReadOnlyWorkspaceMutation("Workflow trace resync")) {
-              return;
-            }
-
-            setNotice(`Workflow trace resync started: ${runId}`);
-            const run = await retryWorkflowRuntimeTraceSync(runId);
-
-            if (!run) {
-              setNotice(`Workflow trace resync failed: missing run ${runId}`);
-              return;
-            }
-
-            setNotice(
-              run.traceSync?.status === "synced"
-                ? `Workflow trace resynced: ${runId}`
-                : `Workflow trace resync ${run.traceSync?.status ?? "unknown"}: ${run.traceSync?.error ?? runId}`,
-            );
-          }}
-          onSpawnMacro={handleSpawnMacro}
-          onToggleNotebook={toggleNotebookOpen}
-          onLogout={logout}
-          onRunTool={runTool}
-          onSelectAgent={selectAgent}
-          onUpdateMemory={updateMemoryBlock}
-          onUpdateAgentCallsign={updateAgentCallsign}
-          onUpdateAgentProfile={updateAgentProfile}
-          onSetAgentProfileLocked={setAgentProfileLocked}
-          onUpdateMission={updateAgentMission}
-          onSaveWorkspaceThemeStyleControls={handleSaveWorkspaceThemeStyleControls}
-          onUpdateBranchingSettings={updateBranchingSettings}
-          onUpdateAgentModel={updateAgentModel}
-          open={Boolean(activeRightPanel)}
-          streamMode={effectiveStreamMode}
-          workspaceStylePayloadReview={workspaceStylePayloadReview}
-        />
+        <AgentSettingsSidebar {...agentSettingsSidebarProps} />
       </section>
 
     </NexusOpsOuterShellFrame>

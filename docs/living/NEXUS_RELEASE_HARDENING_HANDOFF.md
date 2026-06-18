@@ -294,9 +294,9 @@ R5 ✅ P1-2 composer quality hide for riverflow — DONE (00d98d6)
 
 ### Phase 4: 技術債收斂（回歸前）
 ```
-R6 ⬜ fix uploadBase64ContentUrl accessToken propagation
-R7 ⬜ deprecate V29_TECH_DEBT_CROSS_REFERENCE.md
-R8 ⬜ re-add #40 (model catalog retry loop) to ledger
+R6 ✅ fix uploadBase64ContentUrl accessToken propagation — DONE (bb66b40)
+R7 ✅ deprecate V29_TECH_DEBT_CROSS_REFERENCE.md — DONE (ad68497)
+R8 ✅ re-add #40 (model catalog retry loop) to ledger — DONE (a614785)
 ```
 
 ### Phase 5: 回歸驗證

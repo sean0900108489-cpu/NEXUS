@@ -72,12 +72,8 @@ describe("NexusOps extraction map markers", () => {
     expect(bodyFrameSource).toContain(
       "var(--nexus-body-frame-bg, rgb(18 18 18))",
     );
-    expect(source).toContain("const workspaceBodyMaterialStyle");
-    expect(source).toContain("...workspaceBodyMaterialStyle");
-    expect(source).toContain("style={workspaceBodyMaterialStyle}");
-    expect(
-      source.match(/style=\{workspaceBodyMaterialStyle\}/g)?.length ?? 0,
-    ).toBeGreaterThanOrEqual(2);
+    expect(source).not.toContain("const workspaceBodyMaterialStyle");
+    expect(source).not.toContain("style={workspaceBodyMaterialStyle}");
     expect(outerShellFrameSource).toContain('className="nexus-shell');
     expect(rightFloatingDockFrameSource).toContain(
       'aria-label="Right workspace tools"',

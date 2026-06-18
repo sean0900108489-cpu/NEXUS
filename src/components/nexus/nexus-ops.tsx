@@ -3,29 +3,22 @@
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Archive,
-  BrainCircuit,
   Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Command,
   Copy,
-  Database,
   Download,
   ExternalLink,
   FileUp,
   Fullscreen,
   GitBranch,
-  Home,
   Layers3,
   Lock,
   Maximize2,
   Menu,
   Minimize2,
-  PanelRight,
-  Pencil,
-  PackageCheck,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
@@ -83,9 +76,6 @@ import type {
   AgentTemplate,
   CreateArtifactRequest,
   IAuthVault,
-  NexusReasoningDetail,
-  NexusReasoningEffort,
-  NexusVerbosity,
   NexusAgent,
   NexusWorkspace,
   NotebookRecord,
@@ -3771,91 +3761,4 @@ export function NexusOps() {
 
     </NexusOpsOuterShellFrame>
   );
-}
-
-const workspaceBodyMaterialStyle = {
-  background: "var(--nexus-body-frame-bg, rgb(18 18 18))",
-  borderColor:
-    "var(--nexus-layout-panel-border, var(--nexus-panel-border, rgb(255 255 255 / 0.1)))",
-  boxShadow:
-    "inset 0 1px 0 rgb(255 255 255 / 0.04), var(--nexus-layout-panel-shadow, 0 18px 60px rgb(0 0 0 / 0.2))",
-} satisfies CSSProperties;
-
-const rightDockPanels: Array<{
-  id: RightDockPanelId;
-  label: string;
-  detail: string;
-  icon: ReactNode;
-}> = [
-  {
-    id: "intel",
-    label: "Intel",
-    detail: "Selected agent mission, memory, tools, and telemetry",
-    icon: <PanelRight className="h-4 w-4" />,
-  },
-  {
-    id: "providers",
-    label: "Providers",
-    detail: "Provider credentials, base URLs, and live verification",
-    icon: <Lock className="h-4 w-4" />,
-  },
-  {
-    id: "models",
-    label: "Models",
-    detail: "Per-agent model routing and capability recognition",
-    icon: <BrainCircuit className="h-4 w-4" />,
-  },
-  {
-    id: "theme",
-    label: "Theme",
-    detail: "Workspace style controls",
-    icon: <Settings className="h-4 w-4" />,
-  },
-  {
-    id: "memory",
-    label: "Memory",
-    detail: "Branching defaults and workspace datapads",
-    icon: <Database className="h-4 w-4" />,
-  },
-  {
-    id: "artifacts",
-    label: "Artifacts",
-    detail: "Artifact vault references",
-    icon: <Archive className="h-4 w-4" />,
-  },
-  {
-    id: "generations",
-    label: "生成紀錄",
-    detail: "Generated file asset records",
-    icon: <PackageCheck className="h-4 w-4" />,
-  },
-  {
-    id: "workflows",
-    label: "Workflows",
-    detail: "Macro blueprint vault",
-    icon: <Workflow className="h-4 w-4" />,
-  },
-  {
-    id: "account",
-    label: "Account",
-    detail: "Operator identity and logout",
-    icon: <Home className="h-4 w-4" />,
-  },
-];
-
-function getRightDockPanelMeta(panel: RightDockPanelId) {
-  return rightDockPanels.find((candidate) => candidate.id === panel) ?? rightDockPanels[1];
-}
-
-
-function getReasoningPreview(content: string, detail: NexusReasoningDetail | undefined) {
-  if (detail === "low") {
-    return content.length > 480 ? `${content.slice(0, 480)}...` : content;
-  }
-
-  if (detail === "medium") {
-    return content.length > 1200 ? `${content.slice(0, 1200)}...` : content;
-  }
-
-  return content;
 }

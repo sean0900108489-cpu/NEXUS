@@ -26,13 +26,13 @@ describe("Nexus production Theme panel live style controls", () => {
   );
   const controlsPanelSource = extractFunctionSource(
     source,
-    "WorkspaceStyleControlsPanel",
-    "getReasoningPreview",
+    "createWorkspaceAttachmentMessagePayload",
+    "export function NexusOps",
   );
   const presetDefinitionsSource = extractConstSource(
     source,
     "workspaceStylePresetDefinitions",
-    "function WorkspaceStyleControlsPanel",
+    "export function NexusOps",
   );
   const topBarSource = extractFunctionSource(panelsSource, "TopBar", "MacroComposerModal");
   const topMenuActionSource = extractFunctionSource(

@@ -16,6 +16,7 @@ export type OpenAiCompatibleImageGenerationPayload = {
 };
 
 const OPENAI_COMPATIBLE_MODEL_BY_PRODUCT_ID: Record<string, string> = {
+  "riverflow-v2.5-fast": "sourceful/riverflow-v2.5-fast",
   img2: "gpt-image-2",
 };
 

@@ -154,6 +154,8 @@ export async function POST(request: Request) {
   }
 
   const toolName = getString(payload.toolName, "Image Adapter");
+  const adapterModel =
+    productGate?.model?.new_api_model ?? agent.model;
 
   try {
     const adapter = apiKey
@@ -162,7 +164,7 @@ export async function POST(request: Request) {
           apiKey,
           baseUrl,
           imageSettings,
-          model: agent.model,
+          model: adapterModel,
           prompt,
           toolName,
         })

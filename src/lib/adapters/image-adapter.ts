@@ -3,7 +3,13 @@ import type { AgentMediaArtifact, IToolExecutor, NexusAgent } from "@/lib/nexus-
 import type { WorkspaceComposerImageSettings } from "@/lib/composer/image-generation-settings";
 import { buildOpenAiCompatibleImageGenerationPayload } from "@/lib/media/image-generation-adapter-map";
 
-export type ImageAdapterMode = "mock" | "dall-e";
+/** Models that produce images via /v1/chat/completions instead of /v1/images/generations */
+const CHAT_COMPLETIONS_IMAGE_MODEL_PREFIXES = ["sourceful/"];
+
+/** Models that need explicit modalities: ["image", "text"] in chat/completions */
+const MODELS_WITH_MODALITIES = ["google/"];
+
+export type ImageAdapterMode = "mock" | "dall-e" | "chat-completions";
 
 export type ImageAdapterAgent = Pick<
   NexusAgent,
@@ -44,6 +50,20 @@ export type ImageAdapterResult = {
   media: AgentMediaArtifact;
   mode: ImageAdapterMode;
   revisedPrompt?: string;
+};
+
+type OpenAIChatCompletionImageResponse = {
+  choices?: Array<{
+    message?: {
+      content?: string | null;
+      images?: Array<{
+        image_url?: {
+          url?: string;
+        };
+        b64_json?: string;
+      }>;
+    };
+  }>;
 };
 
 type OpenAIImageGenerationResponse = {
@@ -168,6 +188,15 @@ export class DalleImageAdapter implements IToolExecutor {
     }
 
     const model = this.request.model.trim() || "dall-e-3";
+
+    const useChatCompletions = CHAT_COMPLETIONS_IMAGE_MODEL_PREFIXES.some(
+      (prefix) => model.startsWith(prefix),
+    );
+
+    if (useChatCompletions) {
+      return this.executeViaChatCompletions(model, prompt);
+    }
+
     const requestBody: Record<string, unknown> = {
       ...buildOpenAiCompatibleImageGenerationPayload({
         model,
@@ -230,6 +259,80 @@ export class DalleImageAdapter implements IToolExecutor {
       media,
       mode: "dall-e",
       revisedPrompt,
+    };
+  }
+
+  private async executeViaChatCompletions(
+    model: string,
+    prompt: string,
+  ): Promise<ImageAdapterResult> {
+    const needsModalities = MODELS_WITH_MODALITIES.some(
+      (prefix) => model.startsWith(prefix),
+    );
+
+    const requestBody: Record<string, unknown> = {
+      model,
+      messages: [
+        { role: "user" as const, content: prompt },
+      ],
+      max_tokens: 4096,
+    };
+
+    if (needsModalities) {
+      requestBody.modalities = ["image", "text"];
+    }
+
+    // Pass aspect_ratio if available from imageSettings
+    const aspectRatio = this.request.imageSettings?.aspectRatio;
+    if (aspectRatio) {
+      requestBody.image_config = { aspect_ratio: aspectRatio };
+    }
+
+    const response = await fetch(
+      `${normalizeImageBaseUrl(this.request.baseUrl)}/chat/completions`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.request.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      },
+    );
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => response.statusText);
+      throw new Error(detail || `Chat completions image endpoint returned ${response.status}.`);
+    }
+
+    const payload = (await response.json()) as OpenAIChatCompletionImageResponse;
+    const message = payload.choices?.[0]?.message;
+    const imageData = message?.images?.[0];
+    const imageUrl =
+      imageData?.image_url?.url ??
+      (imageData?.b64_json ? `data:image/png;base64,${imageData.b64_json}` : "");
+
+    if (!imageUrl) {
+      throw new Error("Chat completions image endpoint returned no image.");
+    }
+
+    const media: AgentMediaArtifact = {
+      type: "image",
+      prompt,
+      createdAt: new Date().toISOString(),
+      url: imageUrl,
+    };
+
+    return {
+      content: [
+        `${this.request.toolName} generated an image through ${model}.`,
+        `Prompt: ${prompt}`,
+        `Image URL: ${imageUrl}`,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      media,
+      mode: "chat-completions",
     };
   }
 }

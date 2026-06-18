@@ -184,6 +184,22 @@ export const SERVER_MODEL_CATALOG: ProductModelCatalogEntry[] = [
     supports_tools: false,
     supports_vision: true,
   },
+  {
+    best_for: ["image generation", "fast visual concepts", "social media"],
+    default_max_tokens: 0,
+    description: "Sourceful Riverflow v2.5 Fast image generation model.",
+    enabled: true,
+    id: "riverflow-v2.5-fast",
+    label: "Riverflow v2.5 Fast",
+    max_output_tokens: 0,
+    min_plan: "Free",
+    modality: "image",
+    new_api_model: "sourceful/riverflow-v2.5-fast",
+    provider_family: "Gemini",
+    supports_reasoning: false,
+    supports_tools: false,
+    supports_vision: true,
+  },
 ];
 
 export function normalizeUserPlan(value: unknown): UserPlan {

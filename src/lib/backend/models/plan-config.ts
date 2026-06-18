@@ -9,7 +9,7 @@ export type ProductPlanConfig = {
 
 export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
   Free: {
-    allowedModelIds: ["gpt-4o-mini", "deepseek-chat"],
+    allowedModelIds: ["gpt-4o-mini", "deepseek-chat", "riverflow-v2.5-fast"],
     monthlyPoints: 100_000,
   },
   Basic: {
@@ -20,6 +20,7 @@ export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
       "gpt-4o",
       "gemini-2.5-flash",
       "img2",
+      "riverflow-v2.5-fast",
     ],
     monthlyPoints: 1_000_000,
   },
@@ -34,6 +35,7 @@ export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
       "gemini-2.5-pro",
       "claude-sonnet-4-20250514",
       "img2",
+      "riverflow-v2.5-fast",
     ],
     monthlyPoints: 5_000_000,
   },
@@ -48,6 +50,7 @@ export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
       "gemini-2.5-pro",
       "claude-sonnet-4-20250514",
       "img2",
+      "riverflow-v2.5-fast",
     ],
     monthlyPoints: 20_000_000,
   },
@@ -63,6 +66,7 @@ const MODEL_POINT_MULTIPLIERS: Record<string, number> = {
   "gpt-4o": 5,
   "gpt-4o-mini": 1,
   img2: 1,
+  "riverflow-v2.5-fast": 1,
 };
 
 const IMAGE_GENERATION_FIXED_POINTS: Record<string, number> = {

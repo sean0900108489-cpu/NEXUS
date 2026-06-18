@@ -14,10 +14,10 @@ import {
   Settings, Unlock, Workflow, X,
 } from "lucide-react";
 
-import { cx, GraphNode, IconButton, streamModeTone, SyncBadge, TopMenuAction } from "@/components/nexus/nexus-utils";
+import { cx, GraphNode, IconButton, SyncBadge, TopMenuAction } from "@/components/nexus/nexus-utils";
 import { NexusOpsRightFloatingDockFrame } from "@/components/nexus/nexus-ops-right-floating-dock-frame";
 import { NexusOpsTopBarFrame } from "@/components/nexus/nexus-ops-top-bar-frame";
-import type { NexusAgent, NexusWorkspace, StreamMode, WorkspaceRecoveryListItem, WorkspaceViewMode, AgentProfileUpdate } from "@/lib/nexus-types";
+import type { NexusAgent, NexusWorkspace, WorkspaceRecoveryListItem, WorkspaceViewMode, AgentProfileUpdate } from "@/lib/nexus-types";
 import type { QueueStatusProjection } from "@/lib/sync/local-sync-queue-adapter";
 
 import { hasToolExecutor } from "@/lib/tool-executors";
@@ -136,14 +136,12 @@ export function TopBar({
   onSyncRetry,
   onToggleSettings,
   settingsOpen,
-  streamMode,
   syncStatus,
   viewMode,
   workspaceRecoveryItems,
   workspaceRecoveryLoading,
   workspaceReadOnly,
   workspaceReadOnlyMessage,
-  workspaceRole,
   onSetViewMode,
 }: {
   activeWorkspaceId: string;
@@ -163,14 +161,12 @@ export function TopBar({
   onSyncRetry: () => void;
   onToggleSettings: () => void;
   settingsOpen: boolean;
-  streamMode: StreamMode;
   syncStatus: QueueStatusProjection;
   viewMode: WorkspaceViewMode;
   workspaceRecoveryItems: WorkspaceRecoveryListItem[];
   workspaceRecoveryLoading: boolean;
   workspaceReadOnly: boolean;
   workspaceReadOnlyMessage: string;
-  workspaceRole?: WorkspaceSessionRole;
   onSetViewMode: (mode: WorkspaceViewMode) => void;
 }) {
   const [renaming, setRenaming] = useState(false);
@@ -260,27 +256,6 @@ export function TopBar({
                     </div>
                     <div className="mt-1 truncate text-xs text-neutral-500">{notice}</div>
                   </div>
-                  <span
-                    className={cx(
-                      "shrink-0 border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em]",
-                      streamModeTone(streamMode),
-                    )}
-                  >
-                    STREAM: {streamMode}
-                  </span>
-                  {workspaceRole ? (
-                    <span
-                      className={cx(
-                        "shrink-0 border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em]",
-                        workspaceReadOnly
-                          ? "border-neutral-300/35 bg-neutral-300/10 text-neutral-100"
-                          : "border-white/10 bg-white/[0.045] text-neutral-300",
-                      )}
-                      title={workspaceReadOnly ? workspaceReadOnlyMessage : "Workspace is editable"}
-                    >
-                      ROLE: {workspaceRole}
-                    </span>
-                  ) : null}
                 </div>
 
                 {renaming ? (

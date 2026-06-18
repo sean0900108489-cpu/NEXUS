@@ -4440,14 +4440,14 @@ export const useNexusStore = create<NexusStore>()(
     }),
       {
         equality: temporalStatesAreEqual,
-        limit: 50,
+        limit: 20,
         partialize: partializeTemporalState,
       },
     ),
     {
       name: PERSIST_STORAGE_NAME,
       storage: createJSONStorage(() => indexedDbStateStorage),
-      version: 15,
+      version: 16,
       onRehydrateStorage: () => (state) => {
         state?.materializeDefaultWorkspace();
         logHydratedMemoryState(state);
@@ -4546,11 +4546,8 @@ export const useNexusStore = create<NexusStore>()(
       },
       partialize: (state) => ({
         activeWorkspaceId: state.activeWorkspaceId,
-        artifactVault: state.artifactVault,
         authVault: prepareAuthVaultForLocalPersistence(state.authVault),
-        deletedNotebooksCache: state.deletedNotebooksCache,
         notebookDrafts: state.notebookDrafts,
-        notebooksCache: state.notebooksCache,
         openNotebookIds: state.openNotebookIds,
         workspaces: prepareWorkspacesForLocalPersistence(state.workspaces),
         selectedAgentId: state.selectedAgentId,

@@ -224,3 +224,83 @@ Riverflow 不理會 quality 參數，但 composer 仍顯示 standard/high/ultra 
 - SSE handler extraction (P2)
 - Message ref-only store (P2)
 - reasoningContent persist bloat (P2)
+
+
+---
+
+## V33 Tech Debt Audit (2026-06-18, commit afa19cb)
+
+審計結果來自子代理 Popper 的完整掃描。關鍵發現：
+
+### V33-R1 引入的新技術債
+
+| # | 問題 | 嚴重度 | 檔案 |
+|---|---|---|---|
+| | `uploadBase64ContentUrl` 的 `accessToken` 參數未從 call site 傳遞 — comment 說 "passed through context" 但 `ArtifactServiceContext` 沒有 accessToken 欄位 | **Medium** | `artifact-service.ts:61-66, 147-151` |
+| | `artifact-materializer.ts` 原本是純內容處理層，現在直接依賴 Supabase client 和 image-generation bucket 常數 — layer violation | Low | `artifact-materializer.ts` |
+| | `image-adapter.ts:278` — `max_tokens: 4096` 硬編碼，應從 model catalog 取得 | Low | `image-adapter.ts` |
+| | `image-adapter.ts:7,10` — `["sourceful/"]`, `["google/"]` prefix lists 硬編碼，應改為 catalog-driven | Low（已在 ledger） | `image-adapter.ts` |
+
+### 重新發現的舊技術債
+
+| # | 問題 | 狀態 |
+|---|---|---|
+| 40 | Model catalog retry loop 無上限重試 (`nexus-ops.tsx:1278`) | 從 ledger 被移除但從未修復 — **需加回** |
+| — | `docs/V29_TECH_DEBT_CROSS_REFERENCE.md` 仍標記 #21, #22 為"尚未處理"（實際已在 V30 修復） | 該文件應加 deprecated header |
+
+### 單檔肥大檢查（Phase 2B vs V33-R1）
+
+| 檔案 | Phase 2B | V33-R1 | Delta |
+|---|---|---|---|
+| nexus-ops.tsx | 3,676 | 3,676 | **0** |
+| nexus-store.ts | 4,679 | 4,679 | **0** |
+| image-adapter.ts | 401 | 401 | **0** |
+| artifact-materializer.ts | 151 | 210 | +59 |
+| artifact-service.ts | 301 | 324 | +23 |
+| artifact-repository.ts | 453 | 459 | +6 |
+
+核心檔案零 drift。Artifact 模組 +88 行全部來自 P0-3 修復。
+
+
+## 給新 Agent 的建議地圖
+
+### Phase 1: 進場（5 分鐘）
+1. 讀 `docs/living/NEXUS_RELEASE_HARDENING_HANDOFF.md` ← 這份文件
+2. 確認自己在 `codex/v33` 分支
+3. 確認 `npx tsc --noEmit` pass
+4. 檢查 `git log --oneline -5` 理解最新狀態
+
+### Phase 2: P0 修復（核心，逐個來）
+```
+R1 ✅ P0-3 artifact base64 — DONE (afa19cb)
+R2 ⬜ P0-1 sync conflict cleanup — compact 44 conflicted
+R3 ⬜ P0-2 sync retry auth gate — add CustomEvent bridge
+```
+
+每輪流程：plan → 實作 → `npx tsc` → commit → deploy → 驗證
+
+### Phase 3: P1 UX 修復（可以合併）
+```
+R4 ⬜ P1-1 workspace menu STREAM/ROLE cleanup
+R5 ⬜ P1-2 composer quality hide for riverflow
+```
+
+### Phase 4: 技術債收斂（回歸前）
+```
+R6 ⬜ fix uploadBase64ContentUrl accessToken propagation
+R7 ⬜ deprecate V29_TECH_DEBT_CROSS_REFERENCE.md
+R8 ⬜ re-add #40 (model catalog retry loop) to ledger
+```
+
+### Phase 5: 回歸驗證
+```
+R9 ⬜ 完整 regression smoke（API + DB + UI）
+R10 ⬜ Supabase DB baseline 對比（conflicted, stuck tasks, base64 artifacts 數量）
+```
+
+### 注意力規則（每輪適用）
+1. 只修當前的 P0/P1，不要順手改無關的東西
+2. 不要碰：handleSend、SSE contract、P0 API routes、riverflow model、plan config
+3. 每輪修完跑 `wc -l` 確認核心檔案沒有 drift
+4. Commit message 標明 round 編號和 P0/P1 編號
+5. 修完更新本文件的對應狀態

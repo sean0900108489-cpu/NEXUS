@@ -173,6 +173,9 @@ import {
   summarizeWorkflowProRuntime,
 } from "@/lib/workflow-pro/capability-inventory";
 import {
+  useWorkflowProReadModel,
+} from "@/lib/workflow-pro/read-model";
+import {
   createWorkflowProRuntimeEvidenceManifest,
   createWorkflowProRuntimeEvidenceReport,
   type WorkflowProRuntimeEvidenceReport,
@@ -1343,64 +1346,27 @@ export function NexusOps() {
       }
     }
   }, [agents, modelCatalog, updateAgentModel]);
-  const workflowProCapabilityInventory = useMemo(
-    () => createWorkflowProCapabilityInventory(),
-    [],
-  );
-  const workflowProFileNodeContract = useMemo(
-    () => createWorkflowProFileNodeContract(),
-    [],
-  );
-  const workflowProRuntimeSummary = useMemo(
-    () => summarizeWorkflowProRuntime(workflowRuntimeLite),
-    [workflowRuntimeLite],
-  );
-  const workflowProRuntimeEvidence = useMemo(
-    () => createWorkflowProRuntimeEvidenceReport(workflowRuntimeLite),
-    [workflowRuntimeLite],
-  );
-  const workflowProRunHistoryGroups = useMemo(
-    () => createWorkflowProRunHistoryGroupsReport(workflowRuntimeLite),
-    [workflowRuntimeLite],
-  );
-  const workflowProContractDraft = useMemo(
-    () =>
-      createWorkflowProContractDraftFromRuntimeLite({
-        inventory: workflowProCapabilityInventory,
-        runtimeLite: workflowRuntimeLite,
-        workspaceId: activeWorkspaceId,
-        workspaceName: workspace?.name ?? "NEXUS // AI OPS",
-      }),
-    [activeWorkspaceId, workflowProCapabilityInventory, workflowRuntimeLite, workspace?.name],
-  );
-  const workflowProActiveContract =
-    workflowProImportReview?.status === "accepted"
-      ? workflowProImportReview.contract
-      : workflowProContractDraft;
-  const workflowBrainContext = useMemo(
-    () =>
-      createWorkflowBrainContextPack({
-        contract: workflowProActiveContract,
-        runtimeSummary: workflowProRuntimeSummary,
-      }),
-    [workflowProActiveContract, workflowProRuntimeSummary],
-  );
-  const workflowProApplyPlan = useMemo(
-    () =>
-      createWorkflowProApplyPlan({
-        contract: workflowProActiveContract,
-        currentRuntimeLite: workflowRuntimeLite,
-      }),
-    [workflowProActiveContract, workflowRuntimeLite],
-  );
-  const workflowProProposalDiff = useMemo(
-    () =>
-      createWorkflowProProposalDiff({
-        applyPlan: workflowProApplyPlan,
-        currentRuntimeLite: workflowRuntimeLite,
-      }),
-    [workflowProApplyPlan, workflowRuntimeLite],
-  );
+
+  const workflowProReadModel = useWorkflowProReadModel({
+    activeWorkspaceId,
+    workspaceName: workspace?.name ?? "NEXUS // AI OPS",
+    workflowRuntimeLite,
+    workflowProImportReview: workflowProImportReview ?? null,
+  });
+
+  const {
+    capabilityInventory: workflowProCapabilityInventory,
+    fileNodeContract: workflowProFileNodeContract,
+    runtimeSummary: workflowProRuntimeSummary,
+    runtimeEvidence: workflowProRuntimeEvidence,
+    runHistoryGroups: workflowProRunHistoryGroups,
+    contractDraft: workflowProContractDraft,
+    activeContract: workflowProActiveContract,
+    brainContext: workflowBrainContext,
+    applyPlan: workflowProApplyPlan,
+    proposalDiff: workflowProProposalDiff,
+  } = workflowProReadModel;
+
   const handleWorkflowProContractExport = useCallback(() => {
     const validation = validateWorkflowProContractDraft(workflowProActiveContract);
 

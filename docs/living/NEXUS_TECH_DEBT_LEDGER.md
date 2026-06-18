@@ -1,7 +1,7 @@
 # NEXUS Tech Debt Ledger
 
 > 最後更新：2026-06-18 AEST
-> 版本：V31 (all fixes merged to `main`, latest: `e7d41c1`)
+> 版本：V32 (Phase 2A State Diet, commit `52ca0ac`)
 
 ---
 
@@ -33,11 +33,11 @@
 
 ### P2 — Architecture
 
-| # | 問題 | 來源報告 |
+| # | 問題 | 狀態 |
 |---|---|---|
-| 18 | SSE handler in NexusOps root | Report 01 |
-| 19 | Zundo undo stack stores full workspace | Report 02 |
-| 20 | reasoningContent persist bloat | Report 02 |
+| 18 | SSE handler in NexusOps root | 未處理 |
+| 19 | Zundo undo stack stores full workspace | ✅ Fixed — limit 50→20 (Phase 2A, commit `52ca0ac`) |
+| 20 | reasoningContent persist bloat | 未處理
 | 28 | Macro save no local queue | Report 05 |
 | 33 | NexusOps god object | Report 01 |
 | 34 | Ephemeral UI in document state | Report 02 |

@@ -1,7 +1,7 @@
 # NEXUS Current State
 
 > 最後更新：2026-06-18 AEST
-> 版本：V31 (all fixes merged to `main`, latest: `e7d41c1`)
+> 版本：V32 (Phase 2A State Diet, commit `52ca0ac`)
 
 ---
 
@@ -13,8 +13,8 @@
 | GitHub | `sean0900108489-cpu/NEXUS` |
 | Branch | `main` (production), `codex/v30` (dev, PR #6 merged) |
 | Deploy | Vercel (auto from main) |
-| Latest deploy commit | `e7d41c1` |
-| Deploy status | ✅ READY (6/6 post-deploy smoke PASS) |
+| Latest deploy commit | `52ca0ac` |
+| Deploy status | ✅ READY (Phase 2A State Diet deployed) |
 
 ## Backend
 
@@ -31,6 +31,8 @@
 | Stream abort | ✅ Fixed (signal passthrough + reader cancel) |
 | Sync counter | ✅ Fixed (stale syncing recovery) |
 | Graph delete confirm | ✅ Fixed (window.confirm) |
+| Zundo snapshot limit | ✅ 50→20 (Phase 2A, commit `52ca0ac`) |
+| IndexedDB persist | ✅ Stripped artifactVault, notebooksCache, deletedNotebooksCache (Phase 2A) |
 
 ## V30 → V31 Fixes (all merged to main)
 

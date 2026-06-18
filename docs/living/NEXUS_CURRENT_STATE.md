@@ -1,7 +1,7 @@
 # NEXUS Current State
 
 > 最後更新：2026-06-18 AEST
-> 版本：V32 (Phase 2A State Diet, commit `52ca0ac`)
+> 版本：V32 (Phase 2A complete, commit `fbfbd48`)
 
 ---
 
@@ -13,8 +13,8 @@
 | GitHub | `sean0900108489-cpu/NEXUS` |
 | Branch | `main` (production), `codex/v30` (dev, PR #6 merged) |
 | Deploy | Vercel (auto from main) |
-| Latest deploy commit | `52ca0ac` |
-| Deploy status | ✅ READY (Phase 2A State Diet deployed) |
+| Latest deploy commit | `fbfbd48` |
+| Deploy status | ✅ READY (Phase 2A: State Diet + Dead Code Removal) |
 
 ## Backend
 

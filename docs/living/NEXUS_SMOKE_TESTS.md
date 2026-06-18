@@ -1,7 +1,7 @@
 # NEXUS Smoke Tests
 
 > 最後更新：2026-06-18 AEST
-> 版本：V31 (deployed `e7d41c1`)
+> 版本：V32 (Phase 2A complete, commit `fbfbd48`)
 
 ---
 

@@ -526,7 +526,8 @@ async function recordAgentStreamUsage({
   const outputTokens = estimateTextTokens(assistantOutput);
   const totalTokens = inputTokens + outputTokens;
 
-  await createUsageLedgerRepository().insert({
+  const usageLedger = createUsageLedgerRepository();
+  const usageRecord = await usageLedger.insert({
     credits: estimateModelCredits(modelId, totalTokens),
     conversationId: payload.sessionId ?? null,
     errorCode: null,
@@ -542,6 +543,22 @@ async function recordAgentStreamUsage({
     totalTokens,
     userId,
   });
+
+  // Wallet deduction
+  const walletRepo = createWalletRepository();
+  await walletRepo.createTransaction({
+    amount: -(estimateModelCredits(modelId, totalTokens)),
+    metadata: {
+      estimatedCredits: estimateModelCredits(modelId, totalTokens),
+      modelId,
+      operationType: "chat_completion",
+    },
+    operationId: usageRecord.id,
+    requestId,
+    source: "chat_completion",
+    type: "deduction",
+    userId,
+  }).catch(() => undefined);
 }
 
 async function recordAgentStreamFailureUsage({

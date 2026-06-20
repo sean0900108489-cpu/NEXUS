@@ -126,7 +126,7 @@ export async function executeAiGatewayChatRequest(input: {
     );
     const credits = estimateModelCredits(model.id, result.totalTokens);
 
-    await ledger.insert({
+    const usageRecord = await ledger.insert({
       credits,
       conversationId,
       errorCode: null,
@@ -142,6 +142,22 @@ export async function executeAiGatewayChatRequest(input: {
       totalTokens: result.totalTokens,
       userId,
     });
+
+    // Wallet deduction: record credit consumption
+    const walletRepo = createWalletRepository();
+    await walletRepo.createTransaction({
+      amount: -credits,
+      metadata: {
+        estimatedCredits: credits,
+        modelId: model.id,
+        operationType: "chat_completion",
+      },
+      operationId: usageRecord.id,
+      requestId: input.requestId,
+      source: "chat_completion",
+      type: "deduction",
+      userId,
+    }).catch(() => undefined);
 
     return {
       content: result.content,

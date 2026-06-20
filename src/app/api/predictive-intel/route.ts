@@ -202,20 +202,37 @@ export async function POST(request: Request) {
     const finalSuggestions =
       suggestions.length === 3 ? suggestions : [...FALLBACK_SUGGESTIONS];
 
+    const actualCredits = suggestions.length === 3
+      ? estimateModelCredits(
+          productGate.model.id,
+          estimatePredictiveIntelTokens(lastMessage, finalSuggestions.join("\n")),
+        )
+      : 0;
+
     await recordPredictiveIntelUsage({
-      credits:
-        suggestions.length === 3
-          ? estimateModelCredits(
-              productGate.model.id,
-              estimatePredictiveIntelTokens(lastMessage, finalSuggestions.join("\n")),
-            )
-          : 0,
+      credits: actualCredits,
       errorCode: null,
       model: productGate.model,
       requestId,
       status: "succeeded",
       userId: actor.userId,
     }).catch(() => undefined);
+
+    // Wallet deduction (skip if mock — no actual credits consumed)
+    if (actualCredits > 0) {
+      await createWalletRepository().createTransaction({
+        amount: -actualCredits,
+        metadata: {
+          estimatedCredits: actualCredits,
+          modelId: productGate.model.id,
+          operationType: "chat_completion",
+        },
+        requestId,
+        source: "chat_completion",
+        type: "deduction",
+        userId: actor.userId,
+      }).catch(() => undefined);
+    }
 
     return Response.json({
       mode: suggestions.length === 3 ? "openai" : "mock",

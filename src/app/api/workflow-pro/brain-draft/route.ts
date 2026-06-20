@@ -123,6 +123,9 @@ async function createOpenAiWorkflowPlannerResult({
   const { createUsageLedgerRepository } = await import(
     "@/lib/backend/models/usage-ledger"
   );
+  const { createWalletRepository } = await import(
+    "@/lib/backend/models/wallet-repository"
+  );
 
   const plan = getUserPlan({ request, userId: actor.actorUserId });
   const catalogModel = getCatalogModel(rawModel);
@@ -268,6 +271,20 @@ async function createOpenAiWorkflowPlannerResult({
     totalTokens: totTokens,
     userId: actor.actorUserId,
   }).catch(() => {});
+
+  // Wallet deduction
+  createWalletRepository().createTransaction({
+    amount: -1,
+    metadata: {
+      estimatedCredits: 1,
+      modelId: validModel.id,
+      operationType: "chat_completion",
+    },
+    requestId: "brain-draft",
+    source: "chat_completion",
+    type: "deduction",
+    userId: actor.actorUserId,
+  }).catch(() => undefined);
 
   return createWorkflowGraphBrainPlannerResultFromModelProposal({
     fallback,

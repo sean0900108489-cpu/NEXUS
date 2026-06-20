@@ -193,6 +193,20 @@ export async function POST(request: Request) {
         status: "succeeded",
         userId: productUserId,
       }).catch(() => undefined);
+
+      // Wallet deduction
+      await createWalletRepository().createTransaction({
+        amount: -productGate.estimatedCredits,
+        metadata: {
+          estimatedCredits: productGate.estimatedCredits,
+          modelId: productGate.model.id,
+          operationType: "image_generation",
+        },
+        requestId: (payload as { requestId?: string }).requestId ?? "image-gen",
+        source: "image_generation",
+        type: "deduction",
+        userId: productUserId,
+      }).catch(() => undefined);
     }
 
     return Response.json(materialized);

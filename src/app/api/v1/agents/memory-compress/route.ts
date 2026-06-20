@@ -71,6 +71,22 @@ export const POST = apiHandler({
       userId: productGate.userId,
     }).catch(() => undefined);
 
+    // Wallet deduction (skip if mock fallback — no actual credits consumed)
+    if (!result || typeof result !== "object" || !("mockFallback" in result)) {
+      await createWalletRepository().createTransaction({
+        amount: -productGate.estimatedCredits,
+        metadata: {
+          estimatedCredits: productGate.estimatedCredits,
+          modelId: productGate.model.id,
+          operationType: "chat_completion",
+        },
+        requestId,
+        source: "chat_completion",
+        type: "deduction",
+        userId: productGate.userId,
+      }).catch(() => undefined);
+    }
+
     return result;
   },
   idempotency: {

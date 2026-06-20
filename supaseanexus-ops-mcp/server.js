@@ -35,7 +35,7 @@ function redact(s, show = 4) {
 }
 
 // ── MCP Server ──────────────────────────────
-const server = new McpServer({ name: "supaseanexus-ops", version: "1.1.0" });
+const server = new McpServer({ name: "supaseanexus-ops", version: "1.2.0" });
 
 // ═══════════════ NEW API TOOLS ═══════════════
 
@@ -188,6 +188,97 @@ server.tool("github_repo_snapshot", "Get repo metadata: stars, forks, open issue
 });
 
 // ── HTTP Transport ──────────────────────────
+
+// ═══════════════ NOTION TOOLS ═══════════════
+const NOTION_TOKEN = process.env.NOTION_TOKEN || "";
+const NOTION_API = "https://api.notion.com/v1";
+const NOTION_HEADERS = () => NOTION_TOKEN ? {
+  Authorization: `Bearer ${NOTION_TOKEN}`,
+  "Content-Type": "application/json",
+  "Notion-Version": "2022-06-28"
+} : {};
+
+server.tool("notion_search", "Search all Notion pages and databases in the workspace", { query: z.string().describe("Search term") }, async ({ query }) => {
+  if (!NOTION_TOKEN) return { content: [{ type: "text", text: "NOTION_TOKEN not configured" }] };
+  try {
+    const res = await fetch(`${NOTION_API}/search`, { method: "POST", headers: NOTION_HEADERS(), body: JSON.stringify({ query, page_size: 20 }) });
+    const d = await res.json();
+    const items = (d.results || []).map(r => ({ id: r.id, title: r.title?.[0]?.plain_text || r.properties?.title?.title?.[0]?.plain_text || "(untitled)", type: r.object, url: r.url }));
+    return { content: [{ type: "text", text: JSON.stringify({ count: items.length, results: items }, null, 2) }] };
+  } catch(e) { return { content: [{ type: "text", text: `Error: ${e.message}` }] }; }
+});
+
+server.tool("notion_read_page", "Read a Notion page by ID (returns block content as text)", { pageId: z.string().describe("Notion page UUID") }, async ({ pageId }) => {
+  if (!NOTION_TOKEN) return { content: [{ type: "text", text: "NOTION_TOKEN not configured" }] };
+  try {
+    // Fetch page blocks
+    const blocks = await fetch(`${NOTION_API}/blocks/${pageId}/children?page_size=50`, { headers: NOTION_HEADERS() });
+    const bd = await blocks.json();
+    const text = (bd.results || []).map(b => {
+      const t = b.type;
+      const content = b[t]?.rich_text || b[t]?.title || [];
+      return content.map(c => c.plain_text).join("");
+    }).filter(Boolean).join("\n");
+    return { content: [{ type: "text", text: text.slice(0, 8000) || "(empty page)" }] };
+  } catch(e) { return { content: [{ type: "text", text: `Error: ${e.message}` }] }; }
+});
+
+server.tool("notion_create_page", "Create a new Notion page under a parent page", {
+  parentId: z.string().describe("Parent page ID"),
+  title: z.string().describe("Page title"),
+  content: z.string().optional().describe("Page content in Markdown (optional)"),
+}, async ({ parentId, title, content }) => {
+  if (!NOTION_TOKEN) return { content: [{ type: "text", text: "NOTION_TOKEN not configured" }] };
+  try {
+    const body = {
+      parent: { page_id: parentId },
+      properties: { title: { title: [{ text: { content: title } }] } },
+    };
+    const res = await fetch(`${NOTION_API}/pages`, { method: "POST", headers: NOTION_HEADERS(), body: JSON.stringify(body) });
+    const d = await res.json();
+    const pageId = d.id;
+    // Append content if provided
+    if (content && pageId) {
+      const blocks = content.split("\n").filter(Boolean).map(line => {
+        if (line.startsWith("# ")) return { object: "block", type: "heading_1", heading_1: { rich_text: [{ type: "text", text: { content: line.slice(2) } }] } };
+        if (line.startsWith("## ")) return { object: "block", type: "heading_2", heading_2: { rich_text: [{ type: "text", text: { content: line.slice(3) } }] } };
+        if (line.startsWith("- ")) return { object: "block", type: "bulleted_list_item", bulleted_list_item: { rich_text: [{ type: "text", text: { content: line.slice(2) } }] } };
+        return { object: "block", type: "paragraph", paragraph: { rich_text: [{ type: "text", text: { content: line } }] } };
+      });
+      await fetch(`${NOTION_API}/blocks/${pageId}/children`, { method: "PATCH", headers: NOTION_HEADERS(), body: JSON.stringify({ children: blocks.slice(0, 100) }) });
+    }
+    return { content: [{ type: "text", text: `Page created: ${d.url || pageId}` }] };
+  } catch(e) { return { content: [{ type: "text", text: `Error: ${e.message}` }] }; }
+});
+
+server.tool("notion_append_blocks", "Append content blocks to an existing Notion page", {
+  pageId: z.string().describe("Notion page UUID"),
+  text: z.string().describe("Text content to append"),
+}, async ({ pageId, text }) => {
+  if (!NOTION_TOKEN) return { content: [{ type: "text", text: "NOTION_TOKEN not configured" }] };
+  try {
+    const blocks = text.split("\n").filter(Boolean).slice(0, 100).map(line => {
+      if (line.startsWith("# ")) return { object: "block", type: "heading_1", heading_1: { rich_text: [{ type: "text", text: { content: line.slice(2) } }] } };
+      if (line.startsWith("## ")) return { object: "block", type: "heading_2", heading_2: { rich_text: [{ type: "text", text: { content: line.slice(3) } }] } };
+      if (line.startsWith("- ")) return { object: "block", type: "bulleted_list_item", bulleted_list_item: { rich_text: [{ type: "text", text: { content: line.slice(2) } }] } };
+      return { object: "block", type: "paragraph", paragraph: { rich_text: [{ type: "text", text: { content: line } }] } };
+    });
+    const res = await fetch(`${NOTION_API}/blocks/${pageId}/children`, { method: "PATCH", headers: NOTION_HEADERS(), body: JSON.stringify({ children: blocks }) });
+    const d = await res.json();
+    return { content: [{ type: "text", text: d.error ? `Error: ${d.message}` : `Appended ${blocks.length} blocks to ${pageId}` }] };
+  } catch(e) { return { content: [{ type: "text", text: `Error: ${e.message}` }] }; }
+});
+
+server.tool("notion_list_databases", "List all databases the integration can access", {}, async () => {
+  if (!NOTION_TOKEN) return { content: [{ type: "text", text: "NOTION_TOKEN not configured" }] };
+  try {
+    const res = await fetch(`${NOTION_API}/search`, { method: "POST", headers: NOTION_HEADERS(), body: JSON.stringify({ filter: { property: "object", value: "database" }, page_size: 20 }) });
+    const d = await res.json();
+    const items = (d.results || []).map(r => ({ id: r.id, title: r.title?.[0]?.plain_text || "(untitled)", url: r.url }));
+    return { content: [{ type: "text", text: JSON.stringify({ count: items.length, databases: items }, null, 2) }] };
+  } catch(e) { return { content: [{ type: "text", text: `Error: ${e.message}` }] }; }
+});
+
 const app = express();
 app.use(express.json());
 app.get("/health", (_req, res) => res.json({ status: "ok", uptime: process.uptime() }));

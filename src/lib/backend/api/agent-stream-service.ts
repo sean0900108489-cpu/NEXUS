@@ -35,6 +35,7 @@ import {
 } from "@/lib/backend/models/plan-config";
 import { assertSufficientCredits } from "@/lib/backend/models/quota-gate";
 import { createUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
+import { createWalletRepository } from "@/lib/backend/models/wallet-repository";
 import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 
 export type AgentStreamEvent =
@@ -468,9 +469,10 @@ async function assertAgentStreamProductGate({
 
     await assertSufficientCredits({
       estimatedCredits: estimateModelCredits(model.id, estimateStreamInputTokens(payload)),
-      ledger,
+      modelId: model.id,
       plan,
       userId,
+      walletRepo: createWalletRepository(),
     });
 
     return {

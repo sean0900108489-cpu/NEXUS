@@ -1,121 +1,130 @@
 import { describe, expect, it } from "vitest";
 
-import { InMemoryUsageLedgerRepository } from "./usage-ledger";
-import {
-  assertSufficientCredits,
-  getCurrentMonthUsageCredits,
-} from "./quota-gate";
+import { assertSufficientCredits } from "./quota-gate";
+import { InMemoryWalletRepository } from "./wallet-repository";
 
-describe("minimal monthly quota gate", () => {
-  it("counts only current-month succeeded usage for the authenticated user", async () => {
-    const ledger = new InMemoryUsageLedgerRepository();
+describe("wallet balance gate", () => {
+  it("allows operation when wallet balance exceeds estimated credits", async () => {
+    const wallet = new InMemoryWalletRepository();
 
-    await ledger.insert({
-      credits: 90_000,
-      conversationId: "conversation-a",
-      createdAt: "2026-06-03T00:00:00.000Z",
-      errorCode: null,
-      inputTokens: 100,
-      modelId: "gpt-4o-mini",
-      newApiModel: "gpt-4o-mini",
-      operatorId: "operator-a",
-      outputTokens: 100,
-      providerFamily: "OpenAI",
-      requestId: "request-a",
-      sourceType: "quota_test",
-      status: "succeeded",
-      totalTokens: 200,
+    // Grant initial credits
+    await wallet.createTransaction({
+      amount: 100_000,
+      metadata: { plan: "Free", reason: "initial_grant" },
+      requestId: "grant-1",
+      source: "system_initial_grant",
+      type: "grant",
       userId: "user-a",
     });
-    await ledger.insert({
-      credits: 50_000,
-      conversationId: "conversation-b",
-      createdAt: "2026-05-31T00:00:00.000Z",
-      errorCode: null,
-      inputTokens: 100,
+
+    const result = await assertSufficientCredits({
+      estimatedCredits: 50_000,
       modelId: "gpt-4o-mini",
-      newApiModel: "gpt-4o-mini",
-      operatorId: "operator-a",
-      outputTokens: 100,
-      providerFamily: "OpenAI",
-      requestId: "request-b",
-      sourceType: "quota_test",
-      status: "succeeded",
-      totalTokens: 200,
+      plan: "Free",
       userId: "user-a",
+      walletRepo: wallet,
     });
-    await ledger.insert({
-      credits: 50_000,
-      conversationId: "conversation-c",
-      createdAt: "2026-06-04T00:00:00.000Z",
-      errorCode: "UPSTREAM_FAILED",
-      inputTokens: 0,
-      modelId: "gpt-4o-mini",
-      newApiModel: "gpt-4o-mini",
-      operatorId: "operator-a",
-      outputTokens: 0,
-      providerFamily: "OpenAI",
-      requestId: "request-c",
-      sourceType: "quota_test",
-      status: "failed",
-      totalTokens: 0,
-      userId: "user-a",
-    });
-    await ledger.insert({
-      credits: 75_000,
-      conversationId: "conversation-d",
-      createdAt: "2026-06-04T00:00:00.000Z",
-      errorCode: null,
-      inputTokens: 100,
-      modelId: "gpt-4o-mini",
-      newApiModel: "gpt-4o-mini",
-      operatorId: "operator-b",
-      outputTokens: 100,
-      providerFamily: "OpenAI",
-      requestId: "request-d",
-      sourceType: "quota_test",
-      status: "succeeded",
-      totalTokens: 200,
+
+    expect(result.currentBalance).toBe(100_000);
+    expect(result.estimatedCredits).toBe(50_000);
+    expect(result.remainingAfterDeduction).toBe(50_000);
+  });
+
+  it("rejects when wallet balance is insufficient", async () => {
+    const wallet = new InMemoryWalletRepository();
+
+    // Grant just enough to be short
+    await wallet.createTransaction({
+      amount: 10,
+      metadata: { plan: "Free", reason: "initial_grant" },
+      requestId: "grant-1",
+      source: "system_initial_grant",
+      type: "grant",
       userId: "user-b",
     });
 
     await expect(
-      getCurrentMonthUsageCredits({
-        ledger,
-        now: new Date("2026-06-10T00:00:00.000Z"),
-        userId: "user-a",
+      assertSufficientCredits({
+        estimatedCredits: 100,
+        modelId: "gpt-4o",
+        plan: "Free",
+        userId: "user-b",
+        walletRepo: wallet,
       }),
-    ).resolves.toBe(90_000);
+    ).rejects.toMatchObject({
+      code: "INSUFFICIENT_CREDITS",
+      statusCode: 402,
+    });
   });
 
-  it("rejects before execution when the MVP monthly limit would be exceeded", async () => {
-    const ledger = new InMemoryUsageLedgerRepository();
+  it("rounds estimated credits up to minimum 1", async () => {
+    const wallet = new InMemoryWalletRepository();
 
-    await ledger.insert({
-      credits: 99_999,
-      conversationId: "conversation-a",
-      createdAt: "2026-06-03T00:00:00.000Z",
-      errorCode: null,
-      inputTokens: 100,
-      modelId: "gpt-4o-mini",
-      newApiModel: "gpt-4o-mini",
-      operatorId: "operator-a",
-      outputTokens: 100,
-      providerFamily: "OpenAI",
-      requestId: "request-a",
-      sourceType: "quota_test",
-      status: "succeeded",
-      totalTokens: 200,
-      userId: "user-a",
+    await wallet.createTransaction({
+      amount: 1,
+      metadata: { plan: "Free" },
+      requestId: "grant-1",
+      source: "system_initial_grant",
+      type: "grant",
+      userId: "user-c",
     });
+
+    const result = await assertSufficientCredits({
+      estimatedCredits: 0.5,
+      modelId: "gpt-4o-mini",
+      plan: "Free",
+      userId: "user-c",
+      walletRepo: wallet,
+    });
+
+    expect(result.estimatedCredits).toBe(1);
+    expect(result.remainingAfterDeduction).toBe(0);
+  });
+
+  it("includes cheaper alternatives in insufficient credits error", async () => {
+    const wallet = new InMemoryWalletRepository();
+
+    // User has 1 credit — gpt-4o-mini at 1x might be affordable
+    await wallet.createTransaction({
+      amount: 1,
+      metadata: { plan: "Free" },
+      requestId: "grant-1",
+      source: "system_initial_grant",
+      type: "grant",
+      userId: "user-d",
+    });
+
+    try {
+      await assertSufficientCredits({
+        estimatedCredits: 10,  // gpt-4o at 5x needs ~50 credits
+        modelId: "gpt-4o",
+        plan: "Free",
+        userId: "user-d",
+        walletRepo: wallet,
+      });
+      expect.fail("Expected insufficient credits error");
+    } catch (error) {
+      const apiErr = error as { code: string; details?: Record<string, unknown> };
+      expect(apiErr.code).toBe("INSUFFICIENT_CREDITS");
+      expect(apiErr.details).toBeDefined();
+      expect(apiErr.details!.shortfall).toBeGreaterThan(0);
+      expect(apiErr.details!.modelId).toBe("gpt-4o");
+      expect(Array.isArray(apiErr.details!.cheaperAlternatives)).toBe(true);
+    }
+  });
+
+  it("zero balance rejects any operation", async () => {
+    const wallet = new InMemoryWalletRepository();
+
+    // No grants — zero balance
 
     await expect(
       assertSufficientCredits({
-        estimatedCredits: 2,
-        ledger,
-        now: new Date("2026-06-10T00:00:00.000Z"),
+        estimatedCredits: 1,
+        modelId: "gpt-4o-mini",
         plan: "Free",
-        userId: "user-a",
+        userId: "user-e",
+        walletRepo: wallet,
       }),
     ).rejects.toMatchObject({
       code: "INSUFFICIENT_CREDITS",

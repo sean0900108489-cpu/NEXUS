@@ -30,6 +30,7 @@ import {
 } from "@/lib/backend/models/plan-config";
 import { assertSufficientCredits } from "@/lib/backend/models/quota-gate";
 import { createUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
+import { createWalletRepository } from "@/lib/backend/models/wallet-repository";
 import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 import type { PermissionService } from "@/lib/backend/security/permission-service";
 import { createWorkspaceStatePermissionService } from "@/lib/backend/workspace/workspace-permission";
@@ -380,9 +381,10 @@ async function assertImageGenerationProductGate({
 
     await assertSufficientCredits({
       estimatedCredits,
-      ledger: createUsageLedgerRepository(),
+      modelId: model.id,
       plan,
       userId,
+      walletRepo: createWalletRepository(),
     });
 
     return {

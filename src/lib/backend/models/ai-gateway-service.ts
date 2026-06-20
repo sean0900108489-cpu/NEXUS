@@ -19,6 +19,7 @@ import {
   createUsageLedgerRepository,
   type UsageLedgerRepository,
 } from "./usage-ledger";
+import { createWalletRepository } from "./wallet-repository";
 
 export type AiGatewayChatMessage = {
   role: Extract<AgentMessageRole, "system" | "user" | "assistant">;
@@ -104,9 +105,10 @@ export async function executeAiGatewayChatRequest(input: {
         model.id,
         estimateMessageTokens(input.body.messages),
       ),
-      ledger,
+      modelId: model.id,
       plan,
       userId,
+      walletRepo: createWalletRepository(),
     });
 
     const userNewApiToken = await getUserNewApiToken({ userId });

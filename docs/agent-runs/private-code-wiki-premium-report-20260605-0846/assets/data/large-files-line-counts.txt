@@ -1,5 +1,0 @@
-    9653 src/components/nexus/nexus-ops.tsx
-    2345 src/components/nexus/nexus-graph.tsx
-    1721 src/components/nexus/workflow-pro/workflow-pro-surface.tsx
-    4814 src/store/nexus-store.ts
-   18533 total

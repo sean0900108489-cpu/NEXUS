@@ -1,5 +1,0 @@
-# Runtime Observations
-
-Runtime trace skipped safely.
-
-Reason: No localhost listener was detected on common ports, and starting `next dev` was not performed because this current-system round forbids accidental production Supabase access and no isolated local env was confirmed. Browser/Chrome DevTools MCP was assessed reference-only; no global MCP config was changed.

@@ -1,6 +1,0 @@
-.env.local	OPENAI_API_KEY	present
-.env.local	OPENAI_IMAGE_MODEL	present
-.env.local	NEXT_PUBLIC_SUPABASE_URL	present
-.env.local	NEXT_PUBLIC_SUPABASE_ANON_KEY	present
-/Users/sean/.gateway.env	OPENAI_API_KEY	present
-/Users/sean/.gateway.env	OPENAI_IMAGE_MODEL	present

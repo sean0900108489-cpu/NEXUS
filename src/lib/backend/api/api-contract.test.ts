@@ -777,7 +777,7 @@ describe("routing compatibility and health", () => {
     const currentMonth = new Date();
     currentMonth.setUTCDate(2);
     await ledger.insert({
-      chargedPoints: 100_000,
+      credits: 100_000,
       conversationId: null,
       createdAt: currentMonth.toISOString(),
       errorCode: null,
@@ -815,12 +815,12 @@ describe("routing compatibility and health", () => {
     expect(response.status).toBe(402);
     expect(json).toMatchObject({
       error: {
-        code: "QUOTA_EXCEEDED",
+        code: "INSUFFICIENT_CREDITS",
       },
       ok: false,
     });
     expect(ledger.all().at(-1)).toMatchObject({
-      errorCode: "QUOTA_EXCEEDED",
+      errorCode: "INSUFFICIENT_CREDITS",
       modelId: "gpt-4o-mini",
       operatorId: "agent-memory",
       requestId: "req-memory-quota",
@@ -935,7 +935,7 @@ describe("streaming contract", () => {
     const currentMonth = new Date();
     currentMonth.setUTCDate(2);
     await ledger.insert({
-      chargedPoints: 100_000,
+      credits: 100_000,
       conversationId: "conversation-stream-quota",
       createdAt: currentMonth.toISOString(),
       errorCode: null,
@@ -976,13 +976,13 @@ describe("streaming contract", () => {
     expect(response.status).toBe(402);
     expect(json).toMatchObject({
       error: {
-        code: "QUOTA_EXCEEDED",
+        code: "INSUFFICIENT_CREDITS",
       },
       type: "error",
     });
     expect(ledger.all().filter((record) => record.status === "failed")).toHaveLength(1);
     expect(ledger.all().at(-1)).toMatchObject({
-      errorCode: "QUOTA_EXCEEDED",
+      errorCode: "INSUFFICIENT_CREDITS",
       modelId: "gpt-4o-mini",
       operatorId: "agent-a",
       requestId: "req-stream-quota",

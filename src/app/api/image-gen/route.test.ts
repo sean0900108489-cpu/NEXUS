@@ -240,7 +240,7 @@ describe("/api/image-gen", () => {
       "Content-Type": "application/json",
     });
     expect(ledger.all().at(-1)).toMatchObject({
-      chargedPoints: 1_000,
+      credits: 1_000,
       conversationId: "conversation-image-success",
       errorCode: null,
       modelId: "img2",
@@ -327,7 +327,7 @@ describe("/api/image-gen", () => {
     const currentMonth = new Date();
     currentMonth.setUTCDate(2);
     await ledger.insert({
-      chargedPoints: 1_000_000,
+      credits: 1_000_000,
       conversationId: "conversation-image-quota-used",
       createdAt: currentMonth.toISOString(),
       errorCode: null,
@@ -389,13 +389,13 @@ describe("/api/image-gen", () => {
     expect(response.status).toBe(402);
     await expect(response.json()).resolves.toMatchObject({
       error: {
-        code: "QUOTA_EXCEEDED",
+        code: "INSUFFICIENT_CREDITS",
       },
     });
     expect(fetchMock).not.toHaveBeenCalled();
     expect(ledger.all().at(-1)).toMatchObject({
       conversationId: "workflow-image-quota",
-      errorCode: "QUOTA_EXCEEDED",
+      errorCode: "INSUFFICIENT_CREDITS",
       modelId: "img2",
       operatorId: "agent-image",
       requestId: "req-image-quota",

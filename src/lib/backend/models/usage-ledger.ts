@@ -17,7 +17,7 @@ export type UsageLedgerRecord = {
   inputTokens: number;
   outputTokens: number;
   totalTokens: number;
-  chargedPoints: number;
+  credits: number;
   sourceType: string;
   status: UsageLedgerStatus;
   errorCode?: string | null;
@@ -31,7 +31,7 @@ export type UsageLedgerInsert = Omit<UsageLedgerRecord, "createdAt" | "id"> & {
 
 export interface UsageLedgerRepository {
   insert(input: UsageLedgerInsert): Promise<UsageLedgerRecord>;
-  sumChargedPointsForUserSince(input: {
+  sumCreditsForUserSince(input: {
     since: Date;
     userId: string;
   }): Promise<number>;
@@ -52,7 +52,7 @@ export class InMemoryUsageLedgerRepository implements UsageLedgerRepository {
     return record;
   }
 
-  async sumChargedPointsForUserSince(input: { since: Date; userId: string }) {
+  async sumCreditsForUserSince(input: { since: Date; userId: string }) {
     const sinceTime = input.since.getTime();
 
     return this.all()
@@ -62,7 +62,7 @@ export class InMemoryUsageLedgerRepository implements UsageLedgerRepository {
           record.status === "succeeded" &&
           new Date(record.createdAt).getTime() >= sinceTime,
       )
-      .reduce((total, record) => total + record.chargedPoints, 0);
+      .reduce((total, record) => total + record.credits, 0);
   }
 
   all() {
@@ -83,7 +83,7 @@ export class SupabaseUsageLedgerRepository implements UsageLedgerRepository {
     };
     const client = getNexusSupabaseAdminClient();
     const { error } = await client.from("model_usage_ledger" as never).insert({
-      charged_points: record.chargedPoints,
+      credits: record.credits,
       conversation_id: record.conversationId ?? null,
       created_at: record.createdAt,
       error_code: record.errorCode ?? null,
@@ -108,7 +108,7 @@ export class SupabaseUsageLedgerRepository implements UsageLedgerRepository {
     return record;
   }
 
-  async sumChargedPointsForUserSince(input: { since: Date; userId: string }) {
+  async sumCreditsForUserSince(input: { since: Date; userId: string }) {
     const client = getNexusSupabaseAdminClient();
     const { data, error } = await client
       .from("model_usage_ledger" as never)

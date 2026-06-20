@@ -220,7 +220,7 @@ async function createOpenAiWorkflowPlannerResult({
     // Record failure in usage ledger
     const ledger = createUsageLedgerRepository();
     ledger.insert({
-      chargedPoints: 0,
+      credits: 0,
       errorCode: response.status === 429 ? "PROVIDER_RATE_LIMITED" : "PROVIDER_TIMEOUT",
       inputTokens: 0,
       modelId: validModel.id,
@@ -254,7 +254,7 @@ async function createOpenAiWorkflowPlannerResult({
 
   const ledgerRepo = createUsageLedgerRepository();
   ledgerRepo.insert({
-    chargedPoints: 1,
+    credits: 1,
     errorCode: null,
     inputTokens: inpTokens,
     modelId: validModel.id,

@@ -29,11 +29,11 @@ import {
   getCatalogModel,
 } from "@/lib/backend/models/model-catalog";
 import {
-  estimateModelPoints,
+  estimateModelCredits,
   getUserPlan,
   isModelAllowedByPlan,
 } from "@/lib/backend/models/plan-config";
-import { assertMonthlyQuotaAvailable } from "@/lib/backend/models/quota-gate";
+import { assertSufficientCredits } from "@/lib/backend/models/quota-gate";
 import { createUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
 import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 
@@ -466,8 +466,8 @@ async function assertAgentStreamProductGate({
       );
     }
 
-    await assertMonthlyQuotaAvailable({
-      estimatedPoints: estimateModelPoints(model.id, estimateStreamInputTokens(payload)),
+    await assertSufficientCredits({
+      estimatedCredits: estimateModelCredits(model.id, estimateStreamInputTokens(payload)),
       ledger,
       plan,
       userId,
@@ -481,7 +481,7 @@ async function assertAgentStreamProductGate({
     const model = getCatalogModel(modelId);
 
     await ledger.insert({
-      chargedPoints: 0,
+      credits: 0,
       conversationId: payload.sessionId ?? null,
       errorCode: apiError.code,
       inputTokens: 0,
@@ -525,7 +525,7 @@ async function recordAgentStreamUsage({
   const totalTokens = inputTokens + outputTokens;
 
   await createUsageLedgerRepository().insert({
-    chargedPoints: estimateModelPoints(modelId, totalTokens),
+    credits: estimateModelCredits(modelId, totalTokens),
     conversationId: payload.sessionId ?? null,
     errorCode: null,
     inputTokens,
@@ -562,7 +562,7 @@ async function recordAgentStreamFailureUsage({
   userId: string;
 }) {
   await createUsageLedgerRepository().insert({
-    chargedPoints: 0,
+    credits: 0,
     conversationId,
     errorCode,
     inputTokens: 0,

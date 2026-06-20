@@ -236,7 +236,7 @@ describe("POST /api/chat", () => {
     currentMonth.setUTCDate(3);
 
     await ledger.insert({
-      chargedPoints: 100_000,
+      credits: 100_000,
       conversationId: "conversation-quota",
       createdAt: currentMonth.toISOString(),
       errorCode: null,
@@ -278,7 +278,7 @@ describe("POST /api/chat", () => {
     const payload = await response.json();
 
     expect(response.status).toBe(402);
-    expect(payload.error.code).toBe("QUOTA_EXCEEDED");
+    expect(payload.error.code).toBe("INSUFFICIENT_CREDITS");
     expect(fetcher).not.toHaveBeenCalled();
     expect(ledger.all().filter((record) => record.status === "failed")).toHaveLength(1);
   });

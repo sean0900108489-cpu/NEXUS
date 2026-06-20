@@ -4,13 +4,13 @@ export type ProductPlan = UserPlan;
 
 export type ProductPlanConfig = {
   allowedModelIds: string[];
-  monthlyPoints: number;
+  monthlyCreditGrant: number;
 };
 
 export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
   Free: {
     allowedModelIds: ["gpt-4o-mini", "deepseek-chat", "riverflow-v2.5-fast"],
-    monthlyPoints: 100_000,
+    monthlyCreditGrant: 100_000,
   },
   Basic: {
     allowedModelIds: [
@@ -22,7 +22,7 @@ export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
       "img2",
       "riverflow-v2.5-fast",
     ],
-    monthlyPoints: 1_000_000,
+    monthlyCreditGrant: 1_000_000,
   },
   Pro: {
     allowedModelIds: [
@@ -37,7 +37,7 @@ export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
       "img2",
       "riverflow-v2.5-fast",
     ],
-    monthlyPoints: 5_000_000,
+    monthlyCreditGrant: 5_000_000,
   },
   Team: {
     allowedModelIds: [
@@ -52,11 +52,11 @@ export const PRODUCT_PLAN_CONFIG: Record<ProductPlan, ProductPlanConfig> = {
       "img2",
       "riverflow-v2.5-fast",
     ],
-    monthlyPoints: 20_000_000,
+    monthlyCreditGrant: 20_000_000,
   },
 };
 
-const MODEL_POINT_MULTIPLIERS: Record<string, number> = {
+const MODEL_CREDIT_MULTIPLIERS: Record<string, number> = {
   "claude-sonnet-4-20250514": 8,
   "deepseek-chat": 1,
   "deepseek-v4-flash": 1,
@@ -69,7 +69,7 @@ const MODEL_POINT_MULTIPLIERS: Record<string, number> = {
   "riverflow-v2.5-fast": 1,
 };
 
-const IMAGE_GENERATION_FIXED_POINTS: Record<string, number> = {
+const IMAGE_GENERATION_FIXED_CREDITS: Record<string, number> = {
   high: 2_500,
   standard: 1_000,
   ultra: 5_000,
@@ -87,22 +87,22 @@ export function isModelAllowedByPlan(modelId: string, plan: ProductPlan) {
   return getPlanConfig(plan).allowedModelIds.includes(modelId);
 }
 
-export function estimateModelPoints(modelId: string, totalTokens: number) {
+export function estimateModelCredits(modelId: string, totalTokens: number) {
   const tokenUnits = Math.max(1, Math.ceil(Math.max(0, totalTokens) / 1000));
-  const multiplier = MODEL_POINT_MULTIPLIERS[modelId] ?? 1;
+  const multiplier = MODEL_CREDIT_MULTIPLIERS[modelId] ?? 1;
 
   return tokenUnits * multiplier;
 }
 
-export function estimateImageGenerationPoints(input: {
+export function estimateImageGenerationCredits(input: {
   modelId: string;
   quality?: string;
 }) {
-  const qualityPoints = IMAGE_GENERATION_FIXED_POINTS[input.quality ?? "standard"] ??
-    IMAGE_GENERATION_FIXED_POINTS.standard;
-  const multiplier = MODEL_POINT_MULTIPLIERS[input.modelId] ?? 1;
+  const qualityCredits = IMAGE_GENERATION_FIXED_CREDITS[input.quality ?? "standard"] ??
+    IMAGE_GENERATION_FIXED_CREDITS.standard;
+  const multiplier = MODEL_CREDIT_MULTIPLIERS[input.modelId] ?? 1;
 
-  return qualityPoints * multiplier;
+  return qualityCredits * multiplier;
 }
 
 export function getUserPlan(input: {

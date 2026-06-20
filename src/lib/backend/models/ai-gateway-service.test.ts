@@ -78,7 +78,7 @@ describe("AI gateway service", () => {
       modelId: "gpt-4o",
       requestId: "request-gateway-success",
       usage: {
-        chargedPoints: 10,
+        credits: 10,
         inputTokens: 600,
         outputTokens: 600,
         totalTokens: 1200,
@@ -92,7 +92,7 @@ describe("AI gateway service", () => {
     });
     expect(ledger.all()).toHaveLength(1);
     expect(ledger.all()[0]).toMatchObject({
-      chargedPoints: 10,
+      credits: 10,
       modelId: "gpt-4o",
       operatorId: "operator-gateway",
       status: "succeeded",
@@ -105,7 +105,7 @@ describe("AI gateway service", () => {
     const currentMonth = new Date();
     currentMonth.setUTCDate(2);
     await ledger.insert({
-      chargedPoints: 100_000,
+      credits: 100_000,
       conversationId: "conversation-gateway",
       createdAt: currentMonth.toISOString(),
       errorCode: null,
@@ -148,14 +148,14 @@ describe("AI gateway service", () => {
         requestId: "request-gateway-quota",
       }),
     ).rejects.toMatchObject({
-      code: "QUOTA_EXCEEDED",
+      code: "INSUFFICIENT_CREDITS",
       statusCode: 402,
     });
 
     expect(fetcher).not.toHaveBeenCalled();
     expect(ledger.all().filter((record) => record.status === "failed")).toHaveLength(1);
     expect(ledger.all().at(-1)).toMatchObject({
-      errorCode: "QUOTA_EXCEEDED",
+      errorCode: "INSUFFICIENT_CREDITS",
       modelId: "gpt-4o-mini",
       operatorId: "operator-gateway",
       requestId: "request-gateway-quota",

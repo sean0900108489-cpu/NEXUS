@@ -7,7 +7,7 @@ describe("usage ledger", () => {
     const ledger = new InMemoryUsageLedgerRepository();
 
     const record = await ledger.insert({
-      chargedPoints: 10,
+      credits: 10,
       conversationId: "conversation-a",
       errorCode: null,
       inputTokens: 6,
@@ -24,7 +24,7 @@ describe("usage ledger", () => {
     });
 
     expect(record).toMatchObject({
-      chargedPoints: 10,
+      credits: 10,
       conversationId: "conversation-a",
       modelId: "gpt-4o-mini",
       newApiModel: "gpt-4o-mini",

@@ -3,51 +3,51 @@ import { ApiError } from "@/lib/backend/api/api-errors";
 import { getPlanConfig, type ProductPlan } from "./plan-config";
 import type { UsageLedgerRepository } from "./usage-ledger";
 
-export async function getCurrentMonthUsagePoints(input: {
+export async function getCurrentMonthUsageCredits(input: {
   ledger: UsageLedgerRepository;
   now?: Date;
   userId: string;
 }) {
-  return input.ledger.sumChargedPointsForUserSince({
+  return input.ledger.sumCreditsForUserSince({
     since: getUtcMonthStart(input.now ?? new Date()),
     userId: input.userId,
   });
 }
 
-export async function assertMonthlyQuotaAvailable(input: {
-  estimatedPoints: number;
+export async function assertSufficientCredits(input: {
+  estimatedCredits: number;
   ledger: UsageLedgerRepository;
   now?: Date;
   plan: ProductPlan;
   userId: string;
 }) {
-  const usedPoints = await getCurrentMonthUsagePoints({
+  const usedCredits = await getCurrentMonthUsageCredits({
     ledger: input.ledger,
     now: input.now,
     userId: input.userId,
   });
-  const monthlyPoints = getPlanConfig(input.plan).monthlyPoints;
-  const estimatedPoints = Math.max(1, Math.ceil(input.estimatedPoints));
+  const monthlyGrant = getPlanConfig(input.plan).monthlyCreditGrant;
+  const estimatedCredits = Math.max(1, Math.ceil(input.estimatedCredits));
 
-  if (usedPoints + estimatedPoints > monthlyPoints) {
+  if (usedCredits + estimatedCredits > monthlyGrant) {
     throw new ApiError(
-      "QUOTA_EXCEEDED",
+      "INSUFFICIENT_CREDITS",
       "Monthly AI usage quota has been reached for this plan.",
       402,
       {
-        estimatedPoints,
-        monthlyPoints,
+        estimatedCredits,
+        monthlyGrant,
         plan: input.plan,
-        usedPoints,
+        usedCredits,
       },
     );
   }
 
   return {
-    estimatedPoints,
-    monthlyPoints,
-    remainingAfterEstimate: monthlyPoints - usedPoints - estimatedPoints,
-    usedPoints,
+    estimatedCredits,
+    monthlyGrant,
+    remainingAfterEstimate: monthlyGrant - usedCredits - estimatedCredits,
+    usedCredits,
   };
 }
 

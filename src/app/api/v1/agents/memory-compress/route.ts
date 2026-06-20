@@ -13,11 +13,11 @@ import {
   type ProductModelCatalogEntry,
 } from "@/lib/backend/models/model-catalog";
 import {
-  estimateModelPoints,
+  estimateModelCredits,
   getUserPlan,
   isModelAllowedByPlan,
 } from "@/lib/backend/models/plan-config";
-import { assertMonthlyQuotaAvailable } from "@/lib/backend/models/quota-gate";
+import { assertSufficientCredits } from "@/lib/backend/models/quota-gate";
 import { createUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
 import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 
@@ -56,10 +56,10 @@ export const POST = apiHandler({
     });
 
     await recordMemoryCompressionUsage({
-      chargedPoints:
+      credits:
         result && typeof result === "object" && "mockFallback" in result
           ? 0
-          : productGate.estimatedPoints,
+          : productGate.estimatedCredits,
       errorCode: null,
       modelId: productGate.model.id,
       newApiModel: productGate.model.new_api_model,
@@ -129,20 +129,20 @@ async function assertMemoryCompressionProductGate({
       );
     }
 
-    const estimatedPoints = estimateModelPoints(
+    const estimatedCredits = estimateModelCredits(
       model.id,
       estimateMemoryCompressionTokens(record),
     );
 
-    await assertMonthlyQuotaAvailable({
-      estimatedPoints,
+    await assertSufficientCredits({
+      estimatedCredits,
       ledger: createUsageLedgerRepository(),
       plan,
       userId,
     });
 
     return {
-      estimatedPoints,
+      estimatedCredits,
       model,
       operatorId,
       userId,
@@ -153,7 +153,7 @@ async function assertMemoryCompressionProductGate({
 
     if (userId) {
       await recordMemoryCompressionUsage({
-        chargedPoints: 0,
+        credits: 0,
         errorCode: apiError.code,
         modelId,
         newApiModel: model?.new_api_model ?? modelId,
@@ -174,7 +174,7 @@ async function getMemoryCompressionNewApiToken({
   requestId,
 }: {
   productGate: {
-    estimatedPoints: number;
+    estimatedCredits: number;
     model: ProductModelCatalogEntry;
     operatorId: string;
     userId: string;
@@ -187,7 +187,7 @@ async function getMemoryCompressionNewApiToken({
     const apiError = toApiError(error);
 
     await recordMemoryCompressionUsage({
-      chargedPoints: 0,
+      credits: 0,
       errorCode: apiError.code,
       modelId: productGate.model.id,
       newApiModel: productGate.model.new_api_model,
@@ -203,7 +203,7 @@ async function getMemoryCompressionNewApiToken({
 }
 
 async function recordMemoryCompressionUsage({
-  chargedPoints,
+  credits,
   errorCode,
   modelId,
   newApiModel,
@@ -213,7 +213,7 @@ async function recordMemoryCompressionUsage({
   status,
   userId,
 }: {
-  chargedPoints: number;
+  credits: number;
   errorCode: string | null;
   modelId: string;
   newApiModel: string;
@@ -224,7 +224,7 @@ async function recordMemoryCompressionUsage({
   userId: string;
 }) {
   await createUsageLedgerRepository().insert({
-    chargedPoints,
+    credits,
     conversationId: null,
     errorCode,
     inputTokens: 0,

@@ -7,11 +7,11 @@ import {
   type ProductModelCatalogEntry,
 } from "@/lib/backend/models/model-catalog";
 import {
-  estimateModelPoints,
+  estimateModelCredits,
   getUserPlan,
   isModelAllowedByPlan,
 } from "@/lib/backend/models/plan-config";
-import { assertMonthlyQuotaAvailable } from "@/lib/backend/models/quota-gate";
+import { assertSufficientCredits } from "@/lib/backend/models/quota-gate";
 import { createUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
 import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 import { normalizePredictiveIntelSuggestions } from "@/lib/predictive-intel";
@@ -202,9 +202,9 @@ export async function POST(request: Request) {
       suggestions.length === 3 ? suggestions : [...FALLBACK_SUGGESTIONS];
 
     await recordPredictiveIntelUsage({
-      chargedPoints:
+      credits:
         suggestions.length === 3
-          ? estimateModelPoints(
+          ? estimateModelCredits(
               productGate.model.id,
               estimatePredictiveIntelTokens(lastMessage, finalSuggestions.join("\n")),
             )
@@ -222,7 +222,7 @@ export async function POST(request: Request) {
     });
   } catch {
     await recordPredictiveIntelUsage({
-      chargedPoints: 0,
+      credits: 0,
       errorCode: "PROVIDER_TIMEOUT",
       model: productGate.model,
       requestId,
@@ -249,7 +249,7 @@ async function getPredictiveIntelNewApiToken({
     const apiError = toApiError(error);
 
     await recordPredictiveIntelUsage({
-      chargedPoints: 0,
+      credits: 0,
       errorCode: apiError.code,
       model,
       requestId,
@@ -315,8 +315,8 @@ async function assertPredictiveIntelProductGate({
       );
     }
 
-    await assertMonthlyQuotaAvailable({
-      estimatedPoints: estimateModelPoints(
+    await assertSufficientCredits({
+      estimatedCredits: estimateModelCredits(
         model.id,
         estimatePredictiveIntelTokens(lastMessage, ""),
       ),
@@ -333,7 +333,7 @@ async function assertPredictiveIntelProductGate({
     const model = getCatalogModel(modelId);
 
     await recordPredictiveIntelUsage({
-      chargedPoints: 0,
+      credits: 0,
       errorCode: apiError.code,
       model,
       modelId,
@@ -363,7 +363,7 @@ function toPredictiveIntelErrorResponse(error: unknown) {
 }
 
 async function recordPredictiveIntelUsage({
-  chargedPoints,
+  credits,
   errorCode,
   model,
   modelId,
@@ -371,7 +371,7 @@ async function recordPredictiveIntelUsage({
   status,
   userId,
 }: {
-  chargedPoints: number;
+  credits: number;
   errorCode: string | null;
   model?: ProductModelCatalogEntry;
   modelId?: string;
@@ -380,7 +380,7 @@ async function recordPredictiveIntelUsage({
   userId: string;
 }) {
   await createUsageLedgerRepository().insert({
-    chargedPoints,
+    credits,
     conversationId: null,
     errorCode,
     inputTokens: 0,

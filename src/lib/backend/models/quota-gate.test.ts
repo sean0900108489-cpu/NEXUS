@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { InMemoryUsageLedgerRepository } from "./usage-ledger";
 import {
-  assertMonthlyQuotaAvailable,
-  getCurrentMonthUsagePoints,
+  assertSufficientCredits,
+  getCurrentMonthUsageCredits,
 } from "./quota-gate";
 
 describe("minimal monthly quota gate", () => {
@@ -11,7 +11,7 @@ describe("minimal monthly quota gate", () => {
     const ledger = new InMemoryUsageLedgerRepository();
 
     await ledger.insert({
-      chargedPoints: 90_000,
+      credits: 90_000,
       conversationId: "conversation-a",
       createdAt: "2026-06-03T00:00:00.000Z",
       errorCode: null,
@@ -28,7 +28,7 @@ describe("minimal monthly quota gate", () => {
       userId: "user-a",
     });
     await ledger.insert({
-      chargedPoints: 50_000,
+      credits: 50_000,
       conversationId: "conversation-b",
       createdAt: "2026-05-31T00:00:00.000Z",
       errorCode: null,
@@ -45,7 +45,7 @@ describe("minimal monthly quota gate", () => {
       userId: "user-a",
     });
     await ledger.insert({
-      chargedPoints: 50_000,
+      credits: 50_000,
       conversationId: "conversation-c",
       createdAt: "2026-06-04T00:00:00.000Z",
       errorCode: "UPSTREAM_FAILED",
@@ -62,7 +62,7 @@ describe("minimal monthly quota gate", () => {
       userId: "user-a",
     });
     await ledger.insert({
-      chargedPoints: 75_000,
+      credits: 75_000,
       conversationId: "conversation-d",
       createdAt: "2026-06-04T00:00:00.000Z",
       errorCode: null,
@@ -80,7 +80,7 @@ describe("minimal monthly quota gate", () => {
     });
 
     await expect(
-      getCurrentMonthUsagePoints({
+      getCurrentMonthUsageCredits({
         ledger,
         now: new Date("2026-06-10T00:00:00.000Z"),
         userId: "user-a",
@@ -92,7 +92,7 @@ describe("minimal monthly quota gate", () => {
     const ledger = new InMemoryUsageLedgerRepository();
 
     await ledger.insert({
-      chargedPoints: 99_999,
+      credits: 99_999,
       conversationId: "conversation-a",
       createdAt: "2026-06-03T00:00:00.000Z",
       errorCode: null,
@@ -110,15 +110,15 @@ describe("minimal monthly quota gate", () => {
     });
 
     await expect(
-      assertMonthlyQuotaAvailable({
-        estimatedPoints: 2,
+      assertSufficientCredits({
+        estimatedCredits: 2,
         ledger,
         now: new Date("2026-06-10T00:00:00.000Z"),
         plan: "Free",
         userId: "user-a",
       }),
     ).rejects.toMatchObject({
-      code: "QUOTA_EXCEEDED",
+      code: "INSUFFICIENT_CREDITS",
       statusCode: 402,
     });
   });

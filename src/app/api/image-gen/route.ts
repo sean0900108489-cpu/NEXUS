@@ -24,11 +24,11 @@ import {
   type ProductModelCatalogEntry,
 } from "@/lib/backend/models/model-catalog";
 import {
-  estimateImageGenerationPoints,
+  estimateImageGenerationCredits,
   getUserPlan,
   isModelAllowedByPlan,
 } from "@/lib/backend/models/plan-config";
-import { assertMonthlyQuotaAvailable } from "@/lib/backend/models/quota-gate";
+import { assertSufficientCredits } from "@/lib/backend/models/quota-gate";
 import { createUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
 import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 import type { PermissionService } from "@/lib/backend/security/permission-service";
@@ -184,7 +184,7 @@ export async function POST(request: Request) {
 
     if (productGate) {
       await recordImageGenerationUsage({
-        chargedPoints: productGate.estimatedPoints,
+        credits: productGate.estimatedCredits,
         errorCode: null,
         model: productGate.model,
         payload,
@@ -200,7 +200,7 @@ export async function POST(request: Request) {
 
     if (productGate) {
       await recordImageGenerationUsage({
-        chargedPoints: 0,
+        credits: 0,
         errorCode: "PROVIDER_TIMEOUT",
         model: productGate.model,
         payload,
@@ -231,7 +231,7 @@ async function getImageGenerationNewApiToken({
     const apiError = toApiError(error);
 
     await recordImageGenerationUsage({
-      chargedPoints: 0,
+      credits: 0,
       errorCode: apiError.code,
       model,
       payload,
@@ -373,20 +373,20 @@ async function assertImageGenerationProductGate({
       );
     }
 
-    const estimatedPoints = estimateImageGenerationPoints({
+    const estimatedCredits = estimateImageGenerationCredits({
       modelId: model.id,
       quality: imageSettings.quality,
     });
 
-    await assertMonthlyQuotaAvailable({
-      estimatedPoints,
+    await assertSufficientCredits({
+      estimatedCredits,
       ledger: createUsageLedgerRepository(),
       plan,
       userId,
     });
 
     return {
-      estimatedPoints,
+      estimatedCredits,
       model,
     };
   } catch (error) {
@@ -394,7 +394,7 @@ async function assertImageGenerationProductGate({
     const model = getCatalogModel(modelId);
 
     await recordImageGenerationUsage({
-      chargedPoints: 0,
+      credits: 0,
       errorCode: apiError.code,
       model,
       modelId,
@@ -425,7 +425,7 @@ function toImageGenerationErrorResponse(error: unknown) {
 }
 
 async function recordImageGenerationUsage({
-  chargedPoints,
+  credits,
   errorCode,
   model,
   modelId,
@@ -434,7 +434,7 @@ async function recordImageGenerationUsage({
   status,
   userId,
 }: {
-  chargedPoints: number;
+  credits: number;
   errorCode: string | null;
   model?: ProductModelCatalogEntry;
   modelId?: string;
@@ -444,7 +444,7 @@ async function recordImageGenerationUsage({
   userId: string;
 }) {
   await createUsageLedgerRepository().insert({
-    chargedPoints,
+    credits,
     conversationId: getString(payload.conversationId, "") || null,
     errorCode,
     inputTokens: 0,

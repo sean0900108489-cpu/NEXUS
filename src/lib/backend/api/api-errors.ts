@@ -14,7 +14,7 @@ export type ApiErrorCode =
   | "IDEMPOTENCY_EXPIRED"
   | "PROVIDER_TIMEOUT"
   | "PROVIDER_RATE_LIMITED"
-  | "QUOTA_EXCEEDED"
+  | "INSUFFICIENT_CREDITS"
   | "USER_NEW_API_TOKEN_DECRYPT_FAILED"
   | "USER_NEW_API_TOKEN_DISABLED"
   | "USER_NEW_API_TOKEN_NOT_CONFIGURED"
@@ -150,9 +150,9 @@ const descriptors: Record<string, ApiErrorDescriptor> = {
     retryable: true,
     statusCode: 429,
   },
-  QUOTA_EXCEEDED: {
-    code: "QUOTA_EXCEEDED",
-    message: "Monthly AI usage quota has been reached for this plan.",
+  INSUFFICIENT_CREDITS: {
+    code: "INSUFFICIENT_CREDITS",
+    message: "Insufficient credits for this operation.",
     retryable: false,
     statusCode: 402,
   },

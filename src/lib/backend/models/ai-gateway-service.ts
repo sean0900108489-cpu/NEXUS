@@ -10,11 +10,11 @@ import {
 } from "./model-catalog";
 import { callNewApiChatCompletion } from "./new-api-chat-service";
 import {
-  estimateModelPoints,
+  estimateModelCredits,
   getUserPlan,
   isModelAllowedByPlan,
 } from "./plan-config";
-import { assertMonthlyQuotaAvailable } from "./quota-gate";
+import { assertSufficientCredits } from "./quota-gate";
 import {
   createUsageLedgerRepository,
   type UsageLedgerRepository,
@@ -43,7 +43,7 @@ export type AiGatewayChatResult = {
   modelId: string;
   requestId: string;
   usage: {
-    chargedPoints: number;
+    credits: number;
     inputTokens: number;
     outputTokens: number;
     totalTokens: number;
@@ -99,8 +99,8 @@ export async function executeAiGatewayChatRequest(input: {
       model,
       requestedFeatures: input.body.requestedFeatures,
     });
-    await assertMonthlyQuotaAvailable({
-      estimatedPoints: estimateModelPoints(
+    await assertSufficientCredits({
+      estimatedCredits: estimateModelCredits(
         model.id,
         estimateMessageTokens(input.body.messages),
       ),
@@ -122,10 +122,10 @@ export async function executeAiGatewayChatRequest(input: {
       },
       input.fetcher ? { fetcher: input.fetcher } : undefined,
     );
-    const chargedPoints = estimateModelPoints(model.id, result.totalTokens);
+    const credits = estimateModelCredits(model.id, result.totalTokens);
 
     await ledger.insert({
-      chargedPoints,
+      credits,
       conversationId,
       errorCode: null,
       inputTokens: result.inputTokens,
@@ -146,7 +146,7 @@ export async function executeAiGatewayChatRequest(input: {
       modelId: model.id,
       requestId: input.requestId,
       usage: {
-        chargedPoints,
+        credits,
         inputTokens: result.inputTokens,
         outputTokens: result.outputTokens,
         totalTokens: result.totalTokens,
@@ -159,7 +159,7 @@ export async function executeAiGatewayChatRequest(input: {
       const model = getCatalogModel(modelId);
 
       await ledger.insert({
-        chargedPoints: 0,
+        credits: 0,
         conversationId,
         errorCode: apiError.code,
         inputTokens: 0,

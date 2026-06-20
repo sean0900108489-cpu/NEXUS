@@ -9,9 +9,16 @@ const NEW_API_DB = process.env.NEW_API_SQLITE_PATH || "/opt/new-api/data/one-api
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || "";
-const GITHUB_OWNER = process.env.GITHUB_OWNER || "sean0900108489-cpu";
-const GITHUB_REPO = process.env.GITHUB_REPO || "NEXUS";
+const GITHUB_DEFAULT_OWNER = "sean0900108489-cpu";
+const GITHUB_DEFAULT_REPO = "NEXUS";
 const PORT = process.env.PORT || 3003;
+
+function resolveGitHubRepo(repo) {
+  if (!repo) return { owner: GITHUB_DEFAULT_OWNER, repo: GITHUB_DEFAULT_REPO };
+  const parts = repo.split("/");
+  if (parts.length === 2) return { owner: parts[0], repo: parts[1] };
+  return { owner: GITHUB_DEFAULT_OWNER, repo };
+}
 
 // ── Helpers ──────────────────────────────────
 const db = new Database(NEW_API_DB, { readonly: true });
@@ -29,13 +36,8 @@ function spHeaders() {
     : {};
 }
 
-function redact(s, show = 4) {
-  const str = String(s || "");
-  return str.length <= show * 2 ? str : str.slice(0, show) + "..." + str.slice(-show);
-}
-
 // ── MCP Server ──────────────────────────────
-const server = new McpServer({ name: "supaseanexus-ops", version: "1.2.0" });
+const server = new McpServer({ name: "supaseanexus-ops", version: "1.3.0" });
 
 // ═══════════════ NEW API TOOLS ═══════════════
 
@@ -132,24 +134,32 @@ server.tool("supabase_model_usage", "Get model usage ledger stats: top models, t
 
 // ═══════════════ GITHUB TOOLS ═══════════════
 
-server.tool("github_read_file", "Read a file from the NEXUS GitHub repo", { path: z.string().describe("File path within the repo, e.g. src/lib/backend/models/model-catalog.ts") }, async ({ path }) => {
+server.tool("github_read_file", "Read a file from a GitHub repo. Defaults to NEXUS if no repo specified.", {
+  path: z.string().describe("File path within the repo"),
+  repo: z.string().optional().describe("Repo as owner/name (default: sean0900108489-cpu/NEXUS)"),
+}, async ({ path, repo }) => {
   const h = ghHeaders(); if (!GITHUB_TOKEN) return { content: [{ type: "text", text: "GITHUB_TOKEN not configured" }] };
+  const { owner, repo: r } = resolveGitHubRepo(repo);
   try {
-    const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`;
+    const url = `https://api.github.com/repos/${owner}/${r}/contents/${path}`;
     const res = await fetch(url, { headers: h });
     const data = await res.json();
     if (data.content) {
       const text = Buffer.from(data.content, "base64").toString("utf8");
-      return { content: [{ type: "text", text: `// ${path} (${data.size} bytes, sha: ${data.sha})\n\n${text.slice(0, 8000)}${text.length > 8000 ? '\n\n... (truncated)' : ''}` }] };
+      return { content: [{ type: "text", text: `// ${owner}/${r}/${path} (${data.size} bytes, sha: ${data.sha})\n\n${text.slice(0, 8000)}${text.length > 8000 ? '\n\n... (truncated)' : ''}` }] };
     }
     return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
   } catch(e) { return { content: [{ type: "text", text: `Error: ${e.message}` }] }; }
 });
 
-server.tool("github_list_commits", "List recent commits on the main branch", { count: z.number().optional().describe("Number of commits (default 10)") }, async ({ count = 10 }) => {
+server.tool("github_list_commits", "List recent commits. Defaults to NEXUS main branch.", {
+  count: z.number().optional().describe("Number of commits (default 10)"),
+  repo: z.string().optional().describe("Repo as owner/name (default: sean0900108489-cpu/NEXUS)"),
+}, async ({ count = 10, repo }) => {
   const h = ghHeaders(); if (!GITHUB_TOKEN) return { content: [{ type: "text", text: "GITHUB_TOKEN not configured" }] };
+  const { owner, repo: r } = resolveGitHubRepo(repo);
   try {
-    const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits?sha=main&per_page=${count}`;
+    const url = `https://api.github.com/repos/${owner}/${r}/commits?sha=main&per_page=${count}`;
     const res = await fetch(url, { headers: h });
     const data = await res.json();
     const commits = data.map(c => ({
@@ -162,10 +172,14 @@ server.tool("github_list_commits", "List recent commits on the main branch", { c
   } catch(e) { return { content: [{ type: "text", text: `Error: ${e.message}` }] }; }
 });
 
-server.tool("github_search_code", "Search NEXUS repo code", { query: z.string().describe("Search term, e.g. SERVER_MODEL_CATALOG or new_api_model") }, async ({ query }) => {
+server.tool("github_search_code", "Search code within a GitHub repo. Defaults to NEXUS.", {
+  query: z.string().describe("Search term"),
+  repo: z.string().optional().describe("Repo as owner/name (default: sean0900108489-cpu/NEXUS)"),
+}, async ({ query, repo }) => {
   const h = ghHeaders(); if (!GITHUB_TOKEN) return { content: [{ type: "text", text: "GITHUB_TOKEN not configured" }] };
+  const { owner, repo: r } = resolveGitHubRepo(repo);
   try {
-    const url = `https://api.github.com/search/code?q=${encodeURIComponent(query)}+repo:${GITHUB_OWNER}/${GITHUB_REPO}&per_page=10`;
+    const url = `https://api.github.com/search/code?q=${encodeURIComponent(query)}+repo:${owner}/${r}&per_page=10`;
     const res = await fetch(url, { headers: h });
     const data = await res.json();
     const items = (data.items || []).map(i => ({ path: i.path, url: i.html_url }));
@@ -173,10 +187,13 @@ server.tool("github_search_code", "Search NEXUS repo code", { query: z.string().
   } catch(e) { return { content: [{ type: "text", text: `Error: ${e.message}` }] }; }
 });
 
-server.tool("github_repo_snapshot", "Get repo metadata: stars, forks, open issues, default branch, last push", {}, async () => {
+server.tool("github_repo_snapshot", "Get repo metadata. Defaults to NEXUS.", {
+  repo: z.string().optional().describe("Repo as owner/name (default: sean0900108489-cpu/NEXUS)"),
+}, async ({ repo }) => {
   const h = ghHeaders(); if (!GITHUB_TOKEN) return { content: [{ type: "text", text: "GITHUB_TOKEN not configured" }] };
+  const { owner, repo: r } = resolveGitHubRepo(repo);
   try {
-    const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}`;
+    const url = `https://api.github.com/repos/${owner}/${r}`;
     const res = await fetch(url, { headers: h });
     const d = await res.json();
     return { content: [{ type: "text", text: JSON.stringify({
@@ -186,8 +203,6 @@ server.tool("github_repo_snapshot", "Get repo metadata: stars, forks, open issue
     }, null, 2) }] };
   } catch(e) { return { content: [{ type: "text", text: `Error: ${e.message}` }] }; }
 });
-
-// ── HTTP Transport ──────────────────────────
 
 // ═══════════════ NOTION TOOLS ═══════════════
 const NOTION_TOKEN = process.env.NOTION_TOKEN || "";
@@ -211,7 +226,6 @@ server.tool("notion_search", "Search all Notion pages and databases in the works
 server.tool("notion_read_page", "Read a Notion page by ID (returns block content as text)", { pageId: z.string().describe("Notion page UUID") }, async ({ pageId }) => {
   if (!NOTION_TOKEN) return { content: [{ type: "text", text: "NOTION_TOKEN not configured" }] };
   try {
-    // Fetch page blocks
     const blocks = await fetch(`${NOTION_API}/blocks/${pageId}/children?page_size=50`, { headers: NOTION_HEADERS() });
     const bd = await blocks.json();
     const text = (bd.results || []).map(b => {
@@ -230,14 +244,10 @@ server.tool("notion_create_page", "Create a new Notion page under a parent page"
 }, async ({ parentId, title, content }) => {
   if (!NOTION_TOKEN) return { content: [{ type: "text", text: "NOTION_TOKEN not configured" }] };
   try {
-    const body = {
-      parent: { page_id: parentId },
-      properties: { title: { title: [{ text: { content: title } }] } },
-    };
+    const body = { parent: { page_id: parentId }, properties: { title: { title: [{ text: { content: title } }] } } };
     const res = await fetch(`${NOTION_API}/pages`, { method: "POST", headers: NOTION_HEADERS(), body: JSON.stringify(body) });
     const d = await res.json();
     const pageId = d.id;
-    // Append content if provided
     if (content && pageId) {
       const blocks = content.split("\n").filter(Boolean).map(line => {
         if (line.startsWith("# ")) return { object: "block", type: "heading_1", heading_1: { rich_text: [{ type: "text", text: { content: line.slice(2) } }] } };
@@ -279,6 +289,7 @@ server.tool("notion_list_databases", "List all databases the integration can acc
   } catch(e) { return { content: [{ type: "text", text: `Error: ${e.message}` }] }; }
 });
 
+// ── HTTP Transport ──────────────────────────
 const app = express();
 app.use(express.json());
 app.get("/health", (_req, res) => res.json({ status: "ok", uptime: process.uptime() }));
@@ -290,12 +301,11 @@ app.post("/mcp", async (req, res) => {
   await transport.handleRequest(req, res, req.body);
 });
 
-// OAuth endpoints (minimal — ChatGPT connector)
+// OAuth endpoints
 app.get("/.well-known/oauth-authorization-server", (_req, res) => res.json({
   issuer: "https://ops.supaseanexus.com",
   authorization_endpoint: "https://ops.supaseanexus.com/oauth/authorize",
   token_endpoint: "https://ops.supaseanexus.com/oauth/token",
-  registration_endpoint: "https://ops.supaseanexus.com/oauth/register",
   response_types_supported: ["code"], grant_types_supported: ["authorization_code", "refresh_token"],
   token_endpoint_auth_methods_supported: ["none"]
 }));
@@ -306,4 +316,4 @@ app.get("/oauth/authorize", (_req, res) => {
 app.post("/oauth/token", (_req, res) => res.json({ access_token: "dev-token-supaseanexus-ops", token_type: "bearer", expires_in: 86400, scope: "ops:read" }));
 app.post("/oauth/register", (_req, res) => res.status(201).json({ client_id: "supaseanexus-ops-client" }));
 
-app.listen(PORT, "127.0.0.1", () => console.log(`SupaseaNexus Ops MCP v1.1.0 listening on 127.0.0.1:${PORT}`));
+app.listen(PORT, "127.0.0.1", () => console.log(`SupaseaNexus Ops MCP v1.3.0 listening on 127.0.0.1:${PORT}`));

@@ -93,15 +93,15 @@ export const nexusHomeApi = {
   },
 
   getWalletBalance(): Promise<WalletBalance> {
-    return requestJson<WalletBalance>('/api/wallet/balance');
+    return requestJson<{ credits: number; state: string; lastTransactionId: string; updatedAt: string }>('/api/wallet/balance').then(d => ({ credits: d.credits, state: d.state as "ready" | "low" | "empty" }));
   },
 
   listModels(): Promise<NexusModel[]> {
-    return requestJson<NexusModel[]>('/api/models');
+    return requestJson<{ models: NexusModel[] }>('/api/models').then(d => d.models);
   },
 
   listWorkspaces(): Promise<WorkspaceShortcut[]> {
-    return requestJson<WorkspaceShortcut[]>('/api/workspaces');
+    return requestJson<{ workspaces: WorkspaceShortcut[] }>('/api/workspaces').then(d => d.workspaces);
   },
 
   importToWorkspace(input: ImportToWorkspaceInput): Promise<ImportToWorkspaceResult> {

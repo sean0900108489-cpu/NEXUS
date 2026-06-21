@@ -10,7 +10,8 @@ export const runtime = "nodejs";
  *
  * Create a new global conversation or continue an existing one.
  * Uses the ai-gateway-service for the actual LLM call.
- * Messages are persisted to global_conversations + global_messages.
+ * Messages are persisted to global_conversations + global_messages
+ * ONLY after the AI call succeeds (to avoid orphan messages).
  */
 export async function POST(request: Request) {
   try {
@@ -28,7 +29,12 @@ export async function POST(request: Request) {
 
     // 1. Resolve or create conversation
     let conversationId = body.conversationId;
-    let conversation: { messages: { content: string; role: string }[]; messageCount: number; id: string; userId: string };
+    let conversation: {
+      messages: { content: string; role: string }[];
+      messageCount: number;
+      id: string;
+      userId: string;
+    };
 
     if (conversationId) {
       const existing = await chatRepo.getConversation(conversationId);
@@ -54,16 +60,8 @@ export async function POST(request: Request) {
       return Response.json({ conversation });
     }
 
-    // 3. Add user message
-    const userSeq = await chatRepo.getNextSequence(conversationId);
-    await chatRepo.addMessage({
-      content: body.message,
-      conversationId,
-      role: "user",
-      sequence: userSeq,
-    });
-
-    // 4. Call AI gateway (includes wallet gate + deduction + usage ledger)
+    // 3. Call AI gateway FIRST (includes wallet gate + deduction)
+    //    Messages are constructed in-memory; persisted only on success.
     const requestId = crypto.randomUUID?.() ?? `gchat_${Date.now()}`;
     const aiResult = await executeAiGatewayChatRequest({
       body: {
@@ -81,7 +79,15 @@ export async function POST(request: Request) {
       requestId,
     });
 
-    // 5. Add assistant message
+    // 4. AI succeeded — now persist user + assistant messages atomically
+    const userSeq = await chatRepo.getNextSequence(conversationId);
+    await chatRepo.addMessage({
+      content: body.message,
+      conversationId,
+      role: "user",
+      sequence: userSeq,
+    });
+
     const assistantSeq = await chatRepo.getNextSequence(conversationId);
     await chatRepo.addMessage({
       content: aiResult.content,
@@ -97,8 +103,7 @@ export async function POST(request: Request) {
       },
     });
 
-    // 6. Update conversation metadata
-    const totalMessages = userSeq + 1; // user + assistant
+    // 5. Update conversation metadata
     await chatRepo.updateConversation({
       conversationId,
       lastMessageAt: new Date().toISOString(),
@@ -107,7 +112,7 @@ export async function POST(request: Request) {
       title: conversation.messageCount === 0 ? body.message.slice(0, 100) : undefined,
     });
 
-    // 7. Return updated conversation
+    // 6. Return updated conversation
     const updated = await chatRepo.getConversation(conversationId);
     return Response.json({ conversation: updated });
   } catch (error) {

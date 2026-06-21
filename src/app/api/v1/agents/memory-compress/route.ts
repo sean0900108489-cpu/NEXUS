@@ -84,7 +84,9 @@ export const POST = apiHandler({
         source: "chat_completion",
         type: "deduction",
         userId: productGate.userId,
-      }).catch(() => undefined);
+      }).catch((err) => {
+        console.warn("[wallet] deduction write failed", { error: (err as Error).message, source: "memory-compress", userId: productGate.userId });
+      });
     }
 
     return result;

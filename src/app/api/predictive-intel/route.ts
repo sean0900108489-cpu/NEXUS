@@ -231,7 +231,9 @@ export async function POST(request: Request) {
         source: "chat_completion",
         type: "deduction",
         userId: actor.userId,
-      }).catch(() => undefined);
+      }).catch((err) => {
+        console.warn("[wallet] deduction write failed", { error: (err as Error).message, source: "predictive-intel", userId: actor.userId });
+      });
     }
 
     return Response.json({

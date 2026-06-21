@@ -206,7 +206,9 @@ export async function POST(request: Request) {
         source: "image_generation",
         type: "deduction",
         userId: productUserId,
-      }).catch(() => undefined);
+      }).catch((err) => {
+        console.warn("[wallet] deduction write failed", { error: (err as Error).message, source: "image_generation", userId: productUserId });
+      });
     }
 
     return Response.json(materialized);

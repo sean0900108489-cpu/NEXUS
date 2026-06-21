@@ -119,7 +119,7 @@ export async function executeAiGatewayChatRequest(input: {
           content: String(message.content ?? ""),
           role: message.role,
         })),
-        modelId,
+        modelId: model.new_api_model,
         signal: input.request.signal,
       },
       input.fetcher ? { fetcher: input.fetcher } : undefined,
@@ -157,7 +157,9 @@ export async function executeAiGatewayChatRequest(input: {
       source: "chat_completion",
       type: "deduction",
       userId,
-    }).catch(() => undefined);
+    }).catch((err) => {
+      console.warn("[wallet] deduction write failed", { error: (err as Error).message, requestId: input.requestId, userId });
+    });
 
     return {
       content: result.content,

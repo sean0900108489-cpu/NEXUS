@@ -284,7 +284,9 @@ async function createOpenAiWorkflowPlannerResult({
     source: "chat_completion",
     type: "deduction",
     userId: actor.actorUserId,
-  }).catch(() => undefined);
+  }).catch((err) => {
+    console.warn("[wallet] deduction write failed", { error: (err as Error).message, source: "brain-draft", userId: actor.actorUserId });
+  });
 
   return createWorkflowGraphBrainPlannerResultFromModelProposal({
     fallback,

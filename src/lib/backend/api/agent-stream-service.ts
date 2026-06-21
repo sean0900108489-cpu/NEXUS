@@ -558,7 +558,9 @@ async function recordAgentStreamUsage({
     source: "chat_completion",
     type: "deduction",
     userId,
-  }).catch(() => undefined);
+  }).catch((err) => {
+    console.warn("[wallet] deduction write failed", { error: (err as Error).message, requestId, userId });
+  });
 }
 
 async function recordAgentStreamFailureUsage({

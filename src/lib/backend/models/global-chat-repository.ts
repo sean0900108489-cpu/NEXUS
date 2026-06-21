@@ -92,8 +92,9 @@ export class InMemoryGlobalChatRepository implements GlobalChatRepository {
     content: string;
     modelId?: string | null;
     usage?: GlobalMessageUsage | null;
-    sequence: number;
+    sequence?: number;
   }): Promise<GlobalMessage> {
+    const seq = input.sequence ?? (this.messages.get(input.conversationId)?.length ?? 0) + 1;
     const msg: GlobalMessage = {
       content: input.content,
       conversationId: input.conversationId,
@@ -101,7 +102,7 @@ export class InMemoryGlobalChatRepository implements GlobalChatRepository {
       id: makeId(),
       modelId: input.modelId ?? null,
       role: input.role,
-      sequence: input.sequence,
+      sequence: seq,
       usage: input.usage ?? null,
     };
 
@@ -246,9 +247,12 @@ export class SupabaseGlobalChatRepository implements GlobalChatRepository {
     content: string;
     modelId?: string | null;
     usage?: GlobalMessageUsage | null;
-    sequence: number;
+    sequence?: number;
   }): Promise<GlobalMessage> {
     const client = getNexusSupabaseAdminClient();
+
+    // Auto-assign sequence if not provided (avoids concurrency race)
+    const seq = input.sequence ?? await this.getNextSequence(input.conversationId);
 
     const { data, error } = await client
       .from("global_messages")
@@ -258,7 +262,7 @@ export class SupabaseGlobalChatRepository implements GlobalChatRepository {
         created_at: new Date().toISOString(),
         model_id: input.modelId ?? null,
         role: input.role,
-        sequence: input.sequence,
+        sequence: seq,
         usage: input.usage ?? null,
       } as never)
       .select()

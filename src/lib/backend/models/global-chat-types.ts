@@ -83,14 +83,14 @@ export interface GlobalChatRepository {
   /** Get a conversation with all messages */
   getConversation(conversationId: string): Promise<GlobalConversationWithMessages | null>;
 
-  /** Add a message to a conversation */
+  /** Add a message to a conversation. If sequence is not provided, auto-assigns next sequence. */
   addMessage(input: {
     conversationId: string;
     role: GlobalMessageRole;
     content: string;
     modelId?: string | null;
     usage?: GlobalMessageUsage | null;
-    sequence: number;
+    sequence?: number;
   }): Promise<GlobalMessage>;
 
   /** Update conversation metadata after a message is added */

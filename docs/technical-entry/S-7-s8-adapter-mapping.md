@@ -1,4 +1,4 @@
-# S-7 → S-8 Adapter Mapping
+# S-7 → S-8 Adapter Mapping (Updated — S-7B durable persistence)
 
 ## Actual S-7 Route
 
@@ -6,14 +6,25 @@
 POST /api/v1/workspaces/:workspaceId/imports
 ```
 
+## Durable Persistence
+
+The import endpoint creates a **durable workspace artifact** via `artifactService.createArtifact()`.
+
+- `createdResourceId` = real `artifacts.id` in the workspace (UUID, persistent).
+- `createdResourceType` = `"context_bundle"` (default) or caller's `importType`.
+- Artifact type = `"context_bundle"` by default — visible in workspace artifact panel.
+- Deleting the artifact does NOT affect the global source.
+- Deleting the global source does NOT affect the artifact (copy, not link).
+- Provenance is stored in `artifacts.metadata.provenance`.
+
 ## Request Payload
 
 ```typescript
 {
   sourceConversationId: string;          // required — global conversation to import
   sourceMessageIds?: string[];           // optional — filter specific messages; default = all
-  title?: string;                       // optional — title for the imported resource
-  note?: string;                        // optional — note/description
+  title?: string;                       // optional — title for the artifact
+  note?: string;                        // optional — note stored in artifact metadata
   importType?: "artifact" | "note" | "task" | "context_bundle";  // default: "context_bundle"
 }
 ```
@@ -22,21 +33,14 @@ POST /api/v1/workspaces/:workspaceId/imports
 
 ```typescript
 {
-  importId: string;                     // unique import operation ID
+  importId: string;                     // import operation index (UUID)
   workspaceId: string;                  // target workspace
-  createdResourceType: "artifact" | "note" | "task" | "context_bundle" | "workspace_message" | "unknown";
-  createdResourceId: string;            // resource ID within workspace
+  createdResourceType: "context_bundle";
+  createdResourceId: string;            // REAL artifacts.id — durable, queryable
   source: {
     globalConversationId: string;       // provenance: source conversation
     globalMessageIds: string[];         // provenance: source message IDs
   };
-  importedMessages: Array<{
-    content: string;                    // message text
-    modelId: string | null;             // model that generated this message
-    role: "user" | "assistant" | "system";
-    sequence: number;                   // original message order
-    sourceMessageId: string;            // link back to global_messages.id
-  }>;
   meta: {
     title: string;
     note: string | null;
@@ -46,6 +50,16 @@ POST /api/v1/workspaces/:workspaceId/imports
   openUrl: string;                      // e.g., "/workspace/{workspaceId}"
 }
 ```
+
+**Key change from S-7A:** `createdResourceId` is now a real `artifacts.id`, not a transient UUID. The artifact is persisted to the workspace's artifact store with full provenance metadata.
+
+## What the artifact contains
+
+- `artifacts.type` = `"context_bundle"`
+- `artifacts.content_text` = formatted transcript of all imported messages
+- `artifacts.title` = `"{title} — {N} messages"`
+- `artifacts.metadata.provenance` = `{ sourceType, globalConversationId, globalMessageIds, globalMessageCount }`
+- `artifacts.source_message_id` = last imported message ID
 
 ## Error Responses
 
@@ -59,7 +73,7 @@ POST /api/v1/workspaces/:workspaceId/imports
 
 ## S-8 Adapter Code
 
-In `src/lib/nexus-home/api.ts` (from handoff pack), map `importToWorkspace` to:
+In `src/lib/nexus-home/api.ts`:
 
 ```typescript
 importToWorkspace(input: ImportToWorkspaceInput): Promise<ImportToWorkspaceResult> {
@@ -71,20 +85,16 @@ importToWorkspace(input: ImportToWorkspaceInput): Promise<ImportToWorkspaceResul
         sourceConversationId: input.sourceConversationId,
         sourceMessageIds: input.sourceMessageId ? [input.sourceMessageId] : undefined,
         title: input.title,
-        importType: input.importType,
+        importType: input.importType ?? 'context_bundle',
       }),
     }
   );
 }
 ```
 
-## Behavior Contract
+## How S-8 Should Use the Response
 
-| Property | Behavior |
-|----------|----------|
-| Copy mode | Global conversation unchanged. Messages copied to workspace context. |
-| Delete global source | Workspace copy unaffected (copy lives in workspace, not linked). |
-| Delete workspace copy | Global source unaffected. |
-| Provenance | `source.globalConversationId` and `source.globalMessageIds` preserved in response. |
-| Workspace membership | Editor+ role required. Validated via PermissionService.requireWorkspaceRole. |
-| NOVA | Not touched. No NOVA indexing triggered. |
+1. **Show success state:** "Imported to {workspaceName}" with `openUrl` as CTA.
+2. **createdResourceId is real:** S-8 can deep-link to the artifact: `openUrl = /workspace/{workspaceId}` (artifacts are shown in workspace panel).
+3. **Provenance is preserved:** `source` → S-8 can display "Imported from: {title}" badge.
+4. **Re-import is allowed:** No dedup check. Each import creates a new artifact.

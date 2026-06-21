@@ -47,9 +47,9 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
  *   adapter default          → actual backend route
  *   /api/global-conversations → GET /api/global-chats
  *   /api/imports              → POST /api/imports (S-7 exact match)
- *   /api/models               → mock fallback (no backend route yet)
- *   /api/workspaces           → mock fallback (no backend route yet)
- *   /api/wallet/balance       → mock fallback (no backend route yet)
+ *   /api/models               → GET /api/models (S-9A real)
+ *   /api/workspaces           → GET /api/workspaces (S-9A real)
+ *   /api/wallet/balance       → GET /api/wallet/balance (S-9A real)
  */
 export const nexusHomeApi = {
   async listGlobalConversations(): Promise<GlobalConversation[]> {

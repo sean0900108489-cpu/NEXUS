@@ -10,6 +10,12 @@ import { NexusInsufficientCreditsDialog } from './NexusInsufficientCreditsDialog
 import { NexusPromptComposer } from './NexusPromptComposer';
 import { NexusSidebar } from './NexusSidebar';
 
+/**
+ * NEXUS Home Shell — auth-first landing.
+ *
+ * Unauthenticated → empty shell with sign-in CTA.
+ * Authenticated → real user data, composer, recent chats.
+ */
 export function NexusHomeShell() {
   const homeData = useNexusHomeData();
   const [conversationId, setConversationId] = useState<string | undefined>();
@@ -17,8 +23,15 @@ export function NexusHomeShell() {
   const [isSending, setIsSending] = useState(false);
   const [creditError, setCreditError] = useState<InsufficientCreditsError | null>(null);
 
+  const isAuth = homeData.authenticated;
+
   async function handleSend(content: string) {
     if (!content.trim()) return;
+    if (!isAuth) {
+      // Redirect to sign-in — composer should not silently do nothing
+      window.location.href = '/sign-in';
+      return;
+    }
 
     setIsSending(true);
     setCreditError(null);
@@ -81,49 +94,95 @@ export function NexusHomeShell() {
         recentChats={homeData.recentChats}
         workspaces={homeData.workspaces}
         wallet={homeData.wallet}
+        authenticated={isAuth}
       />
 
       <main className="nexus-home-main">
         <header className="nexus-topbar">
           <span className="nexus-status-pill">Commercial Home</span>
-          <a className="nexus-topbar-link" href="/wallet">Wallet</a>
-          <a className="nexus-topbar-link" href="/workspaces">Workspaces</a>
+          {isAuth ? (
+            <>
+              <a className="nexus-topbar-link" href="/wallet">Wallet</a>
+              <a className="nexus-topbar-link" href="/workspaces">Workspaces</a>
+            </>
+          ) : (
+            <a className="nexus-topbar-link nexus-signin-cta" href="/sign-in">
+              Sign in
+            </a>
+          )}
         </header>
 
-        {hasConversation ? (
+        {/* ── Authenticated chat ────────────────────────── */}
+        {isAuth && hasConversation ? (
           <NexusChatCanvas
             conversationId={conversationId}
             messages={messages}
             workspaces={homeData.workspaces}
           />
-        ) : (
+        ) : null}
+
+        {/* ── Hero / empty state ────────────────────────── */}
+        {(!isAuth || !hasConversation) ? (
           <section className="nexus-hero" aria-labelledby="nexus-home-title">
             <div className="nexus-orb" aria-hidden />
-            <p className="nexus-kicker">AI Agent Workspace / Agent OS</p>
-            <h1 id="nexus-home-title">Build, reason, and ship with NEXUS.</h1>
+            <p className="nexus-kicker">
+              {isAuth ? 'AI Agent Workspace / Agent OS' : 'Commercial AI Agent Workspace'}
+            </p>
+            <h1 id="nexus-home-title">
+              {isAuth
+                ? 'Build, reason, and ship with NEXUS.'
+                : 'Sign in to start building with NEXUS.'}
+            </h1>
             <p className="nexus-subtitle">
-              Start in global chat. Move real work into a workspace as an artifact, workflow, or agent task.
+              {isAuth
+                ? 'Start in global chat. Move real work into a workspace as an artifact, workflow, or agent task.'
+                : 'Your conversations, workspaces, and credits will appear here after signing in.'}
             </p>
 
-            <div className="nexus-intent-chips" aria-label="Suggested intents">
-              {intentChips.map((chip) => (
-                <button key={chip} type="button" className="nexus-chip">
-                  {chip}
-                </button>
-              ))}
+            {isAuth ? (
+              <div className="nexus-intent-chips" aria-label="Suggested intents">
+                {intentChips.map((chip) => (
+                  <button key={chip} type="button" className="nexus-chip">
+                    {chip}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="nexus-auth-cta">
+                <a href="/sign-in" className="nexus-btn-primary">
+                  Sign in to start
+                </a>
+                <p className="nexus-cta-sub">
+                  Sign in to save conversations, access workspaces, and manage credits.
+                </p>
+              </div>
+            )}
+
+            {/* ── Personal homepage placeholder (future) ── */}
+            <div className="nexus-future-home" aria-label="Homepage placeholder">
+              <p className="nexus-muted">Personal homepage — reserved for future release.</p>
             </div>
           </section>
-        )}
+        ) : null}
 
+        {/* ── Composer ──────────────────────────────────── */}
         <div className="nexus-composer-dock" data-has-conversation={hasConversation}>
-          <NexusPromptComposer
-            disabled={isSending}
-            models={homeData.models}
-            selectedModelId={homeData.selectedModelId}
-            onModelChange={homeData.setSelectedModelId}
-            selectedModelEstimate={selectedModel?.estimatedCredits ?? 'Estimate unavailable'}
-            onSubmit={handleSend}
-          />
+          {isAuth ? (
+            <NexusPromptComposer
+              disabled={isSending}
+              models={homeData.models}
+              selectedModelId={homeData.selectedModelId}
+              onModelChange={homeData.setSelectedModelId}
+              selectedModelEstimate={selectedModel?.estimatedCredits ?? 'Estimate unavailable'}
+              onSubmit={handleSend}
+            />
+          ) : (
+            <div className="nexus-composer-placeholder">
+              <a href="/sign-in" className="nexus-btn-primary">
+                Sign in to start
+              </a>
+            </div>
+          )}
           <p className="nexus-footnote">
             Knowledge systems are parked for this commercial round. Home, wallet, workspace, and workflow are the active product path.
           </p>

@@ -29,6 +29,11 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
     data = { message: text || `Request failed: ${response.status}` };
   }
 
+  // 401 → throw as unauthorized (caught by callers as unauthenticated)
+  if (response.status === 401) {
+    throw Object.assign(new Error('Unauthorized'), { status: 401 });
+  }
+
   if (response.status === 402) {
     throw new InsufficientCreditsError(data ?? {});
   }
@@ -44,7 +49,6 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
  * NEXUS Home API adapter — maps visual components to actual backend routes.
  *
  * Route mapping:
- *   adapter default          → actual backend route
  *   /api/global-conversations → GET /api/global-chats
  *   /api/imports              → POST /api/imports (S-7 exact match)
  *   /api/models               → GET /api/models (S-9A real)
@@ -93,7 +97,7 @@ export const nexusHomeApi = {
   },
 
   getWalletBalance(): Promise<WalletBalance> {
-    return requestJson<{ credits: number; state: string; lastTransactionId: string; updatedAt: string }>('/api/wallet/balance').then(d => ({ credits: d.credits, state: d.state as "ready" | "low" | "empty" }));
+    return requestJson<{ credits: number; state: string; lastTransactionId: string; updatedAt: string }>('/api/wallet/balance').then(d => ({ credits: d.credits, state: d.state as 'ready' | 'low' | 'empty' }));
   },
 
   listModels(): Promise<NexusModel[]> {

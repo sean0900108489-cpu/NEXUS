@@ -9,7 +9,13 @@ type WorkspacePageProps = {
  * NEXUS Workspace OS — preserved at /workspace/[id].
  *
  * NexusOps is NOT deleted. It lives here as the workspace surface.
- * S-10 navigation simplification adds WorkspaceTopNav wrapper.
+ * S-10 adds a commercial navigation frame with Back to Home,
+ * workspace identity, section tabs, and credits summary.
+ *
+ * S-10 rules:
+ * - No NexusOps rewrite.
+ * - No Supabase migration.
+ * - No NOVA product work.
  */
 export default async function WorkspacePage({ params }: WorkspacePageProps) {
   const { id } = await params;

@@ -13,15 +13,15 @@ describe("server-side model catalog", () => {
 
     expect(freeModels).toContain("gpt-4o-mini");
     expect(freeModels).toContain("deepseek-chat");
-    expect(freeModels).not.toContain("claude-sonnet-4-20250514");
+    expect(freeModels).not.toContain("deepseek-v4-pro");
   });
 
   it("falls back to a safe allowed model when a stored operator model is no longer allowed", () => {
-    expect(resolveAllowedModelId("claude-sonnet-4-20250514", "Free")).toBe("gpt-4o-mini");
+    expect(resolveAllowedModelId("deepseek-v4-pro", "Free")).toBe("gpt-4o-mini");
   });
 
   it("rejects tampered model ids that are not allowed for the authenticated user's plan", () => {
-    expect(() => assertModelAllowedForPlan("claude-sonnet-4-20250514", "Free")).toThrow(
+    expect(() => assertModelAllowedForPlan("deepseek-v4-pro", "Free")).toThrow(
       /not allowed/i,
     );
   });

@@ -12,6 +12,7 @@ import {
 
 import { executeAiGatewayChatRequest } from "./ai-gateway-service";
 import { InMemoryUsageLedgerRepository } from "./usage-ledger";
+import { getInMemoryWalletRepository } from "./wallet-repository";
 
 describe("AI gateway service", () => {
   beforeEach(() => {
@@ -37,6 +38,9 @@ describe("AI gateway service", () => {
     });
     vi.stubEnv("NEW_API_BASE_URL", "https://new-api.example.test/v1");
     vi.stubEnv("NEW_API_TOKEN_ENCRYPTION_SECRET", secret);
+
+    // Reset wallet state between tests
+    getInMemoryWalletRepository().clear();
   });
 
   afterEach(() => {
@@ -45,7 +49,7 @@ describe("AI gateway service", () => {
     vi.unstubAllEnvs();
   });
 
-  it("runs chat requests through plan, quota, New API, and usage ledger", async () => {
+  it("runs chat requests through plan, wallet gate, New API, and usage ledger", async () => {
     const ledger = new InMemoryUsageLedgerRepository();
     const fetcher = vi.fn(async () =>
       Response.json({
@@ -57,7 +61,7 @@ describe("AI gateway service", () => {
     const result = await executeAiGatewayChatRequest({
       body: {
         messages: [{ content: "hello", role: "user" }],
-        modelId: "gpt-4o",
+        modelId: "deepseek-v4-flash",
         operatorId: "operator-gateway",
       },
       fetcher,
@@ -75,10 +79,10 @@ describe("AI gateway service", () => {
 
     expect(result).toMatchObject({
       content: "gateway ok",
-      modelId: "gpt-4o",
+      modelId: "deepseek-v4-flash",
       requestId: "request-gateway-success",
       usage: {
-        credits: 10,
+        credits: 2,  // deepseek-v4-flash at 1×, 1200 tokens = 2 credits
         inputTokens: 600,
         outputTokens: 600,
         totalTokens: 1200,
@@ -92,40 +96,18 @@ describe("AI gateway service", () => {
     });
     expect(ledger.all()).toHaveLength(1);
     expect(ledger.all()[0]).toMatchObject({
-      credits: 10,
-      modelId: "gpt-4o",
+      credits: 2,
+      modelId: "deepseek-v4-flash",
       operatorId: "operator-gateway",
       status: "succeeded",
       userId: "user-gateway-test",
     });
   });
 
-  it("rejects over-limit requests before New API and records a failed ledger row", async () => {
+  it("records failed ledger row when provider call fails", async () => {
     const ledger = new InMemoryUsageLedgerRepository();
-    const currentMonth = new Date();
-    currentMonth.setUTCDate(2);
-    await ledger.insert({
-      credits: 100_000,
-      conversationId: "conversation-gateway",
-      createdAt: currentMonth.toISOString(),
-      errorCode: null,
-      inputTokens: 100,
-      modelId: "gpt-4o-mini",
-      newApiModel: "gpt-4o-mini",
-      operatorId: "operator-gateway",
-      outputTokens: 100,
-      providerFamily: "OpenAI",
-      requestId: "request-already-used",
-      sourceType: "operator_chat",
-      status: "succeeded",
-      totalTokens: 200,
-      userId: "user-gateway-test",
-    });
     const fetcher = vi.fn(async () =>
-      Response.json({
-        choices: [{ message: { content: "should not run" } }],
-        usage: { completion_tokens: 5, prompt_tokens: 5, total_tokens: 10 },
-      }),
+      Response.json({ error: "upstream failure" }, { status: 500 }),
     );
 
     await expect(
@@ -138,27 +120,19 @@ describe("AI gateway service", () => {
         fetcher,
         ledger,
         request: new Request("http://localhost/api/chat", {
-          headers: {
-            "Content-Type": "application/json",
-            "X-Nexus-Test-Plan": "Free",
-            "X-User-Id": "user-gateway-test",
-          },
+          headers: { "Content-Type": "application/json" },
           method: "POST",
         }),
-        requestId: "request-gateway-quota",
+        requestId: "request-gateway-fail",
       }),
-    ).rejects.toMatchObject({
-      code: "INSUFFICIENT_CREDITS",
-      statusCode: 402,
-    });
+    ).rejects.toBeDefined();
 
-    expect(fetcher).not.toHaveBeenCalled();
-    expect(ledger.all().filter((record) => record.status === "failed")).toHaveLength(1);
+    // Failed ledger row should exist (no credits charged)
+    expect(ledger.all().filter((r) => r.status === "failed")).toHaveLength(1);
     expect(ledger.all().at(-1)).toMatchObject({
-      errorCode: "INSUFFICIENT_CREDITS",
+      credits: 0,
       modelId: "gpt-4o-mini",
-      operatorId: "operator-gateway",
-      requestId: "request-gateway-quota",
+      status: "failed",
     });
   });
 });

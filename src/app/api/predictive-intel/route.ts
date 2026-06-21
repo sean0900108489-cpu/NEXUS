@@ -13,6 +13,7 @@ import {
 } from "@/lib/backend/models/plan-config";
 import { assertSufficientCredits } from "@/lib/backend/models/quota-gate";
 import { createUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
+import { createWalletRepository } from "@/lib/backend/models/wallet-repository";
 import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 import { normalizePredictiveIntelSuggestions } from "@/lib/predictive-intel";
 import {
@@ -201,20 +202,39 @@ export async function POST(request: Request) {
     const finalSuggestions =
       suggestions.length === 3 ? suggestions : [...FALLBACK_SUGGESTIONS];
 
+    const actualCredits = suggestions.length === 3
+      ? estimateModelCredits(
+          productGate.model.id,
+          estimatePredictiveIntelTokens(lastMessage, finalSuggestions.join("\n")),
+        )
+      : 0;
+
     await recordPredictiveIntelUsage({
-      credits:
-        suggestions.length === 3
-          ? estimateModelCredits(
-              productGate.model.id,
-              estimatePredictiveIntelTokens(lastMessage, finalSuggestions.join("\n")),
-            )
-          : 0,
+      credits: actualCredits,
       errorCode: null,
       model: productGate.model,
       requestId,
       status: "succeeded",
       userId: actor.userId,
     }).catch(() => undefined);
+
+    // Wallet deduction (skip if mock — no actual credits consumed)
+    if (actualCredits > 0) {
+      await createWalletRepository().createTransaction({
+        amount: -actualCredits,
+        metadata: {
+          estimatedCredits: actualCredits,
+          modelId: productGate.model.id,
+          operationType: "chat_completion",
+        },
+        requestId,
+        source: "chat_completion",
+        type: "deduction",
+        userId: actor.userId,
+      }).catch((err) => {
+        console.warn("[wallet] deduction write failed", { error: (err as Error).message, source: "predictive-intel", userId: actor.userId });
+      });
+    }
 
     return Response.json({
       mode: suggestions.length === 3 ? "openai" : "mock",
@@ -320,9 +340,10 @@ async function assertPredictiveIntelProductGate({
         model.id,
         estimatePredictiveIntelTokens(lastMessage, ""),
       ),
-      ledger: createUsageLedgerRepository(),
+      modelId: model.id,
       plan,
       userId,
+      walletRepo: createWalletRepository(),
     });
 
     return {

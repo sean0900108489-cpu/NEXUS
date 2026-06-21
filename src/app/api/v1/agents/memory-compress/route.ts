@@ -19,6 +19,7 @@ import {
 } from "@/lib/backend/models/plan-config";
 import { assertSufficientCredits } from "@/lib/backend/models/quota-gate";
 import { createUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
+import { createWalletRepository } from "@/lib/backend/models/wallet-repository";
 import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 
 export const runtime = "nodejs";
@@ -69,6 +70,24 @@ export const POST = apiHandler({
       status: "succeeded",
       userId: productGate.userId,
     }).catch(() => undefined);
+
+    // Wallet deduction (skip if mock fallback — no actual credits consumed)
+    if (!result || typeof result !== "object" || !("mockFallback" in result)) {
+      await createWalletRepository().createTransaction({
+        amount: -productGate.estimatedCredits,
+        metadata: {
+          estimatedCredits: productGate.estimatedCredits,
+          modelId: productGate.model.id,
+          operationType: "chat_completion",
+        },
+        requestId,
+        source: "chat_completion",
+        type: "deduction",
+        userId: productGate.userId,
+      }).catch((err) => {
+        console.warn("[wallet] deduction write failed", { error: (err as Error).message, source: "memory-compress", userId: productGate.userId });
+      });
+    }
 
     return result;
   },
@@ -136,9 +155,10 @@ async function assertMemoryCompressionProductGate({
 
     await assertSufficientCredits({
       estimatedCredits,
-      ledger: createUsageLedgerRepository(),
+      modelId: model.id,
       plan,
       userId,
+      walletRepo: createWalletRepository(),
     });
 
     return {

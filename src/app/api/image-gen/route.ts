@@ -30,6 +30,7 @@ import {
 } from "@/lib/backend/models/plan-config";
 import { assertSufficientCredits } from "@/lib/backend/models/quota-gate";
 import { createUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
+import { createWalletRepository } from "@/lib/backend/models/wallet-repository";
 import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 import type { PermissionService } from "@/lib/backend/security/permission-service";
 import { createWorkspaceStatePermissionService } from "@/lib/backend/workspace/workspace-permission";
@@ -192,6 +193,22 @@ export async function POST(request: Request) {
         status: "succeeded",
         userId: productUserId,
       }).catch(() => undefined);
+
+      // Wallet deduction
+      await createWalletRepository().createTransaction({
+        amount: -productGate.estimatedCredits,
+        metadata: {
+          estimatedCredits: productGate.estimatedCredits,
+          modelId: productGate.model.id,
+          operationType: "image_generation",
+        },
+        requestId: (payload as { requestId?: string }).requestId ?? "image-gen",
+        source: "image_generation",
+        type: "deduction",
+        userId: productUserId,
+      }).catch((err) => {
+        console.warn("[wallet] deduction write failed", { error: (err as Error).message, source: "image_generation", userId: productUserId });
+      });
     }
 
     return Response.json(materialized);
@@ -380,9 +397,10 @@ async function assertImageGenerationProductGate({
 
     await assertSufficientCredits({
       estimatedCredits,
-      ledger: createUsageLedgerRepository(),
+      modelId: model.id,
       plan,
       userId,
+      walletRepo: createWalletRepository(),
     });
 
     return {

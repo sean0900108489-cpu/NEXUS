@@ -19,6 +19,7 @@ import {
   createUsageLedgerRepository,
   type UsageLedgerRepository,
 } from "./usage-ledger";
+import { createWalletRepository } from "./wallet-repository";
 
 export type AiGatewayChatMessage = {
   role: Extract<AgentMessageRole, "system" | "user" | "assistant">;
@@ -104,9 +105,10 @@ export async function executeAiGatewayChatRequest(input: {
         model.id,
         estimateMessageTokens(input.body.messages),
       ),
-      ledger,
+      modelId: model.id,
       plan,
       userId,
+      walletRepo: createWalletRepository(),
     });
 
     const userNewApiToken = await getUserNewApiToken({ userId });
@@ -117,14 +119,14 @@ export async function executeAiGatewayChatRequest(input: {
           content: String(message.content ?? ""),
           role: message.role,
         })),
-        modelId,
+        modelId: model.new_api_model,
         signal: input.request.signal,
       },
       input.fetcher ? { fetcher: input.fetcher } : undefined,
     );
     const credits = estimateModelCredits(model.id, result.totalTokens);
 
-    await ledger.insert({
+    const usageRecord = await ledger.insert({
       credits,
       conversationId,
       errorCode: null,
@@ -139,6 +141,24 @@ export async function executeAiGatewayChatRequest(input: {
       status: "succeeded",
       totalTokens: result.totalTokens,
       userId,
+    });
+
+    // Wallet deduction: record credit consumption
+    const walletRepo = createWalletRepository();
+    await walletRepo.createTransaction({
+      amount: -credits,
+      metadata: {
+        estimatedCredits: credits,
+        modelId: model.id,
+        operationType: "chat_completion",
+      },
+      operationId: usageRecord.id,
+      requestId: input.requestId,
+      source: "chat_completion",
+      type: "deduction",
+      userId,
+    }).catch((err) => {
+      console.warn("[wallet] deduction write failed", { error: (err as Error).message, requestId: input.requestId, userId });
     });
 
     return {

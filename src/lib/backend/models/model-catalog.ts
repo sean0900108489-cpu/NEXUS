@@ -38,6 +38,7 @@ const PLAN_RANK: Record<UserPlan, number> = {
 export const SAFE_DEFAULT_MODEL_ID = "gpt-4o-mini";
 
 export const SERVER_MODEL_CATALOG: ProductModelCatalogEntry[] = [
+  // === ENABLED CHAT MODELS ===
   {
     best_for: ["chat", "classification", "light coding"],
     default_max_tokens: 2048,
@@ -102,11 +103,14 @@ export const SERVER_MODEL_CATALOG: ProductModelCatalogEntry[] = [
     supports_tools: false,
     supports_vision: false,
   },
+  // === DISABLED — not in enabled New API channels ===
+  // gpt-4o, gemini-2.5-flash, gemini-2.5-pro, claude-sonnet-4-20250514
+  // Re-enable when provider channels are provisioned.
   {
     best_for: ["reasoning", "coding", "analysis"],
     default_max_tokens: 4096,
     description: "Balanced reasoning model for heavier operator tasks.",
-    enabled: true,
+    enabled: false,
     id: "gpt-4o",
     label: "GPT-4o",
     max_output_tokens: 8192,
@@ -122,7 +126,7 @@ export const SERVER_MODEL_CATALOG: ProductModelCatalogEntry[] = [
     best_for: ["chat", "multimodal", "fast research"],
     default_max_tokens: 4096,
     description: "Fast Gemini model for affordable multimodal operator work.",
-    enabled: true,
+    enabled: false,
     id: "gemini-2.5-flash",
     label: "Gemini 2.5 Flash",
     max_output_tokens: 8192,
@@ -138,7 +142,7 @@ export const SERVER_MODEL_CATALOG: ProductModelCatalogEntry[] = [
     best_for: ["writing", "analysis", "coding"],
     default_max_tokens: 4096,
     description: "High-quality writing, analysis, and coding model.",
-    enabled: true,
+    enabled: false,
     id: "claude-sonnet-4-20250514",
     label: "Claude Sonnet 4",
     max_output_tokens: 8192,
@@ -155,7 +159,7 @@ export const SERVER_MODEL_CATALOG: ProductModelCatalogEntry[] = [
     best_for: ["multimodal", "long context", "research"],
     default_max_tokens: 4096,
     description: "Gemini family model for multimodal and long-context work.",
-    enabled: true,
+    enabled: false,
     id: "gemini-2.5-pro",
     label: "Gemini 2.5 Pro",
     max_output_tokens: 8192,
@@ -168,6 +172,8 @@ export const SERVER_MODEL_CATALOG: ProductModelCatalogEntry[] = [
     supports_tools: true,
     supports_vision: true,
   },
+  // === ENABLED IMAGE MODELS (mapped to provider IDs) ===
+  // img2 → gpt-image-2, riverflow-v2.5-fast → sourceful/riverflow-v2.5-fast
   {
     best_for: ["image generation", "workflow media", "visual concepts"],
     default_max_tokens: 0,

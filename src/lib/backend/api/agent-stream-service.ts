@@ -35,6 +35,7 @@ import {
 } from "@/lib/backend/models/plan-config";
 import { assertSufficientCredits } from "@/lib/backend/models/quota-gate";
 import { createUsageLedgerRepository } from "@/lib/backend/models/usage-ledger";
+import { createWalletRepository } from "@/lib/backend/models/wallet-repository";
 import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 
 export type AgentStreamEvent =
@@ -468,9 +469,10 @@ async function assertAgentStreamProductGate({
 
     await assertSufficientCredits({
       estimatedCredits: estimateModelCredits(model.id, estimateStreamInputTokens(payload)),
-      ledger,
+      modelId: model.id,
       plan,
       userId,
+      walletRepo: createWalletRepository(),
     });
 
     return {
@@ -524,7 +526,8 @@ async function recordAgentStreamUsage({
   const outputTokens = estimateTextTokens(assistantOutput);
   const totalTokens = inputTokens + outputTokens;
 
-  await createUsageLedgerRepository().insert({
+  const usageLedger = createUsageLedgerRepository();
+  const usageRecord = await usageLedger.insert({
     credits: estimateModelCredits(modelId, totalTokens),
     conversationId: payload.sessionId ?? null,
     errorCode: null,
@@ -539,6 +542,24 @@ async function recordAgentStreamUsage({
     status: "succeeded",
     totalTokens,
     userId,
+  });
+
+  // Wallet deduction
+  const walletRepo = createWalletRepository();
+  await walletRepo.createTransaction({
+    amount: -(estimateModelCredits(modelId, totalTokens)),
+    metadata: {
+      estimatedCredits: estimateModelCredits(modelId, totalTokens),
+      modelId,
+      operationType: "chat_completion",
+    },
+    operationId: usageRecord.id,
+    requestId,
+    source: "chat_completion",
+    type: "deduction",
+    userId,
+  }).catch((err) => {
+    console.warn("[wallet] deduction write failed", { error: (err as Error).message, requestId, userId });
   });
 }
 

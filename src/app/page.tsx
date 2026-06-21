@@ -1,31 +1,16 @@
-import { NexusOps } from "@/components/nexus/nexus-ops";
-import { NexusProductionPreviewController } from "@/components/nexus/nexus-production-preview-controller";
-import { NexusProductionPageShellBoundary } from "@/components/nexus/nexus-production-page-shell-boundary";
-import { NexusStyleRuntimeProvider } from "@/components/style-engine/nexus-style-runtime-provider";
+"use client";
 
-type HomeProps = {
-  searchParams: Promise<{
-    nexusPreviewFirstCut?: string | string[] | undefined;
-  }>;
-};
+import { NexusHomeShell } from "@/components/nexus-home/NexusHomeShell";
 
-export default async function Home({ searchParams }: HomeProps) {
-  const params = await searchParams;
-  const productionPreviewFirstCutEnabled =
-    getFirstSearchParamValue(params.nexusPreviewFirstCut) === "1";
-
-  return (
-    <NexusStyleRuntimeProvider>
-      <NexusProductionPageShellBoundary shellId="workspace">
-        <NexusProductionPreviewController
-          enabled={productionPreviewFirstCutEnabled}
-        />
-        <NexusOps />
-      </NexusProductionPageShellBoundary>
-    </NexusStyleRuntimeProvider>
-  );
-}
-
-function getFirstSearchParamValue(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
+/**
+ * NEXUS Home — S-8 platform-first entry point.
+ *
+ * "/" no longer renders NexusOps directly.
+ * NexusOps is preserved at "/workspace/[id]".
+ *
+ * All global chat state is managed inside NexusHomeShell
+ * via useNexusHomeData hook and the api adapter layer.
+ */
+export default function NexusHomePage() {
+  return <NexusHomeShell />;
 }

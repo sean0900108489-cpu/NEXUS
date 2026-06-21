@@ -1,67 +1,55 @@
-import {
-  getPublicModelCatalogForPlan,
-  normalizeUserPlan,
-} from "@/lib/backend/models/model-catalog";
 import { resolveApiActor } from "@/lib/backend/api/api-auth";
-import { getApiErrorDescriptor, toApiError } from "@/lib/backend/api/api-errors";
+import { ApiError, toApiError } from "@/lib/backend/api/api-errors";
+import {
+  getUserPlan,
+  isModelAllowedByPlan,
+} from "@/lib/backend/models/plan-config";
+import {
+  SERVER_MODEL_CATALOG,
+  type ProductModelCatalogEntry,
+} from "@/lib/backend/models/model-catalog";
 
 export const runtime = "nodejs";
 
+/**
+ * GET /api/models
+ *
+ * Returns the public model catalog filtered by the user's plan.
+ * Server-side pricing fields (multipliers) are NOT exposed to clients.
+ */
 export async function GET(request: Request) {
   try {
-    const { sessionUser } = await resolveApiActor(request, {
-      declaredUserId: request.headers.get("X-User-Id"),
-      required: true,
-    });
-    const plan = resolveUserPlan(request, sessionUser?.id);
+    const actor = await resolveApiActor(request, { required: true });
+    const userId = actor.actorUserId;
+    if (!userId) throw new ApiError("AUTH_REQUIRED", "User ID is required.", 401);
 
-    return Response.json({
-      models: getPublicModelCatalogForPlan(plan),
-      plan,
-    });
+    const plan = getUserPlan({ request, userId });
+
+    const models = SERVER_MODEL_CATALOG
+      .filter((m) => m.enabled && isModelAllowedByPlan(m.id, plan))
+      .map((m) => ({
+        best_for: m.best_for,
+        description: m.description,
+        enabled: m.enabled,
+        id: m.id,
+        label: m.label,
+        min_plan: m.min_plan,
+        modality: m.modality,
+        provider_family: m.provider_family,
+        supports_reasoning: m.supports_reasoning,
+        supports_tools: m.supports_tools,
+        supports_vision: m.supports_vision,
+        supports_long_context: m.supports_long_context,
+        default_max_tokens: m.default_max_tokens,
+        max_output_tokens: m.max_output_tokens,
+      }));
+
+    return Response.json({ models });
   } catch (error) {
     const apiError = toApiError(error);
-    const descriptor = getApiErrorDescriptor(apiError.code);
-
     return Response.json(
-      {
-        error: {
-          code: apiError.code,
-          message: apiError.message || descriptor.message,
-          retryable: descriptor.retryable,
-        },
-        models: [],
-      },
+      { error: { code: apiError.code, message: apiError.message } },
       { status: apiError.statusCode },
     );
-  }
-}
-
-function resolveUserPlan(request: Request, userId: string | undefined) {
-  const testPlan = request.headers.get("X-Nexus-Test-Plan");
-
-  if (process.env.NODE_ENV === "test" && testPlan) {
-    return normalizeUserPlan(testPlan);
-  }
-
-  const userPlanOverrides = parseUserPlanOverrides(process.env.NEXUS_USER_PLAN_OVERRIDES);
-  const override = userId ? userPlanOverrides[userId] : undefined;
-
-  return normalizeUserPlan(override ?? process.env.NEXUS_DEFAULT_PLAN ?? "Free");
-}
-
-function parseUserPlanOverrides(value: string | undefined) {
-  if (!value?.trim()) {
-    return {};
-  }
-
-  try {
-    const parsed = JSON.parse(value) as unknown;
-
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-      ? (parsed as Record<string, string>)
-      : {};
-  } catch {
-    return {};
   }
 }

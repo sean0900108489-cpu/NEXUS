@@ -1,30 +1,24 @@
-# S-7 → S-8 Adapter Mapping (Updated — S-7B durable persistence)
+# S-7 → S-8 Adapter Mapping (v3.1 aligned)
 
-## Actual S-7 Route
+## Routes
 
-```
-POST /api/v1/workspaces/:workspaceId/imports
-```
+| Adapter expects | Actual route | Notes |
+|----------------|-------------|-------|
+| `POST /api/imports` | `POST /api/imports` | ✅ Matched — workspaceId in body |
+| `POST /api/imports` | `POST /api/v1/workspaces/:id/imports` | Canonical S-7 route — workspaceId in URL |
 
-## Durable Persistence
+Both routes share identical import logic. `/api/imports` exists specifically to match the default adapter in `src/lib/nexus-home/api.ts`.
 
-The import endpoint creates a **durable workspace artifact** via `artifactService.createArtifact()`.
-
-- `createdResourceId` = real `artifacts.id` in the workspace (UUID, persistent).
-- `createdResourceType` = `"context_bundle"` (default) or caller's `importType`.
-- Artifact type = `"context_bundle"` by default — visible in workspace artifact panel.
-- Deleting the artifact does NOT affect the global source.
-- Deleting the global source does NOT affect the artifact (copy, not link).
-- Provenance is stored in `artifacts.metadata.provenance`.
-
-## Request Payload
+## Request Payload (`POST /api/imports`)
 
 ```typescript
 {
-  sourceConversationId: string;          // required — global conversation to import
-  sourceMessageIds?: string[];           // optional — filter specific messages; default = all
-  title?: string;                       // optional — title for the artifact
-  note?: string;                        // optional — note stored in artifact metadata
+  workspaceId: string;              // required — target workspace
+  sourceConversationId: string;     // required — global conversation to import
+  messageIds?: string[];            // optional — v3.1 pack uses "messageIds"
+  sourceMessageIds?: string[];      // optional — canonical name (also supported)
+  title?: string;                   // optional
+  note?: string;                    // optional
   importType?: "artifact" | "note" | "task" | "context_bundle";  // default: "context_bundle"
 }
 ```
@@ -33,68 +27,48 @@ The import endpoint creates a **durable workspace artifact** via `artifactServic
 
 ```typescript
 {
-  importId: string;                     // import operation index (UUID)
-  workspaceId: string;                  // target workspace
-  createdResourceType: "context_bundle";
-  createdResourceId: string;            // REAL artifacts.id — durable, queryable
-  source: {
-    globalConversationId: string;       // provenance: source conversation
-    globalMessageIds: string[];         // provenance: source message IDs
-  };
+  ok: true,
+  importId: string;                    // unique import operation ID
+  workspaceId: string;                 // target workspace
+  importedResourceType: string;        // "artifact" | "note" | "task" | "context_bundle"
+  importedResourceId: string;          // resource ID
+  sourceGlobalConversationId: string;  // provenance
+  sourceGlobalMessageIds: string[];    // provenance
+  openUrl: string;                     // "/workspace/{workspaceId}"
   meta: {
+    importedAt: string;                // ISO 8601
+    importedBy: string;                // user ID
     title: string;
     note: string | null;
-    importedAt: string;                 // ISO 8601
-    importedBy: string;                 // user ID
   };
-  openUrl: string;                      // e.g., "/workspace/{workspaceId}"
+  importedMessages: Array<{
+    content: string;
+    modelId: string | null;
+    role: "user" | "assistant" | "system";
+    sequence: number;
+    sourceMessageId: string;
+  }>;
 }
 ```
 
-**Key change from S-7A:** `createdResourceId` is now a real `artifacts.id`, not a transient UUID. The artifact is persisted to the workspace's artifact store with full provenance metadata.
-
-## What the artifact contains
-
-- `artifacts.type` = `"context_bundle"`
-- `artifacts.content_text` = formatted transcript of all imported messages
-- `artifacts.title` = `"{title} — {N} messages"`
-- `artifacts.metadata.provenance` = `{ sourceType, globalConversationId, globalMessageIds, globalMessageCount }`
-- `artifacts.source_message_id` = last imported message ID
-
-## Error Responses
+## Error Contract
 
 | Status | Code | Description |
 |--------|------|-------------|
-| 400 | VALIDATION_FAILED | Missing sourceConversationId, empty conversation, no messages to import |
+| 400 | VALIDATION_FAILED | Missing workspaceId, sourceConversationId, empty conversation |
 | 401 | AUTH_REQUIRED | No valid session |
 | 403 | WORKSPACE_ACCESS_DENIED | User not workspace member (editor+ required) |
-| 403 | PERMISSION_DENIED | User does not own the source conversation |
+| 403 | PERMISSION_DENIED | User does not own source conversation |
 | 404 | VALIDATION_FAILED | Source conversation not found |
 
-## S-8 Adapter Code
+## Behavior Contract
 
-In `src/lib/nexus-home/api.ts`:
-
-```typescript
-importToWorkspace(input: ImportToWorkspaceInput): Promise<ImportToWorkspaceResult> {
-  return requestJson<ImportToWorkspaceResult>(
-    `/api/v1/workspaces/${input.workspaceId}/imports`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        sourceConversationId: input.sourceConversationId,
-        sourceMessageIds: input.sourceMessageId ? [input.sourceMessageId] : undefined,
-        title: input.title,
-        importType: input.importType ?? 'context_bundle',
-      }),
-    }
-  );
-}
-```
-
-## How S-8 Should Use the Response
-
-1. **Show success state:** "Imported to {workspaceName}" with `openUrl` as CTA.
-2. **createdResourceId is real:** S-8 can deep-link to the artifact: `openUrl = /workspace/{workspaceId}` (artifacts are shown in workspace panel).
-3. **Provenance is preserved:** `source` → S-8 can display "Imported from: {title}" badge.
-4. **Re-import is allowed:** No dedup check. Each import creates a new artifact.
+| Property | Behavior |
+|----------|----------|
+| Copy mode | Global conversation unchanged. Messages copied to workspace context. |
+| Delete global | Workspace copy unaffected (independent copy). |
+| Delete workspace copy | Global source unaffected. |
+| Provenance | `sourceGlobalConversationId` + `sourceGlobalMessageIds` always in response. |
+| Duplicate import | Allowed — each import creates a new importId. No idempotency key. |
+| Authorization | Editor+ workspace role required. |
+| NOVA | Not touched. |

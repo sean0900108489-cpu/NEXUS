@@ -1,7 +1,8 @@
 import type { AgentCapabilityType } from "@/lib/nexus-types";
 
 export type WorkspaceAttachmentInputActionId =
-  | "local-file-upload"
+  | "upload-image"
+  | "upload-file"
   | "artifact-vault-reference"
   | "notebook-context"
   | "sandbox-output";

@@ -9,6 +9,8 @@ import { NexusChatCanvas } from './NexusChatCanvas';
 import { NexusInsufficientCreditsDialog } from './NexusInsufficientCreditsDialog';
 import { NexusPromptComposer } from './NexusPromptComposer';
 import { NexusSidebar } from './NexusSidebar';
+import type { ComposerAttachment } from '@/features/composer-attachments/shared/attachment-types';
+import { buildGlobalChatAttachmentReferences } from '@/features/composer-attachments/adapters/global-chat-attachments';
 
 /**
  * NEXUS Home Shell — auth-first landing.
@@ -22,11 +24,12 @@ export function NexusHomeShell() {
   const [messages, setMessages] = useState<GlobalMessage[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [creditError, setCreditError] = useState<InsufficientCreditsError | null>(null);
+  const [notifyMessage, setNotifyMessage] = useState<string | null>(null);
 
   const isAuth = homeData.authenticated;
 
-  async function handleSend(content: string) {
-    if (!content.trim()) return;
+  async function handleSend(content: string, attachments: ComposerAttachment[]) {
+    if (!content.trim() && !attachments.length) return;
     if (!isAuth) {
       // Redirect to sign-in — composer should not silently do nothing
       window.location.href = '/sign-in';
@@ -35,6 +38,8 @@ export function NexusHomeShell() {
 
     setIsSending(true);
     setCreditError(null);
+
+    const attachmentRefs = buildGlobalChatAttachmentReferences(attachments);
 
     const optimistic: GlobalMessage = {
       id: `local-${Date.now()}`,
@@ -51,6 +56,7 @@ export function NexusHomeShell() {
         conversationId,
         content,
         modelId: homeData.selectedModelId,
+        attachments: attachmentRefs,
       });
 
       setConversationId(result.conversationId);
@@ -167,22 +173,21 @@ export function NexusHomeShell() {
 
         {/* ── Composer ──────────────────────────────────── */}
         <div className="nexus-composer-dock" data-has-conversation={hasConversation}>
-          {isAuth ? (
-            <NexusPromptComposer
-              disabled={isSending}
-              models={homeData.models}
-              selectedModelId={homeData.selectedModelId}
-              onModelChange={homeData.setSelectedModelId}
-              selectedModelEstimate={selectedModel?.estimatedCredits ?? 'Estimate unavailable'}
-              onSubmit={handleSend}
-            />
-          ) : (
-            <div className="nexus-composer-placeholder">
-              <a href="/sign-in" className="nexus-btn-primary">
-                Sign in to start
-              </a>
+          <NexusPromptComposer
+            disabled={isSending}
+            authenticated={isAuth}
+            models={homeData.models}
+            selectedModelId={homeData.selectedModelId}
+            onModelChange={homeData.setSelectedModelId}
+            selectedModelEstimate={selectedModel?.estimatedCredits ?? 'Estimate unavailable'}
+            onSubmit={handleSend}
+            onNotify={(msg) => setNotifyMessage(msg)}
+          />
+          {notifyMessage ? (
+            <div className="nexus-notify-toast" onClick={() => setNotifyMessage(null)}>
+              {notifyMessage}
             </div>
-          )}
+          ) : null}
           <p className="nexus-footnote">
             Knowledge systems are parked for this commercial round. Home, wallet, workspace, and workflow are the active product path.
           </p>

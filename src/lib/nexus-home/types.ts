@@ -29,6 +29,7 @@ export type GlobalMessage = {
   content: string;
   createdAt?: string;
   creditCost?: number | null;
+  attachments?: { id: string; kind: string; filename: string; mimeType: string; storageKey?: string }[];
 };
 
 export type WorkspaceShortcut = {
@@ -41,6 +42,7 @@ export type SendGlobalMessageInput = {
   conversationId?: string;
   content: string;
   modelId: string;
+  attachments?: { id: string; kind: string; filename: string; mimeType: string; storageKey?: string }[];
 };
 
 export type SendGlobalMessageResult = {

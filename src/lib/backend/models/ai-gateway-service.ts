@@ -2,6 +2,7 @@ import { resolveApiActor } from "@/lib/backend/api/api-auth";
 import { ApiError, toApiError } from "@/lib/backend/api/api-errors";
 import { getUserNewApiToken } from "@/lib/backend/new-api-token/user-new-api-token-service";
 import type { AgentMessageRole } from "@/lib/nexus-types";
+import type { ChatContentPart } from "@/features/composer-attachments/shared/build-multimodal-content-parts";
 
 import {
   assertModelAllowedForPlan,
@@ -23,7 +24,7 @@ import { createWalletRepository } from "./wallet-repository";
 
 export type AiGatewayChatMessage = {
   role: Extract<AgentMessageRole, "system" | "user" | "assistant">;
-  content: string;
+  content: string | ChatContentPart[];
 };
 
 export type AiGatewayChatBody = {
@@ -63,6 +64,7 @@ export async function executeAiGatewayChatRequest(input: {
   let operatorId: string | undefined;
   let conversationId: string | undefined;
   let modelId: string | undefined;
+  let hasMultimodal = false;
 
   try {
     const actor = await resolveApiActor(input.request, {
@@ -81,6 +83,11 @@ export async function executeAiGatewayChatRequest(input: {
       throw new ApiError("VALIDATION_FAILED", "messages is required.", 400);
     }
 
+    // Check if any message has multimodal content
+    hasMultimodal = input.body.messages.some(
+      (m) => Array.isArray(m.content) && m.content.some((p) => p.type === "image_url"),
+    );
+
     const plan = getUserPlan({ request: input.request, userId });
     const model = assertModelAllowedForPlan(modelId, plan);
 
@@ -96,10 +103,17 @@ export async function executeAiGatewayChatRequest(input: {
       );
     }
 
+    // Auto-detect vision requested when multimodal content present
+    const requestedFeatures = {
+      ...input.body.requestedFeatures,
+      ...(hasMultimodal ? { vision: true } : {}),
+    };
+
     assertRequestedFeaturesAllowed({
       model,
-      requestedFeatures: input.body.requestedFeatures,
+      requestedFeatures: Object.keys(requestedFeatures).length ? requestedFeatures : undefined,
     });
+
     await assertSufficientCredits({
       estimatedCredits: estimateModelCredits(
         model.id,
@@ -116,7 +130,7 @@ export async function executeAiGatewayChatRequest(input: {
       {
         apiKey: userNewApiToken.token,
         messages: input.body.messages.map((message) => ({
-          content: String(message.content ?? ""),
+          content: message.content,
           role: message.role,
         })),
         modelId: model.new_api_model,
@@ -149,6 +163,7 @@ export async function executeAiGatewayChatRequest(input: {
       amount: -credits,
       metadata: {
         estimatedCredits: credits,
+        hasMultimodal,
         modelId: model.id,
         operationType: "chat_completion",
       },
@@ -210,7 +225,16 @@ function requireString(value: unknown, label: string) {
 
 function estimateMessageTokens(messages: AiGatewayChatMessage[]) {
   const characters = messages.reduce((total, message) => {
-    return total + String(message.content ?? "").length + message.role.length;
+    if (typeof message.content === "string") {
+      return total + message.content.length + message.role.length;
+    }
+    // For multimodal content parts, estimate from text parts only
+    const textChars = message.content
+      .filter((p) => p.type === "text")
+      .reduce((sum, p) => sum + (p as { type: "text"; text: string }).text.length, 0);
+    // Add rough estimate for image parts
+    const imageCount = message.content.filter((p) => p.type === "image_url").length;
+    return total + textChars + message.role.length + imageCount * 500; // ~500 token estimate per image
   }, 0);
 
   return Math.max(1, Math.ceil(characters / 4));

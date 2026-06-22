@@ -36,6 +36,8 @@ export async function GET(request: Request) {
         min_plan: m.min_plan,
         modality: m.modality,
         provider_family: m.provider_family,
+        supports_file_input: m.supports_file_input,
+        supports_image_input: m.supports_image_input,
         supports_reasoning: m.supports_reasoning,
         supports_tools: m.supports_tools,
         supports_vision: m.supports_vision,

@@ -2,6 +2,11 @@ import { resolveApiActor } from "@/lib/backend/api/api-auth";
 import { ApiError, toApiError } from "@/lib/backend/api/api-errors";
 import { executeAiGatewayChatRequest } from "@/lib/backend/models/ai-gateway-service";
 import { createGlobalChatRepository } from "@/lib/backend/models/global-chat-repository";
+import { getCatalogModel } from "@/lib/backend/models/model-catalog";
+import { getNexusSupabaseAdminClient } from "@/lib/supabase/admin";
+import { buildMultimodalContentParts } from "@/features/composer-attachments/shared/build-multimodal-content-parts";
+import { guardImageAttachments, buildModelCapabilities } from "@/features/composer-attachments/shared/model-capability-guard";
+import type { ComposerAttachmentReference } from "@/features/composer-attachments/shared/attachment-types";
 
 export const runtime = "nodejs";
 
@@ -23,6 +28,7 @@ export async function POST(request: Request) {
       message?: string;
       modelId?: string;
       conversationId?: string;
+      attachments?: ComposerAttachmentReference[];
     };
 
     const chatRepo = createGlobalChatRepository();
@@ -55,34 +61,58 @@ export async function POST(request: Request) {
       conversation = { ...created, messages: [] };
     }
 
-    // 2. If no message, return conversation only (create empty chat)
-    if (!body.message?.trim()) {
+    // 2. If no message and no attachments, return conversation only (create empty chat)
+    if (!body.message?.trim() && !body.attachments?.length) {
       return Response.json({ conversation });
     }
 
-    // 3. Call AI gateway FIRST (includes wallet gate + deduction)
-    //    Messages are constructed in-memory; persisted only on success.
+    // 3. Refresh signed URLs for image attachments (TTL-safe)
+    let resolvedAttachments = body.attachments ?? [];
+    if (resolvedAttachments.length) {
+      resolvedAttachments = await refreshAttachmentSignedUrls(resolvedAttachments);
+    }
+
+    // 4. Model capability guard for attachments
+    const modelId = body.modelId ?? "gpt-4o-mini";
+    const catalogModel = getCatalogModel(modelId);
+    if (catalogModel && resolvedAttachments.length) {
+      const capabilities = buildModelCapabilities(catalogModel);
+      const hasImages = resolvedAttachments.some((a) => a.kind === "image");
+      const guard = guardImageAttachments(hasImages, capabilities);
+      if (!guard.ok) {
+        throw new ApiError("VALIDATION_FAILED", guard.message, 400);
+      }
+    }
+
+    // 5. Build multimodal content parts from user text + attachments (with fresh URLs)
+    const userContent = buildMultimodalContentParts({
+      userText: body.message ?? "",
+      attachments: resolvedAttachments,
+    });
+
+    // 6. Call AI gateway FIRST (includes wallet gate + deduction)
     const requestId = crypto.randomUUID?.() ?? `gchat_${Date.now()}`;
     const aiResult = await executeAiGatewayChatRequest({
       body: {
-        modelId: body.modelId ?? "gpt-4o-mini",
+        modelId,
         operatorId: `global-chat-${userId}`,
         messages: [
           ...conversation.messages.map((m) => ({
             content: m.content,
             role: m.role as "user" | "assistant" | "system",
           })),
-          { content: body.message, role: "user" },
+          { content: userContent, role: "user" },
         ],
       },
       request,
       requestId,
     });
 
-    // 4. AI succeeded — now persist user + assistant messages atomically
+    // 7. AI succeeded — now persist user + assistant messages atomically
+    const userText = typeof userContent === "string" ? userContent : body.message ?? "";
     const userSeq = await chatRepo.getNextSequence(conversationId);
     await chatRepo.addMessage({
-      content: body.message,
+      content: userText,
       conversationId,
       role: "user",
       sequence: userSeq,
@@ -103,20 +133,60 @@ export async function POST(request: Request) {
       },
     });
 
-    // 5. Update conversation metadata
+    // 8. Update conversation metadata
     await chatRepo.updateConversation({
       conversationId,
       lastMessageAt: new Date().toISOString(),
       messageCount: conversation.messageCount + 2,
       modelId: aiResult.modelId,
-      title: conversation.messageCount === 0 ? body.message.slice(0, 100) : undefined,
+      title: conversation.messageCount === 0 ? userText.slice(0, 100) : undefined,
     });
 
-    // 6. Return updated conversation
+    // 9. Return updated conversation
     const updated = await chatRepo.getConversation(conversationId);
     return Response.json({ conversation: updated });
   } catch (error) {
     return toErrorResponse(error);
+  }
+}
+
+/**
+ * Refresh signed URLs for attachment references that use Supabase Storage keys.
+ * Image attachments get fresh signed URLs; non-images keep their existing keys.
+ * Storage keys that are already HTTP URLs are left as-is (already signed).
+ */
+async function refreshAttachmentSignedUrls(
+  attachments: ComposerAttachmentReference[],
+): Promise<ComposerAttachmentReference[]> {
+  // Only refresh image attachments that have a storageKey in path format (not a URL)
+  const needsRefresh = attachments.filter(
+    (a) => a.kind === "image" && a.storageKey && !a.storageKey.startsWith("http"),
+  );
+
+  if (!needsRefresh.length) return attachments;
+
+  try {
+    const supabase = getNexusSupabaseAdminClient();
+    const refreshed = await Promise.all(
+      needsRefresh.map(async (a) => {
+        try {
+          const { data } = await supabase.storage
+            .from("user-attachments")
+            .createSignedUrl(a.storageKey!, 3600);
+          return { ...a, storageKey: data?.signedUrl ?? a.storageKey };
+        } catch {
+          return a; // keep original if refresh fails
+        }
+      }),
+    );
+
+    // Merge refreshed back into the full list
+    const refreshedMap = new Map(refreshed.map((a) => [a.id, a]));
+    return attachments.map((a) => refreshedMap.get(a.id) ?? a);
+  } catch {
+    // If Supabase is unavailable, proceed with original keys (signed URL may be stale)
+    console.warn("[global-chat] Failed to refresh attachment signed URLs");
+    return attachments;
   }
 }
 

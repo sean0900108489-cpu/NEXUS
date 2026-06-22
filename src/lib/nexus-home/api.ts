@@ -82,6 +82,7 @@ export const nexusHomeApi = {
         conversationId: input.conversationId,
         message: input.content,
         modelId: input.modelId,
+        attachments: input.attachments,
       }),
     });
     const conv = data.conversation ?? data;

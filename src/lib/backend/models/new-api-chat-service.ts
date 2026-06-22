@@ -1,4 +1,5 @@
 import type { AgentMessageRole } from "@/lib/nexus-types";
+import type { ChatContentPart } from "@/features/composer-attachments/shared/build-multimodal-content-parts";
 
 import { ApiError } from "../api/api-errors";
 
@@ -6,7 +7,7 @@ import { getCatalogModel } from "./model-catalog";
 
 type ChatMessage = {
   role: Extract<AgentMessageRole, "system" | "user" | "assistant">;
-  content: string;
+  content: string | ChatContentPart[];
 };
 
 export type NewApiChatCompletionInput = {
@@ -43,6 +44,12 @@ export async function callNewApiChatCompletion(
     throw new ApiError("PROVIDER_NOT_CONFIGURED", "New API token is not configured.", 503);
   }
 
+  // Build messages — pass content parts as-is for multimodal support
+  const messages = input.messages.map((m) => ({
+    role: m.role,
+    content: m.content,
+  }));
+
   const fetcher = dependencies.fetcher ?? fetch;
   const response = await fetcher(`${baseUrl}/chat/completions`, {
     body: JSON.stringify({
@@ -50,7 +57,7 @@ export async function callNewApiChatCompletion(
         input.maxTokens ?? model.default_max_tokens,
         model.max_output_tokens,
       ),
-      messages: input.messages,
+      messages,
       model: model.new_api_model,
     }),
     headers: {

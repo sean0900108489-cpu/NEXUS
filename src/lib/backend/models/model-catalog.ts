@@ -23,6 +23,8 @@ export type ProductModelCatalogEntry = {
   supports_vision: boolean;
   supports_tools: boolean;
   supports_long_context?: boolean;
+  supports_file_input?: boolean;
+  supports_image_input?: boolean;
   default_max_tokens: number;
   max_output_tokens: number;
   enabled: boolean;
@@ -51,6 +53,8 @@ export const SERVER_MODEL_CATALOG: ProductModelCatalogEntry[] = [
     modality: "chat",
     new_api_model: "gpt-4o-mini",
     provider_family: "OpenAI",
+    supports_file_input: true,
+    supports_image_input: true,
     supports_reasoning: false,
     supports_tools: true,
     supports_vision: true,
@@ -67,6 +71,8 @@ export const SERVER_MODEL_CATALOG: ProductModelCatalogEntry[] = [
     modality: "chat",
     new_api_model: "deepseek-v4-pro",
     provider_family: "DeepSeek",
+    supports_file_input: false,
+    supports_image_input: false,
     supports_reasoning: true,
     supports_tools: true,
     supports_vision: false,
@@ -83,6 +89,8 @@ export const SERVER_MODEL_CATALOG: ProductModelCatalogEntry[] = [
     modality: "chat",
     new_api_model: "deepseek-v4-flash",
     provider_family: "DeepSeek",
+    supports_file_input: false,
+    supports_image_input: false,
     supports_reasoning: true,
     supports_tools: false,
     supports_vision: false,
@@ -99,6 +107,8 @@ export const SERVER_MODEL_CATALOG: ProductModelCatalogEntry[] = [
     modality: "chat",
     new_api_model: "deepseek-chat",
     provider_family: "DeepSeek",
+    supports_file_input: false,
+    supports_image_input: false,
     supports_reasoning: false,
     supports_tools: false,
     supports_vision: false,
@@ -167,6 +177,8 @@ export const SERVER_MODEL_CATALOG: ProductModelCatalogEntry[] = [
     modality: "chat",
     new_api_model: "gemini-2.5-pro",
     provider_family: "Gemini",
+    supports_file_input: true,
+    supports_image_input: true,
     supports_long_context: true,
     supports_reasoning: true,
     supports_tools: true,
@@ -259,6 +271,8 @@ export function toPublicModelCatalogEntry(model: ProductModelCatalogEntry): Publ
     min_plan: model.min_plan,
     modality: model.modality,
     provider_family: model.provider_family,
+    supports_file_input: model.supports_file_input,
+    supports_image_input: model.supports_image_input,
     supports_long_context: model.supports_long_context,
     supports_reasoning: model.supports_reasoning,
     supports_tools: model.supports_tools,

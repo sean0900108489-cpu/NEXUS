@@ -58,7 +58,6 @@ import {
 } from "@/lib/composer/image-generation-settings";
 
 const WORKSPACE_ATTACHMENT_BINARY_INLINE_MAX_BYTES = 4 * 1024 * 1024;
-const WORKSPACE_ATTACHMENT_CONTEXT_MAX_CHARS = 12_000;
 
 function getCapabilityType(agent: NexusAgent): AgentCapabilityType {
   return agent.capabilities?.type ?? "chat";
@@ -95,44 +94,35 @@ function createWorkspaceAttachmentMessagePayload(
 ) {
   const trimmed = content.trim();
   const readyAttachments = attachments.filter(
-    (attachment) => attachment.status === "ready" && attachment.artifactId,
+    (attachment) => attachment.status === "ready",
   );
 
   if (!readyAttachments.length) {
-    return trimmed;
+    return { messageText: trimmed, attachmentRefs: [] };
   }
 
-  const attachmentBlock = readyAttachments
-    .map((attachment, index) => {
-      const source = attachment.textContent ?? attachment.previewText;
-      const body =
-        attachment.contentKind === "text"
-          ? source.slice(0, WORKSPACE_ATTACHMENT_CONTEXT_MAX_CHARS).trim()
-          : [
-              `${attachment.contentKind} attachment is recorded in Artifact Vault.`,
-              "Attach a compiler lane before direct model ingestion.",
-            ].join(" ");
-      const truncated = source.length > WORKSPACE_ATTACHMENT_CONTEXT_MAX_CHARS;
+  // Build attachment references for multimodal support
+  const attachmentRefs = readyAttachments.map((a) => ({
+    id: a.id,
+    kind: a.contentKind === "text" ? "text" as const
+      : a.mimeType?.startsWith("image/") ? "image" as const
+      : "document" as const,
+    filename: a.name,
+    mimeType: a.mimeType,
+    storageKey: a.contentUrl ?? a.artifactId,
+  }));
 
-      return [
-        `[attachment:${index + 1}] ${attachment.name}`,
-        `artifactId: ${attachment.artifactId}`,
-        `rawArtifactId: ${attachment.rawArtifactId ?? attachment.artifactId}`,
-        `compiledArtifactId: ${attachment.compiledArtifactId ?? attachment.artifactId}`,
-        `compiler: ${attachment.compilerId}@${attachment.compilerVersion}`,
-        `contentKind: ${attachment.contentKind}`,
-        `mimeType: ${attachment.mimeType}`,
-        `size: ${attachment.sizeBytes} bytes`,
-        "compiledContent:",
-        body || attachment.previewText,
-        truncated ? "[truncated for model context]" : "",
-      ]
-        .filter(Boolean)
-        .join("\n");
-    })
-    .join("\n\n");
+  // Build a compact attachment summary for the message (NOT full text content)
+  const summaryParts = readyAttachments.map((a) => {
+    if (a.mimeType?.startsWith("image/")) return `[Image: ${a.name}]`;
+    if (a.contentKind === "text") return `[File: ${a.name}]`;
+    return `[Attachment: ${a.name}]`;
+  });
 
-  return [trimmed, "[workspace attachments]", attachmentBlock].filter(Boolean).join("\n\n");
+  return {
+    messageText: [trimmed, ...summaryParts].filter(Boolean).join("\n"),
+    attachmentRefs,
+  };
 }
 
 const workspaceBodyMaterialStyle = {
@@ -242,7 +232,7 @@ export function WorkspaceChatComposerShell({
   const handleAttachmentAction = (actionId: WorkspaceAttachmentInputActionId) => {
     setAttachmentMenuOpen(false);
 
-    if (actionId === "local-file-upload") {
+    if (actionId === "upload-image" || actionId === "upload-file") {
       if (!agent) {
         onNotify("Select a chatroom before attaching a file.");
         return;
@@ -399,9 +389,8 @@ export function WorkspaceChatComposerShell({
     const readyAttachments = attachments.filter(
       (attachment) => attachment.status === "ready",
     );
-    const value = imageModeActive
-      ? draft.trim()
-      : createWorkspaceAttachmentMessagePayload(draft, readyAttachments);
+    const { messageText, attachmentRefs } = createWorkspaceAttachmentMessagePayload(draft, readyAttachments);
+    const value = imageModeActive ? draft.trim() : messageText;
 
     if (!value) {
       return;
@@ -417,6 +406,10 @@ export function WorkspaceChatComposerShell({
     onFocusAgent(agent.id);
 
     try {
+      if (!imageModeActive && !isMediaAgent && attachmentRefs.length) {
+        // Log attachment refs for debug
+        console.log("[workspace] sending with attachments", attachmentRefs);
+      }
       await (imageModeActive
         ? onGenerateImage(agent.id, value, imageSettings)
         : isMediaAgent
@@ -519,24 +512,15 @@ export function WorkspaceChatComposerShell({
                       </button>
                     ))}
                     <div className="my-1 h-px bg-white/10" />
-                    {WORKSPACE_ATTACHMENT_INPUT_ACTIONS.map((action) => (
+                    {WORKSPACE_ATTACHMENT_INPUT_ACTIONS.filter((action) => action.status === "implemented").map((action) => (
                       <button
                         key={action.id}
                         className="flex w-full items-start gap-2 px-3 py-2 text-left text-neutral-300 transition hover:bg-white/[0.06] hover:text-neutral-100"
-                        data-placeholder={action.status === "placeholder"}
                         data-testid={`workspace-attachment-action-${action.id}`}
                         onClick={() => handleAttachmentAction(action.id)}
                         type="button"
                       >
-                        {action.id === "local-file-upload" ? (
-                          <FileUp className="mt-0.5 h-4 w-4 shrink-0" />
-                        ) : action.id === "artifact-vault-reference" ? (
-                          <Archive className="mt-0.5 h-4 w-4 shrink-0" />
-                        ) : action.id === "notebook-context" ? (
-                          <Pencil className="mt-0.5 h-4 w-4 shrink-0" />
-                        ) : (
-                          <PackageCheck className="mt-0.5 h-4 w-4 shrink-0" />
-                        )}
+                        <FileUp className="mt-0.5 h-4 w-4 shrink-0" />
                         <span className="min-w-0">
                           <span className="block font-mono text-[10px] uppercase tracking-[0.12em]">
                             {action.label}
@@ -710,7 +694,13 @@ export function WorkspaceChatComposerShell({
                 className="flex flex-wrap gap-1.5 border-t border-white/10 px-3 py-2"
                 data-testid="workspace-attachment-chip-list"
               >
-                {attachments.map((attachment) => (
+                {attachments.map((attachment) => {
+                  const handleInsertAsText = () => {
+                    if (attachment.textContent) {
+                      setDraft((current) => current + "\n\n" + attachment.textContent);
+                    }
+                  };
+                  return (
                   <span
                     key={attachment.id}
                     className={cx(
@@ -735,6 +725,18 @@ export function WorkspaceChatComposerShell({
                         ? "recorded"
                         : attachment.status}
                     </span>
+                    {attachment.status === "ready" &&
+                    attachment.contentKind === "text" &&
+                    attachment.textContent ? (
+                      <button
+                        aria-label={`Insert ${attachment.name} as text`}
+                        className="grid h-4 w-4 place-items-center rounded-full text-neutral-400 transition hover:text-neutral-100"
+                        onClick={handleInsertAsText}
+                        type="button"
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                    ) : null}
                     <button
                       aria-label={`Remove ${attachment.name}`}
                       className="grid h-4 w-4 place-items-center rounded-full text-neutral-400 transition hover:text-neutral-100"
@@ -748,7 +750,8 @@ export function WorkspaceChatComposerShell({
                       <X className="h-3 w-3" />
                     </button>
                   </span>
-                ))}
+                  );
+                })}
               </div>
             ) : null}
           </div>

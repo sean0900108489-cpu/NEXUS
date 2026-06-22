@@ -14,6 +14,8 @@ export type PublicModelCatalogEntry = {
   supports_vision: boolean;
   supports_tools: boolean;
   supports_long_context?: boolean;
+  supports_file_input?: boolean;
+  supports_image_input?: boolean;
   default_max_tokens: number;
   max_output_tokens: number;
   enabled: boolean;

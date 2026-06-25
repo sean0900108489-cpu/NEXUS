@@ -33,8 +33,6 @@ export type WalletTransactionSource =
   // CONSUMPTION SOURCES (-)
   | "chat_completion"
   | "image_generation"
-  | "nova_retrieval"
-  | "nova_ingestion"
   | "tool_execution"
   | "workflow_run";
 

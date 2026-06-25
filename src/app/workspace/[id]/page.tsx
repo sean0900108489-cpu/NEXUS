@@ -15,7 +15,7 @@ type WorkspacePageProps = {
  * S-10 rules:
  * - No NexusOps rewrite.
  * - No Supabase migration.
- * - No NOVA product work.
+ * - No unrelated product work.
  */
 export default async function WorkspacePage({ params }: WorkspacePageProps) {
   const { id } = await params;

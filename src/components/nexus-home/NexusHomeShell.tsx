@@ -9,6 +9,7 @@ import { NexusChatCanvas } from './NexusChatCanvas';
 import { NexusInsufficientCreditsDialog } from './NexusInsufficientCreditsDialog';
 import { NexusPromptComposer } from './NexusPromptComposer';
 import { NexusSidebar } from './NexusSidebar';
+import { NexusTokenStatus } from './NexusTokenStatus';
 import type { ComposerAttachment } from '@/features/composer-attachments/shared/attachment-types';
 import { buildGlobalChatAttachmentReferences } from '@/features/composer-attachments/adapters/global-chat-attachments';
 
@@ -170,6 +171,9 @@ export function NexusHomeShell() {
             </div>
           </section>
         ) : null}
+
+        {/* ── Token Status ──────────────────────────── */}
+        <NexusTokenStatus authenticated={isAuth} />
 
         {/* ── Composer ──────────────────────────────────── */}
         <div className="nexus-composer-dock" data-has-conversation={hasConversation}>

@@ -987,3 +987,42 @@ select:focus-visible {
   background: rgba(0, 200, 255, 0.18);
   border-color: rgba(0, 200, 255, 0.35);
 }
+
+/* ── Token Status (E-5) ───────────────────────────────────── */
+
+.nexus-token-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  margin: 0 16px 8px;
+  background: rgba(255, 180, 0, 0.08);
+  border: 1px solid rgba(255, 180, 0, 0.2);
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: var(--nexus-text-primary);
+  max-width: 720px;
+  width: calc(100% - 32px);
+  align-self: center;
+}
+
+.nexus-token-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 180, 0, 0.8);
+  flex-shrink: 0;
+}
+
+.nexus-token-status-link {
+  margin-left: auto;
+  color: var(--nexus-accent);
+  font-weight: 500;
+  text-decoration: none;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.nexus-token-status-link:hover {
+  text-decoration: underline;
+}

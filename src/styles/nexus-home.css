@@ -917,3 +917,73 @@ select:focus-visible {
     padding: 12px;
   }
 }
+
+/* ── Thin Pages (v40 placeholder routes) ─────────────────────────── */
+
+.nexus-thin-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 40px 20px;
+  background: var(--nexus-bg);
+}
+
+.nexus-thin-page-card {
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  padding: 48px 32px;
+  background: var(--nexus-panel);
+  border: 1px solid var(--nexus-border);
+  border-radius: 20px;
+  backdrop-filter: blur(24px);
+  box-shadow: 0 0 60px rgba(0, 200, 255, 0.04);
+}
+
+.nexus-thin-page-card .nexus-orb {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 40% 40%,
+    rgba(0, 200, 255, 0.18),
+    rgba(0, 140, 255, 0.06)
+  );
+  border: 1px solid rgba(0, 200, 255, 0.12);
+}
+
+.nexus-thin-page-card h1 {
+  color: var(--nexus-text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+
+.nexus-thin-page-card .nexus-muted {
+  color: var(--nexus-text-muted);
+  font-size: 0.925rem;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.nexus-thin-page-card .nexus-btn-primary {
+  display: inline-block;
+  padding: 10px 24px;
+  border-radius: 10px;
+  background: rgba(0, 200, 255, 0.1);
+  color: var(--nexus-accent);
+  font-weight: 500;
+  font-size: 0.925rem;
+  text-decoration: none;
+  border: 1px solid rgba(0, 200, 255, 0.2);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.nexus-thin-page-card .nexus-btn-primary:hover {
+  background: rgba(0, 200, 255, 0.18);
+  border-color: rgba(0, 200, 255, 0.35);
+}

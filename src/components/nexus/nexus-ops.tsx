@@ -256,6 +256,14 @@ import {
   useRightDockProps,
   useTopBarProps,
 } from "@/components/nexus/use-nexus-connector-props";
+import {
+  createFloatingAppOpenInput,
+  createDefaultWorkspaceFloatingAppRegistry,
+  FloatingAppLauncher,
+  type FloatingAppDefinition,
+  FloatingWindowManager,
+  useFloatingHostAdapter,
+} from "@/runtime/floating";
 
 const Rnd = dynamic(() => import("react-rnd").then((module) => module.Rnd), {
   ssr: false,
@@ -1073,6 +1081,18 @@ export function NexusOps() {
     width: 1200,
     height: 780,
   });
+  const workspaceFloatingRegistry = useMemo(
+    () => createDefaultWorkspaceFloatingAppRegistry(),
+    [],
+  );
+  const workspaceFloatingHost = useFloatingHostAdapter({
+    hostId: "workspace",
+    bounds: workspaceSize,
+  });
+  const workspaceFloatingApps = useMemo(
+    () => workspaceFloatingRegistry.list(),
+    [workspaceFloatingRegistry],
+  );
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [activeRightPanel, setActiveRightPanel] = useState<RightDockPanelId | null>(null);
   const [leftDockOpen, setLeftDockOpen] = useState(false);
@@ -1124,6 +1144,17 @@ export function NexusOps() {
   }, []);
 
   const activeWorkspaceId = useNexusStore((state) => state.activeWorkspaceId);
+  const openWorkspaceFloatingApp = useCallback(
+    (app: FloatingAppDefinition) => {
+      workspaceFloatingHost.openWindow(
+        createFloatingAppOpenInput(app, {
+          workspaceId: activeWorkspaceId,
+        }),
+      );
+      setNotice(`${app.title} opened in shared floating runtime`);
+    },
+    [activeWorkspaceId, workspaceFloatingHost],
+  );
   const workspaces = useNexusStore((state) => state.workspaces);
   const selectedAgentId = useNexusStore((state) => state.selectedAgentId);
   const viewMode = useNexusStore((state) => state.viewMode);
@@ -3134,6 +3165,19 @@ export function NexusOps() {
           setNotice(`${template.callsign} spawned`);
         },
       })),
+      ...workspaceFloatingApps.map((app) => ({
+        id: `open-floating-app-${app.kind}`,
+        label: `Open ${app.title}`,
+        detail:
+          app.lifecycle === "internal"
+            ? "Internal floating app"
+            : "Workspace floating app",
+        icon: <Command className="h-4 w-4" />,
+        run: () => {
+          openWorkspaceFloatingApp(app);
+          setPaletteOpen(false);
+        },
+      })),
       {
         id: "arrange",
         label: "Arrange Workstations",
@@ -3249,6 +3293,8 @@ export function NexusOps() {
       restoreAll,
       saveWorkspaceSnapshot,
       spawnAgent,
+      openWorkspaceFloatingApp,
+      workspaceFloatingApps,
       workspaceSize,
     ],
   );
@@ -3602,6 +3648,16 @@ export function NexusOps() {
                 <DatapadWindow key={notebookId} notebookId={notebookId} />
               ))}
             </AnimatePresence>
+
+            <FloatingAppLauncher
+              apps={workspaceFloatingApps}
+              onOpen={openWorkspaceFloatingApp}
+            />
+
+            <FloatingWindowManager
+              host={workspaceFloatingHost}
+              registry={workspaceFloatingRegistry}
+            />
           </section>
 
           <WorkspaceChatComposerShell

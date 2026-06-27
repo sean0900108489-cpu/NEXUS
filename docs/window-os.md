@@ -98,6 +98,26 @@ NEXUS is evolving from a single-page workspace into an **AI Window OS** — a de
 - Gap analysis: which capabilities are missing for Instagram-like, Canva-like, etc.
 - `docs/window-os-capabilities.md` — full capability documentation
 - Zero new UI. Metadata/architecture layer only.
+
+### Phase 4D — Developer Inspector / Capability Dashboard
+- DeveloperInspectorWindow: 3-tab internal tool (Apps, Capabilities, Archetypes)
+- Apps tab: all registered apps with capabilities, archetype, lifecycle, validation
+- Capabilities tab: all 24 capabilities with maturity, owner, used-by apps
+- Archetypes tab: 9 archetypes with readiness analysis and gap detection
+- `lifecycle` field on app definitions (active/demo/legacy/planned/internal)
+- Demo apps annotated, dev inspector registered as internal tool
+- Cmd+K palette entry + Global User dev shortcuts section
+- DeveloperInspectorWindow: 78L orchestrator
+
+### Phase 5A — Profile Primitive / Author Identity System
+- Shared profile feature folder with `NexusProfile` and `NexusAuthorRef`
+- ProfileAvatar, ProfileBadge, ProfileCard, ProfilePreviewWindow primitives
+- `profile` Resource Ref support opens ProfilePreviewWindow through `openResource`
+- Forum posts/replies can carry author refs and render ProfileBadge without profile storage access
+- Global User and Cmd+K include Open My Profile entry points
+- `profiles` capability is now MVP and provided by Global User, Profile Preview, and Forum
+- `docs/window-os-data-contracts.md` includes future `user_profiles` contract only
+- Zero DB migration; auth metadata/local fallback first
 ## Kernel ↔ Feature Boundary
 
 ### Kernel (`src/kernel/`)
@@ -133,6 +153,8 @@ Each feature is self-contained with its own API client and panels.
 | `artifact-library` | Artifacts | Yes | ✅ Grid browse, search, filter, open |
 | `notes` | Notes | Yes | ✅ Create, edit, auto-save, resource linking |
 | `forum` | Forum | Yes | ✅ Threads, replies, attachments, notes bridge |
+| `developer-inspector` | Dev Inspector | Yes | ✅ 3-tab capability dashboard (internal) |
+| `profile-preview` | Profiles | Yes | ✅ Shared profile preview primitive |
 
 ## Layout Utilities
 - `snapWindowLeft/Right` — split-screen

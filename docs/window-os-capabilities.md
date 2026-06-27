@@ -61,7 +61,7 @@ Without a shared capability language, each new app would re-implement the same f
 | `thread` | forum |
 | `comments` | forum |
 | `search` | artifact-library |
-| `profiles` | global-user |
+| `profiles` | global-user, profile-preview, forum |
 
 ### Planned (designed, not yet built)
 
@@ -77,6 +77,25 @@ Without a shared capability language, each new app would re-implement the same f
 | `marketplace` | Task posting, offer management |
 | `payments` | Credit/fiat payment processing |
 | `reviews` | Ratings and reviews |
+
+---
+
+## Profile Primitive
+
+Phase 5A moves `profiles` from architecture metadata into a shared primitive.
+The primitive lives in `src/features/profiles/` and provides:
+
+- `NexusAuthorRef` for lightweight author snapshots on forum posts, replies,
+  future marketplace tasks, and future social posts.
+- `NexusProfile` for full profile preview display.
+- Profile UI primitives: avatar, badge, card, states, and a profile preview
+  window app.
+- A profile API boundary that reads current auth metadata when available and
+  falls back locally when no durable profile table exists.
+
+This capability is identity display only. It does not implement follow graph,
+reviews, reputation, payments, seller profiles, edit profile UI, or public
+profile routes. Those remain separate future capabilities.
 
 ---
 
@@ -205,8 +224,7 @@ Without a shared capability language, each new app would re-implement the same f
 
 ## Next Steps
 
-- **Phase 4D**: Forum Backend MVP — migrate from localStorage to Supabase
-- **Phase 4E**: Notes Backend MVP — migrate from localStorage to Supabase
-- **Phase 5A**: Profile/Identity primitive — build the `profiles` capability
 - **Phase 5B**: Marketplace Domain Model — design marketplace tables and flows
+- **Future**: Forum Backend MVP — migrate from localStorage to Supabase
+- **Future**: Notes Backend MVP — migrate from localStorage to Supabase
 - **Phase 5C**: Marketplace MVP — build using existing capabilities

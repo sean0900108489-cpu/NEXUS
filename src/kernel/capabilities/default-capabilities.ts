@@ -105,9 +105,10 @@ export const DEFAULT_CAPABILITIES: NexusCapabilityDefinition[] = [
   {
     kind: "profiles",
     title: "Profiles",
-    description: "User identity display: name, avatar, bio, stats",
-    maturity: "planned",
-    owner: "future",
+    description: "Shared user identity display primitive: name, handle, avatar, bio",
+    maturity: "mvp",
+    owner: "feature",
+    providedBy: ["global-user", "profile-preview", "forum"],
   },
   {
     kind: "reactions",

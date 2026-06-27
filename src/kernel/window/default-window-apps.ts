@@ -96,6 +96,22 @@ const ForumWindow = dynamic(
   { ssr: false },
 );
 
+const DeveloperInspectorWindow = dynamic(
+  () =>
+    import("@/features/developer/DeveloperInspectorWindow").then(
+      (mod) => mod.DeveloperInspectorWindow,
+    ),
+  { ssr: false },
+);
+
+const ProfilePreviewWindow = dynamic(
+  () =>
+    import("@/features/profiles/ProfilePreviewWindow").then(
+      (mod) => mod.ProfilePreviewWindow,
+    ),
+  { ssr: false },
+);
+
 // ── App Definitions ─────────────────────────────────────────────────
 
 /**
@@ -155,6 +171,7 @@ export const DEFAULT_WINDOW_APPS: NexusWindowAppDefinition[] = [
     icon: "sticky-note",
     singleton: false,
     allowMultiple: true,
+    lifecycle: "demo",
     component: NotesDemoWindow,
   },
   {
@@ -166,6 +183,7 @@ export const DEFAULT_WINDOW_APPS: NexusWindowAppDefinition[] = [
     icon: "message-square",
     singleton: false,
     allowMultiple: true,
+    lifecycle: "demo",
     component: ForumDemoWindow,
   },
   {
@@ -216,8 +234,35 @@ export const DEFAULT_WINDOW_APPS: NexusWindowAppDefinition[] = [
     icon: "message-square",
     singleton: true,
     allowMultiple: false,
-    capabilities: ["feed", "thread", "composer", "comments", "media-upload", "notes-capture"] as NexusCapabilityKind[],
+    capabilities: ["feed", "thread", "composer", "comments", "media-upload", "notes-capture", "profiles"] as NexusCapabilityKind[],
     archetype: "community-app" as NexusProductArchetypeKind,
     component: ForumWindow,
+  },
+  {
+    kind: "profile-preview",
+    title: "Profile",
+    scope: "account",
+    defaultSize: { width: 420, height: 420 },
+    minSize: { width: 300, height: 280 },
+    icon: "user",
+    singleton: false,
+    allowMultiple: true,
+    capabilities: ["profiles"] as NexusCapabilityKind[],
+    archetype: "admin-app" as NexusProductArchetypeKind,
+    component: ProfilePreviewWindow,
+  },
+  {
+    kind: "developer-inspector",
+    title: "Dev Inspector",
+    scope: "account",
+    defaultSize: { width: 680, height: 520 },
+    minSize: { width: 420, height: 340 },
+    icon: "code",
+    singleton: true,
+    allowMultiple: false,
+    lifecycle: "internal",
+    capabilities: ["commands"] as NexusCapabilityKind[],
+    archetype: "admin-app" as NexusProductArchetypeKind,
+    component: DeveloperInspectorWindow,
   },
 ];

@@ -32,7 +32,9 @@ export type NexusWindowKind =
   | "artifact-preview"
   | "artifact-library"
   | "notes"
-  | "forum";
+  | "forum"
+  | "developer-inspector"
+  | "profile-preview";
 
 // ── Window Scope ───────────────────────────────────────────────────
 
@@ -213,6 +215,18 @@ export type NexusWindowAppDefinition = {
    * Example: Forum → "community-app"
    */
   archetype?: NexusProductArchetypeKind;
+
+  /**
+   * App lifecycle status.
+   * - "active": Production app
+   * - "demo": Placeholder/demo app
+   * - "legacy": Deprecated but preserved
+   * - "planned": Designed but not yet built
+   * - "internal": Developer/internal tool
+   *
+   * Optional — apps without lifecycle default to "active".
+   */
+  lifecycle?: "active" | "demo" | "legacy" | "planned" | "internal";
 };
 
 // ── Launcher Item ──────────────────────────────────────────────────

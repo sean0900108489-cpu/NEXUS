@@ -8,9 +8,11 @@
 
 "use client";
 
-import { MessageSquare, Paperclip, Image } from "lucide-react";
+import { MessageSquare, Paperclip, Image as ImageIcon } from "lucide-react";
 import type { ForumThread, ForumReply } from "./forum-api";
 import { ForumPostActions } from "./ForumPostActions";
+import { ProfileBadge } from "@/features/profiles";
+import type { NexusAuthorRef } from "@/features/profiles";
 
 type ForumPostCardProps = {
   id: string;
@@ -20,6 +22,7 @@ type ForumPostCardProps = {
   createdAt: string;
   replyCount?: number;
   isReply?: boolean;
+  author?: NexusAuthorRef;
   onAttachmentClick?: (ref: { type: string; id: string; label?: string }) => void;
 };
 
@@ -31,6 +34,7 @@ function buildProps(thread: ForumThread): ForumPostCardProps {
     attachments: thread.attachments,
     createdAt: thread.createdAt,
     replyCount: thread.replyCount,
+    author: thread.author ?? authorFromLabel(thread.authorLabel),
   };
 }
 
@@ -41,6 +45,7 @@ function buildReplyProps(reply: ForumReply): ForumPostCardProps {
     attachments: reply.attachments,
     createdAt: reply.createdAt,
     isReply: true,
+    author: reply.author ?? authorFromLabel(reply.authorLabel),
   };
 }
 
@@ -67,6 +72,11 @@ export function ForumPostCard(props: ForumPostCardProps) {
         </span>
       </div>
 
+      {/* Author */}
+      <div className="mb-2">
+        <ProfileBadge author={props.author} fallbackLabel="You" />
+      </div>
+
       {/* Body */}
       <div className="text-xs text-white/60 whitespace-pre-wrap break-words mb-2">
         {props.body}
@@ -84,7 +94,7 @@ export function ForumPostCard(props: ForumPostCardProps) {
                 props.onAttachmentClick?.(att);
               }}
             >
-              {att.type === "attachment" ? <Paperclip className="w-3 h-3" /> : <Image className="w-3 h-3" />}
+              {att.type === "attachment" ? <Paperclip className="w-3 h-3" /> : <ImageIcon className="w-3 h-3" />}
               <span className="truncate max-w-[120px]">{att.label ?? att.id.slice(0, 8)}</span>
             </button>
           ))}
@@ -98,4 +108,8 @@ export function ForumPostCard(props: ForumPostCardProps) {
       />
     </div>
   );
+}
+
+function authorFromLabel(authorLabel?: string): NexusAuthorRef | undefined {
+  return authorLabel?.trim() ? { displayName: authorLabel.trim() } : undefined;
 }

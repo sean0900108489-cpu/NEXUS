@@ -46,6 +46,7 @@ ForumThread {
   createdAt, updatedAt
   replyCount: number
   authorLabel?: string
+  author?: NexusAuthorRef
 }
 
 ForumReply {
@@ -54,6 +55,8 @@ ForumReply {
   body
   attachments: NexusResourceRef[]
   createdAt, updatedAt
+  authorLabel?: string
+  author?: NexusAuthorRef
 }
 ```
 
@@ -62,7 +65,7 @@ ForumReply {
 ```typescript
 type NexusResourceRef = {
   type: "attachment" | "artifact" | "global-conversation" | "workspace"
-      | "note" | "forum-post" | "marketplace-listing";
+      | "note" | "profile" | "forum-post" | "marketplace-listing";
   id: string;           // Canonical resource ID
   label?: string;       // Display name
   meta?: Record<string, unknown>;  // Extra context
@@ -80,7 +83,52 @@ type NexusResourceRef = {
 
 ## 2. Proposed Supabase Tables
 
-### 2.1 Notes (`user_notes`)
+### 2.1 User Profiles (`user_profiles`)
+
+> Phase 5A does not execute this migration. Current profile primitives use
+> auth metadata and local fallback profiles until a durable profile table is
+> introduced.
+
+```sql
+CREATE TABLE user_profiles (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       uuid NOT NULL UNIQUE REFERENCES auth.users(id),
+  display_name  text NOT NULL,
+  handle        text UNIQUE,
+  avatar_url    text,
+  bio           text,
+  role_label    text,
+  meta          jsonb,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now(),
+  deleted_at    timestamptz
+);
+
+CREATE INDEX idx_user_profiles_user ON user_profiles(user_id, deleted_at);
+CREATE INDEX idx_user_profiles_handle ON user_profiles(handle)
+  WHERE handle IS NOT NULL AND deleted_at IS NULL;
+```
+
+**RLS contract (future):**
+```sql
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+
+-- Public apps may read basic profile fields.
+CREATE POLICY "Anyone can read basic profiles"
+  ON user_profiles FOR SELECT
+  USING (deleted_at IS NULL);
+
+-- Owners can manage their own profile row.
+CREATE POLICY "Users can update own profile"
+  ON user_profiles FOR ALL
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+```
+
+**Privacy rule:** Do not store private auth, billing, wallet, or contact fields
+in `user_profiles`. Keep it to public identity display fields.
+
+### 2.2 Notes (`user_notes`)
 
 > Decision: NOT reusing existing `notebooks` table. Notebooks is workspace-scoped
 > with complex permission logic. `user_notes` is account-first, simpler.
@@ -113,7 +161,7 @@ CREATE POLICY "Workspace members can read workspace notes"
   USING (workspace_id IS NOT NULL AND is_workspace_member(workspace_id));
 ```
 
-### 2.2 Note Resources (`note_resources`)
+### 2.3 Note Resources (`note_resources`)
 
 > Pattern follows existing `artifact_references` table design.
 
@@ -134,7 +182,7 @@ CREATE INDEX idx_nr_note ON note_resources(note_id);
 
 **RLS:** Same as `user_notes` — derived from parent note ownership.
 
-### 2.3 Forum Threads (`forum_threads`)
+### 2.4 Forum Threads (`forum_threads`)
 
 ```sql
 CREATE TABLE forum_threads (
@@ -154,7 +202,7 @@ CREATE INDEX idx_ft_user ON forum_threads(user_id, deleted_at);
 CREATE INDEX idx_ft_status ON forum_threads(status) WHERE status = 'published';
 ```
 
-### 2.4 Forum Replies (`forum_replies`)
+### 2.5 Forum Replies (`forum_replies`)
 
 ```sql
 CREATE TABLE forum_replies (
@@ -170,7 +218,7 @@ CREATE TABLE forum_replies (
 CREATE INDEX idx_fr_thread ON forum_replies(thread_id, deleted_at);
 ```
 
-### 2.5 Forum Post Resources (`forum_post_resources`)
+### 2.6 Forum Post Resources (`forum_post_resources`)
 
 > Unified resource table for both threads and replies.
 
@@ -206,7 +254,7 @@ CREATE POLICY "Users can CRUD own threads"
   USING (user_id = auth.uid());
 ```
 
-### 2.6 Marketplace (future contract)
+### 2.7 Marketplace (future contract)
 
 ```sql
 CREATE TABLE marketplace_tasks (
@@ -403,8 +451,8 @@ export interface NotesRepository {
 export interface ForumRepository {
   listThreads(params?: { status?: string; limit?: number; cursor?: string }): Promise<ForumThread[]>;
   getThread(threadId: string): Promise<ForumThreadDetail | null>;
-  createThread(input: { title: string; body: string; attachments?: NexusResourceRef[] }): Promise<ForumThread>;
-  createReply(input: { threadId: string; body: string; attachments?: NexusResourceRef[] }): Promise<ForumReply>;
+  createThread(input: { title: string; body: string; attachments?: NexusResourceRef[]; author?: NexusAuthorRef }): Promise<ForumThread>;
+  createReply(input: { threadId: string; body: string; attachments?: NexusResourceRef[]; author?: NexusAuthorRef }): Promise<ForumReply>;
   deleteThread(threadId: string): Promise<boolean>;
   deleteReply(threadId: string, replyId: string): Promise<boolean>;
 }

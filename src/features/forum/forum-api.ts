@@ -9,6 +9,7 @@
  */
 
 import type { NexusResourceRef } from "@/kernel/resource/resource-ref";
+import type { NexusAuthorRef } from "@/features/profiles";
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -21,6 +22,8 @@ export type ForumThread = {
   updatedAt: string;
   /** Optional display name */
   authorLabel?: string;
+  /** Optional shared profile primitive author snapshot */
+  author?: NexusAuthorRef;
   /** Cached reply count */
   replyCount: number;
 };
@@ -33,6 +36,7 @@ export type ForumReply = {
   createdAt: string;
   updatedAt: string;
   authorLabel?: string;
+  author?: NexusAuthorRef;
 };
 
 export type ForumThreadListResponse = {
@@ -101,7 +105,7 @@ export const forumApi = {
     return { thread, replies };
   },
 
-  createThread(input: { title: string; body: string; attachments?: NexusResourceRef[] }): ForumThread {
+  createThread(input: { title: string; body: string; attachments?: NexusResourceRef[]; author?: NexusAuthorRef }): ForumThread {
     const id = makeId("thread");
     const ts = now();
     const thread: ForumThread = {
@@ -109,6 +113,7 @@ export const forumApi = {
       title: input.title.trim() || "Untitled Thread",
       body: input.body,
       attachments: input.attachments ?? [],
+      author: input.author,
       createdAt: ts,
       updatedAt: ts,
       replyCount: 0,
@@ -144,7 +149,7 @@ export const forumApi = {
 
   // ── Replies ─────────────────────────────────────────────
 
-  createReply(input: { threadId: string; body: string; attachments?: NexusResourceRef[] }): ForumReply | null {
+  createReply(input: { threadId: string; body: string; attachments?: NexusResourceRef[]; author?: NexusAuthorRef }): ForumReply | null {
     const thread = readJSON<ForumThread | null>(`${THREAD_PREFIX}${input.threadId}`, null);
     if (!thread) return null;
 
@@ -155,6 +160,7 @@ export const forumApi = {
       threadId: input.threadId,
       body: input.body,
       attachments: input.attachments ?? [],
+      author: input.author,
       createdAt: ts,
       updatedAt: ts,
     };

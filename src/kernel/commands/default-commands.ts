@@ -6,14 +6,6 @@
  * @module kernel/commands/default-commands
  */
 
-import {
-  MessageCircle,
-  User,
-  LayoutGrid,
-  Layers,
-  Maximize2,
-  RotateCcw,
-} from "lucide-react";
 import type { NexusCommand } from "./command-types";
 
 /**
@@ -76,6 +68,20 @@ export function createDefaultCommands(deps: {
       icon: undefined,
       shortcut: "⌘6",
       run: () => deps.openWindow("forum"),
+    },
+    {
+      id: "open-developer-inspector",
+      label: "Developer Inspector",
+      detail: "Inspect capabilities, apps, and archetypes",
+      icon: undefined,
+      run: () => deps.openWindow("developer-inspector"),
+    },
+    {
+      id: "open-my-profile",
+      label: "Open My Profile",
+      detail: "Preview your profile identity primitive",
+      icon: undefined,
+      run: () => deps.openWindow("profile-preview"),
     },
     {
       id: "cascade-windows",

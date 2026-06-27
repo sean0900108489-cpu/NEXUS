@@ -24,9 +24,14 @@ const RESOURCE_WINDOW_MAP: Record<string, string> = {
   artifact: "artifact-preview",
   "global-conversation": "global-chat",
   workspace: "workspace",
+  profile: "profile-preview",
 };
 
 export const UNKNOWN_RESOURCE_FALLBACK_WINDOW = "artifact-preview";
+
+export function getWindowKindForResourceType(type: string): string | undefined {
+  return RESOURCE_WINDOW_MAP[type];
+}
 
 /**
  * Open a resource in the appropriate window.
@@ -35,12 +40,12 @@ export const UNKNOWN_RESOURCE_FALLBACK_WINDOW = "artifact-preview";
  */
 export function openResource(ref: NexusResourceRef): string | null {
   // Determine target window kind
-  const windowKind = RESOURCE_WINDOW_MAP[ref.type];
+  const windowKind = getWindowKindForResourceType(ref.type);
 
   if (!windowKind) {
     // Unknown resource type — use fallback
     console.warn(`[ResourceActions] Unknown resource type: ${ref.type}. Using fallback.`);
-    return openFallbackResource(ref, `Unknown resource type: ${ref.type}`);
+    return openFallbackResource(ref);
   }
 
   const appDef = getWindowApp(windowKind as NexusWindowKind);
@@ -81,7 +86,7 @@ export function openResource(ref: NexusResourceRef): string | null {
 /**
  * Fallback: open the generic artifact-preview window for unknown or unreachable resources.
  */
-function openFallbackResource(ref: NexusResourceRef, _reason: string): string | null {
+function openFallbackResource(ref: NexusResourceRef): string | null {
   const fallbackApp = getWindowApp(UNKNOWN_RESOURCE_FALLBACK_WINDOW as NexusWindowKind);
 
   if (!fallbackApp) {

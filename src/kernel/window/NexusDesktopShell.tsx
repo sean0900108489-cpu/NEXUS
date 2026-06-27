@@ -39,8 +39,9 @@ import {
   Settings,
   FlaskConical,
   Store,
-  Image,
+  Image as ImageIcon,
   FolderOpen,
+  Code,
   Search,
 } from "lucide-react";
 import { useWindowStore } from "./window-store";
@@ -72,8 +73,9 @@ const KNOWN_ICONS: Record<string, ReactNode> = {
   settings: <Settings className="w-5 h-5" />,
   flask: <FlaskConical className="w-5 h-5" />,
   store: <Store className="w-5 h-5" />,
-  image: <Image className="w-5 h-5" />,
+  image: <ImageIcon className="w-5 h-5" />,
   "folder-open": <FolderOpen className="w-5 h-5" />,
+  code: <Code className="w-5 h-5" />,
 };
 
 function resolveIcon(iconName?: string): ReactNode {
@@ -89,7 +91,6 @@ function resolveIcon(iconName?: string): ReactNode {
 export function NexusDesktopShell() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [desktopBounds, setDesktopBounds] = useState({ width: 1200, height: 780 });
-  const [hydrated, setHydrated] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [paletteQuery, setPaletteQuery] = useState("");
   const paletteInputRef = useRef<HTMLInputElement | null>(null);
@@ -97,6 +98,7 @@ export function NexusDesktopShell() {
   const windows = useWindowStore((s) => s.windows);
   const focusedWindowId = useWindowStore((s) => s.focusedWindowId);
   const storeHydrated = useWindowStore((s) => s.hydrated);
+  const hydrated = storeHydrated;
   const openWindow = useWindowStore((s) => s.openWindow);
   const focusWindow = useWindowStore((s) => s.focusWindow);
   const restoreWindow = useWindowStore((s) => s.restoreWindow);
@@ -109,10 +111,6 @@ export function NexusDesktopShell() {
   useEffect(() => {
     hydrateFromPersistence();
   }, [hydrateFromPersistence]);
-
-  useEffect(() => {
-    if (storeHydrated) setHydrated(true);
-  }, [storeHydrated]);
 
   // ── Desktop Measurement ─────────────────────────────────
 
@@ -257,7 +255,7 @@ export function NexusDesktopShell() {
 
   // ── Palette commands ─────────────────────────────────────
 
-  const allCommands = useMemo(() => getAllCommands(), [paletteOpen]);
+  const allCommands = getAllCommands();
 
   const filteredCommands = useMemo(() => {
     if (!paletteQuery.trim()) return allCommands;
@@ -345,7 +343,7 @@ export function NexusDesktopShell() {
             <div className="max-h-72 overflow-y-auto p-1">
               {filteredCommands.length === 0 ? (
                 <p className="px-3 py-4 text-xs text-white/20 text-center">
-                  No commands match "{paletteQuery}"
+                  No commands match <span>{paletteQuery}</span>
                 </p>
               ) : (
                 filteredCommands.map((cmd) => (

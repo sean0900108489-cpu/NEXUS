@@ -27,6 +27,7 @@ import { ForumThreadComposer } from "./ForumThreadComposer";
 import { ForumLoadingState, ForumEmptyState, ForumErrorState } from "./ForumStates";
 import type { NexusWindowAppProps } from "@/kernel/window/window-types";
 import { useNotificationStore } from "@/kernel/notifications/notification-store";
+import { profileApi, type NexusAuthorRef, type NexusProfile } from "@/features/profiles";
 
 type ForumView =
   | { mode: "list" }
@@ -40,10 +41,23 @@ export function ForumWindow({ setTitle }: NexusWindowAppProps) {
   const [view, setView] = useState<ForumView>({ mode: "list" });
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [threadDetail, setThreadDetail] = useState<ForumThreadDetail | null>(null);
+  const [currentAuthor, setCurrentAuthor] = useState<NexusAuthorRef | undefined>();
 
   const addNotification = useNotificationStore((s) => s.addNotification);
 
   useEffect(() => { setTitle("Forum"); }, [setTitle]);
+
+  useEffect(() => {
+    let active = true;
+
+    profileApi.getCurrentProfile().then((profile) => {
+      if (active) setCurrentAuthor(authorRefFromProfile(profile));
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // ── Load threads ─────────────────────────────────────────
 
@@ -57,7 +71,10 @@ export function ForumWindow({ setTitle }: NexusWindowAppProps) {
     } finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { loadThreads(); }, [loadThreads]);
+  useEffect(() => {
+    const timer = window.setTimeout(loadThreads, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadThreads]);
 
   // ── Create thread ────────────────────────────────────────
 
@@ -65,14 +82,14 @@ export function ForumWindow({ setTitle }: NexusWindowAppProps) {
     const refs = buildAttachmentReferences(attachments).map((a) => ({
       type: "attachment" as const, id: a.id, label: a.filename, meta: { kind: a.kind, mimeType: a.mimeType },
     }));
-    const thread = forumApi.createThread({ title, body, attachments: refs });
+    const thread = forumApi.createThread({ title, body, attachments: refs, author: currentAuthor });
     setThreads((prev) => [thread, ...prev]);
     setView({ mode: "thread", threadId: thread.id });
     setSelectedThreadId(thread.id);
     const detail = forumApi.getThread(thread.id);
     if (detail) setThreadDetail(detail);
     addNotification({ type: "success", title: "Thread posted", autoDismissMs: 2000 });
-  }, [addNotification]);
+  }, [addNotification, currentAuthor]);
 
   // ── Select thread ────────────────────────────────────────
 
@@ -89,13 +106,13 @@ export function ForumWindow({ setTitle }: NexusWindowAppProps) {
 
   const handleReply = useCallback((body: string) => {
     if (!selectedThreadId) return;
-    forumApi.createReply({ threadId: selectedThreadId, body });
+    forumApi.createReply({ threadId: selectedThreadId, body, author: currentAuthor });
     const detail = forumApi.getThread(selectedThreadId);
     if (detail) setThreadDetail(detail);
     // Update thread list reply counts
     setThreads(forumApi.listThreads().threads);
     addNotification({ type: "success", title: "Reply posted", autoDismissMs: 2000 });
-  }, [selectedThreadId, addNotification]);
+  }, [selectedThreadId, addNotification, currentAuthor]);
 
   // ── Back to list ─────────────────────────────────────────
 
@@ -149,4 +166,14 @@ export function ForumWindow({ setTitle }: NexusWindowAppProps) {
       </div>
     </div>
   );
+}
+
+function authorRefFromProfile(profile: NexusProfile): NexusAuthorRef {
+  return {
+    userId: profile.userId,
+    profileId: profile.id,
+    displayName: profile.displayName,
+    handle: profile.handle,
+    avatarUrl: profile.avatarUrl,
+  };
 }

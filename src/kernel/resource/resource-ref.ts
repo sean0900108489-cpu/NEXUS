@@ -15,6 +15,7 @@ export type NexusResourceType =
   | "global-conversation"
   | "workspace"
   | "note"
+  | "profile"
   | "forum-post"
   | "marketplace-listing";
 

@@ -1,0 +1,1 @@
+export { NotesDemoWindow } from "./NotesDemoWindow";

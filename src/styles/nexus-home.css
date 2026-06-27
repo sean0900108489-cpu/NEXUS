@@ -508,6 +508,95 @@ select:focus-visible {
   padding: 24px 32px 130px;
 }
 
+.nexus-chat-detail-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--nexus-bg);
+  color: var(--nexus-text);
+  padding: 18px 18px 140px;
+}
+
+.nexus-chat-detail-topbar {
+  max-width: 1040px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid var(--nexus-border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: rgba(13, 17, 26, 0.86);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.18);
+}
+
+.nexus-chat-detail-topbar h1 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+
+.nexus-chat-detail-topbar nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.nexus-chat-detail-state {
+  max-width: 720px;
+  margin: 72px auto 0;
+  border: 1px solid var(--nexus-border);
+  border-radius: 18px;
+  padding: 28px;
+  background: rgba(15, 19, 29, 0.86);
+  text-align: center;
+}
+
+.nexus-chat-detail-state h2 {
+  margin: 0 0 8px;
+  color: var(--nexus-text);
+  font-size: 22px;
+}
+
+.nexus-chat-detail-state p {
+  margin: 0;
+  color: var(--nexus-muted);
+  line-height: 1.6;
+}
+
+.nexus-chat-detail-state .nexus-btn-primary {
+  display: inline-block;
+  margin-top: 16px;
+  border: 1px solid var(--nexus-border-strong);
+  border-radius: 11px;
+  padding: 10px 14px;
+  color: var(--nexus-text);
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.nexus-chat-detail-composer {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  width: min(940px, calc(100% - 36px));
+  transform: translateX(-50%);
+  display: grid;
+  gap: 8px;
+  z-index: 30;
+}
+
+.nexus-chat-detail-composer > .nexus-muted,
+.nexus-chat-detail-composer > .nexus-inline-error {
+  margin: 0;
+  border: 1px solid var(--nexus-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(13, 17, 26, 0.96);
+}
+
 .nexus-chat-header {
   display: flex;
   justify-content: space-between;

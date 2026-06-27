@@ -11,17 +11,41 @@ import {
   WorkspaceShortcut,
 } from './types';
 
+type GlobalChatConversationPayload = {
+  id?: string;
+  messages?: GlobalMessage[];
+};
+
+type GlobalChatSendResponse =
+  | GlobalChatConversationPayload
+  | {
+      conversation: GlobalChatConversationPayload | null;
+    };
+
+type CreateGlobalConversationResponse =
+  | GlobalConversation
+  | {
+      conversation: GlobalConversation | null;
+    };
+
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  headers.set('content-type', headers.get('content-type') ?? 'application/json');
+
+  if (!headers.has('Authorization')) {
+    const accessToken = await resolveBrowserAccessToken();
+    if (accessToken) {
+      headers.set('Authorization', `Bearer ${accessToken}`);
+    }
+  }
+
   const response = await fetch(path, {
     ...init,
-    headers: {
-      'content-type': 'application/json',
-      ...(init?.headers ?? {}),
-    },
+    headers,
   });
 
   const text = await response.text();
-  let data: any = null;
+  let data: unknown = null;
 
   try {
     data = text ? JSON.parse(text) : null;
@@ -35,14 +59,81 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   if (response.status === 402) {
-    throw new InsufficientCreditsError(data ?? {});
+    throw new InsufficientCreditsError(
+      isRecord(data) ? data : {},
+    );
   }
 
   if (!response.ok) {
-    throw new Error(data?.error ?? data?.message ?? `Request failed: ${response.status}`);
+    const message = readResponseErrorMessage(data, response.status);
+    throw Object.assign(new Error(message), { status: response.status });
   }
 
   return data as T;
+}
+
+function readResponseErrorMessage(data: unknown, status: number) {
+  if (!isRecord(data)) {
+    return `Request failed: ${status}`;
+  }
+
+  const error = data.error;
+
+  if (isRecord(error) && typeof error.message === 'string') {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (typeof data.message === 'string') {
+    return data.message;
+  }
+
+  return `Request failed: ${status}`;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function unwrapCreatedConversation(data: CreateGlobalConversationResponse): GlobalConversation {
+  if ('conversation' in data) {
+    if (data.conversation) {
+      return data.conversation;
+    }
+
+    throw new Error('Conversation was not returned.');
+  }
+
+  return data;
+}
+
+function unwrapGlobalChatConversation(data: GlobalChatSendResponse): GlobalChatConversationPayload {
+  if ('conversation' in data) {
+    return data.conversation ?? {};
+  }
+
+  return data;
+}
+
+async function resolveBrowserAccessToken() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const { ensureNexusSupabaseClientConfigured, getNexusSupabaseClient } =
+      await import('@/lib/supabase/client');
+
+    await ensureNexusSupabaseClientConfigured();
+    const { data } = await getNexusSupabaseClient().auth.getSession();
+
+    return data.session?.access_token ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -57,26 +148,30 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
  */
 export const nexusHomeApi = {
   async listGlobalConversations(): Promise<GlobalConversation[]> {
-    const data = await requestJson<{ chats?: GlobalConversation[] }>('/api/global-chats');
-    return (data as any).chats ?? (Array.isArray(data) ? data : []);
+    const data = await requestJson<{ chats?: GlobalConversation[] } | GlobalConversation[]>(
+      '/api/global-chats',
+    );
+    return Array.isArray(data) ? data : data.chats ?? [];
   },
 
   createGlobalConversation(input?: { title?: string }): Promise<GlobalConversation> {
-    return requestJson<GlobalConversation>('/api/global-chat', {
+    return requestJson<CreateGlobalConversationResponse>('/api/global-chat', {
       method: 'POST',
       body: JSON.stringify({ message: '', ...(input ?? {}) }),
-    }).then((data: any) => data.conversation ?? data);
+    }).then(unwrapCreatedConversation);
   },
 
   async listGlobalMessages(conversationId: string): Promise<GlobalMessage[]> {
-    const data = await requestJson<{ conversation?: { messages?: GlobalMessage[] } }>(
+    const data = await requestJson<
+      { conversation?: { messages?: GlobalMessage[] } } | GlobalMessage[]
+    >(
       `/api/global-chats/${conversationId}`,
     );
-    return (data as any).conversation?.messages ?? (Array.isArray(data) ? data : []);
+    return Array.isArray(data) ? data : data.conversation?.messages ?? [];
   },
 
   async sendGlobalMessage(input: SendGlobalMessageInput): Promise<SendGlobalMessageResult> {
-    const data = await requestJson<any>('/api/global-chat', {
+    const data = await requestJson<GlobalChatSendResponse>('/api/global-chat', {
       method: 'POST',
       body: JSON.stringify({
         conversationId: input.conversationId,
@@ -85,15 +180,16 @@ export const nexusHomeApi = {
         attachments: input.attachments,
       }),
     });
-    const conv = data.conversation ?? data;
+    const conv = unwrapGlobalChatConversation(data);
+    const conversationId = conv.id ?? input.conversationId ?? 'new';
     const msgs = conv.messages ?? [];
     const assistantMsg = msgs.length > 0 ? msgs[msgs.length - 1] : undefined;
     const userMsg = msgs.length > 1 ? msgs[msgs.length - 2] : undefined;
 
     return {
-      conversationId: conv.id ?? input.conversationId ?? 'new',
-      userMessage: userMsg ? { ...userMsg, conversationId: conv.id } : undefined,
-      assistantMessage: assistantMsg ? { ...assistantMsg, conversationId: conv.id } : undefined,
+      conversationId,
+      userMessage: userMsg ? { ...userMsg, conversationId } : undefined,
+      assistantMessage: assistantMsg ? { ...assistantMsg, conversationId } : undefined,
     };
   },
 

@@ -24,6 +24,28 @@ describe("FloatingAppLauncher", () => {
     expect(html).toContain('title="Open Feed"');
   });
 
+  it("keeps the launcher scrollable and button widths stable for the R4 app set", () => {
+    const apps = [
+      makeApp(),
+      makeApp({ kind: "feed", title: "Feed", icon: "rss" }),
+      makeApp({ kind: "artifact-library", title: "Artifacts", icon: "folder-open" }),
+      makeApp({ kind: "profile-preview", title: "Profile", icon: "user" }),
+      makeApp({ kind: "notes", title: "Notes", icon: "sticky-note" }),
+      makeApp({ kind: "forum", title: "Forum", icon: "message-square" }),
+      makeApp({ kind: "global-chat", title: "Global Chat", icon: "message-circle" }),
+    ];
+
+    const html = renderToStaticMarkup(
+      <FloatingAppLauncher apps={apps} onOpen={vi.fn()} />,
+    );
+
+    expect(html).toContain('data-floating-app-count="7"');
+    expect(html).toContain("overflow-x-auto");
+    expect(html).toContain("overscroll-x-contain");
+    expect(html).toContain("shrink-0");
+    expect(html.match(/data-floating-app-kind=/g)).toHaveLength(7);
+  });
+
   it("renders nothing when no apps are registered", () => {
     const html = renderToStaticMarkup(
       <FloatingAppLauncher apps={[]} onOpen={vi.fn()} />,

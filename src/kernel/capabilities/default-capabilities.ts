@@ -33,8 +33,8 @@ export const DEFAULT_CAPABILITIES: NexusCapabilityDefinition[] = [
     description: "Chronological or ranked list of content items (threads, posts)",
     maturity: "mvp",
     owner: "feature",
-    providedBy: ["forum"],
-    dependsOn: ["thread"],
+    providedBy: ["feed", "forum"],
+    dependsOn: ["composer"],
   },
   {
     kind: "thread",
@@ -48,11 +48,10 @@ export const DEFAULT_CAPABILITIES: NexusCapabilityDefinition[] = [
   {
     kind: "composer",
     title: "Composer",
-    description: "Rich text or plain text input with media attachment support",
+    description: "Rich text or plain text input, optionally with media attachment support",
     maturity: "stable",
     owner: "feature",
-    providedBy: ["global-chat", "forum", "notes"],
-    dependsOn: ["media-upload"],
+    providedBy: ["global-chat", "feed", "forum", "notes"],
   },
   {
     kind: "comments",
@@ -88,7 +87,7 @@ export const DEFAULT_CAPABILITIES: NexusCapabilityDefinition[] = [
     description: "View attachment/artifact metadata, image preview, download",
     maturity: "stable",
     owner: "feature",
-    providedBy: ["artifact-preview"],
+    providedBy: ["artifact-preview", "feed"],
   },
 
   // ── Knowledge ────────────────────────────────────────────
@@ -98,7 +97,7 @@ export const DEFAULT_CAPABILITIES: NexusCapabilityDefinition[] = [
     description: "Save or append content to a note from any app",
     maturity: "stable",
     owner: "feature",
-    providedBy: ["notes", "global-chat", "forum", "artifact-library", "artifact-preview"],
+    providedBy: ["notes", "global-chat", "feed", "forum", "artifact-library", "artifact-preview"],
   },
 
   // ── Social ───────────────────────────────────────────────
@@ -108,7 +107,7 @@ export const DEFAULT_CAPABILITIES: NexusCapabilityDefinition[] = [
     description: "Shared user identity display primitive: name, handle, avatar, bio",
     maturity: "mvp",
     owner: "feature",
-    providedBy: ["global-user", "profile-preview", "forum"],
+    providedBy: ["global-user", "profile-preview", "feed", "forum"],
   },
   {
     kind: "reactions",

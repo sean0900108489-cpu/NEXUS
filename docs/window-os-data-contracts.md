@@ -60,7 +60,45 @@ ForumReply {
 }
 ```
 
-### 1.3 Resource Reference Contract
+### 1.3 Feed & Interactions
+
+> Phase 5B local primitive only. No DB migration is executed.
+
+| Key | Value |
+|-----|-------|
+| `nexus-feed:v1:items` | `NexusFeedItem[]` — local feed items, newest first |
+| `nexus-interactions:v1:{targetType}:{targetId}` | local viewer interaction snapshot |
+
+```
+NexusFeedItem {
+  id: "feed_lx..."
+  title?: string
+  body: string
+  author?: NexusAuthorRef
+  attachments?: NexusResourceRef[]
+  linkedResources?: NexusResourceRef[]
+  counts?: NexusInteractionCounts
+  createdAt: "2026-06-27T..."
+  updatedAt?: "2026-06-27T..."
+  source?: { type: "manual" | "forum" | "chat" | "note" | "marketplace"; id?: string }
+}
+
+NexusInteractionTarget {
+  type: "feed-item" | "forum-thread" | "forum-reply" | "note" | "artifact" | "marketplace-task"
+  id: string
+}
+
+NexusInteractionCounts {
+  comments?: number
+  reactions?: { like?: number; upvote?: number; bookmark?: number }
+  saves?: number
+}
+```
+
+The local interaction API is viewer-state only. It is not a durable reactions
+backend, comment backend, follow graph, ranking system, or marketplace backend.
+
+### 1.4 Resource Reference Contract
 
 ```typescript
 type NexusResourceRef = {
@@ -72,7 +110,7 @@ type NexusResourceRef = {
 };
 ```
 
-### 1.4 Attachment / Artifact Contract (existing, reused)
+### 1.5 Attachment / Artifact Contract (existing, reused)
 
 - Storage: `user-attachments` Supabase bucket
 - DB: `user_attachments` table
@@ -294,6 +332,46 @@ CREATE TABLE marketplace_task_resources (
 > - Task attachments reuse Resource Ref / `user_attachments`
 > - Task discussion can reference Forum thread model (or embed lightweight chat)
 > - Reviews/ratings deferred to post-MVP
+
+### 2.8 Feed & Interactions (future contract)
+
+> Phase 5B does not execute this migration. These tables are future contracts
+> for a durable feed backend after the primitive has proven useful locally.
+
+```sql
+CREATE TABLE feed_items (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       uuid NOT NULL REFERENCES auth.users(id),
+  workspace_id  uuid REFERENCES workspaces(id),
+  title         text,
+  body          text NOT NULL DEFAULT '',
+  source_type   text NOT NULL DEFAULT 'manual',
+  source_id     text,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now(),
+  deleted_at    timestamptz
+);
+
+CREATE INDEX idx_feed_items_user ON feed_items(user_id, deleted_at);
+CREATE INDEX idx_feed_items_created ON feed_items(created_at DESC)
+  WHERE deleted_at IS NULL;
+
+CREATE TABLE feed_item_resources (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  feed_item_id  uuid NOT NULL REFERENCES feed_items(id) ON DELETE CASCADE,
+  resource_type text NOT NULL,
+  resource_id   text NOT NULL,
+  label         text,
+  meta          jsonb,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(feed_item_id, resource_type, resource_id)
+);
+```
+
+Durable `interaction_events` / aggregate counts are intentionally deferred
+until product semantics are known. A Reddit-like app, Instagram-like app, and
+Marketplace-like app may need different reaction kinds, visibility rules,
+anti-abuse constraints, and aggregation windows.
 
 ---
 

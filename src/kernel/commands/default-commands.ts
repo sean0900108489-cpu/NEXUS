@@ -62,11 +62,19 @@ export function createDefaultCommands(deps: {
       run: () => deps.openWindow("notes"),
     },
     {
+      id: "open-feed",
+      label: "Open Feed",
+      detail: "Open the local feed primitive",
+      icon: undefined,
+      shortcut: "⌘6",
+      run: () => deps.openWindow("feed"),
+    },
+    {
       id: "open-forum",
       label: "Open Forum",
       detail: "Browse and participate in discussions",
       icon: undefined,
-      shortcut: "⌘6",
+      shortcut: "⌘7",
       run: () => deps.openWindow("forum"),
     },
     {

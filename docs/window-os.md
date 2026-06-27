@@ -118,6 +118,16 @@ NEXUS is evolving from a single-page workspace into an **AI Window OS** — a de
 - `profiles` capability is now MVP and provided by Global User, Profile Preview, and Forum
 - `docs/window-os-data-contracts.md` includes future `user_profiles` contract only
 - Zero DB migration; auth metadata/local fallback first
+
+### Phase 5B — Feed & Interaction Primitive
+- Shared `src/features/interactions/` primitives: interaction types, local-only reaction state, InteractionBar, SaveToNoteButton, ShareButton, comment count display
+- Shared `src/features/feed/` primitive: local feed item API, FeedWindow, FeedComposer, FeedList, FeedItemCard
+- Feed items use `NexusAuthorRef` / ProfileBadge for author display and Resource Ref for attachments/resources
+- Feed note capture uses current-note-store bridge only: Save as Note / Append to Current Note
+- Feed registered as a singleton window app with Cmd+K and Global User shortcuts
+- Capability metadata updated so feed/composer/profiles/resource-preview/notes-capture can be inspected by Developer Inspector
+- This is a primitive demo, not an Instagram clone, Reddit clone, Marketplace, follow graph, recommendation system, comments backend, or durable reactions backend
+- Zero DB migration; feed and interaction state are local-only
 ## Kernel ↔ Feature Boundary
 
 ### Kernel (`src/kernel/`)
@@ -152,6 +162,7 @@ Each feature is self-contained with its own API client and panels.
 | `artifact-preview` | Preview | No | ✅ Image preview, metadata, download |
 | `artifact-library` | Artifacts | Yes | ✅ Grid browse, search, filter, open |
 | `notes` | Notes | Yes | ✅ Create, edit, auto-save, resource linking |
+| `feed` | Feed | Yes | ✅ Local feed primitive, ProfileBadge, InteractionBar, notes bridge |
 | `forum` | Forum | Yes | ✅ Threads, replies, attachments, notes bridge |
 | `developer-inspector` | Dev Inspector | Yes | ✅ 3-tab capability dashboard (internal) |
 | `profile-preview` | Profiles | Yes | ✅ Shared profile preview primitive |
@@ -164,7 +175,7 @@ Each feature is self-contained with its own API client and panels.
 
 ## Command System
 - Cmd/Ctrl+K opens palette
-- Default commands: open chat/user/workspace, cascade, maximize, snap, reset
+- Default commands: open chat/user/workspace/feed/forum/notes/profile/dev inspector, cascade, maximize, snap, reset
 - Extensible via `registerCommand()`
 
 ## Notification Center

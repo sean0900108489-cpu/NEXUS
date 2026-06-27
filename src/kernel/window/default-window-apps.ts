@@ -88,6 +88,14 @@ const NotesWindow = dynamic(
   { ssr: false },
 );
 
+const FeedWindow = dynamic(
+  () =>
+    import("@/features/feed/FeedWindow").then(
+      (mod) => mod.FeedWindow,
+    ),
+  { ssr: false },
+);
+
 const ForumWindow = dynamic(
   () =>
     import("@/features/forum/ForumWindow").then(
@@ -224,6 +232,19 @@ export const DEFAULT_WINDOW_APPS: NexusWindowAppDefinition[] = [
     capabilities: ["composer", "notes-capture", "resource-preview"] as NexusCapabilityKind[],
     archetype: "knowledge-app" as NexusProductArchetypeKind,
     component: NotesWindow,
+  },
+  {
+    kind: "feed",
+    title: "Feed",
+    scope: "account",
+    defaultSize: { width: 680, height: 540 },
+    minSize: { width: 400, height: 340 },
+    icon: "rss",
+    singleton: true,
+    allowMultiple: false,
+    capabilities: ["feed", "composer", "profiles", "resource-preview", "notes-capture"] as NexusCapabilityKind[],
+    archetype: "social-feed-app" as NexusProductArchetypeKind,
+    component: FeedWindow,
   },
   {
     kind: "forum",

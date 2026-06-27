@@ -9,7 +9,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Settings, FolderOpen, StickyNote, MessageSquare, Code, UserRound } from "lucide-react";
+import { Settings, FolderOpen, StickyNote, MessageSquare, Code, UserRound, Rss } from "lucide-react";
 import { useWindowStore } from "@/kernel/window/window-store";
 import { getWindowApp } from "@/kernel/window/window-registry";
 
@@ -46,6 +46,18 @@ export function SettingsPlaceholderPanel() {
     if (!appDef) return;
     openWindow({
       kind: "forum",
+      title: appDef.title,
+      scope: appDef.scope,
+      defaultSize: appDef.defaultSize,
+      singleton: appDef.singleton,
+    });
+  };
+
+  const handleOpenFeed = () => {
+    const appDef = getWindowApp("feed");
+    if (!appDef) return;
+    openWindow({
+      kind: "feed",
       title: appDef.title,
       scope: appDef.scope,
       defaultSize: appDef.defaultSize,
@@ -109,6 +121,15 @@ export function SettingsPlaceholderPanel() {
           <span className="flex items-center gap-1.5">
             <MessageSquare className="w-3 h-3" />
             Forum
+          </span>
+        </button>
+        <button
+          className="w-full text-left text-xs text-white/50 hover:text-white/80 transition-colors"
+          onClick={handleOpenFeed}
+        >
+          <span className="flex items-center gap-1.5">
+            <Rss className="w-3 h-3" />
+            Open Feed
           </span>
         </button>
         <button

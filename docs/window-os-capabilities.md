@@ -12,6 +12,7 @@ NEXUS is not a single product. It's a **platform** where multiple product archet
 - **Knowledge App** (Notes) → composer + notes-capture + resource-preview
 - **Resource App** (Artifact Library) → resource-library + search + media-upload
 - **Community App** (Forum) → feed + thread + comments + composer
+- **Social Feed Primitive** (Feed) → feed + composer + profiles + resource-preview + notes-capture
 - **Workspace App** (Workspace) → workspace + chat + resource-library
 
 Without a shared capability language, each new app would re-implement the same features from scratch. The Capability Registry prevents this by:
@@ -44,11 +45,11 @@ Without a shared capability language, each new app would re-implement the same f
 | Capability | Provided By |
 |-----------|-------------|
 | `chat` | global-chat |
-| `composer` | global-chat, forum, notes |
+| `composer` | global-chat, feed, forum, notes |
 | `media-upload` | global-chat, forum |
 | `resource-library` | artifact-library |
-| `resource-preview` | artifact-preview |
-| `notes-capture` | notes, global-chat, forum, artifact-library, artifact-preview |
+| `resource-preview` | artifact-preview, feed |
+| `notes-capture` | notes, global-chat, feed, forum, artifact-library, artifact-preview |
 | `notifications` | kernel |
 | `commands` | kernel |
 | `workspace` | workspace |
@@ -57,11 +58,11 @@ Without a shared capability language, each new app would re-implement the same f
 
 | Capability | Provided By |
 |-----------|-------------|
-| `feed` | forum |
+| `feed` | feed, forum |
 | `thread` | forum |
 | `comments` | forum |
 | `search` | artifact-library |
-| `profiles` | global-user, profile-preview, forum |
+| `profiles` | global-user, profile-preview, feed, forum |
 
 ### Planned (designed, not yet built)
 
@@ -96,6 +97,34 @@ The primitive lives in `src/features/profiles/` and provides:
 This capability is identity display only. It does not implement follow graph,
 reviews, reputation, payments, seller profiles, edit profile UI, or public
 profile routes. Those remain separate future capabilities.
+
+---
+
+## Feed & Interaction Primitive
+
+Phase 5B adds reusable feed and interaction primitives without turning NEXUS
+into a completed social product.
+
+The feed primitive lives in `src/features/feed/` and provides:
+
+- `NexusFeedItem` for content items with optional title, body, author,
+  attachments, linked resources, counts, timestamps, and source metadata.
+- `feed-api.ts`, a localStorage-first demo repository for local create/list/update/delete.
+- Feed UI primitives: FeedWindow, FeedComposer, FeedList, FeedItemCard, and states.
+- Author rendering through ProfileBadge and resource opening through `openResource`.
+- Note capture through current-note-store only.
+
+The interaction primitive lives in `src/features/interactions/` and provides:
+
+- `NexusInteractionTarget`, `NexusInteractionCounts`, and
+  `NexusInteractionState`.
+- Local-only viewer reaction/save state in `interaction-api.ts`.
+- InteractionBar with like/upvote/bookmark-ready reaction support, comment
+  count display, Save as Note, Append to Current Note, and placeholder share.
+
+This phase does not implement a real reactions backend, comments backend,
+follow graph, ranking/recommendation feed, marketplace, reviews, reputation,
+or any DB migration.
 
 ---
 
@@ -142,9 +171,12 @@ profile routes. Those remain separate future capabilities.
 
 **Required:** feed, media-upload, profiles, comments, reactions
 **Optional:** follow-graph, notifications, moderation, search
-**Current apps:** None yet
+**Current apps:** Feed (primitive)
 
-**Gap analysis:** Missing `reactions`, `follow-graph`. Both are planned.
+**Gap analysis:** Feed exists as a local primitive with author/resource/note
+capture surfaces. Full social-feed readiness still needs durable reactions,
+comments integration, media-upload composition, follow graph, moderation, and
+ranking/search decisions.
 
 ---
 
@@ -210,6 +242,20 @@ profile routes. Those remain separate future capabilities.
 5. Build `follow-graph` as a capability (usable by social-feed-app)
 6. Assemble: RedditWindow = ForumWindow + reactions + follow-graph
 
+### Example: Building an Instagram-like app
+1. Archetype: `social-feed-app`
+2. Reuse: feed primitive, ProfileBadge, Resource Ref, InteractionBar
+3. Add missing capabilities separately: media-upload composition, comments,
+   durable reactions, follow graph, moderation
+4. Assemble: Instagram-like window = feed + media upload + profiles + comments + reactions
+
+### Example: Building a Marketplace-like app
+1. Archetype: `marketplace-app`
+2. Reuse: feed/task-list surface, profiles, resources, comments, notes-capture
+3. Add missing domain capabilities separately: marketplace tasks/offers,
+   payments, reviews, reputation
+4. Assemble: Marketplace-like window = task feed + profiles + resources + comments + reviews
+
 ---
 
 ## Anti-Patterns (Rules to Prevent Over-Abstraction)
@@ -224,7 +270,7 @@ profile routes. Those remain separate future capabilities.
 
 ## Next Steps
 
-- **Phase 5B**: Marketplace Domain Model — design marketplace tables and flows
+- **Future**: Feed Backend MVP — migrate feed/interactions from local primitives to durable repositories
 - **Future**: Forum Backend MVP — migrate from localStorage to Supabase
 - **Future**: Notes Backend MVP — migrate from localStorage to Supabase
 - **Phase 5C**: Marketplace MVP — build using existing capabilities

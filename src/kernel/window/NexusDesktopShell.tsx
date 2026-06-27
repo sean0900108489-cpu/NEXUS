@@ -42,6 +42,7 @@ import {
   Image as ImageIcon,
   FolderOpen,
   Code,
+  Rss,
   Search,
 } from "lucide-react";
 import { useWindowStore } from "./window-store";
@@ -76,6 +77,7 @@ const KNOWN_ICONS: Record<string, ReactNode> = {
   image: <ImageIcon className="w-5 h-5" />,
   "folder-open": <FolderOpen className="w-5 h-5" />,
   code: <Code className="w-5 h-5" />,
+  rss: <Rss className="w-5 h-5" />,
 };
 
 function resolveIcon(iconName?: string): ReactNode {

@@ -32,6 +32,7 @@ export type NexusWindowKind =
   | "artifact-preview"
   | "artifact-library"
   | "notes"
+  | "feed"
   | "forum"
   | "developer-inspector"
   | "profile-preview";

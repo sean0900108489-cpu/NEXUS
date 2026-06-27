@@ -24,7 +24,7 @@ describe("FloatingAppLauncher", () => {
     expect(html).toContain('title="Open Feed"');
   });
 
-  it("keeps the launcher scrollable and button widths stable for the R4 app set", () => {
+  it("keeps the launcher scrollable and button widths stable for the R5 app set", () => {
     const apps = [
       makeApp(),
       makeApp({ kind: "feed", title: "Feed", icon: "rss" }),
@@ -33,17 +33,20 @@ describe("FloatingAppLauncher", () => {
       makeApp({ kind: "notes", title: "Notes", icon: "sticky-note" }),
       makeApp({ kind: "forum", title: "Forum", icon: "message-square" }),
       makeApp({ kind: "global-chat", title: "Global Chat", icon: "message-circle" }),
+      makeApp({ kind: "service-board", title: "Service Board", icon: "briefcase" }),
     ];
 
     const html = renderToStaticMarkup(
       <FloatingAppLauncher apps={apps} onOpen={vi.fn()} />,
     );
 
-    expect(html).toContain('data-floating-app-count="7"');
+    expect(html).toContain('data-floating-app-count="8"');
     expect(html).toContain("overflow-x-auto");
     expect(html).toContain("overscroll-x-contain");
     expect(html).toContain("shrink-0");
-    expect(html.match(/data-floating-app-kind=/g)).toHaveLength(7);
+    expect(html).toContain('data-floating-app-kind="service-board"');
+    expect(html).toContain('aria-label="Open Service Board"');
+    expect(html.match(/data-floating-app-kind=/g)).toHaveLength(8);
   });
 
   it("renders nothing when no apps are registered", () => {

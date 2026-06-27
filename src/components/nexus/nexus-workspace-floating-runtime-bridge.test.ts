@@ -18,6 +18,7 @@ describe("NexusOps shared floating runtime bridge", () => {
     expect(source).not.toContain("@/features/notes/NotesWindow");
     expect(source).not.toContain("@/features/forum/ForumWindow");
     expect(source).not.toContain("@/features/global-chat/GlobalChatWindow");
+    expect(source).not.toContain("@/features/service-board/ServiceBoardWindow");
   });
 
   it("opens floating apps through registry-backed Workspace launch surfaces", () => {

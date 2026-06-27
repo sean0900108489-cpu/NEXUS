@@ -1,6 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
+import { createFloatingAppOpenInput } from "./floating-app-open-input";
+
 const defaultAppsModuleUrl = new URL("./default-floating-apps.tsx", import.meta.url);
 
 describe("default workspace floating apps", () => {
@@ -20,6 +22,7 @@ describe("default workspace floating apps", () => {
       "notes",
       "forum",
       "global-chat",
+      "service-board",
     ]);
     expect(DEFAULT_WORKSPACE_FLOATING_APPS[0]).toMatchObject({
       title: "Dev Inspector",
@@ -97,6 +100,18 @@ describe("default workspace floating apps", () => {
       capabilities: ["chat", "composer", "media-upload", "resource-preview", "notes-capture"],
       archetype: "chat-app",
     });
+    expect(DEFAULT_WORKSPACE_FLOATING_APPS[7]).toMatchObject({
+      kind: "service-board",
+      title: "Service Board",
+      scope: "account",
+      defaultSize: { width: 760, height: 560 },
+      minSize: { width: 440, height: 340 },
+      singleton: true,
+      allowMultiple: false,
+      lifecycle: "demo",
+      capabilities: ["marketplace", "profiles", "comments", "search"],
+      archetype: "marketplace-app",
+    });
 
     const registry = createDefaultWorkspaceFloatingAppRegistry();
     expect(registry.list().map((app) => app.kind)).toEqual([
@@ -107,6 +122,7 @@ describe("default workspace floating apps", () => {
       "notes",
       "forum",
       "global-chat",
+      "service-board",
     ]);
     expect(registry.get("developer-inspector")).toBe(
       DEFAULT_WORKSPACE_FLOATING_APPS[0],
@@ -117,6 +133,24 @@ describe("default workspace floating apps", () => {
     expect(registry.get("notes")).toBe(DEFAULT_WORKSPACE_FLOATING_APPS[4]);
     expect(registry.get("forum")).toBe(DEFAULT_WORKSPACE_FLOATING_APPS[5]);
     expect(registry.get("global-chat")).toBe(DEFAULT_WORKSPACE_FLOATING_APPS[6]);
+    expect(registry.get("service-board")).toBe(DEFAULT_WORKSPACE_FLOATING_APPS[7]);
+  });
+
+  it("opens the R5 service board through registry metadata without desktop wiring", async () => {
+    const { createDefaultWorkspaceFloatingAppRegistry } = await import("./default-floating-apps");
+
+    const app = createDefaultWorkspaceFloatingAppRegistry().get("service-board");
+
+    expect(app).toBeDefined();
+    expect(createFloatingAppOpenInput(app!, { workspaceId: "workspace-r5" })).toEqual({
+      kind: "service-board",
+      title: "Service Board",
+      scope: "account",
+      defaultSize: { width: 760, height: 560 },
+      workspaceId: "workspace-r5",
+      singleton: true,
+      allowMultiple: false,
+    });
   });
 
   it("keeps feature-level imports inside the default registry boundary", () => {
@@ -131,6 +165,7 @@ describe("default workspace floating apps", () => {
     expect(source).toContain("@/features/notes/NotesWindow");
     expect(source).toContain("@/features/forum/ForumWindow");
     expect(source).toContain("@/features/global-chat/GlobalChatWindow");
+    expect(source).toContain("@/features/service-board/ServiceBoardWindow");
     expect(source).toContain("function DeveloperInspectorFloatingApp");
     expect(source).toContain("function FeedFloatingApp");
     expect(source).toContain("function ArtifactLibraryFloatingApp");
@@ -138,5 +173,6 @@ describe("default workspace floating apps", () => {
     expect(source).toContain("function NotesFloatingApp");
     expect(source).toContain("function ForumFloatingApp");
     expect(source).toContain("function GlobalChatFloatingApp");
+    expect(source).toContain("function ServiceBoardFloatingApp");
   });
 });

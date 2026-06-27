@@ -7,6 +7,7 @@ import { ForumWindow } from "@/features/forum/ForumWindow";
 import { GlobalChatWindow } from "@/features/global-chat/GlobalChatWindow";
 import { NotesWindow } from "@/features/notes/NotesWindow";
 import { ProfilePreviewWindow } from "@/features/profiles/ProfilePreviewWindow";
+import { ServiceBoardWindow } from "@/features/service-board/ServiceBoardWindow";
 import type {
   NexusWindow,
   NexusWindowKind,
@@ -126,6 +127,20 @@ export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
     archetype: "chat-app",
     component: GlobalChatFloatingApp,
   },
+  {
+    kind: "service-board",
+    title: "Service Board",
+    scope: "account",
+    defaultSize: { width: 760, height: 560 },
+    minSize: { width: 440, height: 340 },
+    icon: "briefcase",
+    singleton: true,
+    allowMultiple: false,
+    lifecycle: "demo",
+    capabilities: ["marketplace", "profiles", "comments", "search"],
+    archetype: "marketplace-app",
+    component: ServiceBoardFloatingApp,
+  },
 ];
 
 export function createDefaultWorkspaceFloatingAppRegistry() {
@@ -213,6 +228,16 @@ function ForumFloatingApp({ close, setTitle, window }: FloatingAppProps) {
 function GlobalChatFloatingApp({ close, setTitle, window }: FloatingAppProps) {
   return (
     <GlobalChatWindow
+      close={close}
+      setTitle={setTitle}
+      window={toNexusWindow(window)}
+    />
+  );
+}
+
+function ServiceBoardFloatingApp({ close, setTitle, window }: FloatingAppProps) {
+  return (
+    <ServiceBoardWindow
       close={close}
       setTitle={setTitle}
       window={toNexusWindow(window)}

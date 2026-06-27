@@ -1,0 +1,39 @@
+{
+  "runId": "core-foundry-preparation-2026-06-27",
+  "phase": "Phase 6 - Core Foundry Preparation",
+  "packet": "C-0 Core Environment Line Map",
+  "branch": "codex/v40",
+  "headCommitAtScan": "73d8e35",
+  "notionPage": "https://app.notion.com/p/38cf1a036e2181359b16ceb824f15bce",
+  "outputs": [
+    "maps/00-executive-summary.md",
+    "maps/10-feature-capability-map.md",
+    "maps/11-current-system-logic-map.md",
+    "maps/20-risk-register.md",
+    "context-packs/current-system-context.md",
+    "context-packs/phase-6-next-context.md"
+  ],
+  "completedItems": [
+    "Read git branch and v40 commits",
+    "Read Notion parent, 00, and 06 pages",
+    "Mapped auth/session, API token, global chat, wallet, workspace, artifact, import, search, workflow, UI shell, Data Spine, and test gate lines",
+    "Identified Data Spine type parity as highest ROI next packet"
+  ],
+  "nextRecommendedPacket": {
+    "id": "C-1",
+    "name": "Data Spine Type Parity and Contract Map",
+    "reason": "Local migrations define core tables that are absent from src/lib/supabase/database.types.ts, causing repository code to rely on as-never table access."
+  },
+  "knownUncertainties": [
+    "Live Supabase schema was not queried during C-0",
+    "The Phase 5 Execution Packet Selection Notion page from prior context was not found under the fetched parent tree",
+    "E-1 final browser verification was not part of C-0"
+  ],
+  "readFirst": [
+    "docs/agent-runs/core-foundry-preparation-2026-06-27/maps/00-executive-summary.md",
+    "docs/agent-runs/core-foundry-preparation-2026-06-27/maps/10-feature-capability-map.md",
+    "docs/agent-runs/core-foundry-preparation-2026-06-27/maps/11-current-system-logic-map.md",
+    "docs/agent-runs/core-foundry-preparation-2026-06-27/maps/20-risk-register.md",
+    "docs/agent-runs/core-foundry-preparation-2026-06-27/context-packs/current-system-context.md"
+  ]
+}

@@ -19,6 +19,7 @@
 
 import dynamic from "next/dynamic";
 import type { NexusWindowAppDefinition } from "./window-types";
+import type { NexusCapabilityKind, NexusProductArchetypeKind } from "@/kernel/capabilities/capability-types";
 
 // ── Lazy-load all window app components ─────────────────────────────
 // Each import only loads when the app is first opened by the user.
@@ -115,6 +116,8 @@ export const DEFAULT_WINDOW_APPS: NexusWindowAppDefinition[] = [
     icon: "message-circle",
     singleton: false,
     allowMultiple: true,
+    capabilities: ["chat", "composer", "media-upload", "resource-preview", "notes-capture"] as NexusCapabilityKind[],
+    archetype: "chat-app" as NexusProductArchetypeKind,
     component: GlobalChatWindow,
   },
   {
@@ -126,6 +129,8 @@ export const DEFAULT_WINDOW_APPS: NexusWindowAppDefinition[] = [
     icon: "user",
     singleton: true,
     allowMultiple: false,
+    capabilities: ["profiles"] as NexusCapabilityKind[],
+    archetype: "admin-app" as NexusProductArchetypeKind,
     component: GlobalUserWindow,
   },
   {
@@ -137,6 +142,8 @@ export const DEFAULT_WINDOW_APPS: NexusWindowAppDefinition[] = [
     icon: "layout-grid",
     singleton: false,
     allowMultiple: true,
+    capabilities: ["workspace"] as NexusCapabilityKind[],
+    archetype: "workspace-app" as NexusProductArchetypeKind,
     component: WorkspaceWindow,
   },
   {
@@ -170,6 +177,8 @@ export const DEFAULT_WINDOW_APPS: NexusWindowAppDefinition[] = [
     icon: "image",
     singleton: false,
     allowMultiple: true,
+    capabilities: ["resource-preview"] as NexusCapabilityKind[],
+    archetype: "resource-app" as NexusProductArchetypeKind,
     component: ArtifactPreviewWindow,
   },
   {
@@ -181,6 +190,8 @@ export const DEFAULT_WINDOW_APPS: NexusWindowAppDefinition[] = [
     icon: "folder-open",
     singleton: true,
     allowMultiple: false,
+    capabilities: ["resource-library", "resource-preview", "search", "media-upload"] as NexusCapabilityKind[],
+    archetype: "resource-app" as NexusProductArchetypeKind,
     component: ArtifactLibraryWindow,
   },
   {
@@ -192,6 +203,8 @@ export const DEFAULT_WINDOW_APPS: NexusWindowAppDefinition[] = [
     icon: "sticky-note",
     singleton: true,
     allowMultiple: false,
+    capabilities: ["composer", "notes-capture", "resource-preview"] as NexusCapabilityKind[],
+    archetype: "knowledge-app" as NexusProductArchetypeKind,
     component: NotesWindow,
   },
   {
@@ -203,6 +216,8 @@ export const DEFAULT_WINDOW_APPS: NexusWindowAppDefinition[] = [
     icon: "message-square",
     singleton: true,
     allowMultiple: false,
+    capabilities: ["feed", "thread", "composer", "comments", "media-upload", "notes-capture"] as NexusCapabilityKind[],
+    archetype: "community-app" as NexusProductArchetypeKind,
     component: ForumWindow,
   },
 ];

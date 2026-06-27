@@ -88,6 +88,16 @@ NEXUS is evolving from a single-page workspace into an **AI Window OS** — a de
 - Repository interface types: NotesRepository, ForumRepository
 - Backend contract types: notes-backend-types.ts, forum-backend-types.ts
 - Zero destructive migrations executed
+
+### Phase 4C — Capability Registry & Product Archetype Map
+- Capability types: 24 reusable product capabilities (chat, feed, thread, etc.)
+- Capability registry: register, list, query by maturity/app/provider
+- Default capabilities: all capabilities defined with maturity (stable/mvp/planned)
+- Product archetypes: 9 archetypes (chat-app, community-app, marketplace-app, etc.)
+- Window apps annotated with capabilities + archetype fields
+- Gap analysis: which capabilities are missing for Instagram-like, Canva-like, etc.
+- `docs/window-os-capabilities.md` — full capability documentation
+- Zero new UI. Metadata/architecture layer only.
 ## Kernel ↔ Feature Boundary
 
 ### Kernel (`src/kernel/`)
@@ -95,6 +105,7 @@ NEXUS is evolving from a single-page workspace into an **AI Window OS** — a de
 - `commands/` — Command types, registry, default commands
 - `notifications/` — Notification types, store, center component
 - `resource/` — Resource ref types, cross-app resource opening
+- `capabilities/` — Capability types, registry, product archetype map
 
 **Kernel knows NOTHING about**: chat, wallet, models, workspaces, notes, forum, marketplace.
 

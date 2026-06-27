@@ -9,6 +9,10 @@
  */
 
 import type { ComponentType } from "react";
+import type {
+  NexusCapabilityKind,
+  NexusProductArchetypeKind,
+} from "@/kernel/capabilities/capability-types";
 
 // ── Window Kind ────────────────────────────────────────────────────
 
@@ -192,6 +196,23 @@ export type NexusWindowAppDefinition = {
    * The Desktop Shell maps this to the actual icon component.
    */
   icon?: string;
+
+  /**
+   * Capabilities provided by this window app.
+   * Used by the Capability Registry to map which apps
+   * provide which reusable product capabilities.
+   *
+   * Example: Forum provides ["feed", "thread", "composer", "comments", "media-upload", "notes-capture"]
+   */
+  capabilities?: NexusCapabilityKind[];
+
+  /**
+   * Product archetype this app most closely matches.
+   * Helps categorize apps and identify missing capabilities.
+   *
+   * Example: Forum → "community-app"
+   */
+  archetype?: NexusProductArchetypeKind;
 };
 
 // ── Launcher Item ──────────────────────────────────────────────────

@@ -1,14 +1,17 @@
 /**
  * NEXUS Window OS — Desktop Route (/desktop)
  *
- * Entry point for the Window OS desktop experience.
+ * EXPERIMENTAL: Window OS desktop experience for capability testing.
+ * NOT the default login landing — users must visit /desktop explicitly.
+ * The default login destination is "/" (NexusOps workspace).
  *
  * Authentication gate:
- * - Checks auth status via API call (same pattern as useNexusHomeData)
+ * - Checks auth status via Supabase session
  * - Unauthenticated → shows AuthScreen (same as NexusOps)
  * - Authenticated → registers apps + renders NexusDesktopShell
  *
- * The existing "/" route (NexusOps workspace) is preserved unchanged.
+ * The existing "/" route (NexusOps workspace) is the primary entry point
+ * and is preserved unchanged.
  */
 
 "use client";

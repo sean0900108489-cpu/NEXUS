@@ -190,7 +190,17 @@ Each feature is self-contained with its own API client and panels.
 |-------|---------|--------|
 | `/` | NEXUS Workspace (NexusOps) | Preserved unchanged |
 | `/workspace/[id]` | Full workspace view | Preserved unchanged |
-| `/desktop` | NEXUS Window OS Desktop | ✅ Phase 2.5 — functional |
+| `/desktop` | NEXUS Window OS Desktop (experimental) | ✅ Phase 4D — capability proof-of-concept |
+
+
+
+## Login Landing Policy
+
+- **Default login landing is `/`** (NEXUS workspace-first entry)
+- `/desktop` is an **experimental surface** for capability testing
+- `/desktop` has its own auth gate but is **never the default post-login destination**
+- Users must visit `/desktop` explicitly — it is not linked from any login/auth flow
+- Future direction: Workspace Floating App Runtime (not Window OS as default)
 
 ## Resource Ref System
 

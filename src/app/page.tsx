@@ -1,16 +1,17 @@
 "use client";
 
-import { NexusHomeShell } from "@/components/nexus-home/NexusHomeShell";
+import { NexusOps } from "@/components/nexus/nexus-ops";
 
 /**
- * NEXUS Home — S-8 platform-first entry point.
+ * NEXUS — direct entry point.
  *
- * "/" no longer renders NexusOps directly.
- * NexusOps is preserved at "/workspace/[id]".
+ * "/" renders NexusOps directly (with built-in AuthScreen gate).
+ * Unauthenticated users see the login form; authenticated users
+ * enter the full NEXUS workspace.
  *
- * All global chat state is managed inside NexusHomeShell
- * via useNexusHomeData hook and the api adapter layer.
+ * Global Chat is available at the Home Shell, preserved as an
+ * alternate surface. Sign-in is also available at /sign-in.
  */
-export default function NexusHomePage() {
-  return <NexusHomeShell />;
+export default function NexusEntryPage() {
+  return <NexusOps />;
 }

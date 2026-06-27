@@ -1,7 +1,12 @@
 "use client";
 
+import { ArtifactLibraryWindow } from "@/features/artifact-library/ArtifactLibraryWindow";
 import { DeveloperInspectorWindow } from "@/features/developer/DeveloperInspectorWindow";
 import { FeedWindow } from "@/features/feed/FeedWindow";
+import { ForumWindow } from "@/features/forum/ForumWindow";
+import { GlobalChatWindow } from "@/features/global-chat/GlobalChatWindow";
+import { NotesWindow } from "@/features/notes/NotesWindow";
+import { ProfilePreviewWindow } from "@/features/profiles/ProfilePreviewWindow";
 import type {
   NexusWindow,
   NexusWindowKind,
@@ -42,6 +47,85 @@ export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
     archetype: "social-feed-app",
     component: FeedFloatingApp,
   },
+  {
+    kind: "artifact-library",
+    title: "Artifacts",
+    scope: "account",
+    defaultSize: { width: 720, height: 520 },
+    minSize: { width: 400, height: 320 },
+    icon: "folder-open",
+    singleton: true,
+    allowMultiple: false,
+    capabilities: ["resource-library", "resource-preview", "search", "media-upload"],
+    archetype: "resource-app",
+    component: ArtifactLibraryFloatingApp,
+  },
+  {
+    kind: "profile-preview",
+    title: "Profile",
+    scope: "account",
+    defaultSize: { width: 420, height: 420 },
+    minSize: { width: 300, height: 280 },
+    icon: "user",
+    singleton: false,
+    allowMultiple: true,
+    capabilities: ["profiles"],
+    archetype: "admin-app",
+    component: ProfilePreviewFloatingApp,
+  },
+  {
+    kind: "notes",
+    title: "Notes",
+    scope: "account",
+    defaultSize: { width: 680, height: 500 },
+    minSize: { width: 400, height: 320 },
+    icon: "sticky-note",
+    singleton: true,
+    allowMultiple: false,
+    capabilities: ["composer", "notes-capture", "resource-preview"],
+    archetype: "knowledge-app",
+    component: NotesFloatingApp,
+  },
+  {
+    kind: "forum",
+    title: "Forum",
+    scope: "account",
+    defaultSize: { width: 700, height: 520 },
+    minSize: { width: 420, height: 340 },
+    icon: "message-square",
+    singleton: true,
+    allowMultiple: false,
+    capabilities: [
+      "feed",
+      "thread",
+      "composer",
+      "comments",
+      "media-upload",
+      "notes-capture",
+      "profiles",
+    ],
+    archetype: "community-app",
+    component: ForumFloatingApp,
+  },
+  {
+    kind: "global-chat",
+    title: "Global Chat",
+    scope: "account",
+    defaultSize: { width: 640, height: 520 },
+    minSize: { width: 380, height: 280 },
+    icon: "message-circle",
+    singleton: false,
+    allowMultiple: true,
+    capabilities: [
+      "chat",
+      "composer",
+      "media-upload",
+      "resource-preview",
+      "notes-capture",
+    ],
+    archetype: "chat-app",
+    component: GlobalChatFloatingApp,
+  },
 ];
 
 export function createDefaultWorkspaceFloatingAppRegistry() {
@@ -71,6 +155,64 @@ function DeveloperInspectorFloatingApp({
 function FeedFloatingApp({ close, setTitle, window }: FloatingAppProps) {
   return (
     <FeedWindow
+      close={close}
+      setTitle={setTitle}
+      window={toNexusWindow(window)}
+    />
+  );
+}
+
+function ArtifactLibraryFloatingApp({
+  close,
+  setTitle,
+  window,
+}: FloatingAppProps) {
+  return (
+    <ArtifactLibraryWindow
+      close={close}
+      setTitle={setTitle}
+      window={toNexusWindow(window)}
+    />
+  );
+}
+
+function ProfilePreviewFloatingApp({
+  close,
+  setTitle,
+  window,
+}: FloatingAppProps) {
+  return (
+    <ProfilePreviewWindow
+      close={close}
+      setTitle={setTitle}
+      window={toNexusWindow(window)}
+    />
+  );
+}
+
+function NotesFloatingApp({ close, setTitle, window }: FloatingAppProps) {
+  return (
+    <NotesWindow
+      close={close}
+      setTitle={setTitle}
+      window={toNexusWindow(window)}
+    />
+  );
+}
+
+function ForumFloatingApp({ close, setTitle, window }: FloatingAppProps) {
+  return (
+    <ForumWindow
+      close={close}
+      setTitle={setTitle}
+      window={toNexusWindow(window)}
+    />
+  );
+}
+
+function GlobalChatFloatingApp({ close, setTitle, window }: FloatingAppProps) {
+  return (
+    <GlobalChatWindow
       close={close}
       setTitle={setTitle}
       window={toNexusWindow(window)}

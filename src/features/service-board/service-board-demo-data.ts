@@ -1,4 +1,5 @@
 export type ServiceBoardTaskStatus = "open" | "shortlisted" | "booked";
+export type ServiceBoardFilter = "all" | ServiceBoardTaskStatus;
 
 export type ServiceBoardTask = {
   id: string;
@@ -73,4 +74,53 @@ export function getServiceBoardTaskCounts(tasks = SERVICE_BOARD_DEMO_TASKS) {
     }),
     { open: 0, shortlisted: 0, booked: 0 },
   );
+}
+
+export function getServiceBoardVisibleTasks(
+  tasks: ServiceBoardTask[],
+  filter: ServiceBoardFilter,
+) {
+  if (filter === "all") return tasks;
+  return tasks.filter((task) => task.status === filter);
+}
+
+export function resolveServiceBoardSelectedTask(
+  tasks: ServiceBoardTask[],
+  selectedTaskId: string | null,
+  filter: ServiceBoardFilter,
+) {
+  const visibleTasks = getServiceBoardVisibleTasks(tasks, filter);
+  return (
+    visibleTasks.find((task) => task.id === selectedTaskId) ??
+    visibleTasks[0] ??
+    null
+  );
+}
+
+export function advanceServiceBoardTaskStatus(
+  tasks: ServiceBoardTask[],
+  taskId: string,
+  nextStatus: ServiceBoardTaskStatus,
+) {
+  return tasks.map((task) =>
+    task.id === taskId ? { ...task, status: nextStatus } : task,
+  );
+}
+
+export function getServiceBoardNextAction(task: ServiceBoardTask) {
+  if (task.status === "open") {
+    return {
+      label: "Shortlist best offer",
+      nextStatus: "shortlisted" as const,
+    };
+  }
+
+  if (task.status === "shortlisted") {
+    return {
+      label: "Mark booked",
+      nextStatus: "booked" as const,
+    };
+  }
+
+  return null;
 }

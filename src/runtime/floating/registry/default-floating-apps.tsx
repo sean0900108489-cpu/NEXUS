@@ -31,7 +31,7 @@ export const LOCAL_EXTERNAL_WEB_APP_MANIFEST: FloatingWebAppManifest = {
   title: "Local Web App",
   entry: "http://localhost:5173",
   mode: "iframe",
-  permissions: ["frame:render"],
+  permissions: ["frame:render", "workspace:read"],
   sandbox: [
     "allow-scripts",
     "allow-same-origin",
@@ -45,7 +45,7 @@ export const LOCAL_EXTERNAL_WEB_APP_MANIFEST: FloatingWebAppManifest = {
     authBridge: false,
     storageBridge: false,
     apiBridge: false,
-    workspaceContext: false,
+    workspaceContext: true,
   },
 };
 

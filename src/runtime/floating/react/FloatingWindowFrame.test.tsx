@@ -28,8 +28,10 @@ describe("FloatingWindowFrame", () => {
     expect(html).toContain('aria-label="Close window"');
     expect(html).toContain('aria-label="Minimize window"');
     expect(html).toContain('aria-label="Maximize window"');
+    expect(html).toContain('aria-label="Lock window position"');
     expect(html).toContain('aria-label="Resize window"');
     expect(html).toContain('data-floating-window-kind="feed"');
+    expect(html).toContain('data-position-locked="false"');
     expect(html).toContain("position:absolute");
     expect(html).toContain('<div data-testid="app-slot">Feed app</div>');
   });

@@ -130,7 +130,7 @@ describe("default workspace floating apps", () => {
         title: "Local Web App",
         entry: "http://localhost:5173",
         mode: "iframe",
-        permissions: ["frame:render"],
+        permissions: ["frame:render", "workspace:read"],
         sandbox: [
           "allow-scripts",
           "allow-same-origin",
@@ -144,7 +144,7 @@ describe("default workspace floating apps", () => {
           authBridge: false,
           storageBridge: false,
           apiBridge: false,
-          workspaceContext: false,
+          workspaceContext: true,
         },
       },
     });

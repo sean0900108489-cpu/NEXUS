@@ -13,7 +13,7 @@ const manifest: FloatingWebAppManifest = {
   title: "Local Web App",
   entry: "http://localhost:5173",
   mode: "iframe",
-  permissions: ["frame:render"],
+  permissions: ["frame:render", "workspace:read"],
   sandbox: [
     "allow-scripts",
     "allow-same-origin",
@@ -27,7 +27,7 @@ const manifest: FloatingWebAppManifest = {
     authBridge: false,
     storageBridge: false,
     apiBridge: false,
-    workspaceContext: false,
+    workspaceContext: true,
   },
 };
 
@@ -49,7 +49,7 @@ describe("FloatingWebAppContainer", () => {
     expect(html).toContain("border-0");
   });
 
-  it("keeps all bridges disabled for the Stage1 frontend-only pilot", () => {
+  it("keeps auth, storage, API, and command bridges disabled for the Stage5 context pilot", () => {
     const html = renderToStaticMarkup(
       <FloatingWebAppContainer {...makeProps()} manifest={manifest} />,
     );
@@ -58,7 +58,8 @@ describe("FloatingWebAppContainer", () => {
     expect(html).toContain('data-bridge-auth="false"');
     expect(html).toContain('data-bridge-storage="false"');
     expect(html).toContain('data-bridge-api="false"');
-    expect(html).toContain('data-bridge-workspace-context="false"');
+    expect(html).toContain('data-bridge-workspace-context="true"');
+    expect(html).toContain('data-context-bridge-origin="http://localhost:5173"');
   });
 });
 
@@ -71,6 +72,7 @@ function makeProps(): FloatingAppProps {
       kind: "external-web-app",
       title: "Web App Host",
       scope: "workspace",
+      workspaceId: "workspace-r5",
       layout: { x: 0, y: 0, width: 960, height: 720, zIndex: 1 },
       minimized: false,
       maximized: false,

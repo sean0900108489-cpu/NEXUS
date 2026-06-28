@@ -184,6 +184,36 @@ This validates that a separate web app project can be launched inside a
 floating window while keeping CSS, global JavaScript, routing, and build-tool
 state isolated from NEXUS.
 
+#### 2.0.2 External Web App Host Stage 5 context bridge
+
+R5 Stage 5 enables the first safe bridge for the local external web app pilot:
+
+- Direction: parent -> iframe only.
+- Permission: `workspace:read`.
+- Enabled manifest flag: `bridge.workspaceContext`.
+- Target origin: derived from the manifest entry URL and used as the
+  `postMessage` target origin.
+
+Allowed payload fields:
+
+- `workspaceId` when available.
+- `floatingWindowId` / `appInstanceId`.
+- app kind and manifest id.
+- viewport width and height from the floating window layout.
+- theme.
+- host bridge/version metadata.
+
+Still forbidden:
+
+- auth tokens.
+- refresh tokens.
+- Supabase keys.
+- service role keys.
+- direct DB access.
+- storage bridge.
+- API bridge.
+- arbitrary command execution.
+
 ### 2.1 User Profiles (`user_profiles`)
 
 > Phase 5A does not execute this migration. Current profile primitives use

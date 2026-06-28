@@ -64,3 +64,17 @@ export {
   FloatingWebAppContainer,
   type FloatingWebAppContainerProps,
 } from "./web-app-host/FloatingWebAppContainer";
+export {
+  FLOATING_WEB_APP_CONTEXT_MESSAGE_TYPE,
+  buildFloatingWebAppContextBridgeMessage,
+  getFloatingWebAppManifestOrigin,
+  isAllowedFloatingWebAppOrigin,
+  isFloatingWebAppContextBridgeMessage,
+  parseFloatingWebAppMessageEvent,
+} from "./web-app-host/floating-web-app-context-bridge";
+export type {
+  FloatingWebAppContextBridgeBuildInput,
+  FloatingWebAppContextBridgeBuildResult,
+  FloatingWebAppContextBridgeMessage,
+  FloatingWebAppMessageEventLike,
+} from "./web-app-host/floating-web-app-context-bridge";

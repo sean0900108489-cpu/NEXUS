@@ -37,6 +37,8 @@ export type FloatingWebAppContextBridgeBuildResult = {
   targetOrigin: string;
 };
 
+export type FloatingWebAppContextBridgeTarget = Pick<Window, "postMessage">;
+
 export type FloatingWebAppMessageEventLike = {
   data: unknown;
   origin: string;
@@ -92,6 +94,16 @@ export function isAllowedFloatingWebAppOrigin(
   origin: string,
 ) {
   return getFloatingWebAppManifestOrigin(manifest) === origin;
+}
+
+export function postFloatingWebAppContextBridgeMessage(
+  target: FloatingWebAppContextBridgeTarget | null | undefined,
+  contextBridge: FloatingWebAppContextBridgeBuildResult | null,
+) {
+  if (!target || !contextBridge) return false;
+
+  target.postMessage(contextBridge.message, contextBridge.targetOrigin);
+  return true;
 }
 
 export function parseFloatingWebAppMessageEvent(

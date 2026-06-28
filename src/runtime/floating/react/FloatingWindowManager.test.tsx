@@ -14,6 +14,7 @@ describe("FloatingWindowManager", () => {
       title: "Feed",
       scope: "workspace",
       defaultSize: { width: 620, height: 480 },
+      minSize: { width: 360, height: 260 },
       component: FeedApp,
     });
     const host = createMemoryFloatingHostAdapter({
@@ -33,11 +34,14 @@ describe("FloatingWindowManager", () => {
     });
 
     const html = renderToStaticMarkup(
-      <FloatingWindowManager host={host} registry={registry} />,
+      <FloatingWindowManager host={host} registry={registry} zIndexBase={100} />,
     );
 
     expect(html).toContain('data-floating-window-manager="workspace"');
     expect(html).toContain('data-floating-window-kind="feed"');
+    expect(html).toContain('data-min-width="360"');
+    expect(html).toContain('data-min-height="260"');
+    expect(html).toContain("z-index:101");
     expect(html).toContain('<section data-testid="feed-app">Feed / window-feed-1</section>');
   });
 

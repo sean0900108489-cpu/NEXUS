@@ -384,6 +384,7 @@ const workspaceThemeLivePreviewNetworkBaselineWindowId =
 const WORKSPACE_ATTACHMENT_BINARY_INLINE_MAX_BYTES = 4 * 1024 * 1024;
 const WORKSPACE_ATTACHMENT_CONTEXT_MAX_CHARS = 12_000;
 const WORKSPACE_SIZE_REMEASURE_INTERVAL_MS = 800;
+const WORKSPACE_FLOATING_WINDOW_Z_INDEX_BASE = 100;
 type RightDockPanelId =
   | "intel"
   | "providers"
@@ -3657,6 +3658,7 @@ export function NexusOps() {
             <FloatingWindowManager
               host={workspaceFloatingHost}
               registry={workspaceFloatingRegistry}
+              zIndexBase={WORKSPACE_FLOATING_WINDOW_Z_INDEX_BASE}
             />
           </section>
 

@@ -16,7 +16,9 @@ describe("FloatingWindowFrame", () => {
         onMove={vi.fn()}
         onResize={vi.fn()}
         onRestore={vi.fn()}
+        minSize={{ width: 360, height: 260 }}
         window={makeWindow()}
+        zIndexBase={100}
       >
         <div data-testid="app-slot">Feed app</div>
       </FloatingWindowFrame>,
@@ -31,8 +33,11 @@ describe("FloatingWindowFrame", () => {
     expect(html).toContain('aria-label="Lock window position"');
     expect(html).toContain('aria-label="Resize window"');
     expect(html).toContain('data-floating-window-kind="feed"');
+    expect(html).toContain('data-min-width="360"');
+    expect(html).toContain('data-min-height="260"');
     expect(html).toContain('data-position-locked="false"');
     expect(html).toContain("position:absolute");
+    expect(html).toContain("z-index:107");
     expect(html).toContain('<div data-testid="app-slot">Feed app</div>');
   });
 

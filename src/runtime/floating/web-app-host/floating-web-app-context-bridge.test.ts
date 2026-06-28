@@ -1,10 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   FLOATING_WEB_APP_CONTEXT_MESSAGE_TYPE,
   buildFloatingWebAppContextBridgeMessage,
   isAllowedFloatingWebAppOrigin,
   isFloatingWebAppContextBridgeMessage,
+  postFloatingWebAppContextBridgeMessage,
   parseFloatingWebAppMessageEvent,
 } from "./floating-web-app-context-bridge";
 import type {
@@ -57,6 +58,25 @@ describe("floating web app context bridge", () => {
         window: makeWindow(),
       }),
     ).toBeNull();
+  });
+
+  it("posts context messages only when an enabled context bridge has a target window", () => {
+    const result = buildFloatingWebAppContextBridgeMessage({
+      manifest: makeManifest(),
+      window: makeWindow({ workspaceId: "workspace-123" }),
+    });
+    const target = {
+      postMessage: vi.fn(),
+    };
+
+    expect(postFloatingWebAppContextBridgeMessage(target, result)).toBe(true);
+    expect(target.postMessage).toHaveBeenCalledWith(
+      result?.message,
+      "http://localhost:5173",
+    );
+
+    expect(postFloatingWebAppContextBridgeMessage(target, null)).toBe(false);
+    expect(postFloatingWebAppContextBridgeMessage(null, result)).toBe(false);
   });
 
   it("allowlists only the manifest entry origin", () => {

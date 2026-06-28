@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type {
   FloatingAppProps,
   FloatingWebAppManifest,
 } from "@/runtime/floating/registry/floating-app-types";
-import { buildFloatingWebAppContextBridgeMessage } from "./floating-web-app-context-bridge";
+import {
+  buildFloatingWebAppContextBridgeMessage,
+  postFloatingWebAppContextBridgeMessage,
+} from "./floating-web-app-context-bridge";
 
 export type FloatingWebAppContainerProps = FloatingAppProps & {
   manifest: FloatingWebAppManifest;
@@ -18,6 +21,7 @@ export function FloatingWebAppContainer({
   window,
 }: FloatingWebAppContainerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [iframeLoadCount, setIframeLoadCount] = useState(0);
   const contextBridge = useMemo(
     () =>
       buildFloatingWebAppContextBridgeMessage({
@@ -26,18 +30,21 @@ export function FloatingWebAppContainer({
       }),
     [manifest, window],
   );
+  const sendContextBridge = useCallback(() => {
+    postFloatingWebAppContextBridgeMessage(
+      iframeRef.current?.contentWindow,
+      contextBridge,
+    );
+  }, [contextBridge]);
 
   useEffect(() => {
     setTitle(manifest.title);
   }, [manifest.title, setTitle]);
 
   useEffect(() => {
-    if (!contextBridge) return;
-    iframeRef.current?.contentWindow?.postMessage(
-      contextBridge.message,
-      contextBridge.targetOrigin,
-    );
-  }, [contextBridge]);
+    if (iframeLoadCount === 0) return;
+    sendContextBridge();
+  }, [iframeLoadCount, sendContextBridge]);
 
   return (
     <div
@@ -56,6 +63,7 @@ export function FloatingWebAppContainer({
         ref={iframeRef}
         className="h-full w-full border-0 bg-white"
         loading="lazy"
+        onLoad={() => setIframeLoadCount((current) => current + 1)}
         referrerPolicy="no-referrer"
         sandbox={manifest.sandbox.join(" ")}
         src={manifest.entry}

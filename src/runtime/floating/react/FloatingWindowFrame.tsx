@@ -20,9 +20,12 @@ import {
 
 import type { FloatingWindowInstance } from "@/runtime/floating";
 import {
+  calculateFloatingWindowResizeSize,
   calculateFloatingWindowDragPosition,
   shouldStartFloatingWindowDrag,
 } from "./floating-window-frame-interactions";
+
+const DEFAULT_MIN_FLOATING_WINDOW_SIZE = { width: 280, height: 180 };
 
 export type FloatingWindowFrameProps = {
   window: FloatingWindowInstance;
@@ -35,6 +38,8 @@ export type FloatingWindowFrameProps = {
   onRestore: () => void;
   onMove: (x: number, y: number) => void;
   onResize: (width: number, height: number) => void;
+  minSize?: { width: number; height: number };
+  zIndexBase?: number;
 };
 
 export function FloatingWindowFrame(props: FloatingWindowFrameProps) {
@@ -45,8 +50,17 @@ export function FloatingWindowFrame(props: FloatingWindowFrameProps) {
     startWindowX: number;
     startWindowY: number;
   } | null>(null);
+  const resizeRef = useRef<{
+    startHeight: number;
+    startPointerX: number;
+    startPointerY: number;
+    startWidth: number;
+  } | null>(null);
   const [positionLocked, setPositionLocked] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const minSize = props.minSize ?? DEFAULT_MIN_FLOATING_WINDOW_SIZE;
+  const zIndexBase = props.zIndexBase ?? 0;
 
   const handleDragStart = useCallback(
     (event: ReactMouseEvent<HTMLButtonElement>) => {
@@ -102,6 +116,54 @@ export function FloatingWindowFrame(props: FloatingWindowFrameProps) {
     [props],
   );
 
+  const handleResizeStart = useCallback(
+    (event: ReactMouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      props.onFocus();
+
+      if (win.maximized) return;
+
+      resizeRef.current = {
+        startHeight: win.layout.height,
+        startPointerX: event.clientX,
+        startPointerY: event.clientY,
+        startWidth: win.layout.width,
+      };
+      setIsResizing(true);
+
+      const handleResizeMove = (moveEvent: MouseEvent) => {
+        if (!resizeRef.current) return;
+        const nextSize = calculateFloatingWindowResizeSize({
+          minHeight: minSize.height,
+          minWidth: minSize.width,
+          pointerX: moveEvent.clientX,
+          pointerY: moveEvent.clientY,
+          ...resizeRef.current,
+        });
+        props.onResize(nextSize.width, nextSize.height);
+      };
+
+      const handleResizeEnd = () => {
+        resizeRef.current = null;
+        setIsResizing(false);
+        document.removeEventListener("mousemove", handleResizeMove);
+        document.removeEventListener("mouseup", handleResizeEnd);
+      };
+
+      document.addEventListener("mousemove", handleResizeMove);
+      document.addEventListener("mouseup", handleResizeEnd);
+    },
+    [
+      minSize.height,
+      minSize.width,
+      props,
+      win.layout.height,
+      win.layout.width,
+      win.maximized,
+    ],
+  );
+
   if (win.minimized) {
     return null;
   }
@@ -112,7 +174,7 @@ export function FloatingWindowFrame(props: FloatingWindowFrameProps) {
     top: win.layout.y,
     width: win.layout.width,
     height: win.layout.height,
-    zIndex: win.layout.zIndex,
+    zIndex: zIndexBase + win.layout.zIndex,
   };
 
   return (
@@ -122,12 +184,14 @@ export function FloatingWindowFrame(props: FloatingWindowFrameProps) {
         "nexus-floating-window-frame",
         focused ? "nexus-floating-window-frame--focused" : "",
         "flex flex-col overflow-hidden rounded-md border border-white/10 bg-neutral-950/95 text-white shadow-2xl backdrop-blur-xl",
-        isDragging ? "select-none" : "",
+        isDragging || isResizing ? "select-none" : "",
       ].filter(Boolean).join(" ")}
       data-floating-window-id={win.id}
       data-floating-window-kind={win.kind}
       data-floating-window-scope={win.scope}
       data-focused={focused ? "true" : "false"}
+      data-min-height={minSize.height}
+      data-min-width={minSize.width}
       data-position-locked={positionLocked ? "true" : "false"}
       onMouseDown={props.onFocus}
       role="dialog"
@@ -207,11 +271,21 @@ export function FloatingWindowFrame(props: FloatingWindowFrameProps) {
         </div>
       </header>
       <div className="nexus-floating-window-frame__content min-h-0 flex-1 overflow-hidden">{children}</div>
+      {isDragging || isResizing ? (
+        <div
+          aria-hidden="true"
+          className={[
+            "nexus-floating-window-frame__interaction-shield absolute inset-0 z-10",
+            isResizing ? "cursor-se-resize" : "cursor-grabbing",
+          ].join(" ")}
+          data-floating-window-interaction-shield="true"
+        />
+      ) : null}
       {!win.maximized ? (
         <button
           aria-label="Resize window"
-          className="nexus-floating-window-frame__resize-handle absolute bottom-0 right-0 grid size-5 cursor-se-resize place-items-center text-white/25 hover:text-white/55"
-          onClick={() => props.onResize(win.layout.width, win.layout.height)}
+          className="nexus-floating-window-frame__resize-handle absolute bottom-0 right-0 z-20 grid size-5 cursor-se-resize place-items-center text-white/25 hover:text-white/55"
+          onMouseDown={handleResizeStart}
           type="button"
         >
           <GripHorizontal aria-hidden="true" className="size-3 rotate-45" />

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  calculateFloatingWindowResizeSize,
   calculateFloatingWindowDragPosition,
   shouldStartFloatingWindowDrag,
 } from "./floating-window-frame-interactions";
@@ -38,5 +39,33 @@ describe("floating window frame interactions", () => {
         positionLocked: true,
       }),
     ).toBe(false);
+  });
+
+  it("calculates resized dimensions from pointer deltas while respecting app min size", () => {
+    expect(
+      calculateFloatingWindowResizeSize({
+        minHeight: 260,
+        minWidth: 360,
+        pointerX: 650,
+        pointerY: 520,
+        startHeight: 420,
+        startPointerX: 600,
+        startPointerY: 480,
+        startWidth: 640,
+      }),
+    ).toEqual({ height: 460, width: 690 });
+
+    expect(
+      calculateFloatingWindowResizeSize({
+        minHeight: 260,
+        minWidth: 360,
+        pointerX: 280,
+        pointerY: 190,
+        startHeight: 420,
+        startPointerX: 600,
+        startPointerY: 480,
+        startWidth: 640,
+      }),
+    ).toEqual({ height: 260, width: 360 });
   });
 });

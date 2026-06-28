@@ -12,6 +12,17 @@ export type FloatingWindowDragGateInput = {
   positionLocked: boolean;
 };
 
+export type FloatingWindowResizeInput = {
+  minHeight: number;
+  minWidth: number;
+  pointerX: number;
+  pointerY: number;
+  startHeight: number;
+  startPointerX: number;
+  startPointerY: number;
+  startWidth: number;
+};
+
 export function calculateFloatingWindowDragPosition({
   pointerX,
   pointerY,
@@ -31,4 +42,20 @@ export function shouldStartFloatingWindowDrag({
   positionLocked,
 }: FloatingWindowDragGateInput) {
   return !maximized && !positionLocked;
+}
+
+export function calculateFloatingWindowResizeSize({
+  minHeight,
+  minWidth,
+  pointerX,
+  pointerY,
+  startHeight,
+  startPointerX,
+  startPointerY,
+  startWidth,
+}: FloatingWindowResizeInput) {
+  return {
+    height: Math.max(minHeight, startHeight + pointerY - startPointerY),
+    width: Math.max(minWidth, startWidth + pointerX - startPointerX),
+  };
 }

@@ -10,12 +10,14 @@ export type FloatingWindowManagerProps = {
   host: FloatingHostAdapter;
   registry: FloatingAppRegistry;
   emptyFallback?: ReactNode;
+  zIndexBase?: number;
 };
 
 export function FloatingWindowManager({
   host,
   registry,
   emptyFallback = null,
+  zIndexBase = 0,
 }: FloatingWindowManagerProps) {
   const windows = host.getWindows();
 
@@ -44,7 +46,9 @@ export function FloatingWindowManager({
             onMove={(x, y) => host.moveWindow(win.id, x, y)}
             onResize={(width, height) => host.resizeWindow(win.id, width, height)}
             onRestore={() => host.restoreWindow(win.id)}
+            minSize={app?.minSize}
             window={win}
+            zIndexBase={zIndexBase}
           >
             {AppComponent ? (
               <AppComponent

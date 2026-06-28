@@ -34,19 +34,22 @@ describe("FloatingAppLauncher", () => {
       makeApp({ kind: "forum", title: "Forum", icon: "message-square" }),
       makeApp({ kind: "global-chat", title: "Global Chat", icon: "message-circle" }),
       makeApp({ kind: "service-board", title: "Service Board", icon: "briefcase" }),
+      makeApp({ kind: "external-web-app", title: "Web App Host", icon: "app" }),
     ];
 
     const html = renderToStaticMarkup(
       <FloatingAppLauncher apps={apps} onOpen={vi.fn()} />,
     );
 
-    expect(html).toContain('data-floating-app-count="8"');
+    expect(html).toContain('data-floating-app-count="9"');
     expect(html).toContain("overflow-x-auto");
     expect(html).toContain("overscroll-x-contain");
     expect(html).toContain("shrink-0");
     expect(html).toContain('data-floating-app-kind="service-board"');
     expect(html).toContain('aria-label="Open Service Board"');
-    expect(html.match(/data-floating-app-kind=/g)).toHaveLength(8);
+    expect(html).toContain('data-floating-app-kind="external-web-app"');
+    expect(html).toContain('aria-label="Open Web App Host"');
+    expect(html.match(/data-floating-app-kind=/g)).toHaveLength(9);
   });
 
   it("renders nothing when no apps are registered", () => {

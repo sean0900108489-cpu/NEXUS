@@ -24,8 +24,12 @@ export {
   updateFloatingWindowTitle,
 } from "./core/floating-window-lifecycle";
 export type {
+  FloatingAppDataBoundary,
   FloatingAppDefinition,
   FloatingAppProps,
+  FloatingWebAppBridgeManifest,
+  FloatingWebAppManifest,
+  FloatingWebAppPermission,
 } from "./registry/floating-app-types";
 export {
   createFloatingAppRegistry,
@@ -56,3 +60,7 @@ export {
   type FloatingAppLauncherProps,
 } from "./react/FloatingAppLauncher";
 export { useFloatingHostAdapter } from "./react/useFloatingHostAdapter";
+export {
+  FloatingWebAppContainer,
+  type FloatingWebAppContainerProps,
+} from "./web-app-host/FloatingWebAppContainer";

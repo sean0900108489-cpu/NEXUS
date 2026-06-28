@@ -23,6 +23,7 @@ describe("default workspace floating apps", () => {
       "forum",
       "global-chat",
       "service-board",
+      "external-web-app",
     ]);
     expect(DEFAULT_WORKSPACE_FLOATING_APPS[0]).toMatchObject({
       title: "Dev Inspector",
@@ -112,6 +113,41 @@ describe("default workspace floating apps", () => {
       capabilities: ["marketplace", "profiles", "comments", "search"],
       archetype: "marketplace-app",
     });
+    expect(DEFAULT_WORKSPACE_FLOATING_APPS[8]).toMatchObject({
+      kind: "external-web-app",
+      title: "Web App Host",
+      scope: "workspace",
+      defaultSize: { width: 960, height: 720 },
+      minSize: { width: 520, height: 360 },
+      singleton: false,
+      allowMultiple: true,
+      lifecycle: "demo",
+      capabilities: ["workspace", "commands"],
+      archetype: "admin-app",
+      webApp: {
+        id: "local-web-app-pilot",
+        kind: "external-web-app",
+        title: "Local Web App",
+        entry: "http://localhost:5173",
+        mode: "iframe",
+        permissions: ["frame:render"],
+        sandbox: [
+          "allow-scripts",
+          "allow-same-origin",
+          "allow-forms",
+          "allow-popups",
+          "allow-downloads",
+          "allow-modals",
+        ],
+        bridge: {
+          commandBridge: false,
+          authBridge: false,
+          storageBridge: false,
+          apiBridge: false,
+          workspaceContext: false,
+        },
+      },
+    });
 
     const registry = createDefaultWorkspaceFloatingAppRegistry();
     expect(registry.list().map((app) => app.kind)).toEqual([
@@ -123,6 +159,7 @@ describe("default workspace floating apps", () => {
       "forum",
       "global-chat",
       "service-board",
+      "external-web-app",
     ]);
     expect(registry.get("developer-inspector")).toBe(
       DEFAULT_WORKSPACE_FLOATING_APPS[0],
@@ -134,6 +171,7 @@ describe("default workspace floating apps", () => {
     expect(registry.get("forum")).toBe(DEFAULT_WORKSPACE_FLOATING_APPS[5]);
     expect(registry.get("global-chat")).toBe(DEFAULT_WORKSPACE_FLOATING_APPS[6]);
     expect(registry.get("service-board")).toBe(DEFAULT_WORKSPACE_FLOATING_APPS[7]);
+    expect(registry.get("external-web-app")).toBe(DEFAULT_WORKSPACE_FLOATING_APPS[8]);
   });
 
   it("opens the R5 service board through registry metadata without desktop wiring", async () => {
@@ -150,6 +188,60 @@ describe("default workspace floating apps", () => {
       workspaceId: "workspace-r5",
       singleton: true,
       allowMultiple: false,
+    });
+  });
+
+  it("declares app-owned data boundaries without moving persistence into the shared runtime", async () => {
+    const { DEFAULT_WORKSPACE_FLOATING_APPS } = await import("./default-floating-apps");
+
+    const namespaces = DEFAULT_WORKSPACE_FLOATING_APPS.map(
+      (app) => app.dataBoundary?.namespace,
+    );
+
+    expect(namespaces).toEqual([
+      "developer_inspector",
+      "feed",
+      "artifact_library",
+      "profile_preview",
+      "notes",
+      "forum",
+      "global_chat",
+      "service_board",
+      "external_web_app",
+    ]);
+    expect(new Set(namespaces).size).toBe(DEFAULT_WORKSPACE_FLOATING_APPS.length);
+
+    const serviceBoard = DEFAULT_WORKSPACE_FLOATING_APPS.find(
+      (app) => app.kind === "service-board",
+    );
+
+    expect(serviceBoard?.dataBoundary).toEqual({
+      namespace: "service_board",
+      currentState: "local-demo",
+      durability: "planned-supabase",
+      ownerScope: "account",
+      apiRoutes: [
+        "/api/service-board/requests",
+        "/api/service-board/requests/[requestId]",
+        "/api/service-board/requests/[requestId]/offers",
+      ],
+      tables: [
+        "service_board_requests",
+        "service_board_offers",
+        "service_board_request_resources",
+      ],
+      rls: "planned-owner-and-workspace-policies",
+    });
+
+    const externalWebApp = DEFAULT_WORKSPACE_FLOATING_APPS.find(
+      (app) => app.kind === "external-web-app",
+    );
+
+    expect(externalWebApp?.dataBoundary).toMatchObject({
+      namespace: "external_web_app",
+      currentState: "external-project",
+      durability: "external-owned",
+      ownerScope: "external-project",
     });
   });
 
@@ -174,5 +266,7 @@ describe("default workspace floating apps", () => {
     expect(source).toContain("function ForumFloatingApp");
     expect(source).toContain("function GlobalChatFloatingApp");
     expect(source).toContain("function ServiceBoardFloatingApp");
+    expect(source).toContain("@/runtime/floating/web-app-host/FloatingWebAppContainer");
+    expect(source).toContain("function ExternalWebAppFloatingApp");
   });
 });

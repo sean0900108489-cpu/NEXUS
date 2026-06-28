@@ -121,6 +121,69 @@ type NexusResourceRef = {
 
 ## 2. Proposed Supabase Tables
 
+### 2.0 Workspace Floating Web App Host Boundary Registry
+
+R5 Stage 4 pivots R5 from a single product prototype toward a Workspace
+Floating Web App Host. Registry-level boundary metadata is descriptive only: it
+lets tests, Dev Inspector, and future tooling see whether an app is a native
+Workspace module, an existing NEXUS-backed app, or an external project hosted in
+a sandboxed frame.
+
+Current boundaries:
+
+| App kind | Namespace | Current state | Durable target |
+|----------|-----------|---------------|----------------|
+| `developer-inspector` | `developer_inspector` | Runtime-only | None |
+| `feed` | `feed` | localStorage MVP | Planned Supabase |
+| `artifact-library` | `artifact_library` | Existing Supabase | Existing Supabase |
+| `profile-preview` | `profile_preview` | Planned Supabase | Planned Supabase |
+| `notes` | `notes` | localStorage MVP | Planned Supabase |
+| `forum` | `forum` | localStorage MVP | Planned Supabase |
+| `global-chat` | `global_chat` | Existing Supabase | Existing Supabase |
+| `service-board` | `service_board` | Local demo prototype | Planned Supabase |
+| `external-web-app` | `external_web_app` | External project iframe | External project owned |
+
+Rules:
+
+1. `src/runtime/floating` must not own feature persistence or Supabase access.
+2. Each durable app owns its UI, client API, repository, API routes, tables,
+   RLS policies, tests, and docs under its namespace.
+3. Shared resources such as attachments and artifacts may be referenced by app
+   resource join tables, but app-specific domain records stay in the app data
+   tree.
+4. Registry metadata is not proof of a completed backend. It records current
+   state and target ownership so future stages do not mix app data.
+5. External web app projects must run through the Web App Host sandbox boundary,
+   not by copying their HTML/CSS/JS into the NEXUS React DOM.
+6. Stage 1 external apps are frontend-only. Command, auth, storage, API, and
+   workspace-context bridges remain disabled until explicit bridge stages.
+
+#### 2.0.1 External Web App Host Stage 1 manifest
+
+Initial pilot manifest:
+
+```json
+{
+  "id": "local-web-app-pilot",
+  "kind": "external-web-app",
+  "title": "Local Web App",
+  "entry": "http://localhost:5173",
+  "mode": "iframe",
+  "permissions": ["frame:render"],
+  "bridge": {
+    "commandBridge": false,
+    "authBridge": false,
+    "storageBridge": false,
+    "apiBridge": false,
+    "workspaceContext": false
+  }
+}
+```
+
+This validates that a separate web app project can be launched inside a
+floating window while keeping CSS, global JavaScript, routing, and build-tool
+state isolated from NEXUS.
+
 ### 2.1 User Profiles (`user_profiles`)
 
 > Phase 5A does not execute this migration. Current profile primitives use
@@ -294,6 +357,11 @@ CREATE POLICY "Users can CRUD own threads"
 
 ### 2.7 Marketplace (future contract)
 
+> R5 Stage 4 note: the Workspace `service-board` prototype remains a native demo
+> app with its own `service_board` namespace. The broader `marketplace_*`
+> contract below remains a future product-family contract for a full marketplace
+> app. Do not use it to imply payments, reviews, or a completed Marketplace MVP.
+
 ```sql
 CREATE TABLE marketplace_tasks (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -332,6 +400,34 @@ CREATE TABLE marketplace_task_resources (
 > - Task attachments reuse Resource Ref / `user_attachments`
 > - Task discussion can reference Forum thread model (or embed lightweight chat)
 > - Reviews/ratings deferred to post-MVP
+
+### 2.7.1 Service Board (`service_board_*`) R5 pilot contract
+
+> R5 Stage 4 does not execute this migration. These tables define the first
+> app-owned backend data tree for the floating `service-board` prototype.
+
+Proposed tables:
+
+| Table | Purpose |
+|-------|---------|
+| `service_board_requests` | Buyer-side service requests shown inside the floating app |
+| `service_board_offers` | Lightweight provider offers for a request |
+| `service_board_request_resources` | Attachment/artifact/profile references for a request |
+
+Ownership:
+
+- `service_board_requests.user_id` is the poster/owner.
+- `service_board_requests.workspace_id` is optional for workspace-scoped boards.
+- `service_board_offers.user_id` is the offerer.
+- RLS must combine `TO authenticated` with owner/workspace predicates.
+- UPDATE policies must include both `USING` and `WITH CHECK`.
+
+Deferred:
+
+- Payments.
+- Reviews/reputation.
+- Full public marketplace search/ranking.
+- Cross-app marketplace aggregation.
 
 ### 2.8 Feed & Interactions (future contract)
 

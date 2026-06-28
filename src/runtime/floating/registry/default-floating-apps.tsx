@@ -13,12 +13,41 @@ import type {
   NexusWindowKind,
   NexusWindowScope,
 } from "@/kernel/window/window-types";
+import { FloatingWebAppContainer } from "@/runtime/floating/web-app-host/FloatingWebAppContainer";
 import { createFloatingAppRegistry } from "./floating-app-registry";
-import type { FloatingAppDefinition, FloatingAppProps } from "./floating-app-types";
+import type {
+  FloatingAppDefinition,
+  FloatingAppProps,
+  FloatingWebAppManifest,
+} from "./floating-app-types";
 import type {
   FloatingWindowInstance,
   FloatingWindowScope,
 } from "@/runtime/floating/core/floating-window-types";
+
+export const LOCAL_EXTERNAL_WEB_APP_MANIFEST: FloatingWebAppManifest = {
+  id: "local-web-app-pilot",
+  kind: "external-web-app",
+  title: "Local Web App",
+  entry: "http://localhost:5173",
+  mode: "iframe",
+  permissions: ["frame:render"],
+  sandbox: [
+    "allow-scripts",
+    "allow-same-origin",
+    "allow-forms",
+    "allow-popups",
+    "allow-downloads",
+    "allow-modals",
+  ],
+  bridge: {
+    commandBridge: false,
+    authBridge: false,
+    storageBridge: false,
+    apiBridge: false,
+    workspaceContext: false,
+  },
+};
 
 export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
   {
@@ -33,6 +62,12 @@ export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
     lifecycle: "internal",
     capabilities: ["commands"],
     archetype: "admin-app",
+    dataBoundary: {
+      namespace: "developer_inspector",
+      currentState: "runtime-only",
+      durability: "none",
+      ownerScope: "runtime",
+    },
     component: DeveloperInspectorFloatingApp,
   },
   {
@@ -46,6 +81,18 @@ export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
     allowMultiple: false,
     capabilities: ["feed", "composer", "profiles", "resource-preview", "notes-capture"],
     archetype: "social-feed-app",
+    dataBoundary: {
+      namespace: "feed",
+      currentState: "local-storage",
+      durability: "planned-supabase",
+      ownerScope: "account-or-workspace",
+      localStorageKeys: [
+        "nexus-feed:v1:items",
+        "nexus-interactions:v1:{targetType}:{targetId}",
+      ],
+      tables: ["feed_items", "feed_item_resources"],
+      rls: "planned-owner-and-workspace-policies",
+    },
     component: FeedFloatingApp,
   },
   {
@@ -59,6 +106,20 @@ export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
     allowMultiple: false,
     capabilities: ["resource-library", "resource-preview", "search", "media-upload"],
     archetype: "resource-app",
+    dataBoundary: {
+      namespace: "artifact_library",
+      currentState: "existing-supabase",
+      durability: "existing-supabase",
+      ownerScope: "account-or-workspace",
+      apiRoutes: [
+        "/api/attachments",
+        "/api/attachments/[id]",
+        "/api/v1/artifacts",
+        "/api/v1/artifacts/[artifactId]",
+      ],
+      tables: ["user_attachments", "artifacts", "artifact_references"],
+      rls: "existing-owner-and-workspace-policies",
+    },
     component: ArtifactLibraryFloatingApp,
   },
   {
@@ -72,6 +133,14 @@ export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
     allowMultiple: true,
     capabilities: ["profiles"],
     archetype: "admin-app",
+    dataBoundary: {
+      namespace: "profile_preview",
+      currentState: "planned-supabase",
+      durability: "planned-supabase",
+      ownerScope: "account",
+      tables: ["user_profiles"],
+      rls: "planned-owner-profile-policies",
+    },
     component: ProfilePreviewFloatingApp,
   },
   {
@@ -85,6 +154,15 @@ export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
     allowMultiple: false,
     capabilities: ["composer", "notes-capture", "resource-preview"],
     archetype: "knowledge-app",
+    dataBoundary: {
+      namespace: "notes",
+      currentState: "local-storage",
+      durability: "planned-supabase",
+      ownerScope: "account-or-workspace",
+      localStorageKeys: ["nexus-notes:v2:index", "nexus-notes:v2:note:{id}"],
+      tables: ["user_notes", "note_resources"],
+      rls: "planned-owner-and-workspace-policies",
+    },
     component: NotesFloatingApp,
   },
   {
@@ -106,6 +184,19 @@ export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
       "profiles",
     ],
     archetype: "community-app",
+    dataBoundary: {
+      namespace: "forum",
+      currentState: "local-storage",
+      durability: "planned-supabase",
+      ownerScope: "account-or-workspace",
+      localStorageKeys: [
+        "nexus-forum:v1:threads-index",
+        "nexus-forum:v1:thread:{id}",
+        "nexus-forum:v1:replies:{threadId}",
+      ],
+      tables: ["forum_threads", "forum_replies", "forum_post_resources"],
+      rls: "planned-owner-and-published-thread-policies",
+    },
     component: ForumFloatingApp,
   },
   {
@@ -125,6 +216,19 @@ export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
       "notes-capture",
     ],
     archetype: "chat-app",
+    dataBoundary: {
+      namespace: "global_chat",
+      currentState: "existing-supabase",
+      durability: "existing-supabase",
+      ownerScope: "account",
+      apiRoutes: [
+        "/api/global-chat",
+        "/api/global-chats",
+        "/api/global-chats/[conversationId]",
+      ],
+      tables: ["global_conversations", "global_messages"],
+      rls: "existing-owner-chat-policies",
+    },
     component: GlobalChatFloatingApp,
   },
   {
@@ -139,7 +243,45 @@ export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
     lifecycle: "demo",
     capabilities: ["marketplace", "profiles", "comments", "search"],
     archetype: "marketplace-app",
+    dataBoundary: {
+      namespace: "service_board",
+      currentState: "local-demo",
+      durability: "planned-supabase",
+      ownerScope: "account",
+      apiRoutes: [
+        "/api/service-board/requests",
+        "/api/service-board/requests/[requestId]",
+        "/api/service-board/requests/[requestId]/offers",
+      ],
+      tables: [
+        "service_board_requests",
+        "service_board_offers",
+        "service_board_request_resources",
+      ],
+      rls: "planned-owner-and-workspace-policies",
+    },
     component: ServiceBoardFloatingApp,
+  },
+  {
+    kind: "external-web-app",
+    title: "Web App Host",
+    scope: "workspace",
+    defaultSize: { width: 960, height: 720 },
+    minSize: { width: 520, height: 360 },
+    icon: "app",
+    singleton: false,
+    allowMultiple: true,
+    lifecycle: "demo",
+    capabilities: ["workspace", "commands"],
+    archetype: "admin-app",
+    dataBoundary: {
+      namespace: "external_web_app",
+      currentState: "external-project",
+      durability: "external-owned",
+      ownerScope: "external-project",
+    },
+    webApp: LOCAL_EXTERNAL_WEB_APP_MANIFEST,
+    component: ExternalWebAppFloatingApp,
   },
 ];
 
@@ -241,6 +383,15 @@ function ServiceBoardFloatingApp({ close, setTitle, window }: FloatingAppProps) 
       close={close}
       setTitle={setTitle}
       window={toNexusWindow(window)}
+    />
+  );
+}
+
+function ExternalWebAppFloatingApp(props: FloatingAppProps) {
+  return (
+    <FloatingWebAppContainer
+      {...props}
+      manifest={LOCAL_EXTERNAL_WEB_APP_MANIFEST}
     />
   );
 }

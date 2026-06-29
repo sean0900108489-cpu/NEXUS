@@ -661,20 +661,6 @@ button {
       );
 }
 
-.nexus-agent-window-side-rail__label {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-family: var(--font-main);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0;
-  color: color-mix(
-    in srgb,
-    var(--nexus-agent-frame-accent, var(--theme-primary)) 72%,
-    rgb(255 255 255 / 0.72)
-  );
-}
-
 .nexus-agent-window-body-frame {
   margin-left: var(--nexus-agent-frame-rail-width);
   border-left: 1px solid

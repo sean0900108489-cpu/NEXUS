@@ -60,14 +60,16 @@ describe("Nexus agent window chrome production primitive", () => {
     expect(source).toContain("nexus-agent-window-top-accent");
     expect(source).toContain("nexus-agent-window-frame-wash");
     expect(source).toContain("nexus-agent-window-side-rail");
-    expect(source).toContain("nexus-agent-window-side-rail__label");
+    expect(source).not.toContain("nexus-agent-window-side-rail__label");
+    expect(source).not.toContain('"SANDBOX"');
+    expect(source).not.toContain('"AGENT"');
     expect(source).toContain('aria-hidden="true"');
 
     expect(css).toContain(".nexus-agent-window-frame-shell");
     expect(css).toContain(".nexus-agent-window-top-accent");
     expect(css).toContain(".nexus-agent-window-frame-wash");
     expect(css).toContain(".nexus-agent-window-side-rail");
-    expect(css).toContain(".nexus-agent-window-side-rail__label");
+    expect(css).not.toContain(".nexus-agent-window-side-rail__label");
     expect(css).toContain("--nexus-agent-frame-accent");
     expect(css).toContain("--nexus-agent-frame-accent-soft");
     expect(css).toContain("--nexus-agent-frame-rail-width");

@@ -591,11 +591,7 @@ export function AgentWindow({
       >
         <div aria-hidden="true" className="nexus-agent-window-frame-wash" />
         <div aria-hidden="true" className="nexus-agent-window-top-accent" />
-        <div aria-hidden="true" className="nexus-agent-window-side-rail">
-          <span className="nexus-agent-window-side-rail__label">
-            {isSandboxAgent ? "SANDBOX" : "AGENT"}
-          </span>
-        </div>
+        <div aria-hidden="true" className="nexus-agent-window-side-rail" />
         <div
           aria-label={`${agent.callsign} drag handle`}
           className="nexus-drag-handle h-2 shrink-0 cursor-move"

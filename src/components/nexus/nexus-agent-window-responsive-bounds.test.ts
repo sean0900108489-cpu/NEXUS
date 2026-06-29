@@ -39,9 +39,12 @@ describe("Nexus agent window responsive bounds", () => {
     expect(agentWindowSource).toContain("AGENT_WINDOW_COMPACT_MIN_WIDTH");
     expect(agentWindowSource).toContain("AGENT_WINDOW_COMPACT_MIN_HEIGHT");
     expect(agentWindowSource).toContain(
+      "Workspace bounds are provided by the parent NexusOps via workspaceBounds prop.",
+    );
+    expect(agentWindowSource).not.toContain(
       "AGENT_WINDOW_BOUNDS_REMEASURE_INTERVAL_MS",
     );
-    expect(agentWindowSource).toContain('closest(".nexus-workspace")');
+    expect(agentWindowSource).not.toContain('closest(".nexus-workspace")');
     expect(agentWindowSource).toContain("export function clampAgentWindowLayoutToBounds");
     expect(agentWindowFunctionSource).toContain("effectiveLayout");
     expect(agentWindowFunctionSource).toContain("effectiveWorkspaceBounds");

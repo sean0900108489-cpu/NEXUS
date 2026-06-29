@@ -521,6 +521,7 @@ export function AgentWindow({
   );
 
   const agentGlowColor = `color-mix(in srgb, ${agent.accent} var(--agent-glow-intensity), transparent)`;
+  const agentWindowFrameAccentSoft = `color-mix(in srgb, ${agent.accent} 44%, transparent)`;
   const agentWindowBackground = isSandboxAgent
     ? "color-mix(in srgb, var(--bg-elevated) 72%, transparent)"
     : "color-mix(in srgb, var(--bg-elevated) var(--chat-panel-opacity), transparent)";
@@ -563,13 +564,15 @@ export function AgentWindow({
         ref={windowRef}
         animate={{ opacity: 1, scale: 1 }}
         className={cx(
-          "nexus-agent-window relative flex h-full min-h-0 flex-col overflow-visible bg-neutral-950/88 shadow-[0_22px_70px_rgba(0,0,0,0.45)]",
+          "nexus-agent-window nexus-agent-window-frame-shell relative flex h-full min-h-0 flex-col overflow-visible bg-neutral-950/88 shadow-[0_22px_70px_rgba(0,0,0,0.45)]",
           isSandboxAgent ? "border-0" : "border-2",
         )}
         exit={{ opacity: 0, scale: 0.96 }}
         initial={{ opacity: 0, scale: 0.96 }}
         style={
           {
+            "--nexus-agent-frame-accent": agent.accent,
+            "--nexus-agent-frame-accent-soft": agentWindowFrameAccentSoft,
             "--nexus-agent-window-default-bg": agentWindowBackground,
             "--nexus-agent-window-default-border": agentWindowBorderColor,
             "--nexus-agent-window-default-shadow": agentWindowShadow,
@@ -589,6 +592,13 @@ export function AgentWindow({
         }
         transition={{ duration: 0.18 }}
       >
+        <div aria-hidden="true" className="nexus-agent-window-frame-wash" />
+        <div aria-hidden="true" className="nexus-agent-window-top-accent" />
+        <div aria-hidden="true" className="nexus-agent-window-side-rail">
+          <span className="nexus-agent-window-side-rail__label">
+            {isSandboxAgent ? "SANDBOX" : "AGENT"}
+          </span>
+        </div>
         <div
           aria-label={`${agent.callsign} drag handle`}
           className="nexus-drag-handle h-2 shrink-0 cursor-move"
@@ -603,73 +613,75 @@ export function AgentWindow({
           }}
         />
 
-        <AgentActionToolbar
-          agent={agent}
-          isMediaAgent={isMediaAgent}
-          isSandboxAgent={isSandboxAgent}
-          onClear={() => onClear(agent.id)}
-          onClose={() => onClose(agent.id)}
-          onDuplicate={() => onDuplicate(agent.id)}
-          onMinimize={() => onMinimize(agent.id)}
-          onOpenBranchInterface={() => onOpenBranchInterface(agent.id)}
-          onOpenVaultManager={onOpenVaultManager}
-          onSaveSandboxArtifact={
-            isSandboxAgent
-              ? () => onSaveArtifact(agent.id, agent.sandboxCode ?? DEFAULT_SANDBOX_CODE)
-              : undefined
-          }
-          onToggleSandboxEditor={
-            isSandboxAgent
-              ? () => setSandboxEditorCollapsed((current) => !current)
-              : undefined
-          }
-          sandboxEditorCollapsed={sandboxEditorCollapsed}
-          sandboxInteractionLocked={sandboxInteractionLocked}
-          onToggleSandboxInteractionLock={
-            isSandboxAgent
-              ? () => setSandboxInteractionLocked((current) => !current)
-              : undefined
-          }
-          onStop={() => onStop(agent.id)}
-          onToggleMaximize={() => onToggleMaximize(agent.id)}
-        />
+        <div className="nexus-agent-window-body-frame relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden">
+          <AgentActionToolbar
+            agent={agent}
+            isMediaAgent={isMediaAgent}
+            isSandboxAgent={isSandboxAgent}
+            onClear={() => onClear(agent.id)}
+            onClose={() => onClose(agent.id)}
+            onDuplicate={() => onDuplicate(agent.id)}
+            onMinimize={() => onMinimize(agent.id)}
+            onOpenBranchInterface={() => onOpenBranchInterface(agent.id)}
+            onOpenVaultManager={onOpenVaultManager}
+            onSaveSandboxArtifact={
+              isSandboxAgent
+                ? () => onSaveArtifact(agent.id, agent.sandboxCode ?? DEFAULT_SANDBOX_CODE)
+                : undefined
+            }
+            onToggleSandboxEditor={
+              isSandboxAgent
+                ? () => setSandboxEditorCollapsed((current) => !current)
+                : undefined
+            }
+            sandboxEditorCollapsed={sandboxEditorCollapsed}
+            sandboxInteractionLocked={sandboxInteractionLocked}
+            onToggleSandboxInteractionLock={
+              isSandboxAgent
+                ? () => setSandboxInteractionLocked((current) => !current)
+                : undefined
+            }
+            onStop={() => onStop(agent.id)}
+            onToggleMaximize={() => onToggleMaximize(agent.id)}
+          />
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden pr-7">
-          {isSandboxAgent ? (
-            <SandboxCanvas
-              agent={agent}
-              editorCollapsed={sandboxEditorCollapsed}
-              interactionLocked={sandboxInteractionLocked}
-              onUpdateSandboxCode={onUpdateSandboxCode}
-              onUpdateSandboxUrl={onUpdateSandboxUrl}
-            />
-          ) : (
-            <>
-              {isMediaAgent ? (
-                <MediaCanvas agent={agent} />
-              ) : (
-                <div
-                  ref={bodyRef}
-                  className="system-scroll min-h-0 flex-1 overflow-y-auto p-3"
-                >
-                  <div className="grid gap-3">
-                    {historicalPage?.error ? (
-                      <div className="border border-neutral-300/20 bg-neutral-500/10 px-3 py-2 text-xs text-neutral-100">
-                        {historicalPage.error}
-                      </div>
-                    ) : null}
-                    {renderedMessages.map((message) => (
-                      <MessageBubble
-                        key={message.id}
-                        message={message}
-                        reasoningDetail={agent.modelSettings?.reasoningDetail}
-                      />
-                    ))}
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden pr-7">
+            {isSandboxAgent ? (
+              <SandboxCanvas
+                agent={agent}
+                editorCollapsed={sandboxEditorCollapsed}
+                interactionLocked={sandboxInteractionLocked}
+                onUpdateSandboxCode={onUpdateSandboxCode}
+                onUpdateSandboxUrl={onUpdateSandboxUrl}
+              />
+            ) : (
+              <>
+                {isMediaAgent ? (
+                  <MediaCanvas agent={agent} />
+                ) : (
+                  <div
+                    ref={bodyRef}
+                    className="system-scroll min-h-0 flex-1 overflow-y-auto p-3"
+                  >
+                    <div className="grid gap-3">
+                      {historicalPage?.error ? (
+                        <div className="border border-neutral-300/20 bg-neutral-500/10 px-3 py-2 text-xs text-neutral-100">
+                          {historicalPage.error}
+                        </div>
+                      ) : null}
+                      {renderedMessages.map((message) => (
+                        <MessageBubble
+                          key={message.id}
+                          message={message}
+                          reasoningDetail={agent.modelSettings?.reasoningDetail}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </>
-          )}
+                )}
+              </>
+            )}
+          </div>
         </div>
       </motion.section>
     </Rnd>

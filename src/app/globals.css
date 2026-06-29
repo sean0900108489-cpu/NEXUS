@@ -543,6 +543,151 @@ button {
   backdrop-filter: blur(var(--nexus-agent-window-blur, var(--nexus-panel-blur, var(--glass-blur)))) !important;
 }
 
+.nexus-agent-window-frame-shell {
+  --nexus-agent-frame-rail-width: 34px;
+  --nexus-agent-frame-top-accent-height: 5px;
+  border-color: var(
+    --nexus-agent-frame-border,
+    color-mix(
+      in srgb,
+      var(--nexus-agent-frame-accent, var(--theme-primary)) 58%,
+      var(--nexus-panel-border, rgb(255 255 255 / 0.14))
+    )
+  ) !important;
+  box-shadow:
+    0 0 0 1px
+      color-mix(
+        in srgb,
+        var(--nexus-agent-frame-accent, var(--theme-primary)) 32%,
+        transparent
+      ),
+    0 0 38px
+      color-mix(
+        in srgb,
+        var(--nexus-agent-frame-accent, var(--theme-primary)) 22%,
+        transparent
+      ),
+    var(
+      --nexus-agent-window-shadow,
+      var(--nexus-panel-shadow, var(--nexus-agent-window-default-shadow, 0 22px 70px rgb(0 0 0 / 0.45)))
+    ) !important;
+}
+
+.nexus-agent-window-frame-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(
+        in srgb,
+        var(--nexus-agent-frame-accent, var(--theme-primary)) 14%,
+        transparent
+      ),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 12% 0%,
+      color-mix(
+        in srgb,
+        var(--nexus-agent-frame-accent, var(--theme-primary)) 20%,
+        transparent
+      ),
+      transparent 42%
+    );
+}
+
+.nexus-agent-window-top-accent {
+  position: absolute;
+  top: -1px;
+  right: 18px;
+  left: calc(var(--nexus-agent-frame-rail-width) + 3px);
+  z-index: 2;
+  height: var(--nexus-agent-frame-top-accent-height);
+  pointer-events: none;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--nexus-agent-frame-accent, var(--theme-primary)),
+    var(--nexus-agent-frame-accent-soft, color-mix(in srgb, var(--theme-primary) 44%, transparent))
+  );
+  box-shadow:
+    0 0 18px var(--nexus-agent-frame-accent-soft, color-mix(in srgb, var(--theme-primary) 44%, transparent)),
+    0 1px 0 rgb(255 255 255 / 0.16);
+}
+
+.nexus-agent-window-side-rail {
+  position: absolute;
+  top: 14px;
+  bottom: 12px;
+  left: 7px;
+  z-index: 1;
+  width: calc(var(--nexus-agent-frame-rail-width) - 13px);
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--nexus-agent-frame-accent, var(--theme-primary)) 42%,
+      rgb(255 255 255 / 0.12)
+    );
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(
+        in srgb,
+        var(--nexus-agent-frame-accent, var(--theme-primary)) 18%,
+        transparent
+      ),
+      color-mix(in srgb, var(--bg-elevated, rgb(8 10 16)) 72%, transparent)
+    );
+  box-shadow:
+    inset 0 0 18px
+      color-mix(
+        in srgb,
+        var(--nexus-agent-frame-accent, var(--theme-primary)) 12%,
+        transparent
+      ),
+    0 0 18px
+      color-mix(
+        in srgb,
+        var(--nexus-agent-frame-accent, var(--theme-primary)) 15%,
+        transparent
+      );
+}
+
+.nexus-agent-window-side-rail__label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--font-main);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: color-mix(
+    in srgb,
+    var(--nexus-agent-frame-accent, var(--theme-primary)) 72%,
+    rgb(255 255 255 / 0.72)
+  );
+}
+
+.nexus-agent-window-body-frame {
+  margin-left: var(--nexus-agent-frame-rail-width);
+  border-left: 1px solid
+    color-mix(
+      in srgb,
+      var(--nexus-agent-frame-accent, var(--theme-primary)) 20%,
+      rgb(255 255 255 / 0.08)
+    );
+  border-top-right-radius: inherit;
+  border-bottom-right-radius: inherit;
+  background: color-mix(in srgb, var(--nexus-panel-bg, rgb(12 16 24 / 0.88)) 82%, transparent);
+}
+
 .nexus-agent-window > .nexus-drag-handle {
   background: var(--nexus-agent-window-handle-bg, transparent);
   border-top-left-radius: var(

@@ -56,6 +56,7 @@ export type FloatingWebAppBridgeManifest = {
   storageBridge: boolean;
   apiBridge: boolean;
   workspaceContext: boolean;
+  userContext?: boolean;
 };
 
 export type FloatingWebAppManifest = {

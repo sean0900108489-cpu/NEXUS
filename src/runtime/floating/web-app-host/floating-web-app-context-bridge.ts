@@ -22,6 +22,10 @@ export type FloatingWebAppContextBridgeMessage = {
       height: number;
       width: number;
     };
+    user?: {
+      email?: string | null;
+      id: string;
+    };
     workspaceId?: string;
   };
 };
@@ -30,6 +34,10 @@ export type FloatingWebAppContextBridgeBuildInput = {
   manifest: FloatingWebAppManifest;
   window: FloatingWindowInstance;
   theme?: "dark" | "light" | "system";
+  user?: {
+    email?: string | null;
+    id: string;
+  } | null;
 };
 
 export type FloatingWebAppContextBridgeBuildResult = {
@@ -47,6 +55,7 @@ export type FloatingWebAppMessageEventLike = {
 export function buildFloatingWebAppContextBridgeMessage({
   manifest,
   theme = "system",
+  user,
   window,
 }: FloatingWebAppContextBridgeBuildInput): FloatingWebAppContextBridgeBuildResult | null {
   if (!manifest.bridge.workspaceContext) return null;
@@ -73,6 +82,14 @@ export function buildFloatingWebAppContextBridgeMessage({
           height: window.layout.height,
           width: window.layout.width,
         },
+        ...(manifest.bridge.userContext && manifest.permissions.includes("user:read") && user?.id
+          ? {
+              user: {
+                ...(user.email ? { email: user.email } : {}),
+                id: user.id,
+              },
+            }
+          : {}),
         ...(window.workspaceId ? { workspaceId: window.workspaceId } : {}),
       },
     },
@@ -139,6 +156,17 @@ export function isFloatingWebAppContextBridgeMessage(
   if (!isRecord(payload.viewport)) return false;
   if (typeof payload.viewport.height !== "number") return false;
   if (typeof payload.viewport.width !== "number") return false;
+  if (payload.user !== undefined) {
+    if (!isRecord(payload.user)) return false;
+    if (typeof payload.user.id !== "string") return false;
+    if (
+      payload.user.email !== undefined &&
+      payload.user.email !== null &&
+      typeof payload.user.email !== "string"
+    ) {
+      return false;
+    }
+  }
   if (!isRecord(payload.host)) return false;
   if (payload.host.bridge !== "workspace-context") return false;
   if (payload.host.version !== "r5-stage5-context-v1") return false;

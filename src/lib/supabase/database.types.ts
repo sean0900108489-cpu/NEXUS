@@ -746,6 +746,56 @@ export type ToolPermissionInsert = Pick<
 > &
   Partial<Pick<Tool_Permissions, "created_at" | "id" | "updated_at">>;
 
+export interface Community_Posts {
+  author_user_id: string;
+  body: string;
+  created_at: DatabaseTimestamp;
+  id: string;
+  reply_count: number;
+  status: "published" | "deleted";
+  title: string | null;
+  updated_at: DatabaseTimestamp;
+  workspace_id: string | null;
+}
+
+export type CommunityPostInsert = Pick<
+  Community_Posts,
+  "author_user_id" | "body"
+> &
+  Partial<
+    Pick<
+      Community_Posts,
+      | "created_at"
+      | "id"
+      | "reply_count"
+      | "status"
+      | "title"
+      | "updated_at"
+      | "workspace_id"
+    >
+  >;
+
+export interface Community_Replies {
+  author_user_id: string;
+  body: string;
+  created_at: DatabaseTimestamp;
+  id: string;
+  post_id: string;
+  status: "published" | "deleted";
+  updated_at: DatabaseTimestamp;
+}
+
+export type CommunityReplyInsert = Pick<
+  Community_Replies,
+  "author_user_id" | "body" | "post_id"
+> &
+  Partial<
+    Pick<
+      Community_Replies,
+      "created_at" | "id" | "status" | "updated_at"
+    >
+  >;
+
 type Insertable<T> = T;
 type Updatable<T> = Partial<T>;
 type SupabaseRecord<T> = T & Record<string, unknown>;
@@ -804,6 +854,11 @@ export type Database = {
       tool_permissions: TableDefinition<
         Tool_Permissions,
         ToolPermissionInsert
+      >;
+      community_posts: TableDefinition<Community_Posts, CommunityPostInsert>;
+      community_replies: TableDefinition<
+        Community_Replies,
+        CommunityReplyInsert
       >;
       agent_profiles: TableDefinition<Agent_Profiles>;
       workspace_agents: TableDefinition<Workspace_Agents>;

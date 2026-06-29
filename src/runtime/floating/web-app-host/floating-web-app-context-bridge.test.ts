@@ -45,6 +45,30 @@ describe("floating web app context bridge", () => {
     expect(JSON.stringify(result)).not.toContain("service_role");
   });
 
+  it("can expose safe user identity context without exposing auth credentials", () => {
+    const result = buildFloatingWebAppContextBridgeMessage({
+      manifest: makeManifest({
+        permissions: ["frame:render", "workspace:read", "user:read"],
+        bridge: { ...makeManifest().bridge, userContext: true },
+      }),
+      user: {
+        email: "operator@example.com",
+        id: "user-nexus-123",
+      },
+      window: makeWindow({ workspaceId: "workspace-123" }),
+    });
+
+    expect(result?.message.payload.user).toEqual({
+      email: "operator@example.com",
+      id: "user-nexus-123",
+    });
+    expect(JSON.stringify(result)).not.toContain("access_token");
+    expect(JSON.stringify(result)).not.toContain("refresh_token");
+    expect(JSON.stringify(result)).not.toContain("supabase");
+    expect(JSON.stringify(result)).not.toContain("service_role");
+    expect(isFloatingWebAppContextBridgeMessage(result?.message)).toBe(true);
+  });
+
   it("does not build context messages when the bridge is disabled or lacks workspace permission", () => {
     expect(
       buildFloatingWebAppContextBridgeMessage({

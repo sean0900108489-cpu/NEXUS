@@ -73,6 +73,31 @@ export const NEXUS_PLANNING_WEB_APP_MANIFEST: FloatingWebAppManifest = {
   },
 };
 
+export const COMMUNITY_BOARD_WEB_APP_MANIFEST: FloatingWebAppManifest = {
+  id: "nexus-community-board",
+  kind: "external-web-app",
+  title: "Community Board",
+  entry: "http://localhost:5175",
+  mode: "iframe",
+  permissions: ["frame:render", "workspace:read", "user:read"],
+  sandbox: [
+    "allow-scripts",
+    "allow-same-origin",
+    "allow-forms",
+    "allow-popups",
+    "allow-downloads",
+    "allow-modals",
+  ],
+  bridge: {
+    commandBridge: false,
+    authBridge: false,
+    storageBridge: false,
+    apiBridge: true,
+    workspaceContext: true,
+    userContext: true,
+  },
+};
+
 export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
   {
     kind: "developer-inspector",
@@ -328,6 +353,30 @@ export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
     webApp: NEXUS_PLANNING_WEB_APP_MANIFEST,
     component: NexusPlanningWebAppFloatingApp,
   },
+  {
+    kind: "community-board-web-app",
+    title: COMMUNITY_BOARD_WEB_APP_MANIFEST.title,
+    scope: "workspace",
+    defaultSize: { width: 940, height: 680 },
+    minSize: { width: 520, height: 380 },
+    icon: "app",
+    singleton: false,
+    allowMultiple: true,
+    lifecycle: "demo",
+    capabilities: ["feed", "composer", "comments", "profiles"],
+    archetype: "community-app",
+    dataBoundary: {
+      namespace: "community_board_web_app",
+      currentState: "external-project",
+      durability: "existing-supabase",
+      ownerScope: "external-project",
+      apiRoutes: ["/api/community/posts"],
+      tables: ["community_posts", "community_replies"],
+      rls: "authenticated-read-published-author-write",
+    },
+    webApp: COMMUNITY_BOARD_WEB_APP_MANIFEST,
+    component: CommunityBoardWebAppFloatingApp,
+  },
 ];
 
 export function createDefaultWorkspaceFloatingAppRegistry() {
@@ -446,6 +495,15 @@ function NexusPlanningWebAppFloatingApp(props: FloatingAppProps) {
     <FloatingWebAppContainer
       {...props}
       manifest={NEXUS_PLANNING_WEB_APP_MANIFEST}
+    />
+  );
+}
+
+function CommunityBoardWebAppFloatingApp(props: FloatingAppProps) {
+  return (
+    <FloatingWebAppContainer
+      {...props}
+      manifest={COMMUNITY_BOARD_WEB_APP_MANIFEST}
     />
   );
 }

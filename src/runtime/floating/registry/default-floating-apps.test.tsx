@@ -26,6 +26,7 @@ describe("default workspace floating apps", () => {
       "service-board",
       "external-web-app",
       "nexus-planning-web-app",
+      "community-board-web-app",
     ]);
     expect(DEFAULT_WORKSPACE_FLOATING_APPS[0]).toMatchObject({
       title: "Dev Inspector",
@@ -177,6 +178,34 @@ describe("default workspace floating apps", () => {
         },
       },
     });
+    expect(DEFAULT_WORKSPACE_FLOATING_APPS[10]).toMatchObject({
+      kind: "community-board-web-app",
+      title: "Community Board",
+      scope: "workspace",
+      defaultSize: { width: 940, height: 680 },
+      minSize: { width: 520, height: 380 },
+      singleton: false,
+      allowMultiple: true,
+      lifecycle: "demo",
+      capabilities: ["feed", "composer", "comments", "profiles"],
+      archetype: "community-app",
+      webApp: {
+        id: "nexus-community-board",
+        kind: "external-web-app",
+        title: "Community Board",
+        entry: "http://localhost:5175",
+        mode: "iframe",
+        permissions: ["frame:render", "workspace:read", "user:read"],
+        bridge: {
+          commandBridge: false,
+          authBridge: false,
+          storageBridge: false,
+          apiBridge: true,
+          workspaceContext: true,
+          userContext: true,
+        },
+      },
+    });
 
     const registry = createDefaultWorkspaceFloatingAppRegistry();
     expect(registry.list().map((app) => app.kind)).toEqual([
@@ -190,6 +219,7 @@ describe("default workspace floating apps", () => {
       "service-board",
       "external-web-app",
       "nexus-planning-web-app",
+      "community-board-web-app",
     ]);
     expect(registry.get("developer-inspector")).toBe(
       DEFAULT_WORKSPACE_FLOATING_APPS[0],
@@ -205,6 +235,9 @@ describe("default workspace floating apps", () => {
     expect(registry.get("nexus-planning-web-app")).toBe(
       DEFAULT_WORKSPACE_FLOATING_APPS[9],
     );
+    expect(registry.get("community-board-web-app")).toBe(
+      DEFAULT_WORKSPACE_FLOATING_APPS[10],
+    );
   });
 
   it("uses each connected web app manifest title and iframe entry", async () => {
@@ -214,6 +247,7 @@ describe("default workspace floating apps", () => {
     expect(externalApps.map((app) => app.title)).toEqual([
       "Local Web App",
       "NEXUS Planning",
+      "Community Board",
     ]);
     expect(externalApps.map((app) => app.title)).not.toContain("Web App Host");
 
@@ -247,6 +281,12 @@ describe("default workspace floating apps", () => {
       'src="http://localhost:5174"',
     );
     expect(htmlByKind["nexus-planning-web-app"]).toContain('title="NEXUS Planning"');
+    expect(htmlByKind["community-board-web-app"]).toContain(
+      'src="http://localhost:5175"',
+    );
+    expect(htmlByKind["community-board-web-app"]).toContain(
+      'title="Community Board"',
+    );
   });
 
   it("opens the R5 service board through registry metadata without desktop wiring", async () => {
@@ -284,6 +324,7 @@ describe("default workspace floating apps", () => {
       "service_board",
       "external_web_app",
       "nexus_planning_web_app",
+      "community_board_web_app",
     ]);
     expect(new Set(namespaces).size).toBe(DEFAULT_WORKSPACE_FLOATING_APPS.length);
 

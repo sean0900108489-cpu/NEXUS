@@ -68,6 +68,10 @@ Local verification used the repository's missing-table fallback because
 After the migration is applied to the live Supabase project, the same API route
 will use `community_posts` / `community_replies` for durable cross-user reads.
 
+Follow the activation runbook before claiming durable cross-user persistence:
+
+- `docs/agent-runs/nexus-shared-floating-runtime-r6-stage1-2026-06-30/context-packs/r6-community-board-supabase-activation.md`
+
 ## Non-Goals
 
 - No payments

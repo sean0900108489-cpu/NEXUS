@@ -33,3 +33,7 @@ messages to the parent host for the narrow Community Board API bridge.
 Supabase migration status: migration file exists, but this run did not apply it
 because the CLI requested `SUPABASE_DB_PASSWORD`. Until applied, localhost falls
 back to the memory repository when `community_posts` is missing.
+
+Activation runbook:
+
+- `docs/agent-runs/nexus-shared-floating-runtime-r6-stage1-2026-06-30/context-packs/r6-community-board-supabase-activation.md`

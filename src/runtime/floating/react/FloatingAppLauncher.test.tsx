@@ -34,22 +34,25 @@ describe("FloatingAppLauncher", () => {
       makeApp({ kind: "forum", title: "Forum", icon: "message-square" }),
       makeApp({ kind: "global-chat", title: "Global Chat", icon: "message-circle" }),
       makeApp({ kind: "service-board", title: "Service Board", icon: "briefcase" }),
-      makeApp({ kind: "external-web-app", title: "Web App Host", icon: "app" }),
+      makeApp({ kind: "external-web-app", title: "Local Web App", icon: "app" }),
+      makeApp({ kind: "nexus-planning-web-app", title: "NEXUS Planning", icon: "app" }),
     ];
 
     const html = renderToStaticMarkup(
       <FloatingAppLauncher apps={apps} onOpen={vi.fn()} />,
     );
 
-    expect(html).toContain('data-floating-app-count="9"');
+    expect(html).toContain('data-floating-app-count="10"');
     expect(html).toContain("overflow-x-auto");
     expect(html).toContain("overscroll-x-contain");
     expect(html).toContain("shrink-0");
     expect(html).toContain('data-floating-app-kind="service-board"');
     expect(html).toContain('aria-label="Open Service Board"');
     expect(html).toContain('data-floating-app-kind="external-web-app"');
-    expect(html).toContain('aria-label="Open Web App Host"');
-    expect(html.match(/data-floating-app-kind=/g)).toHaveLength(9);
+    expect(html).toContain('aria-label="Open Local Web App"');
+    expect(html).toContain('data-floating-app-kind="nexus-planning-web-app"');
+    expect(html).toContain('aria-label="Open NEXUS Planning"');
+    expect(html.match(/data-floating-app-kind=/g)).toHaveLength(10);
   });
 
   it("renders nothing when no apps are registered", () => {

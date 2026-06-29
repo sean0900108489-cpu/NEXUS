@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { createFloatingAppOpenInput } from "./floating-app-open-input";
@@ -24,6 +25,7 @@ describe("default workspace floating apps", () => {
       "global-chat",
       "service-board",
       "external-web-app",
+      "nexus-planning-web-app",
     ]);
     expect(DEFAULT_WORKSPACE_FLOATING_APPS[0]).toMatchObject({
       title: "Dev Inspector",
@@ -115,7 +117,7 @@ describe("default workspace floating apps", () => {
     });
     expect(DEFAULT_WORKSPACE_FLOATING_APPS[8]).toMatchObject({
       kind: "external-web-app",
-      title: "Web App Host",
+      title: "Local Web App",
       scope: "workspace",
       defaultSize: { width: 960, height: 720 },
       minSize: { width: 520, height: 360 },
@@ -148,6 +150,33 @@ describe("default workspace floating apps", () => {
         },
       },
     });
+    expect(DEFAULT_WORKSPACE_FLOATING_APPS[9]).toMatchObject({
+      kind: "nexus-planning-web-app",
+      title: "NEXUS Planning",
+      scope: "workspace",
+      defaultSize: { width: 1120, height: 760 },
+      minSize: { width: 560, height: 380 },
+      singleton: false,
+      allowMultiple: true,
+      lifecycle: "demo",
+      capabilities: ["workspace"],
+      archetype: "admin-app",
+      webApp: {
+        id: "nexus-planning-board",
+        kind: "external-web-app",
+        title: "NEXUS Planning",
+        entry: "http://localhost:5174",
+        mode: "iframe",
+        permissions: ["frame:render", "workspace:read"],
+        bridge: {
+          commandBridge: false,
+          authBridge: false,
+          storageBridge: false,
+          apiBridge: false,
+          workspaceContext: true,
+        },
+      },
+    });
 
     const registry = createDefaultWorkspaceFloatingAppRegistry();
     expect(registry.list().map((app) => app.kind)).toEqual([
@@ -160,6 +189,7 @@ describe("default workspace floating apps", () => {
       "global-chat",
       "service-board",
       "external-web-app",
+      "nexus-planning-web-app",
     ]);
     expect(registry.get("developer-inspector")).toBe(
       DEFAULT_WORKSPACE_FLOATING_APPS[0],
@@ -172,6 +202,51 @@ describe("default workspace floating apps", () => {
     expect(registry.get("global-chat")).toBe(DEFAULT_WORKSPACE_FLOATING_APPS[6]);
     expect(registry.get("service-board")).toBe(DEFAULT_WORKSPACE_FLOATING_APPS[7]);
     expect(registry.get("external-web-app")).toBe(DEFAULT_WORKSPACE_FLOATING_APPS[8]);
+    expect(registry.get("nexus-planning-web-app")).toBe(
+      DEFAULT_WORKSPACE_FLOATING_APPS[9],
+    );
+  });
+
+  it("uses each connected web app manifest title and iframe entry", async () => {
+    const { DEFAULT_WORKSPACE_FLOATING_APPS } = await import("./default-floating-apps");
+    const externalApps = DEFAULT_WORKSPACE_FLOATING_APPS.filter((app) => app.webApp);
+
+    expect(externalApps.map((app) => app.title)).toEqual([
+      "Local Web App",
+      "NEXUS Planning",
+    ]);
+    expect(externalApps.map((app) => app.title)).not.toContain("Web App Host");
+
+    const htmlByKind = Object.fromEntries(
+      externalApps.map((app) => [
+        app.kind,
+        renderToStaticMarkup(
+          <app.component
+            close={() => undefined}
+            setTitle={() => undefined}
+            window={{
+              id: `floating-window:${app.kind}:test`,
+              kind: app.kind,
+              title: app.title,
+              scope: app.scope,
+              workspaceId: "workspace-test",
+              layout: { x: 0, y: 0, width: 960, height: 720, zIndex: 1 },
+              minimized: false,
+              maximized: false,
+              createdAt: "2026-06-29T00:00:00.000Z",
+              updatedAt: "2026-06-29T00:00:00.000Z",
+            }}
+          />,
+        ),
+      ]),
+    );
+
+    expect(htmlByKind["external-web-app"]).toContain('src="http://localhost:5173"');
+    expect(htmlByKind["external-web-app"]).toContain('title="Local Web App"');
+    expect(htmlByKind["nexus-planning-web-app"]).toContain(
+      'src="http://localhost:5174"',
+    );
+    expect(htmlByKind["nexus-planning-web-app"]).toContain('title="NEXUS Planning"');
   });
 
   it("opens the R5 service board through registry metadata without desktop wiring", async () => {
@@ -208,6 +283,7 @@ describe("default workspace floating apps", () => {
       "global_chat",
       "service_board",
       "external_web_app",
+      "nexus_planning_web_app",
     ]);
     expect(new Set(namespaces).size).toBe(DEFAULT_WORKSPACE_FLOATING_APPS.length);
 

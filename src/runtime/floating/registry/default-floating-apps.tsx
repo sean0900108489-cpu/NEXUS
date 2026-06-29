@@ -49,6 +49,30 @@ export const LOCAL_EXTERNAL_WEB_APP_MANIFEST: FloatingWebAppManifest = {
   },
 };
 
+export const NEXUS_PLANNING_WEB_APP_MANIFEST: FloatingWebAppManifest = {
+  id: "nexus-planning-board",
+  kind: "external-web-app",
+  title: "NEXUS Planning",
+  entry: "http://localhost:5174",
+  mode: "iframe",
+  permissions: ["frame:render", "workspace:read"],
+  sandbox: [
+    "allow-scripts",
+    "allow-same-origin",
+    "allow-forms",
+    "allow-popups",
+    "allow-downloads",
+    "allow-modals",
+  ],
+  bridge: {
+    commandBridge: false,
+    authBridge: false,
+    storageBridge: false,
+    apiBridge: false,
+    workspaceContext: true,
+  },
+};
+
 export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
   {
     kind: "developer-inspector",
@@ -264,7 +288,7 @@ export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
   },
   {
     kind: "external-web-app",
-    title: "Web App Host",
+    title: LOCAL_EXTERNAL_WEB_APP_MANIFEST.title,
     scope: "workspace",
     defaultSize: { width: 960, height: 720 },
     minSize: { width: 520, height: 360 },
@@ -282,6 +306,27 @@ export const DEFAULT_WORKSPACE_FLOATING_APPS: FloatingAppDefinition[] = [
     },
     webApp: LOCAL_EXTERNAL_WEB_APP_MANIFEST,
     component: ExternalWebAppFloatingApp,
+  },
+  {
+    kind: "nexus-planning-web-app",
+    title: NEXUS_PLANNING_WEB_APP_MANIFEST.title,
+    scope: "workspace",
+    defaultSize: { width: 1120, height: 760 },
+    minSize: { width: 560, height: 380 },
+    icon: "app",
+    singleton: false,
+    allowMultiple: true,
+    lifecycle: "demo",
+    capabilities: ["workspace"],
+    archetype: "admin-app",
+    dataBoundary: {
+      namespace: "nexus_planning_web_app",
+      currentState: "external-project",
+      durability: "external-owned",
+      ownerScope: "external-project",
+    },
+    webApp: NEXUS_PLANNING_WEB_APP_MANIFEST,
+    component: NexusPlanningWebAppFloatingApp,
   },
 ];
 
@@ -392,6 +437,15 @@ function ExternalWebAppFloatingApp(props: FloatingAppProps) {
     <FloatingWebAppContainer
       {...props}
       manifest={LOCAL_EXTERNAL_WEB_APP_MANIFEST}
+    />
+  );
+}
+
+function NexusPlanningWebAppFloatingApp(props: FloatingAppProps) {
+  return (
+    <FloatingWebAppContainer
+      {...props}
+      manifest={NEXUS_PLANNING_WEB_APP_MANIFEST}
     />
   );
 }

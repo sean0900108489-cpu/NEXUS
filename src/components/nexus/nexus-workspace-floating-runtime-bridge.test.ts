@@ -34,4 +34,16 @@ describe("NexusOps shared floating runtime bridge", () => {
     expect(source).toContain("<FloatingWindowManager");
     expect(source).not.toContain('id: "open-developer-inspector-floating"');
   });
+
+  it("measures Workspace bounds after the auth-gated Workspace node mounts", () => {
+    const source = readFileSync(nexusOpsModuleUrl, "utf8");
+
+    expect(source).toContain("const [workspaceMeasureNode, setWorkspaceMeasureNode]");
+    expect(source).toContain("const setWorkspaceMeasureRef = useCallback");
+    expect(source).toContain("workspaceRef.current = node");
+    expect(source).toContain("setWorkspaceMeasureNode(node)");
+    expect(source).toContain("const node = workspaceMeasureNode;");
+    expect(source).toContain("}, [workspaceMeasureNode]);");
+    expect(source).toContain("ref={setWorkspaceMeasureRef}");
+  });
 });

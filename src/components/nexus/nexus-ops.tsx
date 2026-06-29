@@ -1082,6 +1082,8 @@ export function NexusOps() {
     width: 1200,
     height: 780,
   });
+  const [workspaceMeasureNode, setWorkspaceMeasureNode] =
+    useState<HTMLDivElement | null>(null);
   const workspaceFloatingRegistry = useMemo(
     () => createDefaultWorkspaceFloatingAppRegistry(),
     [],
@@ -1094,6 +1096,10 @@ export function NexusOps() {
     () => workspaceFloatingRegistry.list(),
     [workspaceFloatingRegistry],
   );
+  const setWorkspaceMeasureRef = useCallback((node: HTMLDivElement | null) => {
+    workspaceRef.current = node;
+    setWorkspaceMeasureNode(node);
+  }, []);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [activeRightPanel, setActiveRightPanel] = useState<RightDockPanelId | null>(null);
   const [leftDockOpen, setLeftDockOpen] = useState(false);
@@ -1911,7 +1917,7 @@ export function NexusOps() {
   }, [effectiveStreamMode, setStreamMode]);
 
   useEffect(() => {
-    const node = workspaceRef.current;
+    const node = workspaceMeasureNode;
 
     if (!node) {
       return;
@@ -1947,7 +1953,7 @@ export function NexusOps() {
       window.clearInterval(workspaceSizeInterval);
       observer.disconnect();
     };
-  }, []);
+  }, [workspaceMeasureNode]);
 
   useEffect(() => {
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
@@ -3467,7 +3473,7 @@ export function NexusOps() {
 
         <div className="nexus-workspace-stage-stack nexus-workspace-extended-scroll-stage flex min-h-[120dvh] min-w-0 flex-1 flex-col gap-2 lg:min-h-[180dvh] 2xl:min-h-[200dvh]">
           <section
-            ref={workspaceRef}
+            ref={setWorkspaceMeasureRef}
             className="nexus-workspace nexus-scanline relative z-0 isolate min-h-0 min-w-0 flex-1 overflow-hidden border"
           >
             {viewMode === "panels" ? (

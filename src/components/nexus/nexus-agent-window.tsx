@@ -431,6 +431,7 @@ export function AgentWindow({
   onUpdateSandboxCode,
   onUpdateSandboxUrl,
   workspaceBounds = FALLBACK_AGENT_WINDOW_WORKSPACE_BOUNDS,
+  zIndexBase = 0,
 }: {
   agent: NexusAgent;
   selected: boolean;
@@ -457,6 +458,7 @@ export function AgentWindow({
   onUpdateSandboxCode: (agentId: string, sandboxCode: string) => void;
   onUpdateSandboxUrl: (agentId: string, sandboxUrl: string) => void;
   workspaceBounds: AgentWindowWorkspaceBounds;
+  zIndexBase?: number;
 }) {
   const [sandboxEditorCollapsed, setSandboxEditorCollapsed] = useState(false);
   const [sandboxInteractionLocked, setSandboxInteractionLocked] = useState(false);
@@ -555,7 +557,7 @@ export function AgentWindow({
       onResizeStop={onResizeStop}
       position={{ x: effectiveLayout.x, y: effectiveLayout.y }}
       size={{ width: effectiveLayout.width, height: effectiveLayout.height }}
-      style={{ zIndex: agent.layout.zIndex }}
+      style={{ zIndex: zIndexBase + agent.layout.zIndex }}
     >
       <motion.section
         ref={windowRef}

@@ -46,4 +46,18 @@ describe("NexusOps shared floating runtime bridge", () => {
     expect(source).toContain("}, [workspaceMeasureNode]);");
     expect(source).toContain("ref={setWorkspaceMeasureRef}");
   });
+
+  it("lets Workspace swap agent and floating app layer priority", () => {
+    const source = readFileSync(nexusOpsModuleUrl, "utf8");
+
+    expect(source).toContain("type WorkspaceWindowLayerPreference");
+    expect(source).toContain("WORKSPACE_LOWER_WINDOW_LAYER_BASE");
+    expect(source).toContain("WORKSPACE_UPPER_WINDOW_LAYER_BASE");
+    expect(source).toContain("workspaceWindowLayerPreference");
+    expect(source).toContain("workspaceLayerZIndexes");
+    expect(source).toContain("data-workspace-window-layer-preference");
+    expect(source).toContain("Toggle floating window layer priority");
+    expect(source).toContain("zIndexBase={workspaceLayerZIndexes.agents}");
+    expect(source).toContain("zIndexBase={workspaceLayerZIndexes.floatingApps}");
+  });
 });

@@ -10,7 +10,8 @@ describe("Nexus agent window chrome production primitive", () => {
     expect(source).toContain('dragHandleClassName="nexus-drag-handle"');
     expect(source).toContain("onDragStop={onDragStop}");
     expect(source).toContain("onResizeStop={onResizeStop}");
-    expect(source).toContain("style={{ zIndex: agent.layout.zIndex }}");
+    expect(source).toContain("zIndexBase = 0");
+    expect(source).toContain("style={{ zIndex: zIndexBase + agent.layout.zIndex }}");
     expect(source).toContain("<motion.section");
     expect(source).toContain(
       '"nexus-agent-window relative flex h-full min-h-0 flex-col overflow-visible',

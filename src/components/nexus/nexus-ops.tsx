@@ -384,7 +384,9 @@ const workspaceThemeLivePreviewNetworkBaselineWindowId =
 const WORKSPACE_ATTACHMENT_BINARY_INLINE_MAX_BYTES = 4 * 1024 * 1024;
 const WORKSPACE_ATTACHMENT_CONTEXT_MAX_CHARS = 12_000;
 const WORKSPACE_SIZE_REMEASURE_INTERVAL_MS = 800;
-const WORKSPACE_FLOATING_WINDOW_Z_INDEX_BASE = 100;
+const WORKSPACE_LOWER_WINDOW_LAYER_BASE = 100;
+const WORKSPACE_UPPER_WINDOW_LAYER_BASE = 2000;
+type WorkspaceWindowLayerPreference = "floating-apps" | "agents";
 type RightDockPanelId =
   | "intel"
   | "providers"
@@ -1084,6 +1086,8 @@ export function NexusOps() {
   });
   const [workspaceMeasureNode, setWorkspaceMeasureNode] =
     useState<HTMLDivElement | null>(null);
+  const [workspaceWindowLayerPreference, setWorkspaceWindowLayerPreference] =
+    useState<WorkspaceWindowLayerPreference>("floating-apps");
   const workspaceFloatingRegistry = useMemo(
     () => createDefaultWorkspaceFloatingAppRegistry(),
     [],
@@ -1100,6 +1104,19 @@ export function NexusOps() {
     workspaceRef.current = node;
     setWorkspaceMeasureNode(node);
   }, []);
+  const workspaceLayerZIndexes = useMemo(
+    () =>
+      workspaceWindowLayerPreference === "floating-apps"
+        ? {
+            agents: WORKSPACE_LOWER_WINDOW_LAYER_BASE,
+            floatingApps: WORKSPACE_UPPER_WINDOW_LAYER_BASE,
+          }
+        : {
+            agents: WORKSPACE_UPPER_WINDOW_LAYER_BASE,
+            floatingApps: WORKSPACE_LOWER_WINDOW_LAYER_BASE,
+          },
+    [workspaceWindowLayerPreference],
+  );
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [activeRightPanel, setActiveRightPanel] = useState<RightDockPanelId | null>(null);
   const [leftDockOpen, setLeftDockOpen] = useState(false);
@@ -3499,6 +3516,7 @@ export function NexusOps() {
                       onUpdateSandboxUrl={updateSandboxUrl}
                       onUpdateLayout={updateLayout}
                       workspaceBounds={workspaceSize}
+                      zIndexBase={workspaceLayerZIndexes.agents}
                       historicalPage={
                         historicalMessages[`${activeWorkspaceId}::${agent.id}`]
                       }
@@ -3656,6 +3674,26 @@ export function NexusOps() {
               ))}
             </AnimatePresence>
 
+            <button
+              aria-label="Toggle floating window layer priority"
+              className="absolute right-3 top-14 z-[3100] flex h-8 items-center gap-2 rounded-md border border-white/10 bg-black/65 px-2 text-xs font-medium text-white/75 shadow-xl backdrop-blur-xl transition hover:border-white/20 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300"
+              data-workspace-window-layer-preference={workspaceWindowLayerPreference}
+              onClick={() =>
+                setWorkspaceWindowLayerPreference((current) =>
+                  current === "floating-apps" ? "agents" : "floating-apps",
+                )
+              }
+              title="Toggle floating window layer priority"
+              type="button"
+            >
+              <Layers3 aria-hidden="true" className="size-3.5" />
+              <span>
+                {workspaceWindowLayerPreference === "floating-apps"
+                  ? "Apps on top"
+                  : "Agents on top"}
+              </span>
+            </button>
+
             <FloatingAppLauncher
               apps={workspaceFloatingApps}
               onOpen={openWorkspaceFloatingApp}
@@ -3664,7 +3702,7 @@ export function NexusOps() {
             <FloatingWindowManager
               host={workspaceFloatingHost}
               registry={workspaceFloatingRegistry}
-              zIndexBase={WORKSPACE_FLOATING_WINDOW_Z_INDEX_BASE}
+              zIndexBase={workspaceLayerZIndexes.floatingApps}
             />
           </section>
 

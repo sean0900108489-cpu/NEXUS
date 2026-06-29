@@ -521,7 +521,6 @@ export function AgentWindow({
   );
 
   const agentGlowColor = `color-mix(in srgb, ${agent.accent} var(--agent-glow-intensity), transparent)`;
-  const agentWindowFrameAccentSoft = `color-mix(in srgb, ${agent.accent} 44%, transparent)`;
   const agentWindowBackground = isSandboxAgent
     ? "color-mix(in srgb, var(--bg-elevated) 72%, transparent)"
     : "color-mix(in srgb, var(--bg-elevated) var(--chat-panel-opacity), transparent)";
@@ -571,8 +570,6 @@ export function AgentWindow({
         initial={{ opacity: 0, scale: 0.96 }}
         style={
           {
-            "--nexus-agent-frame-accent": agent.accent,
-            "--nexus-agent-frame-accent-soft": agentWindowFrameAccentSoft,
             "--nexus-agent-window-default-bg": agentWindowBackground,
             "--nexus-agent-window-default-border": agentWindowBorderColor,
             "--nexus-agent-window-default-shadow": agentWindowShadow,

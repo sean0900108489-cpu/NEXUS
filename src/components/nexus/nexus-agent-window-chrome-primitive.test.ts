@@ -22,9 +22,9 @@ describe("Nexus agent window chrome production primitive", () => {
   it("routes visual chrome through aliases while preserving dynamic defaults", () => {
     const source = readAgentWindowSource();
 
-    expect(source).toContain('"--nexus-agent-frame-accent": agent.accent');
-    expect(source).toContain('"--nexus-agent-frame-accent-soft": agentWindowFrameAccentSoft');
-    expect(source).toContain("const agentWindowFrameAccentSoft");
+    expect(source).not.toContain('"--nexus-agent-frame-accent": agent.accent');
+    expect(source).not.toContain('"--nexus-agent-frame-accent-soft"');
+    expect(source).not.toContain("const agentWindowFrameAccentSoft");
     expect(source).toContain("const agentWindowBackground = isSandboxAgent");
     expect(source).toContain("const agentWindowBorderColor = isSandboxAgent");
     expect(source).toContain("const agentWindowShadow = isSandboxAgent");

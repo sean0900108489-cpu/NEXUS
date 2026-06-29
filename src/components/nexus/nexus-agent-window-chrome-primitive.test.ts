@@ -59,7 +59,7 @@ describe("Nexus agent window chrome production primitive", () => {
     expect(source).toContain("nexus-agent-window-frame-shell");
     expect(source).toContain("nexus-agent-window-top-accent");
     expect(source).toContain("nexus-agent-window-frame-wash");
-    expect(source).toContain("nexus-agent-window-side-rail");
+    expect(source).not.toContain("nexus-agent-window-side-rail");
     expect(source).not.toContain("nexus-agent-window-side-rail__label");
     expect(source).not.toContain('"SANDBOX"');
     expect(source).not.toContain('"AGENT"');
@@ -68,12 +68,13 @@ describe("Nexus agent window chrome production primitive", () => {
     expect(css).toContain(".nexus-agent-window-frame-shell");
     expect(css).toContain(".nexus-agent-window-top-accent");
     expect(css).toContain(".nexus-agent-window-frame-wash");
-    expect(css).toContain(".nexus-agent-window-side-rail");
+    expect(css).not.toContain(".nexus-agent-window-side-rail");
     expect(css).not.toContain(".nexus-agent-window-side-rail__label");
     expect(css).toContain("--nexus-agent-frame-accent");
     expect(css).toContain("--nexus-agent-frame-accent-soft");
-    expect(css).toContain("--nexus-agent-frame-rail-width");
+    expect(css).not.toContain("--nexus-agent-frame-rail-width");
     expect(css).toContain("--nexus-agent-frame-top-accent-height");
+    expect(css).not.toContain("margin-left: var(--nexus-agent-frame-rail-width)");
   });
 
   it("has global alias declarations and fallback chains for browser-only skinning", () => {

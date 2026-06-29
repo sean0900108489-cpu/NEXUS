@@ -544,7 +544,6 @@ button {
 }
 
 .nexus-agent-window-frame-shell {
-  --nexus-agent-frame-rail-width: 34px;
   --nexus-agent-frame-top-accent-height: 5px;
   border-color: var(
     --nexus-agent-frame-border,
@@ -604,7 +603,7 @@ button {
   position: absolute;
   top: -1px;
   right: 18px;
-  left: calc(var(--nexus-agent-frame-rail-width) + 3px);
+  left: 18px;
   z-index: 2;
   height: var(--nexus-agent-frame-top-accent-height);
   pointer-events: none;
@@ -619,58 +618,11 @@ button {
     0 1px 0 rgb(255 255 255 / 0.16);
 }
 
-.nexus-agent-window-side-rail {
-  position: absolute;
-  top: 14px;
-  bottom: 12px;
-  left: 7px;
-  z-index: 1;
-  width: calc(var(--nexus-agent-frame-rail-width) - 13px);
-  pointer-events: none;
-  display: grid;
-  place-items: center;
-  border: 1px solid
-    color-mix(
-      in srgb,
-      var(--nexus-agent-frame-accent, var(--theme-primary)) 42%,
-      rgb(255 255 255 / 0.12)
-    );
-  border-radius: 999px;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(
-        in srgb,
-        var(--nexus-agent-frame-accent, var(--theme-primary)) 18%,
-        transparent
-      ),
-      color-mix(in srgb, var(--bg-elevated, rgb(8 10 16)) 72%, transparent)
-    );
-  box-shadow:
-    inset 0 0 18px
-      color-mix(
-        in srgb,
-        var(--nexus-agent-frame-accent, var(--theme-primary)) 12%,
-        transparent
-      ),
-    0 0 18px
-      color-mix(
-        in srgb,
-        var(--nexus-agent-frame-accent, var(--theme-primary)) 15%,
-        transparent
-      );
-}
-
 .nexus-agent-window-body-frame {
-  margin-left: var(--nexus-agent-frame-rail-width);
-  border-left: 1px solid
-    color-mix(
-      in srgb,
-      var(--nexus-agent-frame-accent, var(--theme-primary)) 20%,
-      rgb(255 255 255 / 0.08)
-    );
   border-top-right-radius: inherit;
   border-bottom-right-radius: inherit;
+  border-bottom-left-radius: inherit;
+  border-top-left-radius: inherit;
   background: color-mix(in srgb, var(--nexus-panel-bg, rgb(12 16 24 / 0.88)) 82%, transparent);
 }
 

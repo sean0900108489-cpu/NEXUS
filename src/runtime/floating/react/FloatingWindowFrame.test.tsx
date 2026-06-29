@@ -17,6 +17,7 @@ describe("FloatingWindowFrame", () => {
         onResize={vi.fn()}
         onRestore={vi.fn()}
         minSize={{ width: 360, height: 260 }}
+        bounds={{ width: 1000, height: 700 }}
         window={makeWindow()}
         zIndexBase={100}
       >
@@ -31,14 +32,38 @@ describe("FloatingWindowFrame", () => {
     expect(html).toContain('aria-label="Minimize window"');
     expect(html).toContain('aria-label="Maximize window"');
     expect(html).toContain('aria-label="Lock window position"');
-    expect(html).toContain('aria-label="Resize window"');
+    expect(html).toContain('aria-label="Resize Feed window from southeast"');
     expect(html).toContain('data-floating-window-kind="feed"');
+    expect(html).toContain('data-bounds-width="1000"');
+    expect(html).toContain('data-bounds-height="700"');
     expect(html).toContain('data-min-width="360"');
     expect(html).toContain('data-min-height="260"');
     expect(html).toContain('data-position-locked="false"');
     expect(html).toContain("position:absolute");
     expect(html).toContain("z-index:107");
     expect(html).toContain('<div data-testid="app-slot">Feed app</div>');
+  });
+
+  it("renders resize handles for each edge and corner when not maximized", () => {
+    const html = renderToStaticMarkup(
+      <FloatingWindowFrame
+        focused={true}
+        onClose={vi.fn()}
+        onFocus={vi.fn()}
+        onMaximize={vi.fn()}
+        onMinimize={vi.fn()}
+        onMove={vi.fn()}
+        onResize={vi.fn()}
+        onRestore={vi.fn()}
+        window={makeWindow()}
+      >
+        <div>Feed app</div>
+      </FloatingWindowFrame>,
+    );
+
+    for (const direction of ["n", "ne", "e", "se", "s", "sw", "w", "nw"]) {
+      expect(html).toContain(`data-resize-direction="${direction}"`);
+    }
   });
 
   it("does not render minimized windows into the stage", () => {

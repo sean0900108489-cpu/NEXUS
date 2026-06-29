@@ -39,6 +39,8 @@ describe("FloatingWindowManager", () => {
 
     expect(html).toContain('data-floating-window-manager="workspace"');
     expect(html).toContain('data-floating-window-kind="feed"');
+    expect(html).toContain('data-bounds-width="1000"');
+    expect(html).toContain('data-bounds-height="700"');
     expect(html).toContain('data-min-width="360"');
     expect(html).toContain('data-min-height="260"');
     expect(html).toContain("z-index:101");

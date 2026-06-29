@@ -20,6 +20,7 @@ export function FloatingWindowManager({
   zIndexBase = 0,
 }: FloatingWindowManagerProps) {
   const windows = host.getWindows();
+  const bounds = host.getBounds();
 
   if (windows.length === 0) {
     return (
@@ -46,6 +47,7 @@ export function FloatingWindowManager({
             onMove={(x, y) => host.moveWindow(win.id, x, y)}
             onResize={(width, height) => host.resizeWindow(win.id, width, height)}
             onRestore={() => host.restoreWindow(win.id)}
+            bounds={bounds}
             minSize={app?.minSize}
             window={win}
             zIndexBase={zIndexBase}

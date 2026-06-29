@@ -20,12 +20,25 @@ import {
 
 import type { FloatingWindowInstance } from "@/runtime/floating";
 import {
-  calculateFloatingWindowResizeSize,
+  type FloatingWindowInteractionBounds,
+  type FloatingWindowResizeDirection,
+  calculateFloatingWindowResizeGeometry,
   calculateFloatingWindowDragPosition,
+  shouldStartFloatingWindowResize,
   shouldStartFloatingWindowDrag,
 } from "./floating-window-frame-interactions";
 
 const DEFAULT_MIN_FLOATING_WINDOW_SIZE = { width: 280, height: 180 };
+const FLOATING_WINDOW_RESIZE_DIRECTIONS: FloatingWindowResizeDirection[] = [
+  "n",
+  "ne",
+  "e",
+  "se",
+  "s",
+  "sw",
+  "w",
+  "nw",
+];
 
 export type FloatingWindowFrameProps = {
   window: FloatingWindowInstance;
@@ -38,6 +51,7 @@ export type FloatingWindowFrameProps = {
   onRestore: () => void;
   onMove: (x: number, y: number) => void;
   onResize: (width: number, height: number) => void;
+  bounds?: FloatingWindowInteractionBounds;
   minSize?: { width: number; height: number };
   zIndexBase?: number;
 };
@@ -55,6 +69,8 @@ export function FloatingWindowFrame(props: FloatingWindowFrameProps) {
     startPointerX: number;
     startPointerY: number;
     startWidth: number;
+    startWindowX: number;
+    startWindowY: number;
   } | null>(null);
   const [positionLocked, setPositionLocked] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -87,9 +103,12 @@ export function FloatingWindowFrame(props: FloatingWindowFrameProps) {
       const handleDragMove = (moveEvent: MouseEvent) => {
         if (!dragRef.current) return;
         const nextPosition = calculateFloatingWindowDragPosition({
+          bounds: props.bounds,
+          height: win.layout.height,
           pointerX: moveEvent.clientX,
           pointerY: moveEvent.clientY,
           ...dragRef.current,
+          width: win.layout.width,
         });
         props.onMove(nextPosition.x, nextPosition.y);
       };
@@ -104,7 +123,15 @@ export function FloatingWindowFrame(props: FloatingWindowFrameProps) {
       document.addEventListener("mousemove", handleDragMove);
       document.addEventListener("mouseup", handleDragEnd);
     },
-    [positionLocked, props, win.layout.x, win.layout.y, win.maximized],
+    [
+      positionLocked,
+      props,
+      win.layout.height,
+      win.layout.width,
+      win.layout.x,
+      win.layout.y,
+      win.maximized,
+    ],
   );
 
   const togglePositionLock = useCallback(
@@ -117,31 +144,46 @@ export function FloatingWindowFrame(props: FloatingWindowFrameProps) {
   );
 
   const handleResizeStart = useCallback(
-    (event: ReactMouseEvent<HTMLButtonElement>) => {
+    (
+      direction: FloatingWindowResizeDirection,
+      event: ReactMouseEvent<HTMLButtonElement>,
+    ) => {
       event.preventDefault();
       event.stopPropagation();
       props.onFocus();
 
-      if (win.maximized) return;
+      if (
+        !shouldStartFloatingWindowResize({
+          maximized: win.maximized,
+          positionLocked,
+        })
+      ) {
+        return;
+      }
 
       resizeRef.current = {
         startHeight: win.layout.height,
         startPointerX: event.clientX,
         startPointerY: event.clientY,
         startWidth: win.layout.width,
+        startWindowX: win.layout.x,
+        startWindowY: win.layout.y,
       };
       setIsResizing(true);
 
       const handleResizeMove = (moveEvent: MouseEvent) => {
         if (!resizeRef.current) return;
-        const nextSize = calculateFloatingWindowResizeSize({
+        const nextGeometry = calculateFloatingWindowResizeGeometry({
+          bounds: props.bounds,
+          direction,
           minHeight: minSize.height,
           minWidth: minSize.width,
           pointerX: moveEvent.clientX,
           pointerY: moveEvent.clientY,
           ...resizeRef.current,
         });
-        props.onResize(nextSize.width, nextSize.height);
+        props.onResize(nextGeometry.width, nextGeometry.height);
+        props.onMove(nextGeometry.x, nextGeometry.y);
       };
 
       const handleResizeEnd = () => {
@@ -157,9 +199,12 @@ export function FloatingWindowFrame(props: FloatingWindowFrameProps) {
     [
       minSize.height,
       minSize.width,
+      positionLocked,
       props,
       win.layout.height,
       win.layout.width,
+      win.layout.x,
+      win.layout.y,
       win.maximized,
     ],
   );
@@ -190,6 +235,8 @@ export function FloatingWindowFrame(props: FloatingWindowFrameProps) {
       data-floating-window-kind={win.kind}
       data-floating-window-scope={win.scope}
       data-focused={focused ? "true" : "false"}
+      data-bounds-height={props.bounds?.height}
+      data-bounds-width={props.bounds?.width}
       data-min-height={minSize.height}
       data-min-width={minSize.width}
       data-position-locked={positionLocked ? "true" : "false"}
@@ -281,17 +328,70 @@ export function FloatingWindowFrame(props: FloatingWindowFrameProps) {
           data-floating-window-interaction-shield="true"
         />
       ) : null}
-      {!win.maximized ? (
-        <button
-          aria-label="Resize window"
-          className="nexus-floating-window-frame__resize-handle absolute bottom-0 right-0 z-20 grid size-5 cursor-se-resize place-items-center text-white/25 hover:text-white/55"
-          onMouseDown={handleResizeStart}
-          type="button"
-        >
-          <GripHorizontal aria-hidden="true" className="size-3 rotate-45" />
-          <span className="sr-only">Resize window</span>
-        </button>
-      ) : null}
+      {!win.maximized
+        ? FLOATING_WINDOW_RESIZE_DIRECTIONS.map((direction) => (
+            <button
+              key={direction}
+              aria-label={`Resize ${win.title} window from ${getResizeDirectionLabel(direction)}`}
+              className={getResizeHandleClassName(direction)}
+              data-resize-direction={direction}
+              onMouseDown={(event) => handleResizeStart(direction, event)}
+              type="button"
+            >
+              {direction === "se" ? (
+                <GripHorizontal aria-hidden="true" className="size-3 rotate-45" />
+              ) : null}
+              <span className="sr-only">
+                Resize {win.title} window from {getResizeDirectionLabel(direction)}
+              </span>
+            </button>
+          ))
+        : null}
     </section>
   );
+}
+
+function getResizeDirectionLabel(direction: FloatingWindowResizeDirection) {
+  switch (direction) {
+    case "n":
+      return "north";
+    case "ne":
+      return "northeast";
+    case "e":
+      return "east";
+    case "se":
+      return "southeast";
+    case "s":
+      return "south";
+    case "sw":
+      return "southwest";
+    case "w":
+      return "west";
+    case "nw":
+      return "northwest";
+  }
+}
+
+function getResizeHandleClassName(direction: FloatingWindowResizeDirection) {
+  const base =
+    "nexus-floating-window-frame__resize-handle absolute z-20 text-white/25 hover:text-white/55";
+
+  switch (direction) {
+    case "n":
+      return `${base} left-5 right-5 top-0 h-2 cursor-n-resize`;
+    case "ne":
+      return `${base} right-0 top-0 size-5 cursor-ne-resize`;
+    case "e":
+      return `${base} bottom-5 right-0 top-5 w-2 cursor-e-resize`;
+    case "se":
+      return `${base} bottom-0 right-0 grid size-5 cursor-se-resize place-items-center`;
+    case "s":
+      return `${base} bottom-0 left-5 right-5 h-2 cursor-s-resize`;
+    case "sw":
+      return `${base} bottom-0 left-0 size-5 cursor-sw-resize`;
+    case "w":
+      return `${base} bottom-5 left-0 top-5 w-2 cursor-w-resize`;
+    case "nw":
+      return `${base} left-0 top-0 size-5 cursor-nw-resize`;
+  }
 }

@@ -17,6 +17,7 @@ Important files:
 - `src/lib/supabase/database.types.ts`
 - `supabase/migrations/20260629160001_create_community_board_tables.sql`
 - external app: `/Users/sean/Documents/NEXUS-community-board/index.html`
+- external repo: `https://github.com/sean0900108489-cpu/NEXUS-community-board`
 
 Verification run:
 
@@ -28,3 +29,7 @@ Verification run:
 The external app listens for `nexus:floating-web-app-context:v1`, displays safe
 NEXUS user/workspace context, and sends `nexus:floating-web-app-api-request:v1`
 messages to the parent host for the narrow Community Board API bridge.
+
+Supabase migration status: migration file exists, but this run did not apply it
+because the CLI requested `SUPABASE_DB_PASSWORD`. Until applied, localhost falls
+back to the memory repository when `community_posts` is missing.

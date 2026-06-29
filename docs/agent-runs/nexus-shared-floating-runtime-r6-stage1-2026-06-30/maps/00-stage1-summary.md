@@ -11,6 +11,7 @@ NEXUS users can publish content that other authenticated NEXUS users can read.
 ## Product Boundary
 
 - External app folder: `/Users/sean/Documents/NEXUS-community-board`
+- External app repo: `https://github.com/sean0900108489-cpu/NEXUS-community-board`
 - NEXUS floating app kind: `community-board-web-app`
 - Manifest id: `nexus-community-board`
 - Local entry: `http://localhost:5175`
@@ -61,6 +62,11 @@ RLS intent:
 - authenticated users can read published posts/replies
 - authenticated users can insert their own posts/replies
 - authors can update their own posts/replies
+
+Local verification used the repository's missing-table fallback because
+`supabase migration list` could not connect without `SUPABASE_DB_PASSWORD`.
+After the migration is applied to the live Supabase project, the same API route
+will use `community_posts` / `community_replies` for durable cross-user reads.
 
 ## Non-Goals
 
